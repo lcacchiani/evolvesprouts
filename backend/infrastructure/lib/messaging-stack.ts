@@ -29,7 +29,9 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   sesAuthEmailDomainIdentityArn: string;
   mailchimpApiSecretArn: string;
   assetsBucketName: string;
+  assetsBucketArn: string;
   openrouterApiSecretArn: string;
+  databaseProxyArn: string;
   sesSenderEmail: string;
   supportEmail: string;
   authEmailFromAddress: string;
@@ -169,11 +171,6 @@ export class MessagingNestedStack extends cdk.NestedStack {
       masterKey: props.sqsEncryptionKey,
     });
 
-    props.sqsEncryptionKey.grant(
-      new iam.ServicePrincipal("sns.amazonaws.com"),
-      "kms:GenerateDataKey*",
-      "kms:Decrypt"
-    );
 
     this.bookingRequestTopic.addSubscription(
       new snsSubscriptions.SqsSubscription(this.bookingRequestQueue)
@@ -197,6 +194,24 @@ export class MessagingNestedStack extends cdk.NestedStack {
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
         resources: [props.sesSenderIdentityArn, props.sesSenderDomainIdentityArn],
+      })
+    );
+    this.bookingRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [props.databaseSecretArn],
+      })
+    );
+    this.bookingRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
       })
     );
 
@@ -290,6 +305,30 @@ export class MessagingNestedStack extends cdk.NestedStack {
         ],
       })
     );
+    this.mediaRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [props.databaseSecretArn, props.mailchimpApiSecretArn],
+      })
+    );
+    this.mediaRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
+    this.mediaRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [props.awsProxyFunctionArn],
+      })
+    );
 
     this.mediaRequestProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(this.mediaQueue, {
@@ -356,6 +395,37 @@ export class MessagingNestedStack extends cdk.NestedStack {
           AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
         },
       });
+
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [props.databaseSecretArn, props.openrouterApiSecretArn],
+      })
+    );
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetObject", "s3:GetBucketLocation", "s3:ListBucket"],
+        resources: [props.assetsBucketArn, `${props.assetsBucketArn}/*`],
+      })
+    );
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [props.awsProxyFunctionArn],
+      })
+    );
 
     this.expenseParserFunction.addEventSource(
       new lambdaEventSources.SqsEventSource(this.expenseParserQueue, {

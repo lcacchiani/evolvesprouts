@@ -1631,6 +1631,11 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
     // Messaging pipelines + SES templates (nested stack to reduce root stack size)
     // -------------------------------------------------------------------------
+    sqsEncryptionKey.grant(
+      new iam.ServicePrincipal("sns.amazonaws.com"),
+      "kms:GenerateDataKey*",
+      "kms:Decrypt"
+    );
     const messaging = new MessagingNestedStack(this, "Messaging", {
       resourcePrefix,
       vpc,
@@ -1648,7 +1653,9 @@ export class ApiStack extends cdk.Stack {
       sesAuthEmailDomainIdentityArn,
       mailchimpApiSecretArn: mailchimpApiSecret.secretArn,
       assetsBucketName: assetsBucket.bucketName,
+      assetsBucketArn: assetsBucket.bucketArn,
       openrouterApiSecretArn: openrouterApiSecret.secretArn,
+      databaseProxyArn: database.proxy.dbProxyArn,
       sesSenderEmail: sesSenderEmail.valueAsString,
       supportEmail: supportEmail.valueAsString,
       authEmailFromAddress: authEmailFromAddress.valueAsString,
@@ -1672,9 +1679,22 @@ export class ApiStack extends cdk.Stack {
       openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
     });
 
-    messaging.bookingRequestTopic.grantPublish(adminFunction);
-    messaging.mediaTopic.grantPublish(adminFunction);
-    messaging.expenseParserTopic.grantPublish(adminFunction);
+    adminFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: [
+          messaging.bookingRequestTopic.topicArn,
+          messaging.mediaTopic.topicArn,
+          messaging.expenseParserTopic.topicArn,
+        ],
+      })
+    );
+    adminFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: [sqsEncryptionKey.keyArn],
+      })
+    );
     adminFunction.addEnvironment(
       "MEDIA_REQUEST_TOPIC_ARN",
       messaging.mediaTopic.topicArn
@@ -1683,18 +1703,6 @@ export class ApiStack extends cdk.Stack {
       "EXPENSE_PARSE_TOPIC_ARN",
       messaging.expenseParserTopic.topicArn
     );
-
-    database.grantAdminUserSecretRead(messaging.bookingRequestProcessor);
-    database.grantConnect(messaging.bookingRequestProcessor, "evolvesprouts_admin");
-    database.grantAdminUserSecretRead(messaging.mediaRequestProcessor);
-    database.grantConnect(messaging.mediaRequestProcessor, "evolvesprouts_admin");
-    database.grantAdminUserSecretRead(messaging.expenseParserFunction);
-    database.grantConnect(messaging.expenseParserFunction, "evolvesprouts_admin");
-    mailchimpApiSecret.grantRead(messaging.mediaRequestProcessor);
-    awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
-    assetsBucket.grantRead(messaging.expenseParserFunction);
-    openrouterApiSecret.grantRead(messaging.expenseParserFunction);
-    awsProxyFunction.grantInvoke(messaging.expenseParserFunction);
 
     // -------------------------------------------------------------------------
     // Eventbrite sync messaging (nested stack to reduce root stack size)
@@ -1778,7 +1786,18 @@ export class ApiStack extends cdk.Stack {
     database.grantAdminUserSecretRead(inboundInvoiceProcessor);
     database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
     assetsBucket.grantReadWrite(inboundInvoiceProcessor);
-    messaging.expenseParserTopic.grantPublish(inboundInvoiceProcessor);
+    inboundInvoiceProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: [messaging.expenseParserTopic.topicArn],
+      })
+    );
+    inboundInvoiceProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: [sqsEncryptionKey.keyArn],
+      })
+    );
     inboundInvoiceProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
         batchSize: 1,
