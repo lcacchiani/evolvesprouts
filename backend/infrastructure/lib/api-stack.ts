@@ -1721,6 +1721,7 @@ export class ApiStack extends cdk.Stack {
         handler: "lambda/manager_request_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(10),
         omitFunctionName: true,
+        reservedConcurrentExecutions: 1,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1795,6 +1796,7 @@ export class ApiStack extends cdk.Stack {
         handler: "lambda/media_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
         omitFunctionName: true,
+        reservedConcurrentExecutions: 1,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1901,6 +1903,7 @@ export class ApiStack extends cdk.Stack {
       handler: "lambda/expense_parser/handler.lambda_handler",
       timeout: cdk.Duration.seconds(90),
       omitFunctionName: true,
+      reservedConcurrentExecutions: 1,
       environment: {
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
         DATABASE_NAME: "evolvesprouts",
