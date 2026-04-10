@@ -5,7 +5,8 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 
 **Primary API Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
-**Stack Definition:** `backend/infrastructure/lib/api-stack.ts`
+**Stack Definition:** `backend/infrastructure/lib/api-stack.ts`  
+**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (booking, media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`.
 
 ---
 
@@ -317,9 +318,9 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | Yes | Custom resource handler |
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
-| `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
-| `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
-| `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser |
+| `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor (nested stack `evolvesprouts-Messaging`) |
+| `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor (nested stack `evolvesprouts-Messaging`) |
+| `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser (nested stack `evolvesprouts-Messaging`) |
 | `InboundInvoiceEmailProcessor` | `lambda/inbound_invoice_email/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered inbound invoice email processor |
 | `EventbriteSyncProcessor` | `lambda/eventbrite_sync_processor/handler.lambda_handler` | 512 MB | 60s | Yes | SQS-triggered Eventbrite sync processor |
 
@@ -357,7 +358,7 @@ For each function above, the following resources are created:
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), read Mailchimp secret, invoke `AwsApiProxyFunction`; `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` for Mailchimp download URL merge field; optional `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` for free-resource Customer Journey trigger; `MAILCHIMP_REQUIRE_MARKETING_CONSENT` + welcome journey env vars (see `aws-messaging.md`) |
-| `SesTemplateManagerFunction` | SES template CRUD (`CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`) for CloudFormation custom resource `SesEmailTemplates` |
+| `SesTemplateManagerFunction` | SES template CRUD (`CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`) for CloudFormation custom resource `SesEmailTemplates` (nested stack `evolvesprouts-Messaging`) |
 | `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
 | `InboundInvoiceEmailProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read/write for the assets bucket (including the `inbound-email/raw/` prefix), publish to the expense parser SNS topic |
 | `EventbriteSyncProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, read Eventbrite token secret, invoke `AwsApiProxyFunction` |
@@ -499,7 +500,7 @@ configured by stack custom resources (including retention and KMS association).
 | Resource Type | Logical ID | Handler | Notes |
 |--------------|------------|---------|-------|
 | Custom Resource | `AdminBootstrapResource` | `AdminBootstrapFunction` | Creates admin user in Cognito |
-| `SesEmailTemplates` | `SesTemplateManagerFunction` | Upserts SES stored templates for public transactional email |
+| `SesEmailTemplates` | `SesTemplateManagerFunction` | Upserts SES stored templates for public transactional email (nested stack `evolvesprouts-Messaging`) |
 
 **Properties:**
 - `UserPoolId`: Cognito User Pool ID
@@ -582,15 +583,15 @@ configured by stack custom resources (including retention and KMS association).
 | `AssetsDownloadCloudFrontKeyPairId` | CloudFront key pair ID | Key-Pair-Id used in signed download URLs |
 | `AssetsDownloadCustomDomainTarget` | CloudFront domain | DNS CNAME target for the asset custom domain |
 | `AssetsDownloadCustomDomainUrl` | URL | Custom domain URL used for signed asset download links |
-| `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic |
-| `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue |
-| `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages |
-| `MediaTopicArn` | SNS topic ARN | Media request events topic |
-| `MediaQueueUrl` | SQS queue URL | Media request processing queue |
-| `MediaDLQUrl` | SQS DLQ URL | Failed media request messages |
-| `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic |
-| `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue |
-| `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
+| `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic (from nested stack `evolvesprouts-Messaging`) |
+| `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue (from nested stack `evolvesprouts-Messaging`) |
+| `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages (from nested stack `evolvesprouts-Messaging`) |
+| `MediaTopicArn` | SNS topic ARN | Media request events topic (from nested stack `evolvesprouts-Messaging`) |
+| `MediaQueueUrl` | SQS queue URL | Media request processing queue (from nested stack `evolvesprouts-Messaging`) |
+| `MediaDLQUrl` | SQS DLQ URL | Failed media request messages (from nested stack `evolvesprouts-Messaging`) |
+| `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic (from nested stack `evolvesprouts-Messaging`) |
+| `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue (from nested stack `evolvesprouts-Messaging`) |
+| `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages (from nested stack `evolvesprouts-Messaging`) |
 | `EventbriteSyncTopicArn` | SNS topic ARN | Eventbrite sync events topic (from nested stack `evolvesprouts-EventbriteSync`) |
 | `EventbriteSyncQueueUrl` | SQS queue URL | Eventbrite sync processing queue (from nested stack `evolvesprouts-EventbriteSync`) |
 | `EventbriteSyncDLQUrl` | SQS DLQ URL | Failed Eventbrite sync jobs (SQS redrive; from nested stack `evolvesprouts-EventbriteSync`) |

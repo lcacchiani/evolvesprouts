@@ -124,6 +124,7 @@ their primary responsibilities.
 - Function: SesTemplateManagerFunction
 - Handler: backend/lambda/ses_template_manager/handler.py
 - Trigger: CloudFormation custom resource `SesEmailTemplates`
+- Stack: nested stack `evolvesprouts-Messaging` (`backend/infrastructure/lib/messaging-stack.ts`)
 - Purpose: create/update/delete SES stored email templates used by public
   transactional flows (contact, media download link, booking confirmation)
 - VPC: **No**
@@ -219,6 +220,7 @@ their primary responsibilities.
 ### Booking request processor
 - Function: BookingRequestProcessor
 - Handler: backend/lambda/manager_request_processor/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (subscribed to SNS booking request topic)
 - Purpose: process async booking submissions from the SNS topic
 - Reliability: retries transient SES send failures when dispatching
@@ -226,7 +228,8 @@ their primary responsibilities.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES send email (verified sender address and derived domain identity
-  ARNs; see `sesVerifiedAddressAndDomainIdentityArns` in api-stack.ts)
+  ARNs; see `sesVerifiedAddressAndDomainIdentityArns` in
+  `backend/infrastructure/lib/ses-identity-arns.ts`)
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
@@ -235,6 +238,7 @@ their primary responsibilities.
 ### Media request processor
 - Function: MediaRequestProcessor
 - Handler: backend/lambda/media_processor/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (`evolvesprouts-media-queue`)
 - Purpose: process media lead captures and fan out actions (including Mailchimp
   free-resource journey re-trigger on repeat requests during the transition
@@ -272,6 +276,7 @@ their primary responsibilities.
 ### Expense parser processor
 - Function: ExpenseParserFunction
 - Handler: backend/lambda/expense_parser/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
   using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
