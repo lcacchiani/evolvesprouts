@@ -87,6 +87,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -142,6 +143,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -171,6 +173,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -200,6 +203,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -223,6 +227,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -243,6 +248,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -273,6 +279,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -344,6 +351,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -376,6 +384,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -397,6 +406,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -449,6 +459,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -474,6 +485,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -489,6 +501,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 
@@ -502,6 +515,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       <FreeGuidesAndResourcesLibrary
         content={content}
         mediaFormContent={mediaFormContent}
+        locale='en'
       />,
     );
 

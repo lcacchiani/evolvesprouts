@@ -4,14 +4,16 @@ import { FreeGuidesAndResourcesHero } from '@/components/sections/free-guides-an
 import { FreeGuidesAndResourcesLibrary } from '@/components/sections/free-guides-and-resources-library';
 import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
-import type { SiteContent } from '@/content';
+import type { Locale, SiteContent } from '@/content';
 
 interface FreeGuidesAndResourcesPageProps {
   content: SiteContent;
+  locale: Locale;
 }
 
 export function FreeGuidesAndResourcesPage({
   content,
+  locale,
 }: FreeGuidesAndResourcesPageProps) {
   return (
     <PageLayout
@@ -19,10 +21,11 @@ export function FreeGuidesAndResourcesPage({
       footerContent={content.footer}
     >
       <FreeGuidesAndResourcesHero content={content.freeGuidesAndResources.hero} />
-      <FreeResourcesForGentleParenting content={content.resources} />
+      <FreeResourcesForGentleParenting content={content.resources} locale={locale} />
       <FreeGuidesAndResourcesLibrary
         content={content.freeGuidesAndResources.library}
         mediaFormContent={content.resources}
+        locale={locale}
       />
       <FreeGuidesAndResourcesFaq content={content.freeGuidesAndResources.faq} />
       <SproutsSquadCommunity

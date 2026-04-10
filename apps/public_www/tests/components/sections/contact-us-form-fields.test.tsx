@@ -60,6 +60,8 @@ describe('ContactFormFields', () => {
         formState={formState}
         hasEmailError
         hasPhoneError
+        hasFirstNameError={false}
+        marketingOptIn={false}
         captchaErrorMessage='captcha failed'
         submitErrorMessage='submit failed'
         turnstileSiteKey='site-key'
@@ -69,6 +71,8 @@ describe('ContactFormFields', () => {
         onUpdateField={onUpdateField}
         onEmailBlur={onEmailBlur}
         onPhoneBlur={onPhoneBlur}
+        onFirstNameBlur={vi.fn()}
+        onMarketingOptInChange={vi.fn()}
         onCaptchaTokenChange={onCaptchaTokenChange}
         onCaptchaLoadError={onCaptchaLoadError}
       />,

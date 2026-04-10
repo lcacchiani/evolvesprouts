@@ -42,7 +42,7 @@ vi.mock('@/components/sections/free-guides-and-resources-faq', () => ({
 
 describe('FreeGuidesAndResourcesPage', () => {
   it('composes all page sections with scoped content', () => {
-    render(<FreeGuidesAndResourcesPage content={enContent} />);
+    render(<FreeGuidesAndResourcesPage content={enContent} locale='en' />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('free-guides-hero')).toHaveTextContent(

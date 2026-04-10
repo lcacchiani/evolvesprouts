@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { trackAnalyticsEvent } from '@/lib/analytics';
@@ -13,9 +14,12 @@ import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
+import type { Locale } from '@/content';
 
 interface MediaFormProps {
   ctaLabel: string;
+  locale: Locale;
+  formMarketingOptInLabel: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
   formSubmitLabel: string;
@@ -45,6 +49,8 @@ function normalizeResourceKey(value: string): string {
 
 export function MediaForm({
   ctaLabel,
+  locale,
+  formMarketingOptInLabel,
   formFirstNameLabel,
   formEmailLabel,
   formSubmitLabel,
@@ -70,6 +76,7 @@ export function MediaForm({
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -151,9 +158,11 @@ export function MediaForm({
     }
 
     await withSubmitting(async () => {
-      const requestBody: Record<string, string> = {
+      const requestBody: Record<string, string | boolean> = {
         first_name: normalizedFirstName,
         email: normalizedEmail,
+        marketing_opt_in: marketingOptIn,
+        locale,
       };
       const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
       if (normalizedResourceKey) {
@@ -269,6 +278,12 @@ export function MediaForm({
         aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
         required
         disabled={isSubmitting}
+      />
+
+      <MarketingOptInCheckbox
+        label={formMarketingOptInLabel}
+        checked={marketingOptIn}
+        onChange={setMarketingOptIn}
       />
 
       <TurnstileCaptcha

@@ -65,6 +65,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+  const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -87,6 +89,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
+  const hasFirstNameError =
+    isFirstNameTouched && !sanitizeSingleLineValue(formState.firstName);
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -115,9 +119,14 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
     clearSubmissionError();
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
+    setIsFirstNameTouched(true);
     markCaptchaTouched();
 
-    if (!isValidEmail(formState.email) || !isValidPhone(formState.phone)) {
+    if (
+      !sanitizeSingleLineValue(formState.firstName) ||
+      !isValidEmail(formState.email) ||
+      !isValidPhone(formState.phone)
+    ) {
       return;
     }
     if (!captchaToken || isCaptchaUnavailable) {
@@ -135,17 +144,17 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
     const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
     const normalizedPhone = sanitizeSingleLineValue(formState.phone);
     const requestBody: {
-      first_name?: string;
+      first_name: string;
       email_address: string;
       phone_number?: string;
       message: string;
+      marketing_opt_in: boolean;
     } = {
       email_address: normalizedEmail,
       message: normalizedMessage,
+      first_name: normalizedFirstName,
+      marketing_opt_in: marketingOptIn,
     };
-    if (normalizedFirstName) {
-      requestBody.first_name = normalizedFirstName;
-    }
     if (normalizedPhone) {
       requestBody.phone_number = normalizedPhone;
     }
@@ -276,6 +285,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 formState={formState}
                 hasEmailError={hasEmailError}
                 hasPhoneError={hasPhoneError}
+                hasFirstNameError={hasFirstNameError}
+                marketingOptIn={marketingOptIn}
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
                 turnstileSiteKey={turnstileSiteKey}
@@ -289,6 +300,10 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 onPhoneBlur={() => {
                   setIsPhoneTouched(true);
                 }}
+                onFirstNameBlur={() => {
+                  setIsFirstNameTouched(true);
+                }}
+                onMarketingOptInChange={setMarketingOptIn}
                 onCaptchaTokenChange={handleCaptchaTokenChange}
                 onCaptchaLoadError={handleCaptchaLoadError}
               />

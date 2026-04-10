@@ -348,7 +348,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, expense parser, and Eventbrite sync topics, SES send email, S3 read/write for the assets bucket |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (marketing hooks on legacy routes), S3 read/write for the assets bucket |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
@@ -356,7 +356,8 @@ For each function above, the following resources are created:
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
-| `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction`; `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` for Mailchimp download URL merge field; optional `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` for Customer Journey trigger |
+| `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), read Mailchimp secret, invoke `AwsApiProxyFunction`; `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` for Mailchimp download URL merge field; optional `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` for free-resource Customer Journey trigger; `MAILCHIMP_REQUIRE_MARKETING_CONSENT` + welcome journey env vars (see `aws-messaging.md`) |
+| `SesTemplateManagerFunction` | SES template CRUD (`CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`) for CloudFormation custom resource `SesEmailTemplates` |
 | `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
 | `InboundInvoiceEmailProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read/write for the assets bucket (including the `inbound-email/raw/` prefix), publish to the expense parser SNS topic |
 | `EventbriteSyncProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, read Eventbrite token secret, invoke `AwsApiProxyFunction` |
@@ -498,6 +499,7 @@ configured by stack custom resources (including retention and KMS association).
 | Resource Type | Logical ID | Handler | Notes |
 |--------------|------------|---------|-------|
 | Custom Resource | `AdminBootstrapResource` | `AdminBootstrapFunction` | Creates admin user in Cognito |
+| `SesEmailTemplates` | `SesTemplateManagerFunction` | Upserts SES stored templates for public transactional email |
 
 **Properties:**
 - `UserPoolId`: Cognito User Pool ID
@@ -544,6 +546,9 @@ configured by stack custom resources (including retention and KMS association).
 | `MailchimpMediaDownloadMergeTag` | String | No | No | Mailchimp audience merge field tag for media download URL (`/v1/assets/email-download/{token}`; empty default; set e.g. `MMDLURL` after creating the field) |
 | `MailchimpFreeResourceJourneyId` | String | No | No | Mailchimp Customer Journey ID for free-resource journey trigger API (empty disables) |
 | `MailchimpFreeResourceJourneyStepId` | String | No | No | Journey step ID paired with `MailchimpFreeResourceJourneyId` (empty disables) |
+| `MailchimpWelcomeJourneyId` | String | No | No | Shared welcome journey ID for opted-in public form contacts (empty disables) |
+| `MailchimpWelcomeJourneyStepId` | String | No | No | Welcome journey entry step ID paired with `MailchimpWelcomeJourneyId` (empty disables) |
+| `MailchimpRequireMarketingConsent` | String | No | No | When `true`, media processor gates legacy Mailchimp subscribe + free-resource journey on `marketing_opt_in` (default: `false`) |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
 | `NominatimUserAgent` | String | No | No | User-Agent for Nominatim geocoding requests |

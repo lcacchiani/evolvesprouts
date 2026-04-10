@@ -57,6 +57,8 @@ def handle_media_request(
     first_name = _validate_first_name(body.get("first_name"))
     email = _validate_required_email(body.get("email"))
     resource_key = _validate_optional_resource_key(body.get("resource_key"))
+    marketing_opt_in = _parse_marketing_opt_in(body.get("marketing_opt_in"))
+    locale = _normalize_locale(body.get("locale"))
 
     topic_arn = os.getenv("MEDIA_REQUEST_TOPIC_ARN", "").strip()
     if not topic_arn:
@@ -74,6 +76,8 @@ def handle_media_request(
         "email": email,
         "submitted_at": datetime.now(timezone.utc).isoformat(),
         "request_id": request_id,
+        "marketing_opt_in": marketing_opt_in,
+        "locale": locale,
     }
     if resource_key is not None:
         message_payload["resource_key"] = resource_key
@@ -136,6 +140,23 @@ def _validate_required_email(value: Any) -> str:
 def _slugify_resource_key(value: str) -> str:
     slug = _RESOURCE_KEY_SANITIZE_PATTERN.sub("-", value.lower()).strip("-")
     return slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
+
+
+def _parse_marketing_opt_in(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes"}
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return False
+
+
+def _normalize_locale(value: Any) -> str:
+    if not isinstance(value, str):
+        return "en"
+    s = value.strip()
+    return s if s in {"en", "zh-CN", "zh-HK"} else "en"
 
 
 def _validate_optional_resource_key(value: Any) -> str | None:

@@ -15,10 +15,11 @@ import {
   readStringUnion,
   toRecord,
 } from '@/content/content-field-utils';
-import type { ResourcesContent } from '@/content';
+import type { Locale, ResourcesContent } from '@/content';
 
 interface FreeResourcesForGentleParentingProps {
   content: ResourcesContent;
+  locale: Locale;
 }
 
 interface ChecklistEntry {
@@ -49,6 +50,8 @@ interface ResourceCardContentProps {
   formSuccessTitle: string;
   formSuccessBody: string;
   formErrorMessage: string;
+  formMarketingOptInLabel: string;
+  locale: Locale;
   showChecklist: boolean;
   onFormOpened: () => void;
 }
@@ -189,6 +192,8 @@ function ResourceCardContent({
   formSuccessTitle,
   formSuccessBody,
   formErrorMessage,
+  formMarketingOptInLabel,
+  locale,
   showChecklist,
   onFormOpened,
 }: ResourceCardContentProps) {
@@ -231,6 +236,8 @@ function ResourceCardContent({
         ctaLabel={ctaLabel}
         resourceKey={resourceKey}
         analyticsSectionId='resources'
+        locale={locale}
+        formMarketingOptInLabel={formMarketingOptInLabel}
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
         formSubmitLabel={formSubmitLabel}
@@ -245,6 +252,7 @@ function ResourceCardContent({
 
 export function FreeResourcesForGentleParenting({
   content,
+  locale,
 }: FreeResourcesForGentleParentingProps) {
   const [hasOpenedMediaForm, setHasOpenedMediaForm] = useState(false);
 
@@ -275,6 +283,9 @@ export function FreeResourcesForGentleParenting({
   const formErrorMessage =
     readOptionalText(content.formErrorMessage) ??
     fallbackResourcesContent.formErrorMessage;
+  const formMarketingOptInLabel =
+    readOptionalText(content.formMarketingOptInLabel) ??
+    fallbackResourcesContent.formMarketingOptInLabel;
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
     readOptionalText(content.mediaTitleLine1) ??
@@ -312,6 +323,8 @@ export function FreeResourcesForGentleParenting({
       formSuccessTitle={formSuccessTitle}
       formSuccessBody={formSuccessBody}
       formErrorMessage={formErrorMessage}
+      formMarketingOptInLabel={formMarketingOptInLabel}
+      locale={locale}
       showChecklist={!hasOpenedMediaForm}
       onFormOpened={() => {
         setHasOpenedMediaForm(true);

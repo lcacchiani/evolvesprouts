@@ -182,6 +182,7 @@
     "formSuccessTitle": "请查收你的邮箱！",
     "formSuccessBody": "下载链接就在里面。",
     "formErrorMessage": "暂时无法提交，请检查信息后重试。",
+    "formMarketingOptInLabel": "订阅育儿技巧与资源更新",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
       "_valueCombinations": [
@@ -355,7 +356,9 @@
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
       "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
       "emailValidationError": "请输入有效的邮箱地址。",
-      "phoneValidationError": "请输入有效的电话号码。"
+      "phoneValidationError": "请输入有效的电话号码。",
+      "firstNameRequiredError": "请输入您的姓名",
+      "marketingOptInLabel": "订阅育儿技巧与资源更新"
     },
     "faq": {
       "title": "常见问题",
@@ -1434,6 +1437,7 @@
       "priceBreakdownConfirmedPriceLabel": "确认价格",
       "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "pendingReservationAcknowledgementLabel": "我明白在付款确认前，我的预约仍处于待确认状态",
+      "marketingOptInLabel": "订阅育儿技巧与资源更新",
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",

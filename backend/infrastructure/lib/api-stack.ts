@@ -781,6 +781,42 @@ export class ApiStack extends cdk.Stack {
           "(empty disables journey trigger)",
       }
     );
+    const mailchimpWelcomeJourneyId = new cdk.CfnParameter(
+      this,
+      "MailchimpWelcomeJourneyId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey ID for the shared welcome flow " +
+          "(triggered for opted-in contacts from contact/media/booking forms). " +
+          "Empty disables the trigger.",
+      }
+    );
+    const mailchimpWelcomeJourneyStepId = new cdk.CfnParameter(
+      this,
+      "MailchimpWelcomeJourneyStepId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey step ID for the welcome flow entry point. " +
+          "Empty disables the trigger.",
+      }
+    );
+    const mailchimpRequireMarketingConsent = new cdk.CfnParameter(
+      this,
+      "MailchimpRequireMarketingConsent",
+      {
+        type: "String",
+        default: "false",
+        allowedValues: ["true", "false"],
+        description:
+          "When true, the media processor only subscribes to Mailchimp when " +
+          "marketing_opt_in is set. Set to false during SES download link " +
+          "transition to preserve existing behavior.",
+      }
+    );
     const openrouterApiKey = new cdk.CfnParameter(
       this,
       "OpenRouterApiKey",
@@ -1567,11 +1603,48 @@ export class ApiStack extends cdk.Stack {
 
     const [sesSenderIdentityArn, sesSenderDomainIdentityArn] =
       sesVerifiedAddressAndDomainIdentityArns(this, sesSenderEmail.valueAsString);
+    const [sesAuthEmailIdentityArn, sesAuthEmailDomainIdentityArn] =
+      sesVerifiedAddressAndDomainIdentityArns(this, authEmailFromAddress.valueAsString);
     const mailchimpApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
       this,
       "MailchimpApiSecret",
       mailchimpApiSecretArn.valueAsString
     );
+
+    const sesTemplateManagerFunction = createPythonFunction(
+      "SesTemplateManagerFunction",
+      {
+        handler: "lambda/ses_template_manager/handler.lambda_handler",
+        memorySize: 256,
+        timeout: cdk.Duration.seconds(60),
+        noVpc: true,
+      }
+    );
+    sesTemplateManagerFunction.addPermission("SesTemplateManagerCfnPermission", {
+      principal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
+      sourceArn: cdk.Stack.of(this).stackId,
+      sourceAccount: cdk.Stack.of(this).account,
+    });
+    sesTemplateManagerFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "ses:CreateTemplate",
+          "ses:UpdateTemplate",
+          "ses:DeleteTemplate",
+          "ses:GetTemplate",
+        ],
+        resources: ["*"],
+      })
+    );
+    const sesTemplatesHash = hashDirectory(
+      path.join(__dirname, "../../src/app/templates/ses")
+    );
+    new cdk.CustomResource(this, "SesEmailTemplates", {
+      serviceToken: sesTemplateManagerFunction.functionArn,
+      properties: {
+        TemplatesHash: sesTemplatesHash,
+      },
+    });
     // SECURITY: Use customer-managed KMS key for Secrets Manager (Checkov CKV_AWS_149)
     const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
       enableKeyRotation: true,
@@ -1744,6 +1817,15 @@ export class ApiStack extends cdk.Stack {
             mailchimpFreeResourceJourneyId.valueAsString,
           MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID:
             mailchimpFreeResourceJourneyStepId.valueAsString,
+          CONFIRMATION_EMAIL_FROM_ADDRESS:
+            authEmailFromAddress.valueAsString,
+          MAILCHIMP_REQUIRE_MARKETING_CONSENT:
+            mailchimpRequireMarketingConsent.valueAsString,
+          MAILCHIMP_WELCOME_JOURNEY_ID: mailchimpWelcomeJourneyId.valueAsString,
+          MAILCHIMP_WELCOME_JOURNEY_STEP_ID:
+            mailchimpWelcomeJourneyStepId.valueAsString,
+          PUBLIC_WWW_BASE_URL:
+            `https://${publicWwwDomainName.valueAsString}`,
         },
       }
     );
@@ -1753,8 +1835,13 @@ export class ApiStack extends cdk.Stack {
 
     mediaRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
+        actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
+        resources: [
+          sesSenderIdentityArn,
+          sesSenderDomainIdentityArn,
+          sesAuthEmailIdentityArn,
+          sesAuthEmailDomainIdentityArn,
+        ],
       })
     );
     mailchimpApiSecret.grantRead(mediaRequestProcessor);
@@ -2684,6 +2771,45 @@ export class ApiStack extends cdk.Stack {
       principal: new iam.ServicePrincipal("apigateway.amazonaws.com"),
       sourceArn: api.arnForExecuteApi(),
     });
+
+    adminFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
+        resources: [
+          sesSenderIdentityArn,
+          sesSenderDomainIdentityArn,
+          sesAuthEmailIdentityArn,
+          sesAuthEmailDomainIdentityArn,
+        ],
+      })
+    );
+    mailchimpApiSecret.grantRead(adminFunction);
+    adminFunction.addEnvironment(
+      "CONFIRMATION_EMAIL_FROM_ADDRESS",
+      authEmailFromAddress.valueAsString
+    );
+    adminFunction.addEnvironment("SUPPORT_EMAIL", supportEmail.valueAsString);
+    adminFunction.addEnvironment(
+      "MAILCHIMP_API_SECRET_ARN",
+      mailchimpApiSecret.secretArn
+    );
+    adminFunction.addEnvironment("MAILCHIMP_LIST_ID", mailchimpListId.valueAsString);
+    adminFunction.addEnvironment(
+      "MAILCHIMP_SERVER_PREFIX",
+      mailchimpServerPrefix.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "MAILCHIMP_WELCOME_JOURNEY_ID",
+      mailchimpWelcomeJourneyId.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "MAILCHIMP_WELCOME_JOURNEY_STEP_ID",
+      mailchimpWelcomeJourneyStepId.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BASE_URL",
+      `https://${publicWwwDomainName.valueAsString}`
+    );
 
     const calendar = v1.addResource("calendar");
     calendar.addResource("public").addMethod("GET", adminIntegration, {

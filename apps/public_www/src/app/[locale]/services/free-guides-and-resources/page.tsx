@@ -43,7 +43,7 @@ export default async function FreeGuidesAndResourcesRoutePage({
 
   return (
     <>
-      <FreeGuidesAndResourcesPage content={content} />
+      <FreeGuidesAndResourcesPage content={content} locale={locale} />
       <StructuredDataScript
         id={`free-guides-and-resources-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

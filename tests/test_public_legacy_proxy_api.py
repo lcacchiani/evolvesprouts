@@ -125,6 +125,68 @@ def test_legacy_proxy_maps_proxy_error_to_bad_gateway(
     }
 
 
+def test_legacy_contact_us_success_triggers_confirmation_hook(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/legacy/contact-us",
+        body=json.dumps(
+            {
+                "email_address": "parent@example.com",
+                "first_name": "Pat",
+                "message": "hello",
+                "marketing_opt_in": True,
+            }
+        ),
+        headers={"Accept-Language": "en-GB"},
+    )
+    monkeypatch.setenv("LEGACY_PUBLIC_API_BASE_URL", "https://legacy.example.com")
+    monkeypatch.setattr(
+        "app.api.public_legacy_proxy.http_invoke",
+        lambda **_: {"status": 202, "body": json.dumps({"message": "Accepted"})},
+    )
+    calls: list[str] = []
+
+    def _hook(**kwargs: Any) -> None:
+        calls.append("hook")
+
+    monkeypatch.setattr("app.api.public_legacy_proxy.run_contact_us_post_success", _hook)
+
+    response = handle_legacy_contact_us(event, "POST")
+
+    assert response["statusCode"] == 202
+    assert calls == ["hook"]
+
+
+def test_legacy_proxy_skips_hook_on_upstream_failure(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/legacy/contact-us",
+        body=json.dumps({"email_address": "parent@example.com", "message": "hello"}),
+    )
+    monkeypatch.setenv("LEGACY_PUBLIC_API_BASE_URL", "https://legacy.example.com")
+    monkeypatch.setattr(
+        "app.api.public_legacy_proxy.http_invoke",
+        lambda **_: {"status": 400, "body": json.dumps({"error": "bad"})},
+    )
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        "app.api.public_legacy_proxy.run_contact_us_post_success",
+        lambda **_kwargs: calls.append("hook"),
+    )
+
+    response = handle_legacy_contact_us(event, "POST")
+
+    assert response["statusCode"] == 400
+    assert calls == []
+
+
 def test_legacy_proxy_normalizes_retryable_upstream_failures(
     api_gateway_event: Any,
     monkeypatch: Any,

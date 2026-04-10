@@ -22,6 +22,7 @@ import type {
 } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
@@ -423,6 +424,7 @@ export function BookingReservationForm({
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -790,6 +792,18 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
+    const scheduleTimeLabel = (() => {
+      if (!primarySession) {
+        return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
+      }
+      const start = sanitizeSingleLineValue(primarySession.dateStartTime);
+      const end = sanitizeSingleLineValue(primarySession.dateEndTime ?? '');
+      if (!start) {
+        return undefined;
+      }
+      return end ? `${start} – ${end}` : start;
+    })();
+
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -804,6 +818,12 @@ export function BookingReservationForm({
       agreed_to_terms_and_conditions: hasTermsAgreement,
       payment_method: selectedPaymentMethod,
       stripe_payment_intent_id: undefined,
+      marketing_opt_in: marketingOptIn,
+      locale,
+      course_label: sanitizeSingleLineValue(eventTitle) || undefined,
+      schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      schedule_time_label: scheduleTimeLabel,
+      location_name: sanitizeSingleLineValue(venueName) || undefined,
     };
 
     await withSubmitting(async () => {
@@ -941,6 +961,12 @@ export function BookingReservationForm({
             originalAmount={originalAmount}
             discountAmount={discountAmount}
             totalAmount={totalAmount}
+          />
+
+          <MarketingOptInCheckbox
+            label={content.marketingOptInLabel}
+            checked={marketingOptIn}
+            onChange={setMarketingOptIn}
           />
 
           <div data-booking-payment='true' className='w-full space-y-2 py-1'>

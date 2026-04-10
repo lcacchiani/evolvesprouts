@@ -35,7 +35,8 @@ function createResourcesContent(
 describe('Free resources for gentle parenting section', () => {
   it('uses center heading and split layout defaults', () => {
     const { container } = render(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
+      <FreeResourcesForGentleParenting content={enContent.resources}
+        locale='en' />,
     );
 
     const section = container.querySelector('section[data-figma-node="resources"]');
@@ -65,7 +66,8 @@ describe('Free resources for gentle parenting section', () => {
 
   it('applies the orange tile background pattern to the card container', () => {
     const { container, rerender } = render(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
+      <FreeResourcesForGentleParenting content={enContent.resources}
+        locale='en' />,
     );
 
     const layout = screen.getByTestId('free-resource-layout');
@@ -83,7 +85,8 @@ describe('Free resources for gentle parenting section', () => {
       imagePosition: 'right',
       cardPosition: 'right',
     });
-    rerender(<FreeResourcesForGentleParenting content={overlayContent} />);
+    rerender(<FreeResourcesForGentleParenting content={overlayContent}
+        locale='en' />);
 
     const overlayLayout = screen.getByTestId('free-resource-layout');
     const overlayMediaPane = screen.getByTestId('free-resource-media-pane');
@@ -98,7 +101,8 @@ describe('Free resources for gentle parenting section', () => {
   it('does not render the circular play-arrow overlay on the media image', () => {
     const playIconPathSelector = 'path[d="M12 9.8L23 16L12 22.2V9.8Z"]';
     const { container, rerender } = render(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
+      <FreeResourcesForGentleParenting content={enContent.resources}
+        locale='en' />,
     );
 
     expect(container.querySelector(playIconPathSelector)).toBeNull();
@@ -109,14 +113,16 @@ describe('Free resources for gentle parenting section', () => {
       imagePosition: 'right',
       cardPosition: 'right',
     });
-    rerender(<FreeResourcesForGentleParenting content={overlayContent} />);
+    rerender(<FreeResourcesForGentleParenting content={overlayContent}
+        locale='en' />);
 
     expect(container.querySelector(playIconPathSelector)).toBeNull();
   });
 
   it('renders checklist list items with white rounded backgrounds', () => {
     const { container } = render(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
+      <FreeResourcesForGentleParenting content={enContent.resources}
+        locale='en' />,
     );
 
     const checklistList = container.querySelector('ul');
@@ -132,7 +138,8 @@ describe('Free resources for gentle parenting section', () => {
 
   it('hides the checklist after the first CTA reveals the form', () => {
     const { container } = render(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
+      <FreeResourcesForGentleParenting content={enContent.resources}
+        locale='en' />,
     );
 
     expect(container.querySelector('ul')).not.toBeNull();
@@ -148,7 +155,8 @@ describe('Free resources for gentle parenting section', () => {
       cardPosition: 'left',
     });
 
-    render(<FreeResourcesForGentleParenting content={content} />);
+    render(<FreeResourcesForGentleParenting content={content}
+        locale='en' />);
 
     const header = screen.getByTestId('free-resource-header');
     expect(header.className).toContain('text-left');
@@ -163,7 +171,8 @@ describe('Free resources for gentle parenting section', () => {
       cardPosition: 'left',
     });
 
-    render(<FreeResourcesForGentleParenting content={content} />);
+    render(<FreeResourcesForGentleParenting content={content}
+        locale='en' />);
 
     const layout = screen.getByTestId('free-resource-layout');
     const textPane = screen.getByTestId('free-resource-text-pane');
@@ -185,7 +194,8 @@ describe('Free resources for gentle parenting section', () => {
       cardPosition: 'right',
     });
 
-    render(<FreeResourcesForGentleParenting content={content} />);
+    render(<FreeResourcesForGentleParenting content={content}
+        locale='en' />);
 
     const layout = screen.getByTestId('free-resource-layout');
     const overlayWrapper = screen.getByTestId(
@@ -204,7 +214,8 @@ describe('Free resources for gentle parenting section', () => {
       cardPosition: 'middle',
     });
 
-    render(<FreeResourcesForGentleParenting content={content} />);
+    render(<FreeResourcesForGentleParenting content={content}
+        locale='en' />);
 
     const header = screen.getByTestId('free-resource-header');
     const layout = screen.getByTestId('free-resource-layout');
