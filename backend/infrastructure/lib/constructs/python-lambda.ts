@@ -51,8 +51,8 @@ export interface PythonLambdaProps {
   extraCopyPaths?: string[];
   /** Custom code asset (overrides default bundling). */
   code?: lambda.Code;
-  /** Reserved concurrency limit. */
-  reservedConcurrentExecutions?: number;
+  /** Reserved concurrency limit. Use null to opt out of default reservation. */
+  reservedConcurrentExecutions?: number | null;
   /** KMS key to encrypt environment variables. */
   environmentEncryptionKey?: kms.IKey;
   /** KMS key to encrypt CloudWatch log group. When provided, the construct
@@ -232,7 +232,9 @@ export class PythonLambda extends Construct {
       deadLetterQueue,
       deadLetterQueueEnabled: true,
       reservedConcurrentExecutions:
-        props.reservedConcurrentExecutions ?? 25,
+        props.reservedConcurrentExecutions === null
+          ? undefined
+          : (props.reservedConcurrentExecutions ?? 25),
       logGroup,
       environment: {
         PYTHONPATH: "/var/task/src",

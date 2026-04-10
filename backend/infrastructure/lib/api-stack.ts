@@ -1224,6 +1224,7 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths?: string[];
         securityGroups?: ec2.ISecurityGroup[];
         memorySize?: number;
+        reservedConcurrentExecutions?: number | null;
         // Set to true for functions that need internet access but not database
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
@@ -1240,6 +1241,7 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
+        reservedConcurrentExecutions: props.reservedConcurrentExecutions,
         // Omitting physical functionName requires AWS-managed default log groups
         // (PythonLambda cannot create a fixed /aws/lambda/{name} log group without a name).
         manageLogGroup: props.omitFunctionName
@@ -1628,6 +1630,7 @@ export class ApiStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(60),
         noVpc: true,
         omitFunctionName: true,
+        reservedConcurrentExecutions: null,
       }
     );
     sesTemplateManagerFunction.addToRolePolicy(
