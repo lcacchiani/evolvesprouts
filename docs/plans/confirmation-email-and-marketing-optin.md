@@ -2,6 +2,8 @@
 
 **Status**: Draft — awaiting owner approval before implementation.
 
+---
+
 ## 1. Goal
 
 Add two capabilities to every public form submission flow (Contact Us, Media
@@ -58,7 +60,26 @@ during a transition period (both send), then removed in a follow-up.
 
 ---
 
-## 4. Current state
+## 4. Design decisions (resolved)
+
+These decisions were confirmed by the product owner and are binding for
+implementation.
+
+| # | Decision | Detail |
+|---|----------|--------|
+| D1 | Legacy APIs tolerate unknown fields | The new fields (`marketing_opt_in`, `locale`, `course_label`, etc.) can be forwarded to the legacy API without stripping. |
+| D2 | Welcome journey not yet created | Deploy with empty placeholder values for `MAILCHIMP_WELCOME_JOURNEY_ID` and `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (empty disables the trigger). The existing `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` and `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` GitHub vars and CDK parameters stay unchanged — they serve the media download delivery during the transition period and are a separate journey. |
+| D3 | WhatsApp URL — no new CDK parameter | Use the same hardcoded fallback URL as the website content JSON (`whatsappContact.href` in `en.json`): `https://wa.me/message/ZQHVW4DEORD5A1?src=qr`. Define this as a module constant in a shared email template utilities module (`backend/src/app/templates/constants.py`). Keep it in sync with `apps/public_www/src/content/en.json` → `whatsappContact.href`. This mirrors how the website treats it as a brand-level fallback constant. |
+| D4 | Email sender: `hello@evolvesprouts.com` | Customer-facing confirmation emails use the `AuthEmailFromAddress` parameter (`hello@evolvesprouts.com`). Internal notifications continue using `SesSenderEmail` (`no-reply@`). The SES domain identity ARN (`identity/evolvesprouts.com`) already covers both addresses. |
+| D5 | Legacy APIs accept `first_name` | Making `first_name` required on the Contact Us form and forwarding it in the body is safe. |
+| D6 | Booking display fields tolerated | Adding `course_label`, `schedule_date_label`, `schedule_time_label`, and `location_name` to the reservation POST body is safe. |
+| D7 | Email templates: SES native templates (Handlebars) | Use SES stored templates with Handlebars syntax (`{{variable}}`, `{{#if}}`, `{{#each}}`). The `send_templated_email` function already exists in `backend/src/app/services/email.py`. Templates are created/updated via a CDK custom resource at deploy time. This is the AWS-native approach and avoids maintaining complex HTML in Python string-format templates. See §6.6 for details. |
+| D8 | SES is in production mode | No sending limit concerns. |
+| D9 | Marketing opt-in checkbox: unchecked by default | True opt-in across all three forms. |
+
+---
+
+## 5. Current state
 
 | Flow | Email to user | Email to team | Mailchimp | Consent |
 |------|--------------|--------------|-----------|---------|
@@ -76,7 +97,7 @@ during a transition period (both send), then removed in a follow-up.
 
 ---
 
-## 5. Target state
+## 6. Target state
 
 | Flow | Email to user | Email to team | Mailchimp | Consent |
 |------|--------------|--------------|-----------|---------|
@@ -94,9 +115,9 @@ issues in the initial rollout. See §10 for the removal checklist.
 
 ---
 
-## 6. Detailed changes
+## 7. Detailed changes
 
-### 6.1 Frontend — Contact Us form
+### 7.1 Frontend — Contact Us form
 
 **Files to modify:**
 
@@ -133,7 +154,7 @@ After:  { email_address, message, first_name, phone_number?, marketing_opt_in }
 `first_name` becomes always-present (required). `marketing_opt_in` is a boolean
 (default `false` if omitted).
 
-### 6.2 Frontend — Media download form
+### 7.2 Frontend — Media download form
 
 **Files to modify:**
 
@@ -152,31 +173,34 @@ Before: { first_name, email, resource_key? }
 After:  { first_name, email, resource_key?, marketing_opt_in }
 ```
 
-### 6.3 Frontend — Booking reservation form
+### 7.3 Frontend — Booking reservation form
 
 **Files to modify:**
 
 | File | Change |
 |------|--------|
 | `apps/public_www/src/components/sections/booking-modal/reservation-form-fields.tsx` | Add marketing opt-in checkbox. Place it after the topics textarea and before the payment section. Visually distinguish from the required terms checkbox (terms has `*`, marketing does not). Pass `marketingOptIn` and `onMarketingOptInChange` as new props. |
-| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Add `marketingOptIn` boolean state (default `false`). Include `marketing_opt_in` in the reservation payload. Pass the `locale` prop value into the POST body as `locale` (string, e.g. `"en"`, `"zh-CN"`, `"zh-HK"`). |
-| `apps/public_www/src/lib/reservations-data.ts` | Add `marketing_opt_in?: boolean` and `locale?: string` to `ReservationSubmissionPayload`. |
+| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Add `marketingOptIn` boolean state (default `false`). Include `marketing_opt_in` in the reservation payload. Pass the `locale` prop value into the POST body as `locale` (string, e.g. `"en"`, `"zh-CN"`, `"zh-HK"`). Include display fields from `reservationSummary`: `course_label`, `schedule_date_label`, `schedule_time_label`, `location_name`. |
+| `apps/public_www/src/lib/reservations-data.ts` | Add to `ReservationSubmissionPayload`: `marketing_opt_in?: boolean`, `locale?: string`, `course_label?: string`, `schedule_date_label?: string`, `schedule_time_label?: string`, `location_name?: string`. |
 | `apps/public_www/src/content/en.json` | Add under `bookingModal.paymentModal`: `marketingOptInLabel` ("Keep me updated with parenting tips and resources"). |
 | `apps/public_www/src/content/zh-CN.json` | Chinese Simplified translation. |
 | `apps/public_www/src/content/zh-HK.json` | Chinese Traditional translation. |
-| Tests for the reservation form components. | Update: checkbox rendering, default state, payload includes `marketing_opt_in` and `locale`. |
+| Tests for the reservation form components. | Update: checkbox rendering, default state, payload includes new fields. |
 
 **Request body change:**
 
 ```
 Before: { full_name, email, phone_number, cohort_age, cohort_date, ... }
-After:  { full_name, email, phone_number, cohort_age, cohort_date, ..., marketing_opt_in, locale }
+After:  { full_name, email, phone_number, cohort_age, cohort_date, ...,
+          marketing_opt_in, locale, course_label, schedule_date_label,
+          schedule_time_label, location_name }
 ```
 
 `locale` is passed from the frontend so the backend can select the correct
-email template language.
+email template language. Display fields are sourced from `reservationSummary`
+in `reservation-form.tsx`.
 
-### 6.4 Frontend — Shared checkbox component
+### 7.4 Frontend — Shared checkbox component
 
 All three forms need an identical marketing opt-in checkbox. To avoid
 duplication, extract a shared component:
@@ -190,7 +214,7 @@ Renders a styled `<label>` with `<input type="checkbox">` using existing
 `es-form-*` CSS classes. No required marker. Accessible (`aria-*` attributes
 not needed beyond the label association).
 
-### 6.5 Backend — Shared marketing subscribe helper
+### 7.5 Backend — Shared marketing subscribe helper
 
 **New file:** `backend/src/app/services/marketing_subscribe.py`
 
@@ -218,88 +242,146 @@ Implementation:
 1. Call `add_subscriber_with_tag(email=email, first_name=first_name,
    tag_name=tag_name, merge_fields=merge_fields)` with `run_with_retry`
    (3 attempts, 1s base delay, `_is_retryable_mailchimp_exception`).
-2. On success, call `trigger_customer_journey(email=email,
-   journey_id=<env>, step_id=<env>)` with `run_with_retry`.
+2. On success, read `MAILCHIMP_WELCOME_JOURNEY_ID` and
+   `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` from env. If both non-empty, call
+   `trigger_customer_journey(email=email, journey_id=..., step_id=...)`
+   with `run_with_retry`. If either is empty, skip (journey not configured).
 3. Catch and log all exceptions. Return `False` on failure.
 
 Environment variables consumed:
 - `MAILCHIMP_API_SECRET_ARN` (existing)
 - `MAILCHIMP_LIST_ID` (existing)
 - `MAILCHIMP_SERVER_PREFIX` (existing)
-- `MAILCHIMP_WELCOME_JOURNEY_ID` (new)
-- `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (new)
+- `MAILCHIMP_WELCOME_JOURNEY_ID` (new — deploy with empty string initially)
+- `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (new — deploy with empty string initially)
 
 These are the **shared** welcome journey IDs — all three flows trigger the same
-journey.
+journey. They are **separate** from the existing
+`MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID`
+which serve the media download delivery Mailchimp journey and remain unchanged
+during the transition period.
 
-### 6.6 Backend — New email templates
+### 7.6 Backend — Email templates
 
-**Pattern to follow:** `backend/src/app/templates/media_lead.py` and
-`backend/src/app/templates/types.py` (`EmailContent` dataclass).
+#### 7.6.0 Template approach: SES stored templates with Handlebars
 
-#### 6.6.1 Contact Us confirmation
+AWS SES natively supports stored email templates with Handlebars syntax
+(`{{variable}}`, `{{#if condition}}`, `{{#each list}}`). The
+`send_templated_email` function already exists in
+`backend/src/app/services/email.py` and calls
+`ses:SendTemplatedEmail`.
 
-**New file:** `backend/src/app/templates/contact_confirmation.py`
+**Template management:** Templates will be created/updated at deploy time via
+a CDK custom resource (Lambda-backed) that calls `ses:CreateTemplate` /
+`ses:UpdateTemplate`. Template source lives in Python modules under
+`backend/src/app/templates/ses/` as dictionaries (template name → subject/HTML/text).
+The custom resource Lambda reads these and upserts them into SES.
 
-`render_contact_confirmation_email(*, first_name, locale) -> EmailContent`
+Each template is **locale-suffixed** to support three languages:
+
+- `evolvesprouts-contact-confirmation-en`
+- `evolvesprouts-contact-confirmation-zh-CN`
+- `evolvesprouts-contact-confirmation-zh-HK`
+- `evolvesprouts-media-download-en` / `zh-CN` / `zh-HK`
+- `evolvesprouts-booking-confirmation-en` / `zh-CN` / `zh-HK`
+
+The handler selects the correct template by appending the validated locale
+suffix (default `en`).
+
+**Template data** is passed as a JSON object via `send_templated_email`'s
+`template_data` parameter.
+
+#### 7.6.1 Shared template constants
+
+**New file:** `backend/src/app/templates/constants.py`
+
+Module-level constants shared across email templates:
+
+```python
+WHATSAPP_URL = "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+```
+
+This matches the hardcoded fallback in
+`apps/public_www/src/content/en.json` → `whatsappContact.href`. Must stay
+in sync with that value.
+
+Also defines a `resolve_public_www_base_url()` helper that reads
+`PUBLIC_WWW_BASE_URL` env var (set on Lambda from CDK
+`publicWwwDomainName`).
+
+#### 7.6.2 SES template definitions
+
+**New file:** `backend/src/app/templates/ses/contact_confirmation.py`
+
+Template name pattern: `evolvesprouts-contact-confirmation-{locale}`
+
+Template data variables:
+- `{{first_name}}`
+- `{{whatsapp_url}}`
+- `{{faq_url}}`
 
 Content:
 - Subject: "We received your message — Evolve Sprouts"
 - Body: Greeting with first name. "We received your message and will get back
   to you within 24–48 hours." Links: FAQ page URL, WhatsApp URL. Closing.
-- HTML: Branded template matching the `media_lead.py` styling approach
-  (inline CSS, 600px max-width, Evolve Sprouts header).
+- HTML: Branded template (inline CSS, 600px max-width, Evolve Sprouts header).
+  Handlebars variables for dynamic content.
 
-The template must support three locales: `en`, `zh-CN`, `zh-HK`. Use a
-locale-keyed dictionary of strings within the template module.
+**New file:** `backend/src/app/templates/ses/media_download_link.py`
 
-**Environment variables consumed:**
-- `PUBLIC_WWW_BASE_URL` (new — for FAQ link; derive from existing
-  `publicWwwDomainName` CDK parameter)
-- `WHATSAPP_URL` (new — for WhatsApp link in email)
-- `SES_SENDER_EMAIL` (existing on processors; new on admin Lambda)
-- `SUPPORT_EMAIL` (existing on processors; new on admin Lambda)
+Template name pattern: `evolvesprouts-media-download-{locale}`
 
-#### 6.6.2 Media download link
-
-**New file:** `backend/src/app/templates/media_download_link.py`
-
-`render_media_download_email(*, first_name, media_name, download_url, locale) -> EmailContent`
+Template data variables:
+- `{{first_name}}`
+- `{{media_name}}`
+- `{{download_url}}`
 
 Content:
 - Subject: "Your free guide is ready — Evolve Sprouts"
-- Body: Greeting with first name. "Here is your download link for {media_name}."
-  Prominent download button/link. "If the button doesn't work, copy this URL:
-  {download_url}." Closing.
+- Body: Greeting with first name. "Here is your download link for
+  {{media_name}}." Prominent download button/link. "If the button doesn't
+  work, copy this URL: {{download_url}}." Closing.
 - HTML: Branded template. Prominent CTA button for the download URL.
 
-**Environment variables consumed:**
-- `SES_SENDER_EMAIL` (already on media processor)
-- The download URL is computed by `_ensure_share_link_url_for_asset()` in the
-  media processor — no new env var needed.
+**New file:** `backend/src/app/templates/ses/booking_confirmation.py`
 
-#### 6.6.3 Booking confirmation
+Template name pattern: `evolvesprouts-booking-confirmation-{locale}`
 
-**New file:** `backend/src/app/templates/booking_confirmation.py`
-
-`render_booking_confirmation_email(*, full_name, email, course_label,
-month_label, schedule_date_label, schedule_time_label, payment_method,
-total_amount, stripe_payment_intent_id, locale) -> EmailContent`
+Template data variables:
+- `{{full_name}}`
+- `{{course_label}}`
+- `{{schedule_date_label}}` (optional — use `{{#if}}`)
+- `{{schedule_time_label}}` (optional)
+- `{{payment_method}}`
+- `{{total_amount}}`
+- `{{is_pending_payment}}` (boolean — for non-Stripe note)
+- `{{whatsapp_url}}`
 
 Content:
-- Subject: "Booking confirmed — {course_label} — Evolve Sprouts"
+- Subject: "Booking confirmed — {{course_label}} — Evolve Sprouts"
 - Body: Greeting with full name. "Thank you for your booking!" Details table:
-  course/event name, date/time, payment amount (HKD), payment method. If
-  non-Stripe payment method: "Your reservation is pending until payment is
-  confirmed." WhatsApp link for questions. Closing.
+  course/event name, date/time, payment amount (HKD), payment method.
+  `{{#if is_pending_payment}}` block: "Your reservation is pending until
+  payment is confirmed." WhatsApp link for questions. Closing.
 - HTML: Branded template. Details table. WhatsApp CTA.
 
-**Environment variables consumed:**
-- `PUBLIC_WWW_BASE_URL` (new — for WhatsApp link if not hardcoded)
-- `WHATSAPP_URL` (new)
-- `SES_SENDER_EMAIL` (new on admin Lambda)
+#### 7.6.3 SES template deployment custom resource
 
-### 6.7 Backend — Contact Us handler changes
+**New file:** `backend/lambda/ses_template_manager/handler.py`
+
+A simple CloudFormation custom resource Lambda that:
+- On CREATE/UPDATE: reads template definitions, calls
+  `ses:CreateTemplate` or `ses:UpdateTemplate` for each.
+- On DELETE: calls `ses:DeleteTemplate` for each.
+- Returns template names as outputs.
+
+**CDK wiring** in `api-stack.ts`: a `CustomResource` backed by this Lambda,
+triggered on every deploy. The Lambda is granted `ses:CreateTemplate`,
+`ses:UpdateTemplate`, `ses:DeleteTemplate`, `ses:GetTemplate` permissions.
+It runs outside the VPC (SES API is public). Template source is bundled with
+the Lambda code.
+
+### 7.7 Backend — Contact Us handler changes
 
 **File:** `backend/src/app/api/public_legacy_proxy.py`
 
@@ -316,7 +398,9 @@ New flow:
         ORIGINAL parsed body (not the proxy response).
      b. Determine locale: read Accept-Language header from the original
         event, or default to "en".
-     c. Send SES confirmation email (fire-and-forget with error logging).
+     c. Send SES confirmation email via send_templated_email using
+        template evolvesprouts-contact-confirmation-{locale}
+        (fire-and-forget with error logging).
      d. If marketing_opt_in is truthy AND first_name is non-empty:
         call subscribe_to_marketing (fire-and-forget).
   3. Return the proxy response (unchanged).
@@ -325,20 +409,20 @@ New flow:
 The SES send and Mailchimp calls MUST NOT delay or alter the response. Wrap
 each in a try/except that logs and swallows errors.
 
-**Important:** The legacy proxy handler currently does not parse the body for
-its own use — it forwards it opaquely. For the post-success hooks, we need to
-access the parsed body. The body is already parsed via `parse_body(event)` in
-`_handle_legacy_proxy`. Refactor to make the parsed payload available to the
-caller: either return it alongside the response, or have the specific handler
-(`handle_legacy_contact_us`) parse the body separately before calling the
-generic proxy.
+**Refactoring the proxy:** The legacy proxy handler currently does not parse the
+body for its own use — it forwards it opaquely. For the post-success hooks, the
+parsed body must be accessible. The body is already parsed via `parse_body(event)`
+in `_handle_legacy_proxy`.
 
 **Recommended approach:** Have `handle_legacy_contact_us` call `parse_body`
 first, then pass the result to a slightly refactored `_handle_legacy_proxy`
 that accepts an already-parsed payload. This avoids double-parsing and keeps
 the generic proxy clean.
 
-### 6.8 Backend — Booking handler changes
+**From address:** Use `CONFIRMATION_EMAIL_FROM_ADDRESS` env var
+(`hello@evolvesprouts.com`).
+
+### 7.8 Backend — Booking handler changes
 
 **File:** `backend/src/app/api/public_legacy_proxy.py`
 
@@ -346,31 +430,37 @@ Modify `handle_legacy_reservations`:
 
 Same pattern as Contact Us. After successful proxy response:
 
-1. Extract `full_name` (→ derive first name by splitting on first space),
-   `email`, `phone_number`, `cohort_date`, `price`, `payment_method`,
-   `stripe_payment_intent_id`, `marketing_opt_in`, `locale` from the original
-   parsed body.
-2. Determine locale: use `locale` from the body (passed by the frontend), fall
-   back to `"en"`.
-3. Send SES booking confirmation email (fire-and-forget).
-4. If `marketing_opt_in` is truthy AND derived first name is non-empty:
+1. Extract `full_name`, `email`, `course_label`, `schedule_date_label`,
+   `schedule_time_label`, `payment_method`, `price`,
+   `stripe_payment_intent_id`, `marketing_opt_in`, `locale` from the
+   original parsed body.
+2. Derive first name from `full_name` by splitting on first whitespace.
+3. Determine locale: use `locale` from the body (passed by the frontend),
+   validate against `["en", "zh-CN", "zh-HK"]`, fall back to `"en"`.
+4. Determine `is_pending_payment`: `True` when `payment_method` is not
+   a Stripe variant (not `"stripe"`) and `stripe_payment_intent_id` is empty.
+5. Send SES booking confirmation email via `send_templated_email` using
+   template `evolvesprouts-booking-confirmation-{locale}`
+   (fire-and-forget).
+6. If `marketing_opt_in` is truthy AND derived first name is non-empty:
    call `subscribe_to_marketing` with tag `booking-customer`
    (fire-and-forget).
+
+**From address:** Use `CONFIRMATION_EMAIL_FROM_ADDRESS` env var
+(`hello@evolvesprouts.com`).
 
 **Note on `full_name` → `first_name`:** The booking form collects `full_name`
 (e.g., "Jane Smith"). Mailchimp's `FNAME` merge field expects a first name.
 Split `full_name` on the first whitespace and use the first segment. If the
-name has no spaces, use the entire string. This is a best-effort extraction —
-acceptable for a merge field.
+name has no spaces, use the entire string.
 
-### 6.9 Backend — Media processor changes
+### 7.9 Backend — Media processor changes
 
 **File:** `backend/src/app/api/public_media.py`
 
 Add `marketing_opt_in` to the SNS message payload:
 
 ```python
-# In handle_media_request, when building message_payload:
 message_payload = {
     "event_type": _EVENT_TYPE,
     "first_name": first_name,
@@ -379,7 +469,6 @@ message_payload = {
     "request_id": ...,
     "marketing_opt_in": body.get("marketing_opt_in", False),
 }
-# resource_key added conditionally as before
 ```
 
 **File:** `backend/lambda/media_processor/handler.py`
@@ -395,73 +484,85 @@ Current flow:
 
 New flow:
   1. Upsert contact in DB            (always)
-  2. SES download link to user        (always — NEW)
+  2. SES download link to user        (always — NEW, via send_templated_email
+     using evolvesprouts-media-download-{locale})
   3. SES to sales team                (always — unchanged)
-  4. add_subscriber_with_tag()        (TRANSITION: always; POST-TRANSITION: only if marketing_opt_in)
-  5. trigger_customer_journey()       (TRANSITION: always, if step 4 succeeded; POST-TRANSITION: only if marketing_opt_in AND step 4 succeeded)
+  4. add_subscriber_with_tag()        (TRANSITION: always;
+                                       POST-TRANSITION: only if marketing_opt_in)
+  5. trigger_customer_journey()       (TRANSITION: always if step 4 succeeded;
+     [free resource journey]           POST-TRANSITION: only if marketing_opt_in)
+  6. subscribe_to_marketing()         (only if marketing_opt_in — NEW;
+     [welcome journey]                 uses shared helper from §7.5)
 ```
 
 **Step 2 detail:** After `_ensure_share_link_url_for_asset` returns the
-download URL, call the new `render_media_download_email` template and send via
-`send_email`. Use `SES_SENDER_EMAIL` as the source, send to the user's email.
+download URL, call `send_templated_email` with the media download template.
+Use `CONFIRMATION_EMAIL_FROM_ADDRESS` (`hello@evolvesprouts.com`) as the
+source, send to the user's email.
+
+**Locale for media:** The media form does not currently pass a `locale` field.
+Add `locale` to the media form frontend payload (§7.2) and pass it through
+the SNS message. Default to `"en"` if missing.
 
 **Transition behavior:** During the transition period, steps 4 and 5 remain
-unconditional (matching current behavior). The `marketing_opt_in` flag is read
-from the message but only used to set a metadata field on the sales lead event
-for tracking. After the transition, the condition changes to gate steps 4–5
-behind `marketing_opt_in`.
+unconditional (matching current behavior), controlled by the env var
+`MAILCHIMP_REQUIRE_MARKETING_CONSENT`. When `"false"` (default during
+transition), Mailchimp subscribe + free resource journey fire unconditionally.
+When `"true"` (post-transition), they are gated behind `marketing_opt_in`.
 
-To make the transition switchable, introduce an environment variable:
+Step 6 (welcome journey via shared helper) **always** requires
+`marketing_opt_in` regardless of the transition flag — it is a new behavior
+that only fires for opted-in users.
 
-`MAILCHIMP_REQUIRE_MARKETING_CONSENT` — when `"true"`, Mailchimp subscribe is
-gated behind `marketing_opt_in`. When empty or `"false"` (default during
-transition), Mailchimp subscribe fires unconditionally as it does today.
+**From address:** Use `CONFIRMATION_EMAIL_FROM_ADDRESS` env var
+(`hello@evolvesprouts.com`). Add this env var to the media processor.
 
-This same env var can be used across all flows for consistency, but it only
-matters for the media processor during the transition (contact-us and booking
-have no existing Mailchimp integration to preserve).
-
-### 6.10 Backend — Infrastructure (CDK) changes
+### 7.10 Backend — Infrastructure (CDK) changes
 
 **File:** `backend/infrastructure/lib/api-stack.ts`
 
-#### 6.10.1 Admin Lambda SES permissions
+#### 7.10.1 Admin Lambda SES permissions
 
-Add `ses:SendEmail` and `ses:SendRawEmail` IAM policy to `adminFunction`:
+Add `ses:SendEmail`, `ses:SendRawEmail`, and `ses:SendTemplatedEmail` IAM
+policy to `adminFunction`. Use the existing `sesSenderDomainIdentityArn`
+which covers all `@evolvesprouts.com` addresses (including `hello@`):
 
 ```typescript
 adminFunction.addToRolePolicy(
   new iam.PolicyStatement({
-    actions: ["ses:SendEmail", "ses:SendRawEmail"],
+    actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
     resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
   })
 );
 ```
 
-#### 6.10.2 Admin Lambda environment variables
+#### 7.10.2 Admin Lambda environment variables
 
-Add the following to `adminFunction`:
+Add the following to `adminFunction` via `addEnvironment`:
 
-```typescript
-adminFunction.addEnvironment("SES_SENDER_EMAIL", sesSenderEmail.valueAsString);
-adminFunction.addEnvironment("SUPPORT_EMAIL", supportEmail.valueAsString);
-adminFunction.addEnvironment("MAILCHIMP_API_SECRET_ARN", mailchimpApiSecret.secretArn);
-adminFunction.addEnvironment("MAILCHIMP_LIST_ID", mailchimpListId.valueAsString);
-adminFunction.addEnvironment("MAILCHIMP_SERVER_PREFIX", mailchimpServerPrefix.valueAsString);
-adminFunction.addEnvironment("MAILCHIMP_WELCOME_JOURNEY_ID", mailchimpWelcomeJourneyId.valueAsString);
-adminFunction.addEnvironment("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", mailchimpWelcomeJourneyStepId.valueAsString);
-adminFunction.addEnvironment("PUBLIC_WWW_BASE_URL", `https://${publicWwwDomainName.valueAsString}`);
-adminFunction.addEnvironment("WHATSAPP_URL", whatsappUrl.valueAsString);
-```
+| Env var | Value source | Purpose |
+|---------|-------------|---------|
+| `SES_SENDER_EMAIL` | `sesSenderEmail.valueAsString` | Internal notifications (existing pattern) |
+| `CONFIRMATION_EMAIL_FROM_ADDRESS` | `authEmailFromAddress.valueAsString` | Customer-facing emails (`hello@`) |
+| `SUPPORT_EMAIL` | `supportEmail.valueAsString` | Support email reference |
+| `MAILCHIMP_API_SECRET_ARN` | `mailchimpApiSecret.secretArn` | Mailchimp API key access |
+| `MAILCHIMP_LIST_ID` | `mailchimpListId.valueAsString` | Audience ID |
+| `MAILCHIMP_SERVER_PREFIX` | `mailchimpServerPrefix.valueAsString` | Mailchimp API host |
+| `MAILCHIMP_WELCOME_JOURNEY_ID` | `mailchimpWelcomeJourneyId.valueAsString` | Shared welcome journey |
+| `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | `mailchimpWelcomeJourneyStepId.valueAsString` | Welcome journey entry step |
+| `PUBLIC_WWW_BASE_URL` | `` `https://${publicWwwDomainName.valueAsString}` `` | For FAQ link in emails |
 
-#### 6.10.3 New CfnParameters
+#### 7.10.3 New CfnParameters
 
 ```typescript
 const mailchimpWelcomeJourneyId = new cdk.CfnParameter(
   this, "MailchimpWelcomeJourneyId", {
     type: "String",
     default: "",
-    description: "Mailchimp Customer Journey ID for welcome flow (shared across contact/media/booking opt-ins)",
+    description:
+      "Mailchimp Customer Journey ID for the shared welcome flow " +
+      "(triggered for opted-in contacts from contact/media/booking forms). " +
+      "Empty disables the trigger.",
   }
 );
 
@@ -469,68 +570,66 @@ const mailchimpWelcomeJourneyStepId = new cdk.CfnParameter(
   this, "MailchimpWelcomeJourneyStepId", {
     type: "String",
     default: "",
-    description: "Mailchimp Customer Journey step ID for welcome flow entry point",
+    description:
+      "Mailchimp Customer Journey step ID for the welcome flow entry point. " +
+      "Empty disables the trigger.",
   }
 );
 
-const whatsappUrl = new cdk.CfnParameter(
-  this, "WhatsappUrl", {
-    type: "String",
-    default: "",
-    description: "WhatsApp contact URL included in transactional confirmation emails",
-  }
-);
-```
-
-`PUBLIC_WWW_BASE_URL` is derived from the existing `publicWwwDomainName`
-parameter — no new CfnParameter needed.
-
-#### 6.10.4 Admin Lambda Secrets Manager read
-
-The admin Lambda needs to read the Mailchimp API secret. The
-`mediaRequestProcessor` already has this grant. Add the same for
-`adminFunction`:
-
-```typescript
-mailchimpApiSecret.grantRead(adminFunction);
-```
-
-Where `mailchimpApiSecret` is the existing imported secret from
-`MailchimpApiSecretArn`.
-
-#### 6.10.5 Media processor environment variable
-
-Add to `mediaRequestProcessor` environment:
-
-```typescript
-MAILCHIMP_REQUIRE_MARKETING_CONSENT: mailchimpRequireMarketingConsent.valueAsString,
-```
-
-With a new parameter:
-
-```typescript
 const mailchimpRequireMarketingConsent = new cdk.CfnParameter(
   this, "MailchimpRequireMarketingConsent", {
     type: "String",
     default: "false",
     allowedValues: ["true", "false"],
-    description: "When true, Mailchimp subscribe requires marketing_opt_in. Set to false during transition.",
+    description:
+      "When true, the media processor only subscribes to Mailchimp when " +
+      "marketing_opt_in is set. Set to false during SES download link " +
+      "transition to preserve existing behavior.",
   }
 );
 ```
 
-### 6.11 Documentation updates
+No `WhatsappUrl` parameter — see decision D3.
+
+#### 7.10.4 Admin Lambda Secrets Manager read
+
+```typescript
+mailchimpApiSecret.grantRead(adminFunction);
+```
+
+#### 7.10.5 Media processor additional environment variables
+
+Add to `mediaRequestProcessor` environment:
+
+| Env var | Value source | Purpose |
+|---------|-------------|---------|
+| `CONFIRMATION_EMAIL_FROM_ADDRESS` | `authEmailFromAddress.valueAsString` | Customer-facing download link email |
+| `MAILCHIMP_REQUIRE_MARKETING_CONSENT` | `mailchimpRequireMarketingConsent.valueAsString` | Transition flag |
+| `MAILCHIMP_WELCOME_JOURNEY_ID` | `mailchimpWelcomeJourneyId.valueAsString` | Shared welcome journey (new, separate from free resource journey) |
+| `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | `mailchimpWelcomeJourneyStepId.valueAsString` | Welcome journey entry step |
+
+Add `ses:SendTemplatedEmail` to the media processor SES IAM policy (it already
+has `ses:SendEmail` and `ses:SendRawEmail`).
+
+#### 7.10.6 SES template deployment custom resource
+
+Add a `CustomResource` backed by the SES template manager Lambda (§7.6.3).
+Grant it `ses:CreateTemplate`, `ses:UpdateTemplate`, `ses:DeleteTemplate`,
+`ses:GetTemplate` on `*`. Run outside VPC. Trigger on every deploy by
+including a hash of the template source as a property.
+
+### 7.11 Documentation updates
 
 | File | Change |
 |------|--------|
-| `docs/api/public.yaml` | Add `marketing_opt_in` (boolean, optional, default false) to `ContactUsSubmissionRequest`, `MediaRequestSubmissionRequest`. Mark `first_name` as required on Contact Us. Add `marketing_opt_in` and `locale` to the reservation legacy proxy body description. Document confirmation email behavior in endpoint descriptions. |
-| `docs/architecture/aws-messaging.md` | Add section for contact-us and booking transactional emails (SES, synchronous from Admin Lambda). Update media flow: SES sends download link directly, Mailchimp conditional on consent (with transition note). |
-| `docs/architecture/lambdas.md` | Update Admin Lambda: add SES permissions, new env vars (`SES_SENDER_EMAIL`, `SUPPORT_EMAIL`, Mailchimp vars, `PUBLIC_WWW_BASE_URL`, `WHATSAPP_URL`). Update Media Processor: add `MAILCHIMP_REQUIRE_MARKETING_CONSENT` env var, note SES download link. |
-| `docs/architecture/aws-assets-map.md` | Add new CfnParameters: `MailchimpWelcomeJourneyId`, `MailchimpWelcomeJourneyStepId`, `WhatsappUrl`, `MailchimpRequireMarketingConsent`. |
+| `docs/api/public.yaml` | Add `marketing_opt_in` (boolean, optional, default false) to `ContactUsSubmissionRequest` and `MediaRequestSubmissionRequest`. Mark `first_name` as required on Contact Us. Add `marketing_opt_in`, `locale`, `course_label`, `schedule_date_label`, `schedule_time_label`, `location_name` to the reservation body description. Add `locale` to `MediaRequestSubmissionRequest`. Document confirmation email behavior in endpoint descriptions. |
+| `docs/architecture/aws-messaging.md` | Add section for contact-us and booking transactional emails (SES, synchronous from Admin Lambda). Update media flow: SES sends download link directly, Mailchimp conditional on consent (with transition note). Document the SES template management custom resource. |
+| `docs/architecture/lambdas.md` | Update Admin Lambda: add SES permissions, new env vars. Update Media Processor: add `CONFIRMATION_EMAIL_FROM_ADDRESS`, `MAILCHIMP_REQUIRE_MARKETING_CONSENT`, welcome journey vars, `ses:SendTemplatedEmail`. Add SES template manager Lambda entry. |
+| `docs/architecture/aws-assets-map.md` | Add new CfnParameters: `MailchimpWelcomeJourneyId`, `MailchimpWelcomeJourneyStepId`, `MailchimpRequireMarketingConsent`. Add SES template custom resource. |
 
 ---
 
-## 7. Mailchimp tags
+## 8. Mailchimp tags
 
 | Flow | Tag name | Applied when |
 |------|----------|-------------|
@@ -540,95 +639,98 @@ const mailchimpRequireMarketingConsent = new cdk.CfnParameter(
 
 ---
 
-## 8. Execution order
+## 9. Execution order
 
 Implementation should proceed in this order to minimize risk and allow
 incremental testing:
 
 ### Phase 1: Backend infrastructure and shared code
 
-1. CDK changes (§6.10): Admin Lambda SES grant, env vars, new parameters.
-2. New shared helper (§6.5): `marketing_subscribe.py`.
-3. New email templates (§6.6): all three.
-4. Run `pre-commit run ruff-format --all-files` after all Python changes.
-5. Run `bash scripts/validate-cursorrules.sh`.
+1. CDK changes (§7.10): Admin Lambda SES grant, env vars, new parameters,
+   media processor env updates.
+2. SES template definitions (§7.6): all three template sets (9 templates
+   total: 3 flows × 3 locales).
+3. SES template deployment custom resource (§7.6.3).
+4. Shared marketing subscribe helper (§7.5): `marketing_subscribe.py`.
+5. Shared template constants (§7.6.1): `constants.py`.
+6. Run `pre-commit run ruff-format --all-files` after all Python changes.
+7. Run `bash scripts/validate-cursorrules.sh`.
 
 ### Phase 2: Backend handler changes
 
-6. Contact Us handler (§6.7): post-success SES + Mailchimp hook.
-7. Booking handler (§6.8): post-success SES + Mailchimp hook.
-8. Media API (§6.9): pass `marketing_opt_in` through SNS payload.
-9. Media processor (§6.9): add SES download link, transition flag for
-   Mailchimp.
+8. Contact Us handler (§7.7): post-success SES + Mailchimp hook.
+9. Booking handler (§7.8): post-success SES + Mailchimp hook.
+10. Media API (§7.9): pass `marketing_opt_in` and `locale` through SNS payload.
+11. Media processor (§7.9): add SES download link, transition flag for
+    Mailchimp, welcome journey for opt-in.
 
 ### Phase 3: Frontend changes
 
-10. Shared checkbox component (§6.4).
-11. Contact Us form (§6.1): required first name + checkbox + payload.
-12. Media form (§6.2): checkbox + payload.
-13. Booking form (§6.3): checkbox + payload + locale.
-14. Update all affected tests.
-15. Update locale content in all three JSON files.
+12. Shared checkbox component (§7.4).
+13. Contact Us form (§7.1): required first name + checkbox + payload.
+14. Media form (§7.2): checkbox + payload + locale.
+15. Booking form (§7.3): checkbox + payload + locale + display fields.
+16. Update all affected tests.
+17. Update locale content in all three JSON files.
 
 ### Phase 4: Documentation
 
-16. OpenAPI spec updates (§6.11).
-17. Architecture docs updates (§6.11).
+18. OpenAPI spec updates (§7.11).
+19. Architecture docs updates (§7.11).
 
 ---
 
-## 9. Testing checklist
+## 10. Testing checklist
 
 ### Backend unit tests
 
 - [ ] `marketing_subscribe.py`: success path, Mailchimp API error (non-blocking),
-  missing env vars, empty email/name.
-- [ ] `contact_confirmation.py`: renders all three locales, subject and body
-  contain expected placeholders.
-- [ ] `media_download_link.py`: renders all three locales, download URL is
-  present in body.
-- [ ] `booking_confirmation.py`: renders all three locales, all booking fields
-  present, pending-payment note for non-Stripe.
+  missing env vars, empty email/name, empty journey IDs (skip trigger).
+- [ ] SES template definitions: validate Handlebars syntax, all variables present,
+  all three locales defined for each template.
 - [ ] `public_legacy_proxy.py` (contact-us): successful proxy triggers SES +
   Mailchimp when opted in; failed proxy triggers neither; Mailchimp failure
   does not affect response; missing first_name skips Mailchimp.
 - [ ] `public_legacy_proxy.py` (booking): same as above, plus locale
-  passthrough, full_name → first_name extraction.
-- [ ] `public_media.py`: `marketing_opt_in` included in SNS payload.
+  passthrough, full_name → first_name extraction, is_pending_payment logic.
+- [ ] `public_media.py`: `marketing_opt_in` and `locale` included in SNS payload.
 - [ ] `media_processor/handler.py`: SES download link sent on success;
   Mailchimp gated by transition flag + opt-in; SES failure logged but
-  processing continues.
+  processing continues; welcome journey fires only for opted-in users.
 
 ### Frontend component tests
 
 - [ ] Contact Us form: first name required validation, checkbox unchecked by
   default, payload shape, success/error paths unchanged.
-- [ ] Media form: checkbox unchecked by default, payload shape.
+- [ ] Media form: checkbox unchecked by default, payload shape includes
+  `marketing_opt_in`.
 - [ ] Booking form: checkbox unchecked by default, checkbox visually distinct
-  from terms, payload includes `marketing_opt_in` and `locale`.
+  from terms, payload includes `marketing_opt_in`, `locale`, and display fields.
 - [ ] Shared checkbox component: renders label, toggles state, accessible.
 
 ### Integration / manual testing
 
-- [ ] Submit Contact Us with opt-in → receive SES confirmation + appear in
-  Mailchimp audience with `contact-us-inquiry` tag.
+- [ ] Submit Contact Us with opt-in → receive SES confirmation from
+  `hello@evolvesprouts.com` + appear in Mailchimp audience with
+  `contact-us-inquiry` tag.
 - [ ] Submit Contact Us without opt-in → receive SES confirmation only, not
   added to Mailchimp.
 - [ ] Submit media form with opt-in → receive SES download link + Mailchimp
-  journey email (transition). Appear in audience.
+  journey email (transition). Appear in audience with tag and welcome journey.
 - [ ] Submit media form without opt-in → receive SES download link + Mailchimp
   journey email (transition). Appear in audience (transition — legacy behavior
-  preserved).
-- [ ] Submit booking with opt-in → receive SES booking confirmation + appear in
-  Mailchimp audience with `booking-customer` tag.
+  preserved). No welcome journey.
+- [ ] Submit booking with opt-in → receive SES booking confirmation with
+  correct details + appear in Mailchimp audience with `booking-customer` tag.
 - [ ] Submit booking without opt-in → receive SES booking confirmation only.
 - [ ] Verify emails render correctly in Gmail, Outlook, Apple Mail.
-- [ ] Verify Chinese locale emails render correctly.
-- [ ] Verify Mailchimp welcome journey triggers.
+- [ ] Verify Chinese locale emails render correctly (zh-CN and zh-HK).
+- [ ] Verify non-Stripe booking shows pending-payment note in email.
+- [ ] Verify Mailchimp welcome journey triggers (once journey is configured).
 
 ---
 
-## 10. Media Mailchimp transition → removal checklist
+## 11. Media Mailchimp transition → removal checklist
 
 After the SES download link has been confirmed working in production for a
 sufficient period (recommended: 2 weeks of monitoring):
@@ -641,137 +743,33 @@ sufficient period (recommended: 2 weeks of monitoring):
    opt-in.
 4. Disable the Mailchimp "Free Resource" Customer Journey in the Mailchimp
    dashboard (so it stops sending the download link email on its own).
-5. Optionally remove `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` and
+5. Remove `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` and
    `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` env vars from the media
-   processor (or leave them; empty values already disable the trigger).
+   processor CDK config. **Do not remove** the corresponding GitHub vars /
+   CDK parameters until any other consumer is confirmed to not use them.
 6. Remove `MAILCHIMP_REQUIRE_MARKETING_CONSENT` env var and the conditional
-   logic — Mailchimp subscribe is now always gated by `marketing_opt_in`.
-7. Update `docs/architecture/aws-messaging.md` to remove transition notes.
+   logic in `media_processor/handler.py` — Mailchimp subscribe is now always
+   gated by `marketing_opt_in`.
+7. Remove `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` env var from the media
+   processor (the download URL merge field is no longer needed since SES
+   sends the link directly).
+8. Update `docs/architecture/aws-messaging.md` to remove transition notes.
 
 ---
 
-## 11. Risks and mitigations
+## 12. Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |------|--------|-----------|
 | SES send failure on contact-us / booking | User does not receive confirmation email | Log error. Return success to user (primary action succeeded). Monitor CloudWatch for SES errors. Consider DLQ retry in a follow-up. |
 | SES send failure on media download link | User does not receive download link | During transition: Mailchimp journey is backup. Post-transition: monitor closely; add DLQ retry. |
+| SES template not found (deployment issue) | `send_templated_email` fails with `TemplateDoesNotExist` | Custom resource creates templates before handler code runs. If missing, falls back to error logging (non-blocking for contact-us/booking; critical for media download link). |
 | Mailchimp API failure after opt-in | User not added to audience | Non-blocking. Log warning. User still gets SES email. Can reconcile via admin tools later. |
 | Added latency on contact-us / booking responses | Slower form submission | SES via VPC endpoint: sub-second. Mailchimp via HTTP proxy: 1-3s but fire-and-forget (non-blocking). Total added latency to response: ~200-500ms (SES only; Mailchimp does not block response). |
-| Legacy proxy receives unknown `marketing_opt_in` field | Legacy API may reject or ignore it | Legacy APIs typically ignore unknown fields. The field is consumed on our side after the proxy returns. If the legacy API rejects it, strip `marketing_opt_in` from the proxied body and only read it from the pre-parsed body. **This must be verified.** |
 | `full_name` → `first_name` extraction is lossy | Mailchimp FNAME may be imprecise for non-Western names | Acceptable for a merge field. If the user has a single-word name, the entire name is used. |
 | Contact Us `first_name` now required | Existing form users may have muscle memory to skip it | Field was already visually present; only validation changes. Low risk. |
 | Booking form locale accuracy | Email sent in wrong language | Frontend passes current route locale. Backend validates against `["en", "zh-CN", "zh-HK"]` and defaults to `"en"`. |
-
----
-
-## 12. Open questions requiring answers before implementation
-
-### Q1: Legacy API field passthrough
-
-The legacy proxy currently forwards the entire JSON body to the upstream
-legacy API. The new fields (`marketing_opt_in`, `locale`) will be included in
-the forwarded body. **Does the legacy API tolerate unknown fields, or will it
-reject them?**
-
-If it rejects them: the handler must strip these fields from the body before
-proxying, but still read them from the original parsed payload. This adds a
-small amount of complexity to the proxy refactor.
-
-### Q2: Mailchimp welcome journey setup
-
-The plan assumes a single shared Mailchimp Customer Journey (welcome flow)
-already exists or will be created in the Mailchimp dashboard. **Has this
-journey been created? What are its journey ID and step ID?**
-
-If not yet created: the `MAILCHIMP_WELCOME_JOURNEY_ID` and
-`MAILCHIMP_WELCOME_JOURNEY_STEP_ID` parameters can be deployed as empty
-strings (which disables the trigger), and the journey can be configured later
-without a code change.
-
-### Q3: WhatsApp URL source
-
-The confirmation email templates include a WhatsApp link. Currently, the
-WhatsApp URL is available in the frontend via `resolvePublicSiteConfig()` and
-in locale content. **What is the canonical source for the WhatsApp URL on the
-backend?**
-
-Options:
-- A new CDK parameter `WhatsappUrl` (proposed in §6.10.3)
-- Derive from an existing config source
-
-### Q4: Email sender address for transactional confirmations
-
-The current SES sender addresses are:
-- `no-reply@evolvesprouts.com` (`SesSenderEmail`) — used for internal
-  notifications
-- `hello@evolvesprouts.com` (`AuthEmailFromAddress`) — used for auth emails
-
-**Which address should be the From address for customer-facing confirmation
-emails?** Using `hello@` feels more personal; using `no-reply@` is more
-standard for transactional. A new verified identity may be needed if a
-different address is desired (e.g., `bookings@evolvesprouts.com`).
-
-### Q5: Contact Us form — `first_name` and legacy API
-
-Making `first_name` required on the frontend means the field will always be
-present in the proxied body. **Does the legacy API expect or validate
-`first_name`?** If the legacy API does not expect it, this is fine (it will
-ignore it). But if the legacy API has strict schema validation that rejects
-unknown or newly-required fields, we need to account for that.
-
-### Q6: Booking form — which fields are available in the legacy proxy body?
-
-The booking form sends fields like `cohort_date`, `price`, `payment_method` to
-the legacy proxy, but also builds a richer `ReservationSummary` object for the
-thank-you modal that includes `courseLabel`, `locationName`, `eventTitle`, etc.
-
-**The legacy proxy only has access to the POST body, not the
-`ReservationSummary`.** The booking confirmation email needs the course/event
-name. The POST body includes `cohort_age` and `cohort_date` but not
-`course_label` directly (it is in the legacy proxy body for the native handler
-as `courseLabel`, but the legacy proxy receives whatever the frontend sends).
-
-Looking at the payload shape sent to `/v1/legacy/reservations`, it does NOT
-include `course_label` or event name. The frontend `ReservationSubmissionPayload`
-has: `full_name`, `email`, `phone_number`, `cohort_age`, `cohort_date`,
-`comments`, `discount_code`, `price`, `reservation_pending_until_payment_confirmed`,
-`agreed_to_terms_and_conditions`, `payment_method`, `stripe_payment_intent_id`.
-
-**We need to add additional display fields to the POST body** for the
-confirmation email to be useful: `course_label`, `schedule_date_label`,
-`schedule_time_label`, and optionally `location_name`.
-
-This means:
-- `ReservationSubmissionPayload` gains: `course_label?: string`,
-  `schedule_date_label?: string`, `schedule_time_label?: string`,
-  `location_name?: string`.
-- `reservation-form.tsx` includes these from `reservationSummary` in the POST
-  body.
-- The legacy API must tolerate these additional fields (see Q1).
-
-### Q7: Email HTML template approach
-
-The plan proposes Python string-template HTML emails (matching the existing
-`media_lead.py` pattern). This is simple but produces basic-looking emails.
-
-**Is a richer HTML email template acceptable, or should we invest in a proper
-email templating system (e.g., Jinja2, MJML)?** The current approach (inline
-CSS, Python f-strings) works but is hard to maintain for complex layouts.
-
-For this iteration, the plan assumes the existing approach (Python
-string-format templates with inline CSS). A templating system upgrade can be
-a follow-up.
-
-### Q8: Rate limiting on SES sends
-
-Contact Us and booking submissions are already protected by Cloudflare
-Turnstile. **Is the current SES sending rate limit sufficient for the expected
-volume, or do we need to request an SES limit increase?**
-
-Default SES sandbox: 200 emails/day. Production SES: typically 50,000/day or
-higher. **Verify the account is in SES production mode and the sending rate is
-adequate.**
+| WhatsApp URL drift between backend constant and content JSON | Email links point to stale URL | Document sync requirement in `constants.py`. Both values are brand-level constants that change rarely. |
 
 ---
 
@@ -783,9 +781,12 @@ adequate.**
 |------|---------|
 | `apps/public_www/src/components/shared/marketing-opt-in-checkbox.tsx` | Shared checkbox component |
 | `backend/src/app/services/marketing_subscribe.py` | Shared Mailchimp subscribe helper |
-| `backend/src/app/templates/contact_confirmation.py` | Contact Us confirmation email template |
-| `backend/src/app/templates/media_download_link.py` | Media download link email template |
-| `backend/src/app/templates/booking_confirmation.py` | Booking confirmation email template |
+| `backend/src/app/templates/constants.py` | Shared email template constants (WhatsApp URL, public WWW base URL helper) |
+| `backend/src/app/templates/ses/__init__.py` | Package init |
+| `backend/src/app/templates/ses/contact_confirmation.py` | Contact Us SES template definitions (3 locales) |
+| `backend/src/app/templates/ses/media_download_link.py` | Media download SES template definitions (3 locales) |
+| `backend/src/app/templates/ses/booking_confirmation.py` | Booking confirmation SES template definitions (3 locales) |
+| `backend/lambda/ses_template_manager/handler.py` | CDK custom resource for SES template upsert |
 
 ### Modified files
 
@@ -793,19 +794,19 @@ adequate.**
 |------|------------------|
 | `apps/public_www/src/components/sections/contact-us-form.tsx` | Required first name, marketing opt-in state, updated payload |
 | `apps/public_www/src/components/sections/contact-us-form-fields.tsx` | Required first name validation, marketing checkbox |
-| `apps/public_www/src/components/sections/media-form.tsx` | Marketing opt-in state, checkbox, updated payload |
-| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Marketing opt-in state, locale in payload |
+| `apps/public_www/src/components/sections/media-form.tsx` | Marketing opt-in state, checkbox, locale in payload |
+| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Marketing opt-in state, locale + display fields in payload |
 | `apps/public_www/src/components/sections/booking-modal/reservation-form-fields.tsx` | Marketing checkbox |
 | `apps/public_www/src/lib/reservations-data.ts` | Add `marketing_opt_in`, `locale`, display fields to payload type |
 | `apps/public_www/src/content/en.json` | New locale keys for all three forms |
 | `apps/public_www/src/content/zh-CN.json` | Chinese Simplified translations |
 | `apps/public_www/src/content/zh-HK.json` | Chinese Traditional translations |
 | `backend/src/app/api/public_legacy_proxy.py` | Post-success hooks for contact-us and booking |
-| `backend/src/app/api/public_media.py` | Pass `marketing_opt_in` in SNS payload |
-| `backend/lambda/media_processor/handler.py` | SES download link, transition-gated Mailchimp |
-| `backend/infrastructure/lib/api-stack.ts` | Admin Lambda SES grant, env vars, new parameters |
+| `backend/src/app/api/public_media.py` | Pass `marketing_opt_in` and `locale` in SNS payload |
+| `backend/lambda/media_processor/handler.py` | SES download link, transition-gated Mailchimp, welcome journey for opt-in |
+| `backend/infrastructure/lib/api-stack.ts` | Admin Lambda SES grant + env vars, media processor env updates, new parameters, SES template custom resource |
 | `docs/api/public.yaml` | Schema updates for all three endpoints |
 | `docs/architecture/aws-messaging.md` | New transactional email flows, updated media flow |
-| `docs/architecture/lambdas.md` | Updated Admin Lambda and Media Processor descriptions |
-| `docs/architecture/aws-assets-map.md` | New parameters |
+| `docs/architecture/lambdas.md` | Updated Admin Lambda and Media Processor descriptions, new SES template manager entry |
+| `docs/architecture/aws-assets-map.md` | New parameters and custom resource |
 | Tests (multiple files) | Updated for new fields, checkbox, payload shapes |
