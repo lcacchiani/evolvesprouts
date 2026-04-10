@@ -179,6 +179,8 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.bookingRequestProcessor = createPythonFunction("BookingRequestProcessor", {
         handler: "lambda/manager_request_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(10),
+        // Migration safety: this log group already exists in deployed environments.
+        manageLogGroup: false,
         environment: {
           DATABASE_SECRET_ARN: props.databaseSecretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -266,6 +268,8 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.mediaRequestProcessor = createPythonFunction("MediaRequestProcessor", {
         handler: "lambda/media_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
+        // Migration safety: this log group already exists in deployed environments.
+        manageLogGroup: false,
         environment: {
           DATABASE_SECRET_ARN: props.databaseSecretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -381,6 +385,8 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.expenseParserFunction = createPythonFunction("ExpenseParserFunction", {
         handler: "lambda/expense_parser/handler.lambda_handler",
         timeout: cdk.Duration.seconds(90),
+        // Migration safety: this log group already exists in deployed environments.
+        manageLogGroup: false,
         environment: {
           DATABASE_SECRET_ARN: props.databaseSecretArn,
           DATABASE_NAME: "evolvesprouts",
