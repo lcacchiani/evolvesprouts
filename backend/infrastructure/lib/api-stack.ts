@@ -1230,6 +1230,7 @@ export class ApiStack extends cdk.Stack {
         manageLogGroup?: boolean;
         /** When true, omit physical functionName so CloudFormation can replace the function during two-phase nested-stack migration. */
         omitFunctionName?: boolean;
+        reservedConcurrentExecutions?: number;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
@@ -1240,11 +1241,10 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
-        // Omitting physical functionName requires AWS-managed default log groups
-        // (PythonLambda cannot create a fixed /aws/lambda/{name} log group without a name).
         manageLogGroup: props.omitFunctionName
           ? false
           : (props.manageLogGroup ?? true),
+        reservedConcurrentExecutions: props.reservedConcurrentExecutions,
       };
       const pythonLambda = props.omitFunctionName
         ? factory.create(id, baseProps)
@@ -1628,6 +1628,7 @@ export class ApiStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(60),
         noVpc: true,
         omitFunctionName: true,
+        reservedConcurrentExecutions: 1,
       }
     );
     sesTemplateManagerFunction.addToRolePolicy(
