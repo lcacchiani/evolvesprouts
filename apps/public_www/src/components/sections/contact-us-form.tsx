@@ -279,6 +279,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
                 turnstileSiteKey={turnstileSiteKey}
+                isSubmitting={isSubmitting}
                 isSubmitDisabled={isSubmitDisabled}
                 onSubmit={handleSubmit}
                 onUpdateField={updateField}

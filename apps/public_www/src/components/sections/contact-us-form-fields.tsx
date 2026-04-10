@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import type { ContactUsContent } from '@/content';
 
@@ -25,6 +26,7 @@ interface ContactFormFieldsProps {
   captchaErrorMessage: string;
   submitErrorMessage: string;
   turnstileSiteKey: string;
+  isSubmitting: boolean;
   isSubmitDisabled: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onUpdateField: (field: keyof ContactUsFormState, value: string) => void;
@@ -42,6 +44,7 @@ export function ContactFormFields({
   captchaErrorMessage,
   submitErrorMessage,
   turnstileSiteKey,
+  isSubmitting,
   isSubmitDisabled,
   onSubmit,
   onUpdateField,
@@ -170,7 +173,11 @@ export function ContactFormFields({
         variant='primary'
         type='submit'
         disabled={isSubmitDisabled}
-        className='mt-2 w-full'
+        className={
+          isSubmitting
+            ? 'mt-2 inline-flex w-full items-center justify-center gap-2'
+            : 'mt-2 w-full'
+        }
         aria-describedby={
           captchaErrorMessage
             ? CAPTCHA_ERROR_MESSAGE_ID
@@ -179,7 +186,17 @@ export function ContactFormFields({
               : undefined
         }
       >
-        {content.submitLabel}
+        {isSubmitting ? (
+          <>
+            <span className='sr-only'>{content.submittingLabel}</span>
+            <LoadingGearIcon
+              className='h-5 w-5 animate-spin'
+              testId='contact-us-form-submit-loading-gear'
+            />
+          </>
+        ) : (
+          content.submitLabel
+        )}
       </ButtonPrimitive>
       <p className='text-base leading-7 text-[color:var(--site-primary-text)]'>
         {content.formDescription}

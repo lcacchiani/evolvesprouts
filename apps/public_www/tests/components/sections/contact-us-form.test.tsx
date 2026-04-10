@@ -324,6 +324,61 @@ describe('ContactUsForm section', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('shows the loading gear on the submit button while the request is in flight', async () => {
+    let releaseRequest: (() => void) | undefined;
+    const request = vi.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          releaseRequest = () => {
+            reject(new Error('deferred failure'));
+          };
+        }),
+    );
+    mockedCreateCrmApiClient.mockReturnValue({
+      request,
+    });
+
+    renderContactUsForm();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.contactUs.form.emailFieldLabel)),
+      { target: { value: 'parent@example.com' } },
+    );
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.contactUs.form.messageLabel)),
+      { target: { value: 'Tell me more about your course.' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.contactUs.form.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.form.submittingLabel,
+    });
+    expect(submitButton).toBeDisabled();
+    const loadingGear = screen.getByTestId('contact-us-form-submit-loading-gear');
+    expect(loadingGear).toHaveClass('animate-spin');
+
+    releaseRequest?.();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: enContent.contactUs.form.submitLabel,
+        }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(enContent.contactUs.form.submitErrorMessage),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('submits the validated form payload to the contact-us API endpoint', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({

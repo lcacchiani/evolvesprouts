@@ -63,6 +63,7 @@ describe('ContactFormFields', () => {
         captchaErrorMessage='captcha failed'
         submitErrorMessage='submit failed'
         turnstileSiteKey='site-key'
+        isSubmitting={false}
         isSubmitDisabled={false}
         onSubmit={onSubmit}
         onUpdateField={onUpdateField}
