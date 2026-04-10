@@ -121,6 +121,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(60),
         noVpc: true,
+        manageLogGroup: false,
         reservedConcurrentExecutions: -1,
       });
     sesTemplateManagerFunction.addToRolePolicy(
