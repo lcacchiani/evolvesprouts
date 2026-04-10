@@ -17,7 +17,7 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { ContactUsContent } from '@/content';
+import type { ContactUsContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
@@ -35,6 +35,7 @@ export type ContactUsFormContactConfig = Pick<
 
 interface ContactUsFormProps {
   content: ContactUsContent['form'];
+  locale: Locale;
   contactConfig: ContactUsFormContactConfig;
 }
 
@@ -54,7 +55,7 @@ function sanitizeMultilineValue(value: string): string {
   return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
 }
 
-export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
+export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<ContactUsFormState>({
@@ -65,6 +66,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+  const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -87,6 +90,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
+  const hasFirstNameError =
+    isFirstNameTouched && !sanitizeSingleLineValue(formState.firstName);
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -115,9 +120,14 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
     clearSubmissionError();
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
+    setIsFirstNameTouched(true);
     markCaptchaTouched();
 
-    if (!isValidEmail(formState.email) || !isValidPhone(formState.phone)) {
+    if (
+      !sanitizeSingleLineValue(formState.firstName) ||
+      !isValidEmail(formState.email) ||
+      !isValidPhone(formState.phone)
+    ) {
       return;
     }
     if (!captchaToken || isCaptchaUnavailable) {
@@ -135,17 +145,19 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
     const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
     const normalizedPhone = sanitizeSingleLineValue(formState.phone);
     const requestBody: {
-      first_name?: string;
+      first_name: string;
       email_address: string;
       phone_number?: string;
       message: string;
+      marketing_opt_in: boolean;
+      locale: Locale;
     } = {
       email_address: normalizedEmail,
       message: normalizedMessage,
+      first_name: normalizedFirstName,
+      marketing_opt_in: marketingOptIn,
+      locale,
     };
-    if (normalizedFirstName) {
-      requestBody.first_name = normalizedFirstName;
-    }
     if (normalizedPhone) {
       requestBody.phone_number = normalizedPhone;
     }
@@ -276,6 +288,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 formState={formState}
                 hasEmailError={hasEmailError}
                 hasPhoneError={hasPhoneError}
+                hasFirstNameError={hasFirstNameError}
+                marketingOptIn={marketingOptIn}
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
                 turnstileSiteKey={turnstileSiteKey}
@@ -289,6 +303,10 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 onPhoneBlur={() => {
                   setIsPhoneTouched(true);
                 }}
+                onFirstNameBlur={() => {
+                  setIsFirstNameTouched(true);
+                }}
+                onMarketingOptInChange={setMarketingOptIn}
                 onCaptchaTokenChange={handleCaptchaTokenChange}
                 onCaptchaLoadError={handleCaptchaLoadError}
               />

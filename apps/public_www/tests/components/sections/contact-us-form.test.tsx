@@ -83,6 +83,7 @@ function renderContactUsForm(
   return render(
     <ContactUsForm
       content={enContent.contactUs.form}
+      locale='en'
       contactConfig={contactConfig}
     />,
   );
@@ -198,7 +199,7 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
-      enContent.contactUs.form.firstNameLabel,
+      new RegExp(`^${enContent.contactUs.form.firstNameLabel}`),
     );
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
@@ -309,6 +310,10 @@ describe('ContactUsForm section', () => {
       name: enContent.contactUs.form.submitLabel,
     });
 
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+      { target: { value: 'Pat' } },
+    );
     fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
     fireEvent.change(messageInput, { target: { value: 'Tell me more about your course.' } });
     fireEvent.click(submitButton);
@@ -340,6 +345,10 @@ describe('ContactUsForm section', () => {
 
     renderContactUsForm();
 
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+      { target: { value: 'Pat' } },
+    );
     fireEvent.change(
       screen.getByLabelText(new RegExp(enContent.contactUs.form.emailFieldLabel)),
       { target: { value: 'parent@example.com' } },
@@ -388,7 +397,7 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
-      enContent.contactUs.form.firstNameLabel,
+      new RegExp(`^${enContent.contactUs.form.firstNameLabel}`),
     );
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
@@ -419,6 +428,8 @@ describe('ContactUsForm section', () => {
           email_address: 'parent@example.com',
           phone_number: '+852 1234 5678',
           message: 'Tell me more about your courses.',
+          marketing_opt_in: false,
+          locale: 'en',
         },
         expectedSuccessStatuses: [200, 202],
       });
@@ -476,6 +487,10 @@ describe('ContactUsForm section', () => {
 
     renderContactUsForm();
 
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+      { target: { value: 'Pat' } },
+    );
     fireEvent.change(
       screen.getByLabelText(new RegExp(enContent.contactUs.form.emailFieldLabel)),
       { target: { value: 'parent@example.com' } },

@@ -121,3 +121,5 @@ def test_media_request_publishes_to_sns(
     assert published_message["first_name"] == "Ida"
     assert published_message["email"] == "ida@example.com"
     assert published_message["resource_key"] == "public-website-" + "patience-free-guide"
+    assert published_message["marketing_opt_in"] is False
+    assert published_message["locale"] == "en"

@@ -24,6 +24,24 @@ Ticket submissions are processed asynchronously using SNS + SQS messaging. This 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+## Public website transactional confirmations (SES)
+
+The public website contact form, booking modal (`/www/v1/legacy/*`), and media
+download flow send **customer-facing** confirmation or download-link emails
+through **Amazon SES templated send** (`SendTemplatedEmail`). Templates are
+stored in SES and upserted at deploy time by a **CloudFormation custom
+resource** (`SesTemplateManagerFunction`) so runtime Lambdas only reference
+template names.
+
+- **From address**: `CONFIRMATION_EMAIL_FROM_ADDRESS` on the relevant Lambdas,
+  sourced from the stack `AuthEmailFromAddress` parameter (SES-verified
+  customer-facing mailbox, for example `hello@`).
+- **Internal notifications** (for example media lead alerts to the team)
+  continue to use `SES_SENDER_EMAIL` / `SupportEmail` where applicable.
+- **Mailchimp** remains separate: optional marketing subscribe + journey
+  triggers run only when the user opts in; failures are logged and do not
+  change the HTTP response for legacy bridge routes.
+
 ## Components
 
 ### SNS Topic: `evolvesprouts-booking-request-events`
@@ -145,8 +163,14 @@ responsive while decoupling downstream processing.
 - Upserts contact and inserts idempotent lead rows.
 - Resolves media asset IDs by matching `resource_key` against `assets.resource_key`.
 - Applies a resource-specific tag (`public-www-media-<resource_key>-requested`) to the contact.
-- Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
-- Sends an SES notification to sales/support.
+- Sends the **download link** to the submitter via **SES templated email**
+  (`evolvesprouts-media-download-{locale}`) using `CONFIRMATION_EMAIL_FROM_ADDRESS`.
+- Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction` (during a
+  **transition** period this may still run for all submissions; when
+  `MailchimpRequireMarketingConsent` is `true`, subscribe + free-resource journey
+  run only when `marketing_opt_in` is true). When users opt in, a **separate**
+  shared welcome journey may be triggered (empty journey env vars disable it).
+- Sends an SES notification to sales/support (internal sender).
 
 ## Expense parsing flow
 
@@ -271,6 +295,7 @@ SQS retries or mailbox forwarding duplicates.
 | `backend/src/app/api/admin.py` | API handler with SNS publish and public calendar feed routing |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
 | `backend/lambda/media_processor/handler.py` | SQS media request processor |
+| `backend/lambda/ses_template_manager/handler.py` | CloudFormation custom resource — upsert SES email templates |
 | `backend/lambda/inbound_invoice_email/handler.py` | SQS inbound invoice email processor |
 | `backend/src/app/services/inbound_invoice_ingest.py` | Expense + asset creation from inbound email |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
@@ -285,6 +310,13 @@ SQS retries or mailbox forwarding duplicates.
 | `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
 | `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
+| `CONFIRMATION_EMAIL_FROM_ADDRESS` | SES-verified from address for customer-facing templated emails on legacy public routes (`EvolvesproutsAdminFunction`) |
+| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (Contact Us FAQ anchor in contact confirmation templates: `/{locale}/contact-us#contact-us-faq`) |
+| `MAILCHIMP_API_SECRET_ARN` | Mailchimp API key secret (marketing subscribe after opt-in on legacy routes) |
+| `MAILCHIMP_LIST_ID` | Mailchimp audience ID |
+| `MAILCHIMP_SERVER_PREFIX` | Mailchimp API host prefix |
+| `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID (empty disables) |
+| `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
 
 ### Processor Lambda
 
@@ -305,6 +337,11 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Mailchimp merge field tag for that email-download URL (e.g. `MMDLURL`; empty disables) |
 | `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` | Mailchimp Customer Journey ID for `.../journeys/{id}/steps/.../actions/trigger` (empty disables) |
 | `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` | Journey step ID paired with `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` (empty disables) |
+| `CONFIRMATION_EMAIL_FROM_ADDRESS` | SES-verified from address for media download link email to the submitter |
+| `MAILCHIMP_REQUIRE_MARKETING_CONSENT` | When `true`, gate legacy Mailchimp subscribe + free-resource journey on `marketing_opt_in` |
+| `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID for opted-in media leads (empty disables) |
+| `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
+| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (reserved for template helpers) |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |

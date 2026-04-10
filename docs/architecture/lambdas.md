@@ -66,6 +66,13 @@ their primary responsibilities.
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` and `/v1/assets/email-download/*` (injected by
   media CloudFront at origin) and `GET /v1/assets/free`
+- Permissions: SES `SendEmail` / `SendRawEmail` / `SendTemplatedEmail` on the
+  verified `SesSenderEmail` identity **and** the `AuthEmailFromAddress` identity
+  (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
+  secret when marketing hooks run on legacy routes
+- Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
+  `PUBLIC_WWW_BASE_URL`, `SUPPORT_EMAIL`, `MAILCHIMP_*` welcome journey vars
+  (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
@@ -91,7 +98,10 @@ their primary responsibilities.
   `/v1/assets/free/request`, Mailchimp webhook ingestion and contact sync-status
   reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
   on `/v1/legacy/*` (proxying to upstream legacy endpoints via
-  `AwsApiProxyFunction`), Stripe PaymentIntent creation for
+  `AwsApiProxyFunction`; after successful upstream acceptance, sends SES
+  **templated** confirmation emails for contact-us and reservations and may
+  subscribe opted-in contacts to Mailchimp + optional welcome journey),
+  Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (card-only `payment_method_types[]=card`; wallet buttons are disabled in the
   public Payment Element; `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is not used).
@@ -109,6 +119,15 @@ their primary responsibilities.
 - Auth: IAM
 - Purpose: service health and configuration checks
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_app`)
+
+### SES template manager (custom resource)
+- Function: SesTemplateManagerFunction
+- Handler: backend/lambda/ses_template_manager/handler.py
+- Trigger: CloudFormation custom resource `SesEmailTemplates`
+- Purpose: create/update/delete SES stored email templates used by public
+  transactional flows (contact, media download link, booking confirmation)
+- VPC: **No**
+- Permissions: SES `CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`
 
 ## Auth and security Lambdas
 
@@ -218,19 +237,23 @@ their primary responsibilities.
 - Handler: backend/lambda/media_processor/handler.py
 - Trigger: SQS queue (`evolvesprouts-media-queue`)
 - Purpose: process media lead captures and fan out actions (including Mailchimp
-  journey re-trigger on repeat requests for the same contact + asset)
-- Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync
-  (merge fields + tag + optional Customer Journey trigger), and SES notification
-  to sales/support
+  free-resource journey re-trigger on repeat requests during the transition
+  period, and optional welcome journey for opted-in contacts)
+- Actions: contact upsert in DB, idempotent sales lead creation, SES templated
+  download-link email to the submitter, Mailchimp sync (merge fields + tag +
+  optional free-resource Customer Journey trigger; consent-gated when
+  `MAILCHIMP_REQUIRE_MARKETING_CONSENT=true`), optional welcome journey for
+  `marketing_opt_in`, and SES notification to sales/support
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: SES send email (verified sender address and derived domain identity
-  ARNs), Secrets Manager read for Mailchimp API key,
+- Permissions: SES `SendEmail`, `SendRawEmail`, and `SendTemplatedEmail` (verified
+  internal sender + `AuthEmailFromAddress` identities and derived domain ARNs),
+  Secrets Manager read for Mailchimp API key,
   Lambda invoke permission for `AwsApiProxyFunction`
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
+  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
   - `MEDIA_DEFAULT_RESOURCE_KEY`, `AWS_PROXY_FUNCTION_ARN`
@@ -240,6 +263,11 @@ their primary responsibilities.
     `/v1/assets/email-download/{token}` download URL)
   - `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID`, `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` (optional;
     Customer Journey API trigger after successful member sync; empty disables)
+  - `MAILCHIMP_REQUIRE_MARKETING_CONSENT` (when `true`, gate legacy Mailchimp
+    subscribe + free-resource journey on `marketing_opt_in`)
+  - `MAILCHIMP_WELCOME_JOURNEY_ID`, `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (optional;
+    shared welcome journey for opted-in contacts; empty disables)
+  - `PUBLIC_WWW_BASE_URL` (reserved for shared template helpers)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction

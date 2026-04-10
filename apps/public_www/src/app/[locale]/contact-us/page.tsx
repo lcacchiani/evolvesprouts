@@ -34,7 +34,7 @@ export default async function ContactUsRoutePage({ params }: LocaleRouteProps) {
 
   return (
     <>
-      <ContactUsPage content={content} />
+      <ContactUsPage content={content} locale={locale} />
       <StructuredDataScript
         id={`contact-us-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

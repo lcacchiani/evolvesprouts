@@ -28,7 +28,7 @@ vi.mock('@/components/sections/free-intro-session', () => ({
 
 describe('ContactUsPage', () => {
   it('composes contact page sections with scoped content props', () => {
-    render(<ContactUsPage content={enContent} />);
+    render(<ContactUsPage content={enContent} locale='en' />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('contact-us-form')).toBeInTheDocument();

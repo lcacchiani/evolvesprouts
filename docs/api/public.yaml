@@ -388,7 +388,13 @@ paths:
   /www/v1/legacy/reservations:
     post:
       summary: Submit reservation
-      description: Submit a public reservation request from `public_www`.
+      description: |
+        Submit a public reservation request from `public_www`.
+
+        On successful upstream acceptance (HTTP 200/202), the API also sends a
+        transactional booking confirmation email via SES to the attendee when
+        configured. Optional marketing opt-in may enqueue a Mailchimp audience
+        update; marketing failures do not change the HTTP response.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -451,7 +457,14 @@ paths:
   /www/v1/legacy/contact-us:
     post:
       summary: Submit contact-us form
-      description: Submit a contact-us message from `public_www`.
+      description: |
+        Submit a contact-us message from `public_www`.
+
+        On successful upstream acceptance (HTTP 200/202), the API also sends a
+        transactional confirmation email via SES when configured. Optional
+        marketing opt-in may enqueue a Mailchimp audience update; marketing
+        failures do not change the HTTP response. Locale for the confirmation
+        email is derived from the `Accept-Language` header when possible.
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -484,6 +497,10 @@ paths:
       description: |
         Submit a media lead form. Routed on the public website via CloudFront
         as `POST /www/v1/assets/free/request` (execute-api origin).
+
+        The download link is delivered by SES (templated email). During a
+        transition period, Mailchimp may still mirror legacy journey delivery
+        unless consent gating is enabled in deployment configuration.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -952,6 +969,30 @@ components:
           type: string
           description: Required when payment method is Stripe/card-wallet flow.
           pattern: '^pi_[A-Za-z0-9]+$'
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, subscribe the attendee to marketing (Mailchimp) with a booking tag.
+        locale:
+          type: string
+          description: Public website locale for SES booking confirmation template selection.
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
+        course_label:
+          type: string
+          maxLength: 500
+          description: Human-readable course or event title for confirmation email context.
+        schedule_date_label:
+          type: string
+          maxLength: 500
+        schedule_time_label:
+          type: string
+          maxLength: 500
+        location_name:
+          type: string
+          maxLength: 500
     ReservationPaymentIntentRequest:
       type: object
       required:
@@ -985,6 +1026,7 @@ components:
     ContactUsSubmissionRequest:
       type: object
       required:
+        - first_name
         - email_address
         - message
       properties:
@@ -1001,6 +1043,17 @@ components:
         message:
           type: string
           maxLength: 5000
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, subscribe the contact to marketing (Mailchimp) with a flow-specific tag.
+        locale:
+          type: string
+          description: Public website route locale for SES confirmation template selection (falls back to Accept-Language when omitted).
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
     MediaRequestSubmissionRequest:
       type: object
       required:
@@ -1018,6 +1071,17 @@ components:
           type: string
           maxLength: 200
           description: Optional free-resource identifier used for downstream CRM tagging.
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, trigger the shared welcome marketing journey after subscribe (when configured).
+        locale:
+          type: string
+          description: Public website locale for SES template selection.
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
     MailchimpWebhookRequest:
       type: object
       required:

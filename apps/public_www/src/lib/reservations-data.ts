@@ -18,6 +18,12 @@ export interface ReservationSubmissionPayload {
   agreed_to_terms_and_conditions: boolean;
   payment_method: ReservationPaymentMethodCode;
   stripe_payment_intent_id?: string;
+  marketing_opt_in?: boolean;
+  locale?: string;
+  course_label?: string;
+  schedule_date_label?: string;
+  schedule_time_label?: string;
+  location_name?: string;
 }
 
 interface SubmitReservationOptions {

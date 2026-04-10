@@ -182,6 +182,7 @@
     "formSuccessTitle": "請查收你的電郵！",
     "formSuccessBody": "下載連結就在裡面。",
     "formErrorMessage": "暫時未能提交，請檢查資料後再試。",
+    "formMarketingOptInLabel": "訂閱育兒貼士與資源更新",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
       "_valueCombinations": [
@@ -355,7 +356,9 @@
       "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
       "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。",
       "emailValidationError": "請輸入有效的電郵地址。",
-      "phoneValidationError": "請輸入有效的電話號碼。"
+      "phoneValidationError": "請輸入有效的電話號碼。",
+      "firstNameRequiredError": "請輸入你的姓名",
+      "marketingOptInLabel": "訂閱育兒貼士與資源更新"
     },
     "faq": {
       "title": "常見問題",
@@ -1434,6 +1437,7 @@
       "priceBreakdownConfirmedPriceLabel": "確認價格",
       "paymentConfirmationNote": "收到付款後，你的名額才會確認",
       "pendingReservationAcknowledgementLabel": "我明白在付款確認前，我的預約仍屬待確認狀態",
+      "marketingOptInLabel": "訂閱育兒貼士與資源更新",
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "條款及細則",
       "termsHref": "/terms",

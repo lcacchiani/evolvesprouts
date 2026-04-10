@@ -229,6 +229,21 @@ if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
 }
 
+const primarySessionPart = selectedCohort.dates[0];
+const expectedMbaScheduleTimeLabel =
+  primarySessionPart !== undefined && primarySessionPart.end_datetime
+    ? `${primarySessionPart.start_datetime} – ${primarySessionPart.end_datetime}`
+    : primarySessionPart?.start_datetime;
+
+const expectedMbaMarketingFields = {
+  marketing_opt_in: false,
+  locale: 'en' as const,
+  course_label: myBestAuntieModalContent.title,
+  schedule_date_label: 'Apr, 2026',
+  schedule_time_label: expectedMbaScheduleTimeLabel,
+  location_name: selectedCohort.location_name,
+};
+
 function renderWithPortalContainer(ui: ReactNode) {
   const renderView = render(ui);
   return {
@@ -823,26 +838,28 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
-      expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/reservations',
-        method: 'POST',
-        body: {
-          full_name: 'Test User',
-          email: 'ida@example.com',
-          phone_number: '85212345678',
-          cohort_age: '18-24 months',
-          cohort_date: selectedCohortDate,
-          comments: 'Need details',
-          discount_code: undefined,
-          price: 9000,
-          reservation_pending_until_payment_confirmed: true,
-          agreed_to_terms_and_conditions: true,
-          payment_method: 'fps_qr',
-          stripe_payment_intent_id: undefined,
-        },
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
+      expect(requestSpy).toHaveBeenCalled();
+    });
+    expect(requestSpy).toHaveBeenCalledWith({
+      endpointPath: '/v1/legacy/reservations',
+      method: 'POST',
+      body: expect.objectContaining({
+        full_name: 'Test User',
+        email: 'ida@example.com',
+        phone_number: '85212345678',
+        cohort_age: '18-24 months',
+        cohort_date: selectedCohortDate,
+        comments: 'Need details',
+        discount_code: undefined,
+        price: 9000,
+        reservation_pending_until_payment_confirmed: true,
+        agreed_to_terms_and_conditions: true,
+        payment_method: 'fps_qr',
+        stripe_payment_intent_id: undefined,
+        ...expectedMbaMarketingFields,
+      }),
+      turnstileToken: 'mock-turnstile-token',
+      expectedSuccessStatuses: [200, 202],
     });
     await waitFor(() => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
@@ -1039,26 +1056,28 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
-      expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/reservations',
-        method: 'POST',
-        body: {
-          full_name: 'Test User',
-          email: 'ida@example.com',
-          phone_number: '85212345678',
-          cohort_age: '18-24 months',
-          cohort_date: selectedCohortDate,
-          comments: 'Need details',
-          discount_code: undefined,
-          price: 9000,
-          reservation_pending_until_payment_confirmed: true,
-          agreed_to_terms_and_conditions: true,
-          payment_method: 'stripe',
-          stripe_payment_intent_id: 'pi_test_booking_modal',
-        },
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
+      expect(requestSpy).toHaveBeenCalled();
+    });
+    expect(requestSpy).toHaveBeenCalledWith({
+      endpointPath: '/v1/legacy/reservations',
+      method: 'POST',
+      body: expect.objectContaining({
+        full_name: 'Test User',
+        email: 'ida@example.com',
+        phone_number: '85212345678',
+        cohort_age: '18-24 months',
+        cohort_date: selectedCohortDate,
+        comments: 'Need details',
+        discount_code: undefined,
+        price: 9000,
+        reservation_pending_until_payment_confirmed: true,
+        agreed_to_terms_and_conditions: true,
+        payment_method: 'stripe',
+        stripe_payment_intent_id: 'pi_test_booking_modal',
+        ...expectedMbaMarketingFields,
+      }),
+      turnstileToken: 'mock-turnstile-token',
+      expectedSuccessStatuses: [200, 202],
     });
     await waitFor(() => {
       expect(onSubmitReservation).toHaveBeenCalledWith(

@@ -61,7 +61,9 @@ function mediaFormProps() {
   const resourcesContent = enContent.resources;
   return {
     ctaLabel: resourcesContent.ctaLabel,
+    locale: 'en' as const,
     resourceKey: resourcesContent.resourceKey,
+    formMarketingOptInLabel: resourcesContent.formMarketingOptInLabel,
     formFirstNameLabel: resourcesContent.formFirstNameLabel,
     formEmailLabel: resourcesContent.formEmailLabel,
     formSubmitLabel: resourcesContent.formSubmitLabel,
@@ -167,6 +169,8 @@ describe('MediaForm', () => {
           first_name: 'Ida',
           email: 'ida@example.com',
           resource_key: 'patience-free-guide',
+          marketing_opt_in: false,
+          locale: 'en',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],

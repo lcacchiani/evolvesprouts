@@ -12,6 +12,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import type {
   FreeGuidesAndResourcesLibraryContent,
+  Locale,
   ResourcesContent,
 } from '@/content';
 import {
@@ -23,6 +24,7 @@ import {
 interface FreeGuidesAndResourcesLibraryProps {
   content: FreeGuidesAndResourcesLibraryContent;
   mediaFormContent: ResourcesContent;
+  locale: Locale;
 }
 
 const ASSET_TYPES = ['guide', 'video', 'pdf', 'document'] as const;
@@ -222,6 +224,7 @@ function LibraryLensIcon() {
 export function FreeGuidesAndResourcesLibrary({
   content,
   mediaFormContent,
+  locale,
 }: FreeGuidesAndResourcesLibraryProps) {
   const [searchValue, setSearchValue] = useState('');
   const [formOpenedByListKey, setFormOpenedByListKey] = useState<
@@ -293,6 +296,7 @@ export function FreeGuidesAndResourcesLibrary({
   const mediaFormSuccessTitle = mediaFormContent.formSuccessTitle;
   const mediaFormSuccessBody = mediaFormContent.formSuccessBody;
   const mediaFormErrorMessage = mediaFormContent.formErrorMessage;
+  const mediaFormMarketingOptInLabel = mediaFormContent.formMarketingOptInLabel;
 
   const listBody = (() => {
     if (loadState === 'loading') {
@@ -402,6 +406,8 @@ export function FreeGuidesAndResourcesLibrary({
                     ctaLabel={gatedCtaLabel}
                     resourceKey={item.resourceKey}
                     analyticsSectionId='free-guides-library'
+                    locale={locale}
+                    formMarketingOptInLabel={mediaFormMarketingOptInLabel}
                     formFirstNameLabel={mediaFormFirstNameLabel}
                     formEmailLabel={mediaFormEmailLabel}
                     formSubmitLabel={mediaFormSubmitLabel}

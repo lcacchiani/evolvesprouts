@@ -8,11 +8,15 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any
+from typing import Any, Callable
 from collections.abc import Mapping
 from urllib.parse import urljoin
 
 from app.api.admin_request import parse_body
+from app.api.public_legacy_confirmation import (
+    run_contact_us_post_success,
+    run_reservation_post_success,
+)
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.turnstile import extract_turnstile_token
 from app.utils import json_response
@@ -42,11 +46,12 @@ def handle_legacy_reservations(
     method: str,
 ) -> dict[str, Any]:
     """Proxy reservation submissions to legacy public API."""
-    return _handle_legacy_proxy(
+    return _handle_legacy_proxy_with_hooks(
         event=event,
         method=method,
         target_path=_LEGACY_RESERVATIONS_PATH,
         include_turnstile=True,
+        on_proxy_success=lambda payload: run_reservation_post_success(payload=payload),
     )
 
 
@@ -55,11 +60,14 @@ def handle_legacy_contact_us(
     method: str,
 ) -> dict[str, Any]:
     """Proxy contact-us submissions to legacy public API."""
-    return _handle_legacy_proxy(
+    return _handle_legacy_proxy_with_hooks(
         event=event,
         method=method,
         target_path=_LEGACY_CONTACT_US_PATH,
         include_turnstile=False,
+        on_proxy_success=lambda payload: run_contact_us_post_success(
+            event=event, payload=payload
+        ),
     )
 
 
@@ -76,12 +84,13 @@ def handle_legacy_discount_validate(
     )
 
 
-def _handle_legacy_proxy(
+def _handle_legacy_proxy_with_hooks(
     *,
     event: Mapping[str, Any],
     method: str,
     target_path: str,
     include_turnstile: bool,
+    on_proxy_success: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
@@ -128,11 +137,50 @@ def _handle_legacy_proxy(
         headers=request_headers,
         body=request_body,
     )
-    return _normalize_proxy_response(
+    response = _normalize_proxy_response(
         proxy_result=proxy_result,
         target_path=target_path,
         event=event,
     )
+    if on_proxy_success is not None:
+        status = _response_status_code(response)
+        if status in _SUCCESS_STATUS_BY_LEGACY_PATH.get(target_path, ()):
+            try:
+                on_proxy_success(payload)
+            except Exception:
+                logger.exception(
+                    "Legacy proxy post-success hook failed",
+                    extra={"path": target_path},
+                )
+    return response
+
+
+def _handle_legacy_proxy(
+    *,
+    event: Mapping[str, Any],
+    method: str,
+    target_path: str,
+    include_turnstile: bool,
+) -> dict[str, Any]:
+    return _handle_legacy_proxy_with_hooks(
+        event=event,
+        method=method,
+        target_path=target_path,
+        include_turnstile=include_turnstile,
+        on_proxy_success=None,
+    )
+
+
+def _response_status_code(response: Mapping[str, Any]) -> int:
+    raw = response.get("statusCode")
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, str):
+        try:
+            return int(raw.strip())
+        except ValueError:
+            return 0
+    return 0
 
 
 def _legacy_base_url() -> str:

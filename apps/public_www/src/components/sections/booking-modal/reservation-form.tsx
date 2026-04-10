@@ -423,6 +423,7 @@ export function BookingReservationForm({
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -790,6 +791,18 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
+    const scheduleTimeLabel = (() => {
+      if (!primarySession) {
+        return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
+      }
+      const start = sanitizeSingleLineValue(primarySession.dateStartTime);
+      const end = sanitizeSingleLineValue(primarySession.dateEndTime ?? '');
+      if (!start) {
+        return undefined;
+      }
+      return end ? `${start} – ${end}` : start;
+    })();
+
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -804,6 +817,12 @@ export function BookingReservationForm({
       agreed_to_terms_and_conditions: hasTermsAgreement,
       payment_method: selectedPaymentMethod,
       stripe_payment_intent_id: undefined,
+      marketing_opt_in: marketingOptIn,
+      locale,
+      course_label: sanitizeSingleLineValue(eventTitle) || undefined,
+      schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      schedule_time_label: scheduleTimeLabel,
+      location_name: sanitizeSingleLineValue(venueName) || undefined,
     };
 
     await withSubmitting(async () => {
@@ -910,6 +929,7 @@ export function BookingReservationForm({
             phone={phone}
             interestedTopics={interestedTopics}
             hasEmailError={hasEmailError}
+            marketingOptIn={marketingOptIn}
             topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
             onEmailChange={setEmail}
@@ -918,6 +938,7 @@ export function BookingReservationForm({
             }}
             onPhoneChange={setPhone}
             onTopicsChange={setInterestedTopics}
+            onMarketingOptInChange={setMarketingOptIn}
           />
 
           <ReservationFormDiscountCodeInput

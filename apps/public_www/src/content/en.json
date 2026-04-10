@@ -182,6 +182,7 @@
     "formSuccessTitle": "Check Your Email!",
     "formSuccessBody": "The download link is in there.",
     "formErrorMessage": "Unable to submit right now. Please check your details and try again.",
+    "formMarketingOptInLabel": "Keep me updated with parenting tips and resources",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
       "_valueCombinations": [
@@ -355,7 +356,9 @@
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
       "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
       "emailValidationError": "Please enter a valid email address.",
-      "phoneValidationError": "Please enter a valid phone number."
+      "phoneValidationError": "Please enter a valid phone number.",
+      "firstNameRequiredError": "Please enter your name",
+      "marketingOptInLabel": "Keep me updated with parenting tips and resources"
     },
     "faq": {
       "title": "Frequently Asked Questions",
@@ -1434,6 +1437,7 @@
       "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
       "paymentConfirmationNote": "Your spot is confirmed once payment is received",
       "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
+      "marketingOptInLabel": "Keep me updated with parenting tips and resources",
       "termsAgreementLabel": "I agree with the",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",

@@ -781,6 +781,42 @@ export class ApiStack extends cdk.Stack {
           "(empty disables journey trigger)",
       }
     );
+    const mailchimpWelcomeJourneyId = new cdk.CfnParameter(
+      this,
+      "MailchimpWelcomeJourneyId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey ID for the shared welcome flow " +
+          "(triggered for opted-in contacts from contact/media/booking forms). " +
+          "Empty disables the trigger.",
+      }
+    );
+    const mailchimpWelcomeJourneyStepId = new cdk.CfnParameter(
+      this,
+      "MailchimpWelcomeJourneyStepId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey step ID for the welcome flow entry point. " +
+          "Empty disables the trigger.",
+      }
+    );
+    const mailchimpRequireMarketingConsent = new cdk.CfnParameter(
+      this,
+      "MailchimpRequireMarketingConsent",
+      {
+        type: "String",
+        default: "false",
+        allowedValues: ["true", "false"],
+        description:
+          "When true, the media processor only subscribes to Mailchimp when " +
+          "marketing_opt_in is set. Set to false during SES download link " +
+          "transition to preserve existing behavior.",
+      }
+    );
     const openrouterApiKey = new cdk.CfnParameter(
       this,
       "OpenRouterApiKey",
@@ -1192,19 +1228,27 @@ export class ApiStack extends cdk.Stack {
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
         manageLogGroup?: boolean;
+        /** When true, omit physical functionName so CloudFormation can replace the function during two-phase nested-stack migration. */
+        omitFunctionName?: boolean;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
-      const pythonLambda = factory.create(id, {
-        functionName: name(id),
+      const baseProps = {
         handler: props.handler,
         environment: props.environment,
         timeout: props.timeout,
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
-        manageLogGroup: props.manageLogGroup,
-      });
+        // Omitting physical functionName requires AWS-managed default log groups
+        // (PythonLambda cannot create a fixed /aws/lambda/{name} log group without a name).
+        manageLogGroup: props.omitFunctionName
+          ? false
+          : (props.manageLogGroup ?? true),
+      };
+      const pythonLambda = props.omitFunctionName
+        ? factory.create(id, baseProps)
+        : factory.create(id, { ...baseProps, functionName: name(id) });
       return pythonLambda.function;
     };
 
@@ -1490,6 +1534,7 @@ export class ApiStack extends cdk.Stack {
         LEGACY_PUBLIC_API_KEY: legacyPublicApiKey.valueAsString,
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
+        SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1567,11 +1612,44 @@ export class ApiStack extends cdk.Stack {
 
     const [sesSenderIdentityArn, sesSenderDomainIdentityArn] =
       sesVerifiedAddressAndDomainIdentityArns(this, sesSenderEmail.valueAsString);
+    const [sesAuthEmailIdentityArn, sesAuthEmailDomainIdentityArn] =
+      sesVerifiedAddressAndDomainIdentityArns(this, authEmailFromAddress.valueAsString);
     const mailchimpApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
       this,
       "MailchimpApiSecret",
       mailchimpApiSecretArn.valueAsString
     );
+
+    const sesTemplateManagerFunction = createPythonFunction(
+      "SesTemplateManagerFunction",
+      {
+        handler: "lambda/ses_template_manager/handler.lambda_handler",
+        memorySize: 256,
+        timeout: cdk.Duration.seconds(60),
+        noVpc: true,
+        omitFunctionName: true,
+      }
+    );
+    sesTemplateManagerFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "ses:CreateTemplate",
+          "ses:UpdateTemplate",
+          "ses:DeleteTemplate",
+          "ses:GetTemplate",
+        ],
+        resources: ["*"],
+      })
+    );
+    const sesTemplatesHash = hashDirectory(
+      path.join(__dirname, "../../src/app/templates/ses")
+    );
+    new cdk.CustomResource(this, "SesEmailTemplates", {
+      serviceToken: sesTemplateManagerFunction.functionArn,
+      properties: {
+        TemplatesHash: sesTemplatesHash,
+      },
+    });
     // SECURITY: Use customer-managed KMS key for Secrets Manager (Checkov CKV_AWS_149)
     const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
       enableKeyRotation: true,
@@ -1607,14 +1685,12 @@ export class ApiStack extends cdk.Stack {
     ]);
 
     const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
-      queueName: name("booking-request-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const bookingRequestQueue = new sqs.Queue(this, "BookingRequestQueue", {
-      queueName: name("booking-request-queue"),
       visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
         queue: bookingRequestDLQ,
@@ -1625,7 +1701,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const bookingRequestTopic = new sns.Topic(this, "BookingRequestTopic", {
-      topicName: name("booking-request-events"),
       masterKey: sqsEncryptionKey,
     });
 
@@ -1644,6 +1719,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/manager_request_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(10),
+        omitFunctionName: true,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1673,7 +1749,6 @@ export class ApiStack extends cdk.Stack {
     );
 
     const dlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "BookingRequestDLQAlarm", {
-      alarmName: name("booking-request-dlq-alarm"),
       alarmDescription: "Booking request messages failed processing and landed in DLQ",
       metric: bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
@@ -1688,14 +1763,12 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
 
     const mediaDLQ = new sqs.Queue(this, "MediaDLQ", {
-      queueName: name("media-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const mediaQueue = new sqs.Queue(this, "MediaQueue", {
-      queueName: name("media-queue"),
       visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
         queue: mediaDLQ,
@@ -1706,7 +1779,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const mediaTopic = new sns.Topic(this, "MediaTopic", {
-      topicName: name("media-events"),
       masterKey: sqsEncryptionKey,
     });
 
@@ -1721,6 +1793,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/media_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
+        omitFunctionName: true,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1744,6 +1817,15 @@ export class ApiStack extends cdk.Stack {
             mailchimpFreeResourceJourneyId.valueAsString,
           MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID:
             mailchimpFreeResourceJourneyStepId.valueAsString,
+          CONFIRMATION_EMAIL_FROM_ADDRESS:
+            authEmailFromAddress.valueAsString,
+          MAILCHIMP_REQUIRE_MARKETING_CONSENT:
+            mailchimpRequireMarketingConsent.valueAsString,
+          MAILCHIMP_WELCOME_JOURNEY_ID: mailchimpWelcomeJourneyId.valueAsString,
+          MAILCHIMP_WELCOME_JOURNEY_STEP_ID:
+            mailchimpWelcomeJourneyStepId.valueAsString,
+          PUBLIC_WWW_BASE_URL:
+            `https://${publicWwwDomainName.valueAsString}`,
         },
       }
     );
@@ -1753,8 +1835,13 @@ export class ApiStack extends cdk.Stack {
 
     mediaRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
+        actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
+        resources: [
+          sesSenderIdentityArn,
+          sesSenderDomainIdentityArn,
+          sesAuthEmailIdentityArn,
+          sesAuthEmailDomainIdentityArn,
+        ],
       })
     );
     mailchimpApiSecret.grantRead(mediaRequestProcessor);
@@ -1767,7 +1854,6 @@ export class ApiStack extends cdk.Stack {
     );
 
     const mediaDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "MediaDLQAlarm", {
-      alarmName: name("media-dlq-alarm"),
       alarmDescription:
         "Media request messages failed processing and landed in DLQ",
       metric: mediaDLQ.metricApproximateNumberOfMessagesVisible({
@@ -1783,14 +1869,12 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
 
     const expenseParserDLQ = new sqs.Queue(this, "ExpenseParserDLQ", {
-      queueName: name("expense-parser-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const expenseParserQueue = new sqs.Queue(this, "ExpenseParserQueue", {
-      queueName: name("expense-parser-queue"),
       visibilityTimeout: cdk.Duration.seconds(180),
       deadLetterQueue: {
         queue: expenseParserDLQ,
@@ -1801,7 +1885,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const expenseParserTopic = new sns.Topic(this, "ExpenseParserTopic", {
-      topicName: name("expense-parser-events"),
       masterKey: sqsEncryptionKey,
     });
     expenseParserTopic.addSubscription(
@@ -1816,6 +1899,7 @@ export class ApiStack extends cdk.Stack {
     const expenseParserFunction = createPythonFunction("ExpenseParserFunction", {
       handler: "lambda/expense_parser/handler.lambda_handler",
       timeout: cdk.Duration.seconds(90),
+      omitFunctionName: true,
       environment: {
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
         DATABASE_NAME: "evolvesprouts",
@@ -1847,7 +1931,6 @@ export class ApiStack extends cdk.Stack {
       this,
       "ExpenseParserDLQAlarm",
       {
-        alarmName: name("expense-parser-dlq-alarm"),
         alarmDescription:
           "Expense parser messages failed processing and landed in DLQ",
         metric: expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
@@ -2684,6 +2767,45 @@ export class ApiStack extends cdk.Stack {
       principal: new iam.ServicePrincipal("apigateway.amazonaws.com"),
       sourceArn: api.arnForExecuteApi(),
     });
+
+    adminFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
+        resources: [
+          sesSenderIdentityArn,
+          sesSenderDomainIdentityArn,
+          sesAuthEmailIdentityArn,
+          sesAuthEmailDomainIdentityArn,
+        ],
+      })
+    );
+    mailchimpApiSecret.grantRead(adminFunction);
+    adminFunction.addEnvironment(
+      "CONFIRMATION_EMAIL_FROM_ADDRESS",
+      authEmailFromAddress.valueAsString
+    );
+    adminFunction.addEnvironment("SUPPORT_EMAIL", supportEmail.valueAsString);
+    adminFunction.addEnvironment(
+      "MAILCHIMP_API_SECRET_ARN",
+      mailchimpApiSecret.secretArn
+    );
+    adminFunction.addEnvironment("MAILCHIMP_LIST_ID", mailchimpListId.valueAsString);
+    adminFunction.addEnvironment(
+      "MAILCHIMP_SERVER_PREFIX",
+      mailchimpServerPrefix.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "MAILCHIMP_WELCOME_JOURNEY_ID",
+      mailchimpWelcomeJourneyId.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "MAILCHIMP_WELCOME_JOURNEY_STEP_ID",
+      mailchimpWelcomeJourneyStepId.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BASE_URL",
+      `https://${publicWwwDomainName.valueAsString}`
+    );
 
     const calendar = v1.addResource("calendar");
     calendar.addResource("public").addMethod("GET", adminIntegration, {
