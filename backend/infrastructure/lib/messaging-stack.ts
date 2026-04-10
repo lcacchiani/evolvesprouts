@@ -362,7 +362,20 @@ export class MessagingNestedStack extends cdk.NestedStack {
         },
       });
     props.assetsBucket.grantRead(this.expenseParserFunction);
-    props.openrouterApiSecret.grantRead(this.expenseParserFunction);
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [props.openrouterApiSecret.secretArn],
+      })
+    );
+    if (props.openrouterApiSecret.encryptionKey) {
+      this.expenseParserFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.openrouterApiSecret.encryptionKey.keyArn],
+        })
+      );
+    }
     props.awsProxyFunction.grantInvoke(this.expenseParserFunction);
 
     this.expenseParserFunction.addEventSource(
