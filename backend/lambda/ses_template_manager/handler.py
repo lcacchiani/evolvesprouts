@@ -7,9 +7,15 @@ from typing import Any, Mapping
 from botocore.exceptions import ClientError
 
 from app.services.aws_clients import get_ses_client
-from app.templates.ses.booking_confirmation import get_ses_template_definitions as booking_templates
-from app.templates.ses.contact_confirmation import get_ses_template_definitions as contact_templates
-from app.templates.ses.media_download_link import get_ses_template_definitions as media_templates
+from app.templates.ses.booking_confirmation import (
+    get_ses_template_definitions as booking_templates,
+)
+from app.templates.ses.contact_confirmation import (
+    get_ses_template_definitions as contact_templates,
+)
+from app.templates.ses.media_download_link import (
+    get_ses_template_definitions as media_templates,
+)
 from app.utils.cfn_response import send_cfn_response
 from app.utils.logging import configure_logging, get_logger
 

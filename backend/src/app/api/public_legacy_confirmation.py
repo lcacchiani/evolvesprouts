@@ -67,7 +67,9 @@ def send_contact_confirmation_email(
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
-        logger.warning("CONFIRMATION_EMAIL_FROM_ADDRESS not set; skipping contact confirmation")
+        logger.warning(
+            "CONFIRMATION_EMAIL_FROM_ADDRESS not set; skipping contact confirmation"
+        )
         return
     loc = normalize_body_locale(locale)
     template = f"evolvesprouts-contact-confirmation-{loc}"
@@ -105,7 +107,9 @@ def send_booking_confirmation_email(
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
-        logger.warning("CONFIRMATION_EMAIL_FROM_ADDRESS not set; skipping booking confirmation")
+        logger.warning(
+            "CONFIRMATION_EMAIL_FROM_ADDRESS not set; skipping booking confirmation"
+        )
         return
     loc = normalize_body_locale(locale)
     template = f"evolvesprouts-booking-confirmation-{loc}"
@@ -185,7 +189,9 @@ def _truthy_opt_in(value: Any) -> bool:
     return False
 
 
-def run_contact_us_post_success(*, event: Mapping[str, Any], payload: Mapping[str, Any]) -> None:
+def run_contact_us_post_success(
+    *, event: Mapping[str, Any], payload: Mapping[str, Any]
+) -> None:
     accept_lang = _get_header_case_insensitive(event, "accept-language")
     locale = resolve_email_locale_from_accept_language(accept_lang)
     email = str(payload.get("email_address") or "").strip()

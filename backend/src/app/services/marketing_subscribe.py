@@ -5,8 +5,12 @@ from __future__ import annotations
 import os
 from logging import Logger
 
-from app.services.mailchimp import MailchimpApiError, add_subscriber_with_tag, trigger_customer_journey
-from app.utils.logging import mask_email
+from app.services.mailchimp import (
+    MailchimpApiError,
+    add_subscriber_with_tag,
+    trigger_customer_journey,
+)
+from app.utils.logging import ContextLogger, mask_email
 from app.utils.retry import run_with_retry
 
 
@@ -22,7 +26,7 @@ def subscribe_to_marketing(
     first_name: str,
     tag_name: str,
     merge_fields: dict[str, str] | None = None,
-    logger: Logger,
+    logger: Logger | ContextLogger,
 ) -> bool:
     """Add a contact to the Mailchimp audience with a tag and trigger the welcome journey.
 

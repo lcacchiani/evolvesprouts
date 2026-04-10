@@ -172,11 +172,15 @@ def _handle_legacy_proxy(
 
 
 def _response_status_code(response: Mapping[str, Any]) -> int:
-    status = response.get("statusCode")
-    try:
-        return int(status)
-    except (TypeError, ValueError):
-        return 0
+    raw = response.get("statusCode")
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, str):
+        try:
+            return int(raw.strip())
+        except ValueError:
+            return 0
+    return 0
 
 
 def _legacy_base_url() -> str:
