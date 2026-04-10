@@ -17,7 +17,7 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { ContactUsContent } from '@/content';
+import type { ContactUsContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
@@ -35,6 +35,7 @@ export type ContactUsFormContactConfig = Pick<
 
 interface ContactUsFormProps {
   content: ContactUsContent['form'];
+  locale: Locale;
   contactConfig: ContactUsFormContactConfig;
 }
 
@@ -54,7 +55,7 @@ function sanitizeMultilineValue(value: string): string {
   return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
 }
 
-export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
+export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<ContactUsFormState>({
@@ -149,11 +150,13 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
       phone_number?: string;
       message: string;
       marketing_opt_in: boolean;
+      locale: Locale;
     } = {
       email_address: normalizedEmail,
       message: normalizedMessage,
       first_name: normalizedFirstName,
       marketing_opt_in: marketingOptIn,
+      locale,
     };
     if (normalizedPhone) {
       requestBody.phone_number = normalizedPhone;

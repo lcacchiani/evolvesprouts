@@ -70,8 +70,9 @@ their primary responsibilities.
   verified `SesSenderEmail` identity **and** the `AuthEmailFromAddress` identity
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
   secret when marketing hooks run on legacy routes
-- Environment (selected): `CONFIRMATION_EMAIL_FROM_ADDRESS`, `PUBLIC_WWW_BASE_URL`,
-  `SUPPORT_EMAIL`, `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
+- Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
+  `PUBLIC_WWW_BASE_URL`, `SUPPORT_EMAIL`, `MAILCHIMP_*` welcome journey vars
+  (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the

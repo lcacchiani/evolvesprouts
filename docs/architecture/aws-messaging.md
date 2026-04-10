@@ -311,7 +311,7 @@ SQS retries or mailbox forwarding duplicates.
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
 | `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
 | `CONFIRMATION_EMAIL_FROM_ADDRESS` | SES-verified from address for customer-facing templated emails on legacy public routes (`EvolvesproutsAdminFunction`) |
-| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (FAQ links in contact confirmation templates) |
+| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (Contact Us FAQ anchor in contact confirmation templates: `/{locale}/contact-us#contact-us-faq`) |
 | `MAILCHIMP_API_SECRET_ARN` | Mailchimp API key secret (marketing subscribe after opt-in on legacy routes) |
 | `MAILCHIMP_LIST_ID` | Mailchimp audience ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp API host prefix |

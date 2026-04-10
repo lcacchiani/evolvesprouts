@@ -83,6 +83,7 @@ function renderContactUsForm(
   return render(
     <ContactUsForm
       content={enContent.contactUs.form}
+      locale='en'
       contactConfig={contactConfig}
     />,
   );
@@ -428,6 +429,7 @@ describe('ContactUsForm section', () => {
           phone_number: '+852 1234 5678',
           message: 'Tell me more about your courses.',
           marketing_opt_in: false,
+          locale: 'en',
         },
         expectedSuccessStatuses: [200, 202],
       });

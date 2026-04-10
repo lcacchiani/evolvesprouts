@@ -1047,6 +1047,13 @@ components:
           type: boolean
           default: false
           description: When true, subscribe the contact to marketing (Mailchimp) with a flow-specific tag.
+        locale:
+          type: string
+          description: Public website route locale for SES confirmation template selection (falls back to Accept-Language when omitted).
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
     MediaRequestSubmissionRequest:
       type: object
       required:

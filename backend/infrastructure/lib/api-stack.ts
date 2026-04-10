@@ -1526,6 +1526,7 @@ export class ApiStack extends cdk.Stack {
         LEGACY_PUBLIC_API_KEY: legacyPublicApiKey.valueAsString,
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
+        SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1620,11 +1621,6 @@ export class ApiStack extends cdk.Stack {
         noVpc: true,
       }
     );
-    sesTemplateManagerFunction.addPermission("SesTemplateManagerCfnPermission", {
-      principal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
-      sourceArn: cdk.Stack.of(this).stackId,
-      sourceAccount: cdk.Stack.of(this).account,
-    });
     sesTemplateManagerFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [

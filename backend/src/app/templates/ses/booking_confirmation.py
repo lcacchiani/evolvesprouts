@@ -29,10 +29,15 @@ style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow
 
 def get_ses_template_definitions() -> list[dict[str, Any]]:
     """Return SES CreateTemplate payloads (Template key for boto3)."""
+    subjects = {
+        "en": "Booking confirmed — {{course_label}} — Evolve Sprouts",
+        "zh-CN": "预约确认 — {{course_label}} — Evolve Sprouts",
+        "zh-HK": "預約確認 — {{course_label}} — Evolve Sprouts",
+    }
     return [
         {
             "TemplateName": f"evolvesprouts-booking-confirmation-{loc}",
-            "SubjectPart": "Booking confirmed — {{course_label}} — Evolve Sprouts",
+            "SubjectPart": subjects[loc],
             "HtmlPart": _wrap_html(inner_html=inner_html),
             "TextPart": text_part,
         }
@@ -60,7 +65,7 @@ _HTML_EN = (
     "{{/if}}"
     '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>Payment method</strong></td>'
     '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>Total (HKD)</strong></td>'
+    '<tr><td style="padding:8px 0;"><strong>Total</strong></td>'
     '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
     "</table>"
     "{{#if is_pending_payment}}"
@@ -82,7 +87,7 @@ _TEXT_EN = (
     "{{#if schedule_date_label}}Date: {{schedule_date_label}}\n{{/if}}"
     "{{#if schedule_time_label}}Time: {{schedule_time_label}}\n{{/if}}"
     "Payment method: {{payment_method}}\n"
-    "Total (HKD): {{total_amount}}\n\n"
+    "Total: {{total_amount}}\n\n"
     "{{#if is_pending_payment}}"
     "Your reservation is pending until payment is confirmed.\n\n"
     "{{/if}}"
@@ -109,7 +114,7 @@ _HTML_ZH_CN = (
     "{{/if}}"
     '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>付款方式</strong></td>'
     '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>总额（港币）</strong></td>'
+    '<tr><td style="padding:8px 0;"><strong>总额</strong></td>'
     '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
     "</table>"
     "{{#if is_pending_payment}}"
@@ -131,7 +136,7 @@ _TEXT_ZH_CN = (
     "{{#if schedule_date_label}}日期：{{schedule_date_label}}\n{{/if}}"
     "{{#if schedule_time_label}}时间：{{schedule_time_label}}\n{{/if}}"
     "付款方式：{{payment_method}}\n"
-    "总额（港币）：{{total_amount}}\n\n"
+    "总额：{{total_amount}}\n\n"
     "{{#if is_pending_payment}}"
     "在付款确认前，您的预订仍为待处理状态。\n\n"
     "{{/if}}"
@@ -158,7 +163,7 @@ _HTML_ZH_HK = (
     "{{/if}}"
     '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>付款方式</strong></td>'
     '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>總額（港幣）</strong></td>'
+    '<tr><td style="padding:8px 0;"><strong>總額</strong></td>'
     '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
     "</table>"
     "{{#if is_pending_payment}}"
@@ -180,7 +185,7 @@ _TEXT_ZH_HK = (
     "{{#if schedule_date_label}}日期：{{schedule_date_label}}\n{{/if}}"
     "{{#if schedule_time_label}}時間：{{schedule_time_label}}\n{{/if}}"
     "付款方式：{{payment_method}}\n"
-    "總額（港幣）：{{total_amount}}\n\n"
+    "總額：{{total_amount}}\n\n"
     "{{#if is_pending_payment}}"
     "在付款確認前，您的預訂仍為待處理狀態。\n\n"
     "{{/if}}"

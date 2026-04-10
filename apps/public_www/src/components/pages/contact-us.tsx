@@ -1,4 +1,4 @@
-import type { SiteContent } from '@/content';
+import type { Locale, SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
@@ -7,9 +7,10 @@ import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface ContactUsPageProps {
   content: SiteContent;
+  locale: Locale;
 }
 
-export function ContactUsPage({ content }: ContactUsPageProps) {
+export function ContactUsPage({ content, locale }: ContactUsPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
 
   return (
@@ -19,6 +20,7 @@ export function ContactUsPage({ content }: ContactUsPageProps) {
     >
       <ContactUsForm
         content={content.contactUs.form}
+        locale={locale}
         contactConfig={{
           contactEmail: publicSiteConfig.contactEmail,
           whatsappUrl: publicSiteConfig.whatsappUrl,

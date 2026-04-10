@@ -44,3 +44,32 @@ def test_subscribe_to_marketing_skips_journey_when_ids_empty(
         is True
     )
     assert calls == ["add_subscriber_with_tag"]
+
+
+def test_subscribe_to_marketing_skips_member_when_subscribe_member_false(
+    monkeypatch: Any,
+) -> None:
+    logger = MagicMock()
+    monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_ID", "j1")
+    monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", "s1")
+    calls: list[Any] = []
+
+    def _fake_run_with_retry(fn: Any, *args: Any, **kwargs: Any) -> Any:
+        calls.append(fn)
+        if fn.__name__ == "trigger_customer_journey":
+            return None
+        raise AssertionError(f"unexpected fn {fn}")
+
+    monkeypatch.setattr(ms, "run_with_retry", _fake_run_with_retry)
+    assert (
+        ms.subscribe_to_marketing(
+            email="a@example.com",
+            first_name="Ada",
+            tag_name="t",
+            logger=logger,
+            subscribe_member=False,
+        )
+        is True
+    )
+    assert len(calls) == 1
+    assert calls[0].__name__ == "trigger_customer_journey"

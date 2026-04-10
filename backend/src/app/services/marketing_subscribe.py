@@ -27,10 +27,14 @@ def subscribe_to_marketing(
     tag_name: str,
     merge_fields: dict[str, str] | None = None,
     logger: Logger | ContextLogger,
+    subscribe_member: bool = True,
 ) -> bool:
     """Add a contact to the Mailchimp audience with a tag and trigger the welcome journey.
 
-    Returns True if the subscribe succeeded. Logs errors and never raises.
+    When ``subscribe_member`` is False, skip ``add_subscriber_with_tag`` (member already
+    synced elsewhere) and only attempt the welcome journey trigger.
+
+    Returns True if the subscribe succeeded (or was skipped). Logs errors and never raises.
     """
     normalized_email = email.strip().lower()
     normalized_first = " ".join(first_name.split()).strip()
@@ -41,34 +45,35 @@ def subscribe_to_marketing(
         )
         return False
 
-    try:
-        run_with_retry(
-            add_subscriber_with_tag,
-            email=normalized_email,
-            first_name=normalized_first,
-            tag_name=tag_name,
-            merge_fields=merge_fields,
-            max_attempts=3,
-            base_delay_seconds=1.0,
-            should_retry=_is_retryable_mailchimp_exception,
-            logger=logger,
-            operation_name="marketing.add_subscriber_with_tag",
-        )
-    except MailchimpApiError as exc:
-        logger.warning(
-            "Marketing subscribe failed",
-            extra={
-                "status": exc.status,
-                "lead_email": mask_email(normalized_email),
-            },
-        )
-        return False
-    except Exception:
-        logger.exception(
-            "Marketing subscribe failed unexpectedly",
-            extra={"lead_email": mask_email(normalized_email)},
-        )
-        return False
+    if subscribe_member:
+        try:
+            run_with_retry(
+                add_subscriber_with_tag,
+                email=normalized_email,
+                first_name=normalized_first,
+                tag_name=tag_name,
+                merge_fields=merge_fields,
+                max_attempts=3,
+                base_delay_seconds=1.0,
+                should_retry=_is_retryable_mailchimp_exception,
+                logger=logger,
+                operation_name="marketing.add_subscriber_with_tag",
+            )
+        except MailchimpApiError as exc:
+            logger.warning(
+                "Marketing subscribe failed",
+                extra={
+                    "status": exc.status,
+                    "lead_email": mask_email(normalized_email),
+                },
+            )
+            return False
+        except Exception:
+            logger.exception(
+                "Marketing subscribe failed unexpectedly",
+                extra={"lead_email": mask_email(normalized_email)},
+            )
+            return False
 
     journey_id = os.getenv("MAILCHIMP_WELCOME_JOURNEY_ID", "").strip()
     step_id = os.getenv("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", "").strip()

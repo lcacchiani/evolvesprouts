@@ -1,5 +1,3 @@
-'use client';
-
 interface MarketingOptInCheckboxProps {
   label: string;
   checked: boolean;

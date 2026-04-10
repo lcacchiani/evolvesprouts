@@ -51,6 +51,18 @@ def normalize_body_locale(value: Any) -> str:
     return s if s in _ALLOWED_LOCALES else "en"
 
 
+def resolve_contact_confirmation_locale(
+    *,
+    payload: Mapping[str, Any],
+    accept_language_header: str,
+) -> str:
+    """Prefer explicit ``locale`` from the JSON body; fall back to Accept-Language."""
+    raw = payload.get("locale")
+    if isinstance(raw, str) and raw.strip() in _ALLOWED_LOCALES:
+        return raw.strip()
+    return resolve_email_locale_from_accept_language(accept_language_header)
+
+
 def first_name_from_full_name(full_name: str) -> str:
     """Mailchimp FNAME: first whitespace-separated segment, or whole string."""
     normalized = " ".join(str(full_name).split()).strip()
@@ -193,7 +205,10 @@ def run_contact_us_post_success(
     *, event: Mapping[str, Any], payload: Mapping[str, Any]
 ) -> None:
     accept_lang = _get_header_case_insensitive(event, "accept-language")
-    locale = resolve_email_locale_from_accept_language(accept_lang)
+    locale = resolve_contact_confirmation_locale(
+        payload=payload,
+        accept_language_header=accept_lang,
+    )
     email = str(payload.get("email_address") or "").strip()
     first_name = str(payload.get("first_name") or "").strip()
     if email and first_name:
@@ -278,8 +293,8 @@ def _format_hkd_amount(price: Any) -> str:
     try:
         n = float(price)
     except (TypeError, ValueError):
-        return "0.00"
-    return f"{n:.2f}"
+        return "HK$0.00"
+    return f"HK${n:.2f}"
 
 
 def _get_header_case_insensitive(event: Mapping[str, Any], name: str) -> str:

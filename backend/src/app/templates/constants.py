@@ -18,9 +18,9 @@ def resolve_public_www_base_url() -> str:
 
 
 def build_faq_url(*, locale: str) -> str:
-    """Build a locale-prefixed FAQ page URL under the public site."""
+    """Build URL to the Contact Us page FAQ block (matches ``contact-us-faq`` section)."""
     base = resolve_public_www_base_url()
     if not base:
         return ""
     loc = locale.strip() if locale.strip() else "en"
-    return f"{base}/{loc}/about-us"
+    return f"{base}/{loc}/contact-us#contact-us-faq"

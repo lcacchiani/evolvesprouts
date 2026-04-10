@@ -170,6 +170,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                     tag_name=tag_name,
                     merge_fields=None,
                     logger=logger,
+                    subscribe_member=not was_mailchimp_synced,
                 )
             logger.info(
                 "Skipping duplicate media lead",
@@ -254,6 +255,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 tag_name=tag_name,
                 merge_fields=None,
                 logger=logger,
+                subscribe_member=not was_mailchimp_synced,
             )
 
         _send_sales_notification(

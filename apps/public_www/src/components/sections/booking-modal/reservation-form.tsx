@@ -22,7 +22,6 @@ import type {
 } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
@@ -930,6 +929,7 @@ export function BookingReservationForm({
             phone={phone}
             interestedTopics={interestedTopics}
             hasEmailError={hasEmailError}
+            marketingOptIn={marketingOptIn}
             topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
             onEmailChange={setEmail}
@@ -938,6 +938,7 @@ export function BookingReservationForm({
             }}
             onPhoneChange={setPhone}
             onTopicsChange={setInterestedTopics}
+            onMarketingOptInChange={setMarketingOptIn}
           />
 
           <ReservationFormDiscountCodeInput
@@ -961,12 +962,6 @@ export function BookingReservationForm({
             originalAmount={originalAmount}
             discountAmount={discountAmount}
             totalAmount={totalAmount}
-          />
-
-          <MarketingOptInCheckbox
-            label={content.marketingOptInLabel}
-            checked={marketingOptIn}
-            onChange={setMarketingOptIn}
           />
 
           <div data-booking-payment='true' className='w-full space-y-2 py-1'>
