@@ -18,10 +18,11 @@ import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as customresources from "aws-cdk-lib/custom-resources";
 import { Construct, IConstruct } from "constructs";
-import * as crypto from "crypto";
-import * as fs from "fs";
 import * as path from "path";
+import { hashDirectory, hashFile, hashValue } from "./cdk-source-hash";
 import { DatabaseConstruct, PythonLambdaFactory, STANDARD_LOG_RETENTION } from "./constructs";
+import { MessagingNestedStack } from "./messaging-stack";
+import { sesVerifiedAddressAndDomainIdentityArns } from "./ses-identity-arns";
 
 class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
   public visit(node: IConstruct): void {
@@ -64,29 +65,6 @@ class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
       }
     }
   }
-}
-
-/**
- * IAM resource ARNs for SES SendEmail. When the domain is verified in SES,
- * authorization may be evaluated against `identity/<domain>` even if the From
- * address is a specific mailbox — include both the address and domain ARNs.
- */
-function sesVerifiedAddressAndDomainIdentityArns(
-  stack: cdk.Stack,
-  verifiedFromEmailAddress: string
-): [string, string] {
-  const domainPart = cdk.Fn.select(1, cdk.Fn.split("@", verifiedFromEmailAddress));
-  const addressArn = stack.formatArn({
-    service: "ses",
-    resource: "identity",
-    resourceName: verifiedFromEmailAddress,
-  });
-  const domainArn = stack.formatArn({
-    service: "ses",
-    resource: "identity",
-    resourceName: domainPart,
-  });
-  return [addressArn, domainArn];
 }
 
 interface EventbriteSyncNestedStackProps extends cdk.NestedStackProps {
@@ -1620,37 +1598,6 @@ export class ApiStack extends cdk.Stack {
       mailchimpApiSecretArn.valueAsString
     );
 
-    const sesTemplateManagerFunction = createPythonFunction(
-      "SesTemplateManagerFunction",
-      {
-        handler: "lambda/ses_template_manager/handler.lambda_handler",
-        memorySize: 256,
-        timeout: cdk.Duration.seconds(60),
-        noVpc: true,
-        omitFunctionName: true,
-        reservedConcurrentExecutions: -1,
-      }
-    );
-    sesTemplateManagerFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "ses:CreateTemplate",
-          "ses:UpdateTemplate",
-          "ses:DeleteTemplate",
-          "ses:GetTemplate",
-        ],
-        resources: ["*"],
-      })
-    );
-    const sesTemplatesHash = hashDirectory(
-      path.join(__dirname, "../../src/app/templates/ses")
-    );
-    new cdk.CustomResource(this, "SesEmailTemplates", {
-      serviceToken: sesTemplateManagerFunction.functionArn,
-      properties: {
-        TemplatesHash: sesTemplatesHash,
-      },
-    });
     // SECURITY: Use customer-managed KMS key for Secrets Manager (Checkov CKV_AWS_149)
     const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
       enableKeyRotation: true,
@@ -1670,10 +1617,6 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    // -------------------------------------------------------------------------
-    // Booking Request Messaging (SNS + SQS)
-    // -------------------------------------------------------------------------
-
     const sqsEncryptionKey = new kms.Key(this, "SqsEncryptionKey", {
       enableKeyRotation: true,
       alias: name("sqs-encryption-key"),
@@ -1685,266 +1628,69 @@ export class ApiStack extends cdk.Stack {
       inboundEmailDomainName.valueAsString,
     ]);
 
-    const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
-      retentionPeriod: cdk.Duration.days(14),
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
-    });
-
-    const bookingRequestQueue = new sqs.Queue(this, "BookingRequestQueue", {
-      visibilityTimeout: cdk.Duration.seconds(60),
-      deadLetterQueue: {
-        queue: bookingRequestDLQ,
-        maxReceiveCount: 3,
-      },
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
-    });
-
-    const bookingRequestTopic = new sns.Topic(this, "BookingRequestTopic", {
-      masterKey: sqsEncryptionKey,
-    });
-
-    sqsEncryptionKey.grant(
-      new iam.ServicePrincipal("sns.amazonaws.com"),
-      "kms:GenerateDataKey*",
-      "kms:Decrypt"
-    );
-
-    bookingRequestTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(bookingRequestQueue)
-    );
-
-    const bookingRequestProcessor = createPythonFunction(
-      "BookingRequestProcessor",
-      {
-        handler: "lambda/manager_request_processor/handler.lambda_handler",
-        timeout: cdk.Duration.seconds(10),
-        omitFunctionName: true,
-        reservedConcurrentExecutions: -1,
-        environment: {
-          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-          DATABASE_NAME: "evolvesprouts",
-          DATABASE_USERNAME: "evolvesprouts_admin",
-          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
-          DATABASE_IAM_AUTH: "true",
-          SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
-          SUPPORT_EMAIL: supportEmail.valueAsString,
-        },
-      }
-    );
-
-    database.grantAdminUserSecretRead(bookingRequestProcessor);
-    database.grantConnect(bookingRequestProcessor, "evolvesprouts_admin");
-
-    bookingRequestProcessor.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
-      })
-    );
-
-    bookingRequestProcessor.addEventSource(
-      new lambdaEventSources.SqsEventSource(bookingRequestQueue, {
-        batchSize: 1,
-      })
-    );
-
-    const dlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "BookingRequestDLQAlarm", {
-      alarmDescription: "Booking request messages failed processing and landed in DLQ",
-      metric: bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
-        period: cdk.Duration.minutes(5),
-      }),
-      threshold: 1,
-      evaluationPeriods: 1,
-      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
-    });
-
     // -------------------------------------------------------------------------
-    // Media Request Messaging (SNS + SQS)
+    // Messaging pipelines + SES templates (nested stack to reduce root stack size)
     // -------------------------------------------------------------------------
-
-    const mediaDLQ = new sqs.Queue(this, "MediaDLQ", {
-      retentionPeriod: cdk.Duration.days(14),
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
+    const messaging = new MessagingNestedStack(this, "Messaging", {
+      resourcePrefix,
+      vpc,
+      lambdaSecurityGroup,
+      sharedLambdaEnvEncryptionKey,
+      sharedLambdaLogEncryptionKey,
+      sharedLambdaDlq,
+      sqsEncryptionKey,
+      databaseSecretArn: database.adminUserSecret.secretArn,
+      databaseProxyEndpoint: database.proxy.endpoint,
+      awsProxyFunctionArn: awsProxyFunction.functionArn,
+      awsProxyFunction,
+      sesSenderIdentityArn,
+      sesSenderDomainIdentityArn,
+      sesAuthEmailIdentityArn,
+      sesAuthEmailDomainIdentityArn,
+      mailchimpApiSecret,
+      assetsBucket,
+      openrouterApiSecret,
+      sesSenderEmail: sesSenderEmail.valueAsString,
+      supportEmail: supportEmail.valueAsString,
+      authEmailFromAddress: authEmailFromAddress.valueAsString,
+      mailchimpListId: mailchimpListId.valueAsString,
+      mailchimpServerPrefix: mailchimpServerPrefix.valueAsString,
+      mediaDefaultResourceKey: mediaDefaultResourceKey.valueAsString,
+      assetDownloadCustomDomainName: assetDownloadCustomDomainName.valueAsString,
+      publicWwwDomainName: publicWwwDomainName.valueAsString,
+      publicWwwStagingDomainName: publicWwwStagingDomainName.valueAsString,
+      mailchimpMediaDownloadMergeTag: mailchimpMediaDownloadMergeTag.valueAsString,
+      mailchimpFreeResourceJourneyId: mailchimpFreeResourceJourneyId.valueAsString,
+      mailchimpFreeResourceJourneyStepId:
+        mailchimpFreeResourceJourneyStepId.valueAsString,
+      mailchimpRequireMarketingConsent:
+        mailchimpRequireMarketingConsent.valueAsString,
+      mailchimpWelcomeJourneyId: mailchimpWelcomeJourneyId.valueAsString,
+      mailchimpWelcomeJourneyStepId:
+        mailchimpWelcomeJourneyStepId.valueAsString,
+      openrouterChatCompletionsUrl: openrouterChatCompletionsUrl.valueAsString,
+      openrouterModel: openrouterModel.valueAsString,
+      openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
     });
 
-    const mediaQueue = new sqs.Queue(this, "MediaQueue", {
-      visibilityTimeout: cdk.Duration.seconds(60),
-      deadLetterQueue: {
-        queue: mediaDLQ,
-        maxReceiveCount: 3,
-      },
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
-    });
-
-    const mediaTopic = new sns.Topic(this, "MediaTopic", {
-      masterKey: sqsEncryptionKey,
-    });
-
-    mediaTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(mediaQueue)
+    messaging.bookingRequestTopic.grantPublish(adminFunction);
+    messaging.mediaTopic.grantPublish(adminFunction);
+    messaging.expenseParserTopic.grantPublish(adminFunction);
+    adminFunction.addEnvironment(
+      "MEDIA_REQUEST_TOPIC_ARN",
+      messaging.mediaTopic.topicArn
     );
-    mediaTopic.grantPublish(adminFunction);
-    adminFunction.addEnvironment("MEDIA_REQUEST_TOPIC_ARN", mediaTopic.topicArn);
-
-    const mediaRequestProcessor = createPythonFunction(
-      "MediaRequestProcessor",
-      {
-        handler: "lambda/media_processor/handler.lambda_handler",
-        timeout: cdk.Duration.seconds(30),
-        omitFunctionName: true,
-        reservedConcurrentExecutions: -1,
-        environment: {
-          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-          DATABASE_NAME: "evolvesprouts",
-          DATABASE_USERNAME: "evolvesprouts_admin",
-          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
-          DATABASE_IAM_AUTH: "true",
-          SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
-          SUPPORT_EMAIL: supportEmail.valueAsString,
-          MAILCHIMP_API_SECRET_ARN: mailchimpApiSecret.secretArn,
-          MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
-          MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
-          MEDIA_DEFAULT_RESOURCE_KEY: mediaDefaultResourceKey.valueAsString,
-          AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
-          ASSET_SHARE_LINK_BASE_URL:
-            `https://${assetDownloadCustomDomainName.valueAsString}`,
-          ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS:
-            `${publicWwwDomainName.valueAsString},${publicWwwStagingDomainName.valueAsString}`,
-          MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
-            mailchimpMediaDownloadMergeTag.valueAsString,
-          MAILCHIMP_FREE_RESOURCE_JOURNEY_ID:
-            mailchimpFreeResourceJourneyId.valueAsString,
-          MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID:
-            mailchimpFreeResourceJourneyStepId.valueAsString,
-          CONFIRMATION_EMAIL_FROM_ADDRESS:
-            authEmailFromAddress.valueAsString,
-          MAILCHIMP_REQUIRE_MARKETING_CONSENT:
-            mailchimpRequireMarketingConsent.valueAsString,
-          MAILCHIMP_WELCOME_JOURNEY_ID: mailchimpWelcomeJourneyId.valueAsString,
-          MAILCHIMP_WELCOME_JOURNEY_STEP_ID:
-            mailchimpWelcomeJourneyStepId.valueAsString,
-          PUBLIC_WWW_BASE_URL:
-            `https://${publicWwwDomainName.valueAsString}`,
-        },
-      }
-    );
-
-    database.grantAdminUserSecretRead(mediaRequestProcessor);
-    database.grantConnect(mediaRequestProcessor, "evolvesprouts_admin");
-
-    mediaRequestProcessor.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:SendTemplatedEmail"],
-        resources: [
-          sesSenderIdentityArn,
-          sesSenderDomainIdentityArn,
-          sesAuthEmailIdentityArn,
-          sesAuthEmailDomainIdentityArn,
-        ],
-      })
-    );
-    mailchimpApiSecret.grantRead(mediaRequestProcessor);
-    awsProxyFunction.grantInvoke(mediaRequestProcessor);
-
-    mediaRequestProcessor.addEventSource(
-      new lambdaEventSources.SqsEventSource(mediaQueue, {
-        batchSize: 1,
-      })
-    );
-
-    const mediaDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "MediaDLQAlarm", {
-      alarmDescription:
-        "Media request messages failed processing and landed in DLQ",
-      metric: mediaDLQ.metricApproximateNumberOfMessagesVisible({
-        period: cdk.Duration.minutes(5),
-      }),
-      threshold: 1,
-      evaluationPeriods: 1,
-      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
-    });
-
-    // -------------------------------------------------------------------------
-    // Expense Parser Messaging (SNS + SQS)
-    // -------------------------------------------------------------------------
-
-    const expenseParserDLQ = new sqs.Queue(this, "ExpenseParserDLQ", {
-      retentionPeriod: cdk.Duration.days(14),
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
-    });
-
-    const expenseParserQueue = new sqs.Queue(this, "ExpenseParserQueue", {
-      visibilityTimeout: cdk.Duration.seconds(180),
-      deadLetterQueue: {
-        queue: expenseParserDLQ,
-        maxReceiveCount: 3,
-      },
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: sqsEncryptionKey,
-    });
-
-    const expenseParserTopic = new sns.Topic(this, "ExpenseParserTopic", {
-      masterKey: sqsEncryptionKey,
-    });
-    expenseParserTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(expenseParserQueue)
-    );
-    expenseParserTopic.grantPublish(adminFunction);
     adminFunction.addEnvironment(
       "EXPENSE_PARSE_TOPIC_ARN",
-      expenseParserTopic.topicArn
+      messaging.expenseParserTopic.topicArn
     );
 
-    const expenseParserFunction = createPythonFunction("ExpenseParserFunction", {
-      handler: "lambda/expense_parser/handler.lambda_handler",
-      timeout: cdk.Duration.seconds(90),
-      omitFunctionName: true,
-      reservedConcurrentExecutions: -1,
-      environment: {
-        DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-        DATABASE_NAME: "evolvesprouts",
-        DATABASE_USERNAME: "evolvesprouts_admin",
-        DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
-        DATABASE_IAM_AUTH: "true",
-        ASSETS_BUCKET_NAME: assetsBucket.bucketName,
-        OPENROUTER_API_KEY_SECRET_ARN: openrouterApiSecret.secretArn,
-        OPENROUTER_CHAT_COMPLETIONS_URL:
-          openrouterChatCompletionsUrl.valueAsString,
-        OPENROUTER_MODEL: openrouterModel.valueAsString,
-        OPENROUTER_MAX_FILE_BYTES: openrouterMaxFileBytes.valueAsString,
-        AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
-      },
-    });
-    database.grantAdminUserSecretRead(expenseParserFunction);
-    database.grantConnect(expenseParserFunction, "evolvesprouts_admin");
-    assetsBucket.grantRead(expenseParserFunction);
-    openrouterApiSecret.grantRead(expenseParserFunction);
-    awsProxyFunction.grantInvoke(expenseParserFunction);
-
-    expenseParserFunction.addEventSource(
-      new lambdaEventSources.SqsEventSource(expenseParserQueue, {
-        batchSize: 1,
-      })
-    );
-
-    const expenseParserDlqAlarm = new cdk.aws_cloudwatch.Alarm(
-      this,
-      "ExpenseParserDLQAlarm",
-      {
-        alarmDescription:
-          "Expense parser messages failed processing and landed in DLQ",
-        metric: expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
-          period: cdk.Duration.minutes(5),
-        }),
-        threshold: 1,
-        evaluationPeriods: 1,
-        treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
-      }
-    );
+    database.grantAdminUserSecretRead(messaging.bookingRequestProcessor);
+    database.grantConnect(messaging.bookingRequestProcessor, "evolvesprouts_admin");
+    database.grantAdminUserSecretRead(messaging.mediaRequestProcessor);
+    database.grantConnect(messaging.mediaRequestProcessor, "evolvesprouts_admin");
+    database.grantAdminUserSecretRead(messaging.expenseParserFunction);
+    database.grantConnect(messaging.expenseParserFunction, "evolvesprouts_admin");
 
     // -------------------------------------------------------------------------
     // Eventbrite sync messaging (nested stack to reduce root stack size)
@@ -2019,7 +1765,7 @@ export class ApiStack extends cdk.Stack {
           DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
           DATABASE_IAM_AUTH: "true",
           ASSETS_BUCKET_NAME: assetsBucket.bucketName,
-          EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
+          EXPENSE_PARSE_TOPIC_ARN: messaging.expenseParserTopic.topicArn,
           INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS:
             inboundInvoiceAllowedSenderPatterns.valueAsString,
         },
@@ -2028,7 +1774,7 @@ export class ApiStack extends cdk.Stack {
     database.grantAdminUserSecretRead(inboundInvoiceProcessor);
     database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
     assetsBucket.grantReadWrite(inboundInvoiceProcessor);
-    expenseParserTopic.grantPublish(inboundInvoiceProcessor);
+    messaging.expenseParserTopic.grantPublish(inboundInvoiceProcessor);
     inboundInvoiceProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
         batchSize: 1,
@@ -3551,44 +3297,44 @@ export class ApiStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "BookingRequestTopicArn", {
-      value: bookingRequestTopic.topicArn,
+      value: messaging.bookingRequestTopic.topicArn,
       description: "SNS topic ARN for booking request events",
     });
 
     new cdk.CfnOutput(this, "BookingRequestQueueUrl", {
-      value: bookingRequestQueue.queueUrl,
+      value: messaging.bookingRequestQueue.queueUrl,
       description: "SQS queue URL for booking request processing",
     });
 
     new cdk.CfnOutput(this, "BookingRequestDLQUrl", {
-      value: bookingRequestDLQ.queueUrl,
+      value: messaging.bookingRequestDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed booking requests",
     });
 
     new cdk.CfnOutput(this, "MediaTopicArn", {
-      value: mediaTopic.topicArn,
+      value: messaging.mediaTopic.topicArn,
       description: "SNS topic ARN for media request events",
     });
 
     new cdk.CfnOutput(this, "MediaQueueUrl", {
-      value: mediaQueue.queueUrl,
+      value: messaging.mediaQueue.queueUrl,
       description: "SQS queue URL for media request processing",
     });
 
     new cdk.CfnOutput(this, "MediaDLQUrl", {
-      value: mediaDLQ.queueUrl,
+      value: messaging.mediaDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed media requests",
     });
     new cdk.CfnOutput(this, "ExpenseParserTopicArn", {
-      value: expenseParserTopic.topicArn,
+      value: messaging.expenseParserTopic.topicArn,
       description: "SNS topic ARN for expense parser events",
     });
     new cdk.CfnOutput(this, "ExpenseParserQueueUrl", {
-      value: expenseParserQueue.queueUrl,
+      value: messaging.expenseParserQueue.queueUrl,
       description: "SQS queue URL for expense parser processing",
     });
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
-      value: expenseParserDLQ.queueUrl,
+      value: messaging.expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
     });
     new cdk.CfnOutput(this, "EventbriteSyncTopicArn", {
@@ -3765,35 +3511,4 @@ function parseOptionalBoolean(value: string | undefined): boolean | undefined {
     return false;
   }
   throw new Error(`Invalid boolean value: ${value}`);
-}
-
-function hashFile(filePath: string): string {
-  if (!fs.existsSync(filePath)) {
-    return "missing";
-  }
-  const data = fs.readFileSync(filePath);
-  return crypto.createHash("sha256").update(data).digest("hex");
-}
-
-function hashValue(value: string): string {
-  return crypto.createHash("sha256").update(value).digest("hex");
-}
-
-function hashDirectory(dirPath: string): string {
-  if (!fs.existsSync(dirPath)) {
-    return "missing";
-  }
-  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const fullPath = path.join(dirPath, entry.name);
-    if (entry.isDirectory()) {
-      files.push(hashDirectory(fullPath));
-    } else {
-      files.push(hashFile(fullPath));
-    }
-  }
-
-  return crypto.createHash("sha256").update(files.sort().join("")).digest("hex");
 }
