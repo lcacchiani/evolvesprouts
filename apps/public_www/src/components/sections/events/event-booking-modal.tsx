@@ -99,7 +99,7 @@ export function EventBookingModal({
         locale={locale}
         content={paymentModalContent}
         eventTitle={bookingPayload.title}
-        serviceKey={bookingPayload.serviceKey}
+        serviceKey={bookingPayload.serviceKey ?? ''}
         courseSlug='event-booking'
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={bookingPayload.dateParts.map((part) => {

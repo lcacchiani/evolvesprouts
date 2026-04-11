@@ -100,3 +100,38 @@ def test_run_contact_us_post_success_skips_confirmation_for_community_intent(
     )
 
     assert calls == []
+
+
+def test_run_reservation_post_success_passes_dynamic_tag_to_booking_marketing(
+    monkeypatch: Any,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def _fake_maybe_subscribe(**kwargs: Any) -> None:
+        captured.update(kwargs)
+
+    monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.send_booking_confirmation_email",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.maybe_subscribe_booking_marketing",
+        _fake_maybe_subscribe,
+    )
+
+    plc.run_reservation_post_success(
+        payload={
+            "full_name": "Jane Doe",
+            "email": "j@example.com",
+            "course_label": "Course",
+            "payment_method": "fps_qr",
+            "price": 150,
+            "locale": "en",
+            "marketing_opt_in": True,
+            "service_key": "easter-workshop",
+            "course_slug": "event-booking",
+        }
+    )
+
+    assert captured.get("tag_name") == "public-www-booking-customer-easter-workshop"

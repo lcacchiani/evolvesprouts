@@ -826,12 +826,14 @@ export function BookingReservationForm({
       marketing_opt_in: marketingOptIn,
       locale,
       course_label: sanitizeSingleLineValue(eventTitle) || undefined,
-      ...(sanitizeSingleLineValue(serviceKey ?? '')
-        ? { service_key: sanitizeSingleLineValue(serviceKey ?? '') }
-        : {}),
-      ...(sanitizeSingleLineValue(courseSlug ?? '')
-        ? { course_slug: sanitizeSingleLineValue(courseSlug ?? '') }
-        : {}),
+      ...(() => {
+        const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
+        const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
+        return {
+          ...(sanitizedServiceKey ? { service_key: sanitizedServiceKey } : {}),
+          ...(sanitizedCourseSlug ? { course_slug: sanitizedCourseSlug } : {}),
+        };
+      })(),
       schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       schedule_time_label: scheduleTimeLabel,
       location_name: sanitizeSingleLineValue(venueName) || undefined,
