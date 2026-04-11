@@ -2549,6 +2549,10 @@ export class ApiStack extends cdk.Stack {
           sesSenderDomainIdentityArn,
           sesAuthEmailIdentityArn,
           sesAuthEmailDomainIdentityArn,
+          cdk.Arn.format(
+            { service: "ses", resource: "template", resourceName: "evolvesprouts-*" },
+            this
+          ),
         ],
       })
     );
