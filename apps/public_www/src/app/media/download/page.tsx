@@ -1,13 +1,9 @@
-import type { Metadata } from 'next';
-
-import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
+import { createNoIndexDefaultLocaleRedirectPage } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+const noIndexMediaDownloadRedirect = createNoIndexDefaultLocaleRedirectPage(
+  ROUTES.mediaDownload,
+);
 
-export default createDefaultLocaleRedirectPage(ROUTES.mediaDownload);
+export const metadata = noIndexMediaDownloadRedirect.metadata;
+export default noIndexMediaDownloadRedirect.default;

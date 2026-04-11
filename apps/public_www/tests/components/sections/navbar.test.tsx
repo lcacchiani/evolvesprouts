@@ -157,7 +157,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenu).not.toHaveAttribute('aria-hidden', 'true');
 
     const submenuLink = within(submenu as HTMLElement).getByRole('link', {
-      name: 'Helper Training Course',
+      name: 'My Best Auntie Programme',
     });
     expect(
       within(submenu as HTMLElement).queryByRole('link', {

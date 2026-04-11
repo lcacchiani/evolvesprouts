@@ -233,6 +233,15 @@ class InstanceStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+class EventbriteSyncStatus(str, enum.Enum):
+    """Sync lifecycle status for Eventbrite publishing."""
+
+    PENDING = "pending"
+    SYNCING = "syncing"
+    SYNCED = "synced"
+    FAILED = "failed"
+
+
 class DiscountType(str, enum.Enum):
     """Discount code type."""
 
@@ -248,6 +257,13 @@ class EnrollmentStatus(str, enum.Enum):
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
     COMPLETED = "completed"
+
+
+CAPACITY_ENROLLMENT_STATUSES: tuple[EnrollmentStatus, ...] = (
+    EnrollmentStatus.REGISTERED,
+    EnrollmentStatus.CONFIRMED,
+    EnrollmentStatus.COMPLETED,
+)
 
 
 class ExpenseStatus(str, enum.Enum):

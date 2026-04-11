@@ -25,17 +25,36 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import {
+  parseHexColorRgb,
+  resolveCssColorToken,
+  rgbaFromCssColor,
+} from '@/lib/css-token-utils';
+import {
+  SITE_PRIMARY_FONT_STACK,
+  STRIPE_APPEARANCE_CSS_VARS,
+  STRIPE_APPEARANCE_FALLBACK_HEX,
+} from '@/lib/design-tokens';
+import { trackMetaPixelEvent, type MetaPixelContentName } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
-import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import {
+  createPublicApiClient,
+  createPublicCrmApiClient,
+} from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
 import {
   createReservationPaymentIntent,
   type ReservationPaymentIntentResponse,
 } from '@/lib/reservation-payments-data';
 import {
+  resolvePublicBookingPaymentOptionFlags,
+  type PublicBookingPaymentOptionFlags,
+} from '@/lib/booking-payment-options';
+import {
   submitReservation,
+  type ReservationPaymentMethodCode,
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -56,9 +75,10 @@ interface BookingReservationFormProps {
   venueDirectionHref?: string;
   dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
+  topicsPrefill?: string;
   descriptionId: string;
   analyticsSectionId?: string;
-  metaPixelContentName?: string;
+  metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -79,12 +99,184 @@ const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
 const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
   ? loadStripe(STRIPE_PUBLISHABLE_KEY.trim())
   : null;
-const STRIPE_PAYMENT_ELEMENT_ERROR_ID = 'booking-modal-stripe-payment-error';
 
-type PaymentMethodOption =
-  | typeof PAYMENT_METHOD_FPS
-  | typeof PAYMENT_METHOD_BANK_TRANSFER
-  | typeof PAYMENT_METHOD_STRIPE;
+function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions['appearance']> {
+  const primaryRgbFallback = parseHexColorRgb(STRIPE_APPEARANCE_FALLBACK_HEX.brandOrange) ?? {
+    r: 200,
+    g: 74,
+    b: 22,
+  };
+  const dangerRgbFallback = parseHexColorRgb(STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong) ?? {
+    r: 180,
+    g: 35,
+    b: 24,
+  };
+
+  const colorPrimary = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.brandOrange,
+    STRIPE_APPEARANCE_FALLBACK_HEX.brandOrange,
+  );
+  const colorBackground = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.surfaceWhite,
+    STRIPE_APPEARANCE_FALLBACK_HEX.surfaceWhite,
+  );
+  const colorBackgroundMuted = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.surfaceMuted,
+    STRIPE_APPEARANCE_FALLBACK_HEX.surfaceMuted,
+  );
+  const colorText = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.textHeading,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textHeading,
+  );
+  const colorTextSecondary = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.textNeutralStrong,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textNeutralStrong,
+  );
+  const colorTextPlaceholder = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.textPlaceholder,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textPlaceholder,
+  );
+  const colorDanger = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.textDangerStrong,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong,
+  );
+  const borderInput = resolveCssColorToken(
+    STRIPE_APPEARANCE_CSS_VARS.borderInput,
+    STRIPE_APPEARANCE_FALLBACK_HEX.borderInput,
+  );
+
+  const focusRingPrimary = rgbaFromCssColor(colorPrimary, 0.55, primaryRgbFallback);
+  const focusRingDanger = rgbaFromCssColor(colorDanger, 0.55, dangerRgbFallback);
+  const focusRingPrimaryStrong = rgbaFromCssColor(colorPrimary, 0.65, primaryRgbFallback);
+
+  return {
+    theme: 'stripe',
+    variables: {
+      colorPrimary,
+      colorBackground,
+      colorText,
+      colorTextSecondary,
+      colorTextPlaceholder,
+      colorDanger,
+      fontFamily: SITE_PRIMARY_FONT_STACK,
+      fontSizeBase: '14px',
+      borderRadius: '10px',
+      spacingUnit: '4px',
+    },
+    rules: {
+      '.Label': {
+        color: colorText,
+        fontWeight: '600',
+      },
+      '.Input': {
+        border: `1px solid ${borderInput}`,
+        boxShadow: 'none',
+        color: colorText,
+      },
+      '.Input::placeholder': {
+        color: colorTextPlaceholder,
+      },
+      '.Input:focus': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
+      },
+      '.Input:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
+      },
+      '.Input--invalid': {
+        borderColor: colorDanger,
+        boxShadow: 'none',
+      },
+      '.Input--invalid:focus': {
+        borderColor: colorDanger,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingDanger}`,
+      },
+      '.Error': {
+        color: colorDanger,
+      },
+      '.Block': {
+        border: 'none',
+        boxShadow: 'none',
+        backgroundColor: 'transparent',
+      },
+      '.Tab': {
+        border: `1px solid ${borderInput}`,
+        backgroundColor: colorBackgroundMuted,
+        color: colorText,
+      },
+      '.Tab:hover': {
+        backgroundColor: colorBackground,
+        color: colorText,
+      },
+      '.Tab:focus': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
+      },
+      '.Tab:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
+      },
+      '.Tab--selected': {
+        backgroundColor: colorBackground,
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 2px ${focusRingPrimaryStrong}`,
+        color: colorText,
+      },
+      '.TabIcon': {
+        color: colorTextSecondary,
+      },
+      '.TabIcon--selected': {
+        color: colorPrimary,
+      },
+    },
+  };
+}
+
+type PaymentMethodOption = ReservationPaymentMethodCode;
+
+type PaymentMethodFlags = {
+  fpsQr: boolean;
+  bankTransfer: boolean;
+  stripeCards: boolean;
+};
+
+function resolvePaymentMethodFlags(
+  flags: PublicBookingPaymentOptionFlags,
+): PaymentMethodFlags {
+  let fpsQr = flags.fpsQrEnabled;
+  let bankTransfer = flags.bankTransferEnabled;
+  let stripeCards = flags.stripeCardsEnabled;
+  if (!fpsQr && !bankTransfer && !stripeCards) {
+    fpsQr = true;
+    bankTransfer = true;
+    stripeCards = true;
+  }
+  return { fpsQr, bankTransfer, stripeCards };
+}
+
+function getDefaultPaymentMethod(flags: PaymentMethodFlags): PaymentMethodOption {
+  if (flags.fpsQr) {
+    return PAYMENT_METHOD_FPS;
+  }
+  if (flags.bankTransfer) {
+    return PAYMENT_METHOD_BANK_TRANSFER;
+  }
+  return PAYMENT_METHOD_STRIPE;
+}
+
+function isPaymentMethodAllowed(
+  method: PaymentMethodOption,
+  flags: PaymentMethodFlags,
+): boolean {
+  if (method === PAYMENT_METHOD_FPS) {
+    return flags.fpsQr;
+  }
+  if (method === PAYMENT_METHOD_BANK_TRANSFER) {
+    return flags.bankTransfer;
+  }
+  return flags.stripeCards;
+}
 
 function getPaymentMethodLabel(
   content: BookingPaymentModalContent,
@@ -179,7 +371,18 @@ const StripePaymentFields = forwardRef<StripePaymentFieldsHandle, StripePaymentF
       };
     }, [elements, fallbackErrorMessage, stripe]);
 
-    return <PaymentElement options={{ layout: 'tabs' }} />;
+    return (
+      <PaymentElement
+        options={{
+          layout: 'tabs',
+          paymentMethodOrder: ['card'],
+          wallets: {
+            applePay: 'never',
+            googlePay: 'never',
+          },
+        }}
+      />
+    );
   },
 );
 
@@ -198,9 +401,10 @@ export function BookingReservationForm({
   venueDirectionHref = '',
   dateEndTime = '',
   topicsFieldConfig,
+  topicsPrefill = '',
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
-  metaPixelContentName = 'my_best_auntie',
+  metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   onSubmitReservation,
 }: BookingReservationFormProps) {
@@ -209,7 +413,8 @@ export function BookingReservationForm({
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [phone, setPhone] = useState('');
-  const [interestedTopics, setInterestedTopics] = useState('');
+  const [interestedTopics, setInterestedTopics] = useState(() => topicsPrefill.trim());
+  const lastAppliedTopicsPrefillRef = useRef(topicsPrefill.trim());
   const [discountCode, setDiscountCode] = useState('');
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
@@ -218,6 +423,7 @@ export function BookingReservationForm({
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -235,9 +441,43 @@ export function BookingReservationForm({
   } = useFormSubmission({
     turnstileSiteKey,
   });
+  const paymentMethodFlags = useMemo(() => {
+    return resolvePaymentMethodFlags(resolvePublicBookingPaymentOptionFlags());
+  }, []);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodOption>(
-    PAYMENT_METHOD_FPS,
+    () => {
+      return getDefaultPaymentMethod(
+        resolvePaymentMethodFlags(resolvePublicBookingPaymentOptionFlags()),
+      );
+    },
   );
+  const showPaymentMethodPickers =
+    (paymentMethodFlags.fpsQr ? 1 : 0) +
+      (paymentMethodFlags.bankTransfer ? 1 : 0) +
+      (paymentMethodFlags.stripeCards ? 1 : 0) >
+    1;
+
+  useEffect(() => {
+    setSelectedPaymentMethod((current) => {
+      if (isPaymentMethodAllowed(current, paymentMethodFlags)) {
+        return current;
+      }
+      return getDefaultPaymentMethod(paymentMethodFlags);
+    });
+  }, [paymentMethodFlags]);
+
+  useEffect(() => {
+    const next = topicsPrefill.trim();
+    if (!next) {
+      return;
+    }
+    if (next === lastAppliedTopicsPrefillRef.current) {
+      return;
+    }
+    lastAppliedTopicsPrefillRef.current = next;
+    setInterestedTopics(next);
+  }, [topicsPrefill]);
+
   const [stripePaymentIntent, setStripePaymentIntent] =
     useState<ReservationPaymentIntentResponse | null>(null);
   const [stripePaymentIntentKey, setStripePaymentIntentKey] = useState('');
@@ -268,9 +508,7 @@ export function BookingReservationForm({
     }
     return {
       clientSecret: stripePaymentIntent.client_secret,
-      appearance: {
-        theme: 'stripe',
-      },
+      appearance: getStripePaymentElementAppearance(),
     };
   }, [stripePaymentIntent]);
   const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
@@ -301,6 +539,9 @@ export function BookingReservationForm({
     isSubmitting;
 
   useEffect(() => {
+    if (!paymentMethodFlags.stripeCards) {
+      return;
+    }
     if (!isStripePaymentMethodSelected) {
       return;
     }
@@ -314,8 +555,8 @@ export function BookingReservationForm({
       return;
     }
 
-    const crmApiClient = createPublicCrmApiClient();
-    if (!crmApiClient) {
+    const adminApiClient = createPublicApiClient();
+    if (!adminApiClient) {
       return;
     }
 
@@ -331,7 +572,7 @@ export function BookingReservationForm({
       setIsStripePaymentIntentLoading(false);
       return;
     }
-    void createReservationPaymentIntent(crmApiClient, {
+    void createReservationPaymentIntent(adminApiClient, {
       payload: {
         cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
@@ -375,6 +616,7 @@ export function BookingReservationForm({
     content.submitErrorMessage,
     discountRule?.code,
     captchaToken,
+    paymentMethodFlags.stripeCards,
     isStripePaymentMethodSelected,
     isStripeUnavailable,
     normalizedCohortDate,
@@ -549,6 +791,18 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
+    const scheduleTimeLabel = (() => {
+      if (!primarySession) {
+        return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
+      }
+      const start = sanitizeSingleLineValue(primarySession.dateStartTime);
+      const end = sanitizeSingleLineValue(primarySession.dateEndTime ?? '');
+      if (!start) {
+        return undefined;
+      }
+      return end ? `${start} – ${end}` : start;
+    })();
+
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -561,7 +815,14 @@ export function BookingReservationForm({
       reservation_pending_until_payment_confirmed:
         hasPendingReservationAcknowledgement,
       agreed_to_terms_and_conditions: hasTermsAgreement,
+      payment_method: selectedPaymentMethod,
       stripe_payment_intent_id: undefined,
+      marketing_opt_in: marketingOptIn,
+      locale,
+      course_label: sanitizeSingleLineValue(eventTitle) || undefined,
+      schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      schedule_time_label: scheduleTimeLabel,
+      location_name: sanitizeSingleLineValue(venueName) || undefined,
     };
 
     await withSubmitting(async () => {
@@ -707,7 +968,7 @@ export function BookingReservationForm({
             </p>
             <div
               data-booking-payment-options='true'
-              className='flex h-[244px] flex-col rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+              className='flex min-h-[244px] flex-col rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
               <p
                 data-booking-payment-confirmation-note='true'
@@ -717,160 +978,172 @@ export function BookingReservationForm({
               </p>
               <div
                 data-booking-payment-options-columns='true'
-                className='grid h-full min-h-0 flex-1 grid-cols-5 gap-3'
+                className={`grid min-h-0 flex-1 gap-3 ${
+                  showPaymentMethodPickers ? 'grid-cols-5' : 'grid-cols-1'
+                }`}
               >
-                <div
-                  data-booking-payment-options-column-left='true'
-                  className='col-span-1'
-                >
-                  <div className='flex h-full flex-col justify-start gap-2 pt-1'>
-                    <label
-                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
-                        selectedPaymentMethod === PAYMENT_METHOD_FPS
-                          ? 'border-black/20 es-bg-surface-muted'
-                          : 'border-transparent'
-                      }`}
-                    >
-                      <input
-                        type='radio'
-                        name='booking-payment-method'
-                        value={PAYMENT_METHOD_FPS}
-                        checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
-                        onChange={() => {
-                          setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
-                          trackAnalyticsEvent('booking_payment_method_selected', {
-                            sectionId: analyticsSectionId,
-                            ctaLocation: 'payment_method',
-                            params: {
-                              payment_method: PAYMENT_METHOD_FPS,
-                            },
-                          });
-                          trackEcommerceEvent('add_payment_info', {
-                            value: totalAmount,
-                            paymentType: PAYMENT_METHOD_FPS,
-                            items: [{
-                              item_id: `mba-${selectedAgeGroupLabel}`,
-                              item_name: eventTitle,
-                              item_category: selectedAgeGroupLabel,
-                              price: totalAmount,
-                              quantity: 1,
-                            }],
-                          });
-                        }}
-                        className='sr-only'
-                      />
-                      <span className='sr-only'>{content.paymentMethodValue}</span>
-                      <Image
-                        src={FPS_ICON_SOURCE}
-                        alt=''
-                        data-booking-fps-icon='true'
-                        aria-hidden='true'
-                        width={32}
-                        height={18}
-                        className='h-[36px] w-auto shrink-0'
-                      />
-                    </label>
-                    <label
-                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
-                        selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER
-                          ? 'border-black/20 es-bg-surface-muted'
-                          : 'border-transparent'
-                      }`}
-                    >
-                      <input
-                        type='radio'
-                        name='booking-payment-method'
-                        value={PAYMENT_METHOD_BANK_TRANSFER}
-                        checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
-                        onChange={() => {
-                          setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
-                          trackAnalyticsEvent('booking_payment_method_selected', {
-                            sectionId: analyticsSectionId,
-                            ctaLocation: 'payment_method',
-                            params: {
-                              payment_method: PAYMENT_METHOD_BANK_TRANSFER,
-                            },
-                          });
-                          trackEcommerceEvent('add_payment_info', {
-                            value: totalAmount,
-                            paymentType: PAYMENT_METHOD_BANK_TRANSFER,
-                            items: [{
-                              item_id: `mba-${selectedAgeGroupLabel}`,
-                              item_name: eventTitle,
-                              item_category: selectedAgeGroupLabel,
-                              price: totalAmount,
-                              quantity: 1,
-                            }],
-                          });
-                        }}
-                        className='sr-only'
-                      />
-                      <span className='sr-only'>
-                        {content.paymentMethodBankTransferValue}
-                      </span>
-                      <Image
-                        src={BANK_ICON_SOURCE}
-                        alt=''
-                        data-booking-bank-icon='true'
-                        aria-hidden='true'
-                        width={20}
-                        height={20}
-                        className='h-6 w-6 shrink-0'
-                      />
-                    </label>
-                    <label
-                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
-                        selectedPaymentMethod === PAYMENT_METHOD_STRIPE
-                          ? 'border-black/20 es-bg-surface-muted'
-                          : 'border-transparent'
-                      }`}
-                    >
-                      <input
-                        type='radio'
-                        name='booking-payment-method'
-                        value={PAYMENT_METHOD_STRIPE}
-                        checked={selectedPaymentMethod === PAYMENT_METHOD_STRIPE}
-                        onChange={() => {
-                          setSelectedPaymentMethod(PAYMENT_METHOD_STRIPE);
-                          trackAnalyticsEvent('booking_payment_method_selected', {
-                            sectionId: analyticsSectionId,
-                            ctaLocation: 'payment_method',
-                            params: {
-                              payment_method: PAYMENT_METHOD_STRIPE,
-                            },
-                          });
-                          trackEcommerceEvent('add_payment_info', {
-                            value: totalAmount,
-                            paymentType: PAYMENT_METHOD_STRIPE,
-                            items: [{
-                              item_id: `mba-${selectedAgeGroupLabel}`,
-                              item_name: eventTitle,
-                              item_category: selectedAgeGroupLabel,
-                              price: totalAmount,
-                              quantity: 1,
-                            }],
-                          });
-                        }}
-                        className='sr-only'
-                      />
-                      <span className='sr-only'>
-                        {content.paymentMethodStripeValue}
-                      </span>
-                      <Image
-                        src={STRIPE_CARD_ICON_SOURCE}
-                        alt=''
-                        data-booking-stripe-icon='true'
-                        aria-hidden='true'
-                        width={24}
-                        height={24}
-                        className='h-6 w-6 shrink-0'
-                      />
-                    </label>
+                {showPaymentMethodPickers ? (
+                  <div
+                    data-booking-payment-options-column-left='true'
+                    className='col-span-1'
+                  >
+                    <div className='flex h-full flex-col justify-start gap-2 pt-1'>
+                      {paymentMethodFlags.fpsQr ? (
+                        <label
+                          className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                            selectedPaymentMethod === PAYMENT_METHOD_FPS
+                              ? 'border-black/20 es-bg-surface-muted'
+                              : 'border-transparent'
+                          }`}
+                        >
+                          <input
+                            type='radio'
+                            name='booking-payment-method'
+                            value={PAYMENT_METHOD_FPS}
+                            checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
+                            onChange={() => {
+                              setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
+                              trackAnalyticsEvent('booking_payment_method_selected', {
+                                sectionId: analyticsSectionId,
+                                ctaLocation: 'payment_method',
+                                params: {
+                                  payment_method: PAYMENT_METHOD_FPS,
+                                },
+                              });
+                              trackEcommerceEvent('add_payment_info', {
+                                value: totalAmount,
+                                paymentType: PAYMENT_METHOD_FPS,
+                                items: [{
+                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_name: eventTitle,
+                                  item_category: selectedAgeGroupLabel,
+                                  price: totalAmount,
+                                  quantity: 1,
+                                }],
+                              });
+                            }}
+                            className='sr-only'
+                          />
+                          <span className='sr-only'>{content.paymentMethodValue}</span>
+                          <Image
+                            src={FPS_ICON_SOURCE}
+                            alt=''
+                            data-booking-fps-icon='true'
+                            aria-hidden='true'
+                            width={32}
+                            height={18}
+                            className='h-[36px] w-auto shrink-0'
+                          />
+                        </label>
+                      ) : null}
+                      {paymentMethodFlags.bankTransfer ? (
+                        <label
+                          className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                            selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER
+                              ? 'border-black/20 es-bg-surface-muted'
+                              : 'border-transparent'
+                          }`}
+                        >
+                          <input
+                            type='radio'
+                            name='booking-payment-method'
+                            value={PAYMENT_METHOD_BANK_TRANSFER}
+                            checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
+                            onChange={() => {
+                              setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
+                              trackAnalyticsEvent('booking_payment_method_selected', {
+                                sectionId: analyticsSectionId,
+                                ctaLocation: 'payment_method',
+                                params: {
+                                  payment_method: PAYMENT_METHOD_BANK_TRANSFER,
+                                },
+                              });
+                              trackEcommerceEvent('add_payment_info', {
+                                value: totalAmount,
+                                paymentType: PAYMENT_METHOD_BANK_TRANSFER,
+                                items: [{
+                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_name: eventTitle,
+                                  item_category: selectedAgeGroupLabel,
+                                  price: totalAmount,
+                                  quantity: 1,
+                                }],
+                              });
+                            }}
+                            className='sr-only'
+                          />
+                          <span className='sr-only'>
+                            {content.paymentMethodBankTransferValue}
+                          </span>
+                          <Image
+                            src={BANK_ICON_SOURCE}
+                            alt=''
+                            data-booking-bank-icon='true'
+                            aria-hidden='true'
+                            width={20}
+                            height={20}
+                            className='h-6 w-6 shrink-0'
+                          />
+                        </label>
+                      ) : null}
+                      {paymentMethodFlags.stripeCards ? (
+                        <label
+                          className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                            selectedPaymentMethod === PAYMENT_METHOD_STRIPE
+                              ? 'border-black/20 es-bg-surface-muted'
+                              : 'border-transparent'
+                          }`}
+                        >
+                          <input
+                            type='radio'
+                            name='booking-payment-method'
+                            value={PAYMENT_METHOD_STRIPE}
+                            checked={selectedPaymentMethod === PAYMENT_METHOD_STRIPE}
+                            onChange={() => {
+                              setSelectedPaymentMethod(PAYMENT_METHOD_STRIPE);
+                              trackAnalyticsEvent('booking_payment_method_selected', {
+                                sectionId: analyticsSectionId,
+                                ctaLocation: 'payment_method',
+                                params: {
+                                  payment_method: PAYMENT_METHOD_STRIPE,
+                                },
+                              });
+                              trackEcommerceEvent('add_payment_info', {
+                                value: totalAmount,
+                                paymentType: PAYMENT_METHOD_STRIPE,
+                                items: [{
+                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_name: eventTitle,
+                                  item_category: selectedAgeGroupLabel,
+                                  price: totalAmount,
+                                  quantity: 1,
+                                }],
+                              });
+                            }}
+                            className='sr-only'
+                          />
+                          <span className='sr-only'>
+                            {content.paymentMethodStripeValue}
+                          </span>
+                          <Image
+                            src={STRIPE_CARD_ICON_SOURCE}
+                            alt=''
+                            data-booking-stripe-icon='true'
+                            aria-hidden='true'
+                            width={24}
+                            height={24}
+                            className='h-6 w-6 shrink-0'
+                          />
+                        </label>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
+                ) : null}
                 <div
                   data-booking-payment-options-column-right='true'
-                  className='col-span-4 flex h-full items-center'
+                  className={`flex h-full items-center ${
+                    showPaymentMethodPickers ? 'col-span-4' : 'col-span-1'
+                  }`}
                 >
                   {selectedPaymentMethod === PAYMENT_METHOD_FPS ? (
                     <div
@@ -988,6 +1261,20 @@ export function BookingReservationForm({
                 </span>
               </span>
             </label>
+
+            <label className='flex items-start gap-2.5 py-1'>
+              <input
+                type='checkbox'
+                checked={marketingOptIn}
+                onChange={(event) => {
+                  setMarketingOptIn(event.target.checked);
+                }}
+                className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
+              />
+              <span className='text-sm leading-[1.45] es-text-heading'>
+                {content.marketingOptInLabel}
+              </span>
+            </label>
           </div>
 
           <label className='relative z-20 block overflow-visible'>
@@ -997,7 +1284,6 @@ export function BookingReservationForm({
             <TurnstileCaptcha
               siteKey={turnstileSiteKey}
               widgetAction={captchaWidgetAction}
-              size='normal'
               onTokenChange={handleCaptchaTokenChange}
               onLoadError={handleCaptchaLoadError}
             />

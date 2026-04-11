@@ -45,6 +45,7 @@ logger = get_logger(__name__)
 
 _ALLOWED_ACTIONS: set[str] | None = None
 _ALLOWED_HTTP_URLS: list[str] | None = None
+_HTTP_PROXY_USER_AGENT = "EvolveSproutsProxy/1.0"
 
 
 def _get_allowed_actions() -> set[str]:
@@ -146,6 +147,9 @@ def _handle_http(event: Mapping[str, Any]) -> dict[str, Any]:
     headers: dict[str, str] = event.get("headers") or {}
     body: str | None = event.get("body")
     timeout: int = min(int(event.get("timeout") or 10), 30)
+
+    if not any(k.lower() == "user-agent" for k in headers):
+        headers["User-Agent"] = _HTTP_PROXY_USER_AGENT
 
     if not url:
         return {"error": {"code": "MissingURL", "message": "url is required"}}

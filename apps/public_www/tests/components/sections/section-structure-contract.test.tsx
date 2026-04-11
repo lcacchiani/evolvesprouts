@@ -38,10 +38,17 @@ const pageSectionFiles = [
   'landing-pages/landing-page-details.tsx',
   'landing-pages/landing-page-faq.tsx',
   'landing-pages/landing-page-cta.tsx',
+  'consultations/consultations-hero.tsx',
+  'consultations/consultations-booking.tsx',
+  'consultations/consultations-focus-details.tsx',
+  'consultations/consultations-comparison.tsx',
   'about-us-ida-coach.tsx',
   'sprouts-squad-community.tsx',
   'event-notification.tsx',
   'free-intro-session.tsx',
+  'free-guides-and-resources-hero.tsx',
+  'free-guides-and-resources-library.tsx',
+  'free-guides-and-resources-faq.tsx',
 ] as const;
 
 function collectAppSourceFiles(targetDirectory: string): string[] {

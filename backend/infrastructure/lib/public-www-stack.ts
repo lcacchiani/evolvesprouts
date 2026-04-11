@@ -11,6 +11,7 @@ interface WebsiteEnvironmentConfig {
   readonly domainName: string;
   readonly certificateArn: string;
   readonly apiOriginDomainName: string;
+  readonly apiOriginPath: string;
   readonly mediaRequestApiOriginDomainName: string;
   readonly mediaRequestApiOriginPath: string;
   readonly bucketNamePrefix: string;
@@ -32,9 +33,11 @@ const PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+const STRIPE_JS_ORIGIN = "https://js.stripe.com";
+
 const PUBLIC_WWW_PERMISSIONS_POLICY =
   "accelerometer=(), camera=(), geolocation=(), gyroscope=(), " +
-  "magnetometer=(), microphone=(), payment=(), usb=()";
+  `magnetometer=(), microphone=(), payment=(self "${STRIPE_JS_ORIGIN}"), usb=()`;
 
 export class PublicWwwStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
@@ -81,20 +84,23 @@ export class PublicWwwStack extends cdk.Stack {
         description: "ACM certificate ARN for staging public website domain.",
       },
     );
-    const publicWwwCrmApiBaseUrl = new cdk.CfnParameter(
+    const publicWwwApiBaseUrl = new cdk.CfnParameter(
       this,
-      "PublicWwwCrmApiBaseUrl",
+      "PublicWwwApiBaseUrl",
       {
         type: "String",
         description:
-          "Absolute HTTPS public CRM API base URL used by the /www proxy (for example https://api.example.com/www).",
-        allowedPattern: "^https://[^/]+/www/?$",
+          "Absolute HTTPS public API base URL used by the /www proxy (for example https://api.example.com/prod or https://api.example.com/www).",
+        allowedPattern: "^https://[^/]+/[^/]+/?$",
         constraintDescription:
-          "Must be an absolute HTTPS URL ending in /www.",
+          "Must be an absolute HTTPS URL ending in a single path segment (for example /prod or /www).",
       },
     );
     const publicWwwApiOriginDomainName = resolveApiOriginDomainName(
-      publicWwwCrmApiBaseUrl.valueAsString,
+      publicWwwApiBaseUrl.valueAsString,
+    );
+    const publicWwwApiOriginPath = resolveApiOriginPath(
+      publicWwwApiBaseUrl.valueAsString,
     );
     const publicWwwMediaRequestApiBaseUrl = new cdk.CfnParameter(
       this,
@@ -136,6 +142,7 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: productionDomainName.valueAsString,
       certificateArn: productionCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      apiOriginPath: publicWwwApiOriginPath,
       mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
       mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-public-www",
@@ -154,6 +161,7 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: stagingDomainName.valueAsString,
       certificateArn: stagingCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      apiOriginPath: publicWwwApiOriginPath,
       mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
       mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-staging-www",
@@ -275,6 +283,7 @@ export class PublicWwwStack extends cdk.Stack {
     });
     const wwwApiOrigin = new origins.HttpOrigin(config.apiOriginDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+      originPath: config.apiOriginPath,
     });
     const mediaRequestApiOrigin = new origins.HttpOrigin(
       config.mediaRequestApiOriginDomainName,
@@ -329,13 +338,15 @@ function handler(event) {
 
   var allowlist = {
     'GET': {
-      '/www/v1/calendar/events': true
+      '/www/v1/calendar/public': true,
+      '/www/v1/assets/free': true
     },
     'POST': {
       '/www/v1/discounts/validate': true,
-      '/www/v1/reservations': true,
+      '/www/v1/legacy/discounts/validate': true,
+      '/www/v1/legacy/reservations': true,
       '/www/v1/reservations/payment-intent': true,
-      '/www/v1/contact-us': true
+      '/www/v1/legacy/contact-us': true
     }
   };
   if (allowlist[method] && allowlist[method][uri]) {
@@ -361,7 +372,7 @@ function handler(event) {
       `${config.idPrefix}MediaRequestProxyFunction`,
       {
         comment:
-          "Allow /www/v1/media-request and rewrite path for execute-api origin.",
+          "Allow /www/v1/assets/free/request and rewrite path for execute-api origin.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
         code: cloudfront.FunctionCode.fromInline(`
 function handler(event) {
@@ -370,8 +381,8 @@ function handler(event) {
   var uri = request.uri || '';
   var isAllowedMethod = method === 'POST' || method === 'OPTIONS';
 
-  if (uri === '/www/v1/media-request' && isAllowedMethod) {
-    request.uri = '/v1/media-request';
+  if (uri === '/www/v1/assets/free/request' && isAllowedMethod) {
+    request.uri = '/v1/assets/free/request';
     return request;
   }
 
@@ -384,6 +395,34 @@ function handler(event) {
     },
     body: '{"message":"Forbidden"}'
   };
+}
+`),
+      },
+    );
+    const wwwApiErrorResponseFunction = new cloudfront.Function(
+      this,
+      `${config.idPrefix}WwwApiErrorResponseFunction`,
+      {
+        comment:
+          "Convert HTML error pages to JSON for /www API proxy behaviors.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var response = event.response;
+  var statusCode = parseInt(response.statusCode, 10);
+  if (statusCode < 400 || statusCode >= 600) {
+    return response;
+  }
+  var ct = response.headers['content-type'];
+  var contentType = (ct && ct.value) ? ct.value : '';
+  if (contentType.indexOf('text/html') !== -1) {
+    response.statusCode = 502;
+    response.statusDescription = 'Bad Gateway';
+    response.headers['content-type'] = { value: 'application/json; charset=utf-8' };
+    response.headers['cache-control'] = { value: 'no-store' };
+    response.body = '{"error":"The request could not be processed. Please try again."}';
+  }
+  return response;
 }
 `),
       },
@@ -489,7 +528,7 @@ function handler(event) {
           ],
         },
         additionalBehaviors: {
-          "www/v1/media-request": {
+          "www/v1/assets/free/request": {
             origin: mediaRequestApiOrigin,
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -501,6 +540,10 @@ function handler(event) {
               {
                 function: mediaRequestProxyFunction,
                 eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+              {
+                function: wwwApiErrorResponseFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
               },
             ],
           },
@@ -516,6 +559,10 @@ function handler(event) {
               {
                 function: wwwProxyAllowlistFunction,
                 eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+              {
+                function: wwwApiErrorResponseFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
               },
             ],
           },

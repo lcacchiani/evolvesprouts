@@ -12,8 +12,9 @@ from app.api.admin_enrollments import handle_admin_enrollments_request
 from app.api.admin_request import parse_body, parse_uuid
 from app.api.admin_services_common import (
     encode_instance_cursor,
-    parse_instance_filters,
     parse_create_instance_payload,
+    parse_global_instance_list_filters,
+    parse_instance_filters,
     parse_update_instance_payload,
     request_id,
     serialize_instance,
@@ -32,10 +33,83 @@ from app.db.models import (
 )
 from app.db.repositories import ServiceInstanceRepository, ServiceRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.eventbrite_events import enqueue_eventbrite_instance_sync_by_id
 from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def handle_admin_all_service_instances_request(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> dict[str, Any]:
+    """Handle GET /v1/admin/services/instances (cross-service list)."""
+    logger.info(
+        "Handling admin all service-instances route",
+        extra={"method": method, "path": path},
+    )
+    parts = split_route_parts(path)
+    if len(parts) != 3 or parts[0] != "admin" or parts[1] != "services":
+        return json_response(404, {"error": "Not found"}, event=event)
+    if parts[2] != "instances":
+        return json_response(404, {"error": "Not found"}, event=event)
+
+    identity = extract_identity(event)
+    if not identity.user_sub:
+        raise ValidationError("Authenticated user is required", field="authorization")
+
+    if method != "GET":
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    filters = parse_global_instance_list_filters(event)
+    limit = filters["limit"]
+    service_id_filter = filters["service_id"]
+    service_type_filter = filters["service_type"]
+    logger.info(
+        "Listing service instances (global)",
+        extra={
+            "limit": limit,
+            "service_id": str(service_id_filter) if service_id_filter else None,
+            "service_type": service_type_filter.value if service_type_filter else None,
+        },
+    )
+    with Session(get_engine()) as session:
+        if service_id_filter is not None:
+            service_repository = ServiceRepository(session)
+            service = service_repository.get_by_id(service_id_filter)
+            if service is None:
+                raise NotFoundError("Service", str(service_id_filter))
+
+        repository = ServiceInstanceRepository(session)
+        rows = repository.list_instances_global(
+            limit=limit + 1,
+            status=filters["status"],
+            service_id=service_id_filter,
+            service_type=service_type_filter,
+            cursor_created_at=filters["cursor_created_at"],
+            cursor_id=filters["cursor_id"],
+        )
+        total_count = repository.count_instances_global(
+            status=filters["status"],
+            service_id=service_id_filter,
+            service_type=service_type_filter,
+        )
+        has_more = len(rows) > limit
+        page_rows = rows[:limit]
+        next_cursor = (
+            encode_instance_cursor(page_rows[-1]) if has_more and page_rows else None
+        )
+        return json_response(
+            200,
+            {
+                "items": [serialize_instance(row) for row in page_rows],
+                "next_cursor": next_cursor,
+                "total_count": total_count,
+            },
+            event=event,
+        )
 
 
 def handle_admin_service_instances_request(
@@ -159,6 +233,8 @@ def _create_instance(
         instance = ServiceInstance(
             service_id=service_id,
             title=payload["title"],
+            slug=payload["slug"],
+            landing_page=payload["landing_page"],
             description=payload["description"],
             cover_image_s3_key=payload["cover_image_s3_key"],
             status=payload["status"],
@@ -184,6 +260,8 @@ def _create_instance(
         ]
         created = instance_repository.create_instance(instance, type_details, slots)
         session.commit()
+        if service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(created.id)
         with_details = instance_repository.get_by_id_with_details(created.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(created.id))
@@ -243,6 +321,10 @@ def _update_instance(
 
         if "title" in payload:
             instance.title = payload["title"]
+        if "slug" in payload:
+            instance.slug = payload["slug"]
+        if "landing_page" in payload:
+            instance.landing_page = payload["landing_page"]
         if "description" in payload:
             instance.description = payload["description"]
         if "cover_image_s3_key" in payload:
@@ -281,6 +363,8 @@ def _update_instance(
 
         updated = instance_repository.update_instance(instance)
         session.commit()
+        if service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(updated.id)
         with_details = instance_repository.get_by_id_with_details(updated.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(updated.id))
@@ -312,6 +396,10 @@ def _delete_instance(
             raise NotFoundError("ServiceInstance", str(instance_id))
         repository.delete(instance)
         session.commit()
+        service_repository = ServiceRepository(session)
+        service = service_repository.get_by_id(service_id)
+        if service is not None and service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(instance_id)
         return json_response(204, {}, event=event)
 
 

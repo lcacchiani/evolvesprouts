@@ -1,10 +1,11 @@
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import {
-  buildSectionSplitLayoutClassName,
-  SectionContainer,
-} from '@/components/sections/shared/section-container';
+  HeroQuickFactChips,
+  type HeroQuickFactChip,
+} from '@/components/sections/shared/hero-quick-fact-chips';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -20,55 +21,44 @@ interface MyBestAuntieHeroProps {
 
 const MY_BEST_AUNTIE_HERO_CTA_CLASSNAME = 'mt-auto max-w-[360px]';
 
-function QuickFacts({
-  content,
-  lowestPrice,
-  nextCohortLabel,
-}: {
-  content: MyBestAuntieHeroContent;
-  lowestPrice?: number;
-  nextCohortLabel?: string;
-}) {
+function buildMyBestAuntieHeroChips(
+  content: MyBestAuntieHeroContent,
+  lowestPrice: number | undefined,
+  nextCohortLabel: string | undefined,
+): HeroQuickFactChip[] {
   const quickFacts = (content as Record<string, unknown>).quickFacts as
     | { durationLabel: string; homeVisitsLabel: string; priceTemplate: string; nextCohortTemplate: string }
     | undefined;
 
   if (!quickFacts) {
-    return null;
+    return [];
   }
 
-  const items: string[] = [quickFacts.durationLabel];
+  const chips: HeroQuickFactChip[] = [
+    { type: 'duration', label: quickFacts.durationLabel.trim() },
+  ];
 
   if (lowestPrice !== undefined) {
-    items.push(
-      formatContentTemplate(quickFacts.priceTemplate, {
+    chips.push({
+      type: 'price',
+      label: formatContentTemplate(quickFacts.priceTemplate, {
         price: lowestPrice.toLocaleString(),
-      }),
-    );
+      }).trim(),
+    });
   }
 
   if (nextCohortLabel) {
-    items.push(
-      formatContentTemplate(quickFacts.nextCohortTemplate, {
+    chips.push({
+      type: 'cohort',
+      label: formatContentTemplate(quickFacts.nextCohortTemplate, {
         cohortLabel: nextCohortLabel,
-      }),
-    );
+      }).trim(),
+    });
   }
 
-  items.push(quickFacts.homeVisitsLabel);
+  chips.push({ type: 'visits', label: quickFacts.homeVisitsLabel.trim() });
 
-  return (
-    <div className='mt-5 flex flex-wrap gap-x-4 gap-y-2'>
-      {items.map((item, index) => (
-        <span key={item} className='flex items-center gap-x-4 text-sm font-medium es-text-body'>
-          {index > 0 && (
-            <span className='es-text-muted' aria-hidden='true'>·</span>
-          )}
-          {item}
-        </span>
-      ))}
-    </div>
-  );
+  return chips.filter((chip) => chip.label.length > 0);
 }
 
 function MicroTestimonial({ content }: { content: MyBestAuntieHeroContent }) {
@@ -99,6 +89,7 @@ export function MyBestAuntieHero({
   nextCohortLabel,
 }: MyBestAuntieHeroProps) {
   const description = resolveMyBestAuntieHeroDescription(content);
+  const heroChips = buildMyBestAuntieHeroChips(content, lowestPrice, nextCohortLabel);
 
   return (
     <SectionShell
@@ -107,43 +98,8 @@ export function MyBestAuntieHero({
       dataFigmaNode='my-best-auntie-hero'
       className='es-my-best-auntie-hero-section overflow-hidden pt-0 sm:pt-[60px]'
     >
-      <SectionContainer
-        className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--hero items-center',
-        )}
-      >
-        <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8'>
-          <div className='relative z-10'>
-            <SectionHeader
-              title={content.title}
-              titleAs='h1'
-              align='left'
-              titleClassName='max-w-[720px]'
-              description={content.subtitle}
-              descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
-            />
-            <QuickFacts
-              content={content}
-              lowestPrice={lowestPrice}
-              nextCohortLabel={nextCohortLabel}
-            />
-            <p className='mt-4 max-w-[720px] es-type-body'>
-              {renderQuotedDescriptionText(description)}
-            </p>
-            <MicroTestimonial content={content} />
-            <div className='mt-8'>
-              <SectionCtaAnchor
-                href={content.ctaHref}
-                variant='primary'
-                className={MY_BEST_AUNTIE_HERO_CTA_CLASSNAME}
-              >
-                {content.ctaLabel}
-              </SectionCtaAnchor>
-            </div>
-          </div>
-        </div>
-
-        <div className='es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[500px] lg:order-1 lg:ml-0 lg:mr-auto'>
+      <SectionContainer className='es-mba-hero-grid'>
+        <div className='es-mba-hero-grid__image es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[500px] lg:ml-0 lg:mr-auto'>
           <Image
             src='/images/hero/my-best-auntie-hero.webp'
             alt={content.imageAlt}
@@ -152,6 +108,38 @@ export function MyBestAuntieHero({
             sizes='(max-width: 640px) 92vw, 500px'
             className='es-my-best-auntie-hero-image-flipped relative z-10 h-auto w-full'
           />
+        </div>
+
+        <div className='es-mba-hero-grid__heading'>
+          <SectionHeader
+            title={content.title}
+            titleAs='h1'
+            align='left'
+            titleClassName='max-w-[720px]'
+            description={content.subtitle}
+            descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
+          />
+        </div>
+
+        <div className='es-mba-hero-grid__body'>
+          <HeroQuickFactChips
+            chips={heroChips}
+            className='mt-5 lg:mt-0'
+            data-testid='my-best-auntie-hero-quick-facts'
+          />
+          <p className='mt-4 es-type-body'>
+            {renderQuotedDescriptionText(description)}
+          </p>
+          <MicroTestimonial content={content} />
+          <div className='mt-8'>
+            <SectionCtaAnchor
+              href={content.ctaHref}
+              variant='primary'
+              className={MY_BEST_AUNTIE_HERO_CTA_CLASSNAME}
+            >
+              {content.ctaLabel}
+            </SectionCtaAnchor>
+          </div>
         </div>
       </SectionContainer>
     </SectionShell>

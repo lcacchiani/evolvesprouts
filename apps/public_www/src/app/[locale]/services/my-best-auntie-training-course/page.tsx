@@ -58,6 +58,10 @@ export default async function MyBestAuntieRoutePage({
               path: ROUTES.home,
             },
             {
+              name: content.footer.services.title,
+              path: ROUTES.servicesIndex,
+            },
+            {
               name: pageTitle,
               path: ROUTES.servicesMyBestAuntieTrainingCourse,
             },

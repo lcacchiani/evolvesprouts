@@ -117,8 +117,8 @@ CloudFront distribution
         ├─▶ /www/v1/*: API Gateway (CRM API routes)
         │     └─▶ Viewer-request allowlist gates method/path pairs
         │
-        └─▶ /www/v1/media-request: API Gateway (media lead capture)
-              └─▶ Path rewrite: /www/v1/media-request → /v1/media-request
+        └─▶ /www/v1/assets/free/request: API Gateway (media lead capture)
+              └─▶ Path rewrite: /www/v1/assets/free/request → /v1/assets/free/request
 ```
 
 ### Stack: `evolvesprouts-public-www`
@@ -167,15 +167,17 @@ API Gateway (evolvesprouts-api)
   ├─▶ /v1/assets/public/* ──▶ AdminFunction (VPC)
   │     Authorization: DeviceAttestationAuthorizer + API Key
   │
-  ├─▶ /v1/media-request ────▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
+  ├─▶ /v1/assets/free/request ─▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
   │     Authorization: API Key + Turnstile
+  │
+  ├─▶ /v1/calendar/public ─▶ AdminFunction (VPC)
   │
   ├─▶ /v1/mailchimp/webhook ▶ AdminFunction (VPC)
   │     Authorization: None (Mailchimp callback)
   │
   └─▶ /www/v1/* ────────────▶ AdminFunction (VPC)
        Authorization: API Key (via CloudFront origin header)
-       Routes: /www/v1/calendar/events, /www/v1/discounts/validate,
+       Routes: /www/v1/calendar/public, /www/v1/discounts/validate,
                /www/v1/reservations, /www/v1/reservations/payment-intent,
                /www/v1/contact-us
 ```
@@ -338,10 +340,16 @@ API Lambda
     │                  └─▶ BookingRequestProcessor Lambda
     │                  └─▶ DLQ: evolvesprouts-booking-request-dlq
     │
-    └─▶ SNS: evolvesprouts-media-events
-             └─▶ SQS: evolvesprouts-media-queue
-                       └─▶ MediaRequestProcessor Lambda
-                       └─▶ DLQ: evolvesprouts-media-dlq
+    ├─▶ SNS: evolvesprouts-media-events
+    │        └─▶ SQS: evolvesprouts-media-queue
+    │                  └─▶ MediaRequestProcessor Lambda
+    │                  └─▶ DLQ: evolvesprouts-media-dlq
+    │
+    └─▶ SNS: evolvesprouts-eventbrite-sync-events
+             └─▶ SQS: evolvesprouts-eventbrite-sync-queue
+                       └─▶ EventbriteSyncProcessor Lambda
+                       └─▶ SQS DLQ: evolvesprouts-eventbrite-sync-dlq
+                       └─▶ Lambda DLQ: evolvesprouts-eventbrite-sync-processor-lambda-dlq
 
 SES inbound (inbound.evolvesprouts.com)
     │
@@ -356,6 +364,7 @@ SES inbound (inbound.evolvesprouts.com)
 |---|---|---|---|
 | `evolvesprouts-booking-request-events` | `evolvesprouts-booking-request-queue` | BookingRequestProcessor | `booking_request.submitted`, `organization_suggestion.submitted` |
 | `evolvesprouts-media-events` | `evolvesprouts-media-queue` | MediaRequestProcessor | `media_request.submitted` |
+| `evolvesprouts-eventbrite-sync-events` | `evolvesprouts-eventbrite-sync-queue` | EventbriteSyncProcessor | `eventbrite.instance_sync_requested` |
 | `evolvesprouts-inbound-invoice-email-events` | `evolvesprouts-inbound-invoice-email-queue` | InboundInvoiceEmailProcessor | SES receipt-rule S3 notifications for inbound invoice emails |
 
 All queues use KMS encryption (`alias/evolvesprouts-sqs-encryption-key`).
@@ -372,9 +381,9 @@ CloudFront distribution
         ├─▶ Default: S3 (evolvesprouts-assets-*)
         │     └─▶ Signed URLs only (CloudFront key pair)
         │
-        └─▶ v1/assets/share/*: API Gateway
+        └─▶ v1/assets/share/*, v1/assets/email-download/*: API Gateway
               └─▶ AdminFunction (bearer-link resolver, 302 redirect)
-                    └─▶ Per-asset source-domain allowlist
+                    └─▶ Share path: per-asset source-domain allowlist
 ```
 
 | Resource | Purpose |

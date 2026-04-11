@@ -12,12 +12,17 @@ from app.db.models import (
     ConsultationInstanceDetails,
     Enrollment,
     EnrollmentStatus,
+    EventbriteSyncStatus,
     EventTicketTier,
     InstanceSessionSlot,
     InstanceStatus,
+    Service,
+    ServiceStatus,
     ServiceInstance,
+    ServiceType,
     TrainingInstanceDetails,
 )
+from app.db.models.enums import CAPACITY_ENROLLMENT_STATUSES
 from app.db.repositories.base import BaseRepository
 
 InstanceDetails = (
@@ -83,6 +88,71 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
 
+    def list_instances_global(
+        self,
+        *,
+        limit: int,
+        status: InstanceStatus | None = None,
+        service_id: UUID | None = None,
+        service_type: ServiceType | None = None,
+        cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
+    ) -> list[ServiceInstance]:
+        """List instances across services with optional filters and cursor pagination."""
+        statement = select(ServiceInstance).options(
+            selectinload(ServiceInstance.session_slots),
+            joinedload(ServiceInstance.training_details),
+            joinedload(ServiceInstance.consultation_details),
+            selectinload(ServiceInstance.ticket_tiers),
+            joinedload(ServiceInstance.service),
+        )
+        if service_type is not None:
+            statement = statement.join(
+                Service, ServiceInstance.service_id == Service.id
+            ).where(Service.service_type == service_type)
+            if service_id is not None:
+                statement = statement.where(ServiceInstance.service_id == service_id)
+        elif service_id is not None:
+            statement = statement.where(ServiceInstance.service_id == service_id)
+        if status is not None:
+            statement = statement.where(ServiceInstance.status == status)
+        if cursor_created_at is not None and cursor_id is not None:
+            statement = statement.where(
+                or_(
+                    ServiceInstance.created_at < cursor_created_at,
+                    and_(
+                        ServiceInstance.created_at == cursor_created_at,
+                        ServiceInstance.id < cursor_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            ServiceInstance.created_at.desc(), ServiceInstance.id.desc()
+        ).limit(limit)
+        return list(self._session.execute(statement).unique().scalars().all())
+
+    def count_instances_global(
+        self,
+        *,
+        status: InstanceStatus | None = None,
+        service_id: UUID | None = None,
+        service_type: ServiceType | None = None,
+    ) -> int:
+        """Count instances matching optional filters."""
+        statement = select(func.count(ServiceInstance.id))
+        if service_type is not None:
+            statement = statement.join(
+                Service, ServiceInstance.service_id == Service.id
+            ).where(Service.service_type == service_type)
+            if service_id is not None:
+                statement = statement.where(ServiceInstance.service_id == service_id)
+        elif service_id is not None:
+            statement = statement.where(ServiceInstance.service_id == service_id)
+        if status is not None:
+            statement = statement.where(ServiceInstance.status == status)
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
     def get_by_id_with_details(self, instance_id: UUID) -> ServiceInstance | None:
         """Return one instance with related details and enrollments."""
         statement = (
@@ -97,6 +167,69 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             )
         )
         return self._session.execute(statement).scalar_one_or_none()
+
+    def list_event_instances_for_public_feed(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+    ) -> list[ServiceInstance]:
+        """List upcoming/past public event instances for calendar feed."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(Service.status == ServiceStatus.PUBLISHED)
+            .where(ServiceInstance.status != InstanceStatus.CANCELLED)
+            .where(
+                ServiceInstance.status.in_(
+                    [
+                        InstanceStatus.SCHEDULED,
+                        InstanceStatus.OPEN,
+                        InstanceStatus.FULL,
+                        InstanceStatus.IN_PROGRESS,
+                        InstanceStatus.COMPLETED,
+                    ]
+                )
+            )
+            .where(
+                ServiceInstance.session_slots.any(
+                    InstanceSessionSlot.ends_at >= now - datetime.resolution
+                )
+            )
+            .options(
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+                joinedload(ServiceInstance.location),
+                joinedload(ServiceInstance.service),
+            )
+            .order_by(ServiceInstance.created_at.desc(), ServiceInstance.id.desc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())
+
+    def list_instances_pending_eventbrite_sync(
+        self, *, limit: int
+    ) -> list[ServiceInstance]:
+        """List Event-type instances that require Eventbrite sync work."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(
+                ServiceInstance.eventbrite_sync_status.in_(
+                    [EventbriteSyncStatus.PENDING, EventbriteSyncStatus.FAILED]
+                )
+            )
+            .options(
+                joinedload(ServiceInstance.service),
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+            )
+            .order_by(ServiceInstance.updated_at.asc(), ServiceInstance.id.asc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())
 
     def create_instance(
         self,
@@ -135,19 +268,11 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         return self.update(instance)
 
     def get_enrollment_count(self, instance_id: UUID) -> int:
-        """Return active enrollment count for capacity checks."""
+        """Return enrollment count for capacity (same statuses as EnrollmentRepository)."""
         statement = (
             select(func.count(Enrollment.id))
             .where(Enrollment.instance_id == instance_id)
-            .where(
-                Enrollment.status.in_(
-                    [
-                        EnrollmentStatus.REGISTERED,
-                        EnrollmentStatus.CONFIRMED,
-                        EnrollmentStatus.COMPLETED,
-                    ]
-                )
-            )
+            .where(Enrollment.status.in_(CAPACITY_ENROLLMENT_STATUSES))
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
@@ -161,3 +286,25 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def list_event_instances_for_sync_reconciliation(
+        self,
+        *,
+        limit: int,
+    ) -> list[ServiceInstance]:
+        """Return Event instances ordered for periodic sync reconciliation."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(ServiceInstance.status != InstanceStatus.CANCELLED)
+            .options(
+                joinedload(ServiceInstance.service),
+                joinedload(ServiceInstance.location),
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+            )
+            .order_by(ServiceInstance.updated_at.desc(), ServiceInstance.id.desc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())

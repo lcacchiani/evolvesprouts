@@ -17,7 +17,7 @@ export function Input({ className, type, ...props }: InputProps) {
         'focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed',
         'disabled:bg-slate-100 sm:h-9 sm:text-sm',
         isDatePicker &&
-          '[&::-webkit-calendar-picker-indicator]:ml-0 [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-datetime-edit-fields-wrapper]:py-0',
+          'appearance-none [&::-webkit-date-and-time-value]:min-h-0 [&::-webkit-datetime-edit]:p-0 [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-calendar-picker-indicator]:m-0 [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-calendar-picker-indicator]:p-0',
         className
       )}
       {...props}

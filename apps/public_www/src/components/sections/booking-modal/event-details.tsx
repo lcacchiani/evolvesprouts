@@ -1,8 +1,8 @@
-import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
+import type { ReactNode } from 'react';
+
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
-import { SmartLink } from '@/components/shared/smart-link';
+import { BookingEventDetailsPriceVenue } from '@/components/sections/booking-modal/booking-event-details-price-venue';
 import type { BookingPaymentModalContent, Locale } from '@/content';
-import { formatCurrencyHkd } from '@/lib/format';
 
 export interface BookingEventDetailPart {
   date: string;
@@ -20,8 +20,16 @@ interface BookingEventDetailsProps {
   originalAmount: number;
   venueName: string;
   venueAddress: string;
-  directionHref: string;
+  /** When missing or not an http(s) URL, the directions link is hidden (e.g. at-home services). */
+  directionHref?: string;
   detailsVariant?: 'event' | 'my-best-auntie';
+  /**
+   * Consultation booking: replaces the event date list in the left column (still uses
+   * `detailsVariant='event'` for layout).
+   */
+  consultationScheduleSlot?: ReactNode;
+  /** When provided, replaces the plain-text subtitle paragraph with custom content. */
+  subtitleSlot?: ReactNode;
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
@@ -68,8 +76,10 @@ export function BookingEventDetails({
   originalAmount,
   venueName,
   venueAddress,
-  directionHref,
+  directionHref = '',
   detailsVariant = 'my-best-auntie',
+  consultationScheduleSlot,
+  subtitleSlot,
 }: BookingEventDetailsProps) {
   const isEventDetailsVariant = detailsVariant === 'event';
   const eventScheduleRows = activePartRows
@@ -84,9 +94,11 @@ export function BookingEventDetails({
       >
         {title}
       </h2>
-      <p className='mt-3 text-xl leading-7 es-text-heading'>
-        {subtitle}
-      </p>
+      {subtitleSlot ?? (
+        <p className='mt-3 text-xl leading-7 es-text-heading'>
+          {subtitle}
+        </p>
+      )}
 
       {!isEventDetailsVariant ? (
         <section className='mt-8'>
@@ -150,92 +162,56 @@ export function BookingEventDetails({
         </section>
       ) : null}
 
-      <section className='mt-9 border-t border-black/15 pt-8'>
-        {isEventDetailsVariant && eventScheduleRows.length > 0 ? (
-          <div data-event-schedule-summary='true' className='border-b border-black/15 pb-8'>
-            <div className='flex items-center gap-4'>
-              <span className='es-icon-circle-lg'>
-                <span
-                  data-event-schedule-icon='true'
-                  className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
-                  aria-hidden='true'
-                />
-              </span>
-              <div className='space-y-2'>
-                {eventScheduleRows.map((row, index) => (
-                  <p
-                    key={`${row}-${index}`}
-                    data-event-schedule-row='true'
-                    className='text-[26px] font-bold leading-none es-text-heading'
-                  >
-                    {row}
-                  </p>
-                ))}
+      {isEventDetailsVariant ? (
+        <section className='mt-9 border-t border-black/15 pt-8'>
+          {consultationScheduleSlot ? (
+            <div className='border-b border-black/15 pb-8'>{consultationScheduleSlot}</div>
+          ) : null}
+          {!consultationScheduleSlot && eventScheduleRows.length > 0 ? (
+            <div data-event-schedule-summary='true' className='border-b border-black/15 pb-8'>
+              <div className='flex items-center gap-4'>
+                <span className='es-icon-circle-lg'>
+                  <span
+                    data-event-schedule-icon='true'
+                    className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
+                    aria-hidden='true'
+                  />
+                </span>
+                <div className='space-y-2'>
+                  {eventScheduleRows.map((row, index) => (
+                    <p
+                      key={`${row}-${index}`}
+                      data-event-schedule-row='true'
+                      className='text-[26px] font-bold leading-none es-text-heading'
+                    >
+                      {row}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ) : null}
-
-        <div
-          className={
-            isEventDetailsVariant
-              ? 'border-b border-black/15 py-8'
-              : 'border-b border-black/15 pb-8'
-          }
-        >
-          <div className='flex items-start gap-4'>
-            <span className='es-icon-circle-lg'>
-              <span
-                className='es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
-                aria-hidden='true'
-              />
-            </span>
-            <div>
-              <p className='text-[26px] font-bold leading-none es-text-heading'>
-                {formatCurrencyHkd(originalAmount, locale)}
-              </p>
-              <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
-                {content.refundHint}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className='pb-8 pt-8'>
-          <div className='flex items-start gap-4'>
-            <span className='es-icon-circle-lg'>
-              <span
-                className='es-mask-location-danger h-[46px] w-[46px] shrink-0'
-                aria-hidden='true'
-              />
-            </span>
-            <div>
-              {venueName ? (
-                <p className='text-lg font-semibold leading-6 es-text-heading'>
-                  {venueName}
-                </p>
-              ) : null}
-              <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
-                {venueAddress}
-              </p>
-              <SmartLink
-                href={directionHref}
-                className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
-              >
-                {({ isExternalHttp }) => (
-                  <ExternalLinkInlineContent
-                    isExternalHttp={isExternalHttp}
-                    externalLabelClassName='es-link-external-label--direction'
-                  >
-                    {content.directionLabel}
-                  </ExternalLinkInlineContent>
-                )}
-              </SmartLink>
-            </div>
-          </div>
-        </div>
-
-      </section>
+          ) : null}
+          <BookingEventDetailsPriceVenue
+            locale={locale}
+            content={content}
+            originalAmount={originalAmount}
+            venueName={venueName}
+            venueAddress={venueAddress}
+            directionHref={directionHref}
+            embedded
+            isEventSpacing
+          />
+        </section>
+      ) : (
+        <BookingEventDetailsPriceVenue
+          locale={locale}
+          content={content}
+          originalAmount={originalAmount}
+          venueName={venueName}
+          venueAddress={venueAddress}
+          directionHref={directionHref}
+        />
+      )}
     </div>
   );
 }

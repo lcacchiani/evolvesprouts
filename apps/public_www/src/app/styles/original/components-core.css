@@ -50,6 +50,15 @@
     letter-spacing: 0;
   }
 
+  .es-type-detail {
+    color: var(--site-primary-text);
+    font-family: var(--site-primary-font);
+    font-size: clamp(0.8125rem, 1.35vw, 15px);
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
   .es-type-body-italic {
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);
@@ -206,6 +215,10 @@
 
   .es-bg-brand-orange {
     background-color: var(--es-color-brand-orange);
+  }
+
+  .es-bg-brand-orange-soft {
+    background-color: var(--es-color-brand-orange-soft);
   }
 
   .es-bg-brand-strong {
@@ -889,8 +902,8 @@
     -webkit-mask-image: url('/images/faq-lens-icon.svg');
   }
 
-  .es-ui-icon-mask--events-loading-gear {
-    mask-image: url('/images/events-loading-gear-icon.svg');
-    -webkit-mask-image: url('/images/events-loading-gear-icon.svg');
+  .es-ui-icon-mask--loading-gear {
+    mask-image: url('/images/loading-gear-icon.svg');
+    -webkit-mask-image: url('/images/loading-gear-icon.svg');
   }
 }

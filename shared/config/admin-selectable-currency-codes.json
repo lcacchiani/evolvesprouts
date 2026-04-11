@@ -1,0 +1,10 @@
+{
+  "codes": ["HKD", "USD", "EUR", "CNY", "SGD"],
+  "currencySymbols": {
+    "HKD": "HK$",
+    "USD": "$",
+    "EUR": "€",
+    "CNY": "¥",
+    "SGD": "S$"
+  }
+}

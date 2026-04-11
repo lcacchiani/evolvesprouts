@@ -23,38 +23,92 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/reservations`,
+  `/v1/assets/free/request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
+  `/v1/calendar/public`,
+  `/v1/discounts/validate`,
+  `/v1/legacy/reservations`,
+  `/v1/legacy/contact-us`,
+  `/v1/legacy/discounts/validate`,
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
-  `/v1/admin/locations/*`, `/v1/admin/assets/*`,
-  `/v1/admin/leads/*`, `/v1/admin/users`,
-  `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
+  `/v1/admin/locations/*` (including `POST /v1/admin/locations/geocode` for
+  Nominatim-backed address geocoding via `AwsApiProxyFunction`),
+  `/v1/admin/assets/*`,
+  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers and
+  `GET /v1/admin/contacts/search` for contact picker search),
+  `/v1/admin/families/picker`, `/v1/admin/families/*`,
+  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations excluding
+  vendors; vendors remain under `/v1/admin/vendors`),
+  `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
+  `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
+  cross-service instance listing with optional `service_id` / `service_type`
+  filters), `/v1/admin/discount-codes/*`,
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
-  `/v1/assets/public/*`, and `/v1/assets/share/*`
+  `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
+  and `GET /v1/assets/free`,
+  plus public website proxy routes including
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation;
+  same JSON contract as `/www/v1/legacy/discounts/validate`),
+  `/www/v1/calendar/public` (event instances include optional `slug` and
+  `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
+  when `max_capacity` is set, using the same enrollment statuses as capacity
+  checks: registered, confirmed, completed),
+  `/www/v1/assets/free` (lists public assets tagged `client_document`;
+  optional `language` query filters on `assets.content_language` using any valid
+  BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
+  `zh-CN`, or `zh-HK`; downloads
+  remain on `/v1/assets/public/{id}/download` with device attestation)
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
-  API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
-- Purpose: asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
+  API key for `/v1/assets/share/*` and `/v1/assets/email-download/*` (injected by
+  media CloudFront at origin) and `GET /v1/assets/free`
+- Permissions: SES `SendEmail` / `SendRawEmail` / `SendTemplatedEmail` on the
+  verified `SesSenderEmail` identity **and** the `AuthEmailFromAddress` identity
+  (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
+  secret when marketing hooks run on legacy routes
+- Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
+  `PUBLIC_WWW_BASE_URL`, `SUPPORT_EMAIL`, `MAILCHIMP_*` welcome journey vars
+  (see `aws-messaging.md`)
+- Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
-  `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD,
+  `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD
+  and geocoding (`POST /v1/admin/locations/geocode` uses `NOMINATIM_USER_AGENT` and
+  `NOMINATIM_REFERER` with the HTTP proxy to OpenStreetMap's geocoder; the
+  `countrycodes` parameter is built from the root area `code` plus the sovereign
+  country row's `code` when `geographic_areas.sovereign_country_id` is set),
+  (list supports optional `area_id`, `search` on address, cursor pagination, and `total_count`),
+  CRM contact/family/organization management with soft-archive, locations, tags,
+  and family/organization membership rows,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
-  listing for lead assignment,
+  listing for lead assignment and instructor-group listing for service instances
+  (service list items may include nullable `training_details` for training courses),
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
   authentication for restricted share-link resolutions, PATCH partial metadata
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
-  `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
-  reconciliation on `/v1/mailchimp/webhook`, Stripe PaymentIntent creation for
+  `/v1/assets/free/request`, Mailchimp webhook ingestion and contact sync-status
+  reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
+  on `/v1/legacy/*` (proxying to upstream legacy endpoints via
+  `AwsApiProxyFunction`; after successful upstream acceptance, sends SES
+  **templated** confirmation emails for contact-us and reservations and may
+  subscribe opted-in contacts to Mailchimp + optional welcome journey),
+  Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
+  (card-only `payment_method_types[]=card`; wallet buttons are disabled in the
+  public Payment Element; `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is not used).
+  When `PUBLIC_WWW_STAGING_SITE_ORIGIN` and `EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY`
+  are set, requests whose `Origin` or `Referer` matches that staging site use
+  the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
+  is used (reservation submission uses the same selection for PaymentIntent retrieval).
   (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
@@ -65,6 +119,16 @@ their primary responsibilities.
 - Auth: IAM
 - Purpose: service health and configuration checks
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_app`)
+
+### SES template manager (custom resource)
+- Function: SesTemplateManagerFunction
+- Handler: backend/lambda/ses_template_manager/handler.py
+- Trigger: CloudFormation custom resource `SesEmailTemplates`
+- Stack: nested stack `evolvesprouts-Messaging` (`backend/infrastructure/lib/messaging-stack.ts`)
+- Purpose: create/update/delete SES stored email templates used by public
+  transactional flows (contact, media download link, booking confirmation)
+- VPC: **No**
+- Permissions: SES `CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`
 
 ## Auth and security Lambdas
 
@@ -85,6 +149,9 @@ their primary responsibilities.
 - Handler: backend/lambda/auth/create_auth_challenge/handler.py
 - Trigger: Cognito User Pool CREATE_AUTH_CHALLENGE
 - Purpose: generate OTP/magic link and send email
+- Permissions: SES `SendEmail` / `SendRawEmail` on the verified From address identity
+  and the derived domain identity ARN (`identity/<domain>` from `AuthEmailFromAddress`),
+  so sending still works when SES authorizes by domain verification
 
 ### Verify auth challenge
 - Function: AuthVerifyChallengeFunction
@@ -153,13 +220,16 @@ their primary responsibilities.
 ### Booking request processor
 - Function: BookingRequestProcessor
 - Handler: backend/lambda/manager_request_processor/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (subscribed to SNS booking request topic)
 - Purpose: process async booking submissions from the SNS topic
 - Reliability: retries transient SES send failures when dispatching
   notifications
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: SES send email
+- Permissions: SES send email (verified sender address and derived domain identity
+  ARNs; see `sesVerifiedAddressAndDomainIdentityArns` in
+  `backend/infrastructure/lib/ses-identity-arns.ts`)
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
@@ -168,25 +238,45 @@ their primary responsibilities.
 ### Media request processor
 - Function: MediaRequestProcessor
 - Handler: backend/lambda/media_processor/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (`evolvesprouts-media-queue`)
-- Purpose: process media lead captures and fan out actions
-- Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync,
-  and SES notification to sales/support
+- Purpose: process media lead captures and fan out actions (including Mailchimp
+  free-resource journey re-trigger on repeat requests during the transition
+  period, and optional welcome journey for opted-in contacts)
+- Actions: contact upsert in DB, idempotent sales lead creation, SES templated
+  download-link email to the submitter, Mailchimp sync (merge fields + tag +
+  optional free-resource Customer Journey trigger; consent-gated when
+  `MAILCHIMP_REQUIRE_MARKETING_CONSENT=true`), optional welcome journey for
+  `marketing_opt_in`, and SES notification to sales/support
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: SES send email, Secrets Manager read for Mailchimp API key,
+- Permissions: SES `SendEmail`, `SendRawEmail`, and `SendTemplatedEmail` (verified
+  internal sender + `AuthEmailFromAddress` identities and derived domain ARNs),
+  Secrets Manager read for Mailchimp API key,
   Lambda invoke permission for `AwsApiProxyFunction`
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
+  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
   - `MEDIA_DEFAULT_RESOURCE_KEY`, `AWS_PROXY_FUNCTION_ARN`
+  - `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`
+    (same host allowlist as admin for auto-created share links),
+    `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional Mailchimp merge field for stable
+    `/v1/assets/email-download/{token}` download URL)
+  - `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID`, `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` (optional;
+    Customer Journey API trigger after successful member sync; empty disables)
+  - `MAILCHIMP_REQUIRE_MARKETING_CONSENT` (when `true`, gate legacy Mailchimp
+    subscribe + free-resource journey on `marketing_opt_in`)
+  - `MAILCHIMP_WELCOME_JOURNEY_ID`, `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (optional;
+    shared welcome journey for opted-in contacts; empty disables)
+  - `PUBLIC_WWW_BASE_URL` (reserved for shared template helpers)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction
 - Handler: backend/lambda/expense_parser/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
   using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
@@ -237,6 +327,24 @@ their primary responsibilities.
   - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
     substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
     CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
+
+### Eventbrite sync processor
+- Function: EventbriteSyncProcessor
+- Handler: backend/lambda/eventbrite_sync_processor/handler.py
+- Trigger: SQS queue (`evolvesprouts-eventbrite-sync-queue`)
+- Purpose: process async Eventbrite synchronization requests for event service instances
+  and upsert Eventbrite event/ticket metadata while keeping DB as source of truth
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: Secrets Manager read for Eventbrite token, Lambda invoke permission
+  for `AwsApiProxyFunction`
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `AWS_PROXY_FUNCTION_ARN`
+  - `EVENTBRITE_API_BASE_URL`
+  - `EVENTBRITE_ORGANIZATION_ID`
+  - `EVENTBRITE_TOKEN_SECRET_ARN`
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

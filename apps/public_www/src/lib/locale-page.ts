@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 import {
@@ -89,14 +90,38 @@ export function getFooterLinkLabel(
   );
 }
 
+type NavbarTopMenuItem = SiteContent['navbar']['menuItems'][number];
+type NavbarSubmenuItem = NonNullable<NavbarTopMenuItem['children']>[number];
+type NavbarNavLinkItem = NavbarTopMenuItem | NavbarSubmenuItem;
+
+function findLabelInNavItems(
+  items: ReadonlyArray<NavbarNavLinkItem>,
+  href: string,
+): string | undefined {
+  for (const item of items) {
+    if (item.href === href && item.label) {
+      return item.label;
+    }
+
+    if ('children' in item && item.children?.length) {
+      const nested = findLabelInNavItems(item.children, href);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function findLabelByHref(
-  itemSets: ReadonlyArray<ReadonlyArray<{ href: string; label: string }>>,
+  itemSets: ReadonlyArray<ReadonlyArray<NavbarNavLinkItem>>,
   href: string,
 ): string | undefined {
   for (const items of itemSets) {
-    const match = items.find((item) => item.href === href);
-    if (match?.label) {
-      return match.label;
+    const match = findLabelInNavItems(items, href);
+    if (match) {
+      return match;
     }
   }
 
@@ -191,6 +216,27 @@ export function createRootRedirectPage(targetPath: string) {
 
 export function createDefaultLocaleRedirectPage(targetPath: string) {
   return createRootRedirectPage(localizePath(targetPath, DEFAULT_LOCALE));
+}
+
+const NO_INDEX_NO_FOLLOW_REDIRECT_METADATA: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+/**
+ * Non-locale URL that immediately redirects to the localized route but should not
+ * be indexed (duplicate URL). Example: `/media/download` → `/en/media/download/`.
+ *
+ * Audit (2026): `/book` and `/resources` remain indexable at the root redirect;
+ * they are intentional aliases and differ from media download’s download-only entry point.
+ */
+export function createNoIndexDefaultLocaleRedirectPage(targetPath: string) {
+  return {
+    metadata: NO_INDEX_NO_FOLLOW_REDIRECT_METADATA,
+    default: createDefaultLocaleRedirectPage(targetPath),
+  } as const;
 }
 
 export function createLocaleAliasRedirectPage(target: LocaleAliasTarget) {

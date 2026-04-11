@@ -74,16 +74,19 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwCertificateArn`
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
-    - `PublicWwwCrmApiBaseUrl` (typically `<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>`)
-    - `PublicWwwMediaRequestApiBaseUrl` (typically `<FROM_GITHUB_VAR: NEXT_PUBLIC_ADMIN_API_BASE_URL>`)
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
+    - `PublicWwwApiBaseUrl` (typically `<FROM_GITHUB_VAR: NEXT_PUBLIC_API_BASE_URL>`)
+    - `PublicWwwMediaRequestApiBaseUrl` (typically `<FROM_GITHUB_VAR: NEXT_PUBLIC_API_BASE_URL>`)
+- `NEXT_PUBLIC_API_BASE_URL` (for Public WWW and Admin Web builds)
 - `NEXT_PUBLIC_EVENTS_SOURCE` (`content` to source Public WWW events from `apps/public_www/src/content/events.json`)
-- `NEXT_PUBLIC_ADMIN_API_BASE_URL` (execute-api base URL for Public WWW media request proxy routing)
+- `NEXT_PUBLIC_API_BASE_URL` (execute-api base URL for Public WWW and Admin Web API routing)
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` (comma-separated hostname allowlist for `/www` proxy rewrites)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (for Public WWW booking form)
 - `CDK_PARAM_MAILCHIMP_LIST_ID`
 - `CDK_PARAM_MAILCHIMP_SERVER_PREFIX`
 - `CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY`
+- `CDK_PARAM_MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional; set to e.g. `MMDLURL` after creating a matching Text merge field in Mailchimp)
+- `CDK_PARAM_MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` (optional; Mailchimp Customer Journey ID for free-resource form journey trigger)
+- `CDK_PARAM_MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` (optional; journey step ID for the trigger API)
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)
 - `NEXT_PUBLIC_GTM_ID` (optional GTM container ID)

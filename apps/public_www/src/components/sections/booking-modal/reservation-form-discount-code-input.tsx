@@ -1,4 +1,5 @@
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 import type { BookingPaymentModalContent } from '@/content';
 
 const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
@@ -43,12 +44,24 @@ export function ReservationFormDiscountCodeInput({
           />
         </label>
         <ButtonPrimitive
+          type='button'
           variant='outline'
           onClick={onApplyDiscount}
           disabled={hasDiscountRule || isDiscountValidationSubmitting}
-          className='mt-6 h-[50px] rounded-control px-4 text-sm font-semibold'
+          className='mt-6 inline-flex h-[50px] min-w-[88px] items-center justify-center rounded-control px-4 text-sm font-semibold'
+          aria-busy={isDiscountValidationSubmitting}
         >
-          {content.applyDiscountLabel}
+          {isDiscountValidationSubmitting ? (
+            <>
+              <span className='sr-only'>{content.applyDiscountLoadingLabel}</span>
+              <LoadingGearIcon
+                className='h-5 w-5 animate-spin'
+                testId='booking-discount-apply-loading-gear'
+              />
+            </>
+          ) : (
+            content.applyDiscountLabel
+          )}
         </ButtonPrimitive>
       </div>
 

@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
@@ -6,6 +8,10 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack(config) {
+    config.resolve.alias['@shared-config'] = path.resolve(
+      __dirname,
+      '../../shared/config',
+    );
     const svgLoader = {
       loader: '@svgr/webpack',
       options: {

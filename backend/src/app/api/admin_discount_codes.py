@@ -17,6 +17,7 @@ from app.api.admin_services_common import (
     request_id,
     serialize_discount_code,
 )
+from app.api.admin_services_payloads import ensure_discount_validity_window
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -177,6 +178,14 @@ def _update_discount_code(
         code = repository.get_by_id(code_id)
         if code is None:
             raise NotFoundError("DiscountCode", str(code_id))
+
+        merged_from = (
+            payload["valid_from"] if "valid_from" in payload else code.valid_from
+        )
+        merged_until = (
+            payload["valid_until"] if "valid_until" in payload else code.valid_until
+        )
+        ensure_discount_validity_window(merged_from, merged_until)
 
         if "description" in payload:
             code.description = payload["description"]

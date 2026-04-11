@@ -10,6 +10,7 @@ from uuid import UUID
 from collections.abc import Iterable
 
 from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, String, Text, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP, Numeric
@@ -17,6 +18,7 @@ from sqlalchemy.types import TIMESTAMP, Numeric
 from app.db.base import Base
 from app.db.models.enums import (
     ConsultationPricingModel,
+    EventbriteSyncStatus,
     InstanceStatus,
     ServiceDeliveryMode,
     TrainingFormat,
@@ -34,6 +36,7 @@ def _enum_values(
     enum_cls: Iterable[
         ServiceDeliveryMode
         | InstanceStatus
+        | EventbriteSyncStatus
         | TrainingFormat
         | TrainingPricingUnit
         | ConsultationPricingModel
@@ -51,6 +54,7 @@ class ServiceInstance(Base):
         Index("svc_instances_service_idx", "service_id"),
         Index("svc_instances_status_idx", "status"),
         Index("svc_instances_instructor_idx", "instructor_id"),
+        Index("svc_instances_slug_uq", "slug", unique=True),
         CheckConstraint(
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
@@ -68,6 +72,8 @@ class ServiceInstance(Base):
         nullable=False,
     )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    slug: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    landing_page: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     cover_image_s3_key: Mapped[str | None] = mapped_column(String(), nullable=True)
     status: Mapped[InstanceStatus] = mapped_column(
@@ -111,6 +117,34 @@ class ServiceInstance(Base):
         TIMESTAMP(timezone=True),
         nullable=False,
         server_default=text("now()"),
+    )
+    eventbrite_event_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    eventbrite_event_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    eventbrite_sync_status: Mapped[EventbriteSyncStatus] = mapped_column(
+        Enum(
+            EventbriteSyncStatus,
+            name="eventbrite_sync_status",
+            values_callable=_enum_values,
+            create_type=False,
+        ),
+        nullable=False,
+        server_default=text("'pending'"),
+    )
+    eventbrite_last_synced_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
+    eventbrite_last_error: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    eventbrite_last_payload_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    eventbrite_ticket_class_map: Mapped[dict[str, str] | None] = mapped_column(
+        JSONB(),
+        nullable=True,
+    )
+    eventbrite_retry_count: Mapped[int] = mapped_column(
+        nullable=False,
+        server_default=text("0"),
     )
 
     service: Mapped[Service] = relationship(

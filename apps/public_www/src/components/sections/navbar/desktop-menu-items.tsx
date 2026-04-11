@@ -231,7 +231,7 @@ function DesktopMenuItem({
         }}
         id={submenuListId}
         isOpen={isSubmenuOpen}
-        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        listClassName={`absolute left-0 top-full z-50 w-[230px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
         linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
       />
     </li>

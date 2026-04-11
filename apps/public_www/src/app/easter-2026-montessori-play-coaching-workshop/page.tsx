@@ -1,5 +1,5 @@
-import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
+import { createLandingPageRootRedirect } from '@/lib/landing-pages';
 
-export default createDefaultLocaleRedirectPage(
-  '/easter-2026-montessori-play-coaching-workshop',
+export default createLandingPageRootRedirect(
+  'easter-2026-montessori-play-coaching-workshop',
 );

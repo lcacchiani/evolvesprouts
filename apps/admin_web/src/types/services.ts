@@ -72,6 +72,11 @@ export interface ServiceSummary {
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
+  trainingDetails: {
+    pricingUnit: TrainingPricingUnit;
+    defaultPrice: string | null;
+    defaultCurrency: string | null;
+  } | null;
 }
 
 export interface ServiceDetail extends ServiceSummary {
@@ -108,6 +113,40 @@ export interface SessionSlot {
   sortOrder: number | null;
 }
 
+export interface LocationSummary {
+  id: string;
+  name: string | null;
+  areaId: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export type GeographicAreaLevel = ApiSchemas['GeographicArea']['level'];
+
+export interface GeographicAreaSummary {
+  id: string;
+  parentId: string | null;
+  name: string;
+  level: GeographicAreaLevel;
+  code: string | null;
+  sovereignCountryId: string | null;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface VenueFilters {
+  areaId: string;
+  search: string;
+}
+
+export const DEFAULT_VENUE_FILTERS: VenueFilters = {
+  areaId: '',
+  search: '',
+};
+
 export interface EventTicketTier {
   id: string | null;
   instanceId: string | null;
@@ -122,6 +161,8 @@ export interface EventTicketTier {
 export interface ServiceInstance {
   id: string;
   serviceId: string;
+  parentServiceTitle: string | null;
+  parentServiceType: ServiceType | null;
   title: string | null;
   description: string | null;
   coverImageS3Key: string | null;

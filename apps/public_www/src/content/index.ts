@@ -49,6 +49,12 @@ export type MyBestAuntieModalContent = SiteContent['myBestAuntie']['modal'];
 export type MyBestAuntieBookingContent = SiteContent['myBestAuntie']['booking'];
 export type MyBestAuntieDescriptionContent =
   SiteContent['myBestAuntie']['description'];
+export type ConsultationsHeroContent = SiteContent['consultations']['hero'];
+export type ConsultationsBookingContent = SiteContent['consultations']['booking'];
+export type ConsultationsBookingReservationContent =
+  SiteContent['consultations']['booking']['reservation'];
+export type ConsultationsFocusDetailsContent = SiteContent['consultations']['focusDetails'];
+export type ConsultationsComparisonContent = SiteContent['consultations']['comparison'];
 export type BookingModalContent = SiteContent['bookingModal'];
 export type BookingPaymentModalContent = SiteContent['bookingModal']['paymentModal'];
 export type BookingThankYouModalContent = SiteContent['bookingModal']['thankYouModal'];
@@ -70,6 +76,12 @@ export type EventNotificationContent =
   SiteContent['events']['notification'];
 export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
+export type FreeGuidesAndResourcesHeroContent =
+  SiteContent['freeGuidesAndResources']['hero'];
+export type FreeGuidesAndResourcesLibraryContent =
+  SiteContent['freeGuidesAndResources']['library'];
+export type FreeGuidesAndResourcesFaqContent =
+  SiteContent['freeGuidesAndResources']['faq'];
 export type FooterContent = SiteContent['footer'];
 export type LinksHubContent = SiteContent['links']['hub'];
 export type LandingPagesCommonContent = SiteContent['landingPages']['common'];

@@ -57,20 +57,24 @@ vi.mock('@/lib/analytics', () => ({
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 
-function renderMediaForm() {
+function mediaFormProps() {
   const resourcesContent = enContent.resources;
-  return render(
-    <MediaForm
-      ctaLabel={resourcesContent.ctaLabel}
-      resourceKey={resourcesContent.resourceKey}
-      formFirstNameLabel={resourcesContent.formFirstNameLabel}
-      formEmailLabel={resourcesContent.formEmailLabel}
-      formSubmitLabel={resourcesContent.formSubmitLabel}
-      formSuccessTitle={resourcesContent.formSuccessTitle}
-      formSuccessBody={resourcesContent.formSuccessBody}
-      formErrorMessage={resourcesContent.formErrorMessage}
-    />,
-  );
+  return {
+    ctaLabel: resourcesContent.ctaLabel,
+    locale: 'en' as const,
+    resourceKey: resourcesContent.resourceKey,
+    formMarketingOptInLabel: resourcesContent.formMarketingOptInLabel,
+    formFirstNameLabel: resourcesContent.formFirstNameLabel,
+    formEmailLabel: resourcesContent.formEmailLabel,
+    formSubmitLabel: resourcesContent.formSubmitLabel,
+    formSuccessTitle: resourcesContent.formSuccessTitle,
+    formSuccessBody: resourcesContent.formSuccessBody,
+    formErrorMessage: resourcesContent.formErrorMessage,
+  };
+}
+
+function renderMediaForm() {
+  return render(<MediaForm {...mediaFormProps()} />);
 }
 
 describe('MediaForm', () => {
@@ -159,12 +163,14 @@ describe('MediaForm', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/media-request',
+        endpointPath: '/v1/assets/free/request',
         method: 'POST',
         body: {
           first_name: 'Ida',
           email: 'ida@example.com',
           resource_key: 'patience-free-guide',
+          marketing_opt_in: false,
+          locale: 'en',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],
@@ -228,5 +234,39 @@ describe('MediaForm', () => {
     const submitButton = screen.getByRole('button', { name: enContent.resources.formSubmitLabel });
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(enContent.resources.formErrorMessage)).toBeInTheDocument();
+  });
+
+  it('shows success only on the MediaForm instance that submitted', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+
+    render(
+      <>
+        <MediaForm {...mediaFormProps()} analyticsSectionId='form-a' />
+        <MediaForm {...mediaFormProps()} analyticsSectionId='form-b' />
+      </>,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: enContent.resources.ctaLabel })[0]);
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      { target: { value: 'Ida' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    await waitFor(() => {
+      const titles = screen.getAllByText(enContent.resources.formSuccessTitle);
+      expect(titles).toHaveLength(1);
+    });
+
+    expect(
+      screen.getAllByRole('button', { name: enContent.resources.ctaLabel }),
+    ).toHaveLength(1);
   });
 });

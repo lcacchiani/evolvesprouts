@@ -26,11 +26,21 @@ from app.db.models import (
     SalesLeadEvent,
     Tag,
 )
+from app.api.assets.share_links import (
+    build_configured_email_download_url,
+    generate_share_token,
+    resolve_default_allowed_domains,
+)
 from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
-from app.services.email import send_email
-from app.services.mailchimp import MailchimpApiError, add_subscriber_with_tag
+from app.services.email import send_email, send_templated_email
+from app.services.mailchimp import (
+    MailchimpApiError,
+    add_subscriber_with_tag,
+    trigger_customer_journey,
+)
+from app.services.marketing_subscribe import subscribe_to_marketing
 from app.templates.media_lead import render_sales_notification_email
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.retry import run_with_retry
@@ -98,6 +108,8 @@ def _process_message(message: dict[str, Any]) -> bool:
     email = _required_email(message.get("email"))
     submitted_at = _normalize_submitted_at(message.get("submitted_at"))
     request_id = _optional_text(message.get("request_id"))
+    marketing_opt_in = _parse_marketing_opt_in(message.get("marketing_opt_in"))
+    locale = _normalize_email_locale(message.get("locale"))
 
     with Session(get_engine()) as session:
         resource_key, asset_id, tag_name, media_name = _resolve_media_resource(
@@ -125,13 +137,40 @@ def _process_message(message: dict[str, Any]) -> bool:
                 contact_id=contact.id,
                 tag_name=tag_name,
             )
-            should_retry_sync = _should_retry_mailchimp_sync(contact)
+            download_url = _ensure_share_link_url_for_asset(
+                session=session, asset_id=asset_id
+            )
+            _send_user_download_email(
+                first_name=first_name,
+                email=email,
+                media_name=media_name,
+                download_url=download_url,
+                locale=locale,
+            )
             was_mailchimp_synced = False
-            if should_retry_sync:
+            journey_triggered = False
+            if _should_sync_mailchimp_for_media(marketing_opt_in=marketing_opt_in):
                 was_mailchimp_synced = _sync_contact_to_mailchimp(
                     contact=contact,
                     first_name=first_name,
                     tag_name=tag_name,
+                    merge_fields=_mailchimp_merge_fields_with_download_url(
+                        download_url
+                    ),
+                )
+                journey_triggered = (
+                    _trigger_mailchimp_journey(email=email)
+                    if was_mailchimp_synced
+                    else False
+                )
+            if marketing_opt_in:
+                subscribe_to_marketing(
+                    email=email,
+                    first_name=first_name,
+                    tag_name=tag_name,
+                    merge_fields=None,
+                    logger=logger,
+                    subscribe_member=not was_mailchimp_synced,
                 )
             logger.info(
                 "Skipping duplicate media lead",
@@ -140,8 +179,8 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "lead_id": str(existing_lead.id),
                     "lead_email": mask_email(email),
                     "resource_key": resource_key,
-                    "mailchimp_sync_retried": should_retry_sync,
-                    "mailchimp_sync_result": was_mailchimp_synced,
+                    "mailchimp_synced": was_mailchimp_synced,
+                    "journey_triggered": journey_triggered,
                 },
             )
             session.commit()
@@ -173,22 +212,50 @@ def _process_message(message: dict[str, Any]) -> bool:
             contact_id=contact.id,
             tag_name=tag_name,
         )
-        was_mailchimp_synced = _sync_contact_to_mailchimp(
-            contact=contact,
-            first_name=first_name,
-            tag_name=tag_name,
+        download_url = _ensure_share_link_url_for_asset(
+            session=session, asset_id=asset_id
         )
-        if was_mailchimp_synced:
-            _create_sales_lead_event(
-                session=session,
-                lead_id=lead.id,
-                event_type=LeadEventType.EMAIL_SENT,
-                metadata={
+        _send_user_download_email(
+            first_name=first_name,
+            email=email,
+            media_name=media_name,
+            download_url=download_url,
+            locale=locale,
+        )
+        was_mailchimp_synced = False
+        journey_triggered = False
+        if _should_sync_mailchimp_for_media(marketing_opt_in=marketing_opt_in):
+            was_mailchimp_synced = _sync_contact_to_mailchimp(
+                contact=contact,
+                first_name=first_name,
+                tag_name=tag_name,
+                merge_fields=_mailchimp_merge_fields_with_download_url(download_url),
+            )
+            if was_mailchimp_synced:
+                journey_triggered = _trigger_mailchimp_journey(email=email)
+                mailchimp_meta: dict[str, object] = {
                     "provider": "mailchimp",
                     "resource_key": resource_key,
                     "tag_name": tag_name,
-                },
-                created_by=_SYSTEM_ACTOR,
+                    "journey_triggered": journey_triggered,
+                }
+                if download_url:
+                    mailchimp_meta["mailchimp_download_url"] = download_url
+                _create_sales_lead_event(
+                    session=session,
+                    lead_id=lead.id,
+                    event_type=LeadEventType.EMAIL_SENT,
+                    metadata=mailchimp_meta,
+                    created_by=_SYSTEM_ACTOR,
+                )
+        if marketing_opt_in:
+            subscribe_to_marketing(
+                email=email,
+                first_name=first_name,
+                tag_name=tag_name,
+                merge_fields=None,
+                logger=logger,
+                subscribe_member=not was_mailchimp_synced,
             )
 
         _send_sales_notification(
@@ -211,11 +278,160 @@ def _process_message(message: dict[str, Any]) -> bool:
         return True
 
 
+def _parse_marketing_opt_in(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes"}
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return False
+
+
+def _normalize_email_locale(value: Any) -> str:
+    if not isinstance(value, str):
+        return "en"
+    s = value.strip()
+    return s if s in {"en", "zh-CN", "zh-HK"} else "en"
+
+
+def _should_sync_mailchimp_for_media(*, marketing_opt_in: bool) -> bool:
+    flag = os.getenv("MAILCHIMP_REQUIRE_MARKETING_CONSENT", "false").strip().lower()
+    if flag == "true":
+        return marketing_opt_in
+    return True
+
+
+def _send_user_download_email(
+    *,
+    first_name: str,
+    email: str,
+    media_name: str,
+    download_url: str | None,
+    locale: str,
+) -> None:
+    from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
+    if not from_addr:
+        logger.warning(
+            "Skipping user download email: CONFIRMATION_EMAIL_FROM_ADDRESS not set"
+        )
+        return
+    if not download_url:
+        logger.warning(
+            "Skipping user download email: download URL missing",
+            extra={"lead_email": mask_email(email)},
+        )
+        return
+    template = f"evolvesprouts-media-download-{locale}"
+    data = {
+        "first_name": first_name,
+        "media_name": media_name,
+        "download_url": download_url,
+    }
+    try:
+        run_with_retry(
+            send_templated_email,
+            source=from_addr,
+            to_addresses=[email],
+            template_name=template,
+            template_data=data,
+            logger=logger,
+            operation_name="ses.send_templated_email.media_download",
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send media download email",
+            extra={"lead_email": mask_email(email), "template": template},
+        )
+
+
+def _mailchimp_merge_fields_with_download_url(
+    download_url: str | None,
+) -> dict[str, str] | None:
+    """Map stable asset share URL into the configured Mailchimp merge field tag."""
+    if not download_url:
+        return None
+    tag = os.getenv("MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG", "").strip()
+    if not tag:
+        return None
+    return {tag: download_url}
+
+
+def _ensure_share_link_url_for_asset(
+    *,
+    session: Session,
+    asset_id: UUID,
+) -> str | None:
+    """Ensure an asset share link exists and return its public HTTPS URL."""
+    repository = AssetRepository(session)
+    share_link = repository.get_share_link(asset_id=asset_id)
+    if share_link is None:
+        try:
+            allowed_domains = resolve_default_allowed_domains()
+        except RuntimeError:
+            logger.warning(
+                "Share link defaults unavailable; cannot set Mailchimp download URL",
+                extra={"asset_id": str(asset_id)},
+            )
+            return None
+        share_link = repository.create_share_link(
+            asset_id=asset_id,
+            share_token=generate_share_token(),
+            allowed_domains=allowed_domains,
+            created_by=_SYSTEM_ACTOR,
+        )
+        session.flush()
+
+    url = build_configured_email_download_url(share_token=share_link.share_token)
+    if not url:
+        logger.warning(
+            "ASSET_SHARE_LINK_BASE_URL is not set; Mailchimp download URL omitted",
+            extra={"asset_id": str(asset_id)},
+        )
+    return url
+
+
+def _trigger_mailchimp_journey(*, email: str) -> bool:
+    """POST Customer Journey trigger when journey/step env is configured."""
+    journey_id = os.getenv("MAILCHIMP_FREE_RESOURCE_JOURNEY_ID", "").strip()
+    step_id = os.getenv("MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID", "").strip()
+    if not journey_id or not step_id:
+        return False
+    try:
+        run_with_retry(
+            trigger_customer_journey,
+            email=email,
+            journey_id=journey_id,
+            step_id=step_id,
+            max_attempts=3,
+            base_delay_seconds=1.0,
+            should_retry=_is_retryable_mailchimp_exception,
+            logger=logger,
+            operation_name="mailchimp.trigger_customer_journey",
+        )
+        return True
+    except MailchimpApiError as exc:
+        logger.warning(
+            "Mailchimp journey trigger request failed",
+            extra={
+                "status": exc.status,
+                "lead_email": mask_email(email),
+            },
+        )
+    except Exception:
+        logger.exception(
+            "Mailchimp journey trigger failed unexpectedly",
+            extra={"lead_email": mask_email(email)},
+        )
+    return False
+
+
 def _sync_contact_to_mailchimp(
     *,
     contact: Contact,
     first_name: str,
     tag_name: str,
+    merge_fields: dict[str, str] | None = None,
 ) -> bool:
     if not contact.email:
         contact.mailchimp_status = MailchimpSyncStatus.FAILED
@@ -228,6 +444,7 @@ def _sync_contact_to_mailchimp(
             email=contact.email,
             first_name=first_name,
             tag_name=tag_name,
+            merge_fields=merge_fields,
             max_attempts=3,
             base_delay_seconds=1.0,
             should_retry=_is_retryable_mailchimp_exception,
@@ -261,15 +478,6 @@ def _is_retryable_mailchimp_exception(exc: Exception) -> bool:
     if isinstance(exc, MailchimpApiError):
         return exc.status == 429 or exc.status >= 500
     return isinstance(exc, (ConnectionError, TimeoutError))
-
-
-def _should_retry_mailchimp_sync(contact: Contact) -> bool:
-    if (
-        contact.mailchimp_status == MailchimpSyncStatus.SYNCED
-        and contact.mailchimp_subscriber_id
-    ):
-        return False
-    return True
 
 
 def _create_sales_lead_event(

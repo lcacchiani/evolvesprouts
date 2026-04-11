@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export type FormSubmissionStatus = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -35,17 +35,17 @@ export function useFormSubmission({ turnstileSiteKey }: UseFormSubmissionOptions
     setHasCaptchaLoadError(true);
   }
 
-  function clearSubmissionError() {
+  const clearSubmissionError = useCallback(() => {
     setSubmitErrorMessage('');
-    if (submissionStatus === 'error') {
-      setSubmissionStatus('idle');
-    }
-  }
+    setSubmissionStatus((currentStatus) =>
+      currentStatus === 'error' ? 'idle' : currentStatus,
+    );
+  }, []);
 
-  function setSubmissionError(errorMessage: string) {
+  const setSubmissionError = useCallback((errorMessage: string) => {
     setSubmitErrorMessage(errorMessage);
     setSubmissionStatus('error');
-  }
+  }, []);
 
   function markSubmissionSuccess() {
     setSubmitErrorMessage('');

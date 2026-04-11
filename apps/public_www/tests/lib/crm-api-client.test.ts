@@ -20,7 +20,7 @@ afterEach(() => {
 
 describe('crm-api-client', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
     vi.stubEnv(
       'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS',
       'www.evolvesprouts.com,www-staging.evolvesprouts.com',
@@ -53,8 +53,8 @@ describe('crm-api-client', () => {
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
       '/www/v1/discounts',
     );
-    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/events')).toBe(
-      '/www/v1/calendar/events',
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/public')).toBe(
+      '/www/v1/calendar/public',
     );
   });
 
@@ -102,6 +102,50 @@ describe('crm-api-client', () => {
         apiKey: '   ',
       }),
     ).toBeNull();
+    expect(
+      createCrmApiClient({
+        baseUrl: '/prod',
+        apiKey: 'public-key',
+      }),
+    ).toBeNull();
+  });
+
+  it('accepts relative stage paths when any base path is allowed', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: '/prod',
+      apiKey: 'public-key',
+      allowAnyBasePath: true,
+      preferSameOriginProxy: false,
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    await client.request({
+      endpointPath: '/v1/reservations/payment-intent',
+      method: 'POST',
+      body: { price: 1 },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/prod/v1/reservations/payment-intent',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'x-api-key': 'public-key',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
   });
 
   it('sends GET requests with expected headers', async () => {
@@ -168,12 +212,12 @@ describe('crm-api-client', () => {
     }
 
     const firstResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
     vi.setSystemTime(new Date('2026-01-01T00:04:59.000Z'));
     const cachedResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
 
@@ -182,7 +226,7 @@ describe('crm-api-client', () => {
 
     vi.setSystemTime(new Date('2026-01-01T00:05:00.001Z'));
     const refreshedResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
 

@@ -6,11 +6,20 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DeleteIcon } from '@/components/icons/action-icons';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
 
-import type { ServiceInstance } from '@/types/services';
+import type { ServiceInstance, ServiceType } from '@/types/services';
+import { SERVICE_TYPES } from '@/types/services';
+
+export interface InstanceServiceFilterOption {
+  id: string;
+  title: string;
+}
 
 export interface InstanceListPanelProps {
   instances: ServiceInstance[];
@@ -22,7 +31,26 @@ export interface InstanceListPanelProps {
   isMutating: boolean;
   onSelectInstance: (instanceId: string) => void;
   onLoadMore: () => Promise<void> | void;
-  onDeleteInstance: (instanceId: string) => Promise<void>;
+  onDeleteInstance: (instanceId: string, serviceId: string) => Promise<void>;
+  /** When set, show a service filter above the table (empty value = all services). */
+  serviceFilter?: {
+    value: string;
+    options: InstanceServiceFilterOption[];
+    onChange: (serviceId: string) => void;
+  };
+  /** When set, show a service type filter above the table (empty value = all types). */
+  serviceTypeFilter?: {
+    value: string;
+    onChange: (serviceType: string) => void;
+  };
+  searchFilter?: {
+    value: string;
+    onChange: (value: string) => void;
+  };
+  /** When true, add a Service column (e.g. cross-service instance list). */
+  showServiceColumn?: boolean;
+  /** When true, add a Type column showing the parent service type. */
+  showTypeColumn?: boolean;
 }
 
 export function InstanceListPanel({
@@ -36,6 +64,11 @@ export function InstanceListPanel({
   onSelectInstance,
   onLoadMore,
   onDeleteInstance,
+  serviceFilter,
+  serviceTypeFilter,
+  searchFilter,
+  showServiceColumn = false,
+  showTypeColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
 
@@ -64,7 +97,7 @@ export function InstanceListPanel({
     if (!confirmed) {
       return;
     }
-    await onDeleteInstance(instance.id);
+    await onDeleteInstance(instance.id, instance.serviceId);
   };
 
   return (
@@ -77,10 +110,67 @@ export function InstanceListPanel({
         error={error}
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
+        toolbar={
+          serviceFilter || serviceTypeFilter || searchFilter ? (
+            <div className='mb-3 flex flex-wrap items-end gap-3'>
+              {serviceTypeFilter ? (
+                <div className='min-w-[180px] flex-1'>
+                  <Label htmlFor='instances-filter-service-type'>Type</Label>
+                  <Select
+                    id='instances-filter-service-type'
+                    value={serviceTypeFilter.value}
+                    onChange={(event) => serviceTypeFilter.onChange(event.target.value)}
+                  >
+                    <option value=''>All types</option>
+                    {SERVICE_TYPES.map((serviceType) => (
+                      <option key={serviceType} value={serviceType}>
+                        {formatEnumLabel(serviceType)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              ) : null}
+              {serviceFilter ? (
+                <div className='min-w-[220px] flex-1'>
+                  <Label htmlFor='instances-filter-service'>Service</Label>
+                  <Select
+                    id='instances-filter-service'
+                    value={serviceFilter.value}
+                    onChange={(event) => serviceFilter.onChange(event.target.value)}
+                  >
+                    <option value=''>All services</option>
+                    {serviceFilter.options.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.title}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              ) : null}
+              {searchFilter ? (
+                <div className='min-w-[220px] flex-1'>
+                  <Label htmlFor='instances-filter-search'>Search instances</Label>
+                  <Input
+                    id='instances-filter-search'
+                    value={searchFilter.value}
+                    onChange={(event) => searchFilter.onChange(event.target.value)}
+                    placeholder='Title, service, instructor, status'
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : undefined
+        }
       >
         <AdminDataTable tableClassName='min-w-[820px]'>
           <AdminDataTableHead>
             <tr>
+              {showTypeColumn ? (
+                <th className='px-4 py-3 font-semibold'>Type</th>
+              ) : null}
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Service</th>
+              ) : null}
               <th className='px-4 py-3 font-semibold'>Title</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
@@ -101,6 +191,14 @@ export function InstanceListPanel({
                 role='row'
                 aria-selected={selectedInstanceId === instance.id}
               >
+                {showTypeColumn ? (
+                  <td className='px-4 py-3'>
+                    {instance.parentServiceType ? formatEnumLabel(instance.parentServiceType) : '-'}
+                  </td>
+                ) : null}
+                {showServiceColumn ? (
+                  <td className='px-4 py-3'>{instance.parentServiceTitle ?? '-'}</td>
+                ) : null}
                 <td className='px-4 py-3'>{instance.resolvedTitle ?? '-'}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                 <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>

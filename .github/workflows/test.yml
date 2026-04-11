@@ -9,6 +9,7 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - "shared/**"
   push:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - "shared/**"
 
 jobs:
   test-public-www:
@@ -61,7 +63,7 @@ jobs:
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           NEXT_PUBLIC_FPS_MERCHANT_NAME: ${{ vars.NEXT_PUBLIC_FPS_MERCHANT_NAME }}
           NEXT_PUBLIC_FPS_MOBILE_NUMBER: ${{ vars.NEXT_PUBLIC_FPS_MOBILE_NUMBER }}
-          NEXT_PUBLIC_WWW_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
           NEXT_PUBLIC_EVENTS_SOURCE: ${{ vars.NEXT_PUBLIC_EVENTS_SOURCE }}
           NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS: ${{ vars.NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS }}
           NEXT_PUBLIC_EMAIL: ${{ vars.NEXT_PUBLIC_EMAIL }}

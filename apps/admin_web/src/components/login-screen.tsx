@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from './auth-provider';
 import { EmailIcon, GoogleIcon } from './icons/action-icons';
 import { StatusBanner } from './status-banner';
+import { AdminInlineError } from './ui/admin-inline-error';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -204,9 +205,7 @@ export function LoginScreen() {
                       className={showEmailError ? errorInputClassName : ''}
                       aria-invalid={showEmailError || undefined}
                     />
-                    {showEmailError ? (
-                      <p className='text-xs text-red-600'>{emailError}</p>
-                    ) : null}
+                    {showEmailError ? <AdminInlineError size='xs'>{emailError}</AdminInlineError> : null}
                   </div>
                   <Button
                     type='submit'
@@ -247,9 +246,7 @@ export function LoginScreen() {
                       className={showCodeError ? errorInputClassName : ''}
                       aria-invalid={showCodeError || undefined}
                     />
-                    {showCodeError ? (
-                      <p className='text-xs text-red-600'>{codeError}</p>
-                    ) : null}
+                    {showCodeError ? <AdminInlineError size='xs'>{codeError}</AdminInlineError> : null}
                     <p className='text-xs text-slate-600'>
                       Enter the 6-digit code sent to{' '}
                       <span className='font-medium'>{passwordlessEmail}</span>

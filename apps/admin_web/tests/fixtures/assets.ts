@@ -9,6 +9,7 @@ const DEFAULT_ADMIN_ASSET: AdminAsset = {
   fileName: 'infant-guide.pdf',
   resourceKey: null,
   contentType: 'application/pdf',
+  contentLanguage: null,
   visibility: 'restricted',
   tags: [],
   createdBy: 'admin@example.com',

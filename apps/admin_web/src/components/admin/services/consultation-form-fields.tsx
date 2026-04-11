@@ -22,10 +22,11 @@ export interface ConsultationFormState {
 
 export interface ConsultationFormFieldsProps {
   value: ConsultationFormState;
+  disabled?: boolean;
   onChange: (value: ConsultationFormState) => void;
 }
 
-export function ConsultationFormFields({ value, onChange }: ConsultationFormFieldsProps) {
+export function ConsultationFormFields({ value, disabled = false, onChange }: ConsultationFormFieldsProps) {
   const currencyOptions = getCurrencyOptions();
 
   return (
@@ -35,6 +36,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Select
           id='consultation-format'
           value={value.consultationFormat}
+          disabled={disabled}
           onChange={(event) =>
             onChange({ ...value, consultationFormat: event.target.value as ConsultationFormat })
           }
@@ -51,6 +53,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Select
           id='consultation-pricing-model'
           value={value.pricingModel}
+          disabled={disabled}
           onChange={(event) =>
             onChange({ ...value, pricingModel: event.target.value as ConsultationPricingModel })
           }
@@ -67,6 +70,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-max-group-size'
           value={value.maxGroupSize}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, maxGroupSize: event.target.value })}
         />
       </div>
@@ -75,6 +79,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-duration-minutes'
           value={value.durationMinutes}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, durationMinutes: event.target.value })}
         />
       </div>
@@ -83,6 +88,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-hourly-rate'
           value={value.defaultHourlyRate}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, defaultHourlyRate: event.target.value })}
         />
       </div>
@@ -91,6 +97,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-package-price'
           value={value.defaultPackagePrice}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, defaultPackagePrice: event.target.value })}
         />
       </div>
@@ -99,6 +106,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-package-sessions'
           value={value.defaultPackageSessions}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, defaultPackageSessions: event.target.value })}
         />
       </div>
@@ -107,6 +115,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Select
           id='consultation-currency'
           value={value.defaultCurrency}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
         >
           {currencyOptions.map((option) => (
@@ -121,6 +130,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         <Input
           id='consultation-calendly-url'
           value={value.calendlyUrl}
+          disabled={disabled}
           onChange={(event) => onChange({ ...value, calendlyUrl: event.target.value })}
         />
       </div>

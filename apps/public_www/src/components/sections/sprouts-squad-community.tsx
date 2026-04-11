@@ -19,6 +19,7 @@ import type {
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail } from '@/lib/validation';
@@ -142,7 +143,7 @@ export function SproutsSquadCommunity({
             form_type: 'sprouts_squad',
           },
         });
-        trackMetaPixelEvent('Lead', { content_name: 'community_signup' });
+        trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.community_signup });
         markSubmissionSuccess();
         return;
       }

@@ -222,7 +222,7 @@ return {"error": "Internal server error"}  # Generic response to client
 The public website (`apps/public_www`) uses a browser-visible key:
 
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+- `NEXT_PUBLIC_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 
 This key is intentionally public and must remain strictly scoped.
@@ -246,10 +246,10 @@ Security model:
 
 - Only explicitly approved method+path pairs are forwarded.
   - Most `/www/*` routes use the API origin host resolved from
-    `PublicWwwCrmApiBaseUrl`.
-  - `POST /www/v1/media-request` uses the execute-api origin resolved from
+    `PublicWwwApiBaseUrl`.
+  - `POST /www/v1/assets/free/request` uses the execute-api origin resolved from
     `PublicWwwMediaRequestApiBaseUrl`, with a viewer-request URI rewrite to
-    `/v1/media-request`.
+    `/v1/assets/free/request`.
 - Requests that are not allowlisted are blocked at CloudFront with a `403`
   before reaching the API origin.
 - The policy is applied to both production and staging public website
@@ -270,10 +270,11 @@ Process to add a new public API path:
 
 Current allowlisted public website POST paths include:
 
-- `/www/v1/contact-us`
+- `/www/v1/legacy/contact-us`
 - `/www/v1/discounts/validate`
-- `/www/v1/media-request`
-- `/www/v1/reservations`
+- `/www/v1/legacy/discounts/validate`
+- `/www/v1/assets/free/request`
+- `/www/v1/legacy/reservations`
 - `/www/v1/reservations/payment-intent`
 
 ### Third-party invoice parser egress controls
@@ -330,8 +331,9 @@ Requirements:
 
 ### Asset share-link and download signing model
 
-- Stable share links (`/v1/assets/share/{token}`) are bearer links and must be
-  treated like secrets when shared externally.
+- Stable share links (`/v1/assets/share/{token}` and
+  `/v1/assets/email-download/{token}`) are bearer links and must be treated like
+  secrets when shared externally.
 - Share-link tokens are random URL-safe values persisted in
   `asset_share_links`; admin APIs support rotate, revoke, and per-asset
   source-domain allowlist updates to recover from leaks.
@@ -340,16 +342,18 @@ Requirements:
 - Share-token redirects and download-link JSON responses set strict no-store
   cache headers, and API Gateway stage caching is explicitly disabled for
   share/download GET routes to avoid stale signed-link responses.
-- Share-token resolution requires a request Referer/Origin domain that matches
-  the share link's `allowed_domains` policy, blocking direct address-bar opens
-  when no allowed source-domain signal is present.
+- Share-token resolution on `/v1/assets/share/{token}` requires a request
+  Referer/Origin domain that matches the share link's `allowed_domains` policy,
+  blocking direct address-bar opens when no allowed source-domain signal is
+  present. The email-oriented path `/v1/assets/email-download/{token}` skips that
+  check so links work from email clients without Referer.
 - When a share link resolves to an asset with `visibility=restricted`,
-  `Authorization: Bearer <JWT>` is required in addition to the source-domain
-  allowlist check.
+  `Authorization: Bearer <JWT>` is required (on both share and email-download
+  paths).
 - Admin-generated share links are built with `ASSET_SHARE_LINK_BASE_URL`
-  (`https://media.evolvesprouts.com`) and served through a CloudFront behavior
-  that forwards `v1/assets/share/*` to API Gateway and injects the
-  required `x-api-key` origin header.
+  (`https://media.evolvesprouts.com`) and served through CloudFront behaviors
+  that forward `v1/assets/share/*` and `v1/assets/email-download/*` to API
+  Gateway and inject the required `x-api-key` origin header.
 - The CloudFront signer private key must be stored in AWS Secrets Manager and
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving assets must restrict S3 origin access
@@ -429,6 +433,24 @@ injection script conditionally adds Stripe origins:
 These Stripe origins are only injected when Stripe client code is present in
 the generated HTML. This keeps the allowlist minimal for pages/builds that do
 not include Stripe.
+
+The Admin Lambda selects live vs staging Stripe API credentials for public
+reservation payment flows by comparing the browser `Origin` or `Referer`
+(HTTPS only) to `PUBLIC_WWW_STAGING_SITE_ORIGIN`; requests without a matching
+staging origin use the live secret.
+
+#### Permissions-Policy for Stripe Payment Request API
+
+The CloudFront `Permissions-Policy` header restricts browser features to a
+minimal set. Most features are fully disabled (for example `camera=()`,
+`geolocation=()`). The `payment` feature is an exception: Stripe's Payment
+Element renders inside an iframe from `https://js.stripe.com` and requires
+access to the Payment Request API. Blocking `payment` entirely causes the
+Stripe card input to render an empty box.
+
+The policy sets `payment=(self "https://js.stripe.com")` so the Payment
+Request API is available to the site origin and to Stripe's embedded iframe
+while remaining blocked for all other third-party origins.
 
 ### Database Security
 

@@ -4,14 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
-import type { InstanceStatus, ServiceDeliveryMode } from '@/types/services';
+import type { InstanceStatus, LocationSummary, ServiceDeliveryMode, ServiceSummary } from '@/types/services';
 
 import { SessionSlotEditor } from './session-slot-editor';
 
 import type { SessionSlot } from '@/types/services';
+
+export interface InstanceInstructorOption {
+  sub: string;
+  email: string | null;
+  name: string | null;
+}
 
 export interface InstanceFormState {
   title: string;
@@ -28,20 +34,85 @@ export interface InstanceFormState {
 
 export interface InstanceFormFieldsProps {
   value: InstanceFormState;
+  serviceId?: string | null;
+  serviceOptions?: ServiceSummary[];
+  locationOptions?: LocationSummary[];
+  isLoadingLocations?: boolean;
+  instructorOptions?: InstanceInstructorOption[];
+  isLoadingInstructors?: boolean;
+  onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
 }
 
-export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps) {
+function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
+  const name = entry.name?.trim();
+  if (name) {
+    return name;
+  }
+  const email = entry.email?.trim();
+  if (email) {
+    return email;
+  }
+  return entry.sub;
+}
+
+export function InstanceFormFields({
+  value,
+  serviceId = null,
+  serviceOptions = [],
+  locationOptions = [],
+  isLoadingLocations = false,
+  instructorOptions = [],
+  isLoadingInstructors = false,
+  onSelectService,
+  onChange,
+}: InstanceFormFieldsProps) {
+  const canSelectService = Boolean(onSelectService);
+  const serviceExists = serviceOptions.some((entry) => entry.id === serviceId);
+  const locationExists = locationOptions.some((entry) => entry.id === value.locationId);
+  const selectedLocationValue = locationExists ? value.locationId : value.locationId || '';
+  const hasLocationOptions = locationOptions.length > 0;
+  const instanceFieldsLocked = canSelectService && !serviceId;
+  const instructorExists = instructorOptions.some((entry) => entry.sub === value.instructorId);
+
+  const topRowClass =
+    canSelectService && !instanceFieldsLocked
+      ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+      : canSelectService && instanceFieldsLocked
+        ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+        : 'grid grid-cols-1 gap-3 sm:grid-cols-2';
+
   return (
     <div className='space-y-3'>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+      <div className={topRowClass}>
+        {canSelectService ? (
+          <div>
+            <Label htmlFor='instance-service-id'>Service</Label>
+            <Select
+              id='instance-service-id'
+              value={serviceId && serviceExists ? serviceId : ''}
+              onChange={(event) => onSelectService?.(event.target.value || null)}
+            >
+              <option value=''>Select service</option>
+              {serviceId && !serviceExists ? (
+                <option value={serviceId}>{serviceId}</option>
+              ) : null}
+              {serviceOptions.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.title}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
         <div>
-          <Label htmlFor='instance-title'>Title override</Label>
+          <Label htmlFor='instance-title'>Title</Label>
           <Input
             id='instance-title'
             value={value.title}
+            disabled={instanceFieldsLocked}
             onChange={(event) => onChange({ ...value, title: event.target.value })}
-            placeholder='Leave empty to inherit'
+            placeholder='Leave empty to inherit from service'
           />
         </div>
         <div>
@@ -49,6 +120,7 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
           <Select
             id='instance-status'
             value={value.status}
+            disabled={instanceFieldsLocked}
             onChange={(event) => onChange({ ...value, status: event.target.value as InstanceStatus })}
           >
             {INSTANCE_STATUSES.map((entry) => (
@@ -60,24 +132,26 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
         </div>
       </div>
       <div>
-        <Label htmlFor='instance-description'>Description override</Label>
+        <Label htmlFor='instance-description'>Description</Label>
         <Textarea
           id='instance-description'
           value={value.description}
+          disabled={instanceFieldsLocked}
           onChange={(event) => onChange({ ...value, description: event.target.value })}
           rows={2}
-          placeholder='Leave empty to inherit'
+          placeholder='Leave empty to inherit from service'
         />
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
         <div>
-          <Label htmlFor='instance-delivery-mode'>Delivery mode override</Label>
+          <Label htmlFor='instance-delivery-mode'>Delivery mode</Label>
           <Select
             id='instance-delivery-mode'
             value={value.deliveryMode}
+            disabled={instanceFieldsLocked}
             onChange={(event) => onChange({ ...value, deliveryMode: event.target.value as ServiceDeliveryMode | '' })}
           >
-            <option value=''>Inherit</option>
+            <option value=''>Inherit from service</option>
             {SERVICE_DELIVERY_MODES.map((entry) => (
               <option key={entry} value={entry}>
                 {formatEnumLabel(entry)}
@@ -87,18 +161,41 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
         </div>
         <div>
           <Label htmlFor='instance-location-id'>Location</Label>
-          <Input
-            id='instance-location-id'
-            value={value.locationId}
-            onChange={(event) => onChange({ ...value, locationId: event.target.value })}
-            placeholder='Location UUID'
-          />
+          {hasLocationOptions || isLoadingLocations ? (
+            <Select
+              id='instance-location-id'
+              value={selectedLocationValue}
+              disabled={instanceFieldsLocked}
+              onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+            >
+              <option value=''>
+                {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
+              </option>
+              {value.locationId && !locationExists ? (
+                <option value={value.locationId}>{value.locationId}</option>
+              ) : null}
+              {locationOptions.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {formatLocationLabel(location)}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input
+              id='instance-location-id'
+              value={value.locationId}
+              disabled={instanceFieldsLocked}
+              onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+              placeholder='Location UUID'
+            />
+          )}
         </div>
         <div>
           <Label htmlFor='instance-max-capacity'>Max capacity</Label>
           <Input
             id='instance-max-capacity'
             value={value.maxCapacity}
+            disabled={instanceFieldsLocked}
             onChange={(event) => onChange({ ...value, maxCapacity: event.target.value })}
             type='number'
             placeholder='Unlimited if empty'
@@ -107,18 +204,32 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>
-          <Label htmlFor='instance-instructor-id'>Instructor user sub</Label>
-          <Input
+          <Label htmlFor='instance-instructor-id'>Instructor</Label>
+          <Select
             id='instance-instructor-id'
             value={value.instructorId}
+            disabled={instanceFieldsLocked || isLoadingInstructors}
             onChange={(event) => onChange({ ...value, instructorId: event.target.value })}
-          />
+          >
+            <option value=''>
+              {isLoadingInstructors ? 'Loading instructors...' : 'None'}
+            </option>
+            {value.instructorId.trim() && !instructorExists ? (
+              <option value={value.instructorId}>{value.instructorId}</option>
+            ) : null}
+            {instructorOptions.map((entry) => (
+              <option key={entry.sub} value={entry.sub}>
+                {getInstructorOptionLabel(entry)}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
           <Select
             id='instance-waitlist'
             value={value.waitlistEnabled ? 'true' : 'false'}
+            disabled={instanceFieldsLocked}
             onChange={(event) =>
               onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
             }
@@ -133,12 +244,16 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
         <Textarea
           id='instance-notes'
           value={value.notes}
+          disabled={instanceFieldsLocked}
           onChange={(event) => onChange({ ...value, notes: event.target.value })}
           rows={2}
         />
       </div>
       <SessionSlotEditor
         slots={value.sessionSlots}
+        disabled={instanceFieldsLocked}
+        locationOptions={locationOptions}
+        isLoadingLocations={isLoadingLocations}
         onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
       />
     </div>

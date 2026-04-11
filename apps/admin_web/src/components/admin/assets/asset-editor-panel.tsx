@@ -2,9 +2,17 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 
-import type { AdminAsset, AssetVisibility } from '@/types/assets';
+import type {
+  AdminAsset,
+  AdminAssetWriteContentLanguage,
+  AssetVisibility,
+  UpdateAdminAssetPatchInput,
+} from '@/types/assets';
 
-import { toTitleCase } from '@/lib/format';
+import {
+  matchAdminSelectableContentLanguage,
+  toTitleCase,
+} from '@/lib/format';
 import {
   ASSET_VISIBILITIES,
   CLIENT_DOCUMENT_ASSET_TAG,
@@ -15,6 +23,7 @@ import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-lin
 import { StatusBanner } from '@/components/status-banner';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { ContentLanguageSelect } from '@/components/ui/content-language-select';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,21 +48,12 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
+      contentLanguage: AdminAssetWriteContentLanguage | null;
       clientTag: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     },
     file: File
   ) => Promise<void>;
-  onUpdate: (
-    assetId: string,
-    payload: {
-      title: string;
-      description: string | null;
-      fileName: string;
-      resourceKey: string | null;
-      visibility: AssetVisibility;
-      clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
-    }
-  ) => Promise<void>;
+  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<void>;
   onStartCreate: () => void;
 }
 
@@ -62,6 +62,8 @@ interface AssetFormState {
   description: string;
   resourceKey: string;
   visibility: AssetVisibility;
+  /** BCP 47 tag or empty when unset / unknown legacy value */
+  contentLanguage: string;
   /** Select value: empty string = no client tag; client_document = Client */
   clientTag: '' | typeof CLIENT_DOCUMENT_ASSET_TAG;
 }
@@ -71,6 +73,7 @@ const EMPTY_ASSET_FORM: AssetFormState = {
   description: '',
   resourceKey: '',
   visibility: 'restricted',
+  contentLanguage: '',
   clientTag: '',
 };
 
@@ -80,12 +83,26 @@ function assetHasClientDocumentTag(asset: AdminAsset): boolean {
   return asset.tags.some((t) => t.name.toLowerCase() === CLIENT_DOCUMENT_ASSET_TAG);
 }
 
+function toContentLanguageSelectValue(asset: AdminAsset): string {
+  const match = matchAdminSelectableContentLanguage(asset.contentLanguage);
+  return match && match !== 'unrecognized' ? match : '';
+}
+
+function canonicalContentLanguageFromApi(value: string | null | undefined): string | null {
+  const match = matchAdminSelectableContentLanguage(value);
+  if (match === 'unrecognized') {
+    return null;
+  }
+  return match;
+}
+
 function toFormState(asset: AdminAsset): AssetFormState {
   return {
     title: asset.title,
     description: asset.description ?? '',
     resourceKey: asset.resourceKey ?? '',
     visibility: asset.visibility,
+    contentLanguage: toContentLanguageSelectValue(asset),
     clientTag: assetHasClientDocumentTag(asset) ? CLIENT_DOCUMENT_ASSET_TAG : '',
   };
 }
@@ -160,34 +177,76 @@ export function AssetEditorPanel({
       }
     }
 
-    const core = {
-      title,
-      description: formState.description.trim() || null,
-      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
-      resourceKey: null as string | null,
-      visibility: formState.visibility,
-    };
     const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
     if (formState.resourceKey.trim() && !normalizedResourceKey) {
       setFormError('Resource key must include letters or numbers.');
       return;
     }
-    core.resourceKey = normalizedResourceKey || null;
+    const resourceKey = normalizedResourceKey || null;
+
+    const contentLanguageTrimmed = formState.contentLanguage.trim();
+    let contentLanguage: AdminAssetWriteContentLanguage | null = null;
+    if (contentLanguageTrimmed !== '') {
+      const matched = matchAdminSelectableContentLanguage(contentLanguageTrimmed);
+      if (matched === 'unrecognized') {
+        setFormError('Invalid language selection.');
+        return;
+      }
+      contentLanguage = matched;
+    }
 
     const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
       formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
 
     if (isEditMode && selectedAsset) {
-      await onUpdate(selectedAsset.id, {
-        ...core,
-        ...(isExpenseLinked
-          ? {}
-          : {
-              clientTag: clientTagValue,
-            }),
-      });
+      const storedLang = matchAdminSelectableContentLanguage(selectedAsset.contentLanguage);
+      if (storedLang === 'unrecognized') {
+        setFormError(
+          'This asset has a language value that is not supported in the admin list. Contact engineering before saving, or the value will be cleared.'
+        );
+        return;
+      }
+
+      const nextDescription = formState.description.trim() || null;
+      const patch: UpdateAdminAssetPatchInput = {};
+      if (title !== selectedAsset.title) {
+        patch.title = title;
+      }
+      if (nextDescription !== (selectedAsset.description ?? null)) {
+        patch.description = nextDescription;
+      }
+      if (resourceKey !== (selectedAsset.resourceKey ?? null)) {
+        patch.resourceKey = resourceKey;
+      }
+      if (formState.visibility !== selectedAsset.visibility) {
+        patch.visibility = formState.visibility;
+      }
+      const nextLang = contentLanguage;
+      const prevLangCanonical = canonicalContentLanguageFromApi(selectedAsset.contentLanguage);
+      if (nextLang !== prevLangCanonical) {
+        patch.contentLanguage = nextLang;
+      }
+      if (!isExpenseLinked) {
+        const hadClient = assetHasClientDocumentTag(selectedAsset);
+        const nextHasClient = clientTagValue === CLIENT_DOCUMENT_ASSET_TAG;
+        if (hadClient !== nextHasClient) {
+          patch.clientTag = clientTagValue;
+        }
+      }
+      if (Object.keys(patch).length > 0) {
+        await onUpdate(selectedAsset.id, patch);
+      }
       return;
     }
+
+    const core = {
+      title,
+      description: formState.description.trim() || null,
+      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
+      resourceKey,
+      visibility: formState.visibility,
+      contentLanguage,
+    };
 
     if (!fileToUpload) {
       setFormError('Select a PDF file to upload.');
@@ -343,37 +402,48 @@ export function AssetEditorPanel({
           ) : null}
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='asset-tag'>Tag</Label>
-          {isEditMode && isExpenseLinked ? (
-            <Select
-              id='asset-tag'
-              value='expense'
-              disabled
-              aria-label='Tag (linked to expense; not editable)'
-              title='Tags cannot be changed for assets linked to an expense.'
-            >
-              <option value='expense'>Expense</option>
-            </Select>
-          ) : (
-            <Select
-              id='asset-tag'
-              value={formState.clientTag}
-              disabled={isSavingAsset}
-              onChange={(event) =>
-                setFormState((previous) => ({
-                  ...previous,
-                  clientTag:
-                    event.target.value === CLIENT_DOCUMENT_ASSET_TAG
-                      ? CLIENT_DOCUMENT_ASSET_TAG
-                      : '',
-                }))
-              }
-            >
-              <option value=''>No tag</option>
-              <option value={CLIENT_DOCUMENT_ASSET_TAG}>Client</option>
-            </Select>
-          )}
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end'>
+          <div className='space-y-2'>
+            <Label htmlFor='asset-tag'>Tag</Label>
+            {isEditMode && isExpenseLinked ? (
+              <Select
+                id='asset-tag'
+                value='expense'
+                disabled
+                aria-label='Tag (linked to expense; not editable)'
+                title='Tags cannot be changed for assets linked to an expense.'
+              >
+                <option value='expense'>Expense</option>
+              </Select>
+            ) : (
+              <Select
+                id='asset-tag'
+                value={formState.clientTag}
+                disabled={isSavingAsset}
+                onChange={(event) =>
+                  setFormState((previous) => ({
+                    ...previous,
+                    clientTag:
+                      event.target.value === CLIENT_DOCUMENT_ASSET_TAG
+                        ? CLIENT_DOCUMENT_ASSET_TAG
+                        : '',
+                  }))
+                }
+              >
+                <option value=''>No tag</option>
+                <option value={CLIENT_DOCUMENT_ASSET_TAG}>Client</option>
+              </Select>
+            )}
+          </div>
+          <ContentLanguageSelect
+            id='asset-content-language'
+            label='Language'
+            value={formState.contentLanguage}
+            disabled={isSavingAsset}
+            onChange={(next) =>
+              setFormState((previous) => ({ ...previous, contentLanguage: next }))
+            }
+          />
         </div>
 
         <div className='space-y-2'>

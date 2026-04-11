@@ -56,12 +56,20 @@ class GeographicArea(Base):
         nullable=False,
         server_default=text("0"),
     )
+    sovereign_country_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("geographic_areas.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="Sovereign country row for geocoding ISO country filters (e.g. HK → China)",
+    )
 
     parent: Mapped[GeographicArea | None] = relationship(
-        remote_side="GeographicArea.id",
+        remote_side=[id],
+        foreign_keys=[parent_id],
         back_populates="children",
     )
     children: Mapped[list[GeographicArea]] = relationship(
+        foreign_keys=[parent_id],
         back_populates="parent",
         cascade="all, delete-orphan",
         order_by="GeographicArea.display_order",

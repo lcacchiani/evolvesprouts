@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from decimal import Decimal
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -15,13 +16,18 @@ from app.api.admin_request import (
     parse_uuid,
     query_param,
 )
-from app.api.admin_validators import MAX_ADDRESS_LENGTH, validate_string_length
+from app.api.admin_validators import (
+    MAX_ADDRESS_LENGTH,
+    MAX_NAME_LENGTH,
+    validate_string_length,
+)
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Location
 from app.db.repositories import GeographicAreaRepository, LocationRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.nominatim_geocode import geocode_address_with_context
 from app.utils import json_response
 
 
@@ -34,6 +40,11 @@ def handle_admin_locations_request(
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "admin" or parts[1] != "locations":
         return json_response(404, {"error": "Not found"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "geocode":
+        if method == "POST":
+            return _geocode_location(event)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 2:
         if method == "GET":
@@ -57,17 +68,71 @@ def handle_admin_locations_request(
     return json_response(404, {"error": "Not found"}, event=event)
 
 
+def _geocode_location(event: Mapping[str, Any]) -> dict[str, Any]:
+    body = parse_body(event)
+    address = cast(
+        str,
+        _parse_address(body.get("address"), required=True),
+    )
+
+    area_id_raw = body.get("area_id")
+    if area_id_raw is None:
+        raise ValidationError("area_id is required", field="area_id")
+    area_id = parse_uuid(str(area_id_raw))
+
+    with Session(get_engine()) as session:
+        geo_repo = GeographicAreaRepository(session)
+        area = geo_repo.get_by_id(area_id)
+        if area is None:
+            raise ValidationError("area_id not found", field="area_id")
+
+        ancestors = geo_repo.get_ancestors(area_id)
+        country_iso_codes: list[str] = []
+        root = ancestors[0] if ancestors else None
+        if root and root.code:
+            country_iso_codes.append(str(root.code))
+        if root is not None:
+            sovereign_code = geo_repo.get_sovereign_country_iso_code(
+                cast(UUID, root.id),
+            )
+            if sovereign_code:
+                country_iso_codes.append(str(sovereign_code))
+
+    lat, lng, display_name = geocode_address_with_context(
+        address=address,
+        country_iso_codes=country_iso_codes,
+    )
+    payload: dict[str, Any] = {"lat": lat, "lng": lng}
+    if display_name:
+        payload["display_name"] = display_name
+    return json_response(200, payload, event=event)
+
+
 def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = _parse_limit(event)
     cursor = parse_cursor(query_param(event, "cursor"))
     area_id = _parse_optional_uuid(query_param(event, "area_id"), field="area_id")
+    search_raw = query_param(event, "search")
+    search: str | None = None
+    if search_raw is not None and str(search_raw).strip() != "":
+        search = validate_string_length(
+            search_raw,
+            "search",
+            max_length=MAX_ADDRESS_LENGTH,
+            required=False,
+        )
 
     with Session(get_engine()) as session:
         location_repo = LocationRepository(session)
-        if area_id is not None:
-            rows = list(location_repo.find_by_area(area_id, limit=limit + 1))
-        else:
-            rows = list(location_repo.get_all(limit=limit + 1, cursor=cursor))
+        total_count = location_repo.count_with_filters(area_id=area_id, search=search)
+        rows = list(
+            location_repo.list_with_filters(
+                limit=limit + 1,
+                cursor=cursor,
+                area_id=area_id,
+                search=search,
+            )
+        )
         has_more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = encode_cursor(rows[-1].id) if has_more and rows else None
@@ -76,6 +141,7 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
             {
                 "items": [_serialize_location(location) for location in rows],
                 "next_cursor": next_cursor,
+                "total_count": total_count,
             },
             event=event,
         )
@@ -90,6 +156,7 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
     if area_id_raw is None:
         raise ValidationError("area_id is required", field="area_id")
     area_id = parse_uuid(str(area_id_raw))
+    name = _parse_name(body.get("name"), required=False)
     address = _parse_address(body.get("address"), required=False)
     lat = _parse_optional_float(body.get("lat"), field="lat")
     lng = _parse_optional_float(body.get("lng"), field="lng")
@@ -108,6 +175,7 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
         location_repo = LocationRepository(session)
         location = Location(
             area_id=area_id,
+            name=name,
             address=address,
             lat=lat,
             lng=lng,
@@ -166,6 +234,9 @@ def _update_location(
                 raise ValidationError("area_id not found", field="area_id")
             location.area_id = area_id  # type: ignore[assignment]
 
+        if "name" in body:
+            location.name = _parse_name(body.get("name"), required=False)
+
         if "address" in body:
             location.address = _parse_address(body.get("address"), required=False)
 
@@ -203,13 +274,25 @@ def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, A
         return json_response(204, {}, event=event)
 
 
+def _optional_coordinate_json(value: Any) -> float | None:
+    """Return a JSON number for API responses (OpenAPI: double), or None."""
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (int, float)):
+        return float(value)
+    raise TypeError(f"coordinate must be numeric or None, got {type(value).__name__}")
+
+
 def _serialize_location(location: Location) -> dict[str, Any]:
     return {
         "id": str(location.id),
+        "name": location.name,
         "area_id": str(location.area_id),
         "address": location.address,
-        "lat": location.lat,
-        "lng": location.lng,
+        "lat": _optional_coordinate_json(location.lat),
+        "lng": _optional_coordinate_json(location.lng),
         "created_at": location.created_at,
         "updated_at": location.updated_at,
     }
@@ -235,6 +318,15 @@ def _parse_optional_uuid(value: str | None, *, field: str) -> UUID | None:
         return parse_uuid(value.strip())
     except ValidationError as exc:
         raise ValidationError(exc.message, field=field) from exc
+
+
+def _parse_name(value: Any, *, required: bool) -> str | None:
+    return validate_string_length(
+        value,
+        "name",
+        max_length=MAX_NAME_LENGTH,
+        required=required,
+    )
 
 
 def _parse_address(value: Any, *, required: bool) -> str | None:

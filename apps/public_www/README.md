@@ -173,16 +173,18 @@ What the runner validates:
 
 - Page smoke: fetches all pages discovered from `/sitemap.xml` (with URLs
   remapped to the target smoke origin) and fails on broken HTTP responses.
-- CTA API smoke:
-  - `POST /www/v1/contact-us`
+- Public API smoke (same-origin `/www/v1/*` with optional direct `/v1/*` fallback):
+  - `GET /www/v1/calendar/public`
+  - `GET /www/v1/assets/free?limit=100`
+  - `POST /www/v1/legacy/contact-us`
   - `POST /www/v1/discounts/validate`
-  - `POST /www/v1/media-request`
-  - `POST /www/v1/reservations`
+  - `POST /www/v1/assets/free/request`
+  - `POST /www/v1/legacy/reservations`
   - `POST /www/v1/reservations/payment-intent`
 
-Status handling for CTA APIs:
+Status handling for API checks:
 
-- `PASS`: endpoint accepted the payload (`200`/`202` depending on endpoint).
+- `PASS`: successful response (`200` for reads and most writes, `202` where applicable).
 - `PASS*`: endpoint was reached but blocked by validation/auth gates
   (for example invalid/missing Turnstile token on staging).
 - `FAIL`: unexpected status, server error (`5xx`), timeout, or transport error.
@@ -192,10 +194,10 @@ Optional environment variables:
 - `SMOKE_TIMEOUT_MS` (default `15000`)
 - `SMOKE_TURNSTILE_TOKEN` (optional token for Turnstile-protected endpoints)
 - `SMOKE_MAX_PAGES` (limit number of page checks)
-- `SMOKE_CRM_API_BASE_URL` (optional CRM API base fallback for `/v1/*` routes;
-  falls back to `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`)
+- `SMOKE_CRM_API_BASE_URL` (optional API base fallback for `/v1/*` routes;
+  falls back to `NEXT_PUBLIC_API_BASE_URL`)
 - `SMOKE_MEDIA_API_BASE_URL` (optional media API base fallback for
-  `/v1/media-request`; falls back to `NEXT_PUBLIC_ADMIN_API_BASE_URL`)
+  `/v1/assets/free/request`; falls back to `NEXT_PUBLIC_API_BASE_URL`)
 
 If a same-origin `/www/*` API smoke request returns `404`, the runner retries
 that request against the corresponding configured fallback API base before
@@ -224,9 +226,9 @@ remove the compatibility shim and the override.
 
 To enable public website CRM API calls (including My Best Auntie discount code lookup), set:
 
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- `NEXT_PUBLIC_API_BASE_URL`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_ASSET_SHARE_BASE_URL`
@@ -247,13 +249,29 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 payment support. The content validation step fails the build if this variable is
 missing or not a publishable key (`pk_...`).
 
-Use `NEXT_PUBLIC_WWW_CRM_API_BASE_URL=/www` to route requests through the
+Use `NEXT_PUBLIC_API_BASE_URL=/www` to route requests through the
 same-origin CloudFront API proxy and avoid cross-origin CORS preflight issues.
 Set `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` to a comma-separated hostname
 allowlist (for example
 `www.evolvesprouts.com,www-staging.evolvesprouts.com`) so browser clients only
 switch to `/www` proxy routing on approved hosts.
-CSP generation also derives `connect-src` API origins from this variable.
+CSP generation derives `connect-src` API origins from
+`NEXT_PUBLIC_API_BASE_URL`.
+When set to an absolute URL, that same variable also determines which API
+origins are allowed in CSP `connect-src`.
+`NEXT_PUBLIC_API_BASE_URL` is used for public website API calls such as legacy
+bridge routes, Stripe payment-intent initialization
+(`/v1/reservations/payment-intent`), and the free guides resource library list
+(`GET /v1/assets/free`, same-origin as `/www/v1/assets/free` when proxied).
+The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
+for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
+injects the beacon at the edge.
+Public website discount validation uses the native route
+`/v1/discounts/validate` (same JSON contract as the legacy bridge). Contact-us
+and reservation submission use the legacy bridge routes:
+
+- `/v1/legacy/contact-us`
+- `/v1/legacy/reservations`
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the

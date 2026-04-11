@@ -11,7 +11,10 @@ from uuid import UUID, uuid4
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body, parse_uuid
-from app.api.admin_service_instances import handle_admin_service_instances_request
+from app.api.admin_service_instances import (
+    handle_admin_all_service_instances_request,
+    handle_admin_service_instances_request,
+)
 from app.api.admin_services_common import (
     encode_service_cursor,
     parse_create_service_payload,
@@ -69,6 +72,9 @@ def handle_admin_services_request(
         if method == "POST":
             return _create_service(event, actor_sub=identity.user_sub)
         return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "instances":
+        return handle_admin_all_service_instances_request(event, method, path)
 
     service_id = parse_uuid(parts[2])
     if len(parts) == 3:

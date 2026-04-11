@@ -16,6 +16,7 @@ from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.email import send_email
+from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key
 from app.services.turnstile import (
     extract_client_ip,
     extract_turnstile_token,
@@ -64,7 +65,7 @@ def _handle_public_reservation(
     body = parse_body(event)
     reservation_payload = _validate_reservation_payload(body)
     try:
-        _validate_payment_confirmation(reservation_payload)
+        _validate_payment_confirmation(event, reservation_payload)
     except ValidationError as exc:
         return json_response(
             exc.status_code,
@@ -184,7 +185,10 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _validate_payment_confirmation(reservation_payload: Mapping[str, Any]) -> None:
+def _validate_payment_confirmation(
+    event: Mapping[str, Any],
+    reservation_payload: Mapping[str, Any],
+) -> None:
     """Validate Stripe payment confirmation details for Stripe reservations."""
     payment_method = (
         str(reservation_payload.get("payment_method") or "").strip().lower()
@@ -209,10 +213,10 @@ def _validate_payment_confirmation(reservation_payload: Mapping[str, Any]) -> No
             field="stripe_payment_intent_id",
         )
 
-    stripe_secret_key = os.getenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "").strip()
+    stripe_secret_key = resolve_public_www_stripe_secret_key(event)
     if not stripe_secret_key:
         logger.error(
-            "EVOLVESPROUTS_STRIPE_SECRET_KEY is not configured for reservation verification"
+            "Stripe secret key is not configured for reservation payment verification"
         )
         raise ValidationError(
             "Payment verification is unavailable. Please try again later.",

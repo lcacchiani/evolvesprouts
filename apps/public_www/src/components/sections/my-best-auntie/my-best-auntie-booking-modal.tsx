@@ -19,6 +19,8 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
+import type { MetaPixelContentName } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
@@ -43,7 +45,7 @@ interface MyBestAuntieBookingModalProps {
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
   analyticsSectionId?: string;
-  metaPixelContentName?: string;
+  metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
@@ -57,7 +59,7 @@ export function MyBestAuntieBookingModal({
   selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
   analyticsSectionId = 'my-best-auntie-booking',
-  metaPixelContentName = 'my_best_auntie',
+  metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   onClose,
   onSubmitReservation,
@@ -111,6 +113,13 @@ export function MyBestAuntieBookingModal({
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
+  const selectedAgeGroupLabelText = selectedAgeGroupLabel.trim();
+  const detailsTitle = selectedAgeGroupLabelText
+    ? formatContentTemplate(paymentModalContent.selectedAgeGroupTitleTemplate ?? '', {
+        title: modalContent.title,
+        ageGroupLabel: selectedAgeGroupLabelText,
+      }) || modalContent.title
+    : modalContent.title;
   const selectedVenueName = selectedCohort?.location_name ?? '';
   const selectedVenueAddress = selectedCohort?.location_address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';
@@ -125,7 +134,7 @@ export function MyBestAuntieBookingModal({
         ariaLabelledBy={dialogTitleId}
         ariaDescribedBy={dialogDescriptionId}
         tabIndex={-1}
-        className='es-my-best-auntie-booking-modal-panel overflow-visible'
+        className='es-booking-modal-panel overflow-visible'
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton
@@ -139,7 +148,7 @@ export function MyBestAuntieBookingModal({
             <BookingEventDetails
               locale={locale}
               headingId={dialogTitleId}
-              title={modalContent.title}
+              title={detailsTitle}
               subtitle={modalContent.subtitle}
               content={paymentModalContent}
               activePartRows={activePartRows}

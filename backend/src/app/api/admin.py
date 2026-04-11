@@ -7,6 +7,7 @@ from collections.abc import Callable, Mapping
 
 from app.api.assets import (
     handle_admin_assets_request,
+    handle_email_download_request,
     handle_public_assets_request,
     handle_share_assets_request,
     handle_user_assets_request,
@@ -17,10 +18,25 @@ from app.api.admin_expenses import handle_admin_expenses_request
 from app.api.admin_leads import handle_admin_leads_request
 from app.api.admin_locations import handle_admin_locations_request
 from app.api.admin_services import handle_admin_services_request
-from app.api.admin_users import handle_admin_users_request
+from app.api.admin_users import (
+    handle_admin_instructors_request,
+    handle_admin_users_request,
+)
+from app.api.admin_contacts import handle_admin_contacts_request
+from app.api.admin_crm_picker import handle_admin_crm_picker_request
+from app.api.admin_families import handle_admin_families_request
+from app.api.admin_organizations_crm import handle_admin_organizations_crm_request
 from app.api.admin_vendors import handle_admin_vendors_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
+from app.api.public_free_assets import handle_public_free_assets_list_request
+from app.api.public_discount_validate import handle_public_discount_validate
+from app.api.public_events import handle_public_events
+from app.api.public_legacy_proxy import (
+    handle_legacy_contact_us,
+    handle_legacy_discount_validate,
+    handle_legacy_reservations,
+)
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
@@ -67,19 +83,73 @@ _ROUTES: tuple[
         ),
     ),
     (
-        "/v1/media-request",
+        "/v1/calendar/public",
         True,
-        lambda event, method, _path: handle_media_request(event, method),
+        lambda event, method, _path: handle_public_events(event, method),
+    ),
+    (
+        "/www/v1/calendar/public",
+        True,
+        lambda event, method, _path: handle_public_events(event, method),
+    ),
+    (
+        "/v1/discounts/validate",
+        True,
+        lambda event, method, _path: handle_public_discount_validate(event, method),
+    ),
+    (
+        "/www/v1/discounts/validate",
+        True,
+        lambda event, method, _path: handle_public_discount_validate(event, method),
+    ),
+    (
+        "/v1/assets/free",
+        True,
+        lambda event, method, path: handle_public_free_assets_list_request(
+            event, method, path
+        ),
+    ),
+    (
+        "/www/v1/assets/free",
+        True,
+        lambda event, method, path: handle_public_free_assets_list_request(
+            event, method, path
+        ),
+    ),
+    (
+        "/v1/legacy/reservations",
+        True,
+        lambda event, method, _path: handle_legacy_reservations(event, method),
+    ),
+    (
+        "/www/v1/legacy/reservations",
+        True,
+        lambda event, method, _path: handle_legacy_reservations(event, method),
+    ),
+    (
+        "/v1/legacy/contact-us",
+        True,
+        lambda event, method, _path: handle_legacy_contact_us(event, method),
+    ),
+    (
+        "/www/v1/legacy/contact-us",
+        True,
+        lambda event, method, _path: handle_legacy_contact_us(event, method),
+    ),
+    (
+        "/v1/legacy/discounts/validate",
+        True,
+        lambda event, method, _path: handle_legacy_discount_validate(event, method),
+    ),
+    (
+        "/www/v1/legacy/discounts/validate",
+        True,
+        lambda event, method, _path: handle_legacy_discount_validate(event, method),
     ),
     (
         "/v1/mailchimp/webhook",
         True,
         lambda event, method, _path: handle_mailchimp_webhook(event, method),
-    ),
-    (
-        "/www/v1/media-request",
-        True,
-        lambda event, method, _path: handle_media_request(event, method),
     ),
     (
         "/v1/admin/geographic-areas",
@@ -102,6 +172,11 @@ _ROUTES: tuple[
         handle_admin_users_request,
     ),
     (
+        "/v1/admin/instructors",
+        False,
+        handle_admin_instructors_request,
+    ),
+    (
         "/v1/admin/services",
         False,
         handle_admin_services_request,
@@ -117,6 +192,31 @@ _ROUTES: tuple[
         handle_admin_expenses_request,
     ),
     (
+        "/v1/admin/contacts",
+        False,
+        handle_admin_contacts_request,
+    ),
+    (
+        "/v1/admin/families/picker",
+        False,
+        handle_admin_crm_picker_request,
+    ),
+    (
+        "/v1/admin/families",
+        False,
+        handle_admin_families_request,
+    ),
+    (
+        "/v1/admin/organizations/picker",
+        False,
+        handle_admin_crm_picker_request,
+    ),
+    (
+        "/v1/admin/organizations",
+        False,
+        handle_admin_organizations_crm_request,
+    ),
+    (
         "/v1/admin/vendors",
         False,
         handle_admin_vendors_request,
@@ -124,6 +224,17 @@ _ROUTES: tuple[
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),
     ("/v1/assets/share", False, handle_share_assets_request),
+    ("/v1/assets/email-download", False, handle_email_download_request),
+    (
+        "/v1/assets/free/request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
+    ),
+    (
+        "/www/v1/assets/free/request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
+    ),
     ("/v1/assets/public", False, handle_public_assets_request),
 )
 
@@ -184,18 +295,35 @@ def _match_handler(
     method: str,
     path: str,
 ) -> Any:
-    """Return the request handler for a known route, if any."""
+    """Return the request handler for a known route, if any.
+
+    Exact routes take precedence over prefix routes. When multiple routes match,
+    the longest ``route_path`` wins so nested paths are not swallowed by shorter
+    prefix handlers (for example ``/v1/assets/public`` vs ``/v1/assets/free``).
+    """
     normalized_path = path.rstrip("/")
+    exact_candidates: list[tuple[str, Callable[..., dict[str, Any]]]] = []
+    prefix_candidates: list[tuple[str, Callable[..., dict[str, Any]]]] = []
     for route_path, exact, route_handler in _ROUTES:
-        if _path_matches(normalized_path, route_path, exact=exact):
-            return lambda handler=route_handler: handler(event, method, normalized_path)
+        if exact:
+            if normalized_path == route_path:
+                exact_candidates.append((route_path, route_handler))
+        elif _path_matches_prefix(normalized_path, route_path):
+            prefix_candidates.append((route_path, route_handler))
+
+    if exact_candidates:
+        route_path, route_handler = max(exact_candidates, key=lambda t: len(t[0]))
+        return lambda handler=route_handler: handler(event, method, normalized_path)
+
+    if prefix_candidates:
+        route_path, route_handler = max(prefix_candidates, key=lambda t: len(t[0]))
+        return lambda handler=route_handler: handler(event, method, normalized_path)
+
     return None
 
 
-def _path_matches(path: str, route_path: str, *, exact: bool) -> bool:
-    """Return whether a path matches a route path."""
-    if exact:
-        return path == route_path
+def _path_matches_prefix(path: str, route_path: str) -> bool:
+    """True if path equals route_path or extends it with further segments."""
     return path == route_path or path.startswith(route_path + "/")
 
 

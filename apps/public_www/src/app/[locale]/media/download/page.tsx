@@ -29,8 +29,12 @@ function LocalizedDownloadPageFallback({
   title: string;
 }) {
   return (
-    <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
-      <h1 className='text-3xl font-bold es-text-heading'>{title}</h1>
+    <main
+      id='main-content'
+      tabIndex={-1}
+      className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
+    >
+      <h1 className='text-3xl font-semibold es-text-heading'>{title}</h1>
     </main>
   );
 }

@@ -62,11 +62,13 @@ const bookingContent = {
 } as BookingContent;
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal;
-const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
+const privateProgrammeFallbackWhatsappHref = buildWhatsappPrefilledHref(
   enContent.freeIntroSession.ctaHref,
   bookingContent.privateProgrammePrefillMessage,
   enContent.freeIntroSession.phoneNumber,
 ) || enContent.freeIntroSession.ctaHref;
+const selectedAgeGroupTitleTemplate =
+  bookingModalContent.paymentModal.selectedAgeGroupTitleTemplate;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
@@ -102,6 +104,12 @@ function formatSpacesLeftLabel(count: number): string {
   return bookingContent.spacesLeftLabelTemplate.replace('{count}', String(count));
 }
 
+function getBookingModalTitleForAgeGroup(ageGroupLabel: string): string {
+  return selectedAgeGroupTitleTemplate
+    .replace('{title}', myBestAuntieModalContent.title)
+    .replace('{ageGroupLabel}', ageGroupLabel);
+}
+
 describe('MyBestAuntieBooking section', () => {
   it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
     window.history.replaceState(
@@ -121,7 +129,7 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(
       await screen.findByRole('dialog', {
-        name: myBestAuntieModalContent.title,
+        name: getBookingModalTitleForAgeGroup(bookingContent.ageOptions[0]!.label),
       }),
     ).toBeInTheDocument();
   });
@@ -592,7 +600,7 @@ describe('MyBestAuntieBooking section', () => {
     );
 
     expect(await screen.findByRole('dialog', {
-      name: myBestAuntieModalContent.title,
+      name: getBookingModalTitleForAgeGroup(bookingContent.ageOptions[0]!.label),
     })).toBeInTheDocument();
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
       'booking_confirm_pay_click',
@@ -611,6 +619,7 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('renders private programme CTA as outline link with dedicated WhatsApp message', () => {
+    const privateProgrammeWhatsappHref = 'https://wa.me/85294479843?text=private-programme';
     render(
       <MyBestAuntieBooking
         locale='en'
@@ -627,6 +636,11 @@ describe('MyBestAuntieBooking section', () => {
     expect(privateProgrammeCta.className).toContain('es-btn--primary');
     expect(privateProgrammeCta.className).toContain('es-btn--outline');
     expect(privateProgrammeCta).toHaveAttribute('href', privateProgrammeWhatsappHref);
+    const externalLabel = privateProgrammeCta.querySelector('.es-link-external-label');
+    expect(externalLabel).not.toBeNull();
+    expect(externalLabel?.className).toContain('es-link-external-label--with-icon');
+    const externalIcon = privateProgrammeCta.querySelector('.es-ui-icon-mask--external-link');
+    expect(externalIcon).not.toBeNull();
   });
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {

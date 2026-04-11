@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
+import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { EventsContent } from '@/content';
 import {
@@ -21,11 +22,6 @@ import {
 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
-
-interface LoadingGearIconProps {
-  className?: string;
-  testId: string;
-}
 
 interface EventsLoadingStateProps {
   label: string;
@@ -57,28 +53,13 @@ function formatPartnerChipLabel(value: string): string {
   return value.replaceAll('-', ' ');
 }
 
-function LoadingGearIcon({ className, testId }: LoadingGearIconProps) {
-  return (
-    <span
-      data-testid={testId}
-      aria-hidden
-      className={[
-        'es-ui-icon-mask es-ui-icon-mask--events-loading-gear es-events-loading-gear inline-block h-7 w-7',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    />
-  );
-}
-
 export function EventsLoadingState({ label, testId }: EventsLoadingStateProps) {
   return (
     <div className='flex flex-col items-center gap-3 py-6 text-center sm:py-8'>
       <span
         role='status'
         aria-label={label}
-        className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-events-loading-bubble'
+        className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-loading-gear-bubble'
       >
         <LoadingGearIcon className='h-7 w-7 animate-spin' testId={testId} />
       </span>

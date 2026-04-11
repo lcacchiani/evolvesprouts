@@ -18,6 +18,22 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _decimal_to_string(value: Decimal | None) -> str | None:
+    return str(value) if value is not None else None
+
+
+def _training_details_summary(service: Service) -> dict[str, Any] | None:
+    """Return training pricing fields for list/summary payloads when present."""
+    details = service.training_course_details
+    if details is None:
+        return None
+    return {
+        "pricing_unit": details.pricing_unit.value,
+        "default_price": _decimal_to_string(details.default_price),
+        "default_currency": details.default_currency,
+    }
+
+
 def serialize_service_summary(service: Service) -> dict[str, Any]:
     """Serialize service list row payload."""
     logger.debug("Serializing service summary", extra={"service_id": str(service.id)})
@@ -32,6 +48,7 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
         "created_by": service.created_by,
         "created_at": service.created_at.isoformat() if service.created_at else None,
         "updated_at": service.updated_at.isoformat() if service.updated_at else None,
+        "training_details": _training_details_summary(service),
     }
 
 
@@ -45,13 +62,7 @@ def serialize_service_detail(service: Service) -> dict[str, Any]:
     detail["event_details"] = None
     detail["consultation_details"] = None
     if service.training_course_details is not None:
-        detail["training_details"] = {
-            "pricing_unit": service.training_course_details.pricing_unit.value,
-            "default_price": _decimal_to_string(
-                service.training_course_details.default_price
-            ),
-            "default_currency": service.training_course_details.default_currency,
-        }
+        detail["training_details"] = _training_details_summary(service)
     if service.event_details is not None:
         detail["event_details"] = {
             "event_category": service.event_details.event_category.value
@@ -97,7 +108,11 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
     return {
         "id": str(instance.id),
         "service_id": str(instance.service_id),
+        "parent_service_title": service.title,
+        "parent_service_type": service.service_type.value,
         "title": instance.title,
+        "slug": instance.slug,
+        "landing_page": instance.landing_page,
         "description": instance.description,
         "cover_image_s3_key": instance.cover_image_s3_key,
         "status": instance.status.value,
@@ -228,7 +243,3 @@ def serialize_discount_code(code: DiscountCode) -> dict[str, Any]:
         "created_at": code.created_at.isoformat() if code.created_at else None,
         "updated_at": code.updated_at.isoformat() if code.updated_at else None,
     }
-
-
-def _decimal_to_string(value: Decimal | None) -> str | None:
-    return str(value) if value is not None else None

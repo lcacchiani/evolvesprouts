@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockUseServicesPage, state } = vi.hoisted(() => {
   const state = {
@@ -12,6 +12,12 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     selectedInstanceId: null as string | null,
     setSelectedInstanceId: vi.fn(),
     selectedInstance: null,
+    instancesServiceFilter: '',
+    setInstancesServiceFilter: vi.fn(),
+    instancesServiceTypeFilter: '',
+    setInstancesServiceTypeFilter: vi.fn(),
+    instancesSearchQuery: '',
+    setInstancesSearchQuery: vi.fn(),
     serviceList: {
       services: [],
       filters: { serviceType: '', status: '', search: '' },
@@ -77,6 +83,12 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateEnrollmentEntry: vi.fn().mockResolvedValue(null),
       deleteEnrollmentEntry: vi.fn().mockResolvedValue(undefined),
     },
+    locationList: {
+      locations: [],
+      isLoading: false,
+      error: '',
+      refetch: vi.fn().mockResolvedValue(undefined),
+    },
     discountCodes: {
       codes: [],
       filters: { active: '', search: '' },
@@ -93,6 +105,24 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateCode: vi.fn().mockResolvedValue(null),
       deleteCode: vi.fn().mockResolvedValue(undefined),
     },
+    venues: {
+      venues: [],
+      geographicAreas: [],
+      areasLoading: false,
+      filters: { areaId: '', search: '' },
+      setFilter: vi.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      isSaving: false,
+      error: '',
+      refetch: vi.fn().mockResolvedValue(undefined),
+      loadMore: vi.fn().mockResolvedValue(undefined),
+      hasMore: false,
+      totalCount: 0,
+      createVenue: vi.fn().mockResolvedValue(null),
+      updateVenue: vi.fn().mockResolvedValue(null),
+      deleteVenue: vi.fn().mockResolvedValue(undefined),
+    },
   };
   return {
     state,
@@ -107,15 +137,23 @@ vi.mock('@/hooks/use-services-page', () => ({
 import { ServicesPage } from '@/components/admin/services/services-page';
 
 describe('ServicesPage', () => {
+  beforeEach(() => {
+    state.activeView = 'catalog';
+  });
+
   it('renders tabs-only header and switches views', async () => {
     const user = userEvent.setup();
     render(<ServicesPage />);
 
-    expect(screen.getByRole('button', { name: 'Catalog' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Service Catalogue' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Instances' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('instances');
     await user.click(screen.getByRole('button', { name: 'Discount Codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
+    await user.click(screen.getByRole('button', { name: 'Venues' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('venues');
   });
 
   it('renders service detail before the services list', () => {
@@ -127,12 +165,23 @@ describe('ServicesPage', () => {
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('renders instance detail before the instances list', () => {
+  it('renders instance detail before the instances list on Instances', () => {
+    state.activeView = 'instances';
     render(<ServicesPage />);
 
     const detailHeading = screen.getByRole('heading', { name: 'Instance' });
     const listHeading = screen.getByRole('heading', { name: 'Instances' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('wires instances search input changes on Instances', async () => {
+    const user = userEvent.setup();
+    state.activeView = 'instances';
+    render(<ServicesPage />);
+
+    await user.type(screen.getByLabelText('Search instances'), 'yoga');
+
+    expect(state.setInstancesSearchQuery).toHaveBeenCalled();
   });
 });

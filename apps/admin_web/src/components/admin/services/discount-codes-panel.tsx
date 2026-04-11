@@ -13,7 +13,17 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatEnumLabel } from '@/lib/format';
+import {
+  DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
+  isDiscountValidityRangeInverted,
+} from '@/lib/discount-validity';
+import {
+  formatDate,
+  formatEnumLabel,
+  formatIsoForDatetimeLocalInput,
+  getCurrencyOptions,
+  parseDatetimeLocalToIsoUtc,
+} from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { DISCOUNT_TYPES } from '@/types/services';
@@ -66,6 +76,10 @@ export function DiscountCodesPanel({
   const [currency, setCurrency] = useState('HKD');
   const [maxUses, setMaxUses] = useState('');
   const [active, setActive] = useState(true);
+  const [validFromLocal, setValidFromLocal] = useState('');
+  const [validUntilLocal, setValidUntilLocal] = useState('');
+  const [validityRangeError, setValidityRangeError] = useState('');
+  const currencyOptions = getCurrencyOptions();
 
   const selectedCode = useMemo(
     () => codes.find((entry) => entry.id === selectedCodeId) ?? null,
@@ -82,15 +96,27 @@ export function DiscountCodesPanel({
     setCurrency('HKD');
     setMaxUses('');
     setActive(true);
+    setValidFromLocal('');
+    setValidUntilLocal('');
+    setValidityRangeError('');
   };
 
   const handleSubmit = async () => {
+    if (isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)) {
+      setValidityRangeError(DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE);
+      return;
+    }
+    setValidityRangeError('');
+    const validFromIso = parseDatetimeLocalToIsoUtc(validFromLocal);
+    const validUntilIso = parseDatetimeLocalToIsoUtc(validUntilLocal);
     const createPayload: ApiSchemas['CreateDiscountCodeRequest'] = {
       code: code.trim().toUpperCase(),
       description: description.trim() || null,
       discount_type: discountType as DiscountType,
       discount_value: discountValue.trim(),
       currency: currency.trim() || null,
+      valid_from: validFromIso,
+      valid_until: validUntilIso,
       max_uses: maxUses ? Number(maxUses) : null,
       active,
     };
@@ -108,6 +134,8 @@ export function DiscountCodesPanel({
         discount_type: discountType as DiscountType,
         discount_value: discountValue.trim(),
         currency: currency.trim() || null,
+        valid_from: validFromIso,
+        valid_until: validUntilIso,
         max_uses: maxUses ? Number(maxUses) : null,
         active,
       });
@@ -126,6 +154,9 @@ export function DiscountCodesPanel({
     setCurrency(entry.currency ?? 'HKD');
     setMaxUses(entry.maxUses?.toString() ?? '');
     setActive(entry.active);
+    setValidFromLocal(formatIsoForDatetimeLocalInput(entry.validFrom));
+    setValidUntilLocal(formatIsoForDatetimeLocalInput(entry.validUntil));
+    setValidityRangeError('');
   };
 
   const handleDeleteCode = async (entry: DiscountCode) => {
@@ -159,7 +190,12 @@ export function DiscountCodesPanel({
             ) : null}
             <Button
               type='button'
-              disabled={isSaving || !code.trim() || !discountValue.trim()}
+              disabled={
+                isSaving ||
+                !code.trim() ||
+                !discountValue.trim() ||
+                isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)
+              }
               onClick={() => void handleSubmit()}
             >
               {editorMode === 'create' ? 'Create code' : 'Update code'}
@@ -167,7 +203,7 @@ export function DiscountCodesPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <div>
             <Label htmlFor='discount-code'>Code</Label>
             <Input
@@ -191,7 +227,32 @@ export function DiscountCodesPanel({
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor='discount-valid-from'>Valid from</Label>
+            <Input
+              id='discount-valid-from'
+              type='datetime-local'
+              value={validFromLocal}
+              onChange={(event) => {
+                setValidFromLocal(event.target.value);
+                setValidityRangeError('');
+              }}
+            />
+          </div>
+          <div>
+            <Label htmlFor='discount-valid-until'>Valid until</Label>
+            <Input
+              id='discount-valid-until'
+              type='datetime-local'
+              value={validUntilLocal}
+              onChange={(event) => {
+                setValidUntilLocal(event.target.value);
+                setValidityRangeError('');
+              }}
+            />
+          </div>
         </div>
+        {validityRangeError ? <p className='text-sm text-red-600'>{validityRangeError}</p> : null}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
           <div>
             <Label htmlFor='discount-value'>Value</Label>
@@ -199,7 +260,18 @@ export function DiscountCodesPanel({
           </div>
           <div>
             <Label htmlFor='discount-currency'>Currency</Label>
-            <Input id='discount-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+            <Select
+              id='discount-currency'
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+              disabled={discountType === 'percentage'}
+            >
+              {currencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
             <Label htmlFor='discount-max-uses'>Max uses</Label>
@@ -262,11 +334,12 @@ export function DiscountCodesPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[760px]'>
+        <AdminDataTable tableClassName='min-w-[920px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Code</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
+              <th className='px-4 py-3 font-semibold'>Valid from</th>
+              <th className='px-4 py-3 font-semibold'>Valid until</th>
               <th className='px-4 py-3 font-semibold'>Value</th>
               <th className='px-4 py-3 font-semibold'>Uses</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
@@ -283,9 +356,12 @@ export function DiscountCodesPanel({
                 onClick={() => applyCodeSelection(row)}
               >
                 <td className='px-4 py-3'>{row.code}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(row.discountType)}</td>
+                <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
+                <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
                 <td className='px-4 py-3'>
-                  {row.discountValue} {row.currency ?? ''}
+                  {row.discountType === 'percentage'
+                    ? `${row.discountValue}%`
+                    : `${row.discountValue} ${row.currency ?? ''}`.trim()}
                 </td>
                 <td className='px-4 py-3'>
                   {row.currentUses}/{row.maxUses ?? '∞'}

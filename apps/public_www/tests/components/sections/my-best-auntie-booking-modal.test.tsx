@@ -34,6 +34,8 @@ const {
     originalStripePublishableKey,
   };
 });
+const mockedStripeElementsProps = vi.hoisted(() => vi.fn());
+const mockedStripePaymentElementProps = vi.hoisted(() => vi.fn());
 
 import {
   MyBestAuntieBookingModal,
@@ -43,7 +45,7 @@ import type { ReservationSummary } from '@/components/sections/booking-modal/typ
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
-import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
 import {
@@ -80,8 +82,21 @@ vi.mock('@stripe/stripe-js', () => ({
 }));
 
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
+  Elements: ({
+    children,
+    ...props
+  }: {
+    children: ReactNode;
+    options?: unknown;
+    stripe?: unknown;
+  }) => {
+    mockedStripeElementsProps(props);
+    return <div>{children}</div>;
+  },
+  PaymentElement: (props: { options?: unknown }) => {
+    mockedStripePaymentElementProps(props);
+    return <div data-testid='mock-stripe-payment-element' />;
+  },
   useElements: () => ({}),
   useStripe: () => ({
     confirmPayment: vi.fn(async () => ({
@@ -100,6 +115,7 @@ vi.mock('@/lib/crm-api-client', async () => {
 
   return {
     ...actual,
+    createPublicApiClient: vi.fn(() => null),
     createPublicCrmApiClient: vi.fn(() => null),
     isAbortRequestError: (error: unknown) =>
       error instanceof Error && error.name === 'AbortError',
@@ -167,12 +183,14 @@ const bookingSectionContent = {
 };
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
+const bookingModalStripeEnabledContent = bookingModalContent;
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
 if (!selectedCohort) {
   throw new Error('Test content must include at least one cohort.');
 }
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+const mockedCreatePublicApiClient = vi.mocked(createPublicApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -211,6 +229,21 @@ if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
 }
 
+const primarySessionPart = selectedCohort.dates[0];
+const expectedMbaScheduleTimeLabel =
+  primarySessionPart !== undefined && primarySessionPart.end_datetime
+    ? `${primarySessionPart.start_datetime} – ${primarySessionPart.end_datetime}`
+    : primarySessionPart?.start_datetime;
+
+const expectedMbaMarketingFields = {
+  marketing_opt_in: false,
+  locale: 'en' as const,
+  course_label: myBestAuntieModalContent.title,
+  schedule_date_label: 'Apr, 2026',
+  schedule_time_label: expectedMbaScheduleTimeLabel,
+  location_name: selectedCohort.location_name,
+};
+
 function renderWithPortalContainer(ui: ReactNode) {
   const renderView = render(ui);
   return {
@@ -245,9 +278,12 @@ beforeEach(() => {
 
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
+  mockedCreatePublicApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
   mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
+  mockedStripeElementsProps.mockReset();
+  mockedStripePaymentElementProps.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -336,7 +372,10 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       screen.queryByText(bookingModalContent.selectedAgeGroupLabel),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('18-24 months')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', {
+      level: 2,
+      name: `My Best Auntie Training Course for age group 18-24 months`,
+    })).toBeInTheDocument();
     expect(
       screen.getByText(bookingModalContent.paymentMethodLabel),
     ).toBeInTheDocument();
@@ -372,6 +411,17 @@ describe('my-best-auntie booking modals footer content', () => {
       'span[data-course-part-icon="true"].es-mask-calendar-current',
     );
     expect(partCalendarIcons).toHaveLength(3);
+  });
+
+  it('keeps the base left column title when no age group is selected', () => {
+    renderBookingModal({
+      selectedAgeGroupLabel: '   ',
+    });
+
+    expect(screen.getByRole('heading', {
+      level: 2,
+      name: myBestAuntieModalContent.title,
+    })).toBeInTheDocument();
   });
 
   it('renders week range headlines and schedule blocks without year in the details column', () => {
@@ -473,7 +523,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptions?.className).toContain('es-border-input');
     expect(paymentOptions?.className).toContain('es-bg-surface-white');
     expect(paymentOptions?.className).toContain('p-[10px]');
-    expect(paymentOptions?.className).toContain('h-[244px]');
+    expect(paymentOptions?.className).toContain('min-h-[244px]');
     const paymentOptionsColumns = paymentOptions?.querySelector(
       'div[data-booking-payment-options-columns="true"]',
     ) as HTMLDivElement | null;
@@ -600,6 +650,9 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
     mockedValidateDiscountCode.mockResolvedValue({
       code: 'SAVE10',
       type: 'percent',
@@ -683,11 +736,71 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
   });
 
+  it('shows spinning gear on discount Apply while validation is pending', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    let resolveValidation: (value: {
+      code: string;
+      type: 'percent';
+      value: number;
+    }) => void = () => {};
+    mockedValidateDiscountCode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+    );
+
+    renderBookingModal();
+
+    const discountInput = screen.getByPlaceholderText(
+      bookingModalContent.discountCodePlaceholder,
+    ) as HTMLInputElement;
+    fireEvent.change(discountInput, {
+      target: {
+        value: 'SAVE10',
+      },
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.applyDiscountLabel,
+      }),
+    );
+
+    expect(screen.getByTestId('booking-discount-apply-loading-gear')).toHaveClass('animate-spin');
+    expect(
+      screen.getByRole('button', {
+        name: bookingModalContent.applyDiscountLoadingLabel,
+      }),
+    ).toHaveAttribute('aria-busy', 'true');
+
+    resolveValidation({
+      code: 'SAVE10',
+      type: 'percent',
+      value: 10,
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(bookingModalContent.discountAppliedLabel),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('booking-discount-apply-loading-gear')).toBeNull();
+  });
+
   it('submits reservation payload with required snake_case fields', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
     const onSubmitReservation = vi.fn();
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
     });
 
     renderBookingModal({
@@ -725,25 +838,28 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
-      expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/reservations',
-        method: 'POST',
-        body: {
-          full_name: 'Test User',
-          email: 'ida@example.com',
-          phone_number: '85212345678',
-          cohort_age: '18-24 months',
-          cohort_date: selectedCohortDate,
-          comments: 'Need details',
-          discount_code: undefined,
-          price: 9000,
-          reservation_pending_until_payment_confirmed: true,
-          agreed_to_terms_and_conditions: true,
-          stripe_payment_intent_id: undefined,
-        },
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
+      expect(requestSpy).toHaveBeenCalled();
+    });
+    expect(requestSpy).toHaveBeenCalledWith({
+      endpointPath: '/v1/legacy/reservations',
+      method: 'POST',
+      body: expect.objectContaining({
+        full_name: 'Test User',
+        email: 'ida@example.com',
+        phone_number: '85212345678',
+        cohort_age: '18-24 months',
+        cohort_date: selectedCohortDate,
+        comments: 'Need details',
+        discount_code: undefined,
+        price: 9000,
+        reservation_pending_until_payment_confirmed: true,
+        agreed_to_terms_and_conditions: true,
+        payment_method: 'fps_qr',
+        stripe_payment_intent_id: undefined,
+        ...expectedMbaMarketingFields,
+      }),
+      turnstileToken: 'mock-turnstile-token',
+      expectedSuccessStatuses: [200, 202],
     });
     await waitFor(() => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
@@ -766,6 +882,9 @@ describe('my-best-auntie booking modals footer content', () => {
     const onSubmitReservation = vi.fn();
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
     });
 
     const { container } = renderBookingModal({
@@ -856,6 +975,13 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            payment_method: 'bank_transfer',
+          }),
+        }),
+      );
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
           paymentMethod: bookingModalContent.paymentMethodBankTransferValue,
@@ -877,6 +1003,9 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
     });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
     mockedCreateReservationPaymentIntent.mockResolvedValue({
       payment_intent_id: 'pi_test_booking_modal',
       client_secret: 'pi_test_booking_modal_secret_abc',
@@ -885,11 +1014,12 @@ describe('my-best-auntie booking modals footer content', () => {
     renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
       onSubmitReservation,
+      paymentModalContent: bookingModalStripeEnabledContent,
     });
 
     fireEvent.click(
       screen.getByRole('radio', {
-        name: bookingModalContent.paymentMethodStripeValue,
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
       }),
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -926,30 +1056,33 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
-      expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/reservations',
-        method: 'POST',
-        body: {
-          full_name: 'Test User',
-          email: 'ida@example.com',
-          phone_number: '85212345678',
-          cohort_age: '18-24 months',
-          cohort_date: selectedCohortDate,
-          comments: 'Need details',
-          discount_code: undefined,
-          price: 9000,
-          reservation_pending_until_payment_confirmed: true,
-          agreed_to_terms_and_conditions: true,
-          stripe_payment_intent_id: 'pi_test_booking_modal',
-        },
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
+      expect(requestSpy).toHaveBeenCalled();
+    });
+    expect(requestSpy).toHaveBeenCalledWith({
+      endpointPath: '/v1/legacy/reservations',
+      method: 'POST',
+      body: expect.objectContaining({
+        full_name: 'Test User',
+        email: 'ida@example.com',
+        phone_number: '85212345678',
+        cohort_age: '18-24 months',
+        cohort_date: selectedCohortDate,
+        comments: 'Need details',
+        discount_code: undefined,
+        price: 9000,
+        reservation_pending_until_payment_confirmed: true,
+        agreed_to_terms_and_conditions: true,
+        payment_method: 'stripe',
+        stripe_payment_intent_id: 'pi_test_booking_modal',
+        ...expectedMbaMarketingFields,
+      }),
+      turnstileToken: 'mock-turnstile-token',
+      expectedSuccessStatuses: [200, 202],
     });
     await waitFor(() => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
-          paymentMethod: bookingModalContent.paymentMethodStripeValue,
+          paymentMethod: bookingModalStripeEnabledContent.paymentMethodStripeValue,
         }),
       );
     });
@@ -959,21 +1092,133 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
 
-    renderBookingModal();
+    renderBookingModal({
+      paymentModalContent: bookingModalStripeEnabledContent,
+    });
 
     fireEvent.click(
       screen.getByRole('radio', {
-        name: bookingModalContent.paymentMethodStripeValue,
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
       }),
     );
 
     expect(
-      screen.getByText(bookingModalContent.paymentMethodStripeLoadingLabel),
+      screen.getByText(bookingModalStripeEnabledContent.paymentMethodStripeLoadingLabel),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(bookingModalContent.paymentMethodStripeUnavailableLabel),
+      screen.queryByText(bookingModalStripeEnabledContent.paymentMethodStripeUnavailableLabel),
     ).not.toBeInTheDocument();
+  });
+
+  it('passes branded appearance options to Stripe Elements', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreateReservationPaymentIntent.mockResolvedValue({
+      payment_intent_id: 'pi_test_booking_modal',
+      client_secret: 'pi_test_booking_modal_secret_abc',
+    });
+
+    renderBookingModal({
+      paymentModalContent: bookingModalStripeEnabledContent,
+    });
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-stripe-payment-element')).toBeInTheDocument();
+      expect(mockedStripePaymentElementProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            layout: 'tabs',
+            paymentMethodOrder: ['card'],
+            wallets: {
+              applePay: 'never',
+              googlePay: 'never',
+            },
+          }),
+        }),
+      );
+      expect(mockedStripeElementsProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            clientSecret: 'pi_test_booking_modal_secret_abc',
+            appearance: expect.objectContaining({
+              theme: 'stripe',
+              variables: expect.objectContaining({
+                colorPrimary: '#C84A16',
+                colorBackground: '#FFFFFF',
+                colorText: '#333333',
+                colorTextSecondary: '#5A5A5A',
+                colorTextPlaceholder: '#8A8A8A',
+                colorDanger: '#B42318',
+                fontFamily:
+                  'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                fontSizeBase: '14px',
+                borderRadius: '10px',
+                spacingUnit: '4px',
+              }),
+              rules: expect.objectContaining({
+                '.Label': expect.objectContaining({
+                  color: '#333333',
+                  fontWeight: '600',
+                }),
+                '.Input': expect.objectContaining({
+                  border: '1px solid #CAD6E5',
+                }),
+                '.Input:focus': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Input:focus-visible': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Error': expect.objectContaining({
+                  color: '#B42318',
+                }),
+                '.Block': expect.objectContaining({
+                  border: 'none',
+                  boxShadow: 'none',
+                  backgroundColor: 'transparent',
+                }),
+                '.Tab': expect.objectContaining({
+                  backgroundColor: '#F8F8F8',
+                  border: '1px solid #CAD6E5',
+                  color: '#333333',
+                }),
+                '.Tab:focus': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Tab:focus-visible': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Tab--selected': expect.objectContaining({
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 2px rgba(200, 74, 22, 0.65)',
+                  color: '#333333',
+                }),
+              }),
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   it('uses calendar mask icons inside each course part chip', () => {
@@ -1283,6 +1528,9 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('allows only one discount code to be applied at a time', async () => {
     mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
       request: vi.fn(),
     });
     mockedValidateDiscountCode.mockResolvedValue({

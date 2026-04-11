@@ -37,6 +37,14 @@ from sqlalchemy import inspect
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
 _MAX_RESOURCE_KEY_LENGTH = 64
+_MAX_CONTENT_LANGUAGE_LENGTH = 35
+_CONTENT_LANGUAGE_RE = re.compile(r"^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})*$")
+# Admin create/update: only tags exposed in the admin UI / public free-assets list filters.
+_ADMIN_ASSET_CONTENT_LANGUAGE_CANONICAL: dict[str, str] = {
+    "en": "en",
+    "zh-cn": "zh-CN",
+    "zh-hk": "zh-HK",
+}
 _MAX_PRINCIPAL_ID_LENGTH = 128
 _DEFAULT_PRESIGN_TTL_SECONDS = 900
 _MIN_PRESIGN_TTL_SECONDS = 60
@@ -166,6 +174,67 @@ def parse_admin_asset_list_filters(
     return query, visibility, asset_type, tag_name
 
 
+def parse_content_language_query_param(raw: str | None) -> str | None:
+    """Validate optional language query parameter for public resource lists."""
+    if raw is None or not raw.strip():
+        return None
+    return parse_optional_content_language(
+        {"language": raw.strip()},
+        "language",
+    )
+
+
+def parse_optional_content_language(
+    body: Mapping[str, Any],
+    *field_names: str,
+) -> str | None:
+    """Parse optional BCP 47-style content language (e.g. en, zh-HK)."""
+    raw = None
+    for name in field_names:
+        raw = _optional_field(body, name)
+        if raw is not None:
+            break
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raise ValidationError(
+            "content_language must be a string or null",
+            field="content_language",
+        )
+    normalized = raw.strip()
+    if not normalized:
+        return None
+    if len(normalized) > _MAX_CONTENT_LANGUAGE_LENGTH:
+        raise ValidationError(
+            "content_language is too long",
+            field="content_language",
+        )
+    if not _CONTENT_LANGUAGE_RE.fullmatch(normalized):
+        raise ValidationError(
+            "content_language must be a BCP 47-style tag (e.g. en, zh-HK)",
+            field="content_language",
+        )
+    return normalized
+
+
+def parse_admin_asset_content_language(
+    body: Mapping[str, Any],
+    *field_names: str,
+) -> str | None:
+    """Parse content_language for admin asset writes; null or one of en, zh-CN, zh-HK."""
+    parsed = parse_optional_content_language(body, *field_names)
+    if parsed is None:
+        return None
+    key = parsed.replace("_", "-").lower()
+    canonical = _ADMIN_ASSET_CONTENT_LANGUAGE_CANONICAL.get(key)
+    if canonical is None:
+        raise ValidationError(
+            "content_language must be null or one of: en, zh-CN, zh-HK",
+            field="content_language",
+        )
+    return canonical
+
+
 def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any]:
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
@@ -179,6 +248,9 @@ def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any
     content_type = _optional_text(
         body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
     )
+    content_language = parse_admin_asset_content_language(
+        body, "content_language", "contentLanguage"
+    )
     visibility = parse_asset_visibility(
         _optional_field(body, "visibility") or "restricted"
     )
@@ -189,6 +261,7 @@ def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any
         "resource_key": resource_key,
         "asset_type": asset_type,
         "content_type": content_type,
+        "content_language": content_language,
         "visibility": visibility,
     }
 
@@ -273,6 +346,11 @@ def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, An
             "contentType",
             max_length=_MAX_MIME_TYPE_LENGTH,
         )
+    if _has_any_field(body, "content_language", "contentLanguage"):
+        payload["content_language"] = parse_admin_asset_content_language(
+            body, "content_language", "contentLanguage"
+        )
+        payload["content_language_specified"] = True
     if _has_any_field(body, "visibility"):
         visibility_raw = _optional_field(body, "visibility")
         if not visibility_raw:
@@ -481,11 +559,24 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "file_name": asset.file_name,
         "resource_key": asset.resource_key,
         "content_type": asset.content_type,
+        "content_language": asset.content_language,
         "visibility": asset.visibility.value,
         "created_by": asset.created_by,
         "created_at": asset.created_at.isoformat() if asset.created_at else None,
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
         "tags": _serialize_asset_tags_if_loaded(asset),
+    }
+
+
+def serialize_public_free_asset(asset: Asset) -> dict[str, Any]:
+    """Serialize a public free-website asset for GET /v1/assets/free."""
+    return {
+        "title": asset.title,
+        "description": asset.description,
+        "asset_type": asset.asset_type.value,
+        "resource_key": asset.resource_key,
+        "content_language": asset.content_language,
+        "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
     }
 
 

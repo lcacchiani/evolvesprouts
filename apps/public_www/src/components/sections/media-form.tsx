@@ -1,20 +1,25 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
+import type { Locale } from '@/content';
 
 interface MediaFormProps {
   ctaLabel: string;
+  locale: Locale;
+  formMarketingOptInLabel: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
   formSubmitLabel: string;
@@ -23,12 +28,13 @@ interface MediaFormProps {
   formErrorMessage: string;
   resourceKey?: string;
   className?: string;
+  /** Extra classes for the closed-state CTA (e.g. `es-btn--outline` for primary outline). */
+  ctaButtonClassName?: string;
   analyticsSectionId?: string;
   onFormOpened?: () => void;
 }
 
-const MEDIA_REQUEST_API_PATH = '/v1/media-request';
-const MEDIA_FORM_ERROR_ID = 'media-form-error';
+const MEDIA_REQUEST_API_PATH = '/v1/assets/free/request';
 const MAX_RESOURCE_KEY_LENGTH = 64;
 
 function normalizeResourceKey(value: string): string {
@@ -43,6 +49,8 @@ function normalizeResourceKey(value: string): string {
 
 export function MediaForm({
   ctaLabel,
+  locale,
+  formMarketingOptInLabel,
   formFirstNameLabel,
   formEmailLabel,
   formSubmitLabel,
@@ -51,9 +59,15 @@ export function MediaForm({
   formErrorMessage,
   resourceKey,
   className,
+  ctaButtonClassName,
   analyticsSectionId = 'media-form',
   onFormOpened,
 }: MediaFormProps) {
+  const mediaFormInstanceId = useId();
+  const firstNameInputId = `${mediaFormInstanceId}-media-first-name`;
+  const emailInputId = `${mediaFormInstanceId}-media-email`;
+  const formErrorId = `${mediaFormInstanceId}-media-form-error`;
+
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -62,6 +76,7 @@ export function MediaForm({
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -143,9 +158,11 @@ export function MediaForm({
     }
 
     await withSubmitting(async () => {
-      const requestBody: Record<string, string> = {
+      const requestBody: Record<string, string | boolean> = {
         first_name: normalizedFirstName,
         email: normalizedEmail,
+        marketing_opt_in: marketingOptIn,
+        locale,
       };
       const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
       if (normalizedResourceKey) {
@@ -171,7 +188,7 @@ export function MediaForm({
             resource_key: normalizedResourceKey,
           },
         });
-        trackMetaPixelEvent('Lead', { content_name: 'media_download' });
+        trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.media_download });
         markSubmissionSuccess();
         return;
       }
@@ -201,7 +218,11 @@ export function MediaForm({
     return (
       <ButtonPrimitive
         variant='primary'
-        className={mergeClassNames('mt-auto w-full max-w-[360px]', className)}
+        className={mergeClassNames(
+          'mt-auto w-full max-w-[360px]',
+          ctaButtonClassName,
+          className,
+        )}
         onClick={handleOpenForm}
       >
         {ctaLabel}
@@ -220,7 +241,7 @@ export function MediaForm({
       noValidate
     >
       <input
-        id='media-first-name'
+        id={firstNameInputId}
         type='text'
         autoComplete='given-name'
         value={firstName}
@@ -234,13 +255,13 @@ export function MediaForm({
         className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
         aria-label={formFirstNameLabel}
         aria-invalid={hasFirstNameError}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
         required
         disabled={isSubmitting}
       />
 
       <input
-        id='media-email'
+        id={emailInputId}
         type='email'
         autoComplete='email'
         value={email}
@@ -254,9 +275,15 @@ export function MediaForm({
         className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
         aria-label={formEmailLabel}
         aria-invalid={hasEmailError}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
         required
         disabled={isSubmitting}
+      />
+
+      <MarketingOptInCheckbox
+        label={formMarketingOptInLabel}
+        checked={marketingOptIn}
+        onChange={setMarketingOptIn}
       />
 
       <TurnstileCaptcha
@@ -272,13 +299,13 @@ export function MediaForm({
         type='submit'
         className='w-full'
         disabled={isSubmitDisabled}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
       >
         {isSubmitting ? `${formSubmitLabel}...` : formSubmitLabel}
       </ButtonPrimitive>
 
       {shouldShowSubmitError ? (
-        <p id={MEDIA_FORM_ERROR_ID} className='text-sm font-semibold es-text-danger-strong' role='alert'>
+        <p id={formErrorId} className='text-sm font-semibold es-text-danger-strong' role='alert'>
           {submitErrorMessage || formErrorMessage}
         </p>
       ) : null}

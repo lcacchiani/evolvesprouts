@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -359,7 +360,9 @@ export function ExpensesEditorPanel({
             onChange={(event) => setLineItemsJson(event.target.value)}
             rows={6}
           />
-          {lineItemsError ? <p className='mt-1 text-sm text-red-600'>{lineItemsError}</p> : null}
+          {lineItemsError ? (
+            <AdminInlineError className='mt-1'>{lineItemsError}</AdminInlineError>
+          ) : null}
         </div>
       </details>
       <div className='space-y-2'>

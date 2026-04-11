@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
 import { EventFormFields, type EventFormState } from './event-form-fields';
@@ -14,36 +14,91 @@ import { InstanceFormFields, type InstanceFormState } from './instance-form-fiel
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import type { ServiceInstance, ServiceType } from '@/types/services';
+import type {
+  LocationSummary,
+  ServiceInstance,
+  ServiceSummary,
+  ServiceType,
+} from '@/types/services';
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
+import { useInstructorUsers } from '@/hooks/use-instructor-users';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
 type ApiSchemas = components['schemas'];
+const defaultCurrencyCode = getAdminDefaultCurrencyCode();
 
 export interface InstanceDetailPanelProps {
   instance: ServiceInstance | null;
+  selectedServiceId: string | null;
+  serviceOptions: ServiceSummary[];
+  locationOptions: LocationSummary[];
+  isLoadingLocations: boolean;
   serviceType: ServiceType | null;
   isLoading: boolean;
   error: string;
+  locationError?: string;
+  onSelectService: (serviceId: string | null) => void;
   onCancelSelection: () => void;
-  onCreate: (payload: ApiSchemas['CreateInstanceRequest']) => Promise<void> | void;
+  onCreate: (serviceId: string, payload: ApiSchemas['CreateInstanceRequest']) => Promise<void> | void;
   onUpdate: (
+    serviceId: string,
     instanceId: string,
     payload: ApiSchemas['UpdateInstanceRequest']
   ) => Promise<void> | void;
 }
 
+function mergeServiceIntoInstanceForm(
+  prev: InstanceFormState,
+  service: ServiceSummary
+): InstanceFormState {
+  return {
+    ...prev,
+    title: service.title,
+    description: service.description ?? '',
+    deliveryMode: service.deliveryMode,
+  };
+}
+
+function mergeServiceIntoTrainingForm(
+  prev: TrainingFormState,
+  service: ServiceSummary
+): TrainingFormState {
+  if (service.serviceType !== 'training_course' || !service.trainingDetails) {
+    return prev;
+  }
+  const td = service.trainingDetails;
+  return {
+    ...prev,
+    pricingUnit: td.pricingUnit,
+    defaultPrice: td.defaultPrice ?? '',
+    defaultCurrency: td.defaultCurrency ?? defaultCurrencyCode,
+  };
+}
+
 export function InstanceDetailPanel({
   instance,
+  selectedServiceId,
+  serviceOptions,
+  locationOptions,
+  isLoadingLocations,
   serviceType,
   isLoading,
   error,
+  locationError = '',
+  onSelectService,
   onCancelSelection,
   onCreate,
   onUpdate,
 }: InstanceDetailPanelProps) {
   const isEditMode = Boolean(instance);
+  const lastMergedServiceIdForCreateRef = useRef<string | null>(null);
+  const { users: instructorUsers, isLoading: isLoadingInstructors } = useInstructorUsers(
+    Boolean(selectedServiceId)
+  );
+
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
     instance
       ? {
@@ -65,7 +120,7 @@ export function InstanceDetailPanel({
       ? {
           pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
           defaultPrice: instance.trainingDetails?.price ?? '',
-          defaultCurrency: instance.trainingDetails?.currency ?? 'HKD',
+          defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_TRAINING_FORM
   );
@@ -86,13 +141,54 @@ export function InstanceDetailPanel({
           defaultHourlyRate: instance.consultationDetails?.price ?? '',
           defaultPackagePrice: '',
           defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
-          defaultCurrency: instance.consultationDetails?.currency ?? 'HKD',
+          defaultCurrency:
+            instance.consultationDetails?.currency ?? defaultCurrencyCode,
           calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
         }
       : DEFAULT_CONSULTATION_FORM
   );
 
-  const effectiveServiceType = serviceType ?? 'training_course';
+  const handleSelectService = useCallback(
+    (serviceId: string | null) => {
+      onSelectService(serviceId);
+      if (!serviceId) {
+        lastMergedServiceIdForCreateRef.current = null;
+        return;
+      }
+      const svc = serviceOptions.find((entry) => entry.id === serviceId);
+      if (!svc) {
+        return;
+      }
+      lastMergedServiceIdForCreateRef.current = serviceId;
+      setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+      setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
+    },
+    [onSelectService, serviceOptions]
+  );
+
+  useEffect(() => {
+    if (instance || !selectedServiceId) {
+      return;
+    }
+    const svc = serviceOptions.find((entry) => entry.id === selectedServiceId);
+    if (!svc) {
+      return;
+    }
+    if (lastMergedServiceIdForCreateRef.current === selectedServiceId) {
+      return;
+    }
+    lastMergedServiceIdForCreateRef.current = selectedServiceId;
+    queueMicrotask(() => {
+      setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+      setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
+    });
+  }, [instance, selectedServiceId, serviceOptions]);
+
+  const selectedService =
+    serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null;
+  const effectiveServiceType = serviceType ?? selectedService?.serviceType ?? 'training_course';
+  const canSubmit = Boolean(selectedServiceId);
+  const typeFieldsLocked = !selectedServiceId;
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const payload: ApiSchemas['CreateInstanceRequest'] = {
@@ -117,7 +213,7 @@ export function InstanceDetailPanel({
       payload.training_details = {
         training_format: 'group',
         price: trainingForm.defaultPrice || '0',
-        currency: trainingForm.defaultCurrency || 'HKD',
+        currency: trainingForm.defaultCurrency || defaultCurrencyCode,
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (effectiveServiceType === 'event') {
@@ -126,7 +222,7 @@ export function InstanceDetailPanel({
           name: eventForm.eventCategory,
           description: null,
           price: '0',
-          currency: 'HKD',
+          currency: defaultCurrencyCode,
           max_quantity: null,
           sort_order: 0,
         },
@@ -135,7 +231,7 @@ export function InstanceDetailPanel({
       payload.consultation_details = {
         pricing_model: consultationForm.pricingModel,
         price: consultationForm.defaultHourlyRate || null,
-        currency: consultationForm.defaultCurrency || 'HKD',
+        currency: consultationForm.defaultCurrency || defaultCurrencyCode,
         package_sessions: consultationForm.defaultPackageSessions
           ? Number(consultationForm.defaultPackageSessions)
           : null,
@@ -156,7 +252,7 @@ export function InstanceDetailPanel({
       title='Instance'
       description='Add or update an instance using the same fields below.'
       actions={
-        serviceType ? (
+        canSubmit ? (
           <>
             {isEditMode ? (
               <>
@@ -167,17 +263,26 @@ export function InstanceDetailPanel({
                   type='button'
                   disabled={isLoading || !instance}
                   onClick={() => {
-                    if (!instance) {
+                    if (!instance || !selectedServiceId) {
                       return;
                     }
-                    void onUpdate(instance.id, buildUpdatePayload());
+                    void onUpdate(selectedServiceId, instance.id, buildUpdatePayload());
                   }}
                 >
                   {isLoading ? 'Updating...' : 'Update instance'}
                 </Button>
               </>
             ) : (
-              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
+              <Button
+                type='button'
+                disabled={isLoading || !selectedServiceId}
+                onClick={() => {
+                  if (!selectedServiceId) {
+                    return;
+                  }
+                  void onCreate(selectedServiceId, buildCreatePayload());
+                }}
+              >
                 {isLoading ? 'Adding...' : 'Add instance'}
               </Button>
             )}
@@ -185,24 +290,36 @@ export function InstanceDetailPanel({
         ) : undefined
       }
     >
-      {!serviceType ? (
-        <p className='text-sm text-slate-500'>Select a service before creating or editing instances.</p>
-      ) : (
-        <>
-          <InstanceFormFields value={instanceForm} onChange={setInstanceForm} />
-          {effectiveServiceType === 'training_course' ? (
-            <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
-          ) : null}
-          {effectiveServiceType === 'event' ? (
-            <EventFormFields value={eventForm} onChange={setEventForm} />
-          ) : null}
-          {effectiveServiceType === 'consultation' ? (
-            <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
-          ) : null}
+      {!selectedService ? (
+        <p className='text-sm text-slate-500'>Select a service to enable instance save actions.</p>
+      ) : null}
+      <InstanceFormFields
+        value={instanceForm}
+        serviceId={selectedServiceId}
+        serviceOptions={serviceOptions}
+        locationOptions={locationOptions}
+        isLoadingLocations={isLoadingLocations}
+        instructorOptions={instructorUsers}
+        isLoadingInstructors={isLoadingInstructors}
+        onSelectService={handleSelectService}
+        onChange={setInstanceForm}
+      />
+      {effectiveServiceType === 'training_course' ? (
+        <TrainingFormFields disabled={typeFieldsLocked} value={trainingForm} onChange={setTrainingForm} />
+      ) : null}
+      {effectiveServiceType === 'event' ? (
+        <EventFormFields disabled={typeFieldsLocked} value={eventForm} onChange={setEventForm} />
+      ) : null}
+      {effectiveServiceType === 'consultation' ? (
+        <ConsultationFormFields
+          disabled={typeFieldsLocked}
+          value={consultationForm}
+          onChange={setConsultationForm}
+        />
+      ) : null}
 
-          {error ? <p className='text-sm text-red-600'>{error}</p> : null}
-        </>
-      )}
+      {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
+      {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>
   );
 }

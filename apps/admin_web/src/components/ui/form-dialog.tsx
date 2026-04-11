@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react';
 
+import { StatusBanner } from '@/components/status-banner';
+
 import { Button } from './button';
 import { Card } from './card';
 
@@ -46,7 +48,11 @@ export function FormDialog({
       <div className={`w-full ${maxWidth}`}>
         <Card title={title} className='space-y-4'>
           {children}
-          {error ? <p className='text-sm text-red-600'>{error}</p> : null}
+          {error ? (
+            <StatusBanner variant='error' title={title}>
+              {error}
+            </StatusBanner>
+          ) : null}
           <div className='flex justify-end gap-2'>
             <Button type='button' variant='secondary' onClick={onClose}>
               Cancel

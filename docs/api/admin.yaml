@@ -10,9 +10,11 @@ info:
     - `GET /health`
     - `GET /v1/admin/geographic-areas`
     - `GET|POST /v1/admin/locations`
+    - `POST /v1/admin/locations/geocode`
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET /v1/admin/users`
     - `GET|POST /v1/admin/services`
+    - `GET /v1/admin/services/instances`
     - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}`
     - `POST /v1/admin/services/{id}/cover-image`
     - `GET|POST /v1/admin/services/{id}/instances`
@@ -21,6 +23,20 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
+    - `GET /v1/admin/contacts/tags`
+    - `GET /v1/admin/contacts/search`
+    - `GET|POST /v1/admin/contacts`
+    - `GET|PATCH /v1/admin/contacts/{id}`
+    - `GET /v1/admin/families/picker`
+    - `GET|POST /v1/admin/families`
+    - `GET|PATCH /v1/admin/families/{id}`
+    - `POST /v1/admin/families/{id}/members`
+    - `DELETE /v1/admin/families/{id}/members/{memberId}`
+    - `GET /v1/admin/organizations/picker`
+    - `GET|POST /v1/admin/organizations`
+    - `GET|PATCH /v1/admin/organizations/{id}`
+    - `POST /v1/admin/organizations/{id}/members`
+    - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/vendors`
     - `GET|PATCH /v1/admin/vendors/{id}`
     - `GET|POST /v1/admin/expenses`
@@ -458,6 +474,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: search
+          in: query
+          required: false
+          description: Case-insensitive substring match on location name or address.
+          schema:
+            type: string
+            maxLength: 500
       responses:
         "200":
           description: Location list response.
@@ -494,6 +517,52 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /v1/admin/locations/geocode:
+    post:
+      summary: Geocode a venue address
+      description: |
+        Resolves latitude and longitude using OpenStreetMap's public geocoder via
+        the AWS HTTP proxy. The free-text query uses the submitted address with
+        unit/floor prefixes removed through the first comma-separated segment
+        that contains ``/F`` (case-insensitive), e.g. ``G/F`` or ``5/F``. District
+        and country names from the
+        geographic area are not appended. The ``countrycodes`` query parameter is
+        built from the root area ISO code plus the sovereign country row's code
+        when ``sovereign_country_id`` is set (see ``GET /v1/admin/geographic-areas``).
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeocodeLocationRequest"
+      responses:
+        "200":
+          description: Geocoding result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodeLocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "502":
+          description: Geocoding provider or proxy error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Geocoding is not configured (for example missing proxy or headers).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/locations/{id}:
     parameters:
@@ -584,6 +653,26 @@ paths:
       responses:
         "200":
           description: Admin user list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/instructors:
+    get:
+      summary: List instructor users
+      description: Returns users in the instructor Cognito group for service instance assignment.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Instructor user list response.
           content:
             application/json:
               schema:
@@ -898,6 +987,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/instances:
+    get:
+      summary: List service instances across services
+      description: |
+        Returns instances from all services, optionally filtered by `service_type`
+        and/or `service_id`. Omit both filters to include every instance type.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/InstanceStatus"
+        - name: service_id
+          in: query
+          required: false
+          description: When set, only instances for this service UUID.
+          schema:
+            type: string
+            format: uuid
+        - name: service_type
+          in: query
+          required: false
+          description: When set, only instances whose parent service has this type.
+          schema:
+            $ref: "#/components/schemas/ServiceType"
+      responses:
+        "200":
+          description: Service instance list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1263,6 +1406,520 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DiscountCodeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/contacts/tags:
+    get:
+      summary: List CRM tags for pickers
+      description: Returns all tags sorted by name for contact/family/organization editors.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Tag list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmTagListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/contacts/search:
+    get:
+      summary: Search CRM contacts for pickers
+      description: |
+        Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+        Requires at least two characters in `query`. Intended for referral and other admin pickers.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 255
+        - name: exclude_contact_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Omit this contact from results (e.g. the subject contact when choosing a referrer).
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Matching contacts as id/label rows.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/contacts:
+    get:
+      summary: List CRM contacts
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Search first name, last name, email, phone, or Instagram handle.
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Contact list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminContactListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create CRM contact
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminContactRequest"
+      responses:
+        "201":
+          description: Contact created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminContactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/contacts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AdminContactId"
+    get:
+      summary: Get CRM contact
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Contact response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminContactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update CRM contact
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminContactRequest"
+      responses:
+        "200":
+          description: Contact response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminContactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/families/picker:
+    get:
+      summary: List active CRM families for pickers
+      description: |
+        Returns active families ordered by name for admin UI dropdowns.
+        At most 100 rows unless `limit` is set lower.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Picker list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/families:
+    get:
+      summary: List CRM families
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Family list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create CRM family
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminFamilyRequest"
+      responses:
+        "201":
+          description: Family created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/families/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AdminFamilyId"
+    get:
+      summary: Get CRM family
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Family response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update CRM family
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminFamilyRequest"
+      responses:
+        "200":
+          description: Family response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/families/{id}/members:
+    parameters:
+      - $ref: "#/components/parameters/AdminFamilyId"
+    post:
+      summary: Add family member
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddFamilyMemberRequest"
+      responses:
+        "201":
+          description: Family with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/families/{id}/members/{memberId}:
+    parameters:
+      - $ref: "#/components/parameters/AdminFamilyId"
+      - $ref: "#/components/parameters/AdminFamilyMemberId"
+    delete:
+      summary: Remove family member
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Family with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/organizations/picker:
+    get:
+      summary: List active CRM organisations for pickers
+      description: |
+        Returns active non-vendor organisations ordered by name for admin UI dropdowns.
+        At most 100 rows unless `limit` is set lower.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Picker list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/organizations:
+    get:
+      summary: List CRM organizations
+      description: Lists organizations excluding vendors (vendors are under Finance).
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Organization list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create CRM organization
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminOrganizationRequest"
+      responses:
+        "201":
+          description: Organization created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/organizations/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AdminOrganizationId"
+    get:
+      summary: Get CRM organization
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Organization response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update CRM organization
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminOrganizationRequest"
+      responses:
+        "200":
+          description: Organization response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/organizations/{id}/members:
+    parameters:
+      - $ref: "#/components/parameters/AdminOrganizationId"
+    post:
+      summary: Add organization member
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddOrganizationMemberRequest"
+      responses:
+        "201":
+          description: Organization with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/organizations/{id}/members/{memberId}:
+    parameters:
+      - $ref: "#/components/parameters/AdminOrganizationId"
+      - $ref: "#/components/parameters/AdminOrganizationMemberId"
+    delete:
+      summary: Remove organization member
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Organization with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1719,6 +2376,46 @@ components:
         type: string
         format: uuid
       description: Vendor identifier.
+    AdminContactId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: CRM contact identifier.
+    AdminFamilyId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: CRM family identifier.
+    AdminFamilyMemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Family membership row identifier.
+    AdminOrganizationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: CRM organization identifier.
+    AdminOrganizationMemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Organization membership row identifier.
     ExpenseId:
       name: id
       in: path
@@ -1793,6 +2490,12 @@ components:
         content_type:
           type: string
           nullable: true
+        content_language:
+          type: string
+          nullable: true
+          description: >
+            BCP 47-style tag for the language of the file content. Admin create/update accepts only
+            en, zh-CN, or zh-HK (null clears). Public list filters accept any valid BCP 47-style tag.
         resource_key:
           type: string
           nullable: true
@@ -2381,6 +3084,11 @@ components:
           type: string
           format: date-time
           nullable: true
+        training_details:
+          allOf:
+            - $ref: "#/components/schemas/ServiceTrainingDetails"
+          nullable: true
+          description: Present for training_course rows when details exist.
     Service:
       allOf:
         - $ref: "#/components/schemas/ServiceSummary"
@@ -2592,6 +3300,15 @@ components:
         title:
           type: string
           nullable: true
+        slug:
+          type: string
+          nullable: true
+          description: >
+            Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments
+            (e.g. spring-workshop). Stored normalized to lowercase.
+        landing_page:
+          type: string
+          nullable: true
         description:
           type: string
           nullable: true
@@ -2676,6 +3393,15 @@ components:
             calendly_event_url:
               type: string
               nullable: true
+        parent_service_title:
+          type: string
+          nullable: true
+          description: Parent service title (present on cross-service list responses).
+        parent_service_type:
+          nullable: true
+          description: Parent service type (present on cross-service list responses).
+          allOf:
+            - $ref: "#/components/schemas/ServiceType"
     InstanceListResponse:
       type: object
       required: [items, total_count]
@@ -3165,6 +3891,13 @@ components:
         code:
           type: string
           nullable: true
+        sovereign_country_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            FK to the sovereign country row (e.g. HK → China) for geocoding
+            ``countrycodes`` composition.
         active:
           type: boolean
         display_order:
@@ -3187,6 +3920,10 @@ components:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         area_id:
           type: string
           format: uuid
@@ -3220,6 +3957,7 @@ components:
       type: object
       required:
         - items
+        - total_count
       properties:
         items:
           type: array
@@ -3227,6 +3965,38 @@ components:
             $ref: "#/components/schemas/Location"
         next_cursor:
           type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total number of locations matching the current filters (not page size).
+    GeocodeLocationRequest:
+      type: object
+      required:
+        - area_id
+        - address
+      properties:
+        area_id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          maxLength: 500
+    GeocodeLocationResponse:
+      type: object
+      required:
+        - lat
+        - lng
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+        display_name:
+          type: string
+          description: Provider-resolved label for the top match.
           nullable: true
     CreateLocationRequest:
       type: object
@@ -3236,6 +4006,10 @@ components:
         area_id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         address:
           type: string
           maxLength: 500
@@ -3262,6 +4036,10 @@ components:
         area_id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         address:
           type: string
           maxLength: 500
@@ -3306,6 +4084,14 @@ components:
           type: string
           maxLength: 127
           nullable: true
+        content_language:
+          type: string
+          maxLength: 35
+          nullable: true
+          enum: [en, zh-CN, zh-HK]
+          description: >
+            BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN,
+            or zh-HK. Used by `GET /v1/assets/free` when filtering by `language`.
         visibility:
           type: string
           enum: [public, restricted]
@@ -3343,6 +4129,14 @@ components:
           type: string
           maxLength: 127
           nullable: true
+        content_language:
+          type: string
+          maxLength: 35
+          nullable: true
+          enum: [en, zh-CN, zh-HK]
+          description: >
+            BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN,
+            or zh-HK. Send null to clear.
         visibility:
           type: string
           enum: [public, restricted]
@@ -3651,6 +4445,665 @@ components:
       properties:
         reason:
           type: string
+    CrmContactType:
+      type: string
+      enum: [parent, child, helper, professional, other]
+    CrmRelationshipType:
+      type: string
+      enum: [prospect, client, past_client, partner, vendor, other]
+    CrmContactSource:
+      type: string
+      enum:
+        - free_guide
+        - newsletter
+        - contact_form
+        - reservation
+        - referral
+        - instagram
+        - whatsapp
+        - linkedin
+        - event
+        - phone_call
+        - public_website
+        - manual
+    CrmMailchimpSyncStatus:
+      type: string
+      enum: [pending, synced, failed, unsubscribed]
+    CrmFamilyRole:
+      type: string
+      enum: [parent, child, helper, guardian, other]
+    CrmOrganizationType:
+      type: string
+      enum: [school, company, community_group, ngo, other]
+    CrmOrganizationRole:
+      type: string
+      enum: [admin, staff, teacher, member, client, partner, other]
+    CrmTagRef:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          nullable: true
+    CrmTagListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmTagRef"
+    CrmPickerListItem:
+      type: object
+      required:
+        - id
+        - label
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+    CrmPickerListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmPickerListItem"
+    CrmLocationVenueSummary:
+      type: object
+      required:
+        - id
+        - area_id
+        - area_name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
+        area_id:
+          type: string
+          format: uuid
+        area_name:
+          type: string
+        address:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+    AdminContact:
+      type: object
+      required:
+        - id
+        - first_name
+        - contact_type
+        - relationship_type
+        - source
+        - mailchimp_status
+        - active
+        - tag_ids
+        - tags
+        - family_ids
+        - organization_ids
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          nullable: true
+        instagram_handle:
+          type: string
+          nullable: true
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        contact_type:
+          $ref: "#/components/schemas/CrmContactType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+          nullable: true
+        source:
+          $ref: "#/components/schemas/CrmContactSource"
+        source_detail:
+          type: string
+          nullable: true
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            When `source` is `referral`, the contact UUID of the referring contact
+            (stored in `source_metadata`).
+        mailchimp_status:
+          $ref: "#/components/schemas/CrmMailchimpSyncStatus"
+        active:
+          type: boolean
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmTagRef"
+        family_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        organization_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    AdminContactListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminContact"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+    AdminContactResponse:
+      type: object
+      required:
+        - contact
+      properties:
+        contact:
+          $ref: "#/components/schemas/AdminContact"
+    CreateAdminContactRequest:
+      type: object
+      required:
+        - first_name
+        - contact_type
+      properties:
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        instagram_handle:
+          type: string
+          maxLength: 30
+          nullable: true
+        phone:
+          type: string
+          maxLength: 30
+          nullable: true
+        contact_type:
+          $ref: "#/components/schemas/CrmContactType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        source:
+          $ref: "#/components/schemas/CrmContactSource"
+        source_detail:
+          type: string
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        family_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+          description: |
+            Optional. At most one family. Omit or send an empty array to unlink.
+        organization_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+          description: |
+            Optional. At most one organisation (non-vendor). Omit or send an empty array to unlink.
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Required when `source` is `referral` on create.
+    UpdateAdminContactRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        instagram_handle:
+          type: string
+          maxLength: 30
+          nullable: true
+        phone:
+          type: string
+          maxLength: 30
+          nullable: true
+        contact_type:
+          $ref: "#/components/schemas/CrmContactType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        source:
+          $ref: "#/components/schemas/CrmContactSource"
+        source_detail:
+          type: string
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        active:
+          type: boolean
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        family_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+        organization_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            When `source` is `referral`, must be set to a valid active contact UUID
+            (omit or null to clear only when source is not referral).
+    AdminFamilyMember:
+      type: object
+      required:
+        - id
+        - contact_id
+        - contact_label
+        - role
+        - is_primary_contact
+      properties:
+        id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+        contact_label:
+          type: string
+        role:
+          $ref: "#/components/schemas/CrmFamilyRole"
+        is_primary_contact:
+          type: boolean
+    AdminFamily:
+      type: object
+      required:
+        - id
+        - family_name
+        - relationship_type
+        - active
+        - tag_ids
+        - tags
+        - members
+      properties:
+        id:
+          type: string
+          format: uuid
+        family_name:
+          type: string
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+          nullable: true
+        active:
+          type: boolean
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmTagRef"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFamilyMember"
+    AdminFamilyListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFamily"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+    AdminFamilyResponse:
+      type: object
+      required:
+        - family
+      properties:
+        family:
+          $ref: "#/components/schemas/AdminFamily"
+    CreateAdminFamilyRequest:
+      type: object
+      required:
+        - family_name
+      properties:
+        family_name:
+          type: string
+          maxLength: 150
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    UpdateAdminFamilyRequest:
+      type: object
+      properties:
+        family_name:
+          type: string
+          maxLength: 150
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        active:
+          type: boolean
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    AddFamilyMemberRequest:
+      type: object
+      required:
+        - contact_id
+        - role
+      properties:
+        contact_id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/CrmFamilyRole"
+        is_primary_contact:
+          type: boolean
+    AdminOrganizationMember:
+      type: object
+      required:
+        - id
+        - contact_id
+        - contact_label
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+        contact_label:
+          type: string
+        role:
+          $ref: "#/components/schemas/CrmOrganizationRole"
+    AdminOrganization:
+      type: object
+      required:
+        - id
+        - name
+        - organization_type
+        - relationship_type
+        - active
+        - tag_ids
+        - tags
+        - members
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        organization_type:
+          $ref: "#/components/schemas/CrmOrganizationType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        website:
+          type: string
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+          nullable: true
+        active:
+          type: boolean
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmTagRef"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminOrganizationMember"
+    AdminOrganizationListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminOrganization"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+    AdminOrganizationResponse:
+      type: object
+      required:
+        - organization
+      properties:
+        organization:
+          $ref: "#/components/schemas/AdminOrganization"
+    CreateAdminOrganizationRequest:
+      type: object
+      required:
+        - name
+        - organization_type
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        organization_type:
+          $ref: "#/components/schemas/CrmOrganizationType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        website:
+          type: string
+          maxLength: 500
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    UpdateAdminOrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        organization_type:
+          $ref: "#/components/schemas/CrmOrganizationType"
+        relationship_type:
+          $ref: "#/components/schemas/CrmRelationshipType"
+        website:
+          type: string
+          maxLength: 500
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        active:
+          type: boolean
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    AddOrganizationMemberRequest:
+      type: object
+      required:
+        - contact_id
+        - role
+      properties:
+        contact_id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/CrmOrganizationRole"
     ActionMessageResponse:
       type: object
       required:

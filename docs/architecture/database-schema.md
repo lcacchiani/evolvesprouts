@@ -60,6 +60,9 @@ Columns:
 - `file_name` (varchar(255), required) — original filename
 - `resource_key` (varchar(64), optional) — normalized key for media form mapping
 - `content_type` (varchar(127), optional) — MIME type
+- `content_language` (varchar(35), optional) — BCP 47-style tag for file content
+  (e.g. `en`, `zh-HK`); admin create/update allow only `en`, `zh-CN`, and `zh-HK`;
+  public `GET /v1/assets/free` list filters accept any valid BCP 47-style tag
 - `visibility` (enum `asset_visibility`, required) — access level
 - `created_by` (varchar(128), required) — Cognito sub of uploader
 - `created_at` (timestamptz, default `now()`)
@@ -238,12 +241,14 @@ Constraints and indexes:
 - `inbound_emails_expense_id_idx` on `expense_id`
 - `set_updated_at()` trigger updates `updated_at` on write
 
-**Stable share links** (`/v1/assets/share/{token}`):
+**Stable share links** (tokens in `asset_share_links`; resolved via
+`/v1/assets/share/{token}` or `/v1/assets/email-download/{token}`):
 - A token in `asset_share_links.share_token` acts as a bearer capability.
 - Requests with a valid token resolve the asset and redirect to a fresh
   CloudFront-signed GET URL.
-- Requests are accepted only when Referer/Origin matches
-  `asset_share_links.allowed_domains`.
+- On `/v1/assets/share/{token}`, requests are accepted only when Referer/Origin
+  matches `asset_share_links.allowed_domains`. The email-download path skips
+  that check.
 - If the resolved asset has `visibility='restricted'`, the request must also
   include a valid Cognito bearer token.
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
@@ -261,6 +266,9 @@ Columns:
 - `name_translations` (jsonb, required, default `{}`)
 - `level` (text, required) — `country | region | city | district`
 - `code` (text, nullable) — ISO country code for country rows
+- `sovereign_country_id` (UUID, FK → geographic_areas.id, nullable, ON DELETE SET NULL)
+  — optional link from a territory country row to its sovereign country row (used when
+  composing geocoding `countrycodes`, e.g. HK + CN)
 - `active` (boolean, required, default `true`)
 - `display_order` (integer, required, default `0`)
 
@@ -279,6 +287,7 @@ and organizations.
 
 Columns:
 - `id` (UUID, PK, default `gen_random_uuid()`)
+- `name` (text, nullable) — display label for the venue/location
 - `area_id` (UUID, FK → geographic_areas.id, required)
 - `address` (text, nullable)
 - `lat` (numeric(9,6), nullable)
@@ -296,8 +305,14 @@ Indexes:
 - Purpose: canonical contact profile for CRM and campaign sync.
 - Key fields: `email`, `first_name`, `contact_type`, `source`,
   `mailchimp_status`.
+- `source_metadata` (jsonb, nullable) may hold structured source data; the admin
+  API stores `referral_contact_id` (UUID string) when `source = referral`.
 - Key indexes: case-insensitive unique email/instagram indexes and source/type
   indexes.
+- Admin API rule: a contact may belong to at most one family and at most one
+  non-vendor organisation at a time (via `family_members` /
+  `organization_members`). While linked, `contacts.location_id` is cleared so
+  address is maintained on the family or organisation record.
 
 ### `families` and `family_members`
 
@@ -355,6 +370,15 @@ Indexes:
 - `service_instances` stores dated offerings linked to a `services` template.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
+- Optional public-site fields: `slug` (unique when set), `landing_page`
+  (marketing route key for the public website).
+- Eventbrite sync metadata is stored on `service_instances` so DB remains source
+  of truth while tracking downstream publish state:
+  - `eventbrite_event_id`, `eventbrite_event_url`
+  - `eventbrite_sync_status` (`pending`, `syncing`, `synced`, `failed`)
+  - `eventbrite_last_synced_at`, `eventbrite_last_error`
+  - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
+    `eventbrite_retry_count`
 - Scheduling/detail tables:
   - `instance_session_slots` (time blocks + optional location)
   - `training_instance_details`

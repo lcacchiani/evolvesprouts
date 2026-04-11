@@ -1,6 +1,6 @@
 # Evolve Sprouts
 
-An app for searching and booking activities for children across Hong Kong and beyond.
+Supporting Hong Kong families to raise their children through positive education!
 
 ## AI agent rules
 

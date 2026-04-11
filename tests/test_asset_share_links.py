@@ -9,6 +9,8 @@ from app.api.assets import share_assets
 from app.api.assets.assets_common import signed_link_no_cache_headers
 from app.api.assets.share_links import (
     extract_request_source_domain,
+    build_configured_email_download_url,
+    build_configured_share_asset_url,
     build_share_link_url,
     generate_share_token,
     is_valid_share_token,
@@ -33,6 +35,28 @@ def test_build_share_link_url_prefers_configured_base(monkeypatch: Any) -> None:
     monkeypatch.setenv("ASSET_SHARE_LINK_BASE_URL", "https://share.example.com/")
     url = build_share_link_url(event={}, token="A" * 24)
     assert url == "https://share.example.com/v1/assets/share/" + ("A" * 24)
+
+
+def test_build_configured_share_asset_url_matches_configured_base(monkeypatch: Any) -> None:
+    monkeypatch.setenv("ASSET_SHARE_LINK_BASE_URL", "https://media.example.com")
+    url = build_configured_share_asset_url(share_token="C" * 24)
+    assert url == "https://media.example.com/v1/assets/share/" + ("C" * 24)
+
+
+def test_build_configured_share_asset_url_returns_none_without_base(monkeypatch: Any) -> None:
+    monkeypatch.delenv("ASSET_SHARE_LINK_BASE_URL", raising=False)
+    assert build_configured_share_asset_url(share_token="D" * 24) is None
+
+
+def test_build_configured_email_download_url_matches_configured_base(monkeypatch: Any) -> None:
+    monkeypatch.setenv("ASSET_SHARE_LINK_BASE_URL", "https://media.example.com")
+    url = build_configured_email_download_url(share_token="X" * 24)
+    assert url == "https://media.example.com/v1/assets/email-download/" + ("X" * 24)
+
+
+def test_build_configured_email_download_url_returns_none_without_base(monkeypatch: Any) -> None:
+    monkeypatch.delenv("ASSET_SHARE_LINK_BASE_URL", raising=False)
+    assert build_configured_email_download_url(share_token="Y" * 24) is None
 
 
 def test_build_share_link_url_derives_stage_prefix(monkeypatch: Any) -> None:

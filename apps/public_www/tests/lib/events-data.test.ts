@@ -94,10 +94,10 @@ function formatExpectedLandingPageEyebrowDate(
 describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
     expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www')).toBe(
-      'https://api.evolvesprouts.com/www/v1/calendar/events',
+      'https://api.evolvesprouts.com/www/v1/calendar/public',
     );
     expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www/')).toBe(
-      'https://api.evolvesprouts.com/www/v1/calendar/events',
+      'https://api.evolvesprouts.com/www/v1/calendar/public',
     );
     expect(resolveEventsApiUrl('api.evolvesprouts.com/www/')).toBe('');
     expect(resolveEventsApiUrl('   ')).toBe('');
@@ -474,7 +474,7 @@ describe('events-data', () => {
     expect(bookingEventContent).not.toBeNull();
     expect(bookingEventContent).toMatchObject({
       status: 'open',
-      spacesLeft: 6,
+      spacesLeft: 5,
       eyebrowDateLabel: formatExpectedLandingPageEyebrowDate('2026-04-06T02:00:00Z', 'en'),
       ctaPriceLabel: 'HK$350',
       bookingPayload: {
@@ -690,7 +690,7 @@ describe('events-data', () => {
     );
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.evolvesprouts.com/www/v1/calendar/events',
+      'https://api.evolvesprouts.com/www/v1/calendar/public',
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({

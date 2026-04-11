@@ -1,13 +1,17 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.0
+  version: 0.2.4
   description: |
     Public endpoint contract.
 
     This spec covers:
     - Public asset endpoints exposed by the backend API stack
-      (`/v1/assets/public*`).
+      (`/v1/assets/public*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
+      `/v1/assets/free`).
+    - Public free-asset listing for the website (`/v1/assets/free`, `/www/v1/assets/free`).
+    - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
+    - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -100,6 +104,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/assets/email-download/{token}:
+    parameters:
+      - $ref: "#/components/parameters/ShareToken"
+    get:
+      summary: Resolve stable asset share link for email
+      description: |
+        Same token resolution as `/v1/assets/share/{token}` but intended for
+        links opened from email clients: no Referer/Origin domain allowlist check.
+        API key is still required at API Gateway; CloudFront injects `x-api-key`.
+        If the linked asset is `restricted`, the request must include a valid
+        Cognito JWT in the `Authorization` header.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "302":
+          description: Redirect to signed download URL.
+          headers:
+            Location:
+              description: CloudFront-signed download URL.
+              schema:
+                type: string
+                format: uri
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Authentication required for restricted asset share links.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /v1/mailchimp/webhook:
     get:
       summary: Mailchimp webhook URL verification
@@ -151,10 +186,66 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /www/v1/calendar/events:
+  /v1/assets/free:
     get:
-      summary: List public website events
-      description: Event feed consumed by `apps/public_www`.
+      summary: List public free website assets
+      description: |
+        Lists **public** assets tagged `client_document` for the public website.
+        Optional `language` filters to assets whose `content_language` matches exactly
+        (BCP 47-style tag, e.g. `en`, `zh-HK`). Omitted `language` returns all matches,
+        including rows with null `content_language`.
+        Download files via `GET /v1/assets/public/{id}/download` (device attestation required).
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientResourceLanguage"
+        - $ref: "#/components/parameters/ListLimit"
+        - $ref: "#/components/parameters/ListCursor"
+      responses:
+        "200":
+          description: Client resource list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClientResourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /www/v1/assets/free:
+    get:
+      summary: List public free website assets (website proxy path)
+      description: Same as `GET /v1/assets/free` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientResourceLanguage"
+        - $ref: "#/components/parameters/ListLimit"
+        - $ref: "#/components/parameters/ListCursor"
+      responses:
+        "200":
+          description: Client resource list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClientResourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/calendar/public:
+    get:
+      summary: List public calendar events
+      description: |
+        Event feed for public consumers (direct API).
+        Source of truth is the backend `service_instances` projection for
+        `service_type=event` services.
       security:
         - ApiKeyAuth: []
       responses:
@@ -163,7 +254,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventsResponse"
+                $ref: "#/components/schemas/PublicCalendarEventsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -171,7 +262,100 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /www/v1/calendar/public:
+    get:
+      summary: List public website events
+      description: |
+        Same as `GET /v1/calendar/public` for same-origin calls from `public_www`.
+        Source of truth is the backend `service_instances` projection for
+        `service_type=event` services.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Event list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCalendarEventsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/discounts/validate:
+    post:
+      summary: Validate discount code (native)
+      description: |
+        Validates an admin-managed discount code against Aurora (`discount_codes`).
+        Request and successful response shapes match the legacy bridge
+        `POST /www/v1/legacy/discounts/validate` so clients can migrate off the
+        legacy upstream without changing JSON contracts.
+
+        Validity window: when `valid_from` / `valid_until` are set on the code, validation
+        succeeds only while the server UTC instant is **on or after** `valid_from` and
+        **on or before** `valid_until` (both ends inclusive).
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountValidationRequest"
+      responses:
+        "200":
+          description: Discount validation response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Code not found, inactive, expired, or fully used.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /www/v1/discounts/validate:
+    post:
+      summary: Validate discount code (native, website proxy path)
+      description: |
+        Same as `POST /v1/discounts/validate` for same-origin calls from `public_www`.
+        Validity window boundaries are inclusive on both `valid_from` and `valid_until` (UTC).
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountValidationRequest"
+      responses:
+        "200":
+          description: Discount validation response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Code not found, inactive, expired, or fully used.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/legacy/discounts/validate:
     post:
       summary: Validate discount code
       description: Validate a discount code for the public booking flow.
@@ -201,10 +385,16 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /www/v1/reservations:
+  /www/v1/legacy/reservations:
     post:
       summary: Submit reservation
-      description: Submit a public reservation request from `public_www`.
+      description: |
+        Submit a public reservation request from `public_www`.
+
+        On successful upstream acceptance (HTTP 200/202), the API also sends a
+        transactional booking confirmation email via SES to the attendee when
+        configured. Optional marketing opt-in may enqueue a Mailchimp audience
+        update; marketing failures do not change the HTTP response.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -264,10 +454,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /www/v1/contact-us:
+  /www/v1/legacy/contact-us:
     post:
       summary: Submit contact-us form
-      description: Submit a contact-us message from `public_www`.
+      description: |
+        Submit a contact-us message from `public_www`.
+
+        On successful upstream acceptance (HTTP 200/202), the API also sends a
+        transactional confirmation email via SES when configured. Optional
+        marketing opt-in may enqueue a Mailchimp audience update; marketing
+        failures do not change the HTTP response. Locale for the confirmation
+        email is derived from the `Accept-Language` header when possible.
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -294,10 +491,49 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /www/v1/media-request:
+  /v1/assets/free/request:
     post:
-      summary: Submit media request
-      description: Submit a media lead form from `public_www`.
+      summary: Submit media request (direct API path)
+      description: |
+        Submit a media lead form. Routed on the public website via CloudFront
+        as `POST /www/v1/assets/free/request` (execute-api origin).
+
+        The download link is delivered by SES (templated email). During a
+        transition period, Mailchimp may still mirror legacy journey delivery
+        unless consent gating is enabled in deployment configuration.
+      security:
+        - ApiKeyAuth: []
+          TurnstileToken: []
+      parameters:
+        - $ref: "#/components/parameters/TurnstileTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaRequestSubmissionRequest"
+      responses:
+        "202":
+          description: Media request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/assets/free/request:
+    post:
+      summary: Submit media request (website proxy path)
+      description: Same as `POST /v1/assets/free/request` for same-origin calls from `public_www`.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -371,6 +607,33 @@ components:
       schema:
         type: string
       description: Shared secret token configured for Mailchimp webhook requests.
+    ClientResourceLanguage:
+      name: language
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 35
+      description: |
+        Filter to assets whose `content_language` equals this tag (e.g. `en`, `zh-HK`).
+        When omitted, all matching public client resources are returned.
+    ListLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Page size (default 25).
+    ListCursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Pagination cursor from the previous response's `next_cursor`.
 
   responses:
     BadRequest:
@@ -437,6 +700,43 @@ components:
         next_cursor:
           type: string
           nullable: true
+    PublicClientResource:
+      type: object
+      required:
+        - title
+        - asset_type
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        resource_key:
+          type: string
+          nullable: true
+        content_language:
+          type: string
+          nullable: true
+          description: BCP 47-style language tag for file content (e.g. en, zh-HK).
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    PublicClientResourceListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicClientResource"
+        next_cursor:
+          type: string
+          nullable: true
     PublicAssetDownloadResponse:
       type: object
       required:
@@ -463,12 +763,103 @@ components:
         detail:
           type: string
           nullable: true
-    EventsResponse:
+    PublicCalendarEventDate:
       type: object
-      additionalProperties: true
-      description: |
-        Event payload consumed by `apps/public_www/src/lib/events-data.ts`.
-        The frontend normalizes multiple possible response shapes.
+      required:
+        - id
+        - start_datetime
+        - end_datetime
+      properties:
+        id:
+          type: string
+        start_datetime:
+          type: string
+          format: date-time
+        end_datetime:
+          type: string
+          format: date-time
+    PublicCalendarEvent:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - booking_status
+        - booking_system
+        - location
+        - dates
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [open, completed, cancelled]
+        booking_status:
+          type: string
+          enum: [open, fully_booked]
+        booking_system:
+          type: string
+        location:
+          type: string
+          enum: [virtual, physical]
+        location_name:
+          type: string
+          nullable: true
+        location_address:
+          type: string
+          nullable: true
+        location_url:
+          type: string
+        external_url:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        slug:
+          type: string
+          nullable: true
+        landing_page:
+          type: string
+          nullable: true
+        spaces_total:
+          type: integer
+          nullable: true
+        spaces_left:
+          type: integer
+          nullable: true
+        dates:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarEventDate"
+    PublicCalendarEventsResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarEvent"
     DiscountValidationRequest:
       type: object
       required:
@@ -479,6 +870,13 @@ components:
           maxLength: 100
     DiscountRule:
       type: object
+      additionalProperties: false
+      required:
+        - code
+        - amount
+        - is_percentage
+        - currency_code
+        - currency_symbol
       properties:
         code:
           type: string
@@ -497,7 +895,12 @@ components:
           nullable: true
     DiscountValidationResponse:
       type: object
-      additionalProperties: true
+      additionalProperties: false
+      required:
+        - valid
+        - is_valid
+        - data
+        - discount
       properties:
         valid:
           type: boolean
@@ -522,6 +925,7 @@ components:
         - price
         - reservation_pending_until_payment_confirmed
         - agreed_to_terms_and_conditions
+        - payment_method
       properties:
         full_name:
           type: string
@@ -552,10 +956,43 @@ components:
           type: boolean
         agreed_to_terms_and_conditions:
           type: boolean
+        payment_method:
+          type: string
+          description: >
+            How the attendee will pay. Values match the public booking modal
+            (FPS QR, bank transfer, or Stripe).
+          enum:
+            - fps_qr
+            - bank_transfer
+            - stripe
         stripe_payment_intent_id:
           type: string
           description: Required when payment method is Stripe/card-wallet flow.
           pattern: '^pi_[A-Za-z0-9]+$'
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, subscribe the attendee to marketing (Mailchimp) with a booking tag.
+        locale:
+          type: string
+          description: Public website locale for SES booking confirmation template selection.
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
+        course_label:
+          type: string
+          maxLength: 500
+          description: Human-readable course or event title for confirmation email context.
+        schedule_date_label:
+          type: string
+          maxLength: 500
+        schedule_time_label:
+          type: string
+          maxLength: 500
+        location_name:
+          type: string
+          maxLength: 500
     ReservationPaymentIntentRequest:
       type: object
       required:
@@ -589,6 +1026,7 @@ components:
     ContactUsSubmissionRequest:
       type: object
       required:
+        - first_name
         - email_address
         - message
       properties:
@@ -605,6 +1043,17 @@ components:
         message:
           type: string
           maxLength: 5000
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, subscribe the contact to marketing (Mailchimp) with a flow-specific tag.
+        locale:
+          type: string
+          description: Public website route locale for SES confirmation template selection (falls back to Accept-Language when omitted).
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
     MediaRequestSubmissionRequest:
       type: object
       required:
@@ -622,6 +1071,17 @@ components:
           type: string
           maxLength: 200
           description: Optional free-resource identifier used for downstream CRM tagging.
+        marketing_opt_in:
+          type: boolean
+          default: false
+          description: When true, trigger the shared welcome marketing journey after subscribe (when configured).
+        locale:
+          type: string
+          description: Public website locale for SES template selection.
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
     MailchimpWebhookRequest:
       type: object
       required:

@@ -603,6 +603,8 @@ export interface paths {
                     limit?: number;
                     cursor?: string;
                     area_id?: string;
+                    /** @description Case-insensitive substring match on location name or address. */
+                    search?: string;
                 };
                 header?: never;
                 path?: never;
@@ -651,6 +653,77 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/locations/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Geocode a venue address
+         * @description Resolves latitude and longitude using OpenStreetMap's public geocoder via
+         *     the AWS HTTP proxy. The free-text query uses the submitted address with
+         *     unit/floor prefixes removed through the first comma-separated segment
+         *     that contains ``/F`` (case-insensitive), e.g. ``G/F`` or ``5/F``. District
+         *     and country names from the
+         *     geographic area are not appended. The ``countrycodes`` query parameter is
+         *     built from the root area ISO code plus the sovereign country row's code
+         *     when ``sovereign_country_id`` is set (see ``GET /v1/admin/geographic-areas``).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GeocodeLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Geocoding result. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GeocodeLocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Geocoding provider or proxy error. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Geocoding is not configured (for example missing proxy or headers). */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -809,6 +882,48 @@ export interface paths {
             requestBody?: never;
             responses: {
                 /** @description Admin user list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminUserListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/instructors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List instructor users
+         * @description Returns users in the instructor Cognito group for service instance assignment.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Instructor user list response. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1182,6 +1297,57 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List service instances across services
+         * @description Returns instances from all services, optionally filtered by `service_type`
+         *     and/or `service_id`. Omit both filters to include every instance type.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    status?: components["schemas"]["InstanceStatus"];
+                    /** @description When set, only instances for this service UUID. */
+                    service_id?: string;
+                    /** @description When set, only instances whose parent service has this type. */
+                    service_type?: components["schemas"]["ServiceType"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service instance list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1829,6 +1995,813 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/contacts/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List CRM tags for pickers
+         * @description Returns all tags sorted by name for contact/family/organization editors.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmTagListResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search CRM contacts for pickers
+         * @description Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+         *     Requires at least two characters in `query`. Intended for referral and other admin pickers.
+         */
+        get: {
+            parameters: {
+                query: {
+                    query: string;
+                    /** @description Omit this contact from results (e.g. the subject contact when choosing a referrer). */
+                    exclude_contact_id?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matching contacts as id/label rows. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List CRM contacts */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Search first name, last name, email, phone, or Instagram handle. */
+                    query?: string;
+                    active?: boolean;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Contact list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminContactListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create CRM contact */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminContactRequest"];
+                };
+            };
+            responses: {
+                /** @description Contact created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminContactResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM contact identifier. */
+                id: components["parameters"]["AdminContactId"];
+            };
+            cookie?: never;
+        };
+        /** Get CRM contact */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Contact response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminContactResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update CRM contact */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminContactRequest"];
+                };
+            };
+            responses: {
+                /** @description Contact response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminContactResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/families/picker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active CRM families for pickers
+         * @description Returns active families ordered by name for admin UI dropdowns.
+         *     At most 100 rows unless `limit` is set lower.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Picker list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/families": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List CRM families */
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    active?: boolean;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Family list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create CRM family */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminFamilyRequest"];
+                };
+            };
+            responses: {
+                /** @description Family created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/families/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM family identifier. */
+                id: components["parameters"]["AdminFamilyId"];
+            };
+            cookie?: never;
+        };
+        /** Get CRM family */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Family response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update CRM family */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminFamilyRequest"];
+                };
+            };
+            responses: {
+                /** @description Family response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/families/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM family identifier. */
+                id: components["parameters"]["AdminFamilyId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add family member */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddFamilyMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Family with updated members. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/families/{id}/members/{memberId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM family identifier. */
+                id: components["parameters"]["AdminFamilyId"];
+                /** @description Family membership row identifier. */
+                memberId: components["parameters"]["AdminFamilyMemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove family member */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                    /** @description Family membership row identifier. */
+                    memberId: components["parameters"]["AdminFamilyMemberId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Family with updated members. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/picker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active CRM organisations for pickers
+         * @description Returns active non-vendor organisations ordered by name for admin UI dropdowns.
+         *     At most 100 rows unless `limit` is set lower.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Picker list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List CRM organizations
+         * @description Lists organizations excluding vendors (vendors are under Finance).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    active?: boolean;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create CRM organization */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminOrganizationRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM organization identifier. */
+                id: components["parameters"]["AdminOrganizationId"];
+            };
+            cookie?: never;
+        };
+        /** Get CRM organization */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update CRM organization */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminOrganizationRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/organizations/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM organization identifier. */
+                id: components["parameters"]["AdminOrganizationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add organization member */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddOrganizationMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization with updated members. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{id}/members/{memberId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM organization identifier. */
+                id: components["parameters"]["AdminOrganizationId"];
+                /** @description Organization membership row identifier. */
+                memberId: components["parameters"]["AdminOrganizationMemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove organization member */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                    /** @description Organization membership row identifier. */
+                    memberId: components["parameters"]["AdminOrganizationMemberId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization with updated members. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/vendors": {
         parameters: {
             query?: never;
@@ -2441,6 +3414,8 @@ export interface components {
             s3_key: string;
             file_name: string;
             content_type?: string | null;
+            /** @description BCP 47-style tag for the language of the file content. Admin create/update accepts only en, zh-CN, or zh-HK (null clears). Public list filters accept any valid BCP 47-style tag. */
+            content_language?: string | null;
             /** @description Optional normalized key used to map public media submissions to this asset. */
             resource_key?: string | null;
             /** @enum {string} */
@@ -2691,6 +3666,8 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+            /** @description Present for training_course rows when details exist. */
+            training_details?: components["schemas"]["ServiceTrainingDetails"] | null;
         };
         Service: components["schemas"]["ServiceSummary"] & {
             tag_ids?: string[];
@@ -2785,6 +3762,9 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
+            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
+            slug?: string | null;
+            landing_page?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status: components["schemas"]["InstanceStatus"];
@@ -2819,6 +3799,10 @@ export interface components {
                 package_sessions?: number | null;
                 calendly_event_url?: string | null;
             } | null;
+            /** @description Parent service title (present on cross-service list responses). */
+            parent_service_title?: string | null;
+            /** @description Parent service type (present on cross-service list responses). */
+            parent_service_type?: components["schemas"]["ServiceType"] | null;
         };
         InstanceListResponse: {
             items: components["schemas"]["ServiceInstance"][];
@@ -3033,6 +4017,11 @@ export interface components {
             /** @enum {string} */
             level: "country" | "region" | "city" | "district";
             code?: string | null;
+            /**
+             * Format: uuid
+             * @description FK to the sovereign country row (e.g. HK → China) for geocoding ``countrycodes`` composition.
+             */
+            sovereign_country_id?: string | null;
             active: boolean;
             display_order: number;
         };
@@ -3042,6 +4031,7 @@ export interface components {
         Location: {
             /** Format: uuid */
             id: string;
+            name?: string | null;
             /** Format: uuid */
             area_id: string;
             address?: string | null;
@@ -3060,10 +4050,26 @@ export interface components {
         LocationListResponse: {
             items: components["schemas"]["Location"][];
             next_cursor?: string | null;
+            /** @description Total number of locations matching the current filters (not page size). */
+            total_count: number;
+        };
+        GeocodeLocationRequest: {
+            /** Format: uuid */
+            area_id: string;
+            address: string;
+        };
+        GeocodeLocationResponse: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+            /** @description Provider-resolved label for the top match. */
+            display_name?: string | null;
         };
         CreateLocationRequest: {
             /** Format: uuid */
             area_id: string;
+            name?: string | null;
             address?: string | null;
             /** Format: double */
             lat?: number | null;
@@ -3074,6 +4080,7 @@ export interface components {
         PartialUpdateLocationRequest: {
             /** Format: uuid */
             area_id?: string;
+            name?: string | null;
             address?: string | null;
             /** Format: double */
             lat?: number | null;
@@ -3088,6 +4095,11 @@ export interface components {
             file_name: string;
             resource_key?: string | null;
             content_type?: string | null;
+            /**
+             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Used by `GET /v1/assets/free` when filtering by `language`.
+             * @enum {string|null}
+             */
+            content_language?: "en" | "zh-CN" | "zh-HK" | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
             /**
@@ -3105,6 +4117,11 @@ export interface components {
             file_name?: string;
             resource_key?: string | null;
             content_type?: string | null;
+            /**
+             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Send null to clear.
+             * @enum {string|null}
+             */
+            content_language?: "en" | "zh-CN" | "zh-HK" | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
             /**
@@ -3237,6 +4254,262 @@ export interface components {
         CancelExpenseRequest: {
             reason: string;
         };
+        /** @enum {string} */
+        CrmContactType: "parent" | "child" | "helper" | "professional" | "other";
+        /** @enum {string} */
+        CrmRelationshipType: "prospect" | "client" | "past_client" | "partner" | "vendor" | "other";
+        /** @enum {string} */
+        CrmContactSource: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | "manual";
+        /** @enum {string} */
+        CrmMailchimpSyncStatus: "pending" | "synced" | "failed" | "unsubscribed";
+        /** @enum {string} */
+        CrmFamilyRole: "parent" | "child" | "helper" | "guardian" | "other";
+        /** @enum {string} */
+        CrmOrganizationType: "school" | "company" | "community_group" | "ngo" | "other";
+        /** @enum {string} */
+        CrmOrganizationRole: "admin" | "staff" | "teacher" | "member" | "client" | "partner" | "other";
+        CrmTagRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            color?: string | null;
+        };
+        CrmTagListResponse: {
+            items: components["schemas"]["CrmTagRef"][];
+        };
+        CrmPickerListItem: {
+            /** Format: uuid */
+            id: string;
+            label: string;
+        };
+        CrmPickerListResponse: {
+            items: components["schemas"]["CrmPickerListItem"][];
+        };
+        CrmLocationVenueSummary: {
+            /** Format: uuid */
+            id: string;
+            name?: string | null;
+            /** Format: uuid */
+            area_id: string;
+            area_name: string;
+            address?: string | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+        };
+        AdminContact: {
+            /** Format: uuid */
+            id: string;
+            email?: string | null;
+            instagram_handle?: string | null;
+            first_name: string;
+            last_name?: string | null;
+            phone?: string | null;
+            contact_type: components["schemas"]["CrmContactType"];
+            relationship_type: components["schemas"]["CrmRelationshipType"];
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
+            source: components["schemas"]["CrmContactSource"];
+            source_detail?: string | null;
+            /**
+             * Format: uuid
+             * @description When `source` is `referral`, the contact UUID of the referring contact
+             *     (stored in `source_metadata`).
+             */
+            referral_contact_id?: string | null;
+            mailchimp_status: components["schemas"]["CrmMailchimpSyncStatus"];
+            active: boolean;
+            /** Format: date-time */
+            archived_at?: string | null;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            tag_ids: string[];
+            tags: components["schemas"]["CrmTagRef"][];
+            family_ids: string[];
+            organization_ids: string[];
+        };
+        AdminContactListResponse: {
+            items: components["schemas"]["AdminContact"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        AdminContactResponse: {
+            contact: components["schemas"]["AdminContact"];
+        };
+        CreateAdminContactRequest: {
+            first_name: string;
+            last_name?: string | null;
+            email?: string | null;
+            instagram_handle?: string | null;
+            phone?: string | null;
+            contact_type: components["schemas"]["CrmContactType"];
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            source?: components["schemas"]["CrmContactSource"];
+            source_detail?: string | null;
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            tag_ids?: string[];
+            /** @description Optional. At most one family. Omit or send an empty array to unlink. */
+            family_ids?: string[];
+            /** @description Optional. At most one organisation (non-vendor). Omit or send an empty array to unlink. */
+            organization_ids?: string[];
+            /**
+             * Format: uuid
+             * @description Required when `source` is `referral` on create.
+             */
+            referral_contact_id?: string | null;
+        };
+        UpdateAdminContactRequest: {
+            first_name?: string;
+            last_name?: string | null;
+            email?: string | null;
+            instagram_handle?: string | null;
+            phone?: string | null;
+            contact_type?: components["schemas"]["CrmContactType"];
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            source?: components["schemas"]["CrmContactSource"];
+            source_detail?: string | null;
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            active?: boolean;
+            tag_ids?: string[];
+            family_ids?: string[];
+            organization_ids?: string[];
+            /**
+             * Format: uuid
+             * @description When `source` is `referral`, must be set to a valid active contact UUID
+             *     (omit or null to clear only when source is not referral).
+             */
+            referral_contact_id?: string | null;
+        };
+        AdminFamilyMember: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contact_id: string;
+            contact_label: string;
+            role: components["schemas"]["CrmFamilyRole"];
+            is_primary_contact: boolean;
+        };
+        AdminFamily: {
+            /** Format: uuid */
+            id: string;
+            family_name: string;
+            relationship_type: components["schemas"]["CrmRelationshipType"];
+            /** Format: uuid */
+            location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
+            active: boolean;
+            /** Format: date-time */
+            archived_at?: string | null;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            tag_ids: string[];
+            tags: components["schemas"]["CrmTagRef"][];
+            members: components["schemas"]["AdminFamilyMember"][];
+        };
+        AdminFamilyListResponse: {
+            items: components["schemas"]["AdminFamily"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        AdminFamilyResponse: {
+            family: components["schemas"]["AdminFamily"];
+        };
+        CreateAdminFamilyRequest: {
+            family_name: string;
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            /** Format: uuid */
+            location_id?: string | null;
+            tag_ids?: string[];
+        };
+        UpdateAdminFamilyRequest: {
+            family_name?: string;
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            /** Format: uuid */
+            location_id?: string | null;
+            active?: boolean;
+            tag_ids?: string[];
+        };
+        AddFamilyMemberRequest: {
+            /** Format: uuid */
+            contact_id: string;
+            role: components["schemas"]["CrmFamilyRole"];
+            is_primary_contact?: boolean;
+        };
+        AdminOrganizationMember: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contact_id: string;
+            contact_label: string;
+            role: components["schemas"]["CrmOrganizationRole"];
+        };
+        AdminOrganization: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            organization_type: components["schemas"]["CrmOrganizationType"];
+            relationship_type: components["schemas"]["CrmRelationshipType"];
+            website?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
+            active: boolean;
+            /** Format: date-time */
+            archived_at?: string | null;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            tag_ids: string[];
+            tags: components["schemas"]["CrmTagRef"][];
+            members: components["schemas"]["AdminOrganizationMember"][];
+        };
+        AdminOrganizationListResponse: {
+            items: components["schemas"]["AdminOrganization"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        AdminOrganizationResponse: {
+            organization: components["schemas"]["AdminOrganization"];
+        };
+        CreateAdminOrganizationRequest: {
+            name: string;
+            organization_type: components["schemas"]["CrmOrganizationType"];
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            website?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            tag_ids?: string[];
+        };
+        UpdateAdminOrganizationRequest: {
+            name?: string;
+            organization_type?: components["schemas"]["CrmOrganizationType"];
+            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            website?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            active?: boolean;
+            tag_ids?: string[];
+        };
+        AddOrganizationMemberRequest: {
+            /** Format: uuid */
+            contact_id: string;
+            role: components["schemas"]["CrmOrganizationRole"];
+        };
         ActionMessageResponse: {
             message: string;
         };
@@ -3301,6 +4574,16 @@ export interface components {
         DiscountCodeId: string;
         /** @description Vendor identifier. */
         VendorId: string;
+        /** @description CRM contact identifier. */
+        AdminContactId: string;
+        /** @description CRM family identifier. */
+        AdminFamilyId: string;
+        /** @description Family membership row identifier. */
+        AdminFamilyMemberId: string;
+        /** @description CRM organization identifier. */
+        AdminOrganizationId: string;
+        /** @description Organization membership row identifier. */
+        AdminOrganizationMemberId: string;
         /** @description Expense identifier. */
         ExpenseId: string;
     };

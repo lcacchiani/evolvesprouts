@@ -5,6 +5,7 @@ import { StatusBanner } from '@/components/status-banner';
 import { useServicesPage } from '@/hooks/use-services-page';
 
 import { DiscountCodesPanel } from './discount-codes-panel';
+import { VenuesPanel } from './venues-panel';
 import { EnrollmentListPanel } from './enrollment-list-panel';
 import { InstanceDetailPanel } from './instance-detail-panel';
 import { InstanceListPanel } from './instance-list-panel';
@@ -14,6 +15,28 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
+  const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
+  const filteredInstances =
+    state.activeView === 'instances' && normalizedInstanceSearch
+      ? state.instanceList.instances.filter((instance) => {
+          const searchable = [
+            instance.resolvedTitle,
+            instance.title,
+            instance.parentServiceTitle,
+            instance.instructorId,
+            instance.status,
+          ]
+            .filter((value): value is string => Boolean(value))
+            .join(' ')
+            .toLowerCase();
+          return searchable.includes(normalizedInstanceSearch);
+        })
+      : state.instanceList.instances;
+  const instancesContextServiceId =
+    state.activeView === 'instances'
+      ? (state.selectedInstance?.serviceId ?? state.selectedServiceId)
+      : state.selectedServiceId;
+  const allServiceOptions = state.serviceList.services;
   const selectedServiceDetail =
     state.selectedServiceId && state.serviceDetail.service?.id === state.selectedServiceId
       ? state.serviceDetail.service
@@ -29,7 +52,8 @@ export function ServicesPage() {
     state.instanceMutations.error ||
     state.enrollmentList.error ||
     state.enrollmentMutations.error ||
-    state.discountCodes.error;
+    state.discountCodes.error ||
+    state.venues.error;
 
   return (
     <div className='space-y-4'>
@@ -88,29 +112,42 @@ export function ServicesPage() {
               await state.serviceMutations.deleteServiceEntry(serviceId);
             }}
           />
+        </>
+      ) : state.activeView === 'instances' ? (
+        <>
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
-            serviceType={state.selectedService?.serviceType ?? null}
+            selectedServiceId={instancesContextServiceId}
+            serviceOptions={allServiceOptions}
+            locationOptions={state.locationList.locations}
+            isLoadingLocations={state.locationList.isLoading}
+            serviceType={
+              state.selectedInstance?.parentServiceType ??
+              state.selectedService?.serviceType ??
+              null
+            }
             isLoading={state.instanceMutations.isLoading}
             error={state.instanceMutations.error}
+            locationError={state.locationList.error}
+            onSelectService={state.setSelectedServiceId}
             onCancelSelection={() => state.setSelectedInstanceId(null)}
-            onCreate={async (payload) => {
-              if (!state.selectedServiceId) {
+            onCreate={async (serviceId, payload) => {
+              if (!serviceId) {
                 return;
               }
-              await state.instanceMutations.createInstanceEntry(state.selectedServiceId, payload);
+              await state.instanceMutations.createInstanceEntry(serviceId, payload);
               state.setSelectedInstanceId(null);
             }}
-            onUpdate={async (instanceId, payload) => {
-              if (!state.selectedServiceId) {
+            onUpdate={async (serviceId, instanceId, payload) => {
+              if (!serviceId) {
                 return;
               }
-              await state.instanceMutations.updateInstanceEntry(state.selectedServiceId, instanceId, payload);
+              await state.instanceMutations.updateInstanceEntry(serviceId, instanceId, payload);
             }}
           />
           <InstanceListPanel
-            instances={state.instanceList.instances}
+            instances={filteredInstances}
             selectedInstanceId={state.selectedInstanceId}
             isLoading={state.instanceList.isLoading}
             isLoadingMore={state.instanceList.isLoadingMore}
@@ -119,19 +156,31 @@ export function ServicesPage() {
             isMutating={state.instanceMutations.isLoading}
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
-            onDeleteInstance={async (instanceId) => {
-              if (!state.selectedServiceId) {
-                return;
-              }
+            showServiceColumn
+            showTypeColumn
+            searchFilter={{
+              value: state.instancesSearchQuery,
+              onChange: state.setInstancesSearchQuery,
+            }}
+            serviceTypeFilter={{
+              value: state.instancesServiceTypeFilter,
+              onChange: state.setInstancesServiceTypeFilter,
+            }}
+            serviceFilter={{
+              value: state.instancesServiceFilter,
+              options: allServiceOptions.map((s) => ({ id: s.id, title: s.title })),
+              onChange: state.setInstancesServiceFilter,
+            }}
+            onDeleteInstance={async (instanceId, serviceId) => {
               if (state.selectedInstanceId === instanceId) {
                 state.setSelectedInstanceId(null);
               }
-              await state.instanceMutations.deleteInstanceEntry(state.selectedServiceId, instanceId);
+              await state.instanceMutations.deleteInstanceEntry(serviceId, instanceId);
             }}
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
-            canCreate={Boolean(state.selectedServiceId && state.selectedInstanceId)}
+            canCreate={Boolean(instancesContextServiceId && state.selectedInstanceId)}
             isLoading={state.enrollmentList.isLoading}
             isLoadingMore={state.enrollmentList.isLoadingMore}
             hasMore={state.enrollmentList.hasMore}
@@ -139,39 +188,39 @@ export function ServicesPage() {
             isMutating={state.enrollmentMutations.isLoading}
             onLoadMore={state.enrollmentList.loadMore}
             onCreate={async (payload) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.createEnrollmentEntry(
-                state.selectedServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 payload
               );
             }}
             onUpdate={async (enrollmentId, payload) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.updateEnrollmentEntry(
-                state.selectedServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId,
                 payload
               );
             }}
             onDelete={async (enrollmentId) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.deleteEnrollmentEntry(
-                state.selectedServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId
               );
             }}
           />
         </>
-      ) : (
+      ) : state.activeView === 'discount-codes' ? (
         <DiscountCodesPanel
           codes={state.discountCodes.codes}
           filters={state.discountCodes.filters}
@@ -185,6 +234,23 @@ export function ServicesPage() {
           onCreate={state.discountCodes.createCode}
           onUpdate={state.discountCodes.updateCode}
           onDelete={state.discountCodes.deleteCode}
+        />
+      ) : (
+        <VenuesPanel
+          venues={state.venues.venues}
+          geographicAreas={state.venues.geographicAreas}
+          areasLoading={state.venues.areasLoading}
+          filters={state.venues.filters}
+          isLoading={state.venues.isLoading}
+          isLoadingMore={state.venues.isLoadingMore}
+          isSaving={state.venues.isSaving}
+          hasMore={state.venues.hasMore}
+          error={state.venues.error}
+          onFilterChange={state.venues.setFilter}
+          onLoadMore={state.venues.loadMore}
+          onCreate={state.venues.createVenue}
+          onUpdate={state.venues.updateVenue}
+          onDelete={state.venues.deleteVenue}
         />
       )}
     </div>

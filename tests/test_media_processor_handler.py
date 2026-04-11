@@ -135,37 +135,6 @@ def _patch_asset_repository(
     monkeypatch.setattr(handler, "AssetRepository", _FakeAssetRepository)
 
 
-def test_should_retry_mailchimp_sync_true_when_not_synced() -> None:
-    handler = _load_handler_module()
-    contact = _FakeContactForMailchimp(
-        mailchimp_status=MailchimpSyncStatus.FAILED,
-        mailchimp_subscriber_id=None,
-    )
-
-    assert handler._should_retry_mailchimp_sync(contact) is True
-
-
-def test_should_retry_mailchimp_sync_false_when_synced_with_subscriber_id() -> None:
-    handler = _load_handler_module()
-    contact = _FakeContactForMailchimp(
-        mailchimp_status=MailchimpSyncStatus.SYNCED,
-        mailchimp_subscriber_id="abc123",
-    )
-
-    assert handler._should_retry_mailchimp_sync(contact) is False
-
-
-class _FakeContactForMailchimp:
-    def __init__(
-        self,
-        *,
-        mailchimp_status: MailchimpSyncStatus,
-        mailchimp_subscriber_id: str | None,
-    ) -> None:
-        self.mailchimp_status = mailchimp_status
-        self.mailchimp_subscriber_id = mailchimp_subscriber_id
-
-
 def test_process_message_uses_keyword_session_for_contact_tag(
     monkeypatch: Any,
 ) -> None:
@@ -238,6 +207,13 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         ),
     )
     monkeypatch.setattr(handler, "_ensure_contact_tag", _fake_ensure_contact_tag)
+    monkeypatch.setattr(
+        handler,
+        "_ensure_share_link_url_for_asset",
+        lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
+    )
+    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
 
     was_processed = handler._process_message(
         {
@@ -253,3 +229,200 @@ def test_process_message_uses_keyword_session_for_contact_tag(
     assert isinstance(session_arg, _FakeSession)
     assert contact_id_arg == contact.id
     assert tag_name_arg == "public-www-media-sleep-routines-requested"
+
+
+def test_process_message_opt_in_skips_second_subscribe_when_mailchimp_synced(
+    monkeypatch: Any,
+) -> None:
+    handler = _load_handler_module()
+    contact = SimpleNamespace(
+        id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        email="parent@example.com",
+        mailchimp_status=MailchimpSyncStatus.SYNCED,
+        mailchimp_subscriber_id="subscriber-123",
+    )
+    existing_lead = SimpleNamespace(id=UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
+    subscribe_calls: list[dict[str, Any]] = []
+
+    class _FakeSession:
+        def __init__(self, _engine: Any):
+            self.committed = False
+
+        def __enter__(self) -> _FakeSession:
+            return self
+
+        def __exit__(self, _exc_type: Any, _exc: Any, _tb: Any) -> None:
+            return None
+
+        def commit(self) -> None:
+            self.committed = True
+
+    class _FakeContactRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def upsert_by_email(
+            self,
+            _email: str,
+            *,
+            first_name: str,
+            source: Any,
+            source_detail: str,
+            contact_type: Any,
+        ) -> tuple[Any, bool]:
+            _ = (first_name, source, source_detail, contact_type)
+            return contact, False
+
+    class _FakeSalesLeadRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def find_by_contact_and_asset(
+            self,
+            _contact_id: UUID,
+            _lead_type: Any,
+            _asset_id: UUID,
+        ) -> Any:
+            return existing_lead
+
+    def _fake_subscribe(**kwargs: Any) -> bool:
+        subscribe_calls.append(dict(kwargs))
+        return True
+
+    monkeypatch.setenv("MAILCHIMP_REQUIRE_MARKETING_CONSENT", "false")
+    monkeypatch.setattr(handler, "get_engine", lambda: object())
+    monkeypatch.setattr(handler, "Session", _FakeSession)
+    monkeypatch.setattr(handler, "ContactRepository", _FakeContactRepository)
+    monkeypatch.setattr(handler, "SalesLeadRepository", _FakeSalesLeadRepository)
+    monkeypatch.setattr(
+        handler,
+        "_resolve_media_resource",
+        lambda *, session, message: (
+            "sleep-routines",
+            UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            "public-www-media-sleep-routines-requested",
+            "Sleep Routines Guide",
+        ),
+    )
+    monkeypatch.setattr(handler, "_ensure_contact_tag", lambda **_: None)
+    monkeypatch.setattr(
+        handler,
+        "_ensure_share_link_url_for_asset",
+        lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
+    )
+    monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
+    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
+    monkeypatch.setattr(handler, "subscribe_to_marketing", _fake_subscribe)
+
+    handler._process_message(
+        {
+            "first_name": "Parent",
+            "email": "parent@example.com",
+            "submitted_at": "2026-03-03T03:14:00+00:00",
+            "marketing_opt_in": True,
+        }
+    )
+
+    assert len(subscribe_calls) == 1
+    assert subscribe_calls[0]["subscribe_member"] is False
+
+
+def test_process_message_require_consent_skips_mailchimp_without_opt_in(
+    monkeypatch: Any,
+) -> None:
+    handler = _load_handler_module()
+    contact = SimpleNamespace(
+        id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        email="parent@example.com",
+        mailchimp_status=MailchimpSyncStatus.SYNCED,
+        mailchimp_subscriber_id="subscriber-123",
+    )
+    sync_calls: list[Any] = []
+
+    class _FakeSession:
+        def __init__(self, _engine: Any):
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return self
+
+        def __exit__(self, _exc_type: Any, _exc: Any, _tb: Any) -> None:
+            return None
+
+        def commit(self) -> None:
+            return None
+
+    class _FakeContactRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def upsert_by_email(
+            self,
+            _email: str,
+            *,
+            first_name: str,
+            source: Any,
+            source_detail: str,
+            contact_type: Any,
+        ) -> tuple[Any, bool]:
+            _ = (first_name, source, source_detail, contact_type)
+            return contact, True
+
+    class _FakeSalesLeadRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def find_by_contact_and_asset(
+            self,
+            _contact_id: UUID,
+            _lead_type: Any,
+            _asset_id: UUID,
+        ) -> None:
+            return None
+
+        def create_with_event(self, *args: Any, **kwargs: Any) -> Any:
+            return SimpleNamespace(id=UUID("dddddddd-dddd-dddd-dddd-dddddddddddd"))
+
+    def _fake_sync(**kwargs: Any) -> bool:
+        sync_calls.append(kwargs)
+        return True
+
+    monkeypatch.setenv("MAILCHIMP_REQUIRE_MARKETING_CONSENT", "true")
+    monkeypatch.setattr(handler, "get_engine", lambda: object())
+    monkeypatch.setattr(handler, "Session", _FakeSession)
+    monkeypatch.setattr(handler, "ContactRepository", _FakeContactRepository)
+    monkeypatch.setattr(handler, "SalesLeadRepository", _FakeSalesLeadRepository)
+    monkeypatch.setattr(
+        handler,
+        "_resolve_media_resource",
+        lambda *, session, message: (
+            "sleep-routines",
+            UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            "public-www-media-sleep-routines-requested",
+            "Sleep Routines Guide",
+        ),
+    )
+    monkeypatch.setattr(handler, "_ensure_contact_tag", lambda **_: None)
+    monkeypatch.setattr(
+        handler,
+        "_ensure_share_link_url_for_asset",
+        lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
+    )
+    monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
+    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", _fake_sync)
+    monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
+    monkeypatch.setattr(handler, "_send_sales_notification", lambda **_: None)
+    monkeypatch.setattr(handler, "_create_sales_lead_event", lambda **_: None)
+    monkeypatch.setattr(handler, "subscribe_to_marketing", lambda **_: True)
+
+    handler._process_message(
+        {
+            "first_name": "Parent",
+            "email": "parent@example.com",
+            "submitted_at": "2026-03-03T03:14:00+00:00",
+            "marketing_opt_in": False,
+        }
+    )
+
+    assert sync_calls == []

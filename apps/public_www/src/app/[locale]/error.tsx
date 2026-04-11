@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 
-import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
+import { ErrorPageContent } from '@/components/shared/error-page-content';
 import { DEFAULT_LOCALE, getContent, isValidLocale, type Locale } from '@/content';
-import { reportInternalError } from '@/lib/internal-error-reporting';
 
 interface LocaleErrorPageProps {
   error: Error & { digest?: string };
@@ -25,27 +23,13 @@ export default function LocaleErrorPage({ error, reset }: LocaleErrorPageProps) 
   const locale = resolveLocaleFromParams(params);
   const content = getContent(locale);
 
-  useEffect(() => {
-    reportInternalError({
-      context: 'locale-error-boundary',
-      error,
-      metadata: { locale },
-    });
-  }, [error, locale]);
-
   return (
-    <main className='mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-4 px-6 py-16 text-center'>
-      <h1 className='text-3xl font-semibold es-text-heading'>{content.whoops.title}</h1>
-      <p className='max-w-xl text-base leading-7 es-text-body'>
-        {renderQuotedDescriptionText(content.whoops.description)}
-      </p>
-      <button
-        type='button'
-        onClick={reset}
-        className='es-focus-ring mt-2 inline-flex min-h-11 items-center justify-center rounded-control px-6 py-2 text-base font-semibold es-btn es-btn--primary'
-      >
-        {content.whoops.retryLabel}
-      </button>
-    </main>
+    <ErrorPageContent
+      locale={locale}
+      content={content}
+      error={error}
+      reset={reset}
+      reportingContext='locale-error-boundary'
+    />
   );
 }

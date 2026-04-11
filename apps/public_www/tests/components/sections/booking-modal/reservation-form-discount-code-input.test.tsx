@@ -59,4 +59,30 @@ describe('ReservationFormDiscountCodeInput', () => {
     expect(applyButton).toBeDisabled();
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid discount code');
   });
+
+  it('shows spinning gear while discount validation is in progress', () => {
+    render(
+      <ReservationFormDiscountCodeInput
+        content={enContent.bookingModal.paymentModal}
+        discountCode='SPRING10'
+        discountError=''
+        hasDiscountRule={false}
+        isDiscountValidationSubmitting
+        onDiscountCodeChange={vi.fn()}
+        onApplyDiscount={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: enContent.bookingModal.paymentModal.applyDiscountLoadingLabel,
+      }),
+    ).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByTestId('booking-discount-apply-loading-gear')).toHaveClass('animate-spin');
+    expect(
+      screen.queryByRole('button', {
+        name: enContent.bookingModal.paymentModal.applyDiscountLabel,
+      }),
+    ).toBeNull();
+  });
 });

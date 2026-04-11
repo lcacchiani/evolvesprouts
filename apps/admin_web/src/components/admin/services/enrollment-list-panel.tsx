@@ -13,7 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatDate, formatEnumLabel } from '@/lib/format';
+import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { Enrollment } from '@/types/services';
@@ -51,6 +51,7 @@ export function EnrollmentListPanel({
   onUpdate,
   onDelete,
 }: EnrollmentListPanelProps) {
+  const currencyOptions = getCurrencyOptions();
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
   const [contactId, setContactId] = useState('');
@@ -233,7 +234,17 @@ export function EnrollmentListPanel({
           </div>
           <div>
             <Label htmlFor='enrollment-currency'>Currency</Label>
-            <Input id='enrollment-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+            <Select
+              id='enrollment-currency'
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+            >
+              {currencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
           </div>
         </div>
         <div>

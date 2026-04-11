@@ -17,6 +17,7 @@ import type {
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import type { EventBookingModalPayload } from '@/lib/events-data';
+import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 const EventBookingModal = dynamic(
@@ -202,7 +203,9 @@ export function LandingPageBookingCtaAction({
                 cohort_label: selectedDateLabel,
               },
             });
-            trackMetaPixelEvent('InitiateCheckout', { content_name: slug });
+            trackMetaPixelEvent('InitiateCheckout', {
+              content_name: slug as MetaPixelContentName,
+            });
             setIsPaymentModalOpen(true);
           }}
         >

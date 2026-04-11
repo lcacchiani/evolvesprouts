@@ -43,6 +43,11 @@ repo root
   - Avoid: "I am modifying..."
 - S3 bucket names must be 63 characters or less.
 - Never hardcode secrets, API keys, passwords, or tokens.
+- For CDK-created AWS Secrets Manager resources (`new secretsmanager.Secret(...)`)
+  in `backend/infrastructure/**`, always set an explicit `secretName`.
+- `secretName` must use the format `${resourcePrefix}-<kebab-case-suffix>`.
+- The suffix must be lowercase letters/numbers with hyphens (`-`) as separators
+  (for example `openrouter-api-secret`), with no spaces, underscores, or camelCase.
 - Categorically ban hardcoded environment-specific values (for example domains,
   origins, base URLs, emails, ARNs, account IDs, region-specific endpoints, and
   deployment/runtime configuration). Derive them from parameters, environment
@@ -265,7 +270,7 @@ These rules are the product standard for admin UI consistency. Future changes
 should extend the shared primitives rather than reintroducing one-off layouts.
 
 - **Top-level navigation** in `apps/admin_web/src/app/page.tsx` must list areas
-  alphabetically: **Assets**, **Finance**, **Sales**, **Services**. The default
+  alphabetically: **Assets**, **Contacts**, **Finance**, **Sales**, **Services**. The default
   section after sign-in is **Finance** unless product requirements change.
 - **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
   must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`

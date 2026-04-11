@@ -14,7 +14,7 @@ vi.mock('@/lib/api-admin-client', async () => {
   };
 });
 
-import { createServiceCoverImageUpload, listServices } from '@/lib/services-api';
+import { createServiceCoverImageUpload, listLocations, listServices } from '@/lib/services-api';
 
 describe('services-api', () => {
   beforeEach(() => {
@@ -36,6 +36,11 @@ describe('services-api', () => {
             created_by: 'admin-1',
             created_at: '2026-03-01T00:00:00.000Z',
             updated_at: '2026-03-01T00:00:00.000Z',
+            training_details: {
+              pricing_unit: 'per_family',
+              default_price: '120.50',
+              default_currency: 'HKD',
+            },
           },
         ],
         next_cursor: 'cursor-1',
@@ -58,6 +63,11 @@ describe('services-api', () => {
       serviceType: 'training_course',
       deliveryMode: 'online',
       status: 'draft',
+      trainingDetails: {
+        pricingUnit: 'per_family',
+        defaultPrice: '120.50',
+        defaultCurrency: 'HKD',
+      },
     });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
@@ -111,5 +121,43 @@ describe('services-api', () => {
         },
       })
     );
+  });
+
+  it('parses venue coordinates from number or legacy string response', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'loc-1',
+            name: 'A',
+            area_id: '00000000-0000-0000-0000-000000000001',
+            address: '1 Rd',
+            lat: 22.3193,
+            lng: 114.1694,
+            created_at: null,
+            updated_at: null,
+          },
+          {
+            id: 'loc-2',
+            name: 'B',
+            area_id: '00000000-0000-0000-0000-000000000002',
+            address: '2 Rd',
+            lat: '33.3',
+            lng: '55.5',
+            created_at: null,
+            updated_at: null,
+          },
+        ],
+        next_cursor: null,
+        total_count: 2,
+      },
+    });
+
+    const result = await listLocations({ limit: 50 });
+
+    expect(result.items[0].lat).toBe(22.3193);
+    expect(result.items[0].lng).toBe(114.1694);
+    expect(result.items[1].lat).toBe(33.3);
+    expect(result.items[1].lng).toBe(55.5);
   });
 });

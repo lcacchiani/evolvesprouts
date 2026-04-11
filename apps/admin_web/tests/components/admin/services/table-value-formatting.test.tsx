@@ -19,11 +19,14 @@ const SERVICE_FIXTURE: ServiceSummary = {
   createdBy: 'admin-sub',
   createdAt: '2026-03-01T10:00:00Z',
   updatedAt: '2026-03-01T10:00:00Z',
+  trainingDetails: null,
 };
 
 const INSTANCE_FIXTURE: ServiceInstance = {
   id: 'instance-1',
   serviceId: 'service-1',
+  parentServiceTitle: null,
+  parentServiceType: null,
   title: null,
   description: null,
   coverImageS3Key: null,
@@ -137,6 +140,7 @@ describe('services tables value formatting', () => {
           onFilterChange={vi.fn()}
           onLoadMore={vi.fn()}
           onCreate={vi.fn()}
+          onUpdate={vi.fn()}
           onDelete={vi.fn()}
         />
       </>
@@ -144,7 +148,11 @@ describe('services tables value formatting', () => {
 
     const tables = screen.getAllByRole('table');
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
-    expect(within(tables[1] as HTMLElement).getByText('Percentage')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
+    const currencySelect = screen.getByLabelText('Currency');
+    expect(currencySelect.tagName).toBe('SELECT');
+    expect(currencySelect).toBeDisabled();
   });
 
   it('formats enum and date values in enrollment table rows', () => {

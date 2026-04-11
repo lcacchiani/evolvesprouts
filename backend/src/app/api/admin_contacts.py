@@ -1,0 +1,192 @@
+"""Admin CRM contacts API."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from app.api.admin_contacts_mutations import create_contact, update_contact
+from app.api.admin_crm_helpers import (
+    list_all_tags_for_picker,
+    parse_active_filter,
+    parse_crm_limit,
+    serialize_tag_ref,
+)
+from app.api.admin_crm_serializers import (
+    serialize_contact_picker_row,
+    serialize_contact_summary,
+)
+from app.api.admin_request import (
+    encode_cursor,
+    parse_cursor,
+    parse_uuid,
+    query_param,
+)
+from app.api.admin_services_payload_utils import parse_optional_uuid
+from app.api.admin_validators import validate_string_length
+from app.api.assets.assets_common import extract_identity, split_route_parts
+from app.db.engine import get_engine
+from app.db.repositories import ContactRepository
+from app.exceptions import NotFoundError, ValidationError
+from app.utils import json_response
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+_DEFAULT_LIMIT = 25
+
+
+def handle_admin_contacts_request(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> dict[str, Any]:
+    """Handle /v1/admin/contacts and /v1/admin/contacts/tags."""
+    logger.info(
+        "Handling admin CRM contacts route",
+        extra={"method": method, "path": path},
+    )
+    parts = split_route_parts(path)
+    if len(parts) < 2 or parts[0] != "admin" or parts[1] != "contacts":
+        return json_response(404, {"error": "Not found"}, event=event)
+
+    identity = extract_identity(event)
+    if not identity.user_sub:
+        raise ValidationError("Authenticated user is required", field="authorization")
+
+    if len(parts) == 3 and parts[2] == "tags":
+        if method == "GET":
+            return _list_contact_tags(event)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "search":
+        if method == "GET":
+            return _search_contacts_for_picker(event)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 2:
+        if method == "GET":
+            return _list_contacts(event)
+        if method == "POST":
+            return _create_contact(event, actor_sub=identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    contact_id = parse_uuid(parts[2])
+    if len(parts) == 3:
+        if method == "GET":
+            return _get_contact(event, contact_id=contact_id)
+        if method == "PATCH":
+            return _update_contact(
+                event, contact_id=contact_id, actor_sub=identity.user_sub
+            )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    return json_response(404, {"error": "Not found"}, event=event)
+
+
+def _search_contacts_for_picker(event: Mapping[str, Any]) -> dict[str, Any]:
+    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    raw_query = validate_string_length(
+        query_param(event, "query"),
+        "query",
+        max_length=255,
+        required=True,
+    )
+    if raw_query is None:
+        raise ValidationError("query is required", field="query")
+    query = raw_query.strip()
+    if len(query) < 2:
+        raise ValidationError("query must be at least 2 characters", field="query")
+    exclude_id = parse_optional_uuid(
+        query_param(event, "exclude_contact_id"), "exclude_contact_id"
+    )
+
+    with Session(get_engine()) as session:
+        repository = ContactRepository(session)
+        rows = repository.search_for_admin_picker(
+            limit=limit,
+            query=query,
+            active=True,
+        )
+        if exclude_id is not None:
+            rows = [r for r in rows if r.id != exclude_id]
+        return json_response(
+            200,
+            {"items": [serialize_contact_picker_row(r) for r in rows]},
+            event=event,
+        )
+
+
+def _list_contact_tags(event: Mapping[str, Any]) -> dict[str, Any]:
+    with Session(get_engine()) as session:
+        tags = list_all_tags_for_picker(session)
+        return json_response(
+            200,
+            {"items": [serialize_tag_ref(t) for t in tags]},
+            event=event,
+        )
+
+
+def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
+    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    cursor = parse_cursor(query_param(event, "cursor"))
+    query = validate_string_length(
+        query_param(event, "query"),
+        "query",
+        max_length=255,
+        required=False,
+    )
+    active = parse_active_filter(query_param(event, "active"))
+
+    with Session(get_engine()) as session:
+        repository = ContactRepository(session)
+        rows = repository.list_for_admin(
+            limit=limit + 1,
+            cursor=cursor,
+            query=query,
+            active=active,
+        )
+        has_more = len(rows) > limit
+        page_rows = rows[:limit]
+        next_cursor = (
+            encode_cursor(page_rows[-1].id) if has_more and page_rows else None
+        )
+        total_count = repository.count_for_admin(query=query, active=active)
+        return json_response(
+            200,
+            {
+                "items": [serialize_contact_summary(r) for r in page_rows],
+                "next_cursor": next_cursor,
+                "total_count": total_count,
+            },
+            event=event,
+        )
+
+
+def _get_contact(event: Mapping[str, Any], *, contact_id: UUID) -> dict[str, Any]:
+    with Session(get_engine()) as session:
+        repository = ContactRepository(session)
+        contact = repository.get_by_id_for_admin(contact_id)
+        if contact is None:
+            raise NotFoundError("Contact", str(contact_id))
+        return json_response(
+            200,
+            {"contact": serialize_contact_summary(contact)},
+            event=event,
+        )
+
+
+def _create_contact(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
+    return create_contact(event, actor_sub=actor_sub)
+
+
+def _update_contact(
+    event: Mapping[str, Any],
+    *,
+    contact_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    return update_contact(event, contact_id=contact_id, actor_sub=actor_sub)

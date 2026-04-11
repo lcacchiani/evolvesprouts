@@ -66,6 +66,9 @@ SOCIAL_FIELDS = (
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 SOCIAL_HANDLE_RE = re.compile(r"^@?[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+# Lowercase URL-safe slug: alphanumeric segments separated by single hyphens.
+SERVICE_INSTANCE_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+_MAX_SERVICE_INSTANCE_SLUG_LENGTH = 128
 
 
 @lru_cache(maxsize=1)
@@ -79,6 +82,30 @@ def _valid_currencies() -> frozenset[str]:
         if code:
             codes.add(code.upper())
     return frozenset(codes)
+
+
+def parse_optional_service_instance_slug(
+    value: Any, *, field: str = "slug"
+) -> str | None:
+    """Return a normalized lowercase slug or None; raises ValidationError if invalid."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        value = str(value)
+    trimmed = value.strip().lower()
+    if not trimmed:
+        return None
+    if len(trimmed) > _MAX_SERVICE_INSTANCE_SLUG_LENGTH:
+        raise ValidationError(
+            f"{field} must be at most {_MAX_SERVICE_INSTANCE_SLUG_LENGTH} characters",
+            field=field,
+        )
+    if not SERVICE_INSTANCE_SLUG_RE.fullmatch(trimmed):
+        raise ValidationError(
+            f"{field} must be lowercase letters, digits, and single hyphens between segments",
+            field=field,
+        )
+    return trimmed
 
 
 def validate_string_length(

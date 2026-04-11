@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { SmartLink } from '@/components/shared/smart-link';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 
 interface WhatsappContactButtonProps {
   href: string;
@@ -40,7 +41,7 @@ export function WhatsappContactButton({
           sectionId: 'whatsapp-contact-button',
           ctaLocation: 'floating_button',
         });
-        trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+        trackMetaPixelEvent('Contact', { content_name: PIXEL_CONTENT_NAME.whatsapp });
       }}
     >
       <Image

@@ -6,7 +6,6 @@ This module creates Stripe PaymentIntents for inline booking-modal payment.
 from __future__ import annotations
 
 import json
-import os
 from decimal import Decimal
 from decimal import InvalidOperation
 from typing import Any
@@ -17,6 +16,7 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
+from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key
 from app.services.turnstile import (
     extract_client_ip,
     extract_turnstile_token,
@@ -43,9 +43,9 @@ def handle_public_reservation_payment_intent(
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    stripe_secret_key = os.getenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "").strip()
+    stripe_secret_key = resolve_public_www_stripe_secret_key(event)
     if not stripe_secret_key:
-        logger.error("EVOLVESPROUTS_STRIPE_SECRET_KEY is not configured")
+        logger.error("Stripe secret key is not configured for this request context")
         return json_response(
             500,
             {"error": "Service configuration error. Please contact support."},
@@ -68,13 +68,14 @@ def handle_public_reservation_payment_intent(
         )
 
     body = parse_body(event)
+    if not isinstance(body, Mapping):
+        raise ValidationError("Request body must be a JSON object")
     payment_payload = _validate_payment_payload(body)
     amount_minor_units = _to_minor_units(payment_payload["price"])
 
     request_fields: dict[str, str] = {
         "amount": str(amount_minor_units),
         "currency": "hkd",
-        "automatic_payment_methods[enabled]": "true",
         "description": "Evolve Sprouts reservation payment",
         "metadata[cohort_age]": payment_payload["cohort_age"],
         "metadata[cohort_date]": payment_payload["cohort_date"],
@@ -82,11 +83,9 @@ def handle_public_reservation_payment_intent(
     discount_code = payment_payload.get("discount_code")
     if discount_code:
         request_fields["metadata[discount_code]"] = discount_code
-    payment_method_configuration_id = os.getenv(
-        "EVOLVESPROUTS_STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", ""
-    ).strip()
-    if payment_method_configuration_id:
-        request_fields["payment_method_configuration"] = payment_method_configuration_id
+    # Card-only PaymentIntent: no payment_method_configuration / automatic payment
+    # methods, so the Payment Element stays card entry only (no Google Pay / Apple Pay tabs).
+    request_fields["payment_method_types[0]"] = "card"
 
     try:
         stripe_response = http_invoke(
@@ -99,10 +98,10 @@ def handle_public_reservation_payment_intent(
             body=urlencode(request_fields),
             timeout=20,
         )
-    except AwsProxyError as exc:
+    except (AwsProxyError, RuntimeError) as exc:
         logger.warning(
             "Stripe payment intent request failed via proxy",
-            extra={"code": exc.code},
+            extra={"code": getattr(exc, "code", type(exc).__name__)},
         )
         return json_response(
             502,

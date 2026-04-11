@@ -110,9 +110,9 @@ vi.mock('@/components/sections/landing-pages/landing-page-details', () => ({
     </section>
   ),
 }));
-vi.mock('@/components/sections/deferred-testimonials', () => ({
-  DeferredTestimonials: ({ content }: { content: { title: string } }) => (
-    <section data-testid='deferred-testimonials'>{content.title}</section>
+vi.mock('@/components/sections/testimonials', () => ({
+  Testimonials: ({ content }: { content: { title: string } }) => (
+    <section data-testid='testimonials'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-faq', () => ({
@@ -163,7 +163,7 @@ describe('LandingPage composition', () => {
     expect(screen.getByTestId('landing-page-description')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-details')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-cta')).toBeInTheDocument();
-    expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
+    expect(screen.getByTestId('testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('about-us-ida-coach')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-faq')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-outline')).toHaveAttribute(
@@ -212,11 +212,11 @@ describe('LandingPage composition', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('landing-page-details').compareDocumentPosition(
-        screen.getByTestId('deferred-testimonials'),
+        screen.getByTestId('testimonials'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      screen.getByTestId('deferred-testimonials').compareDocumentPosition(
+      screen.getByTestId('testimonials').compareDocumentPosition(
         screen.getByTestId('landing-page-cta'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
