@@ -174,6 +174,18 @@ function buildUrlFromApiBase(apiBaseUrl, endpointPath) {
   return requestUrl.toString();
 }
 
+function applyQueryString(urlString, queryString) {
+  const trimmed = queryString?.trim() ?? '';
+  if (!trimmed) {
+    return urlString;
+  }
+
+  const requestUrl = new URL(urlString);
+  const normalizedQuery = trimmed.startsWith('?') ? trimmed.slice(1) : trimmed;
+  requestUrl.search = normalizedQuery;
+  return requestUrl.toString();
+}
+
 async function fetchWithTimeout(url, init, timeoutMs) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -385,6 +397,28 @@ function buildApiCases(turnstileToken) {
 
   return [
     {
+      name: 'public calendar feed endpoint',
+      method: 'GET',
+      proxyPath: '/www/v1/calendar/public',
+      directPath: '/v1/calendar/public',
+      apiBaseType: 'crm',
+      queryString: '',
+      allowedStatuses: new Set([200, 400, 403, 404]),
+      expectedStatuses: new Set([200]),
+      includeTurnstileHeader: false,
+    },
+    {
+      name: 'public free assets list endpoint',
+      method: 'GET',
+      proxyPath: '/www/v1/assets/free',
+      directPath: '/v1/assets/free',
+      apiBaseType: 'crm',
+      queryString: 'limit=100',
+      allowedStatuses: new Set([200, 400, 403, 404]),
+      expectedStatuses: new Set([200]),
+      includeTurnstileHeader: false,
+    },
+    {
       name: 'contact-us CTA endpoint',
       method: 'POST',
       proxyPath: '/www/v1/legacy/contact-us',
@@ -476,18 +510,25 @@ function buildApiCandidateUrls({
   crmApiBaseUrl,
   mediaApiBaseUrl,
 }) {
-  const candidateUrls = [new URL(apiCase.proxyPath, baseUrl).toString()];
+  const queryString = apiCase.queryString ?? '';
+  const candidateUrls = [
+    applyQueryString(new URL(apiCase.proxyPath, baseUrl).toString(), queryString),
+  ];
   if (apiCase.apiBaseType === 'crm' && crmApiBaseUrl) {
-    candidateUrls.push(buildUrlFromApiBase(crmApiBaseUrl, apiCase.directPath));
+    candidateUrls.push(
+      applyQueryString(buildUrlFromApiBase(crmApiBaseUrl, apiCase.directPath), queryString),
+    );
   }
   if (apiCase.apiBaseType === 'media' && mediaApiBaseUrl) {
-    candidateUrls.push(buildUrlFromApiBase(mediaApiBaseUrl, apiCase.directPath));
+    candidateUrls.push(
+      applyQueryString(buildUrlFromApiBase(mediaApiBaseUrl, apiCase.directPath), queryString),
+    );
   }
   return [...new Set(candidateUrls)];
 }
 
 async function runApiChecks({ baseUrl, timeoutMs, apiBaseUrl, mediaApiBaseUrl }) {
-  logSection('CTA API smoke checks');
+  logSection('Public API smoke checks');
 
   const apiKey = (process.env[SMOKE_API_KEY_ENV] ?? process.env[FALLBACK_API_KEY_ENV] ?? '').trim();
   if (!apiKey) {
@@ -510,11 +551,22 @@ async function runApiChecks({ baseUrl, timeoutMs, apiBaseUrl, mediaApiBaseUrl })
     });
     const headers = {
       accept: 'application/json',
-      'content-type': 'application/json',
       'x-api-key': apiKey,
     };
+    if (apiCase.method !== 'GET') {
+      headers['content-type'] = 'application/json';
+    }
     if (apiCase.includeTurnstileHeader) {
       headers['X-Turnstile-Token'] = apiCase.turnstileToken;
+    }
+
+    const requestInit = {
+      method: apiCase.method,
+      headers,
+      redirect: 'follow',
+    };
+    if (apiCase.method !== 'GET' && apiCase.body !== undefined) {
+      requestInit.body = JSON.stringify(apiCase.body);
     }
 
     let hasRecordedOutcome = false;
@@ -522,16 +574,7 @@ async function runApiChecks({ baseUrl, timeoutMs, apiBaseUrl, mediaApiBaseUrl })
 
     for (const [candidateIndex, endpointUrl] of endpointUrls.entries()) {
       try {
-        const response = await fetchWithTimeout(
-          endpointUrl,
-          {
-            method: apiCase.method,
-            headers,
-            body: JSON.stringify(apiCase.body),
-            redirect: 'follow',
-          },
-          timeoutMs,
-        );
+        const response = await fetchWithTimeout(endpointUrl, requestInit, timeoutMs);
         const responseBody = trimForLog(await response.text().catch(() => ''));
         const endpointSuffix =
           endpointUrls.length > 1 && candidateIndex > 0 ? ' (fallback endpoint)' : '';

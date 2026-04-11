@@ -126,7 +126,9 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
   - runs `npm run smoke:staging` in `apps/public_www`
   - verifies page health via sitemap-driven URL checks (with staging-origin URL
     remapping)
-  - verifies CTA API endpoints:
+  - verifies public API endpoints:
+    - `GET /www/v1/calendar/public`
+    - `GET /www/v1/assets/free?limit=100`
     - `POST /www/v1/legacy/contact-us`
     - `POST /www/v1/discounts/validate`
     - `POST /www/v1/assets/free/request`
