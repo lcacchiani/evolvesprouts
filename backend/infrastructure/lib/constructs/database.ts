@@ -95,7 +95,7 @@ export class DatabaseConstruct extends Construct {
   /** KMS key used to encrypt the app user secret. */
   private readonly appUserSecretKmsKey?: kms.IKey;
   /** KMS key used to encrypt the admin user secret. */
-  private readonly adminUserSecretKmsKey?: kms.IKey;
+  public readonly adminUserSecretKmsKey?: kms.IKey;
 
   constructor(scope: Construct, id: string, props: DatabaseConstructProps) {
     super(scope, id);
