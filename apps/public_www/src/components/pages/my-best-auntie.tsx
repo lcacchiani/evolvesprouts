@@ -9,6 +9,7 @@ import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-bes
 import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie/my-best-auntie-description';
 import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
+import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 
 interface MyBestAuntiePageProps {
   locale: Locale;
@@ -84,6 +85,10 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
         thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
         thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
         privateProgrammeWhatsappHref={privateProgrammeWhatsappHref}
+      />
+      <FreeResourcesForGentleParenting
+        content={content.resources}
+        locale={locale}
       />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />
