@@ -31,6 +31,8 @@ export function FreeGuidesAndResourcesPage({
       <SproutsSquadCommunity
         content={content.sproutsSquadCommunity}
         commonCaptchaContent={content.common.captcha}
+        locale={locale}
+        marketingOptInLabel={content.contactUs.form.marketingOptInLabel}
       />
     </PageLayout>
   );

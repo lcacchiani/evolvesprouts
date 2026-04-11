@@ -1062,9 +1062,10 @@ components:
         signup_intent:
           type: string
           description: >
-            Distinguishes contact-us submissions for Mailchimp tagging. community_newsletter and
-            event_notification imply marketing subscribe to the matching public-www-* tag; contact_inquiry
-            uses marketing_opt_in. Omitted value is treated as contact_inquiry.
+            Distinguishes contact-us submissions for Mailchimp tagging. For community_newsletter and
+            event_notification, the matching public-www-* tag is used when marketing_opt_in is true;
+            contact_inquiry uses marketing_opt_in with public-www-contact-inquiry. Omitted value is
+            treated as contact_inquiry.
           enum:
             - contact_inquiry
             - community_newsletter

@@ -283,11 +283,8 @@ def run_contact_us_post_success(
                 extra={"lead_email": mask_email(email)},
             )
     try:
-        effective_opt_in = (
-            True if is_email_only_intent else payload.get("marketing_opt_in")
-        )
         maybe_subscribe_contact_us_marketing(
-            marketing_opt_in=effective_opt_in,
+            marketing_opt_in=payload.get("marketing_opt_in"),
             email=email,
             first_name=first_name,
             tag_name=mailchimp_tag,

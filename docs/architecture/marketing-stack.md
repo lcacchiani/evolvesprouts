@@ -329,8 +329,8 @@ Public website Mailchimp **audience tags** (applied via `add_subscriber_with_tag
 | Flow | Mailchimp tag |
 |------|----------------|
 | Contact form + marketing opt-in | `public-www-contact-inquiry` |
-| Sprouts Squad / monthly newsletter (email-only form) | `public-www-community-newsletter` |
-| Events “get notified” (email-only form) | `public-www-event-notification` |
+| Sprouts Squad / monthly newsletter (email + marketing checkbox) | `public-www-community-newsletter` (when `marketing_opt_in`) |
+| Events “get notified” (email + marketing checkbox) | `public-www-event-notification` (when `marketing_opt_in`) |
 | Booking + marketing opt-in | `public-www-booking-customer-{service_slug}` (`service_key` or `course_slug` from reservation JSON; fallback `unknown`) |
 | Free guide / media | `public-www-media-{resource_key}` |
 

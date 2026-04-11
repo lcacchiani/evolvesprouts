@@ -95,6 +95,7 @@ def test_run_contact_us_post_success_skips_confirmation_for_community_intent(
             "first_name": "",
             "message": "Newsletter join",
             "signup_intent": "community_newsletter",
+            "marketing_opt_in": True,
         },
     )
 
