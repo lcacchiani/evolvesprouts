@@ -1,4 +1,3 @@
-import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import type { BookingPaymentModalContent } from '@/content';
 import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
 
@@ -9,14 +8,12 @@ interface ReservationFormFieldsProps {
   phone: string;
   interestedTopics: string;
   hasEmailError: boolean;
-  marketingOptIn: boolean;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   onFullNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onEmailBlur: () => void;
   onPhoneChange: (value: string) => void;
   onTopicsChange: (value: string) => void;
-  onMarketingOptInChange: (checked: boolean) => void;
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
@@ -28,14 +25,12 @@ export function ReservationFormFields({
   phone,
   interestedTopics,
   hasEmailError,
-  marketingOptIn,
   topicsFieldConfig,
   onFullNameChange,
   onEmailChange,
   onEmailBlur,
   onPhoneChange,
   onTopicsChange,
-  onMarketingOptInChange,
 }: ReservationFormFieldsProps) {
   const topicsFieldLabel = topicsFieldConfig?.label ?? content.topicsInterestLabel;
   const topicsFieldPlaceholder =
@@ -130,12 +125,6 @@ export function ReservationFormFields({
           className='es-focus-ring es-form-input resize-y'
         />
       </label>
-
-      <MarketingOptInCheckbox
-        label={content.marketingOptInLabel}
-        checked={marketingOptIn}
-        onChange={onMarketingOptInChange}
-      />
     </>
   );
 }
