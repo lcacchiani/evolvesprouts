@@ -138,10 +138,14 @@ export class MessagingNestedStack extends cdk.NestedStack {
     const sesTemplatesHash = hashDirectory(
       path.join(__dirname, "../../src/app/templates/ses")
     );
+    const sesHandlerHash = hashDirectory(
+      path.join(__dirname, "../../lambda/ses_template_manager")
+    );
     new cdk.CustomResource(this, "SesEmailTemplates", {
       serviceToken: sesTemplateManagerFunction.functionArn,
       properties: {
         TemplatesHash: sesTemplatesHash,
+        HandlerHash: sesHandlerHash,
       },
     });
 
