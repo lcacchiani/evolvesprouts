@@ -21,6 +21,10 @@ export interface ReservationSubmissionPayload {
   marketing_opt_in?: boolean;
   locale?: string;
   course_label?: string;
+  /** Stable id for Mailchimp tag segment (e.g. event or cohort id). */
+  service_key?: string;
+  /** Stable slug when service_key is not used (e.g. product line). */
+  course_slug?: string;
   schedule_date_label?: string;
   schedule_time_label?: string;
   location_name?: string;

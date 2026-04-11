@@ -167,10 +167,11 @@ describe('EventNotification section', () => {
         method: 'POST',
         body: {
           email_address: 'events@example.com',
-          message: enContent.events.notification.prefilledMessage,
           first_name: 'events',
+          message: enContent.events.notification.prefilledMessage,
           marketing_opt_in: false,
           locale: 'en',
+          signup_intent: 'event_notification',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
@@ -216,11 +217,19 @@ describe('EventNotification section', () => {
     );
 
     await waitFor(() => {
-      expect(request).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ marketing_opt_in: true }),
+      expect(request).toHaveBeenCalledWith({
+        endpointPath: '/v1/legacy/contact-us',
+        method: 'POST',
+        body: expect.objectContaining({
+          email_address: 'events@example.com',
+          first_name: 'events',
+          marketing_opt_in: true,
+          locale: 'en',
+          signup_intent: 'event_notification',
         }),
-      );
+        turnstileToken: 'mock-turnstile-token',
+        expectedSuccessStatuses: [200, 202],
+      });
     });
   });
 });

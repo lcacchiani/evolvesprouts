@@ -10,8 +10,30 @@ from app.services.email import send_templated_email
 from app.services.marketing_subscribe import subscribe_to_marketing
 from app.templates.constants import WHATSAPP_URL, build_faq_url
 from app.utils.logging import get_logger, mask_email
+from app.utils.public_slug import normalize_public_slug
 
 logger = get_logger(__name__)
+
+_SIGNUP_INTENT_CONTACT_INQUIRY = "contact_inquiry"
+_SIGNUP_INTENT_COMMUNITY_NEWSLETTER = "community_newsletter"
+_SIGNUP_INTENT_EVENT_NOTIFICATION = "event_notification"
+_ALLOWED_SIGNUP_INTENTS = frozenset(
+    {
+        _SIGNUP_INTENT_CONTACT_INQUIRY,
+        _SIGNUP_INTENT_COMMUNITY_NEWSLETTER,
+        _SIGNUP_INTENT_EVENT_NOTIFICATION,
+    }
+)
+
+TAG_PUBLIC_WWW_CONTACT_INQUIRY = "public-www-contact-inquiry"
+TAG_PUBLIC_WWW_COMMUNITY_NEWSLETTER = "public-www-community-newsletter"
+TAG_PUBLIC_WWW_EVENT_NOTIFICATION = "public-www-event-notification"
+TAG_BOOKING_PREFIX = "public-www-booking-customer-"
+
+# Mailchimp FNAME fallback when first_name is empty for community/event tags.
+# Public forms normally send deriveFirstNameFromEmailLocalPart + locale fallback;
+# this is defensive only (English placeholder if an edge-case request omits FNAME).
+_MAILCHIMP_EMAIL_ONLY_FIRST_NAME = "Friend"
 
 _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 _LOCALE_HEADER_PATTERN = re.compile(
@@ -151,21 +173,46 @@ def send_booking_confirmation_email(
         )
 
 
+def mailchimp_tag_for_contact_signup_intent(signup_intent: str | None) -> str:
+    """Map ``signup_intent`` to the Mailchimp audience tag (public-www-*)."""
+    normalized = (signup_intent or "").strip()
+    if normalized == _SIGNUP_INTENT_COMMUNITY_NEWSLETTER:
+        return TAG_PUBLIC_WWW_COMMUNITY_NEWSLETTER
+    if normalized == _SIGNUP_INTENT_EVENT_NOTIFICATION:
+        return TAG_PUBLIC_WWW_EVENT_NOTIFICATION
+    return TAG_PUBLIC_WWW_CONTACT_INQUIRY
+
+
+def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
+    """Build ``public-www-booking-customer-{slug}`` from stable booking identifiers."""
+    service_key = normalize_public_slug(payload.get("service_key"))
+    course_slug = normalize_public_slug(payload.get("course_slug"))
+    slug_part = service_key or course_slug or "unknown"
+    return f"{TAG_BOOKING_PREFIX}{slug_part}"
+
+
 def maybe_subscribe_contact_us_marketing(
     *,
     marketing_opt_in: Any,
     email: str,
     first_name: str,
+    tag_name: str,
 ) -> None:
     if not _truthy_opt_in(marketing_opt_in):
         return
     fn = " ".join(str(first_name).split()).strip()
     if not fn:
-        return
+        if tag_name in (
+            TAG_PUBLIC_WWW_COMMUNITY_NEWSLETTER,
+            TAG_PUBLIC_WWW_EVENT_NOTIFICATION,
+        ):
+            fn = _MAILCHIMP_EMAIL_ONLY_FIRST_NAME
+        else:
+            return
     subscribe_to_marketing(
         email=email,
         first_name=fn,
-        tag_name="contact-us-inquiry",
+        tag_name=tag_name,
         merge_fields=None,
         logger=logger,
     )
@@ -176,6 +223,7 @@ def maybe_subscribe_booking_marketing(
     marketing_opt_in: Any,
     email: str,
     full_name: str,
+    tag_name: str,
 ) -> None:
     if not _truthy_opt_in(marketing_opt_in):
         return
@@ -185,7 +233,7 @@ def maybe_subscribe_booking_marketing(
     subscribe_to_marketing(
         email=email,
         first_name=fn,
-        tag_name="booking-customer",
+        tag_name=tag_name,
         merge_fields=None,
         logger=logger,
     )
@@ -211,7 +259,20 @@ def run_contact_us_post_success(
     )
     email = str(payload.get("email_address") or "").strip()
     first_name = str(payload.get("first_name") or "").strip()
-    if email and first_name:
+    raw_intent = payload.get("signup_intent")
+    signup_intent = (
+        raw_intent.strip()
+        if isinstance(raw_intent, str) and raw_intent.strip()
+        else _SIGNUP_INTENT_CONTACT_INQUIRY
+    )
+    if signup_intent not in _ALLOWED_SIGNUP_INTENTS:
+        signup_intent = _SIGNUP_INTENT_CONTACT_INQUIRY
+    mailchimp_tag = mailchimp_tag_for_contact_signup_intent(signup_intent)
+    is_email_only_intent = signup_intent in {
+        _SIGNUP_INTENT_COMMUNITY_NEWSLETTER,
+        _SIGNUP_INTENT_EVENT_NOTIFICATION,
+    }
+    if email and first_name and not is_email_only_intent:
         try:
             send_contact_confirmation_email(
                 to_email=email,
@@ -228,6 +289,7 @@ def run_contact_us_post_success(
             marketing_opt_in=payload.get("marketing_opt_in"),
             email=email,
             first_name=first_name,
+            tag_name=mailchimp_tag,
         )
     except Exception:
         logger.exception(
@@ -270,10 +332,12 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 extra={"lead_email": mask_email(email)},
             )
     try:
+        booking_tag = mailchimp_booking_tag_from_payload(payload)
         maybe_subscribe_booking_marketing(
             marketing_opt_in=payload.get("marketing_opt_in"),
             email=email,
             full_name=full_name,
+            tag_name=booking_tag,
         )
     except Exception:
         logger.exception(

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.4
+  version: 0.2.6
   description: |
     Public endpoint contract.
 
@@ -460,11 +460,14 @@ paths:
       description: |
         Submit a contact-us message from `public_www`.
 
-        On successful upstream acceptance (HTTP 200/202), the API also sends a
-        transactional confirmation email via SES when configured. Optional
-        marketing opt-in may enqueue a Mailchimp audience update; marketing
-        failures do not change the HTTP response. Locale for the confirmation
-        email is derived from the `Accept-Language` header when possible.
+        On successful upstream acceptance (HTTP 200/202), the API may send a
+        transactional confirmation email via SES when configured, except for
+        `signup_intent` values `community_newsletter` and `event_notification`
+        (those flows skip the contact confirmation email). Optional marketing
+        opt-in may enqueue a Mailchimp audience update; marketing failures do not
+        change the HTTP response. Locale for the confirmation email is derived
+        from the `Accept-Language` header when possible (or the JSON `locale`
+        field when valid).
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -984,6 +987,18 @@ components:
           type: string
           maxLength: 500
           description: Human-readable course or event title for confirmation email context.
+        service_key:
+          type: string
+          maxLength: 120
+          description: >
+            Stable machine identifier for the booked offering (e.g. event or cohort id).
+            Used with course_slug to build the Mailchimp audience tag
+            public-www-booking-customer-{slug}; omitted values fall back to course_slug or unknown.
+        course_slug:
+          type: string
+          maxLength: 120
+          description: >
+            Optional stable slug for the course or product line when service_key is absent.
         schedule_date_label:
           type: string
           maxLength: 500
@@ -1047,6 +1062,18 @@ components:
           type: boolean
           default: false
           description: When true, subscribe the contact to marketing (Mailchimp) with a flow-specific tag.
+        signup_intent:
+          type: string
+          description: >
+            Distinguishes contact-us submissions for Mailchimp tagging. For community_newsletter and
+            event_notification, the matching public-www-* tag is used when marketing_opt_in is true;
+            contact_inquiry uses marketing_opt_in with public-www-contact-inquiry. Omitted value is
+            treated as contact_inquiry. Intents community_newsletter and event_notification do not
+            trigger the SES contact confirmation email (only contact_inquiry does, when first_name is present).
+          enum:
+            - contact_inquiry
+            - community_newsletter
+            - event_notification
         locale:
           type: string
           description: Public website route locale for SES confirmation template selection (falls back to Accept-Language when omitted).

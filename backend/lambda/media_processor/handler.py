@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -43,6 +42,7 @@ from app.services.mailchimp import (
 from app.services.marketing_subscribe import subscribe_to_marketing
 from app.templates.media_lead import render_sales_notification_email
 from app.utils.logging import configure_logging, get_logger, mask_email
+from app.utils.public_slug import normalize_public_slug
 from app.utils.retry import run_with_retry
 
 configure_logging()
@@ -52,7 +52,6 @@ _EVENT_TYPE = "media_request.submitted"
 _SYSTEM_ACTOR = "system"
 _DEFAULT_MEDIA_NAME = "Free Guide"
 _MAX_RESOURCE_KEY_LENGTH = 64
-_RESOURCE_KEY_SANITIZE_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
@@ -608,7 +607,7 @@ def _resolve_media_resource(
 
 
 def _mailchimp_tag_for_resource(resource_key: str) -> str:
-    return f"public-www-media-{resource_key}-requested"
+    return f"public-www-media-{resource_key}"
 
 
 def _required_media_default_resource_key() -> str:
@@ -621,13 +620,7 @@ def _required_media_default_resource_key() -> str:
 
 
 def _normalize_resource_key(value: Any) -> str | None:
-    normalized_value = _optional_text(value)
-    if normalized_value is None:
-        return None
-
-    slug = _RESOURCE_KEY_SANITIZE_PATTERN.sub("-", normalized_value.lower()).strip("-")
-    slug = slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
-    return slug or None
+    return normalize_public_slug(value, max_length=_MAX_RESOURCE_KEY_LENGTH)
 
 
 def _required_env(name: str) -> str:

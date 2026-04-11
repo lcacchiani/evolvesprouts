@@ -140,10 +140,11 @@ export function EventNotification({
             method: 'POST',
             body: {
               email_address: normalizedEmail,
-              message: content.prefilledMessage,
               first_name: derivedFirstName,
+              message: content.prefilledMessage,
               marketing_opt_in: marketingOptIn,
               locale,
+              signup_intent: 'event_notification',
             },
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],

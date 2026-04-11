@@ -335,10 +335,11 @@ describe('SproutsSquadCommunity section', () => {
         method: 'POST',
         body: {
           email_address: 'community@example.com',
-          message: enContent.sproutsSquadCommunity.prefilledMessage,
           first_name: 'community',
+          message: enContent.sproutsSquadCommunity.prefilledMessage,
           marketing_opt_in: false,
           locale: 'en',
+          signup_intent: 'community_newsletter',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
@@ -384,11 +385,19 @@ describe('SproutsSquadCommunity section', () => {
     );
 
     await waitFor(() => {
-      expect(request).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ marketing_opt_in: true }),
+      expect(request).toHaveBeenCalledWith({
+        endpointPath: '/v1/legacy/contact-us',
+        method: 'POST',
+        body: expect.objectContaining({
+          email_address: 'community@example.com',
+          first_name: 'community',
+          marketing_opt_in: true,
+          locale: 'en',
+          signup_intent: 'community_newsletter',
         }),
-      );
+        turnstileToken: 'mock-turnstile-token',
+        expectedSuccessStatuses: [200, 202],
+      });
     });
   });
 

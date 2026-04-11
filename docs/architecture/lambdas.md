@@ -100,7 +100,10 @@ their primary responsibilities.
   on `/v1/legacy/*` (proxying to upstream legacy endpoints via
   `AwsApiProxyFunction`; after successful upstream acceptance, sends SES
   **templated** confirmation emails for contact-us and reservations and may
-  subscribe opted-in contacts to Mailchimp + optional welcome journey),
+  subscribe contacts to Mailchimp + optional welcome journey (contact-us tags
+  from optional `signup_intent`: `contact_inquiry`, `community_newsletter`,
+  `event_notification`; reservation tags `public-www-booking-customer-{slug}`
+  from optional `service_key` / `course_slug`),
   Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (card-only `payment_method_types[]=card`; wallet buttons are disabled in the

@@ -13,6 +13,7 @@ describe('buildConsultationsBookingModalPayload', () => {
 
     expect(payload.variant).toBe('event');
     expect(payload.bookingSystem).toBe(CONSULTATION_BOOKING_SYSTEM);
+    expect(payload.serviceKey).toBe('consultation-essentials');
     expect(payload.title).toBe(reservation.modalTitle);
     expect(payload.originalAmount).toBe(reservation.essentials.priceHkd);
     expect(payload.dateParts).toHaveLength(reservation.essentials.dateParts.length);
@@ -40,6 +41,7 @@ describe('buildConsultationsBookingModalPayload', () => {
     };
     const payload = buildConsultationsBookingModalPayload(reservation, 'en');
 
+    expect(payload.serviceKey).toBe('consultation-deepDive');
     expect(payload.originalAmount).toBe(reservation.deepDive.priceHkd);
     expect(payload.dateParts).toHaveLength(reservation.deepDive.dateParts.length);
   });

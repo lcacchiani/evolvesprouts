@@ -429,6 +429,7 @@ describe('ContactUsForm section', () => {
           phone_number: '+852 1234 5678',
           message: 'Tell me more about your courses.',
           marketing_opt_in: false,
+          signup_intent: 'contact_inquiry',
           locale: 'en',
         },
         expectedSuccessStatuses: [200, 202],

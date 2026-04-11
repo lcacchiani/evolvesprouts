@@ -141,10 +141,11 @@ export function SproutsSquadCommunity({
             method: 'POST',
             body: {
               email_address: normalizedEmail,
-              message: content.prefilledMessage,
               first_name: derivedFirstName,
+              message: content.prefilledMessage,
               marketing_opt_in: marketingOptIn,
               locale,
+              signup_intent: 'community_newsletter',
             },
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],

@@ -51,6 +51,8 @@ interface EventBookingDatePart {
 export interface EventCalendarBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof EVENT_BOOKING_SYSTEM;
+  /** Stable event id for reservation / Mailchimp tag; omitted when source record has no id/slug. */
+  serviceKey?: string;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -70,6 +72,7 @@ export interface EventCalendarBookingModalPayload {
 export interface ConsultationEventBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
+  serviceKey: string;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -424,9 +427,12 @@ function buildEventBookingModalPayload(
 
   const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
 
+  const serviceKey = readCandidateText(record, ['id', 'eventId', 'slug']);
+
   return {
     variant: 'event',
     bookingSystem: EVENT_BOOKING_SYSTEM,
+    ...(serviceKey ? { serviceKey } : {}),
     title,
     subtitle: summary ?? '',
     originalAmount,
