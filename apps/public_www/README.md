@@ -173,16 +173,18 @@ What the runner validates:
 
 - Page smoke: fetches all pages discovered from `/sitemap.xml` (with URLs
   remapped to the target smoke origin) and fails on broken HTTP responses.
-- CTA API smoke:
+- Public API smoke (same-origin `/www/v1/*` with optional direct `/v1/*` fallback):
+  - `GET /www/v1/calendar/public`
+  - `GET /www/v1/assets/free?limit=100`
   - `POST /www/v1/legacy/contact-us`
   - `POST /www/v1/discounts/validate`
   - `POST /www/v1/assets/free/request`
   - `POST /www/v1/legacy/reservations`
   - `POST /www/v1/reservations/payment-intent`
 
-Status handling for CTA APIs:
+Status handling for API checks:
 
-- `PASS`: endpoint accepted the payload (`200`/`202` depending on endpoint).
+- `PASS`: successful response (`200` for reads and most writes, `202` where applicable).
 - `PASS*`: endpoint was reached but blocked by validation/auth gates
   (for example invalid/missing Turnstile token on staging).
 - `FAIL`: unexpected status, server error (`5xx`), timeout, or transport error.
