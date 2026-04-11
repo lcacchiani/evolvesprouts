@@ -32,17 +32,10 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
     names = [t["TemplateName"] for t in all_defs]
 
     if request_type == "Delete":
-        client = get_ses_client()
-        for name in names:
-            try:
-                client.delete_template(TemplateName=name)
-            except ClientError as exc:
-                code = exc.response.get("Error", {}).get("Code", "")
-                if code != "TemplateDoesNotExist":
-                    logger.warning(
-                        "SES delete template failed",
-                        extra={"template": name, "error_code": code},
-                    )
+        logger.info(
+            "Skipping SES template deletion (templates are retained for reuse)",
+            extra={"templates": ",".join(names)},
+        )
         data = {"templates": ",".join(names)}
         send_cfn_response(event, context, "SUCCESS", data, physical_id)
         return {"PhysicalResourceId": physical_id, "Data": data}
