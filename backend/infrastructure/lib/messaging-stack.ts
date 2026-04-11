@@ -31,6 +31,8 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetsBucketName: string;
   assetsBucketArn: string;
   openrouterApiSecretArn: string;
+  databaseProxyArn: string;
+  databaseSecretKmsKeyArn: string;
   sesSenderEmail: string;
   supportEmail: string;
   authEmailFromAddress: string;
@@ -201,6 +203,32 @@ export class MessagingNestedStack extends cdk.NestedStack {
         resources: [props.sesSenderIdentityArn, props.sesSenderDomainIdentityArn],
       })
     );
+    this.bookingRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [props.databaseSecretArn],
+      })
+    );
+    if (props.databaseSecretKmsKeyArn) {
+      this.bookingRequestProcessor.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    this.bookingRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
     this.bookingRequestProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(this.bookingRequestQueue, {
         batchSize: 1,
@@ -302,6 +330,32 @@ export class MessagingNestedStack extends cdk.NestedStack {
         resources: [props.awsProxyFunctionArn],
       })
     );
+    this.mediaRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [props.databaseSecretArn, props.mailchimpApiSecretArn],
+      })
+    );
+    if (props.databaseSecretKmsKeyArn) {
+      this.mediaRequestProcessor.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    this.mediaRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
 
     this.mediaRequestProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(this.mediaQueue, {
@@ -370,6 +424,32 @@ export class MessagingNestedStack extends cdk.NestedStack {
         },
       });
 
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [props.databaseSecretArn, props.openrouterApiSecretArn],
+      })
+    );
+    if (props.databaseSecretKmsKeyArn) {
+      this.expenseParserFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    this.expenseParserFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
     this.expenseParserFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["s3:GetObject", "s3:GetBucketLocation", "s3:ListBucket"],
