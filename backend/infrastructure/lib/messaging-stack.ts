@@ -309,6 +309,10 @@ export class MessagingNestedStack extends cdk.NestedStack {
           props.sesSenderDomainIdentityArn,
           props.sesAuthEmailIdentityArn,
           props.sesAuthEmailDomainIdentityArn,
+          cdk.Arn.format(
+            { service: "ses", resource: "template", resourceName: "evolvesprouts-*" },
+            cdk.Stack.of(this)
+          ),
         ],
       })
     );
