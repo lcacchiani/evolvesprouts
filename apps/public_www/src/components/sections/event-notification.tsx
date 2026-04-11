@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -14,6 +15,7 @@ import { resolveEventNotificationCopy } from '@/content/copy-normalizers';
 import type {
   CommonContent,
   EventNotificationContent,
+  Locale,
 } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
@@ -21,11 +23,16 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
-import { isValidEmail } from '@/lib/validation';
+import {
+  deriveFirstNameFromEmailLocalPart,
+  isValidEmail,
+} from '@/lib/validation';
 
 interface EventNotificationProps {
   content: EventNotificationContent;
   commonCaptchaContent: CommonContent['captcha'];
+  locale: Locale;
+  marketingOptInLabel: string;
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'event-notification-email-error';
@@ -35,6 +42,8 @@ const SUBMIT_ERROR_MESSAGE_ID = 'event-notification-submit-error';
 export function EventNotification({
   content,
   commonCaptchaContent,
+  locale,
+  marketingOptInLabel,
 }: EventNotificationProps) {
   const copy = resolveEventNotificationCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -43,6 +52,7 @@ export function EventNotification({
   const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -118,6 +128,9 @@ export function EventNotification({
     if (!normalizedEmail) {
       return;
     }
+    const derivedFirstName =
+      deriveFirstNameFromEmailLocalPart(normalizedEmail) ||
+      content.emailSignupFirstNameFallback;
 
     await withSubmitting(async () => {
       const submissionResult = await ServerSubmissionResult.resolve({
@@ -128,6 +141,9 @@ export function EventNotification({
             body: {
               email_address: normalizedEmail,
               message: content.prefilledMessage,
+              first_name: derivedFirstName,
+              marketing_opt_in: marketingOptIn,
+              locale,
             },
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],
@@ -251,6 +267,11 @@ export function EventNotification({
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
+                      <MarketingOptInCheckbox
+                        label={marketingOptInLabel}
+                        checked={marketingOptIn}
+                        onChange={setMarketingOptIn}
+                      />
                       <TurnstileCaptcha
                         siteKey={turnstileSiteKey}
                         widgetAction='event_notification_submit'
