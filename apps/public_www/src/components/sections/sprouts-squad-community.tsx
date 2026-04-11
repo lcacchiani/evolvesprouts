@@ -128,7 +128,10 @@ export function SproutsSquadCommunity({
             method: 'POST',
             body: {
               email_address: normalizedEmail,
+              first_name: copy.mailchimpFirstNameFallback,
               message: content.prefilledMessage,
+              marketing_opt_in: true,
+              signup_intent: 'community_newsletter',
             },
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],

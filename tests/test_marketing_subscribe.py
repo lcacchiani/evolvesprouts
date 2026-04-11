@@ -38,7 +38,7 @@ def test_subscribe_to_marketing_skips_journey_when_ids_empty(
         ms.subscribe_to_marketing(
             email="a@example.com",
             first_name="Ada",
-            tag_name="contact-us-inquiry",
+            tag_name="public-www-contact-inquiry",
             logger=logger,
         )
         is True

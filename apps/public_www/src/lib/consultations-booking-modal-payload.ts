@@ -26,6 +26,7 @@ export function buildConsultationsBookingModalPayload(
   const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
+    serviceKey: `consultation-${tierId}`,
     title: reservation.modalTitle,
     subtitle: reservation.modalSubtitle,
     originalAmount: tier.priceHkd,

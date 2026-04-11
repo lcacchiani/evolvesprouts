@@ -321,7 +321,10 @@ describe('SproutsSquadCommunity section', () => {
         method: 'POST',
         body: {
           email_address: 'community@example.com',
+          first_name: enContent.sproutsSquadCommunity.mailchimpFirstNameFallback,
           message: enContent.sproutsSquadCommunity.prefilledMessage,
+          marketing_opt_in: true,
+          signup_intent: 'community_newsletter',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],

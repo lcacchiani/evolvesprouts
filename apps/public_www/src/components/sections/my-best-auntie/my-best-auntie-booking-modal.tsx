@@ -162,6 +162,8 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
+              serviceKey={selectedCohort.id}
+              courseSlug='my-best-auntie'
               eventSubtitle={modalContent.subtitle}
               courseSessions={(selectedCohort?.dates ?? []).map((part) => {
                 return {

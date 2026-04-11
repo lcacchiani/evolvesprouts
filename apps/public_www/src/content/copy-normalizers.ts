@@ -7,7 +7,10 @@ import type {
   SiteContent,
   SproutsSquadCommunityContent,
 } from '@/content';
-import { readRequiredRecordText } from '@/content/content-field-utils';
+import {
+  readOptionalText,
+  readRequiredRecordText,
+} from '@/content/content-field-utils';
 
 interface SectionCopy {
   title: string;
@@ -39,21 +42,25 @@ export function resolveMyBestAuntieHeroDescription(content: MyBestAuntieHeroCont
 
 export function resolveSproutsSquadCommunityCopy(
   content: SproutsSquadCommunityContent,
-): Pick<SectionCopy, 'title' | 'description'> {
+): Pick<SectionCopy, 'title' | 'description'> & { mailchimpFirstNameFallback: string } {
   const record = content as unknown as Record<string, unknown>;
   return {
     title: readRequiredRecordText(record, 'title', 'sproutsSquadCommunity'),
     description: readRequiredRecordText(record, 'description', 'sproutsSquadCommunity'),
+    mailchimpFirstNameFallback:
+      readOptionalText(record.mailchimpFirstNameFallback) ?? 'Friend',
   };
 }
 
 export function resolveEventNotificationCopy(
   content: EventNotificationContent,
-): Pick<SectionCopy, 'title' | 'description'> {
+): Pick<SectionCopy, 'title' | 'description'> & { mailchimpFirstNameFallback: string } {
   const record = content as unknown as Record<string, unknown>;
   return {
     title: readRequiredRecordText(record, 'title', 'eventNotification'),
     description: readRequiredRecordText(record, 'description', 'eventNotification'),
+    mailchimpFirstNameFallback:
+      readOptionalText(record.mailchimpFirstNameFallback) ?? 'Friend',
   };
 }
 

@@ -309,6 +309,7 @@ describe('events-data', () => {
     expect(events[0]?.bookingModalPayload).toMatchObject({
       variant: 'event',
       bookingSystem: 'event-booking',
+      serviceKey: 'event-booking-demo',
       title: 'Event booking demo',
       subtitle: 'Simple booking modal flow',
       originalAmount: 350,
@@ -479,6 +480,7 @@ describe('events-data', () => {
       ctaPriceLabel: 'HK$350',
       bookingPayload: {
         variant: 'event',
+        serviceKey: 'easter-2026-montessori-play-coaching-workshop-2026-04-06',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
         locationName: 'Baumhaus',
         locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",

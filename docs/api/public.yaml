@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.4
+  version: 0.2.5
   description: |
     Public endpoint contract.
 
@@ -984,6 +984,18 @@ components:
           type: string
           maxLength: 500
           description: Human-readable course or event title for confirmation email context.
+        service_key:
+          type: string
+          maxLength: 120
+          description: >
+            Stable machine identifier for the booked offering (e.g. event or cohort id).
+            Used with course_slug to build the Mailchimp audience tag
+            public-www-booking-customer-{slug}; omitted values fall back to course_slug or unknown.
+        course_slug:
+          type: string
+          maxLength: 120
+          description: >
+            Optional stable slug for the course or product line when service_key is absent.
         schedule_date_label:
           type: string
           maxLength: 500
@@ -1047,6 +1059,16 @@ components:
           type: boolean
           default: false
           description: When true, subscribe the contact to marketing (Mailchimp) with a flow-specific tag.
+        signup_intent:
+          type: string
+          description: >
+            Distinguishes contact-us submissions for Mailchimp tagging. community_newsletter and
+            event_notification imply marketing subscribe to the matching public-www-* tag; contact_inquiry
+            uses marketing_opt_in. Omitted value is treated as contact_inquiry.
+          enum:
+            - contact_inquiry
+            - community_newsletter
+            - event_notification
         locale:
           type: string
           description: Public website route locale for SES confirmation template selection (falls back to Accept-Language when omitted).

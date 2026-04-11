@@ -127,7 +127,10 @@ export function EventNotification({
             method: 'POST',
             body: {
               email_address: normalizedEmail,
+              first_name: copy.mailchimpFirstNameFallback,
               message: content.prefilledMessage,
+              marketing_opt_in: true,
+              signup_intent: 'event_notification',
             },
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],

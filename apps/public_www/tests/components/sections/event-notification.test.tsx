@@ -161,7 +161,10 @@ describe('EventNotification section', () => {
         method: 'POST',
         body: {
           email_address: 'events@example.com',
+          first_name: enContent.events.notification.mailchimpFirstNameFallback,
           message: enContent.events.notification.prefilledMessage,
+          marketing_opt_in: true,
+          signup_intent: 'event_notification',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],

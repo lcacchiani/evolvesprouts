@@ -173,7 +173,7 @@ responsive while decoupling downstream processing.
 - Triggered by `evolvesprouts-media-queue`.
 - Upserts contact and inserts idempotent lead rows.
 - Resolves media asset IDs by matching `resource_key` against `assets.resource_key`.
-- Applies a resource-specific tag (`public-www-media-<resource_key>-requested`) to the contact.
+- Applies a resource-specific tag (`public-www-media-<resource_key>`) to the contact.
 - Sends the **download link** to the submitter via **SES templated email**
   (`evolvesprouts-media-download-{locale}`) using `CONFIRMATION_EMAIL_FROM_ADDRESS`.
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction` (during a

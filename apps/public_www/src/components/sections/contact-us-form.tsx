@@ -150,12 +150,14 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
       phone_number?: string;
       message: string;
       marketing_opt_in: boolean;
+      signup_intent: 'contact_inquiry';
       locale: Locale;
     } = {
       email_address: normalizedEmail,
       message: normalizedMessage,
       first_name: normalizedFirstName,
       marketing_opt_in: marketingOptIn,
+      signup_intent: 'contact_inquiry',
       locale,
     };
     if (normalizedPhone) {

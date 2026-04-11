@@ -64,6 +64,10 @@ interface BookingReservationFormProps {
   locale: Locale;
   content: BookingPaymentModalContent;
   eventTitle: string;
+  /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
+  serviceKey?: string;
+  /** Stable slug when serviceKey is not set (e.g. my-best-auntie, consultation tier). */
+  courseSlug?: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
   selectedAgeGroupLabel: string;
@@ -390,6 +394,8 @@ export function BookingReservationForm({
   locale,
   content,
   eventTitle,
+  serviceKey,
+  courseSlug,
   eventSubtitle = '',
   courseSessions,
   selectedAgeGroupLabel,
@@ -820,6 +826,12 @@ export function BookingReservationForm({
       marketing_opt_in: marketingOptIn,
       locale,
       course_label: sanitizeSingleLineValue(eventTitle) || undefined,
+      ...(sanitizeSingleLineValue(serviceKey ?? '')
+        ? { service_key: sanitizeSingleLineValue(serviceKey ?? '') }
+        : {}),
+      ...(sanitizeSingleLineValue(courseSlug ?? '')
+        ? { course_slug: sanitizeSingleLineValue(courseSlug ?? '') }
+        : {}),
       schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       schedule_time_label: scheduleTimeLabel,
       location_name: sanitizeSingleLineValue(venueName) || undefined,

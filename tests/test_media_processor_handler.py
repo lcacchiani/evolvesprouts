@@ -51,7 +51,7 @@ def test_resolve_media_resource_uses_requested_resource_key(monkeypatch: Any) ->
 
     assert resource_key == "sleep-routines"
     assert asset_id == UUID("22222222-2222-2222-2222-222222222222")
-    assert tag_name == "public-www-media-sleep-routines-requested"
+    assert tag_name == "public-www-media-sleep-routines"
     assert media_name == "Sleep Routines Guide"
 
 
@@ -75,7 +75,7 @@ def test_resolve_media_resource_uses_default_when_resource_key_missing(
 
     assert resource_key == "patience-free-guide"
     assert asset_id == UUID("11111111-1111-1111-1111-111111111111")
-    assert tag_name == "public-www-media-patience-free-guide-requested"
+    assert tag_name == "public-www-media-patience-free-guide"
     assert media_name == "Patience Guide"
 
 
@@ -99,7 +99,7 @@ def test_resolve_media_resource_falls_back_to_default_for_unknown_key(
 
     assert resource_key == "patience-free-guide"
     assert asset_id == UUID("11111111-1111-1111-1111-111111111111")
-    assert tag_name == "public-www-media-patience-free-guide-requested"
+    assert tag_name == "public-www-media-patience-free-guide"
     assert media_name == "Patience Guide"
 
 
@@ -202,7 +202,7 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         lambda *, session, message: (
             "sleep-routines",
             UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-            "public-www-media-sleep-routines-requested",
+            "public-www-media-sleep-routines",
             "Sleep Routines Guide",
         ),
     )
@@ -228,7 +228,7 @@ def test_process_message_uses_keyword_session_for_contact_tag(
     session_arg, contact_id_arg, tag_name_arg = ensure_tag_calls[0]
     assert isinstance(session_arg, _FakeSession)
     assert contact_id_arg == contact.id
-    assert tag_name_arg == "public-www-media-sleep-routines-requested"
+    assert tag_name_arg == "public-www-media-sleep-routines"
 
 
 def test_process_message_opt_in_skips_second_subscribe_when_mailchimp_synced(
@@ -300,7 +300,7 @@ def test_process_message_opt_in_skips_second_subscribe_when_mailchimp_synced(
         lambda *, session, message: (
             "sleep-routines",
             UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-            "public-www-media-sleep-routines-requested",
+            "public-www-media-sleep-routines",
             "Sleep Routines Guide",
         ),
     )
@@ -399,7 +399,7 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
         lambda *, session, message: (
             "sleep-routines",
             UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-            "public-www-media-sleep-routines-requested",
+            "public-www-media-sleep-routines",
             "Sleep Routines Guide",
         ),
     )

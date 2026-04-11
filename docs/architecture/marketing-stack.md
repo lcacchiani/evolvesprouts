@@ -313,16 +313,28 @@ The inbox notification is an alert, not the source of truth.
 
 ```
 Lead sources:
-  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert
-  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
-  Community signup ──▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
-  Event notification ▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
-  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES alert
+  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp (opt-in)
+  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp (rules below)
+  Community signup ─▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
+  Event notification ▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
+  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES alert ──▶ Mailchimp (opt-in)
 
   WhatsApp DMs ──────▶ Manual entry (or future WhatsApp Business API)
   LinkedIn DMs ──────▶ Manual entry (redirect to trackable channel)
   Direct email ──────▶ Manual (rare, handle case-by-case)
 ```
+
+Public website Mailchimp **audience tags** (applied via `add_subscriber_with_tag`):
+
+| Flow | Mailchimp tag |
+|------|----------------|
+| Contact form + marketing opt-in | `public-www-contact-inquiry` |
+| Sprouts Squad / monthly newsletter (email-only form) | `public-www-community-newsletter` |
+| Events “get notified” (email-only form) | `public-www-event-notification` |
+| Booking + marketing opt-in | `public-www-booking-customer-{service_slug}` (`service_key` or `course_slug` from reservation JSON; fallback `unknown`) |
+| Free guide / media | `public-www-media-{resource_key}` |
+
+Legacy `contact-us-inquiry`, `booking-customer`, and `public-www-media-{key}-requested` may still exist on historical members; use dual-match segments in Mailchimp during transition.
 
 ## Social media and lead generation
 
@@ -509,21 +521,26 @@ Website form submit
 
 ### Subscriber lifecycle
 
-1. User submits a form on the website (media download, community signup,
-   event notification, or contact form).
-2. The form submission hits the API Gateway, which triggers the admin Lambda.
-3. The admin Lambda publishes to SNS, which delivers to the SQS queue.
-4. The media processor Lambda picks up the message and:
+1. User submits a form on the website. **Media download** requests hit API
+   Gateway and flow through SNS/SQS to the media processor. **Contact,
+   newsletter, and event-notification** email captures use the legacy
+   `/www/v1/legacy/contact-us` proxy (after upstream acceptance, the admin Lambda
+   runs `run_contact_us_post_success`, which routes Mailchimp tags from optional
+   `signup_intent`). **Booking** submissions use `/www/v1/legacy/reservations`;
+   after upstream acceptance, `run_reservation_post_success` may subscribe with
+   `public-www-booking-customer-{slug}` from optional `service_key` / `course_slug`.
+2. For media: the admin Lambda publishes to SNS, which delivers to the SQS queue.
+3. The media processor Lambda picks up the message and:
    - Upserts the contact in the database
    - Creates a sales lead record
    - Calls `add_subscriber_with_tag` to add/update the subscriber in
      Mailchimp with a tag identifying the form source (e.g.,
-     `public-www-media-{resource_key}-requested`) and sets the download merge
+     `public-www-media-{resource_key}`) and sets the download merge
      field when configured
    - When journey env vars are set, calls the Customer Journey API trigger so
      Mailchimp sends the download email without relying on tag-based automation timing
    - Sends an email notification to sales/support via SES
-5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
+4. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
 
 Repeat submissions for the same contact and guide still **refresh** the Mailchimp
