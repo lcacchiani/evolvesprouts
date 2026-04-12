@@ -192,5 +192,3 @@ export function MyBestAuntieBookingModal({
     </ModalOverlay>
   );
 }
-
-export { MyBestAuntieThankYouModal } from '@/components/sections/booking-modal/thank-you-modal';

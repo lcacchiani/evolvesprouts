@@ -5,16 +5,18 @@ import {
   type BookingThankYouModalProps,
 } from '@/components/sections/booking-modal/thank-you-modal';
 
-type EventThankYouModalProps = Omit<
+export type ConsultationsThankYouModalProps = Omit<
   BookingThankYouModalProps,
   'analyticsSectionId'
 >;
 
-export function EventThankYouModal(props: EventThankYouModalProps) {
+export function ConsultationsThankYouModal(
+  props: ConsultationsThankYouModalProps,
+) {
   return (
     <BookingThankYouModal
       {...props}
-      analyticsSectionId='events-booking'
+      analyticsSectionId='consultations-booking'
     />
   );
 }

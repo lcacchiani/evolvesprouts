@@ -47,14 +47,6 @@ const MyBestAuntieBookingModal = dynamic(
   { ssr: false },
 );
 
-const MyBestAuntieThankYouModal = dynamic(
-  () =>
-    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
-      (module) => module.MyBestAuntieThankYouModal,
-    ),
-  { ssr: false },
-);
-
 interface EventsProps {
   content: EventsContent;
   bookingModalContent: BookingModalContent;
@@ -75,9 +67,7 @@ export function Events({
   const [activeBookingEventId, setActiveBookingEventId] = useState('');
   const [reservationSummary, setReservationSummary] =
     useState<ReservationSummary | null>(null);
-  const [activeThankYouModalVariant, setActiveThankYouModalVariant] = useState<
-    'event' | 'my-best-auntie' | ''
-  >('');
+  const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
   const {
     visibleEvents,
     isLoading,
@@ -90,8 +80,6 @@ export function Events({
   const activeBookingEvent = visibleEvents.find((event) => event.id === activeBookingEventId)
     ?? null;
   const activeBookingPayload = activeBookingEvent?.bookingModalPayload;
-  const isThankYouModalOpen = activeThankYouModalVariant !== '';
-
   useEffect(() => {
     if (!isThankYouModalOpen || !reservationSummary) {
       return;
@@ -207,7 +195,7 @@ export function Events({
           onSubmitReservation={(summary) => {
             setReservationSummary(summary);
             setActiveBookingEventId('');
-            setActiveThankYouModalVariant('event');
+            setIsThankYouModalOpen(true);
           }}
         />
       )}
@@ -229,12 +217,12 @@ export function Events({
           onSubmitReservation={(summary) => {
             setReservationSummary(summary);
             setActiveBookingEventId('');
-            setActiveThankYouModalVariant('my-best-auntie');
+            setIsThankYouModalOpen(true);
           }}
         />
       )}
 
-      {isThankYouModalOpen && activeThankYouModalVariant === 'event' && (
+      {isThankYouModalOpen && (
         <EventThankYouModal
           locale={locale}
           content={bookingModalContent.thankYouModal}
@@ -242,21 +230,7 @@ export function Events({
           whatsappHref={thankYouWhatsappHref}
           whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
-            setActiveThankYouModalVariant('');
-          }}
-        />
-      )}
-
-      {isThankYouModalOpen && activeThankYouModalVariant === 'my-best-auntie' && (
-        <MyBestAuntieThankYouModal
-          locale={locale}
-          content={bookingModalContent.thankYouModal}
-          summary={reservationSummary}
-          analyticsSectionId='events-booking'
-          whatsappHref={thankYouWhatsappHref}
-          whatsappCtaLabel={thankYouWhatsappCtaLabel}
-          onClose={() => {
-            setActiveThankYouModalVariant('');
+            setIsThankYouModalOpen(false);
           }}
         />
       )}

@@ -44,10 +44,10 @@ const ConsultationBookingModal = dynamic(
   { ssr: false },
 );
 
-const BookingThankYouModal = dynamic(
+const ConsultationsThankYouModal = dynamic(
   () =>
-    import('@/components/sections/booking-modal/thank-you-modal').then(
-      (module) => module.BookingThankYouModal,
+    import('@/components/sections/consultations/consultations-thank-you-modal').then(
+      (module) => module.ConsultationsThankYouModal,
     ),
   { ssr: false },
 );
@@ -535,11 +535,10 @@ export function ConsultationsBooking({
       ) : null}
 
       {isThankYouOpen && (
-        <BookingThankYouModal
+        <ConsultationsThankYouModal
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={thankYouSummary}
-          analyticsSectionId='consultations-booking'
           whatsappHref={thankYouWhatsappHref}
           whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {

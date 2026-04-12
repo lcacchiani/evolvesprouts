@@ -37,10 +37,8 @@ const {
 const mockedStripeElementsProps = vi.hoisted(() => vi.fn());
 const mockedStripePaymentElementProps = vi.hoisted(() => vi.fn());
 
-import {
-  MyBestAuntieBookingModal,
-  MyBestAuntieThankYouModal,
-} from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import { MyBestAuntieBookingModal } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import { MyBestAuntieThankYouModal } from '@/components/sections/my-best-auntie/my-best-auntie-thank-you-modal';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
