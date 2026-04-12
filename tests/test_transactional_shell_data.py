@@ -91,3 +91,20 @@ def test_build_footer_social_html_omits_instagram_linkedin_without_env(
     assert "https://www.example.com/en/contact-us" not in html
     assert "WhatsApp" in html
     assert "Website" in html
+
+
+def test_build_footer_social_html_omits_social_when_env_points_at_own_site(
+    monkeypatch: Any,
+) -> None:
+    """CDK params sometimes copy the site URL; those must not appear as Instagram/LinkedIn."""
+    monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_INSTAGRAM_URL", "https://www.example.com/en/contact-us"
+    )
+    monkeypatch.setenv(
+        "PUBLIC_WWW_LINKEDIN_URL", "https://www.example.com/zh-HK/contact-us"
+    )
+    html = build_footer_social_html(locale="en")
+    assert "Instagram" not in html
+    assert "LinkedIn" not in html
+    assert "WhatsApp" in html

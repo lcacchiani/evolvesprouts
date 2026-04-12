@@ -13,9 +13,12 @@ public website stacks:
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
-Optional **transactional email footer** URLs on the API stack (keep aligned with
-Vercel `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_LINKEDIN_URL`, and
-`NEXT_PUBLIC_WHATSAPP_URL`; empty uses website-style fallbacks in code):
+Optional **transactional email footer** URLs on the API stack. These are passed
+to Lambdas as `PUBLIC_WWW_*` and **do not read Vercel** — copy the same values
+you use for `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_LINKEDIN_URL`, and
+`NEXT_PUBLIC_WHATSAPP_URL`. If empty, Instagram/LinkedIn rows are omitted from
+the email footer (WhatsApp still uses a code default when its param is empty).
+Do not set Instagram/LinkedIn to your own website URL; those are ignored.
 
 - `PublicWwwInstagramUrl`
 - `PublicWwwLinkedinUrl`
