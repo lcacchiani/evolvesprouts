@@ -19,3 +19,22 @@ export function deriveFirstNameFromEmailLocalPart(email: string): string {
   const segment = localPart.split(/[.+_-]/)[0] ?? '';
   return sanitizeSingleLineValue(segment);
 }
+
+function capitalizeFirstLetter(value: string): string {
+  if (!value) {
+    return '';
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * `first_name` for email-only public CRM signups (newsletter, event notification):
+ * derived from the email local-part with the first character capitalised, or `fallback` when empty.
+ */
+export function resolveEmailSignupFirstName(email: string, fallback: string): string {
+  const derived = deriveFirstNameFromEmailLocalPart(email);
+  if (derived) {
+    return capitalizeFirstLetter(derived);
+  }
+  return fallback;
+}
