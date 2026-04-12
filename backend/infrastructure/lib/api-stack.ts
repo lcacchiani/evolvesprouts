@@ -891,6 +891,36 @@ export class ApiStack extends cdk.Stack {
           "Staging public website domain used for backend CORS allowlisting.",
       }
     );
+    const publicWwwInstagramUrl = new cdk.CfnParameter(
+      this,
+      "PublicWwwInstagramUrl",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional Instagram profile URL for transactional email footers; align with NEXT_PUBLIC_INSTAGRAM_URL.",
+      }
+    );
+    const publicWwwLinkedinUrl = new cdk.CfnParameter(
+      this,
+      "PublicWwwLinkedinUrl",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional LinkedIn company URL for transactional email footers; align with NEXT_PUBLIC_LINKEDIN_URL.",
+      }
+    );
+    const publicWwwWhatsappUrl = new cdk.CfnParameter(
+      this,
+      "PublicWwwWhatsappUrl",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional WhatsApp URL for transactional emails; when empty, code falls back to app default. Align with NEXT_PUBLIC_WHATSAPP_URL.",
+      }
+    );
     const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
       type: "String",
       description: "Admin website domain used for backend CORS allowlisting.",
@@ -1666,6 +1696,9 @@ export class ApiStack extends cdk.Stack {
       assetDownloadCustomDomainName: assetDownloadCustomDomainName.valueAsString,
       publicWwwDomainName: publicWwwDomainName.valueAsString,
       publicWwwStagingDomainName: publicWwwStagingDomainName.valueAsString,
+      publicWwwInstagramUrl: publicWwwInstagramUrl.valueAsString,
+      publicWwwLinkedinUrl: publicWwwLinkedinUrl.valueAsString,
+      publicWwwWhatsappUrl: publicWwwWhatsappUrl.valueAsString,
       mailchimpMediaDownloadMergeTag: mailchimpMediaDownloadMergeTag.valueAsString,
       mailchimpFreeResourceJourneyId: mailchimpFreeResourceJourneyId.valueAsString,
       mailchimpFreeResourceJourneyStepId:
@@ -2583,6 +2616,18 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BASE_URL",
       `https://${publicWwwDomainName.valueAsString}`
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_INSTAGRAM_URL",
+      publicWwwInstagramUrl.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_LINKEDIN_URL",
+      publicWwwLinkedinUrl.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_WHATSAPP_URL",
+      publicWwwWhatsappUrl.valueAsString
     );
 
     const calendar = v1.addResource("calendar");

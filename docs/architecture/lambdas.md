@@ -71,8 +71,10 @@ their primary responsibilities.
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
   secret when marketing hooks run on legacy routes
 - Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
-  `PUBLIC_WWW_BASE_URL`, `SUPPORT_EMAIL`, `MAILCHIMP_*` welcome journey vars
-  (see `aws-messaging.md`)
+  `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
+  `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
+  align with public site `NEXT_PUBLIC_*` URLs), `SUPPORT_EMAIL`, `MAILCHIMP_*`
+  welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
@@ -256,7 +258,10 @@ their primary responsibilities.
     subscribe + free-resource journey on `marketing_opt_in`)
   - `MAILCHIMP_WELCOME_JOURNEY_ID`, `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (optional;
     shared welcome journey for opted-in contacts; empty disables)
-  - `PUBLIC_WWW_BASE_URL` (reserved for shared template helpers)
+  - `PUBLIC_WWW_BASE_URL` (logo and footer links in SES HTML shell)
+  - optional `PUBLIC_WWW_INSTAGRAM_URL`, `PUBLIC_WWW_LINKEDIN_URL`,
+    `PUBLIC_WWW_WHATSAPP_URL` (same semantics as public site env; empty falls back
+    in application code)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction

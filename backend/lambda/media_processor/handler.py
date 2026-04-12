@@ -34,6 +34,9 @@ from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.services.email import send_email, send_templated_email
+from app.templates.transactional_shell_data import (
+    merge_transactional_shell_template_data,
+)
 from app.services.mailchimp import (
     MailchimpApiError,
     add_subscriber_with_tag,
@@ -322,11 +325,15 @@ def _send_user_download_email(
         )
         return
     template = f"evolvesprouts-media-download-{locale}"
-    data = {
-        "first_name": first_name,
-        "media_name": media_name,
-        "download_url": download_url,
-    }
+    loc = _normalize_email_locale(locale)
+    data = merge_transactional_shell_template_data(
+        locale=loc,
+        template_data={
+            "first_name": first_name,
+            "media_name": media_name,
+            "download_url": download_url,
+        },
+    )
     try:
         run_with_retry(
             send_templated_email,
