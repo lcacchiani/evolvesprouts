@@ -38,7 +38,9 @@ Canonical machine-readable contract:
 - **`form_kind`**: coarse category for joins across funnels — `contact`, `media_request`,
   `community`, or `reservation`. Sent on form lifecycle events (see catalog below).
 - **`form_id`**: optional stable id for a specific form *instance* (orthogonal to
-  `section_id`, which describes on-page placement).
+  `section_id`, which describes on-page placement). In code, `trackPublicFormOutcome`
+  always applies `formKind` / `formId` after caller `params` so option values win
+  over any duplicate keys in `params`.
 
 ### `error_type` values (forms)
 
@@ -79,7 +81,7 @@ data bug.
 | `contact_form_submit_success` | `/v1/contact-us` success | `section_id`, `form_type`, `form_kind` | Yes |
 | `contact_form_submit_error` | Contact validation/API error | `section_id`, `form_type`, `form_kind`, `error_type` | No |
 | `media_form_open` | Media CTA expands form | `section_id`, `form_kind`, `resource_key` | No |
-| `media_form_submit_attempt` | Media form submit (after validation path) | `section_id`, `form_kind`, `resource_key` | No |
+| `media_form_submit_attempt` | User submits media form (before field/captcha validation) | `section_id`, `form_kind`, `resource_key` | No |
 | `media_form_submit_success` | `/v1/assets/free/request` success | `section_id`, `form_kind`, `resource_key` | Yes |
 | `media_form_submit_error` | Media validation/API error | `section_id`, `form_kind`, `resource_key`, `error_type` | No |
 | `community_signup_submit_attempt` | Community signup submit attempt | `section_id`, `form_type`, `form_kind` | No |
@@ -92,7 +94,7 @@ data bug.
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
-| `booking_submit_attempt` | Reservation form passes client checks, before API/Stripe | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount` | No |
+| `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies | No |
 | `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
 | `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |

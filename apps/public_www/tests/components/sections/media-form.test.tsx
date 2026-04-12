@@ -94,6 +94,44 @@ describe('MediaForm', () => {
     }
   });
 
+  it('tracks validation_error when submit runs with invalid fields', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      { target: { value: '' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+      target: { value: 'not-an-email' },
+    });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_attempt', {
+      formKind: 'media_request',
+      formId: 'media-form__media-form',
+      sectionId: 'media-form',
+      ctaLocation: 'form',
+      params: {
+        resource_key: 'patience-free-guide',
+      },
+    });
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_error', {
+      formKind: 'media_request',
+      formId: 'media-form__media-form',
+      sectionId: 'media-form',
+      ctaLocation: 'form',
+      params: {
+        resource_key: 'patience-free-guide',
+        error_type: 'validation_error',
+      },
+    });
+  });
+
   it('renders the CTA button before the form opens', () => {
     renderMediaForm();
 

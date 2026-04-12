@@ -248,21 +248,32 @@ describe('ContactUsForm section', () => {
   it('shows linked validation feedback for invalid email and phone values', () => {
     renderContactUsForm();
 
+    const firstNameInput = screen.getByLabelText(
+      new RegExp(`^${enContent.contactUs.form.firstNameLabel}`),
+    );
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
       enContent.contactUs.form.phoneLabel,
     );
-    const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.form.submitLabel,
-    });
+    const messageInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.form.messageLabel),
+    );
+    const formElement = screen
+      .getByRole('button', { name: enContent.contactUs.form.submitLabel })
+      .closest('form');
+    if (!formElement) {
+      throw new Error('Expected contact form');
+    }
 
+    fireEvent.change(firstNameInput, { target: { value: 'Pat' } });
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
     fireEvent.blur(emailInput);
     fireEvent.change(phoneInput, { target: { value: 'not-a-phone' } });
     fireEvent.blur(phoneInput);
-    fireEvent.click(submitButton);
+    fireEvent.change(messageInput, { target: { value: 'Hello.' } });
+    fireEvent.submit(formElement);
 
     expect(
       screen.getByText(enContent.contactUs.form.emailValidationError),
@@ -279,6 +290,14 @@ describe('ContactUsForm section', () => {
     expect(phoneInput).toHaveAttribute(
       'aria-describedby',
       'contact-us-form-phone-error',
+    );
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
+      'contact_form_submit_error',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          error_type: 'validation_error',
+        }),
+      }),
     );
   });
 

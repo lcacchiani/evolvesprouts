@@ -140,7 +140,15 @@ export function trackAnalyticsEvent(
   eventName: AnalyticsEventName,
   options: TrackAnalyticsEventOptions = {},
 ): void {
+  if (!isClientRuntime()) {
+    return;
+  }
+
   const normalizedEventName = eventName.trim();
+  if (!normalizedEventName) {
+    return;
+  }
+
   pushDataLayerAnalyticsPayload(normalizedEventName, options);
 }
 
@@ -152,15 +160,23 @@ export function trackPublicFormOutcome(
   eventName: AnalyticsEventName,
   options: TrackPublicFormOutcomeOptions,
 ): void {
+  if (!isClientRuntime()) {
+    return;
+  }
+
   const normalizedEventName = eventName.trim();
   if (!normalizedEventName) {
     return;
   }
 
   const { formKind, formId, sectionId, ctaLocation, params } = options;
+  const baseParams = params ? { ...params } : {};
+  delete baseParams.form_kind;
+  delete baseParams.form_id;
+
   const mergedParams: Record<string, AnalyticsPrimitive | null | undefined> = {
+    ...baseParams,
     form_kind: formKind,
-    ...params,
   };
   const trimmedFormId = formId?.trim();
   if (trimmedFormId) {

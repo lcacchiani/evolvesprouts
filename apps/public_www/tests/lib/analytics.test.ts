@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 
@@ -56,6 +56,33 @@ describe('analytics helper', () => {
 
     expect(Array.isArray(window.dataLayer)).toBe(true);
     expect(window.dataLayer).toHaveLength(1);
+  });
+
+  it('does not push to dataLayer when window is undefined', () => {
+    vi.stubGlobal('window', undefined);
+    trackAnalyticsEvent('whatsapp_click', {
+      sectionId: 'x',
+      ctaLocation: 'y',
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it('trackPublicFormOutcome keeps formKind over params.form_kind', () => {
+    window.dataLayer = [];
+    trackPublicFormOutcome('contact_form_submit_success', {
+      formKind: 'contact',
+      formId: 'contact-us-form',
+      sectionId: 'contact-us-form',
+      ctaLocation: 'form',
+      params: {
+        form_type: 'contact_us',
+        form_kind: 'media_request',
+      },
+    });
+    expect(window.dataLayer?.[0]).toMatchObject({
+      form_kind: 'contact',
+      form_type: 'contact_us',
+    });
   });
 
   it('uses default section and cta values when omitted', () => {

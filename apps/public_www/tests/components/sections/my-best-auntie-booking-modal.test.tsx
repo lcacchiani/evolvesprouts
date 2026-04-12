@@ -854,6 +854,66 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.getByTestId('booking-reservation-submit-loading-gear')).toHaveClass('animate-spin');
   });
 
+  it('tracks validation_error when email is invalid on submit', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'not-an-email' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    const submitButton = screen.getByRole('button', {
+      name: bookingModalContent.submitLabel,
+    });
+    const reservationForm = submitButton.closest('form');
+    if (!reservationForm) {
+      throw new Error('Expected reservation form');
+    }
+    fireEvent.submit(reservationForm);
+
+    await waitFor(() => {
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
+        'booking_submit_error',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            error_type: 'validation_error',
+          }),
+        }),
+      );
+    });
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
+      'booking_submit_attempt',
+      expect.any(Object),
+    );
+  });
+
   it('submits reservation payload with required snake_case fields', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
     const onSubmitReservation = vi.fn();

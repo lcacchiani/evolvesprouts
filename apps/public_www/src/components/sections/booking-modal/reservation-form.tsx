@@ -732,8 +732,8 @@ export function BookingReservationForm({
         cohort_date: normalizedCohortDate,
         cohort_label: selectedCohortDateLabel,
         total_amount: totalAmount,
-        discount_amount: discountAmount,
-        discount_type: discountRule?.type,
+        discount_amount: discountRule ? discountAmount : undefined,
+        discount_type: discountRule ? discountRule.type : undefined,
       },
     });
 
