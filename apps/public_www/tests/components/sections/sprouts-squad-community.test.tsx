@@ -394,7 +394,7 @@ describe('SproutsSquadCommunity section', () => {
         method: 'POST',
         body: {
           email_address: 'community@example.com',
-          first_name: 'community',
+          first_name: 'Community',
           message: enContent.sproutsSquadCommunity.prefilledMessage,
           marketing_opt_in: true,
           locale: 'en',

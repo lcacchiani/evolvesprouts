@@ -24,10 +24,7 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
-import {
-  deriveFirstNameFromEmailLocalPart,
-  isValidEmail,
-} from '@/lib/validation';
+import { isValidEmail, resolveEmailSignupFirstName } from '@/lib/validation';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
@@ -162,9 +159,10 @@ export function SproutsSquadCommunity({
       });
       return;
     }
-    const derivedFirstName =
-      deriveFirstNameFromEmailLocalPart(normalizedEmail) ||
-      content.emailSignupFirstNameFallback;
+    const derivedFirstName = resolveEmailSignupFirstName(
+      normalizedEmail,
+      content.emailSignupFirstNameFallback,
+    );
 
     await withSubmitting(async () => {
       const submissionResult = await ServerSubmissionResult.resolve({

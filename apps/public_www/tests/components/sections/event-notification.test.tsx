@@ -226,7 +226,7 @@ describe('EventNotification section', () => {
         method: 'POST',
         body: {
           email_address: 'events@example.com',
-          first_name: 'events',
+          first_name: 'Events',
           message: enContent.events.notification.prefilledMessage,
           marketing_opt_in: true,
           locale: 'en',
