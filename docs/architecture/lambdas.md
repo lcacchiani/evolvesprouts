@@ -131,7 +131,10 @@ their primary responsibilities.
 - Trigger: CloudFormation custom resource `SesEmailTemplates`
 - Stack: nested stack `evolvesprouts-Messaging` (`backend/infrastructure/lib/messaging-stack.ts`)
 - Purpose: create/update/delete SES stored email templates used by public
-  transactional flows (contact, media download link, booking confirmation)
+  transactional flows (contact, media download link, booking confirmation).
+  Pending FPS bookings may instead send booking confirmation via
+  `SendRawEmail` (multipart HTML + inline PNG) when the client supplies a valid
+  PNG data URL.
 - VPC: **No**
 - Permissions: SES `CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`
 

@@ -433,6 +433,7 @@ export function BookingReservationForm({
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [fpsQrImageDataUrl, setFpsQrImageDataUrl] = useState('');
   const {
     captchaToken,
     clearSubmissionError,
@@ -498,6 +499,9 @@ export function BookingReservationForm({
   const totalAmount = useMemo(() => {
     return applyDiscount(originalAmount, discountRule);
   }, [discountRule, originalAmount]);
+  useEffect(() => {
+    setFpsQrImageDataUrl('');
+  }, [totalAmount, selectedPaymentMethod]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
@@ -946,6 +950,14 @@ export function BookingReservationForm({
         reservationPayload.stripe_payment_intent_id = stripePaymentIntentId;
       }
 
+      if (
+        selectedPaymentMethod === PAYMENT_METHOD_FPS &&
+        !reservationPayload.stripe_payment_intent_id &&
+        fpsQrImageDataUrl.trim()
+      ) {
+        reservationPayload.fps_qr_image_data_url = fpsQrImageDataUrl.trim();
+      }
+
       const submissionResult = await ServerSubmissionResult.resolve({
         request: () =>
           submitReservation(crmApiClient, {
@@ -1250,6 +1262,7 @@ export function BookingReservationForm({
                       <FpsQrCode
                         amount={totalAmount}
                         label={content.fpsQrCodeLabel}
+                        onDataUrlChange={setFpsQrImageDataUrl}
                       />
                       <p
                         data-booking-payment-fps-copy='true'

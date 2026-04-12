@@ -6,12 +6,23 @@ import os
 import re
 from typing import Any, Mapping
 
-from app.services.email import send_templated_email
+from app.services.email import (
+    send_mime_email_with_inline_png,
+    send_templated_email,
+)
 from app.services.marketing_subscribe import subscribe_to_marketing
+from app.templates.booking_confirmation_render import (
+    render_booking_confirmation_email,
+    substitute_shell_placeholders,
+)
 from app.templates.constants import build_faq_url
 from app.templates.transactional_shell_data import (
     merge_transactional_shell_template_data,
     resolve_whatsapp_url_for_template,
+)
+from app.utils.fps_qr_png import (
+    decode_fps_qr_png_data_url,
+    optional_fps_qr_data_url_from_payload,
 )
 from app.utils.logging import get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
@@ -145,6 +156,7 @@ def send_booking_confirmation_email(
     total_amount: str,
     is_pending_payment: bool,
     locale: str,
+    fps_qr_image_data_url: str | None = None,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -167,6 +179,55 @@ def send_booking_confirmation_email(
     if schedule_time_label and schedule_time_label.strip():
         data["schedule_time_label"] = schedule_time_label.strip()
     merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
+
+    pm_lower = payment_method.lower().strip()
+    png_bytes: bytes | None = None
+    if (
+        is_pending_payment
+        and pm_lower == "fps_qr"
+        and isinstance(fps_qr_image_data_url, str)
+        and fps_qr_image_data_url.strip()
+    ):
+        png_bytes = decode_fps_qr_png_data_url(fps_qr_image_data_url)
+        if png_bytes is None:
+            logger.warning(
+                "Invalid fps_qr_image_data_url for booking confirmation; "
+                "falling back to template without inline QR",
+                extra={"lead_email": mask_email(to_email)},
+            )
+
+    if png_bytes is not None:
+        wa_url = str(merged.get("whatsapp_url") or "").strip()
+        subject, html_doc, plain_text = render_booking_confirmation_email(
+            locale=loc,
+            full_name=full_name,
+            course_label=course_label,
+            schedule_date_label=schedule_date_label,
+            schedule_time_label=schedule_time_label,
+            payment_method=payment_method,
+            total_amount=total_amount,
+            is_pending_payment=is_pending_payment,
+            whatsapp_url=wa_url,
+            include_fps_qr_image=True,
+        )
+        full_html = substitute_shell_placeholders(html_doc, merged)
+        try:
+            send_mime_email_with_inline_png(
+                source=from_addr,
+                to_addresses=[to_email.strip().lower()],
+                subject=subject,
+                body_text=plain_text,
+                body_html=full_html,
+                inline_image_cid="fps_qr",
+                png_bytes=png_bytes,
+            )
+        except Exception:
+            logger.exception(
+                "Booking confirmation email failed (MIME with FPS QR)",
+                extra={"lead_email": mask_email(to_email)},
+            )
+        return
+
     try:
         send_templated_email(
             source=from_addr,
@@ -321,6 +382,9 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
     pm_lower = payment_method.lower()
     is_pending = pm_lower != "stripe" and not stripe_pi
+    fps_qr_data_url = optional_fps_qr_data_url_from_payload(
+        payload.get("fps_qr_image_data_url")
+    )
     if email and full_name:
         try:
             send_booking_confirmation_email(
@@ -333,6 +397,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 total_amount=total_amount,
                 is_pending_payment=is_pending,
                 locale=locale,
+                fps_qr_image_data_url=fps_qr_data_url,
             )
         except Exception:
             logger.exception(

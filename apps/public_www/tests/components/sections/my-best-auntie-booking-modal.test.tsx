@@ -2,6 +2,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ComponentProps, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
 
 const {
   originalFpsMerchantName,
@@ -119,6 +120,13 @@ vi.mock('@/lib/crm-api-client', async () => {
       error instanceof Error && error.name === 'AbortError',
   };
 });
+
+vi.mock('@/lib/fps-qr-code', () => ({
+  generateFpsQrImageDataUrl: vi.fn(() =>
+    Promise.resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+  ),
+  hasFpsQrConfiguration: vi.fn(() => true),
+}));
 
 vi.mock('@/lib/discounts-data', async () => {
   const actual = await vi.importActual<typeof import('@/lib/discounts-data')>(
@@ -277,6 +285,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.mocked(generateFpsQrImageDataUrl).mockImplementation(() =>
+    Promise.resolve(
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    ),
+  );
   mockedCreateCrmApiClient.mockReturnValue(null);
   mockedCreatePublicApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
@@ -949,6 +962,12 @@ describe('my-best-auntie booking modals footer content', () => {
         name: new RegExp(bookingModalContent.termsLinkLabel),
       }),
     );
+    await waitFor(() => {
+      const qrImg = document.querySelector(
+        '[aria-label="FPS payment QR code"] img',
+      ) as HTMLImageElement | null;
+      expect(qrImg?.getAttribute('src') ?? '').toMatch(/^data:image\/png/);
+    });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     fireEvent.click(
       screen.getByRole('button', {
@@ -975,6 +994,8 @@ describe('my-best-auntie booking modals footer content', () => {
         agreed_to_terms_and_conditions: true,
         payment_method: 'fps_qr',
         stripe_payment_intent_id: undefined,
+        fps_qr_image_data_url:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
         ...expectedMbaMarketingFields,
       }),
       turnstileToken: 'mock-turnstile-token',

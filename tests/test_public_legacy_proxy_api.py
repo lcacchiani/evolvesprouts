@@ -75,6 +75,51 @@ def test_legacy_reservations_forwards_payload_and_headers(
     }
 
 
+def test_legacy_contact_us_rejects_body_over_default_limit(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    large = "x" * 25_000
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/legacy/contact-us",
+        body=json.dumps({"email_address": "a@b.com", "message": large}),
+    )
+    monkeypatch.setenv("LEGACY_PUBLIC_API_BASE_URL", "https://legacy.example.com")
+
+    response = handle_legacy_contact_us(event, "POST")
+
+    assert response["statusCode"] == 413
+    assert json.loads(response["body"]) == {"error": "Request body too large"}
+
+
+def test_legacy_reservations_allows_larger_body_than_other_legacy_routes(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    payload = {"full_name": "Ida", "email": "ida@example.com", "pad": "y" * 25_000}
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/legacy/reservations",
+        body=json.dumps(payload),
+        headers={"X-Turnstile-Token": "t"},
+    )
+    monkeypatch.setenv("LEGACY_PUBLIC_API_BASE_URL", "https://legacy.example.com")
+
+    def _http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {"status": 202, "body": json.dumps({"message": "Accepted"})}
+
+    monkeypatch.setattr("app.api.public_legacy_proxy.http_invoke", _http_invoke)
+    monkeypatch.setattr(
+        "app.api.public_legacy_proxy.run_reservation_post_success",
+        lambda **_kw: None,
+    )
+
+    response = handle_legacy_reservations(event, "POST")
+
+    assert response["statusCode"] == 202
+
+
 def test_legacy_discount_uses_configured_api_key_when_inbound_missing(
     api_gateway_event: Any,
     monkeypatch: Any,

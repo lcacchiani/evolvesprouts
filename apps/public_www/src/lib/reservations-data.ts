@@ -28,6 +28,11 @@ export interface ReservationSubmissionPayload {
   schedule_date_label?: string;
   schedule_time_label?: string;
   location_name?: string;
+  /**
+   * PNG data URL from the same FPS QR as the booking modal; backend inlines it
+   * in the confirmation email when payment is pending (fps_qr).
+   */
+  fps_qr_image_data_url?: string;
 }
 
 interface SubmitReservationOptions {

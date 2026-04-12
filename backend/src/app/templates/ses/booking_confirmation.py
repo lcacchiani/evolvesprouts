@@ -4,184 +4,132 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.templates.booking_confirmation_content import (
+    BOOKING_CONFIRMATION_LOCALES,
+    GREETING_HTML,
+    HEADER_TITLE,
+    PENDING_PAYMENT_NOTE,
+    SIGN_OFF_PLAIN,
+    SUBJECT_PREFIX,
+    SUBJECT_SUFFIX,
+    TABLE_LABELS,
+    THANK_YOU_HTML,
+    THANK_YOU_PLAIN,
+    WHATSAPP_INTRO,
+)
 from app.templates.ses.email_shell import wrap_transactional_html
 
 _CTA_LINK = "color:#C84A16;font-weight:600;"
 
 
+def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
+    """Handlebars inner HTML and plain text (copy shared with MIME render module)."""
+    labels = TABLE_LABELS[loc]
+    border = "border-bottom:1px solid #eeeeee;"
+    row_course = (
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["course"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{course_label}}</td></tr>"
+    )
+    row_date = (
+        "{{#if schedule_date_label}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["date"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{schedule_date_label}}</td></tr>"
+        "{{/if}}"
+    )
+    row_time = (
+        "{{#if schedule_time_label}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["time"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{schedule_time_label}}</td></tr>"
+        "{{/if}}"
+    )
+    row_payment = (
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["payment"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{payment_method}}</td></tr>"
+    )
+    row_total = (
+        f'<tr><td style="padding:8px 0;"><strong>{labels["total"]}</strong></td>'
+        '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
+    )
+    pending = PENDING_PAYMENT_NOTE[loc]
+    inner_html = (
+        GREETING_HTML[loc]
+        + THANK_YOU_HTML[loc]
+        + '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="border-collapse:collapse;margin:0 0 16px;">'
+        + row_course
+        + row_date
+        + row_time
+        + row_payment
+        + row_total
+        + "</table>"
+        "{{#if is_pending_payment}}"
+        '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;'
+        'color:#5c4a00;">'
+        f"{pending}"
+        "</p>"
+        "{{/if}}"
+        f'<p style="margin:0 0 12px;">{WHATSAPP_INTRO[loc]}</p>'
+        '<p style="margin:0;">'
+        f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
+        "</p>"
+    )
+
+    label_sep = ": " if loc == "en" else "："
+    greeting_plain = (
+        "Hi {{full_name}},\n\n" if loc == "en" else "您好 {{full_name}}，\n\n"
+    )
+    text_part = (
+        greeting_plain
+        + THANK_YOU_PLAIN[loc]
+        + f"{labels['course']}{label_sep}"
+        + "{{course_label}}\n"
+        + "{{#if schedule_date_label}}"
+        + f"{labels['date']}{label_sep}"
+        + "{{schedule_date_label}}\n"
+        + "{{/if}}"
+        + "{{#if schedule_time_label}}"
+        + f"{labels['time']}{label_sep}"
+        + "{{schedule_time_label}}\n"
+        + "{{/if}}"
+        + f"{labels['payment']}{label_sep}"
+        + "{{payment_method}}\n"
+        + f"{labels['total']}{label_sep}"
+        + "{{total_amount}}\n\n"
+        + "{{#if is_pending_payment}}"
+        + f"{pending}\n\n"
+        + "{{/if}}"
+        + f"{WHATSAPP_INTRO[loc]}\n"
+        + (
+            "WhatsApp: {{whatsapp_url}}\n\n"
+            if loc == "en"
+            else "WhatsApp：{{whatsapp_url}}\n\n"
+        )
+        + SIGN_OFF_PLAIN[loc]
+    )
+
+    return inner_html, text_part
+
+
 def get_ses_template_definitions() -> list[dict[str, Any]]:
     """Return SES CreateTemplate payloads (Template key for boto3)."""
-    subjects = {
-        "en": "Booking confirmed — {{course_label}} — Evolve Sprouts",
-        "zh-CN": "预约确认 — {{course_label}} — Evolve Sprouts",
-        "zh-HK": "預約確認 — {{course_label}} — Evolve Sprouts",
-    }
-    header_titles = {
-        "en": "You're all set — booking confirmed",
-        "zh-CN": "预订已确认",
-        "zh-HK": "預訂已確認",
-    }
-    return [
-        {
-            "TemplateName": f"evolvesprouts-booking-confirmation-{loc}",
-            "SubjectPart": subjects[loc],
-            "HtmlPart": wrap_transactional_html(
-                header_title=header_titles[loc],
-                inner_html=inner_html,
-            ),
-            "TextPart": text_part,
-        }
-        for loc, inner_html, text_part in _LOCALE_ROWS
-    ]
-
-
-# Handlebars: optional rows and pending-payment note.
-_HTML_EN = (
-    '<p style="margin:0 0 12px;">Hi {{full_name}},</p>'
-    '<p style="margin:0 0 16px;">Thank you for your booking!</p>'
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-    'style="border-collapse:collapse;margin:0 0 16px;">'
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>Course / event</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{course_label}}</td></tr>'
-    "{{#if schedule_date_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>Date</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_date_label}}</td></tr>"
-    "{{/if}}"
-    "{{#if schedule_time_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>Time</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_time_label}}</td></tr>"
-    "{{/if}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>Payment method</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>Total</strong></td>'
-    '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
-    "</table>"
-    "{{#if is_pending_payment}}"
-    '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;color:#5c4a00;">'
-    "Your reservation is pending until payment is confirmed."
-    "</p>"
-    "{{/if}}"
-    '<p style="margin:0 0 12px;">Questions? Message us on WhatsApp:</p>'
-    '<p style="margin:0;">'
-    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
-    "</p>"
-)
-
-_TEXT_EN = (
-    "Hi {{full_name}},\n\n"
-    "Thank you for your booking!\n\n"
-    "Course / event: {{course_label}}\n"
-    "{{#if schedule_date_label}}Date: {{schedule_date_label}}\n{{/if}}"
-    "{{#if schedule_time_label}}Time: {{schedule_time_label}}\n{{/if}}"
-    "Payment method: {{payment_method}}\n"
-    "Total: {{total_amount}}\n\n"
-    "{{#if is_pending_payment}}"
-    "Your reservation is pending until payment is confirmed.\n\n"
-    "{{/if}}"
-    "WhatsApp: {{whatsapp_url}}\n\n"
-    "Thank you,\nEvolve Sprouts"
-)
-
-_HTML_ZH_CN = (
-    '<p style="margin:0 0 12px;">您好 {{full_name}}，</p>'
-    '<p style="margin:0 0 16px;">感谢您的预订！</p>'
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-    'style="border-collapse:collapse;margin:0 0 16px;">'
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>课程 / 活动</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{course_label}}</td></tr>'
-    "{{#if schedule_date_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>日期</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_date_label}}</td></tr>"
-    "{{/if}}"
-    "{{#if schedule_time_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>时间</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_time_label}}</td></tr>"
-    "{{/if}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>付款方式</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>总额</strong></td>'
-    '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
-    "</table>"
-    "{{#if is_pending_payment}}"
-    '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;color:#5c4a00;">'
-    "在付款确认前，您的预订仍为待处理状态。"
-    "</p>"
-    "{{/if}}"
-    '<p style="margin:0 0 12px;">有疑问？请通过 WhatsApp 联系我们：</p>'
-    '<p style="margin:0;">'
-    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
-    "</p>"
-)
-
-_TEXT_ZH_CN = (
-    "您好 {{full_name}}，\n\n"
-    "感谢您的预订！\n\n"
-    "课程 / 活动：{{course_label}}\n"
-    "{{#if schedule_date_label}}日期：{{schedule_date_label}}\n{{/if}}"
-    "{{#if schedule_time_label}}时间：{{schedule_time_label}}\n{{/if}}"
-    "付款方式：{{payment_method}}\n"
-    "总额：{{total_amount}}\n\n"
-    "{{#if is_pending_payment}}"
-    "在付款确认前，您的预订仍为待处理状态。\n\n"
-    "{{/if}}"
-    "WhatsApp：{{whatsapp_url}}\n\n"
-    "谢谢，\nEvolve Sprouts"
-)
-
-_HTML_ZH_HK = (
-    '<p style="margin:0 0 12px;">您好 {{full_name}}，</p>'
-    '<p style="margin:0 0 16px;">多謝您的預訂！</p>'
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-    'style="border-collapse:collapse;margin:0 0 16px;">'
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>課程 / 活動</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{course_label}}</td></tr>'
-    "{{#if schedule_date_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>日期</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_date_label}}</td></tr>"
-    "{{/if}}"
-    "{{#if schedule_time_label}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>時間</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-    "{{schedule_time_label}}</td></tr>"
-    "{{/if}}"
-    '<tr><td style="padding:8px 0;border-bottom:1px solid #eeeeee;"><strong>付款方式</strong></td>'
-    '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">{{payment_method}}</td></tr>'
-    '<tr><td style="padding:8px 0;"><strong>總額</strong></td>'
-    '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
-    "</table>"
-    "{{#if is_pending_payment}}"
-    '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;color:#5c4a00;">'
-    "在付款確認前，您的預訂仍為待處理狀態。"
-    "</p>"
-    "{{/if}}"
-    '<p style="margin:0 0 12px;">有疑問？請透過 WhatsApp 聯絡我們：</p>'
-    '<p style="margin:0;">'
-    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
-    "</p>"
-)
-
-_TEXT_ZH_HK = (
-    "您好 {{full_name}}，\n\n"
-    "多謝您的預訂！\n\n"
-    "課程 / 活動：{{course_label}}\n"
-    "{{#if schedule_date_label}}日期：{{schedule_date_label}}\n{{/if}}"
-    "{{#if schedule_time_label}}時間：{{schedule_time_label}}\n{{/if}}"
-    "付款方式：{{payment_method}}\n"
-    "總額：{{total_amount}}\n\n"
-    "{{#if is_pending_payment}}"
-    "在付款確認前，您的預訂仍為待處理狀態。\n\n"
-    "{{/if}}"
-    "WhatsApp：{{whatsapp_url}}\n\n"
-    "謝謝，\nEvolve Sprouts"
-)
-
-_LOCALE_ROWS: list[tuple[str, str, str]] = [
-    ("en", _HTML_EN, _TEXT_EN),
-    ("zh-CN", _HTML_ZH_CN, _TEXT_ZH_CN),
-    ("zh-HK", _HTML_ZH_HK, _TEXT_ZH_HK),
-]
+    definitions: list[dict[str, Any]] = []
+    for loc in BOOKING_CONFIRMATION_LOCALES:
+        inner_html, text_part = _inner_html_and_text_for_locale(loc)
+        definitions.append(
+            {
+                "TemplateName": f"evolvesprouts-booking-confirmation-{loc}",
+                "SubjectPart": SUBJECT_PREFIX[loc]
+                + "{{course_label}}"
+                + SUBJECT_SUFFIX,
+                "HtmlPart": wrap_transactional_html(
+                    header_title=HEADER_TITLE[loc],
+                    inner_html=inner_html,
+                ),
+                "TextPart": text_part,
+            }
+        )
+    return definitions
