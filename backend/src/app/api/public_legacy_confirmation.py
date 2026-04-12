@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import os
 import re
 from typing import Any, Mapping
 
-from app.services.email import send_templated_email
+from app.services.email import (
+    send_mime_email_with_inline_png,
+    send_templated_email,
+)
 from app.services.marketing_subscribe import subscribe_to_marketing
+from app.templates.booking_confirmation_render import (
+    render_booking_confirmation_email,
+    substitute_shell_placeholders,
+)
 from app.templates.constants import build_faq_url
 from app.templates.transactional_shell_data import (
     merge_transactional_shell_template_data,
@@ -33,6 +42,9 @@ TAG_PUBLIC_WWW_CONTACT_INQUIRY = "public-www-contact-inquiry"
 TAG_PUBLIC_WWW_COMMUNITY_NEWSLETTER = "public-www-community-newsletter"
 TAG_PUBLIC_WWW_EVENT_NOTIFICATION = "public-www-event-notification"
 TAG_BOOKING_PREFIX = "public-www-booking-customer-"
+
+_MAX_FPS_QR_DATA_URL_CHARS = 50_000
+_PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 # Mailchimp FNAME fallback when first_name is empty for community/event tags.
 # Public forms normally send deriveFirstNameFromEmailLocalPart + locale fallback;
@@ -145,6 +157,7 @@ def send_booking_confirmation_email(
     total_amount: str,
     is_pending_payment: bool,
     locale: str,
+    fps_qr_image_data_url: str | None = None,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -167,6 +180,55 @@ def send_booking_confirmation_email(
     if schedule_time_label and schedule_time_label.strip():
         data["schedule_time_label"] = schedule_time_label.strip()
     merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
+
+    pm_lower = payment_method.lower().strip()
+    png_bytes: bytes | None = None
+    if (
+        is_pending_payment
+        and pm_lower == "fps_qr"
+        and isinstance(fps_qr_image_data_url, str)
+        and fps_qr_image_data_url.strip()
+    ):
+        png_bytes = _decode_png_from_data_url(fps_qr_image_data_url)
+        if png_bytes is None:
+            logger.warning(
+                "Invalid fps_qr_image_data_url for booking confirmation; "
+                "falling back to template without inline QR",
+                extra={"lead_email": mask_email(to_email)},
+            )
+
+    if png_bytes is not None:
+        wa_url = str(merged.get("whatsapp_url") or "").strip()
+        subject, html_doc, plain_text = render_booking_confirmation_email(
+            locale=loc,
+            full_name=full_name,
+            course_label=course_label,
+            schedule_date_label=schedule_date_label,
+            schedule_time_label=schedule_time_label,
+            payment_method=payment_method,
+            total_amount=total_amount,
+            is_pending_payment=is_pending_payment,
+            whatsapp_url=wa_url,
+            include_fps_qr_image=True,
+        )
+        full_html = substitute_shell_placeholders(html_doc, merged)
+        try:
+            send_mime_email_with_inline_png(
+                source=from_addr,
+                to_addresses=[to_email.strip().lower()],
+                subject=subject,
+                body_text=plain_text,
+                body_html=full_html,
+                inline_image_cid="fps_qr",
+                png_bytes=png_bytes,
+            )
+        except Exception:
+            logger.exception(
+                "Booking confirmation email failed (MIME with FPS QR)",
+                extra={"lead_email": mask_email(to_email)},
+            )
+        return
+
     try:
         send_templated_email(
             source=from_addr,
@@ -321,6 +383,12 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
     pm_lower = payment_method.lower()
     is_pending = pm_lower != "stripe" and not stripe_pi
+    fps_qr_raw = payload.get("fps_qr_image_data_url")
+    fps_qr_data_url = (
+        str(fps_qr_raw).strip()
+        if isinstance(fps_qr_raw, str) and fps_qr_raw.strip()
+        else None
+    )
     if email and full_name:
         try:
             send_booking_confirmation_email(
@@ -333,6 +401,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 total_amount=total_amount,
                 is_pending_payment=is_pending,
                 locale=locale,
+                fps_qr_image_data_url=fps_qr_data_url,
             )
         except Exception:
             logger.exception(
@@ -359,6 +428,26 @@ def _optional_str(value: Any) -> str | None:
         return None
     s = str(value).strip()
     return s or None
+
+
+def _decode_png_from_data_url(raw: str) -> bytes | None:
+    """Accept only ``data:image/png;base64,...`` from the booking modal QR."""
+    s = raw.strip()
+    if len(s) > _MAX_FPS_QR_DATA_URL_CHARS:
+        return None
+    prefix = "data:image/png;base64,"
+    if not s.lower().startswith(prefix):
+        return None
+    b64_part = s[len(prefix) :].strip()
+    if not b64_part or "\n" in b64_part or "\r" in b64_part:
+        return None
+    try:
+        decoded = base64.b64decode(b64_part, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+    if len(decoded) > 512_000 or not decoded.startswith(_PNG_MAGIC):
+        return None
+    return decoded
 
 
 def _format_hkd_amount(price: Any) -> str:

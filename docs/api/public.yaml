@@ -1008,6 +1008,14 @@ components:
         location_name:
           type: string
           maxLength: 500
+        fps_qr_image_data_url:
+          type: string
+          maxLength: 50000
+          description: >
+            Optional PNG image as a data URL (data:image/png;base64,...) matching the
+            FPS QR shown in the public booking modal. When payment is pending and
+            payment_method is fps_qr, the API may embed this image in the booking
+            confirmation email.
     ReservationPaymentIntentRequest:
       type: object
       required:

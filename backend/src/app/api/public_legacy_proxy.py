@@ -25,7 +25,8 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 _DEFAULT_ERROR_MESSAGE = "Unable to process request. Please try again."
-_MAX_BODY_BYTES = 20_000
+# Reservation payloads may include a base64 PNG data URL for the FPS QR code.
+_MAX_BODY_BYTES = 120_000
 _CONTENT_TYPE_JSON = "application/json"
 
 _LEGACY_RESERVATIONS_PATH = "/v1/reservations"

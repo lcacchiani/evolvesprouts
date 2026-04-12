@@ -53,6 +53,7 @@ import {
   resolvePublicBookingPaymentOptionFlags,
   type PublicBookingPaymentOptionFlags,
 } from '@/lib/booking-payment-options';
+import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
 import {
   submitReservation,
   type ReservationPaymentMethodCode,
@@ -944,6 +945,16 @@ export function BookingReservationForm({
         }
         stripePaymentIntentId = stripeConfirmation.paymentIntentId;
         reservationPayload.stripe_payment_intent_id = stripePaymentIntentId;
+      }
+
+      if (
+        selectedPaymentMethod === PAYMENT_METHOD_FPS &&
+        !reservationPayload.stripe_payment_intent_id
+      ) {
+        const fpsDataUrl = await generateFpsQrImageDataUrl(totalAmount);
+        if (fpsDataUrl) {
+          reservationPayload.fps_qr_image_data_url = fpsDataUrl;
+        }
       }
 
       const submissionResult = await ServerSubmissionResult.resolve({
