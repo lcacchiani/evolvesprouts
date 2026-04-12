@@ -5,7 +5,7 @@ import {
   type BookingThankYouModalProps,
 } from '@/components/sections/booking-modal/thank-you-modal';
 
-type EventThankYouModalProps = Omit<
+export type EventThankYouModalProps = Omit<
   BookingThankYouModalProps,
   'analyticsSectionId'
 >;
