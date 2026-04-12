@@ -81,7 +81,6 @@ Key entities:
 - `geographic_areas`
 - `assets`
 - `asset_access_grants`
-- `tickets` (manager access workflow + organization suggestion workflow)
 - `inbound_emails` (SES/S3 invoice email tracking and idempotency)
 - `audit_log` (automatic change tracking via triggers)
 

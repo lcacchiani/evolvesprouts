@@ -47,6 +47,10 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
 - Enum `expense_parse_status`: `not_requested`, `queued`, `processing`,
   `succeeded`, `failed`.
 
+Migration `0022_remove_crm_tickets` drops the CRM `tickets` table and PostgreSQL
+enums `ticket_type` and `ticket_status` (legacy manager access / place-suggestion
+workflow). Event service `event_ticket_tiers` and related fields are unchanged.
+
 ## Table: assets
 
 Purpose: Stores asset metadata for files in S3.

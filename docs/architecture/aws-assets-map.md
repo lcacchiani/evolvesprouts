@@ -6,7 +6,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 **Primary API Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
 **Stack Definition:** `backend/infrastructure/lib/api-stack.ts`  
-**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (booking, media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`.
+**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`.
 
 ---
 
@@ -90,7 +90,7 @@ automatic annual rotation enabled and a human-readable alias.
 |--------------|------------|-------|---------|
 | KMS Key | `SharedLambdaEnvEncryptionKey` | `alias/evolvesprouts-lambda-env-encryption-key` | Lambda environment variable encryption (shared across all functions) |
 | KMS Key | `SharedLambdaLogEncryptionKey` | `alias/evolvesprouts-lambda-log-encryption-key` | Lambda CloudWatch log encryption (shared across all functions) |
-| KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (booking request, media, and expense parser queues) |
+| KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (media and expense parser queues in the messaging nested stack) |
 | KMS Key | `ApiLogEncryptionKey` | `alias/evolvesprouts-api-log-encryption-key` | API Gateway CloudWatch access log encryption |
 | KMS Key | `SecretsEncryptionKey` | `alias/evolvesprouts-secrets-encryption-key` | Secrets Manager encryption (API key rotation secret) |
 
@@ -318,7 +318,6 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | Yes | Custom resource handler |
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
-| `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor (nested stack `evolvesprouts-Messaging`) |
 | `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor (nested stack `evolvesprouts-Messaging`) |
 | `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser (nested stack `evolvesprouts-Messaging`) |
 | `InboundInvoiceEmailProcessor` | `lambda/inbound_invoice_email/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered inbound invoice email processor |
@@ -349,14 +348,13 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (marketing hooks on legacy routes), S3 read/write for the assets bucket |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (marketing hooks on legacy routes), S3 read/write for the assets bucket |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
-| `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), read Mailchimp secret, invoke `AwsApiProxyFunction`; `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` for Mailchimp download URL merge field; optional `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` for free-resource Customer Journey trigger; `MAILCHIMP_REQUIRE_MARKETING_CONSENT` + welcome journey env vars (see `aws-messaging.md`) |
 | `SesTemplateManagerFunction` | SES template CRUD (`CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`) for CloudFormation custom resource `SesEmailTemplates` (nested stack `evolvesprouts-Messaging`) |
 | `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
@@ -531,7 +529,7 @@ configured by stack custom resources (including retention and KMS association).
 | `DeviceAttestationFailClosed` | String | No | No | Fail-closed mode (default: `true`, allowed: `true`/`false`) |
 | `ActiveCountryCodes` | String | No | No | Comma-separated country codes (default: `HK`) |
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
-| `SupportEmail` | String | No | No | Email to receive booking request notifications |
+| `SupportEmail` | String | No | No | Email for internal notifications (for example media lead alerts) |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `InboundEmailDomainName` | String | Yes | No | SES-verified inbound email subdomain for invoice ingestion |
 | `InboundInvoiceRecipientLocalPart` | String | No | No | Local-part for the SES-managed invoice mailbox (default: `invoices`) |
@@ -583,9 +581,6 @@ configured by stack custom resources (including retention and KMS association).
 | `AssetsDownloadCloudFrontKeyPairId` | CloudFront key pair ID | Key-Pair-Id used in signed download URLs |
 | `AssetsDownloadCustomDomainTarget` | CloudFront domain | DNS CNAME target for the asset custom domain |
 | `AssetsDownloadCustomDomainUrl` | URL | Custom domain URL used for signed asset download links |
-| `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic (from nested stack `evolvesprouts-Messaging`) |
-| `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue (from nested stack `evolvesprouts-Messaging`) |
-| `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages (from nested stack `evolvesprouts-Messaging`) |
 | `MediaTopicArn` | SNS topic ARN | Media request events topic (from nested stack `evolvesprouts-Messaging`) |
 | `MediaQueueUrl` | SQS queue URL | Media request processing queue (from nested stack `evolvesprouts-Messaging`) |
 | `MediaDLQUrl` | SQS DLQ URL | Failed media request messages (from nested stack `evolvesprouts-Messaging`) |

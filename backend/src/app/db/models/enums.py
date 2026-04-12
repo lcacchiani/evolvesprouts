@@ -5,21 +5,6 @@ from __future__ import annotations
 import enum
 
 
-class TicketType(str, enum.Enum):
-    """Discriminator for ticket types."""
-
-    ACCESS_REQUEST = "access_request"
-    ORGANIZATION_SUGGESTION = "organization_suggestion"
-
-
-class TicketStatus(str, enum.Enum):
-    """Lifecycle status for tickets."""
-
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-
-
 class AssetType(str, enum.Enum):
     """Supported client asset categories."""
 

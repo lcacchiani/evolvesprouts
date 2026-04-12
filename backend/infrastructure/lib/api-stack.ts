@@ -1684,7 +1684,6 @@ export class ApiStack extends cdk.Stack {
       new iam.PolicyStatement({
         actions: ["sns:Publish"],
         resources: [
-          messaging.bookingRequestTopic.topicArn,
           messaging.mediaTopic.topicArn,
           messaging.expenseParserTopic.topicArn,
         ],
@@ -3323,21 +3322,6 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AssetsDownloadCustomDomainUrl", {
       value: `https://${assetDownloadCustomDomainName.valueAsString}`,
       description: "Asset download custom domain URL.",
-    });
-
-    new cdk.CfnOutput(this, "BookingRequestTopicArn", {
-      value: messaging.bookingRequestTopic.topicArn,
-      description: "SNS topic ARN for booking request events",
-    });
-
-    new cdk.CfnOutput(this, "BookingRequestQueueUrl", {
-      value: messaging.bookingRequestQueue.queueUrl,
-      description: "SQS queue URL for booking request processing",
-    });
-
-    new cdk.CfnOutput(this, "BookingRequestDLQUrl", {
-      value: messaging.bookingRequestDLQ.queueUrl,
-      description: "SQS dead letter queue URL for failed booking requests",
     });
 
     new cdk.CfnOutput(this, "MediaTopicArn", {

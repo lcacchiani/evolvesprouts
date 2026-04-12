@@ -58,11 +58,6 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
  * stack to keep the root CloudFormation stack under the 500-resource limit.
  */
 export class MessagingNestedStack extends cdk.NestedStack {
-  public readonly bookingRequestTopic: sns.Topic;
-  public readonly bookingRequestQueue: sqs.Queue;
-  public readonly bookingRequestDLQ: sqs.Queue;
-  public readonly bookingRequestProcessor: lambda.Function;
-
   public readonly mediaTopic: sns.Topic;
   public readonly mediaQueue: sqs.Queue;
   public readonly mediaDLQ: sqs.Queue;
@@ -148,102 +143,6 @@ export class MessagingNestedStack extends cdk.NestedStack {
         TemplatesHash: sesTemplatesHash,
         HandlerHash: sesHandlerHash,
       },
-    });
-
-    // -------------------------------------------------------------------------
-    // Booking Request Messaging (SNS + SQS)
-    // -------------------------------------------------------------------------
-
-    this.bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
-      queueName: name("booking-request-dlq"),
-      retentionPeriod: cdk.Duration.days(14),
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: props.sqsEncryptionKey,
-    });
-
-    this.bookingRequestQueue = new sqs.Queue(this, "BookingRequestQueue", {
-      queueName: name("booking-request-queue"),
-      visibilityTimeout: cdk.Duration.seconds(60),
-      deadLetterQueue: {
-        queue: this.bookingRequestDLQ,
-        maxReceiveCount: 3,
-      },
-      encryption: sqs.QueueEncryption.KMS,
-      encryptionMasterKey: props.sqsEncryptionKey,
-    });
-
-    this.bookingRequestTopic = new sns.Topic(this, "BookingRequestTopic", {
-      topicName: name("booking-request-events"),
-      masterKey: props.sqsEncryptionKey,
-    });
-
-
-    this.bookingRequestTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(this.bookingRequestQueue)
-    );
-
-    this.bookingRequestProcessor = createPythonFunction("BookingRequestProcessor", {
-        handler: "lambda/manager_request_processor/handler.lambda_handler",
-        timeout: cdk.Duration.seconds(10),
-        manageLogGroup: false,
-        environment: {
-          DATABASE_SECRET_ARN: props.databaseSecretArn,
-          DATABASE_NAME: "evolvesprouts",
-          DATABASE_USERNAME: "evolvesprouts_admin",
-          DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
-          DATABASE_IAM_AUTH: "true",
-          SES_SENDER_EMAIL: props.sesSenderEmail,
-          SUPPORT_EMAIL: props.supportEmail,
-        },
-      });
-
-    this.bookingRequestProcessor.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [props.sesSenderIdentityArn, props.sesSenderDomainIdentityArn],
-      })
-    );
-    this.bookingRequestProcessor.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
-        resources: [props.databaseSecretArn],
-      })
-    );
-    if (props.databaseSecretKmsKeyArn) {
-      this.bookingRequestProcessor.addToRolePolicy(
-        new iam.PolicyStatement({
-          actions: ["kms:Decrypt"],
-          resources: [props.databaseSecretKmsKeyArn],
-        })
-      );
-    }
-    this.bookingRequestProcessor.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["rds-db:connect"],
-        resources: [
-          cdk.Fn.join("", [
-            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
-            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
-            "/evolvesprouts_admin",
-          ]),
-        ],
-      })
-    );
-    this.bookingRequestProcessor.addEventSource(
-      new lambdaEventSources.SqsEventSource(this.bookingRequestQueue, {
-        batchSize: 1,
-      })
-    );
-
-    new cdk.aws_cloudwatch.Alarm(this, "BookingRequestDLQAlarm", {
-      alarmName: name("booking-request-dlq-alarm"),
-      alarmDescription: "Booking request messages failed processing and landed in DLQ",
-      metric: this.bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
-        period: cdk.Duration.minutes(5),
-      }),
-      threshold: 1,
-      evaluationPeriods: 1,
-      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
     // -------------------------------------------------------------------------
