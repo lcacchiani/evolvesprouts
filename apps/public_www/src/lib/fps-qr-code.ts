@@ -104,6 +104,12 @@ export async function generateFpsQrImageDataUrl(
     return null;
   }
 
+  // jsdom (Vitest) does not complete network loads for injected <script src>;
+  // the load promise would hang forever and block booking submit.
+  if (process.env.NODE_ENV === 'test') {
+    return null;
+  }
+
   try {
     await loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE);
     const Fps = window.FPS;
