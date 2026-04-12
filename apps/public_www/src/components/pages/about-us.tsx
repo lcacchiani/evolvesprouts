@@ -32,6 +32,7 @@ export function AboutUsPage({ locale, content }: AboutUsPageProps) {
       <SproutsSquadCommunity
         content={content.sproutsSquadCommunity}
         commonCaptchaContent={content.common.captcha}
+        commonFormActionsContent={content.common.formActions}
         locale={locale}
         marketingOptInLabel={content.contactUs.form.marketingOptInLabel}
       />

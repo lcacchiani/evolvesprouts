@@ -793,6 +793,64 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.queryByTestId('booking-discount-apply-loading-gear')).toBeNull();
   });
 
+  it('shows the loading gear on the reservation submit button while the request is in flight', async () => {
+    const requestSpy = vi.fn(
+      () =>
+        new Promise<unknown>(() => {
+          /* intentionally pending until test ends */
+        }),
+    );
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: requestSpy,
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledTimes(1);
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: bookingModalContent.submittingLabel,
+    });
+    expect(submitButton).toBeDisabled();
+    expect(screen.getByTestId('booking-reservation-submit-loading-gear')).toHaveClass('animate-spin');
+  });
+
   it('submits reservation payload with required snake_case fields', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
     const onSubmitReservation = vi.fn();

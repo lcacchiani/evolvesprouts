@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
+import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import type { ContactUsContent } from '@/content';
@@ -218,17 +218,12 @@ export function ContactFormFields({
               : undefined
         }
       >
-        {isSubmitting ? (
-          <>
-            <span className='sr-only'>{content.submittingLabel}</span>
-            <LoadingGearIcon
-              className='h-5 w-5 animate-spin'
-              testId='contact-us-form-submit-loading-gear'
-            />
-          </>
-        ) : (
-          content.submitLabel
-        )}
+        <SubmitButtonLoadingContent
+          isSubmitting={isSubmitting}
+          submittingLabel={content.submittingLabel}
+          idleLabel={content.submitLabel}
+          loadingGearTestId='contact-us-form-submit-loading-gear'
+        />
       </ButtonPrimitive>
       <p className='text-base leading-7 text-[color:var(--site-primary-text)]'>
         {content.formDescription}

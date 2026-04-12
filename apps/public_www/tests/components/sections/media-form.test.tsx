@@ -67,6 +67,7 @@ function mediaFormProps() {
     formFirstNameLabel: resourcesContent.formFirstNameLabel,
     formEmailLabel: resourcesContent.formEmailLabel,
     formSubmitLabel: resourcesContent.formSubmitLabel,
+    formSubmittingLabel: resourcesContent.formSubmittingLabel,
     formSuccessTitle: resourcesContent.formSuccessTitle,
     formSuccessBody: resourcesContent.formSuccessBody,
     formErrorMessage: resourcesContent.formErrorMessage,
@@ -140,6 +141,50 @@ describe('MediaForm', () => {
 
     await waitFor(() => {
       expect(form).toHaveClass('opacity-100');
+    });
+  });
+
+  it('shows the loading gear on the submit button while the request is in flight', async () => {
+    let releaseRequest: (() => void) | undefined;
+    const request = vi.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          releaseRequest = () => {
+            reject(new Error('deferred failure'));
+          };
+        }),
+    );
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      { target: { value: 'Ida' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.resources.formSubmittingLabel,
+    });
+    expect(submitButton).toBeDisabled();
+    expect(screen.getByTestId('media-form-submit-loading-gear')).toHaveClass('animate-spin');
+
+    releaseRequest?.();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+      ).toBeInTheDocument();
     });
   });
 

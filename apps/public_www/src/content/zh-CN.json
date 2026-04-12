@@ -179,6 +179,7 @@
     "formFirstNameLabel": "名字",
     "formEmailLabel": "邮箱",
     "formSubmitLabel": "发送免费指南给我",
+    "formSubmittingLabel": "提交中…",
     "formSuccessTitle": "请查收你的邮箱！",
     "formSuccessBody": "下载链接就在里面。",
     "formErrorMessage": "暂时无法提交，请检查信息后重试。",
@@ -1015,6 +1016,9 @@
       "loadError": "CAPTCHA 加载失败，请刷新页面后重试。",
       "unavailableError": "CAPTCHA 暂时不可用，请稍后再试。"
     },
+    "formActions": {
+      "submittingLabel": "提交中…"
+    },
     "mediaDownload": {
       "invalidTitle": "下载链接无效",
       "invalidDescription": "此媒体链接缺少有效令牌。请重新申请媒体下载。",
@@ -1445,6 +1449,7 @@
       "termsHref": "/terms",
       "submitLabel": "立即预留我的名额",
       "submitStripeLabel": "立即付款并预留名额",
+      "submittingLabel": "提交中…",
       "captchaLabel": "请完成 CAPTCHA 验证",
       "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",

@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
@@ -23,6 +24,7 @@ interface MediaFormProps {
   formFirstNameLabel: string;
   formEmailLabel: string;
   formSubmitLabel: string;
+  formSubmittingLabel: string;
   formSuccessTitle: string;
   formSuccessBody: string;
   formErrorMessage: string;
@@ -54,6 +56,7 @@ export function MediaForm({
   formFirstNameLabel,
   formEmailLabel,
   formSubmitLabel,
+  formSubmittingLabel,
   formSuccessTitle,
   formSuccessBody,
   formErrorMessage,
@@ -297,11 +300,20 @@ export function MediaForm({
       <ButtonPrimitive
         variant='primary'
         type='submit'
-        className='w-full'
+        className={
+          isSubmitting
+            ? 'inline-flex w-full items-center justify-center gap-2'
+            : 'w-full'
+        }
         disabled={isSubmitDisabled}
         aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
       >
-        {isSubmitting ? `${formSubmitLabel}...` : formSubmitLabel}
+        <SubmitButtonLoadingContent
+          isSubmitting={isSubmitting}
+          submittingLabel={formSubmittingLabel}
+          idleLabel={formSubmitLabel}
+          loadingGearTestId='media-form-submit-loading-gear'
+        />
       </ButtonPrimitive>
 
       {shouldShowSubmitError ? (

@@ -179,6 +179,7 @@
     "formFirstNameLabel": "名字",
     "formEmailLabel": "電郵",
     "formSubmitLabel": "把免費指南寄給我",
+    "formSubmittingLabel": "提交中…",
     "formSuccessTitle": "請查收你的電郵！",
     "formSuccessBody": "下載連結就在裡面。",
     "formErrorMessage": "暫時未能提交，請檢查資料後再試。",
@@ -1015,6 +1016,9 @@
       "loadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
       "unavailableError": "CAPTCHA 暫時不可用，請稍後再試。"
     },
+    "formActions": {
+      "submittingLabel": "提交中…"
+    },
     "mediaDownload": {
       "invalidTitle": "下載連結無效",
       "invalidDescription": "此媒體連結缺少有效權杖。請重新申請媒體下載。",
@@ -1445,6 +1449,7 @@
       "termsHref": "/terms",
       "submitLabel": "立即付款並預留名額",
       "submitStripeLabel": "立即付款並預留名額",
+      "submittingLabel": "提交中…",
       "captchaLabel": "請完成 CAPTCHA 驗證",
       "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
       "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",

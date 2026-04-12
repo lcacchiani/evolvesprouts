@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -31,6 +32,7 @@ import {
 interface EventNotificationProps {
   content: EventNotificationContent;
   commonCaptchaContent: CommonContent['captcha'];
+  commonFormActionsContent: CommonContent['formActions'];
   locale: Locale;
   marketingOptInLabel: string;
 }
@@ -42,6 +44,7 @@ const SUBMIT_ERROR_MESSAGE_ID = 'event-notification-submit-error';
 export function EventNotification({
   content,
   commonCaptchaContent,
+  commonFormActionsContent,
   locale,
   marketingOptInLabel,
 }: EventNotificationProps) {
@@ -74,6 +77,7 @@ export function EventNotification({
   });
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
+  const submitLoadingLabel = commonFormActionsContent.submittingLabel;
 
   const captchaErrorMessage = (() => {
     if (hasCaptchaValidationError) {
@@ -297,8 +301,18 @@ export function EventNotification({
                         variant='primary'
                         type='submit'
                         disabled={isSubmitting || hasSuccessfulSubmission || isCaptchaUnavailable}
+                        className={
+                          isSubmitting
+                            ? 'inline-flex w-full items-center justify-center gap-2'
+                            : undefined
+                        }
                       >
-                        {isSubmitting ? `${submitCtaLabel}...` : submitCtaLabel}
+                        <SubmitButtonLoadingContent
+                          isSubmitting={isSubmitting}
+                          submittingLabel={submitLoadingLabel}
+                          idleLabel={submitCtaLabel}
+                          loadingGearTestId='event-notification-submit-loading-gear'
+                        />
                       </ButtonPrimitive>
                       {submitErrorMessage ? (
                         <p

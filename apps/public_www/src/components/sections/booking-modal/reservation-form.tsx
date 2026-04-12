@@ -22,6 +22,7 @@ import type {
 } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
@@ -58,6 +59,7 @@ import {
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import { mergeClassNames } from '@/lib/class-name-utils';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
@@ -518,6 +520,9 @@ export function BookingReservationForm({
     };
   }, [stripePaymentIntent]);
   const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
+  const reservationSubmitIdleLabel = isStripePaymentMethodSelected
+    ? content.submitStripeLabel
+    : content.submitLabel;
   const isStripeUnavailable = stripePromise === null;
   const isStripeReady = Boolean(
     stripeElementsOptions &&
@@ -1332,9 +1337,17 @@ export function BookingReservationForm({
                   ? SUBMIT_ERROR_MESSAGE_ID
                   : undefined
             }
-            className='mt-1 w-full'
+            className={mergeClassNames(
+              'mt-1 w-full',
+              isSubmitting ? 'inline-flex items-center justify-center gap-2' : undefined,
+            )}
           >
-            {isStripePaymentMethodSelected ? content.submitStripeLabel : content.submitLabel}
+            <SubmitButtonLoadingContent
+              isSubmitting={isSubmitting}
+              submittingLabel={content.submittingLabel}
+              idleLabel={reservationSubmitIdleLabel}
+              loadingGearTestId='booking-reservation-submit-loading-gear'
+            />
           </ButtonPrimitive>
         </form>
       </section>

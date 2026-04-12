@@ -42,6 +42,7 @@ export function EventsPage({ content }: EventsPageProps) {
       <EventNotification
         content={content.events.notification}
         commonCaptchaContent={content.common.captcha}
+        commonFormActionsContent={content.common.formActions}
         locale={resolvedLocale}
         marketingOptInLabel={content.contactUs.form.marketingOptInLabel}
       />

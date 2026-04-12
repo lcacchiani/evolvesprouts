@@ -179,6 +179,7 @@
     "formFirstNameLabel": "First Name",
     "formEmailLabel": "Email",
     "formSubmitLabel": "Send Me the Free Guide",
+    "formSubmittingLabel": "Submitting…",
     "formSuccessTitle": "Check Your Email!",
     "formSuccessBody": "The download link is in there.",
     "formErrorMessage": "Unable to submit right now. Please check your details and try again.",
@@ -1015,6 +1016,9 @@
       "loadError": "CAPTCHA failed to load. Please refresh and try again.",
       "unavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
     },
+    "formActions": {
+      "submittingLabel": "Submitting…"
+    },
     "mediaDownload": {
       "invalidTitle": "Invalid download link",
       "invalidDescription": "This media link is missing a valid token. Please request the media again.",
@@ -1445,6 +1449,7 @@
       "termsHref": "/terms",
       "submitLabel": "Reserve My Spot",
       "submitStripeLabel": "Pay & Reserve My Spot",
+      "submittingLabel": "Submitting…",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",

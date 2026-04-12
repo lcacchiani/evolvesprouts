@@ -47,6 +47,7 @@ interface ResourceCardContentProps {
   formFirstNameLabel: string;
   formEmailLabel: string;
   formSubmitLabel: string;
+  formSubmittingLabel: string;
   formSuccessTitle: string;
   formSuccessBody: string;
   formErrorMessage: string;
@@ -189,6 +190,7 @@ function ResourceCardContent({
   formFirstNameLabel,
   formEmailLabel,
   formSubmitLabel,
+  formSubmittingLabel,
   formSuccessTitle,
   formSuccessBody,
   formErrorMessage,
@@ -241,6 +243,7 @@ function ResourceCardContent({
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
         formSubmitLabel={formSubmitLabel}
+        formSubmittingLabel={formSubmittingLabel}
         formSuccessTitle={formSuccessTitle}
         formSuccessBody={formSuccessBody}
         formErrorMessage={formErrorMessage}
@@ -274,6 +277,9 @@ export function FreeResourcesForGentleParenting({
   const formSubmitLabel =
     readOptionalText(content.formSubmitLabel)
     ?? fallbackResourcesContent.formSubmitLabel;
+  const formSubmittingLabel =
+    readOptionalText(content.formSubmittingLabel)
+    ?? fallbackResourcesContent.formSubmittingLabel;
   const formSuccessTitle =
     readOptionalText(content.formSuccessTitle)
     ?? fallbackResourcesContent.formSuccessTitle;
@@ -320,6 +326,7 @@ export function FreeResourcesForGentleParenting({
       formFirstNameLabel={formFirstNameLabel}
       formEmailLabel={formEmailLabel}
       formSubmitLabel={formSubmitLabel}
+      formSubmittingLabel={formSubmittingLabel}
       formSuccessTitle={formSuccessTitle}
       formSuccessBody={formSuccessBody}
       formErrorMessage={formErrorMessage}
