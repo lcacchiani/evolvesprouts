@@ -39,11 +39,11 @@ import { getHrefKind } from '@/lib/url-utils';
 const THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME =
   'h-[54px] w-full rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:text-[18px]';
 
-export interface MyBestAuntieThankYouModalProps {
+export interface BookingThankYouModalProps {
   locale: Locale;
   content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
-  analyticsSectionId?: string;
+  analyticsSectionId: string;
   whatsappHref?: string;
   whatsappCtaLabel?: string;
   onClose: () => void;
@@ -131,15 +131,15 @@ function resolveThankYouCourseSessions(summary: ReservationSummary | null): Rese
   ];
 }
 
-export function MyBestAuntieThankYouModal({
+export function BookingThankYouModal({
   locale,
   content,
   summary,
-  analyticsSectionId = 'my-best-auntie-booking',
+  analyticsSectionId,
   whatsappHref,
   whatsappCtaLabel,
   onClose,
-}: MyBestAuntieThankYouModalProps) {
+}: BookingThankYouModalProps) {
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
@@ -253,7 +253,7 @@ export function MyBestAuntieThankYouModal({
         ariaLabelledBy={dialogTitleId}
         ariaDescribedBy={describedByIds}
         tabIndex={-1}
-        className='es-my-best-auntie-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
+        className='es-booking-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
       >
         <header className='flex justify-end px-4 pb-6 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton
@@ -283,14 +283,14 @@ export function MyBestAuntieThankYouModal({
             </h3>
             <h2
               id={dialogTitleId}
-              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-my-best-auntie-thank-you-heading'
+              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-booking-thank-you-heading'
             >
               {content.title}
             </h2>
             {hasSubtitleBlock ? (
               <p
                 id={dialogDescriptionId}
-                className='mt-3 text-lg leading-7 es-my-best-auntie-thank-you-body'
+                className='mt-3 text-lg leading-7 es-booking-thank-you-body'
               >
                 {content.subtitle}
                 {' '}
@@ -401,7 +401,7 @@ export function MyBestAuntieThankYouModal({
 
           {showWhatsappFollowUp ? (
             <div className='relative z-10 mx-auto mt-8 max-w-[713px] text-center'>
-              <p className='text-lg leading-7 es-my-best-auntie-thank-you-body'>
+              <p className='text-lg leading-7 es-booking-thank-you-body'>
                 {content.followUpPrompt}
               </p>
               <ButtonPrimitive
@@ -434,7 +434,3 @@ export function MyBestAuntieThankYouModal({
     </ModalOverlay>
   );
 }
-
-/** Alias for generic booking thank-you flows (events, consultations, etc.). */
-export { MyBestAuntieThankYouModal as BookingThankYouModal };
-export type BookingThankYouModalProps = MyBestAuntieThankYouModalProps;

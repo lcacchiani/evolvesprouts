@@ -7,7 +7,7 @@ import {
   type ContactUsFormContactConfig,
 } from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -71,11 +71,13 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
   trackEcommerceEvent: vi.fn(),
 }));
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackPublicFormOutcome = vi.mocked(trackPublicFormOutcome);
 
 function renderContactUsForm(
   contactConfig: ContactUsFormContactConfig = defaultContactConfig,
@@ -98,6 +100,7 @@ describe('ContactUsForm section', () => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
     mockedTrackAnalyticsEvent.mockReset();
+    mockedTrackPublicFormOutcome.mockReset();
 
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -245,21 +248,32 @@ describe('ContactUsForm section', () => {
   it('shows linked validation feedback for invalid email and phone values', () => {
     renderContactUsForm();
 
+    const firstNameInput = screen.getByLabelText(
+      new RegExp(`^${enContent.contactUs.form.firstNameLabel}`),
+    );
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
       enContent.contactUs.form.phoneLabel,
     );
-    const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.form.submitLabel,
-    });
+    const messageInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.form.messageLabel),
+    );
+    const formElement = screen
+      .getByRole('button', { name: enContent.contactUs.form.submitLabel })
+      .closest('form');
+    if (!formElement) {
+      throw new Error('Expected contact form');
+    }
 
+    fireEvent.change(firstNameInput, { target: { value: 'Pat' } });
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
     fireEvent.blur(emailInput);
     fireEvent.change(phoneInput, { target: { value: 'not-a-phone' } });
     fireEvent.blur(phoneInput);
-    fireEvent.click(submitButton);
+    fireEvent.change(messageInput, { target: { value: 'Hello.' } });
+    fireEvent.submit(formElement);
 
     expect(
       screen.getByText(enContent.contactUs.form.emailValidationError),
@@ -276,6 +290,14 @@ describe('ContactUsForm section', () => {
     expect(phoneInput).toHaveAttribute(
       'aria-describedby',
       'contact-us-form-phone-error',
+    );
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
+      'contact_form_submit_error',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          error_type: 'validation_error',
+        }),
+      }),
     );
   });
 
@@ -457,9 +479,11 @@ describe('ContactUsForm section', () => {
       expect(contactFormPanel?.className).toContain('min-h-full');
       expect(contactFormPanel?.className).toContain('items-center');
       expect(contactFormPanel?.className).toContain('justify-center');
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_attempt',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {
@@ -467,9 +491,11 @@ describe('ContactUsForm section', () => {
           },
         },
       );
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_success',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {
@@ -511,9 +537,11 @@ describe('ContactUsForm section', () => {
       expect(
         screen.getByText(enContent.contactUs.form.submitErrorMessage),
       ).toBeInTheDocument();
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_error',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {

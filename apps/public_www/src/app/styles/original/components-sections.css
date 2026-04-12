@@ -1473,11 +1473,11 @@
     -webkit-mask-image: url('/images/virtual-call.svg');
   }
 
-  .es-my-best-auntie-thank-you-panel {
+  .es-booking-thank-you-panel {
     position: relative;
   }
 
-  .es-my-best-auntie-thank-you-heading {
+  .es-booking-thank-you-heading {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-weight: 700;
@@ -1485,7 +1485,7 @@
     letter-spacing: 0;
   }
 
-  .es-my-best-auntie-thank-you-body {
+  .es-booking-thank-you-body {
     color: var(--site-primary-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-weight: 400;

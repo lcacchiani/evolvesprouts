@@ -44,7 +44,7 @@ function isAnalyticsTrackerDiffPresent(baseSha, headSha) {
     .some((line) => (line.startsWith('+') || line.startsWith('-'))
       && !line.startsWith('+++')
       && !line.startsWith('---')
-      && line.includes('trackAnalyticsEvent('));
+      && (line.includes('trackAnalyticsEvent(') || line.includes('trackPublicFormOutcome(')));
 }
 
 async function resolvePullRequestShas() {

@@ -18,7 +18,7 @@ import type {
   Locale,
   SproutsSquadCommunityContent,
 } from '@/content';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackPublicFormOutcome } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
@@ -39,6 +39,7 @@ interface SproutsSquadCommunityProps {
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'sprouts-community-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
+const SPROUTS_SQUAD_FORM_ANALYTICS_ID = 'sprouts-squad-community-signup';
 
 export function SproutsSquadCommunity({
   content,
@@ -109,11 +110,33 @@ export function SproutsSquadCommunity({
     setIsEmailTouched(true);
     markCaptchaTouched();
 
+    trackPublicFormOutcome('community_signup_submit_attempt', {
+      formKind: 'community',
+      formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
+      sectionId: 'sprouts-squad-community',
+      ctaLocation: 'form',
+      params: {
+        form_type: 'sprouts_squad',
+      },
+    });
+
     if (!isValidEmail(email) || !captchaToken) {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
+        sectionId: 'sprouts-squad-community',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'sprouts_squad',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     if (!crmApiClient || isCaptchaUnavailable) {
-      trackAnalyticsEvent('community_signup_submit_error', {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
         sectionId: 'sprouts-squad-community',
         ctaLocation: 'form',
         params: {
@@ -127,6 +150,16 @@ export function SproutsSquadCommunity({
 
     const normalizedEmail = email.trim();
     if (!normalizedEmail) {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
+        sectionId: 'sprouts-squad-community',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'sprouts_squad',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     const derivedFirstName =
@@ -153,7 +186,9 @@ export function SproutsSquadCommunity({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        trackAnalyticsEvent('community_signup_submit_success', {
+        trackPublicFormOutcome('community_signup_submit_success', {
+          formKind: 'community',
+          formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
           sectionId: 'sprouts-squad-community',
           ctaLocation: 'form',
           params: {
@@ -165,7 +200,9 @@ export function SproutsSquadCommunity({
         return;
       }
 
-      trackAnalyticsEvent('community_signup_submit_error', {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: SPROUTS_SQUAD_FORM_ANALYTICS_ID,
         sectionId: 'sprouts-squad-community',
         ctaLocation: 'form',
         params: {
