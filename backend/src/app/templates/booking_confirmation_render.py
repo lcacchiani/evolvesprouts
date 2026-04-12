@@ -144,9 +144,7 @@ def render_booking_confirmation_email(
         inner_html=inner_html,
     )
 
-    subject = (
-        f"{_SUBJECT_PREFIX[loc]}{course_label.strip()}{_SUBJECT_SUFFIX}"
-    )
+    subject = f"{_SUBJECT_PREFIX[loc]}{course_label.strip()}{_SUBJECT_SUFFIX}"
 
     text_lines = _build_plain_text(
         loc=loc,
