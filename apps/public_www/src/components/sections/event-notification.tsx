@@ -4,7 +4,6 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -32,7 +31,6 @@ interface EventNotificationProps {
   content: EventNotificationContent;
   commonCaptchaContent: CommonContent['captcha'];
   locale: Locale;
-  marketingOptInLabel: string;
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'event-notification-email-error';
@@ -43,7 +41,6 @@ export function EventNotification({
   content,
   commonCaptchaContent,
   locale,
-  marketingOptInLabel,
 }: EventNotificationProps) {
   const copy = resolveEventNotificationCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -52,7 +49,6 @@ export function EventNotification({
   const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
-  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -142,7 +138,7 @@ export function EventNotification({
               email_address: normalizedEmail,
               first_name: derivedFirstName,
               message: content.prefilledMessage,
-              marketing_opt_in: marketingOptIn,
+              marketing_opt_in: true,
               locale,
               signup_intent: 'event_notification',
             },
@@ -268,11 +264,6 @@ export function EventNotification({
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
-                      <MarketingOptInCheckbox
-                        label={marketingOptInLabel}
-                        checked={marketingOptIn}
-                        onChange={setMarketingOptIn}
-                      />
                       <TurnstileCaptcha
                         siteKey={turnstileSiteKey}
                         widgetAction='event_notification_submit'
