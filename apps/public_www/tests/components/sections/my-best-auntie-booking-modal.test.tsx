@@ -44,7 +44,7 @@ import {
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
@@ -143,6 +143,7 @@ vi.mock('@/lib/reservation-payments-data', () => ({
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
   trackEcommerceEvent: vi.fn(),
 }));
 
@@ -194,6 +195,7 @@ const mockedCreatePublicApiClient = vi.mocked(createPublicApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackPublicFormOutcome = vi.mocked(trackPublicFormOutcome);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
 const testFpsMobileNumber = '85200000000';
@@ -282,6 +284,7 @@ afterEach(() => {
   mockedValidateDiscountCode.mockReset();
   mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
+  mockedTrackPublicFormOutcome.mockReset();
   mockedStripeElementsProps.mockReset();
   mockedStripePaymentElementProps.mockReset();
 
@@ -925,9 +928,11 @@ describe('my-best-auntie booking modals footer content', () => {
           paymentMethod: bookingModalContent.paymentMethodValue,
         }),
       );
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'booking_submit_success',
         expect.objectContaining({
+          formKind: 'reservation',
+          formId: 'booking-reservation-form',
           sectionId: 'my-best-auntie-booking',
           ctaLocation: 'reservation_form',
         }),
@@ -1045,9 +1050,11 @@ describe('my-best-auntie booking modals footer content', () => {
           paymentMethod: bookingModalContent.paymentMethodBankTransferValue,
         }),
       );
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'booking_submit_success',
         expect.objectContaining({
+          formKind: 'reservation',
+          formId: 'booking-reservation-form',
           sectionId: 'my-best-auntie-booking',
           ctaLocation: 'reservation_form',
         }),

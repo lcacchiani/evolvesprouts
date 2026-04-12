@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaForm } from '@/components/sections/media-form';
 import enContent from '@/content/en.json';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -50,12 +50,12 @@ vi.mock('@/lib/crm-api-client', async () => {
 });
 
 vi.mock('@/lib/analytics', () => ({
-  trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
   trackEcommerceEvent: vi.fn(),
 }));
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
-const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackPublicFormOutcome = vi.mocked(trackPublicFormOutcome);
 
 function mediaFormProps() {
   const resourcesContent = enContent.resources;
@@ -86,7 +86,7 @@ describe('MediaForm', () => {
   afterEach(() => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
-    mockedTrackAnalyticsEvent.mockReset();
+    mockedTrackPublicFormOutcome.mockReset();
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
     } else {
@@ -114,7 +114,9 @@ describe('MediaForm', () => {
       screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText(enContent.resources.formEmailLabel)).toBeInTheDocument();
-    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_open', {
+    expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_open', {
+      formKind: 'media_request',
+      formId: 'media-form__media-form',
       sectionId: 'media-form',
       ctaLocation: 'cta_button',
       params: {
@@ -220,7 +222,18 @@ describe('MediaForm', () => {
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],
       });
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_submit_success', {
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_attempt', {
+        formKind: 'media_request',
+        formId: 'media-form__media-form',
+        sectionId: 'media-form',
+        ctaLocation: 'form',
+        params: {
+          resource_key: 'patience-free-guide',
+        },
+      });
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_success', {
+        formKind: 'media_request',
+        formId: 'media-form__media-form',
         sectionId: 'media-form',
         ctaLocation: 'form',
         params: {
@@ -259,7 +272,18 @@ describe('MediaForm', () => {
       expect(
         screen.getByText(enContent.resources.formErrorMessage),
       ).toBeInTheDocument();
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_submit_error', {
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_attempt', {
+        formKind: 'media_request',
+        formId: 'media-form__media-form',
+        sectionId: 'media-form',
+        ctaLocation: 'form',
+        params: {
+          resource_key: 'patience-free-guide',
+        },
+      });
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_submit_error', {
+        formKind: 'media_request',
+        formId: 'media-form__media-form',
         sectionId: 'media-form',
         ctaLocation: 'form',
         params: {

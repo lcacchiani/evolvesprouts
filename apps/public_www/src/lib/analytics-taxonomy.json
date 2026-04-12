@@ -15,73 +15,122 @@
     },
     "contact_form_submit_attempt": {
       "requiredCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind"
       ],
       "allowedCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind",
+        "form_id"
       ],
       "ga4KeyEvent": false
     },
     "contact_form_submit_success": {
       "requiredCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind"
       ],
       "allowedCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind",
+        "form_id"
       ],
       "ga4KeyEvent": true
     },
     "contact_form_submit_error": {
       "requiredCustomParams": [
         "form_type",
+        "form_kind",
         "error_type"
       ],
       "allowedCustomParams": [
         "form_type",
+        "form_kind",
+        "form_id",
         "error_type"
       ],
       "ga4KeyEvent": false
     },
     "media_form_open": {
-      "requiredCustomParams": [],
+      "requiredCustomParams": [
+        "form_kind"
+      ],
       "allowedCustomParams": [
+        "form_kind",
+        "form_id",
+        "resource_key"
+      ],
+      "ga4KeyEvent": false
+    },
+    "media_form_submit_attempt": {
+      "requiredCustomParams": [
+        "form_kind"
+      ],
+      "allowedCustomParams": [
+        "form_kind",
+        "form_id",
         "resource_key"
       ],
       "ga4KeyEvent": false
     },
     "media_form_submit_success": {
-      "requiredCustomParams": [],
+      "requiredCustomParams": [
+        "form_kind"
+      ],
       "allowedCustomParams": [
+        "form_kind",
+        "form_id",
         "resource_key"
       ],
       "ga4KeyEvent": true
     },
     "media_form_submit_error": {
       "requiredCustomParams": [
+        "form_kind",
         "error_type"
       ],
       "allowedCustomParams": [
+        "form_kind",
+        "form_id",
         "resource_key",
         "error_type"
       ],
       "ga4KeyEvent": false
     },
-    "community_signup_submit_success": {
+    "community_signup_submit_attempt": {
       "requiredCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind"
       ],
       "allowedCustomParams": [
-        "form_type"
+        "form_type",
+        "form_kind",
+        "form_id"
+      ],
+      "ga4KeyEvent": false
+    },
+    "community_signup_submit_success": {
+      "requiredCustomParams": [
+        "form_type",
+        "form_kind"
+      ],
+      "allowedCustomParams": [
+        "form_type",
+        "form_kind",
+        "form_id"
       ],
       "ga4KeyEvent": true
     },
     "community_signup_submit_error": {
       "requiredCustomParams": [
         "form_type",
+        "form_kind",
         "error_type"
       ],
       "allowedCustomParams": [
         "form_type",
+        "form_kind",
+        "form_id",
         "error_type"
       ],
       "ga4KeyEvent": false
@@ -92,6 +141,27 @@
         "age_group",
         "cohort_label",
         "cohort_date"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_submit_attempt": {
+      "requiredCustomParams": [
+        "form_kind",
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "form_kind",
+        "form_id",
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "cohort_label",
+        "total_amount",
+        "discount_amount",
+        "discount_type"
       ],
       "ga4KeyEvent": false
     },
@@ -163,12 +233,15 @@
     },
     "booking_submit_success": {
       "requiredCustomParams": [
+        "form_kind",
         "payment_method",
         "age_group",
         "cohort_date",
         "total_amount"
       ],
       "allowedCustomParams": [
+        "form_kind",
+        "form_id",
         "payment_method",
         "age_group",
         "cohort_date",
@@ -181,6 +254,7 @@
     },
     "booking_submit_error": {
       "requiredCustomParams": [
+        "form_kind",
         "payment_method",
         "age_group",
         "cohort_date",
@@ -188,6 +262,8 @@
         "error_type"
       ],
       "allowedCustomParams": [
+        "form_kind",
+        "form_id",
         "payment_method",
         "age_group",
         "cohort_date",

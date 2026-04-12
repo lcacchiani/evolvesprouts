@@ -17,7 +17,7 @@ import type {
   EventNotificationContent,
   Locale,
 } from '@/content';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackPublicFormOutcome } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
@@ -38,6 +38,7 @@ interface EventNotificationProps {
 const EMAIL_ERROR_MESSAGE_ID = 'event-notification-email-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'event-notification-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'event-notification-submit-error';
+const EVENT_NOTIFICATION_FORM_ANALYTICS_ID = 'event-notification-signup';
 
 export function EventNotification({
   content,
@@ -108,11 +109,33 @@ export function EventNotification({
     setIsEmailTouched(true);
     markCaptchaTouched();
 
+    trackPublicFormOutcome('community_signup_submit_attempt', {
+      formKind: 'community',
+      formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
+      sectionId: 'event-notification',
+      ctaLocation: 'form',
+      params: {
+        form_type: 'event_notification',
+      },
+    });
+
     if (!isValidEmail(email) || !captchaToken) {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
+        sectionId: 'event-notification',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'event_notification',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     if (!crmApiClient || isCaptchaUnavailable) {
-      trackAnalyticsEvent('community_signup_submit_error', {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
         sectionId: 'event-notification',
         ctaLocation: 'form',
         params: {
@@ -126,6 +149,16 @@ export function EventNotification({
 
     const normalizedEmail = email.trim();
     if (!normalizedEmail) {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
+        sectionId: 'event-notification',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'event_notification',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     const derivedFirstName =
@@ -152,7 +185,9 @@ export function EventNotification({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        trackAnalyticsEvent('community_signup_submit_success', {
+        trackPublicFormOutcome('community_signup_submit_success', {
+          formKind: 'community',
+          formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
           sectionId: 'event-notification',
           ctaLocation: 'form',
           params: {
@@ -164,7 +199,9 @@ export function EventNotification({
         return;
       }
 
-      trackAnalyticsEvent('community_signup_submit_error', {
+      trackPublicFormOutcome('community_signup_submit_error', {
+        formKind: 'community',
+        formId: EVENT_NOTIFICATION_FORM_ANALYTICS_ID,
         sectionId: 'event-notification',
         ctaLocation: 'form',
         params: {

@@ -7,7 +7,7 @@ import {
   type ContactUsFormContactConfig,
 } from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -71,11 +71,13 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
   trackEcommerceEvent: vi.fn(),
 }));
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackPublicFormOutcome = vi.mocked(trackPublicFormOutcome);
 
 function renderContactUsForm(
   contactConfig: ContactUsFormContactConfig = defaultContactConfig,
@@ -98,6 +100,7 @@ describe('ContactUsForm section', () => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
     mockedTrackAnalyticsEvent.mockReset();
+    mockedTrackPublicFormOutcome.mockReset();
 
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -457,9 +460,11 @@ describe('ContactUsForm section', () => {
       expect(contactFormPanel?.className).toContain('min-h-full');
       expect(contactFormPanel?.className).toContain('items-center');
       expect(contactFormPanel?.className).toContain('justify-center');
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_attempt',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {
@@ -467,9 +472,11 @@ describe('ContactUsForm section', () => {
           },
         },
       );
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_success',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {
@@ -511,9 +518,11 @@ describe('ContactUsForm section', () => {
       expect(
         screen.getByText(enContent.contactUs.form.submitErrorMessage),
       ).toBeInTheDocument();
-      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
         'contact_form_submit_error',
         {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {

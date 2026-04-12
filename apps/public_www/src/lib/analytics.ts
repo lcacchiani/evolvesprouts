@@ -8,6 +8,14 @@ interface TrackAnalyticsEventOptions {
   params?: Record<string, AnalyticsPrimitive | null | undefined>;
 }
 
+export type PublicFormKind = 'contact' | 'media_request' | 'community' | 'reservation';
+
+export interface TrackPublicFormOutcomeOptions extends TrackAnalyticsEventOptions {
+  formKind: PublicFormKind;
+  /** Stable id for this form instance (separate from section placement). */
+  formId?: string;
+}
+
 interface DataLayerEventPayload {
   event: string;
   page_path: string;
@@ -96,15 +104,14 @@ function removeUndefinedParams(
   }, {});
 }
 
-export function trackAnalyticsEvent(
-  eventName: AnalyticsEventName,
-  options: TrackAnalyticsEventOptions = {},
+function pushDataLayerAnalyticsPayload(
+  normalizedEventName: string,
+  options: TrackAnalyticsEventOptions,
 ): void {
   if (!isClientRuntime()) {
     return;
   }
 
-  const normalizedEventName = eventName.trim();
   if (!normalizedEventName) {
     return;
   }
@@ -127,6 +134,44 @@ export function trackAnalyticsEvent(
   }
 
   window.dataLayer = [payload];
+}
+
+export function trackAnalyticsEvent(
+  eventName: AnalyticsEventName,
+  options: TrackAnalyticsEventOptions = {},
+): void {
+  const normalizedEventName = eventName.trim();
+  pushDataLayerAnalyticsPayload(normalizedEventName, options);
+}
+
+/**
+ * Pushes a taxonomy event with `form_kind` and optional `form_id` merged into `params`.
+ * Used for form lifecycle instrumentation; keeps event names unchanged for GTM stability.
+ */
+export function trackPublicFormOutcome(
+  eventName: AnalyticsEventName,
+  options: TrackPublicFormOutcomeOptions,
+): void {
+  const normalizedEventName = eventName.trim();
+  if (!normalizedEventName) {
+    return;
+  }
+
+  const { formKind, formId, sectionId, ctaLocation, params } = options;
+  const mergedParams: Record<string, AnalyticsPrimitive | null | undefined> = {
+    form_kind: formKind,
+    ...params,
+  };
+  const trimmedFormId = formId?.trim();
+  if (trimmedFormId) {
+    mergedParams.form_id = trimmedFormId;
+  }
+
+  pushDataLayerAnalyticsPayload(normalizedEventName, {
+    sectionId,
+    ctaLocation,
+    params: mergedParams,
+  });
 }
 
 interface EcommerceItem {

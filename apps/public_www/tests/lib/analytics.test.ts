@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 
 const originalSiteOrigin = process.env.NEXT_PUBLIC_SITE_ORIGIN;
 
@@ -21,7 +21,9 @@ describe('analytics helper', () => {
     window.history.replaceState({}, '', '/en/contact-us?from=test');
     document.documentElement.lang = 'en';
 
-    trackAnalyticsEvent('contact_form_submit_success', {
+    trackPublicFormOutcome('contact_form_submit_success', {
+      formKind: 'contact',
+      formId: 'contact-us-form',
       sectionId: 'contact-us-form',
       ctaLocation: 'form',
       params: {
@@ -38,6 +40,8 @@ describe('analytics helper', () => {
       section_id: 'contact-us-form',
       cta_location: 'form',
       environment: 'staging',
+      form_kind: 'contact',
+      form_id: 'contact-us-form',
       form_type: 'contact_us',
     });
   });

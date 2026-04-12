@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const SRC_DIR = path.resolve(__dirname, '..', 'src');
 const CONTRACT_PATH = path.resolve(SRC_DIR, 'lib', 'analytics-taxonomy.json');
 const ALLOWED_EXTENSIONS = new Set(['.ts', '.tsx']);
-const TRACKER_FUNCTION_NAME = 'trackAnalyticsEvent';
+const TRACKER_FUNCTION_NAMES = new Set(['trackAnalyticsEvent', 'trackPublicFormOutcome']);
 
 function getPropertyName(propertyNameNode) {
   if (!propertyNameNode) {
@@ -77,11 +77,32 @@ function extractParamsObjectProperty(optionsObjectNode) {
   return null;
 }
 
+function extractStaticFormKindFromOptions(optionsObjectNode) {
+  if (!ts.isObjectLiteralExpression(optionsObjectNode)) {
+    return null;
+  }
+  for (const property of optionsObjectNode.properties) {
+    if (!ts.isPropertyAssignment(property)) {
+      continue;
+    }
+    const propertyName = getPropertyName(property.name);
+    if (propertyName !== 'formKind') {
+      continue;
+    }
+    const init = property.initializer;
+    if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) {
+      const value = init.text.trim();
+      return value || null;
+    }
+  }
+  return null;
+}
+
 function extractCustomParamKeys(paramsInitializerNode, sourceFilePath, sourceText, errors) {
   if (!ts.isObjectLiteralExpression(paramsInitializerNode)) {
     const lineNumber = getLineNumber(sourceText, paramsInitializerNode.pos);
     errors.push(
-      `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} params must be an object literal.`,
+      `${sourceFilePath}:${lineNumber} Analytics tracker params must be an object literal.`,
     );
     return [];
   }
@@ -91,7 +112,7 @@ function extractCustomParamKeys(paramsInitializerNode, sourceFilePath, sourceTex
     if (ts.isSpreadAssignment(property)) {
       const lineNumber = getLineNumber(sourceText, property.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} params cannot use spread syntax.`,
+        `${sourceFilePath}:${lineNumber} Analytics tracker params cannot use spread syntax.`,
       );
       continue;
     }
@@ -104,7 +125,7 @@ function extractCustomParamKeys(paramsInitializerNode, sourceFilePath, sourceTex
     if (!ts.isPropertyAssignment(property)) {
       const lineNumber = getLineNumber(sourceText, property.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} params must use key/value assignments.`,
+        `${sourceFilePath}:${lineNumber} Analytics tracker params must use key/value assignments.`,
       );
       continue;
     }
@@ -113,7 +134,7 @@ function extractCustomParamKeys(paramsInitializerNode, sourceFilePath, sourceTex
     if (!paramName) {
       const lineNumber = getLineNumber(sourceText, property.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} params must use static keys.`,
+        `${sourceFilePath}:${lineNumber} Analytics tracker params must use static keys.`,
       );
       continue;
     }
@@ -132,6 +153,8 @@ function validateEventParams({
   optionsArgumentNode,
   contractEventSpec,
   errors,
+  trackerLabel,
+  mergeFormKindFromTrackPublicFormOutcome,
 }) {
   const requiredCustomParams = new Set(contractEventSpec.requiredCustomParams ?? []);
   const allowedCustomParams = new Set(contractEventSpec.allowedCustomParams ?? []);
@@ -140,7 +163,7 @@ function validateEventParams({
     if (requiredCustomParams.size > 0) {
       const lineNumber = getLineNumber(sourceText, callExpressionNode.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") is missing required params: ${[...requiredCustomParams].join(', ')}`,
+        `${sourceFilePath}:${lineNumber} ${trackerLabel}("${eventName}") is missing required params: ${[...requiredCustomParams].join(', ')}`,
       );
     }
     return;
@@ -149,7 +172,7 @@ function validateEventParams({
   if (!ts.isObjectLiteralExpression(optionsArgumentNode)) {
     const lineNumber = getLineNumber(sourceText, optionsArgumentNode.pos);
     errors.push(
-      `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} options must be an object literal for contract validation.`,
+      `${sourceFilePath}:${lineNumber} ${trackerLabel} options must be an object literal for contract validation.`,
     );
     return;
   }
@@ -159,7 +182,7 @@ function validateEventParams({
     if (requiredCustomParams.size > 0) {
       const lineNumber = getLineNumber(sourceText, optionsArgumentNode.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") must provide params: ${[...requiredCustomParams].join(', ')}`,
+        `${sourceFilePath}:${lineNumber} ${trackerLabel}("${eventName}") must provide params: ${[...requiredCustomParams].join(', ')}`,
       );
     }
     return;
@@ -176,11 +199,23 @@ function validateEventParams({
   );
   const customParamKeySet = new Set(customParamKeys);
 
+  if (mergeFormKindFromTrackPublicFormOutcome) {
+    const staticFormKind = extractStaticFormKindFromOptions(optionsArgumentNode);
+    if (staticFormKind) {
+      customParamKeySet.add('form_kind');
+    } else if (requiredCustomParams.has('form_kind')) {
+      const lineNumber = getLineNumber(sourceText, optionsArgumentNode.pos);
+      errors.push(
+        `${sourceFilePath}:${lineNumber} ${trackerLabel}("${eventName}") requires a static string formKind option (merged into form_kind).`,
+      );
+    }
+  }
+
   for (const requiredParam of requiredCustomParams) {
     if (!customParamKeySet.has(requiredParam)) {
       const lineNumber = getLineNumber(sourceText, paramsInitializerNode.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") missing required param "${requiredParam}".`,
+        `${sourceFilePath}:${lineNumber} ${trackerLabel}("${eventName}") missing required param "${requiredParam}".`,
       );
     }
   }
@@ -189,7 +224,7 @@ function validateEventParams({
     if (!allowedCustomParams.has(customParamKey)) {
       const lineNumber = getLineNumber(sourceText, paramsInitializerNode.pos);
       errors.push(
-        `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") uses unsupported param "${customParamKey}".`,
+        `${sourceFilePath}:${lineNumber} ${trackerLabel}("${eventName}") uses unsupported param "${customParamKey}".`,
       );
     }
   }
@@ -205,35 +240,36 @@ function validateSourceFileAgainstContract(sourceFilePath, sourceText, contract,
   );
 
   function visit(node) {
-    if (
-      ts.isCallExpression(node)
-      && ts.isIdentifier(node.expression)
-      && node.expression.text === TRACKER_FUNCTION_NAME
-    ) {
-      const eventNameNode = node.arguments[0];
-      const eventName = extractStaticEventName(eventNameNode);
-      if (!eventName) {
-        const lineNumber = getLineNumber(sourceText, node.pos);
-        errors.push(
-          `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME} requires a static string event name.`,
-        );
-      } else {
-        const contractEventSpec = contract.events[eventName];
-        if (!contractEventSpec) {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+      const trackerName = node.expression.text;
+      if (TRACKER_FUNCTION_NAMES.has(trackerName)) {
+        const eventNameNode = node.arguments[0];
+        const eventName = extractStaticEventName(eventNameNode);
+        if (!eventName) {
           const lineNumber = getLineNumber(sourceText, node.pos);
           errors.push(
-            `${sourceFilePath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") is not defined in analytics-taxonomy.json.`,
+            `${sourceFilePath}:${lineNumber} ${trackerName} requires a static string event name.`,
           );
         } else {
-          validateEventParams({
-            sourceFilePath,
-            sourceText,
-            callExpressionNode: node,
-            eventName,
-            optionsArgumentNode: node.arguments[1],
-            contractEventSpec,
-            errors,
-          });
+          const contractEventSpec = contract.events[eventName];
+          if (!contractEventSpec) {
+            const lineNumber = getLineNumber(sourceText, node.pos);
+            errors.push(
+              `${sourceFilePath}:${lineNumber} ${trackerName}("${eventName}") is not defined in analytics-taxonomy.json.`,
+            );
+          } else {
+            validateEventParams({
+              sourceFilePath,
+              sourceText,
+              callExpressionNode: node,
+              eventName,
+              optionsArgumentNode: node.arguments[1],
+              contractEventSpec,
+              errors,
+              trackerLabel: trackerName,
+              mergeFormKindFromTrackPublicFormOutcome: trackerName === 'trackPublicFormOutcome',
+            });
+          }
         }
       }
     }

@@ -8,7 +8,7 @@ import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-lo
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackPublicFormOutcome } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { mergeClassNames } from '@/lib/class-name-utils';
@@ -122,10 +122,14 @@ export function MediaForm({
     };
   }, [isFormVisible]);
 
+  const mediaFormAnalyticsId = `media-form__${analyticsSectionId}`;
+
   function handleOpenForm() {
     setIsFormFadingIn(false);
     setIsFormVisible(true);
-    trackAnalyticsEvent('media_form_open', {
+    trackPublicFormOutcome('media_form_open', {
+      formKind: 'media_request',
+      formId: mediaFormAnalyticsId,
       sectionId: analyticsSectionId,
       ctaLocation: 'cta_button',
       params: {
@@ -142,17 +146,40 @@ export function MediaForm({
     setIsEmailTouched(true);
     markCaptchaTouched();
 
+    const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
+    trackPublicFormOutcome('media_form_submit_attempt', {
+      formKind: 'media_request',
+      formId: mediaFormAnalyticsId,
+      sectionId: analyticsSectionId,
+      ctaLocation: 'form',
+      params: {
+        resource_key: normalizedResourceKey,
+      },
+    });
+
     const normalizedFirstName = sanitizeSingleLineValue(firstName);
     const normalizedEmail = sanitizeSingleLineValue(email).toLowerCase();
     if (!normalizedFirstName || !isValidEmail(normalizedEmail) || !captchaToken) {
-      return;
-    }
-    if (isServiceUnavailable) {
-      trackAnalyticsEvent('media_form_submit_error', {
+      trackPublicFormOutcome('media_form_submit_error', {
+        formKind: 'media_request',
+        formId: mediaFormAnalyticsId,
         sectionId: analyticsSectionId,
         ctaLocation: 'form',
         params: {
-          resource_key: normalizeResourceKey(resourceKey ?? ''),
+          resource_key: normalizedResourceKey,
+          error_type: 'validation_error',
+        },
+      });
+      return;
+    }
+    if (isServiceUnavailable) {
+      trackPublicFormOutcome('media_form_submit_error', {
+        formKind: 'media_request',
+        formId: mediaFormAnalyticsId,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'form',
+        params: {
+          resource_key: normalizedResourceKey,
           error_type: 'service_unavailable',
         },
       });
@@ -167,7 +194,6 @@ export function MediaForm({
         marketing_opt_in: marketingOptIn,
         locale,
       };
-      const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
       if (normalizedResourceKey) {
         requestBody.resource_key = normalizedResourceKey;
       }
@@ -184,7 +210,9 @@ export function MediaForm({
         failureMessage: formErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        trackAnalyticsEvent('media_form_submit_success', {
+        trackPublicFormOutcome('media_form_submit_success', {
+          formKind: 'media_request',
+          formId: mediaFormAnalyticsId,
           sectionId: analyticsSectionId,
           ctaLocation: 'form',
           params: {
@@ -196,7 +224,9 @@ export function MediaForm({
         return;
       }
 
-      trackAnalyticsEvent('media_form_submit_error', {
+      trackPublicFormOutcome('media_form_submit_error', {
+        formKind: 'media_request',
+        formId: mediaFormAnalyticsId,
         sectionId: analyticsSectionId,
         ctaLocation: 'form',
         params: {

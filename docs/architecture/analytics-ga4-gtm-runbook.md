@@ -33,6 +33,34 @@ Canonical machine-readable contract:
 - Parameter names: `lower_snake_case`
 - Never send PII (no email, phone, full name, free-text message)
 
+### Cross-form parameters
+
+- **`form_kind`**: coarse category for joins across funnels — `contact`, `media_request`,
+  `community`, or `reservation`. Sent on form lifecycle events (see catalog below).
+- **`form_id`**: optional stable id for a specific form *instance* (orthogonal to
+  `section_id`, which describes on-page placement).
+
+### `error_type` values (forms)
+
+Use coarse categories only (no field names or user input):
+
+- `api_error` — server/API failure after request
+- `service_unavailable` — client or captcha/config unavailable
+- `payment_error` — Stripe confirmation failed
+- `invalid_code` — discount code validation
+- `validation_error` — client-side validation failed before a network call
+
+### `booking_submit_error` required keys vs empty values
+
+The contract requires these custom params on every `booking_submit_error` hit:
+`payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` (plus
+`form_kind` from `trackPublicFormOutcome`). **Keys must always be present** so GTM
+variables and downstream joins stay stable. On early-abort paths
+(`service_unavailable`, `validation_error`, or `payment_error` before full state),
+**empty string (`""`) is a valid value** for any of the booking context fields when
+the UI has not collected or resolved that value yet. This is intentional, not a
+data bug.
+
 ### Common parameters (send with every custom event)
 
 - `page_path`
@@ -47,14 +75,16 @@ Canonical machine-readable contract:
 | Event | Trigger | Required params | Key event |
 |---|---|---|---|
 | `whatsapp_click` | WhatsApp CTA click | `section_id`, `cta_location` | No |
-| `contact_form_submit_attempt` | Contact form submit attempt | `section_id='contact-us-form'` | No |
-| `contact_form_submit_success` | `/v1/contact-us` success | `section_id`, `form_type='contact_us'` | Yes |
-| `contact_form_submit_error` | `/v1/contact-us` error | `section_id`, `form_type='contact_us'`, `error_type` | No |
-| `media_form_open` | Media CTA expands form | `section_id`, `resource_key` | No |
-| `media_form_submit_success` | `/v1/assets/free/request` success | `section_id`, `resource_key` | Yes |
-| `media_form_submit_error` | `/v1/assets/free/request` error | `section_id`, `resource_key`, `error_type` | No |
-| `community_signup_submit_success` | Sprouts/Event signup success | `section_id`, `form_type` | Yes |
-| `community_signup_submit_error` | Sprouts/Event signup error | `section_id`, `form_type`, `error_type` | No |
+| `contact_form_submit_attempt` | Contact form submit attempt | `section_id`, `form_type`, `form_kind` | No |
+| `contact_form_submit_success` | `/v1/contact-us` success | `section_id`, `form_type`, `form_kind` | Yes |
+| `contact_form_submit_error` | Contact validation/API error | `section_id`, `form_type`, `form_kind`, `error_type` | No |
+| `media_form_open` | Media CTA expands form | `section_id`, `form_kind`, `resource_key` | No |
+| `media_form_submit_attempt` | Media form submit (after validation path) | `section_id`, `form_kind`, `resource_key` | No |
+| `media_form_submit_success` | `/v1/assets/free/request` success | `section_id`, `form_kind`, `resource_key` | Yes |
+| `media_form_submit_error` | Media validation/API error | `section_id`, `form_kind`, `resource_key`, `error_type` | No |
+| `community_signup_submit_attempt` | Community signup submit attempt | `section_id`, `form_type`, `form_kind` | No |
+| `community_signup_submit_success` | Sprouts/Event signup success | `section_id`, `form_type`, `form_kind` | Yes |
+| `community_signup_submit_error` | Sprouts/Event signup error | `section_id`, `form_type`, `form_kind`, `error_type` | No |
 | `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `age_group`, `cohort_label` | No |
 | `booking_age_selected` | Age option selected | `section_id`, `age_group` | No |
 | `booking_date_selected` | Date/cohort selected | `section_id`, `cohort_label`, `is_fully_booked` | No |
@@ -62,8 +92,9 @@ Canonical machine-readable contract:
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
-| `booking_submit_success` | `/v1/reservations` success | `section_id`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
-| `booking_submit_error` | `/v1/reservations` error | `section_id`, `payment_method`, `error_type` | No |
+| `booking_submit_attempt` | Reservation form passes client checks, before API/Stripe | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount` | No |
+| `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
+| `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_thank_you_ics_download` | Thank-you modal calendar (.ics) download | `section_id`, `cohort_date`, `total_amount` | No |
 | `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
@@ -93,9 +124,9 @@ setup below).
 1. Create or confirm a GA4 property.
 2. Create or confirm a **Web Data Stream** for the public site domain.
 3. In GA4 Admin, create event-scoped custom dimensions for:
-   - `section_id`, `cta_location`, `form_type`, `payment_method`, `age_group`,
-     `cohort_label`, `cohort_date`, `resource_key`, `error_type`, `discount_type`,
-     `landing_page_slug`
+   - `section_id`, `cta_location`, `form_type`, `form_kind`, `form_id`,
+     `payment_method`, `age_group`, `cohort_label`, `cohort_date`, `resource_key`,
+     `error_type`, `discount_type`, `landing_page_slug`
 4. Create custom metrics for:
    - `total_amount`, `discount_amount`
 5. Mark key events:

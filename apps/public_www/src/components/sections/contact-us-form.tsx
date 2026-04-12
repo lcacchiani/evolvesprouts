@@ -19,7 +19,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -110,7 +110,9 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    trackAnalyticsEvent('contact_form_submit_attempt', {
+    trackPublicFormOutcome('contact_form_submit_attempt', {
+      formKind: 'contact',
+      formId: 'contact-us-form',
       sectionId: 'contact-us-form',
       ctaLocation: 'form',
       params: {
@@ -128,18 +130,71 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
       !isValidEmail(formState.email) ||
       !isValidPhone(formState.phone)
     ) {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
-    if (!captchaToken || isCaptchaUnavailable) {
+    if (isCaptchaUnavailable) {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'service_unavailable',
+        },
+      });
+      return;
+    }
+    if (!captchaToken) {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     if (!crmApiClient) {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'service_unavailable',
+        },
+      });
       return;
     }
 
     const normalizedEmail = sanitizeSingleLineValue(formState.email);
     const normalizedMessage = sanitizeMultilineValue(formState.message);
     if (!normalizedEmail || !normalizedMessage) {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
@@ -176,7 +231,9 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        trackAnalyticsEvent('contact_form_submit_success', {
+        trackPublicFormOutcome('contact_form_submit_success', {
+          formKind: 'contact',
+          formId: 'contact-us-form',
           sectionId: 'contact-us-form',
           ctaLocation: 'form',
           params: {
@@ -188,7 +245,9 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
         return;
       }
 
-      trackAnalyticsEvent('contact_form_submit_error', {
+      trackPublicFormOutcome('contact_form_submit_error', {
+        formKind: 'contact',
+        formId: 'contact-us-form',
         sectionId: 'contact-us-form',
         ctaLocation: 'form',
         params: {

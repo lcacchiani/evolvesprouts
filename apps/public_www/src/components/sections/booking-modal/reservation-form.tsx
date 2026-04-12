@@ -25,7 +25,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackEcommerceEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import {
   parseHexColorRgb,
   resolveCssColorToken,
@@ -101,6 +101,7 @@ const BANK_DETAIL_PLACEHOLDER = '--';
 const PAYMENT_METHOD_FPS = 'fps_qr';
 const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
 const PAYMENT_METHOD_STRIPE = 'stripe';
+const BOOKING_RESERVATION_FORM_ANALYTICS_ID = 'booking-reservation-form';
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
   ? loadStripe(STRIPE_PUBLISHABLE_KEY.trim())
@@ -719,7 +720,37 @@ export function BookingReservationForm({
     setIsEmailTouched(true);
     markCaptchaTouched();
     clearSubmissionError();
+
+    trackPublicFormOutcome('booking_submit_attempt', {
+      formKind: 'reservation',
+      formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+      sectionId: analyticsSectionId,
+      ctaLocation: 'reservation_form',
+      params: {
+        payment_method: selectedPaymentMethod,
+        age_group: selectedAgeGroupLabel,
+        cohort_date: normalizedCohortDate,
+        cohort_label: selectedCohortDateLabel,
+        total_amount: totalAmount,
+        discount_amount: discountAmount,
+        discount_type: discountRule?.type,
+      },
+    });
+
     if (!isValidEmail(email)) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
     if (
@@ -727,6 +758,19 @@ export function BookingReservationForm({
       (isTopicsFieldRequired && !interestedTopics.trim()) ||
       isSubmitDisabled
     ) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'validation_error',
+        },
+      });
       return;
     }
 
@@ -784,7 +828,9 @@ export function BookingReservationForm({
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
-      trackAnalyticsEvent('booking_submit_error', {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
@@ -799,6 +845,19 @@ export function BookingReservationForm({
       return;
     }
     if (isStripePaymentMethodSelected && !isStripeReady) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'validation_error',
+        },
+      });
       setSubmissionError(content.submitErrorMessage);
       return;
     }
@@ -849,12 +908,27 @@ export function BookingReservationForm({
       if (isStripePaymentMethodSelected) {
         const stripePaymentFields = stripePaymentFieldsRef.current;
         if (!stripePaymentFields) {
+          trackPublicFormOutcome('booking_submit_error', {
+            formKind: 'reservation',
+            formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+            sectionId: analyticsSectionId,
+            ctaLocation: 'reservation_form',
+            params: {
+              payment_method: selectedPaymentMethod,
+              age_group: selectedAgeGroupLabel,
+              cohort_date: normalizedCohortDate,
+              total_amount: totalAmount,
+              error_type: 'validation_error',
+            },
+          });
           setSubmissionError(content.submitErrorMessage);
           return;
         }
         const stripeConfirmation = await stripePaymentFields.confirmPayment();
         if ('errorMessage' in stripeConfirmation) {
-          trackAnalyticsEvent('booking_submit_error', {
+          trackPublicFormOutcome('booking_submit_error', {
+            formKind: 'reservation',
+            formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
             sectionId: analyticsSectionId,
             ctaLocation: 'reservation_form',
             params: {
@@ -881,7 +955,9 @@ export function BookingReservationForm({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        trackAnalyticsEvent('booking_submit_success', {
+        trackPublicFormOutcome('booking_submit_success', {
+          formKind: 'reservation',
+          formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
           sectionId: analyticsSectionId,
           ctaLocation: 'reservation_form',
           params: {
@@ -915,7 +991,9 @@ export function BookingReservationForm({
         return;
       }
 
-      trackAnalyticsEvent('booking_submit_error', {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
