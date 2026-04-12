@@ -43,7 +43,7 @@ const MyBestAuntieBookingModal = dynamic(
 
 const MyBestAuntieThankYouModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
+    import('@/components/sections/my-best-auntie/my-best-auntie-thank-you-modal').then(
       (module) => module.MyBestAuntieThankYouModal,
     ),
   { ssr: false },
