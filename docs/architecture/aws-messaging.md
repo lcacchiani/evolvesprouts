@@ -295,8 +295,6 @@ SQS retries or mailbox forwarding duplicates.
 | `DATABASE_PROXY_ENDPOINT` | RDS Proxy endpoint |
 | `SUPPORT_EMAIL` | Email to receive notifications |
 | `SES_SENDER_EMAIL` | Verified SES sender address |
-| `SES_TEMPLATE_NEW_ACCESS_REQUEST` | Optional SES template for access requests |
-| `SES_TEMPLATE_NEW_SUGGESTION` | Optional SES template for suggestions |
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
