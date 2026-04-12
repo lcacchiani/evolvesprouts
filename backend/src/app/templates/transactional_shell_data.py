@@ -1,8 +1,11 @@
 """SES transactional template data for the shared HTML shell (logo, footer links).
 
-Social URLs follow the same env contract as ``apps/public_www`` (``NEXT_PUBLIC_*``),
-with ``PUBLIC_WWW_*`` aliases for Lambda. When Instagram/LinkedIn are unset, the
-public Contact Us path is used (matches footer fallback on the website).
+Social URLs are read from ``PUBLIC_WWW_*`` (Lambda/CDK) with ``NEXT_PUBLIC_*`` as
+aliases for local/tests. **Vercel build env is not injected into API Lambdas**:
+CloudFormation parameters ``PublicWwwInstagramUrl`` / ``PublicWwwLinkedinUrl``
+must be set to the same values as the public site, or those footer icons are
+omitted. Values that resolve to the public site hostname (mis-set to a page on
+this domain instead of Instagram/LinkedIn) are treated as invalid and omitted.
 """
 
 from __future__ import annotations
@@ -96,6 +99,35 @@ def _resolve_linkedin_url() -> str | None:
     )
 
 
+def _public_www_hostname() -> str | None:
+    base = resolve_public_www_base_url()
+    if not base:
+        return None
+    try:
+        host = urlparse(base).hostname
+    except ValueError:
+        return None
+    return host.lower() if host else None
+
+
+def _external_profile_url_or_none(raw: str | None) -> str | None:
+    """Drop URLs that point at our own site (common misconfiguration in CDK params)."""
+    if not raw:
+        return None
+    site_host = _public_www_hostname()
+    if not site_host:
+        return raw
+    try:
+        link_host = urlparse(raw).hostname
+    except ValueError:
+        return None
+    if not link_host:
+        return None
+    if link_host.lower() == site_host:
+        return None
+    return raw
+
+
 def _build_contact_us_page_url(*, locale: str) -> str:
     base = resolve_public_www_base_url()
     if not base:
@@ -115,10 +147,9 @@ def build_footer_social_html(*, locale: str) -> str:
     loc = locale if locale in _ALLOWED_LOCALES else "en"
     labels = _SOCIAL_LABELS[loc]
 
-    contact_fallback = _build_contact_us_page_url(locale=loc)
     wa_href = resolve_whatsapp_url_for_template()
-    ig_href = _resolve_instagram_url() or contact_fallback
-    li_href = _resolve_linkedin_url() or contact_fallback
+    ig_href = _external_profile_url_or_none(_resolve_instagram_url())
+    li_href = _external_profile_url_or_none(_resolve_linkedin_url())
     base = resolve_public_www_base_url()
     web_href = f"{base}/{loc}/" if base else ""
 

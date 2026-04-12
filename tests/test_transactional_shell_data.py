@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from app.templates.transactional_shell_data import (
+    build_footer_social_html,
     build_transactional_template_shell_data,
     merge_transactional_shell_template_data,
     normalize_optional_absolute_url,
@@ -73,3 +74,37 @@ def test_merge_transactional_shell_template_data_order(monkeypatch: Any) -> None
     )
     assert merged["first_name"] == "A"
     assert merged["logo_url"] == "https://override/logo.png"
+
+
+def test_build_footer_social_html_omits_instagram_linkedin_without_env(
+    monkeypatch: Any,
+) -> None:
+    """Without PUBLIC_WWW_* social URLs, do not link IG/LI to the site (matches www footer)."""
+    monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.delenv("PUBLIC_WWW_INSTAGRAM_URL", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_INSTAGRAM_URL", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_LINKEDIN_URL", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_LINKEDIN_URL", raising=False)
+    html = build_footer_social_html(locale="en")
+    assert "Instagram" not in html
+    assert "LinkedIn" not in html
+    assert "https://www.example.com/en/contact-us" not in html
+    assert "WhatsApp" in html
+    assert "Website" in html
+
+
+def test_build_footer_social_html_omits_social_when_env_points_at_own_site(
+    monkeypatch: Any,
+) -> None:
+    """CDK params sometimes copy the site URL; those must not appear as Instagram/LinkedIn."""
+    monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_INSTAGRAM_URL", "https://www.example.com/en/contact-us"
+    )
+    monkeypatch.setenv(
+        "PUBLIC_WWW_LINKEDIN_URL", "https://www.example.com/zh-HK/contact-us"
+    )
+    html = build_footer_social_html(locale="en")
+    assert "Instagram" not in html
+    assert "LinkedIn" not in html
+    assert "WhatsApp" in html

@@ -33,7 +33,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         (
             '<p style="margin:0 0 12px;">Hi {{first_name}},</p>'
             '<p style="margin:0 0 16px;">We received your message and will get back to you '
-            "within 24–48 hours.</p>"
+            "within 24-48 hours.</p>"
             '<p style="margin:0 0 12px;">'
             f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">Visit our FAQ</a>'
             "</p>"
@@ -44,7 +44,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         ),
         (
             "Hi {{first_name}},\n\n"
-            "We received your message and will get back to you within 24–48 hours.\n\n"
+            "We received your message and will get back to you within 24-48 hours.\n\n"
             "FAQ: {{faq_url}}\n"
             "WhatsApp: {{whatsapp_url}}\n\n"
             "Thank you,\nEvolve Sprouts"
@@ -56,7 +56,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         "您的留言我们已妥善收到",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
-            '<p style="margin:0 0 16px;">我们已收到您的留言，并会在 24–48 小时内回复。</p>'
+            '<p style="margin:0 0 16px;">我们已收到您的留言，并会在 24-48 小时内回复。</p>'
             '<p style="margin:0 0 12px;">'
             f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">查看常见问题</a>'
             "</p>"
@@ -66,7 +66,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         ),
         (
             "您好 {{first_name}}，\n\n"
-            "我们已收到您的留言，并会在 24–48 小时内回复。\n\n"
+            "我们已收到您的留言，并会在 24-48 小时内回复。\n\n"
             "常见问题：{{faq_url}}\n"
             "WhatsApp：{{whatsapp_url}}\n\n"
             "谢谢，\nEvolve Sprouts"
@@ -78,7 +78,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         "您的留言我們已妥善收到",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
-            '<p style="margin:0 0 16px;">我們已收到您的留言，並會在 24–48 小時內回覆。</p>'
+            '<p style="margin:0 0 16px;">我們已收到您的留言，並會在 24-48 小時內回覆。</p>'
             '<p style="margin:0 0 12px;">'
             f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">查看常見問題</a>'
             "</p>"
@@ -88,7 +88,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         ),
         (
             "您好 {{first_name}}，\n\n"
-            "我們已收到您的留言，並會在 24–48 小時內回覆。\n\n"
+            "我們已收到您的留言，並會在 24-48 小時內回覆。\n\n"
             "常見問題：{{faq_url}}\n"
             "WhatsApp：{{whatsapp_url}}\n\n"
             "謝謝，\nEvolve Sprouts"
