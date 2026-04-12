@@ -6,6 +6,8 @@ from typing import Any
 
 from app.templates.ses.email_shell import wrap_transactional_html
 
+_CTA_LINK = "color:#C84A16;font-weight:600;"
+
 
 def get_ses_template_definitions() -> list[dict[str, Any]]:
     """Return SES CreateTemplate payloads (Template key for boto3)."""
@@ -14,17 +16,17 @@ def get_ses_template_definitions() -> list[dict[str, Any]]:
         "zh-CN": "预约确认 — {{course_label}} — Evolve Sprouts",
         "zh-HK": "預約確認 — {{course_label}} — Evolve Sprouts",
     }
-    header_subtitles = {
-        "en": "Booking confirmed",
-        "zh-CN": "预约确认",
-        "zh-HK": "預約確認",
+    header_titles = {
+        "en": "You're all set — booking confirmed",
+        "zh-CN": "预订已确认",
+        "zh-HK": "預訂已確認",
     }
     return [
         {
             "TemplateName": f"evolvesprouts-booking-confirmation-{loc}",
             "SubjectPart": subjects[loc],
             "HtmlPart": wrap_transactional_html(
-                header_subtitle=header_subtitles[loc],
+                header_title=header_titles[loc],
                 inner_html=inner_html,
             ),
             "TextPart": text_part,
@@ -63,9 +65,8 @@ _HTML_EN = (
     "{{/if}}"
     '<p style="margin:0 0 12px;">Questions? Message us on WhatsApp:</p>'
     '<p style="margin:0;">'
-    '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">WhatsApp</a>'
+    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
     "</p>"
-    '<p style="margin:20px 0 0;">Thank you,<br/>Evolve Sprouts</p>'
 )
 
 _TEXT_EN = (
@@ -112,9 +113,8 @@ _HTML_ZH_CN = (
     "{{/if}}"
     '<p style="margin:0 0 12px;">有疑问？请通过 WhatsApp 联系我们：</p>'
     '<p style="margin:0;">'
-    '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">WhatsApp</a>'
+    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
     "</p>"
-    '<p style="margin:20px 0 0;">谢谢，<br/>Evolve Sprouts</p>'
 )
 
 _TEXT_ZH_CN = (
@@ -161,9 +161,8 @@ _HTML_ZH_HK = (
     "{{/if}}"
     '<p style="margin:0 0 12px;">有疑問？請透過 WhatsApp 聯絡我們：</p>'
     '<p style="margin:0;">'
-    '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">WhatsApp</a>'
+    f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
     "</p>"
-    '<p style="margin:20px 0 0;">謝謝，<br/>Evolve Sprouts</p>'
 )
 
 _TEXT_ZH_HK = (

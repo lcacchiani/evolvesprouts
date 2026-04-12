@@ -13,6 +13,14 @@ public website stacks:
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
+Optional **transactional email footer** URLs on the API stack (keep aligned with
+Vercel `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_LINKEDIN_URL`, and
+`NEXT_PUBLIC_WHATSAPP_URL`; empty uses website-style fallbacks in code):
+
+- `PublicWwwInstagramUrl`
+- `PublicWwwLinkedinUrl`
+- `PublicWwwWhatsappUrl`
+
 ## Asset download CDN parameters
 
 `production.json` also includes asset download domain parameters:

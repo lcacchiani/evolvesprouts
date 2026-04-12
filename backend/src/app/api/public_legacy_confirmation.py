@@ -8,7 +8,11 @@ from typing import Any, Mapping
 
 from app.services.email import send_templated_email
 from app.services.marketing_subscribe import subscribe_to_marketing
-from app.templates.constants import WHATSAPP_URL, build_faq_url
+from app.templates.constants import build_faq_url
+from app.templates.transactional_shell_data import (
+    merge_transactional_shell_template_data,
+    resolve_whatsapp_url_for_template,
+)
 from app.utils.logging import get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
 
@@ -108,11 +112,14 @@ def send_contact_confirmation_email(
     loc = normalize_body_locale(locale)
     template = f"evolvesprouts-contact-confirmation-{loc}"
     faq = build_faq_url(locale=loc)
-    data = {
-        "first_name": first_name.strip(),
-        "whatsapp_url": WHATSAPP_URL,
-        "faq_url": faq,
-    }
+    data = merge_transactional_shell_template_data(
+        locale=loc,
+        template_data={
+            "first_name": first_name.strip(),
+            "whatsapp_url": resolve_whatsapp_url_for_template(),
+            "faq_url": faq,
+        },
+    )
     try:
         send_templated_email(
             source=from_addr,
@@ -153,18 +160,19 @@ def send_booking_confirmation_email(
         "payment_method": payment_method.strip(),
         "total_amount": total_amount,
         "is_pending_payment": is_pending_payment,
-        "whatsapp_url": WHATSAPP_URL,
+        "whatsapp_url": resolve_whatsapp_url_for_template(),
     }
     if schedule_date_label and schedule_date_label.strip():
         data["schedule_date_label"] = schedule_date_label.strip()
     if schedule_time_label and schedule_time_label.strip():
         data["schedule_time_label"] = schedule_time_label.strip()
+    merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
     try:
         send_templated_email(
             source=from_addr,
             to_addresses=[to_email.strip().lower()],
             template_name=template,
-            template_data=data,
+            template_data=merged,
         )
     except Exception:
         logger.exception(

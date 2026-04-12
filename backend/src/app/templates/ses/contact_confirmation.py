@@ -6,6 +6,8 @@ from typing import Any
 
 from app.templates.ses.email_shell import wrap_transactional_html
 
+_CTA_LINK = "color:#C84A16;font-weight:600;"
+
 
 def get_ses_template_definitions() -> list[dict[str, Any]]:
     """Return SES CreateTemplate payloads (Template key for boto3)."""
@@ -14,30 +16,31 @@ def get_ses_template_definitions() -> list[dict[str, Any]]:
             "TemplateName": f"evolvesprouts-contact-confirmation-{loc}",
             "SubjectPart": subject,
             "HtmlPart": wrap_transactional_html(
-                header_subtitle=subject, inner_html=inner_html
+                header_title=header_title,
+                inner_html=inner_html,
             ),
             "TextPart": text_part,
         }
-        for loc, subject, inner_html, text_part in _LOCALE_ROWS
+        for loc, subject, header_title, inner_html, text_part in _LOCALE_ROWS
     ]
 
 
-_LOCALE_ROWS: list[tuple[str, str, str, str]] = [
+_LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
     (
         "en",
         "We received your message — Evolve Sprouts",
+        "Your message is in safe hands",
         (
             '<p style="margin:0 0 12px;">Hi {{first_name}},</p>'
             '<p style="margin:0 0 16px;">We received your message and will get back to you '
             "within 24–48 hours.</p>"
             '<p style="margin:0 0 12px;">'
-            '<a href="{{faq_url}}" style="color:#1a5f4a;font-weight:600;">Visit our FAQ</a>'
+            f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">Visit our FAQ</a>'
             "</p>"
             '<p style="margin:0 0 12px;">'
-            '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">'
+            f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">'
             "Message us on WhatsApp</a>"
             "</p>"
-            '<p style="margin:16px 0 0;">Thank you,<br/>Evolve Sprouts</p>'
         ),
         (
             "Hi {{first_name}},\n\n"
@@ -50,16 +53,16 @@ _LOCALE_ROWS: list[tuple[str, str, str, str]] = [
     (
         "zh-CN",
         "我们已收到您的留言 — Evolve Sprouts",
+        "您的留言我们已妥善收到",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 16px;">我们已收到您的留言，并会在 24–48 小时内回复。</p>'
             '<p style="margin:0 0 12px;">'
-            '<a href="{{faq_url}}" style="color:#1a5f4a;font-weight:600;">查看常见问题</a>'
+            f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">查看常见问题</a>'
             "</p>"
             '<p style="margin:0 0 12px;">'
-            '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">通过 WhatsApp 联系我们</a>'
+            f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">通过 WhatsApp 联系我们</a>'
             "</p>"
-            '<p style="margin:16px 0 0;">谢谢，<br/>Evolve Sprouts</p>'
         ),
         (
             "您好 {{first_name}}，\n\n"
@@ -72,16 +75,16 @@ _LOCALE_ROWS: list[tuple[str, str, str, str]] = [
     (
         "zh-HK",
         "我們已收到您的留言 — Evolve Sprouts",
+        "您的留言我們已妥善收到",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 16px;">我們已收到您的留言，並會在 24–48 小時內回覆。</p>'
             '<p style="margin:0 0 12px;">'
-            '<a href="{{faq_url}}" style="color:#1a5f4a;font-weight:600;">查看常見問題</a>'
+            f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">查看常見問題</a>'
             "</p>"
             '<p style="margin:0 0 12px;">'
-            '<a href="{{whatsapp_url}}" style="color:#1a5f4a;font-weight:600;">透過 WhatsApp 聯絡我們</a>'
+            f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">透過 WhatsApp 聯絡我們</a>'
             "</p>"
-            '<p style="margin:16px 0 0;">謝謝，<br/>Evolve Sprouts</p>'
         ),
         (
             "您好 {{first_name}}，\n\n"

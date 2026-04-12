@@ -42,6 +42,9 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetDownloadCustomDomainName: string;
   publicWwwDomainName: string;
   publicWwwStagingDomainName: string;
+  publicWwwInstagramUrl: string;
+  publicWwwLinkedinUrl: string;
+  publicWwwWhatsappUrl: string;
   mailchimpMediaDownloadMergeTag: string;
   mailchimpFreeResourceJourneyId: string;
   mailchimpFreeResourceJourneyStepId: string;
@@ -205,6 +208,9 @@ export class MessagingNestedStack extends cdk.NestedStack {
           MAILCHIMP_WELCOME_JOURNEY_ID: props.mailchimpWelcomeJourneyId,
           MAILCHIMP_WELCOME_JOURNEY_STEP_ID: props.mailchimpWelcomeJourneyStepId,
           PUBLIC_WWW_BASE_URL: `https://${props.publicWwwDomainName}`,
+          PUBLIC_WWW_INSTAGRAM_URL: props.publicWwwInstagramUrl,
+          PUBLIC_WWW_LINKEDIN_URL: props.publicWwwLinkedinUrl,
+          PUBLIC_WWW_WHATSAPP_URL: props.publicWwwWhatsappUrl,
         },
       });
 
