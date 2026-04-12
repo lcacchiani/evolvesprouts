@@ -57,7 +57,6 @@ def test_send_notification_email_retries_transient_send_failures(
     handler = _load_handler_module()
     monkeypatch.setenv("SUPPORT_EMAIL", "support@example.com")
     monkeypatch.setenv("SES_SENDER_EMAIL", "sender@example.com")
-    monkeypatch.setenv("SES_TEMPLATE_NEW_ACCESS_REQUEST", "")
 
     monkeypatch.setattr(
         handler,
@@ -67,11 +66,6 @@ def test_send_notification_email_retries_transient_send_failures(
             body_text="body",
             body_html=None,
         ),
-    )
-    monkeypatch.setattr(
-        handler,
-        "build_new_request_template_data",
-        lambda **_: {},
     )
 
     attempts = {"count": 0}

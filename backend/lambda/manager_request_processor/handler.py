@@ -24,13 +24,8 @@ from sqlalchemy.orm import Session
 from app.db.engine import get_engine
 from app.db.models import Ticket, TicketType
 from app.db.repositories import TicketRepository
-from app.services.email import send_email, send_templated_email
-from app.templates import (
-    build_new_request_template_data,
-    build_new_suggestion_template_data,
-    render_new_request_email,
-    render_new_suggestion_email,
-)
+from app.services.email import send_email
+from app.templates import render_new_request_email, render_new_suggestion_email
 from app.utils.logging import configure_logging, get_logger
 from app.utils.retry import run_with_retry
 
@@ -218,14 +213,6 @@ def _send_notification_email(ticket: Ticket) -> None:
         )
 
         if ticket.ticket_type == TicketType.ACCESS_REQUEST:
-            template_name = os.getenv("SES_TEMPLATE_NEW_ACCESS_REQUEST", "")
-            template_data = build_new_request_template_data(
-                ticket_id=ticket.ticket_id,
-                requester_email=ticket.submitter_email,
-                organization_name=ticket.organization_name,
-                request_message=ticket.message,
-                submitted_at=submitted_at,
-            )
             email_content = render_new_request_email(
                 ticket_id=ticket.ticket_id,
                 requester_email=ticket.submitter_email,
@@ -234,17 +221,6 @@ def _send_notification_email(ticket: Ticket) -> None:
                 submitted_at=submitted_at,
             )
         elif ticket.ticket_type == TicketType.ORGANIZATION_SUGGESTION:
-            template_name = os.getenv("SES_TEMPLATE_NEW_SUGGESTION", "")
-            template_data = build_new_suggestion_template_data(
-                ticket_id=ticket.ticket_id,
-                suggester_email=ticket.submitter_email,
-                organization_name=ticket.organization_name,
-                description=ticket.description,
-                district=ticket.suggested_district,
-                address=ticket.suggested_address,
-                additional_notes=ticket.message,
-                submitted_at=submitted_at,
-            )
             email_content = render_new_suggestion_email(
                 ticket_id=ticket.ticket_id,
                 suggester_email=ticket.submitter_email,
@@ -262,27 +238,16 @@ def _send_notification_email(ticket: Ticket) -> None:
             )
             return
 
-        if template_name:
-            run_with_retry(
-                send_templated_email,
-                source=sender_email,
-                to_addresses=[support_email],
-                template_name=template_name,
-                template_data=template_data,
-                logger=logger,
-                operation_name="ses.send_templated_email",
-            )
-        else:
-            run_with_retry(
-                send_email,
-                source=sender_email,
-                to_addresses=[support_email],
-                subject=email_content.subject,
-                body_text=email_content.body_text,
-                body_html=email_content.body_html,
-                logger=logger,
-                operation_name="ses.send_email",
-            )
+        run_with_retry(
+            send_email,
+            source=sender_email,
+            to_addresses=[support_email],
+            subject=email_content.subject,
+            body_text=email_content.body_text,
+            body_html=email_content.body_html,
+            logger=logger,
+            operation_name="ses.send_email",
+        )
         logger.info(f"Notification email sent for {ticket.ticket_id}")
 
     except Exception as e:
