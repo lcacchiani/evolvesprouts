@@ -43,7 +43,6 @@ export function EventsPage({ content }: EventsPageProps) {
         content={content.events.notification}
         commonCaptchaContent={content.common.captcha}
         locale={resolvedLocale}
-        marketingOptInLabel={content.contactUs.form.marketingOptInLabel}
       />
     </PageLayout>
   );

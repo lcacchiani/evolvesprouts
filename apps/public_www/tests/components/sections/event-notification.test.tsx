@@ -86,7 +86,6 @@ describe('EventNotification section', () => {
         content={enContent.events.notification}
         commonCaptchaContent={enContent.common.captcha}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -111,7 +110,6 @@ describe('EventNotification section', () => {
         content={enContent.events.notification}
         commonCaptchaContent={enContent.common.captcha}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -141,7 +139,6 @@ describe('EventNotification section', () => {
         content={enContent.events.notification}
         commonCaptchaContent={enContent.common.captcha}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -169,7 +166,7 @@ describe('EventNotification section', () => {
           email_address: 'events@example.com',
           first_name: 'events',
           message: enContent.events.notification.prefilledMessage,
-          marketing_opt_in: false,
+          marketing_opt_in: true,
           locale: 'en',
           signup_intent: 'event_notification',
         },
@@ -182,54 +179,4 @@ describe('EventNotification section', () => {
     });
   });
 
-  it('includes marketing opt-in when the newsletter checkbox is checked', async () => {
-    const request = vi.fn().mockResolvedValue(null);
-    mockedCreateCrmApiClient.mockReturnValue({ request });
-
-    render(
-      <EventNotification
-        content={enContent.events.notification}
-        commonCaptchaContent={enContent.common.captcha}
-        locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
-      />,
-    );
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: enContent.events.notification.ctaLabel,
-      }),
-    );
-    fireEvent.change(
-      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
-      { target: { value: 'events@example.com' } },
-    );
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: enContent.contactUs.form.marketingOptInLabel,
-      }),
-    );
-    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: enContent.events.notification.formSubmitLabel,
-      }),
-    );
-
-    await waitFor(() => {
-      expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/contact-us',
-        method: 'POST',
-        body: expect.objectContaining({
-          email_address: 'events@example.com',
-          first_name: 'events',
-          marketing_opt_in: true,
-          locale: 'en',
-          signup_intent: 'event_notification',
-        }),
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
-    });
-  });
 });
