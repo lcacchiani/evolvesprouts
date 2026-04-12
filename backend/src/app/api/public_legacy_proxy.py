@@ -25,8 +25,9 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 _DEFAULT_ERROR_MESSAGE = "Unable to process request. Please try again."
+_MAX_BODY_BYTES_DEFAULT = 20_000
 # Reservation payloads may include a base64 PNG data URL for the FPS QR code.
-_MAX_BODY_BYTES = 120_000
+_MAX_BODY_BYTES_RESERVATIONS = 120_000
 _CONTENT_TYPE_JSON = "application/json"
 
 _LEGACY_RESERVATIONS_PATH = "/v1/reservations"
@@ -53,6 +54,7 @@ def handle_legacy_reservations(
         target_path=_LEGACY_RESERVATIONS_PATH,
         include_turnstile=True,
         on_proxy_success=lambda payload: run_reservation_post_success(payload=payload),
+        max_body_bytes=_MAX_BODY_BYTES_RESERVATIONS,
     )
 
 
@@ -92,6 +94,7 @@ def _handle_legacy_proxy_with_hooks(
     target_path: str,
     include_turnstile: bool,
     on_proxy_success: Callable[[Mapping[str, Any]], None] | None = None,
+    max_body_bytes: int = _MAX_BODY_BYTES_DEFAULT,
 ) -> dict[str, Any]:
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
@@ -117,7 +120,7 @@ def _handle_legacy_proxy_with_hooks(
         )
 
     request_body = json.dumps(payload, separators=(",", ":"))
-    if len(request_body.encode("utf-8")) > _MAX_BODY_BYTES:
+    if len(request_body.encode("utf-8")) > max_body_bytes:
         return json_response(413, {"error": "Request body too large"}, event=event)
 
     request_headers: dict[str, str] = {"Content-Type": _CONTENT_TYPE_JSON}

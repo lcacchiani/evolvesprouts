@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import base64
-import binascii
 import os
 import re
 from typing import Any, Mapping
@@ -21,6 +19,10 @@ from app.templates.constants import build_faq_url
 from app.templates.transactional_shell_data import (
     merge_transactional_shell_template_data,
     resolve_whatsapp_url_for_template,
+)
+from app.utils.fps_qr_png import (
+    decode_fps_qr_png_data_url,
+    optional_fps_qr_data_url_from_payload,
 )
 from app.utils.logging import get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
@@ -42,9 +44,6 @@ TAG_PUBLIC_WWW_CONTACT_INQUIRY = "public-www-contact-inquiry"
 TAG_PUBLIC_WWW_COMMUNITY_NEWSLETTER = "public-www-community-newsletter"
 TAG_PUBLIC_WWW_EVENT_NOTIFICATION = "public-www-event-notification"
 TAG_BOOKING_PREFIX = "public-www-booking-customer-"
-
-_MAX_FPS_QR_DATA_URL_CHARS = 50_000
-_PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 # Mailchimp FNAME fallback when first_name is empty for community/event tags.
 # Public forms normally send deriveFirstNameFromEmailLocalPart + locale fallback;
@@ -189,7 +188,7 @@ def send_booking_confirmation_email(
         and isinstance(fps_qr_image_data_url, str)
         and fps_qr_image_data_url.strip()
     ):
-        png_bytes = _decode_png_from_data_url(fps_qr_image_data_url)
+        png_bytes = decode_fps_qr_png_data_url(fps_qr_image_data_url)
         if png_bytes is None:
             logger.warning(
                 "Invalid fps_qr_image_data_url for booking confirmation; "
@@ -383,11 +382,8 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
     pm_lower = payment_method.lower()
     is_pending = pm_lower != "stripe" and not stripe_pi
-    fps_qr_raw = payload.get("fps_qr_image_data_url")
-    fps_qr_data_url = (
-        str(fps_qr_raw).strip()
-        if isinstance(fps_qr_raw, str) and fps_qr_raw.strip()
-        else None
+    fps_qr_data_url = optional_fps_qr_data_url_from_payload(
+        payload.get("fps_qr_image_data_url")
     )
     if email and full_name:
         try:
@@ -428,26 +424,6 @@ def _optional_str(value: Any) -> str | None:
         return None
     s = str(value).strip()
     return s or None
-
-
-def _decode_png_from_data_url(raw: str) -> bytes | None:
-    """Accept only ``data:image/png;base64,...`` from the booking modal QR."""
-    s = raw.strip()
-    if len(s) > _MAX_FPS_QR_DATA_URL_CHARS:
-        return None
-    prefix = "data:image/png;base64,"
-    if not s.lower().startswith(prefix):
-        return None
-    b64_part = s[len(prefix) :].strip()
-    if not b64_part or "\n" in b64_part or "\r" in b64_part:
-        return None
-    try:
-        decoded = base64.b64decode(b64_part, validate=True)
-    except (binascii.Error, ValueError):
-        return None
-    if len(decoded) > 512_000 or not decoded.startswith(_PNG_MAGIC):
-        return None
-    return decoded
 
 
 def _format_hkd_amount(price: Any) -> str:

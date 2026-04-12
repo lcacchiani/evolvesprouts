@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 export type FormSubmissionStatus = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -53,7 +54,11 @@ export function useFormSubmission({ turnstileSiteKey }: UseFormSubmissionOptions
   }
 
   async function withSubmitting<T>(request: () => Promise<T>): Promise<T> {
-    setSubmissionStatus('submitting');
+    // Ensure the loading UI (e.g. submit button gear) commits before the async
+    // request runs, so fast responses still produce at least one painted frame.
+    flushSync(() => {
+      setSubmissionStatus('submitting');
+    });
     try {
       return await request();
     } finally {

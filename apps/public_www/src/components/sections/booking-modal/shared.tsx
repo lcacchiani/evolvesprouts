@@ -81,9 +81,12 @@ export function CloseButton({
 export function FpsQrCode({
   amount,
   label = enContent.bookingModal.paymentModal.fpsQrCodeLabel,
+  onDataUrlChange,
 }: {
   amount: number;
   label?: string;
+  /** Latest PNG data URL for reuse on submit (avoids regenerating the QR). */
+  onDataUrlChange?: (dataUrl: string) => void;
 }) {
   const [qrCodeImageDataUrl, setQrCodeImageDataUrl] = useState('');
   const qrCodeContainerRef = useRef<HTMLDivElement | null>(null);
@@ -99,13 +102,14 @@ export function FpsQrCode({
     void generateFpsQrImageDataUrl(amount).then((imageDataUrl) => {
       if (!isCancelled && imageDataUrl) {
         setQrCodeImageDataUrl(imageDataUrl);
+        onDataUrlChange?.(imageDataUrl);
       }
     });
 
     return () => {
       isCancelled = true;
     };
-  }, [amount, hasFpsConfiguration]);
+  }, [amount, hasFpsConfiguration, onDataUrlChange]);
 
   if (!hasFpsConfiguration) {
     return null;
