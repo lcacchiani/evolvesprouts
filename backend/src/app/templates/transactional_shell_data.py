@@ -13,7 +13,11 @@ import re
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-from app.templates.constants import WHATSAPP_URL, build_faq_url, resolve_public_www_base_url
+from app.templates.constants import (
+    WHATSAPP_URL,
+    build_faq_url,
+    resolve_public_www_base_url,
+)
 
 _DEFAULT_OG_IMAGE_PATH = "/images/seo/evolvesprouts-og-default.png"
 
@@ -132,9 +136,7 @@ def build_footer_social_html(*, locale: str) -> str:
         return ""
 
     inner = _SEP.join(segments)
-    return (
-        f'<p style="margin:0;text-align:center;font-size:13px;line-height:1.8;">{inner}</p>'
-    )
+    return f'<p style="margin:0;text-align:center;font-size:13px;line-height:1.8;">{inner}</p>'
 
 
 def build_footer_block_html(*, locale: str) -> str:
@@ -169,6 +171,8 @@ def merge_transactional_shell_template_data(
     template_data: dict[str, Any],
 ) -> dict[str, Any]:
     """Shell keys first; caller values override on key collision."""
-    merged: dict[str, Any] = dict(build_transactional_template_shell_data(locale=locale))
+    merged: dict[str, Any] = dict(
+        build_transactional_template_shell_data(locale=locale)
+    )
     merged.update(template_data)
     return merged
