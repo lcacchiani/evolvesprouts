@@ -85,6 +85,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -150,6 +151,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -176,6 +178,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -206,6 +209,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -236,6 +240,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -268,6 +273,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -294,6 +300,65 @@ describe('SproutsSquadCommunity section', () => {
     });
   });
 
+  it('shows the loading gear on the submit button while the request is in flight', async () => {
+    let releaseRequest: (() => void) | undefined;
+    const request = vi.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          releaseRequest = () => {
+            reject(new Error('deferred failure'));
+          };
+        }),
+    );
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      { target: { value: 'community@example.com' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.common.formActions.submittingLabel,
+    });
+    expect(submitButton).toBeDisabled();
+    expect(screen.getByTestId('sprouts-squad-community-submit-loading-gear')).toHaveClass(
+      'animate-spin',
+    );
+
+    releaseRequest?.();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: enContent.sproutsSquadCommunity.formSubmitLabel,
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('submits payload with turnstile token and shows success state', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
@@ -302,6 +367,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );
@@ -351,6 +417,7 @@ describe('SproutsSquadCommunity section', () => {
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
         commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
         locale='en'
       />,
     );

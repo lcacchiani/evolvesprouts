@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -31,6 +32,7 @@ import {
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
   commonCaptchaContent: CommonContent['captcha'];
+  commonFormActionsContent: CommonContent['formActions'];
   locale: Locale;
 }
 
@@ -41,6 +43,7 @@ const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
 export function SproutsSquadCommunity({
   content,
   commonCaptchaContent,
+  commonFormActionsContent,
   locale,
 }: SproutsSquadCommunityProps) {
   const copy = resolveSproutsSquadCommunityCopy(content);
@@ -71,6 +74,7 @@ export function SproutsSquadCommunity({
   });
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
+  const submitLoadingLabel = commonFormActionsContent.submittingLabel;
 
   const captchaErrorMessage = (() => {
     if (hasCaptchaValidationError) {
@@ -296,8 +300,18 @@ export function SproutsSquadCommunity({
                         variant='primary'
                         type='submit'
                         disabled={isSubmitting || hasSuccessfulSubmission || isCaptchaUnavailable}
+                        className={
+                          isSubmitting
+                            ? 'inline-flex w-full items-center justify-center gap-2'
+                            : undefined
+                        }
                       >
-                        {isSubmitting ? `${submitCtaLabel}...` : submitCtaLabel}
+                        <SubmitButtonLoadingContent
+                          isSubmitting={isSubmitting}
+                          submittingLabel={submitLoadingLabel}
+                          idleLabel={submitCtaLabel}
+                          loadingGearTestId='sprouts-squad-community-submit-loading-gear'
+                        />
                       </ButtonPrimitive>
                       {submitErrorMessage ? (
                         <p

@@ -31,6 +31,7 @@ export function FreeGuidesAndResourcesPage({
       <SproutsSquadCommunity
         content={content.sproutsSquadCommunity}
         commonCaptchaContent={content.common.captcha}
+        commonFormActionsContent={content.common.formActions}
         locale={locale}
       />
     </PageLayout>
