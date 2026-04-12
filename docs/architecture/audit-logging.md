@@ -157,7 +157,6 @@ The following tables have audit triggers:
 
 - `assets`
 - `asset_access_grants`
-- `tickets`
 
 ## Performance Considerations
 

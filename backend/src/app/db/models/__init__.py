@@ -35,8 +35,6 @@ from app.db.models.enums import (
     ServiceDeliveryMode,
     ServiceStatus,
     ServiceType,
-    TicketStatus,
-    TicketType,
     TrainingFormat,
     TrainingPricingUnit,
 )
@@ -61,7 +59,6 @@ from app.db.models.service_instance import (
     TrainingInstanceDetails,
 )
 from app.db.models.tag import AssetTag, ContactTag, FamilyTag, OrganizationTag, Tag
-from app.db.models.ticket import Ticket
 
 __all__ = [
     "AccessGrantType",
@@ -123,9 +120,6 @@ __all__ = [
     "ServiceTag",
     "ServiceType",
     "Tag",
-    "Ticket",
-    "TicketStatus",
-    "TicketType",
     "TrainingCourseDetails",
     "TrainingFormat",
     "TrainingInstanceDetails",

@@ -2,9 +2,9 @@
 
 ## Overview
 
-Ticket submissions are processed asynchronously using SNS + SQS messaging. This provides reliable, decoupled processing with automatic retries and dead letter queue support.
+Media leads, expense parsing, and related workloads are processed asynchronously using SNS + SQS messaging. This provides reliable, decoupled processing with automatic retries and dead letter queue support.
 
-Most booking, media, and expense-parser pipelines (plus the SES template manager custom resource) are defined in a **nested CloudFormation stack** (`MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts`) so the root `evolvesprouts` stack stays under CloudFormation’s 500-resource limit. The shared `SqsEncryptionKey` KMS key remains in the root stack and is passed into that nested stack (and reused by inbound invoice queues in the root). Eventbrite sync uses a separate nested stack (`EventbriteSyncNestedStack` in `api-stack.ts`).
+Most media and expense-parser pipelines (plus the SES template manager custom resource) are defined in a **nested CloudFormation stack** (`MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts`) so the root `evolvesprouts` stack stays under CloudFormation’s 500-resource limit. The shared `SqsEncryptionKey` KMS key remains in the root stack and is passed into that nested stack (and reused by inbound invoice queues in the root). Eventbrite sync uses a separate nested stack (`EventbriteSyncNestedStack` in `api-stack.ts`).
 
 ### Two-phase deploy (named resources → nested stack)
 
@@ -19,19 +19,14 @@ Between phases, drain SQS queues and DLQs where possible; expect brief SNS topic
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        ASYNC TICKET PROCESSING                              │
+│                     ASYNC PIPELINES (SNS → SQS → Lambda)                    │
 │                                                                             │
-│  User submits ──▶ API Lambda ──▶ SNS Topic ──▶ SQS Queue ──▶ Processor     │
-│   ticket               │              │              │         Lambda       │
-│                        │              │              │            │         │
-│                   (validates,    (fan-out)     (reliable      (stores in   │
-│                   returns 202)                  delivery)      DB, sends   │
-│                                                    │           email)      │
-│                                                    │                       │
-│                                                    ▼                       │
-│                                               Dead Letter                  │
-│                                                 Queue                      │
-│                                            (failed messages)               │
+│  Producer ──▶ SNS Topic ──▶ SQS Queue ──▶ Processor Lambda                 │
+│                  │              │              │                            │
+│                  │         (reliable      (DB, Mailchimp,                  │
+│                  │          delivery)      SES, Eventbrite, …)            │
+│                  ▼                                                          │
+│            Dead letter queue (failed messages after retries)                │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -55,54 +50,23 @@ template names.
 
 ## Components
 
-### SNS Topic: `evolvesprouts-booking-request-events`
+Pipelines are documented below by domain (media, expenses, Eventbrite sync, inbound invoice email). Each uses SNS fan-out to an encrypted SQS queue, a processor Lambda, and a DLQ with a CloudWatch alarm.
 
-- Receives ticket events from the API
-- Fans out to subscribed SQS queue
-- Message attributes enable filtering by `event_type`
+## Message formats (by pipeline)
 
-### SQS Queue: `evolvesprouts-booking-request-queue`
+Payload shapes are defined by the publisher for each topic (for example
+`media_request.submitted` on the media topic, `expense.parse_requested` on the
+expense parser topic). See the corresponding Lambda handlers and OpenAPI specs
+for fields.
 
-- Subscribes to SNS topic
-- 60 second visibility timeout (6x Lambda timeout)
-- 3 retry attempts before DLQ
-- KMS encryption with a customer-managed key (`SqsEncryptionKey`)
-
-### Dead Letter Queue: `evolvesprouts-booking-request-dlq`
-
-- Receives messages that fail processing 3 times
-- 14 day retention for debugging
-- CloudWatch alarm triggers when messages arrive
-
-### Processor Lambda: `BookingRequestProcessor`
-
-- Triggered by SQS messages
-- Routes each message to the appropriate handler based on `event_type`
-- Stores the ticket in the `tickets` table
-- Sends email notification via SES
-- Idempotent via `ticket_id` check
-
-## Message Format
-
-Each SNS message includes an `event_type` field that determines how the
-processor handles it. The `ticket_id` field provides idempotency.
-
-Example:
+Example shape (illustrative only):
 
 ```json
 {
-  "event_type": "<type>.submitted",
-  "ticket_id": "X00001",
-  "...": "type-specific fields"
+  "event_type": "<domain>.<action>",
+  "...": "pipeline-specific fields"
 }
 ```
-
-Current event types:
-- `booking_request.submitted`
-- `organization_suggestion.submitted`
-- `media_request.submitted`
-- `expense.parse_requested`
-- `eventbrite.instance_sync_requested`
 
 ## Eventbrite sync flow
 
@@ -268,31 +232,28 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
 - Reuses the existing `expense.parse_requested` topic after the expense row
   is created so `ExpenseParserFunction` performs the OpenRouter extraction.
 
-## API Behavior
+## API behavior
 
-User-facing submission endpoints are under `/v1/user/`. Admin review
-endpoints are at `/v1/admin/tickets`. For full endpoint details
-(parameters, request/response schemas), see the OpenAPI spec:
-[`docs/api/admin.yaml`](../api/admin.yaml).
+HTTP request and response contracts for admin and public APIs live in
+[`docs/api/public.yaml`](../api/public.yaml) and
+[`docs/api/admin.yaml`](../api/admin.yaml). Publishers (for example
+`POST /v1/assets/free/request` for media) validate input, write durable rows or
+enqueue work, and return success responses appropriate to each route.
 
-**Processing flow:**
-1. User POSTs a submission → API validates, generates ticket ID, publishes to SNS
-2. Returns `202 Accepted` with ticket ID
-3. SQS delivers message to processor Lambda
-4. Processor stores in DB and sends email notification to support
-
-## Error Handling
+## Error handling
 
 | Scenario | Behavior |
 |----------|----------|
-| SNS publish fails | API returns 500, user can retry |
+| SNS publish fails | Caller logs or surfaces an error; the client can retry |
 | Processor fails | SQS retries up to 3 times |
 | All retries fail | Message moves to DLQ, alarm triggers |
-| Email send fails | Logged but doesn't fail processing |
+| Email send fails | Logged but doesn't fail processing (where best-effort) |
 
 ## Idempotency
 
-The processor checks if a ticket with the same `ticket_id` already exists before inserting. This handles SQS's at-least-once delivery guarantee.
+Each pipeline defines its own idempotency (for example `inbound_emails` for
+inbound invoice email, lead/contact keys for media). SQS may deliver more than
+once, so consumers should use stable keys or database constraints where needed.
 
 Inbound invoice processing uses the SES `mail.messageId` value stored in
 `inbound_emails.ses_message_id` to prevent duplicate expense creation across
@@ -304,12 +265,10 @@ SQS retries or mailbox forwarding duplicates.
 |------|-------------|
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish and public calendar feed routing |
-| `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
 | `backend/lambda/media_processor/handler.py` | SQS media request processor |
 | `backend/lambda/ses_template_manager/handler.py` | CloudFormation custom resource — upsert SES email templates |
 | `backend/lambda/inbound_invoice_email/handler.py` | SQS inbound invoice email processor |
 | `backend/src/app/services/inbound_invoice_ingest.py` | Expense + asset creation from inbound email |
-| `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
 
@@ -317,7 +276,6 @@ SQS retries or mailbox forwarding duplicates.
 
 | Variable | Description |
 |----------|-------------|
-| `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
 | `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
 | `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
@@ -368,9 +326,6 @@ SQS retries or mailbox forwarding duplicates.
 
 | Output | Description |
 |--------|-------------|
-| `BookingRequestTopicArn` | SNS topic ARN |
-| `BookingRequestQueueUrl` | SQS queue URL |
-| `BookingRequestDLQUrl` | Dead letter queue URL |
 | `MediaTopicArn` | SNS topic ARN for media events |
 | `MediaQueueUrl` | SQS queue URL for media processing |
 | `MediaDLQUrl` | Dead letter queue URL for failed media requests |

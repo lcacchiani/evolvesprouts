@@ -51,7 +51,6 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - `geographic_areas`
 - `assets`
 - `asset_access_grants`
-- `tickets`
 - `audit_log`
 
 **Migrations:**

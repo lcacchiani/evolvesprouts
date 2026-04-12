@@ -220,24 +220,6 @@ their primary responsibilities.
   - `API_KEY_NAME_PREFIX`: prefix for key names
   - `GRACE_PERIOD_HOURS`: hours to keep old key active (default 24)
 
-### Booking request processor
-- Function: BookingRequestProcessor
-- Handler: backend/lambda/manager_request_processor/handler.py
-- Stack: nested stack `evolvesprouts-Messaging`
-- Trigger: SQS queue (subscribed to SNS booking request topic)
-- Purpose: process async booking submissions from the SNS topic
-- Reliability: retries transient SES send failures when dispatching
-  notifications
-- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
-- VPC: Yes
-- Permissions: SES send email (verified sender address and derived domain identity
-  ARNs; see `sesVerifiedAddressAndDomainIdentityArns` in
-  `backend/infrastructure/lib/ses-identity-arns.ts`)
-- Environment:
-  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
-    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
-
 ### Media request processor
 - Function: MediaRequestProcessor
 - Handler: backend/lambda/media_processor/handler.py

@@ -268,7 +268,6 @@ All functions use Python 3.12, KMS-encrypted environment variables,
 | MigrationFunction | `lambda/migrations/handler.py` | CloudFormation | Alembic migrations + seed data |
 | AdminBootstrapFunction | `lambda/admin_bootstrap/handler.py` | CloudFormation | Initial admin user creation in Cognito |
 | ApiKeyRotationFunction | `lambda/api_key_rotation/handler.py` | EventBridge (90 days) | API key rotation |
-| BookingRequestProcessor | `lambda/manager_request_processor/handler.py` | SQS | Process booking/ticket requests |
 | MediaRequestProcessor | `lambda/media_processor/handler.py` | SQS | Process media leads → DB + Mailchimp + SES |
 | InboundInvoiceEmailProcessor | `lambda/inbound_invoice_email/handler.py` | SQS | Store inbound invoice attachments as expenses and enqueue parsing |
 
@@ -329,16 +328,11 @@ Cognito User Pool (evolvesprouts-user-pool)
 
 ## Messaging (SNS + SQS)
 
-Async processing for form submissions, booking requests, and inbound invoice
-email ingestion.
+Async processing for media leads, Eventbrite sync, and inbound invoice email
+ingestion.
 
 ```
 API Lambda
-    │
-    ├─▶ SNS: evolvesprouts-booking-request-events
-    │        └─▶ SQS: evolvesprouts-booking-request-queue
-    │                  └─▶ BookingRequestProcessor Lambda
-    │                  └─▶ DLQ: evolvesprouts-booking-request-dlq
     │
     ├─▶ SNS: evolvesprouts-media-events
     │        └─▶ SQS: evolvesprouts-media-queue
@@ -362,7 +356,6 @@ SES inbound (inbound.evolvesprouts.com)
 
 | Topic | Queue | Processor | Events |
 |---|---|---|---|
-| `evolvesprouts-booking-request-events` | `evolvesprouts-booking-request-queue` | BookingRequestProcessor | `booking_request.submitted`, `organization_suggestion.submitted` |
 | `evolvesprouts-media-events` | `evolvesprouts-media-queue` | MediaRequestProcessor | `media_request.submitted` |
 | `evolvesprouts-eventbrite-sync-events` | `evolvesprouts-eventbrite-sync-queue` | EventbriteSyncProcessor | `eventbrite.instance_sync_requested` |
 | `evolvesprouts-inbound-invoice-email-events` | `evolvesprouts-inbound-invoice-email-queue` | InboundInvoiceEmailProcessor | SES receipt-rule S3 notifications for inbound invoice emails |

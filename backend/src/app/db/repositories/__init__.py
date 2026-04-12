@@ -19,7 +19,6 @@ from app.db.repositories.organization import OrganizationRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.db.repositories.service import ServiceRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
-from app.db.repositories.ticket import TicketRepository
 
 __all__ = [
     "BaseRepository",
@@ -37,5 +36,4 @@ __all__ = [
     "SalesLeadRepository",
     "ServiceRepository",
     "ServiceInstanceRepository",
-    "TicketRepository",
 ]
