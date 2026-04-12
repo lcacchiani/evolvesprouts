@@ -1,8 +1,9 @@
 """SES transactional template data for the shared HTML shell (logo, footer links).
 
 Social URLs follow the same env contract as ``apps/public_www`` (``NEXT_PUBLIC_*``),
-with ``PUBLIC_WWW_*`` aliases for Lambda. When Instagram/LinkedIn are unset, the
-public Contact Us path is used (matches footer fallback on the website).
+with ``PUBLIC_WWW_*`` aliases for Lambda. Instagram and LinkedIn appear only when
+those URLs are configured (aligned with the public site footer, which omits them
+when unset rather than linking to an on-site placeholder).
 """
 
 from __future__ import annotations
@@ -115,10 +116,9 @@ def build_footer_social_html(*, locale: str) -> str:
     loc = locale if locale in _ALLOWED_LOCALES else "en"
     labels = _SOCIAL_LABELS[loc]
 
-    contact_fallback = _build_contact_us_page_url(locale=loc)
     wa_href = resolve_whatsapp_url_for_template()
-    ig_href = _resolve_instagram_url() or contact_fallback
-    li_href = _resolve_linkedin_url() or contact_fallback
+    ig_href = _resolve_instagram_url()
+    li_href = _resolve_linkedin_url()
     base = resolve_public_www_base_url()
     web_href = f"{base}/{loc}/" if base else ""
 
