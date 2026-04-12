@@ -135,20 +135,3 @@ def render_new_request_email(
         body_text=body_text,
         body_html=body_html,
     )
-
-
-def build_new_request_template_data(
-    ticket_id: str,
-    requester_email: str,
-    organization_name: str,
-    request_message: str | None,
-    submitted_at: str,
-) -> dict[str, str]:
-    """Build template data for a new access request."""
-    return {
-        "ticket_id": ticket_id,
-        "requester_email": requester_email,
-        "organization_name": organization_name,
-        "request_message": request_message or "No message provided",
-        "submitted_at": submitted_at,
-    }

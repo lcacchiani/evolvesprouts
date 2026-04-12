@@ -174,26 +174,3 @@ def render_new_suggestion_email(
         body_text=body_text,
         body_html=body_html,
     )
-
-
-def build_new_suggestion_template_data(
-    ticket_id: str,
-    suggester_email: str,
-    organization_name: str,
-    description: str | None,
-    district: str | None,
-    address: str | None,
-    additional_notes: str | None,
-    submitted_at: str,
-) -> dict[str, str]:
-    """Build template data for a new organization suggestion."""
-    return {
-        "ticket_id": ticket_id,
-        "suggester_email": suggester_email,
-        "organization_name": organization_name,
-        "description": description or "Not provided",
-        "district": district or "Not provided",
-        "address": address or "Not provided",
-        "additional_notes": additional_notes or "No additional notes",
-        "submitted_at": submitted_at,
-    }
