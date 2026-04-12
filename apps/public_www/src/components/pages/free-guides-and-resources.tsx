@@ -33,7 +33,6 @@ export function FreeGuidesAndResourcesPage({
         commonCaptchaContent={content.common.captcha}
         commonFormActionsContent={content.common.formActions}
         locale={locale}
-        marketingOptInLabel={content.contactUs.form.marketingOptInLabel}
       />
     </PageLayout>
   );

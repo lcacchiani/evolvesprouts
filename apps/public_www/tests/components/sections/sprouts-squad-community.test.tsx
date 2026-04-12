@@ -87,7 +87,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -154,7 +153,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -182,7 +180,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -214,7 +211,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -246,7 +242,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -280,7 +275,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -324,7 +318,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -376,7 +369,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 
@@ -404,7 +396,7 @@ describe('SproutsSquadCommunity section', () => {
           email_address: 'community@example.com',
           first_name: 'community',
           message: enContent.sproutsSquadCommunity.prefilledMessage,
-          marketing_opt_in: false,
+          marketing_opt_in: true,
           locale: 'en',
           signup_intent: 'community_newsletter',
         },
@@ -414,58 +406,6 @@ describe('SproutsSquadCommunity section', () => {
       expect(
         screen.getByText(enContent.sproutsSquadCommunity.successMessage),
       ).toBeInTheDocument();
-    });
-  });
-
-  it('includes marketing opt-in when the newsletter checkbox is checked', async () => {
-    const request = vi.fn().mockResolvedValue(null);
-    mockedCreateCrmApiClient.mockReturnValue({ request });
-
-    render(
-      <SproutsSquadCommunity
-        content={enContent.sproutsSquadCommunity}
-        commonCaptchaContent={enContent.common.captcha}
-        commonFormActionsContent={enContent.common.formActions}
-        locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
-      />,
-    );
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: enContent.sproutsSquadCommunity.ctaLabel,
-      }),
-    );
-    fireEvent.change(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
-      { target: { value: 'community@example.com' } },
-    );
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: enContent.contactUs.form.marketingOptInLabel,
-      }),
-    );
-    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: enContent.sproutsSquadCommunity.formSubmitLabel,
-      }),
-    );
-
-    await waitFor(() => {
-      expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/contact-us',
-        method: 'POST',
-        body: expect.objectContaining({
-          email_address: 'community@example.com',
-          first_name: 'community',
-          marketing_opt_in: true,
-          locale: 'en',
-          signup_intent: 'community_newsletter',
-        }),
-        turnstileToken: 'mock-turnstile-token',
-        expectedSuccessStatuses: [200, 202],
-      });
     });
   });
 
@@ -479,7 +419,6 @@ describe('SproutsSquadCommunity section', () => {
         commonCaptchaContent={enContent.common.captcha}
         commonFormActionsContent={enContent.common.formActions}
         locale='en'
-        marketingOptInLabel={enContent.contactUs.form.marketingOptInLabel}
       />,
     );
 

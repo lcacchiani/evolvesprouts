@@ -6,7 +6,6 @@ import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
-import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -35,7 +34,6 @@ interface SproutsSquadCommunityProps {
   commonCaptchaContent: CommonContent['captcha'];
   commonFormActionsContent: CommonContent['formActions'];
   locale: Locale;
-  marketingOptInLabel: string;
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
@@ -47,7 +45,6 @@ export function SproutsSquadCommunity({
   commonCaptchaContent,
   commonFormActionsContent,
   locale,
-  marketingOptInLabel,
 }: SproutsSquadCommunityProps) {
   const copy = resolveSproutsSquadCommunityCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -56,7 +53,6 @@ export function SproutsSquadCommunity({
   const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
-  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
     clearSubmissionError,
@@ -147,7 +143,7 @@ export function SproutsSquadCommunity({
               email_address: normalizedEmail,
               first_name: derivedFirstName,
               message: content.prefilledMessage,
-              marketing_opt_in: marketingOptIn,
+              marketing_opt_in: true,
               locale,
               signup_intent: 'community_newsletter',
             },
@@ -280,11 +276,6 @@ export function SproutsSquadCommunity({
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
-                      <MarketingOptInCheckbox
-                        label={marketingOptInLabel}
-                        checked={marketingOptIn}
-                        onChange={setMarketingOptIn}
-                      />
                       <TurnstileCaptcha
                         siteKey={turnstileSiteKey}
                         widgetAction='sprouts_squad_community_submit'
