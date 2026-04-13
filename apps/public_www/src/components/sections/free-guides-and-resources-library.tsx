@@ -294,8 +294,7 @@ export function FreeGuidesAndResourcesLibrary({
   const mediaFormEmailLabel = mediaFormContent.formEmailLabel;
   const mediaFormSubmitLabel = mediaFormContent.formSubmitLabel;
   const mediaFormSubmittingLabel = mediaFormContent.formSubmittingLabel;
-  const mediaFormSuccessTitle = mediaFormContent.formSuccessTitle;
-  const mediaFormSuccessBody = mediaFormContent.formSuccessBody;
+  const mediaFormSuccessMessage = mediaFormContent.formSuccessMessage;
   const mediaFormErrorMessage = mediaFormContent.formErrorMessage;
   const mediaFormMarketingOptInLabel = mediaFormContent.formMarketingOptInLabel;
 
@@ -413,8 +412,7 @@ export function FreeGuidesAndResourcesLibrary({
                     formEmailLabel={mediaFormEmailLabel}
                     formSubmitLabel={mediaFormSubmitLabel}
                     formSubmittingLabel={mediaFormSubmittingLabel}
-                    formSuccessTitle={mediaFormSuccessTitle}
-                    formSuccessBody={mediaFormSuccessBody}
+                    formSuccessMessage={mediaFormSuccessMessage}
                     formErrorMessage={mediaFormErrorMessage}
                     ctaButtonClassName='es-btn--outline'
                     className='mt-6 w-full sm:w-fit'

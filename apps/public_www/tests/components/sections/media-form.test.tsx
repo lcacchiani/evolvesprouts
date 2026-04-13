@@ -68,8 +68,7 @@ function mediaFormProps() {
     formEmailLabel: resourcesContent.formEmailLabel,
     formSubmitLabel: resourcesContent.formSubmitLabel,
     formSubmittingLabel: resourcesContent.formSubmittingLabel,
-    formSuccessTitle: resourcesContent.formSuccessTitle,
-    formSuccessBody: resourcesContent.formSuccessBody,
+    formSuccessMessage: resourcesContent.formSuccessMessage,
     formErrorMessage: resourcesContent.formErrorMessage,
   };
 }
@@ -281,10 +280,7 @@ describe('MediaForm', () => {
     });
 
     expect(
-      screen.getByText(enContent.resources.formSuccessTitle),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(enContent.resources.formSuccessBody),
+      screen.getByText(enContent.resources.formSuccessMessage),
     ).toBeInTheDocument();
   });
 
@@ -368,8 +364,8 @@ describe('MediaForm', () => {
     );
 
     await waitFor(() => {
-      const titles = screen.getAllByText(enContent.resources.formSuccessTitle);
-      expect(titles).toHaveLength(1);
+      const messages = screen.getAllByText(enContent.resources.formSuccessMessage);
+      expect(messages).toHaveLength(1);
     });
 
     expect(

@@ -180,8 +180,7 @@
     "formEmailLabel": "電郵",
     "formSubmitLabel": "把免費指南寄給我",
     "formSubmittingLabel": "提交中…",
-    "formSuccessTitle": "請查收你的電郵！",
-    "formSuccessBody": "下載連結就在裡面。",
+    "formSuccessMessage": "請查收你的電郵！下載連結就在裡面。",
     "formErrorMessage": "暫時未能提交，請檢查資料後再試。",
     "formMarketingOptInLabel": "訂閱育兒貼士與資源更新",
     "sectionConfig": {

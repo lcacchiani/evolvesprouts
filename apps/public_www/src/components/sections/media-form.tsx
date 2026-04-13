@@ -25,8 +25,7 @@ interface MediaFormProps {
   formEmailLabel: string;
   formSubmitLabel: string;
   formSubmittingLabel: string;
-  formSuccessTitle: string;
-  formSuccessBody: string;
+  formSuccessMessage: string;
   formErrorMessage: string;
   resourceKey?: string;
   className?: string;
@@ -57,8 +56,7 @@ export function MediaForm({
   formEmailLabel,
   formSubmitLabel,
   formSubmittingLabel,
-  formSuccessTitle,
-  formSuccessBody,
+  formSuccessMessage,
   formErrorMessage,
   resourceKey,
   className,
@@ -240,9 +238,13 @@ export function MediaForm({
 
   if (hasSuccessfulSubmission) {
     return (
-      <div className={mergeClassNames('mt-auto max-w-[420px] rounded-xl bg-white p-5', className)}>
-        <h4 className='text-xl font-bold es-text-heading'>{formSuccessTitle}</h4>
-        <p className='mt-2 text-base leading-7 es-text-body'>{formSuccessBody}</p>
+      <div
+        className={mergeClassNames(
+          'mt-auto w-full max-w-[420px] min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4',
+          className,
+        )}
+      >
+        <p className='text-base leading-7 es-text-success'>{formSuccessMessage}</p>
       </div>
     );
   }
