@@ -361,14 +361,7 @@ export function EventNotification({
                 }`}
                 aria-live='polite'
               >
-                <div className='flex min-h-0 items-start gap-3 overflow-hidden rounded-xl es-bg-surface-success-pale p-4'>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
-                  <img
-                    src='/images/form-success-check-icon.svg'
-                    alt=''
-                    aria-hidden
-                    className='mt-0.5 h-5 w-5 shrink-0'
-                  />
+                <div className='min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4'>
                   <p className='text-base leading-7 es-text-success'>
                     {content.successMessage}
                   </p>
