@@ -12,7 +12,13 @@ import {
 } from 'react';
 
 import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
-import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
+import {
+  BOOKING_EMAIL_ERROR_MESSAGE_ID,
+  BOOKING_FULL_NAME_ERROR_MESSAGE_ID,
+  BOOKING_PHONE_ERROR_MESSAGE_ID,
+  BOOKING_TOPICS_ERROR_MESSAGE_ID,
+  ReservationFormFields,
+} from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
 import type {
@@ -96,6 +102,7 @@ interface BookingReservationFormProps {
 
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
+const ACKNOWLEDGEMENT_ERROR_MESSAGE_ID = 'booking-modal-acknowledgement-error-message';
 const FPS_ICON_SOURCE = '/images/fps-logo.svg';
 const BANK_ICON_SOURCE = '/images/bank.svg';
 const STRIPE_CARD_ICON_SOURCE = '/images/credit-cards.svg';
@@ -425,8 +432,12 @@ export function BookingReservationForm({
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [isFullNameTouched, setIsFullNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [phone, setPhone] = useState('');
+  const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+  const [isTopicsTouched, setIsTopicsTouched] = useState(false);
+  const [isAcknowledgementsTouched, setIsAcknowledgementsTouched] = useState(false);
   const [interestedTopics, setInterestedTopics] = useState(() => topicsPrefill.trim());
   const lastAppliedTopicsPrefillRef = useRef(topicsPrefill.trim());
   const [discountCode, setDiscountCode] = useState('');
@@ -509,7 +520,14 @@ export function BookingReservationForm({
   }, [totalAmount, selectedPaymentMethod]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
+  const hasFullNameError = isFullNameTouched && !sanitizeSingleLineValue(fullName);
+  const hasPhoneError = isPhoneTouched && !sanitizeSingleLineValue(phone);
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
+  const hasTopicsError =
+    isTopicsTouched && isTopicsFieldRequired && !interestedTopics.trim();
+  const hasAcknowledgementsError =
+    isAcknowledgementsTouched &&
+    (!hasPendingReservationAcknowledgement || !hasTermsAgreement);
   const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
   const normalizedCohortDate =
     (normalizedStartDateTime.split('T')[0] ?? '') ||
@@ -552,6 +570,11 @@ export function BookingReservationForm({
     },
   );
   const submitButtonDescribedByParts = [
+    hasFullNameError ? BOOKING_FULL_NAME_ERROR_MESSAGE_ID : null,
+    hasEmailError ? BOOKING_EMAIL_ERROR_MESSAGE_ID : null,
+    hasPhoneError ? BOOKING_PHONE_ERROR_MESSAGE_ID : null,
+    hasTopicsError ? BOOKING_TOPICS_ERROR_MESSAGE_ID : null,
+    hasAcknowledgementsError ? ACKNOWLEDGEMENT_ERROR_MESSAGE_ID : null,
     captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
     submitErrorMessage ? SUBMIT_ERROR_MESSAGE_ID : null,
   ].filter((id): id is string => id !== null);
@@ -560,14 +583,6 @@ export function BookingReservationForm({
       ? submitButtonDescribedByParts.join(' ')
       : undefined;
   const isSubmitDisabled =
-    !fullName.trim() ||
-    !email.trim() ||
-    hasEmailError ||
-    !phone.trim() ||
-    (isTopicsFieldRequired && !interestedTopics.trim()) ||
-    !hasPendingReservationAcknowledgement ||
-    !hasTermsAgreement ||
-    !captchaToken ||
     isCaptchaUnavailable ||
     (isStripePaymentMethodSelected && (isStripePaymentIntentLoading || !isStripeReady)) ||
     isSubmitting;
@@ -739,7 +754,13 @@ export function BookingReservationForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsFullNameTouched(true);
     setIsEmailTouched(true);
+    setIsPhoneTouched(true);
+    if (isTopicsFieldRequired) {
+      setIsTopicsTouched(true);
+    }
+    setIsAcknowledgementsTouched(true);
     markCaptchaTouched();
     clearSubmissionError();
 
@@ -759,7 +780,18 @@ export function BookingReservationForm({
       },
     });
 
-    if (!isValidEmail(email)) {
+    const normalizedFullName = sanitizeSingleLineValue(fullName);
+    const normalizedPhone = sanitizeSingleLineValue(phone);
+    const hasFieldErrors =
+      !normalizedFullName ||
+      !isValidEmail(email) ||
+      !normalizedPhone ||
+      (isTopicsFieldRequired && !interestedTopics.trim()) ||
+      !hasPendingReservationAcknowledgement ||
+      !hasTermsAgreement ||
+      !captchaToken;
+
+    if (hasFieldErrors) {
       trackPublicFormOutcome('booking_submit_error', {
         formKind: 'reservation',
         formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
@@ -775,11 +807,45 @@ export function BookingReservationForm({
       });
       return;
     }
-    if (
-      !selectedCohortDateLabel ||
-      (isTopicsFieldRequired && !interestedTopics.trim()) ||
-      isSubmitDisabled
-    ) {
+
+    if (isSubmitting) {
+      return;
+    }
+    if (isCaptchaUnavailable) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'service_unavailable',
+        },
+      });
+      return;
+    }
+    if (isStripePaymentMethodSelected && (isStripePaymentIntentLoading || !isStripeReady)) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'validation_error',
+        },
+      });
+      setSubmissionError(content.submitErrorMessage);
+      return;
+    }
+
+    if (!selectedCohortDateLabel) {
       trackPublicFormOutcome('booking_submit_error', {
         formKind: 'reservation',
         formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
@@ -861,23 +927,6 @@ export function BookingReservationForm({
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'service_unavailable',
-        },
-      });
-      setSubmissionError(content.submitErrorMessage);
-      return;
-    }
-    if (isStripePaymentMethodSelected && !isStripeReady) {
-      trackPublicFormOutcome('booking_submit_error', {
-        formKind: 'reservation',
-        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
-        sectionId: analyticsSectionId,
-        ctaLocation: 'reservation_form',
-        params: {
-          payment_method: selectedPaymentMethod,
-          age_group: selectedAgeGroupLabel,
-          cohort_date: normalizedCohortDate,
-          total_amount: totalAmount,
-          error_type: 'validation_error',
         },
       });
       setSubmissionError(content.submitErrorMessage);
@@ -1059,15 +1108,27 @@ export function BookingReservationForm({
             email={email}
             phone={phone}
             interestedTopics={interestedTopics}
+            hasFullNameError={hasFullNameError}
             hasEmailError={hasEmailError}
+            hasPhoneError={hasPhoneError}
+            hasTopicsError={hasTopicsError}
             topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
+            onFullNameBlur={() => {
+              setIsFullNameTouched(true);
+            }}
             onEmailChange={setEmail}
             onEmailBlur={() => {
               setIsEmailTouched(true);
             }}
             onPhoneChange={setPhone}
+            onPhoneBlur={() => {
+              setIsPhoneTouched(true);
+            }}
             onTopicsChange={setInterestedTopics}
+            onTopicsBlur={() => {
+              setIsTopicsTouched(true);
+            }}
           />
 
           <ReservationFormDiscountCodeInput
@@ -1348,7 +1409,7 @@ export function BookingReservationForm({
           </div>
 
           <div data-booking-acknowledgements='true' className='space-y-2'>
-            <label className='flex items-start gap-2.5 py-1'>
+            <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input
                 type='checkbox'
                 required
@@ -1366,7 +1427,7 @@ export function BookingReservationForm({
               </span>
             </label>
 
-            <label className='flex items-start gap-2.5 py-1'>
+            <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input
                 type='checkbox'
                 required
@@ -1394,7 +1455,7 @@ export function BookingReservationForm({
               </span>
             </label>
 
-            <label className='flex items-start gap-2.5 py-1'>
+            <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input
                 type='checkbox'
                 checked={marketingOptIn}
@@ -1407,6 +1468,15 @@ export function BookingReservationForm({
                 {content.marketingOptInLabel}
               </span>
             </label>
+            {hasAcknowledgementsError ? (
+              <p
+                id={ACKNOWLEDGEMENT_ERROR_MESSAGE_ID}
+                className='es-form-field-error'
+                role='alert'
+              >
+                {content.acknowledgementRequiredError}
+              </p>
+            ) : null}
           </div>
 
           <label className='relative z-20 block overflow-visible'>

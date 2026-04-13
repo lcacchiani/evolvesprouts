@@ -7,16 +7,25 @@ interface ReservationFormFieldsProps {
   email: string;
   phone: string;
   interestedTopics: string;
+  hasFullNameError: boolean;
   hasEmailError: boolean;
+  hasPhoneError: boolean;
+  hasTopicsError: boolean;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   onFullNameChange: (value: string) => void;
+  onFullNameBlur: () => void;
   onEmailChange: (value: string) => void;
   onEmailBlur: () => void;
   onPhoneChange: (value: string) => void;
+  onPhoneBlur: () => void;
   onTopicsChange: (value: string) => void;
+  onTopicsBlur: () => void;
 }
 
-const EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
+export const BOOKING_FULL_NAME_ERROR_MESSAGE_ID = 'booking-modal-full-name-error-message';
+export const BOOKING_EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
+export const BOOKING_PHONE_ERROR_MESSAGE_ID = 'booking-modal-phone-error-message';
+export const BOOKING_TOPICS_ERROR_MESSAGE_ID = 'booking-modal-topics-error-message';
 
 export function ReservationFormFields({
   content,
@@ -24,13 +33,19 @@ export function ReservationFormFields({
   email,
   phone,
   interestedTopics,
+  hasFullNameError,
   hasEmailError,
+  hasPhoneError,
+  hasTopicsError,
   topicsFieldConfig,
   onFullNameChange,
+  onFullNameBlur,
   onEmailChange,
   onEmailBlur,
   onPhoneChange,
+  onPhoneBlur,
   onTopicsChange,
+  onTopicsBlur,
 }: ReservationFormFieldsProps) {
   const topicsFieldLabel = topicsFieldConfig?.label ?? content.topicsInterestLabel;
   const topicsFieldPlaceholder =
@@ -54,8 +69,20 @@ export function ReservationFormFields({
           onChange={(event) => {
             onFullNameChange(event.target.value);
           }}
-          className='es-focus-ring es-form-input'
+          onBlur={onFullNameBlur}
+          className={`es-focus-ring es-form-input ${hasFullNameError ? 'es-form-input-error' : ''}`}
+          aria-invalid={hasFullNameError}
+          aria-describedby={hasFullNameError ? BOOKING_FULL_NAME_ERROR_MESSAGE_ID : undefined}
         />
+        {hasFullNameError ? (
+          <p
+            id={BOOKING_FULL_NAME_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.fullNameRequiredError}
+          </p>
+        ) : null}
       </label>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
@@ -75,11 +102,11 @@ export function ReservationFormFields({
           onBlur={onEmailBlur}
           className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasEmailError}
-          aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
+          aria-describedby={hasEmailError ? BOOKING_EMAIL_ERROR_MESSAGE_ID : undefined}
         />
         {hasEmailError ? (
           <p
-            id={EMAIL_ERROR_MESSAGE_ID}
+            id={BOOKING_EMAIL_ERROR_MESSAGE_ID}
             className='es-form-field-error'
             role='alert'
           >
@@ -102,8 +129,20 @@ export function ReservationFormFields({
           onChange={(event) => {
             onPhoneChange(event.target.value);
           }}
-          className='es-focus-ring es-form-input'
+          onBlur={onPhoneBlur}
+          className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
+          aria-invalid={hasPhoneError}
+          aria-describedby={hasPhoneError ? BOOKING_PHONE_ERROR_MESSAGE_ID : undefined}
         />
+        {hasPhoneError ? (
+          <p
+            id={BOOKING_PHONE_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.phoneRequiredError}
+          </p>
+        ) : null}
       </label>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
@@ -120,10 +159,22 @@ export function ReservationFormFields({
           onChange={(event) => {
             onTopicsChange(event.target.value);
           }}
+          onBlur={onTopicsBlur}
           placeholder={topicsFieldPlaceholder}
           rows={3}
-          className='es-focus-ring es-form-input resize-y'
+          className={`es-focus-ring es-form-input resize-y ${hasTopicsError ? 'es-form-input-error' : ''}`}
+          aria-invalid={hasTopicsError}
+          aria-describedby={hasTopicsError ? BOOKING_TOPICS_ERROR_MESSAGE_ID : undefined}
         />
+        {hasTopicsError ? (
+          <p
+            id={BOOKING_TOPICS_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.topicsRequiredError}
+          </p>
+        ) : null}
       </label>
     </>
   );

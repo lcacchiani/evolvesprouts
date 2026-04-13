@@ -38,6 +38,7 @@ interface MediaFormProps {
   formCaptchaRequiredError: string;
   formCaptchaLoadError: string;
   formCaptchaUnavailableError: string;
+  formCaptchaLabel: string;
   resourceKey?: string;
   className?: string;
   /** Extra classes for the closed-state CTA (e.g. `es-btn--outline` for primary outline). */
@@ -74,6 +75,7 @@ export function MediaForm({
   formCaptchaRequiredError,
   formCaptchaLoadError,
   formCaptchaUnavailableError,
+  formCaptchaLabel,
   resourceKey,
   className,
   ctaButtonClassName,
@@ -383,12 +385,17 @@ export function MediaForm({
         onChange={setMarketingOptIn}
       />
 
-      <TurnstileCaptcha
-        siteKey={turnstileSiteKey}
-        widgetAction='media_submit'
-        onTokenChange={handleCaptchaTokenChange}
-        onLoadError={handleCaptchaLoadError}
-      />
+      <label className='block'>
+        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+          {formCaptchaLabel}
+        </span>
+        <TurnstileCaptcha
+          siteKey={turnstileSiteKey}
+          widgetAction='media_submit'
+          onTokenChange={handleCaptchaTokenChange}
+          onLoadError={handleCaptchaLoadError}
+        />
+      </label>
 
       {captchaErrorMessage ? (
         <p id={captchaErrorId} className='es-form-submit-error' role='alert'>

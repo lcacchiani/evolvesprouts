@@ -187,6 +187,7 @@
     "formCaptchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "formCaptchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
     "formCaptchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
+    "formCaptchaLabel": "Verification",
     "formMarketingOptInLabel": "Keep me updated with parenting tips and resources",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
@@ -363,6 +364,7 @@
       "emailValidationError": "Please enter a valid email address.",
       "phoneValidationError": "Please enter a valid phone number.",
       "firstNameRequiredError": "Please enter your name",
+      "messageRequiredError": "Please enter your message.",
       "marketingOptInLabel": "Keep me updated with parenting tips and resources"
     },
     "faq": {
@@ -1018,6 +1020,7 @@
       "sliderLabelTemplate": "{title} slider"
     },
     "captcha": {
+      "captchaLabel": "Verification",
       "requiredError": "Please complete CAPTCHA verification before submitting.",
       "loadError": "CAPTCHA failed to load. Please refresh and try again.",
       "unavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
@@ -1423,10 +1426,13 @@
       "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
       "selectedAgeGroupLabel": "Child age group",
       "fullNameLabel": "Full Name",
+      "fullNameRequiredError": "Please enter your full name.",
       "emailLabel": "Email",
       "phoneLabel": "Phone Number",
+      "phoneRequiredError": "Please enter your phone number.",
       "topicsInterestLabel": "Anything you'd like me to know about your child or helper before we start?",
       "topicsInterestPlaceholder": "i.e. My daughter is 2, our helper has been with us for a year",
+      "topicsRequiredError": "Please share what you'd like to discuss.",
       "paymentMethodLabel": "Payment options",
       "paymentMethodValue": "Pay via FPS QR",
       "paymentFpsQrInstruction": "Scan this FPS QR code using your preferred banking app.",
@@ -1448,6 +1454,7 @@
       "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
       "paymentConfirmationNote": "Your spot is confirmed once payment is received",
       "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
+      "acknowledgementRequiredError": "Please review and accept the required agreements.",
       "marketingOptInLabel": "Keep me updated with parenting tips and resources",
       "termsAgreementLabel": "I agree with the",
       "termsLinkLabel": "Terms & Conditions",

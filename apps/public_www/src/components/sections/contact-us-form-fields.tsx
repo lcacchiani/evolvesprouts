@@ -20,6 +20,7 @@ const MESSAGE_MAX_LENGTH = 5000;
 const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
 const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
 const FIRST_NAME_ERROR_MESSAGE_ID = 'contact-us-form-first-name-error';
+const MESSAGE_ERROR_MESSAGE_ID = 'contact-us-form-message-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 
@@ -29,6 +30,7 @@ interface ContactFormFieldsProps {
   hasEmailError: boolean;
   hasPhoneError: boolean;
   hasFirstNameError: boolean;
+  hasMessageError: boolean;
   marketingOptIn: boolean;
   captchaErrorMessage: string;
   submitErrorMessage: string;
@@ -40,6 +42,7 @@ interface ContactFormFieldsProps {
   onEmailBlur: () => void;
   onPhoneBlur: () => void;
   onFirstNameBlur: () => void;
+  onMessageBlur: () => void;
   onMarketingOptInChange: (checked: boolean) => void;
   onCaptchaTokenChange: (token: string | null) => void;
   onCaptchaLoadError: () => void;
@@ -51,6 +54,7 @@ export function ContactFormFields({
   hasEmailError,
   hasPhoneError,
   hasFirstNameError,
+  hasMessageError,
   marketingOptIn,
   captchaErrorMessage,
   submitErrorMessage,
@@ -62,11 +66,16 @@ export function ContactFormFields({
   onEmailBlur,
   onPhoneBlur,
   onFirstNameBlur,
+  onMessageBlur,
   onMarketingOptInChange,
   onCaptchaTokenChange,
   onCaptchaLoadError,
 }: ContactFormFieldsProps) {
   const submitButtonDescribedByParts = [
+    hasFirstNameError ? FIRST_NAME_ERROR_MESSAGE_ID : null,
+    hasEmailError ? EMAIL_ERROR_MESSAGE_ID : null,
+    hasPhoneError ? PHONE_ERROR_MESSAGE_ID : null,
+    hasMessageError ? MESSAGE_ERROR_MESSAGE_ID : null,
     captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
     submitErrorMessage ? SUBMIT_ERROR_MESSAGE_ID : null,
   ].filter((id): id is string => id !== null);
@@ -151,7 +160,7 @@ export function ContactFormFields({
             onUpdateField('phone', event.target.value);
           }}
           onBlur={onPhoneBlur}
-          className='es-focus-ring es-form-input'
+          className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasPhoneError}
           aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
         />
@@ -181,9 +190,21 @@ export function ContactFormFields({
           onChange={(event) => {
             onUpdateField('message', event.target.value);
           }}
+          onBlur={onMessageBlur}
           placeholder={content.messagePlaceholder}
-          className='es-focus-ring es-form-input min-h-[152px] resize-y'
+          className={`es-focus-ring es-form-input min-h-[152px] resize-y ${hasMessageError ? 'es-form-input-error' : ''}`}
+          aria-invalid={hasMessageError}
+          aria-describedby={hasMessageError ? MESSAGE_ERROR_MESSAGE_ID : undefined}
         />
+        {hasMessageError ? (
+          <p
+            id={MESSAGE_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.messageRequiredError}
+          </p>
+        ) : null}
       </label>
 
       <MarketingOptInCheckbox

@@ -124,6 +124,7 @@ describe('EventNotification section', () => {
     expect(
       screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
     ).toBeInTheDocument();
+    expect(screen.getByText(enContent.common.captcha.captchaLabel)).toBeInTheDocument();
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {

@@ -167,6 +167,7 @@ describe('SproutsSquadCommunity section', () => {
     );
     expect(emailField).toBeInTheDocument();
     expect(emailField.closest('form')).toHaveClass('gap-3');
+    expect(screen.getByText(enContent.common.captcha.captchaLabel)).toBeInTheDocument();
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {

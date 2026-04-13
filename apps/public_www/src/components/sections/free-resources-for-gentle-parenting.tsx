@@ -56,6 +56,7 @@ interface ResourceCardContentProps {
   formCaptchaRequiredError: string;
   formCaptchaLoadError: string;
   formCaptchaUnavailableError: string;
+  formCaptchaLabel: string;
   locale: Locale;
   showChecklist: boolean;
   onFormOpened: () => void;
@@ -203,6 +204,7 @@ function ResourceCardContent({
   formCaptchaRequiredError,
   formCaptchaLoadError,
   formCaptchaUnavailableError,
+  formCaptchaLabel,
   locale,
   showChecklist,
   onFormOpened,
@@ -259,6 +261,7 @@ function ResourceCardContent({
         formCaptchaRequiredError={formCaptchaRequiredError}
         formCaptchaLoadError={formCaptchaLoadError}
         formCaptchaUnavailableError={formCaptchaUnavailableError}
+        formCaptchaLabel={formCaptchaLabel}
         onFormOpened={onFormOpened}
       />
     </>
@@ -316,6 +319,9 @@ export function FreeResourcesForGentleParenting({
   const formCaptchaUnavailableError =
     readOptionalText(content.formCaptchaUnavailableError) ??
     fallbackResourcesContent.formCaptchaUnavailableError;
+  const formCaptchaLabel =
+    readOptionalText(content.formCaptchaLabel) ??
+    fallbackResourcesContent.formCaptchaLabel;
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
     readOptionalText(content.mediaTitleLine1) ??
@@ -359,6 +365,7 @@ export function FreeResourcesForGentleParenting({
       formCaptchaRequiredError={formCaptchaRequiredError}
       formCaptchaLoadError={formCaptchaLoadError}
       formCaptchaUnavailableError={formCaptchaUnavailableError}
+      formCaptchaLabel={formCaptchaLabel}
       locale={locale}
       showChecklist={!hasOpenedMediaForm}
       onFormOpened={() => {

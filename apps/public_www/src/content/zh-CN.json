@@ -187,6 +187,7 @@
     "formCaptchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
     "formCaptchaLoadError": "CAPTCHA 加载失败，请刷新页面后重试。",
     "formCaptchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
+    "formCaptchaLabel": "验证",
     "formMarketingOptInLabel": "订阅育儿技巧与资源更新",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
@@ -363,6 +364,7 @@
       "emailValidationError": "请输入有效的邮箱地址。",
       "phoneValidationError": "请输入有效的电话号码。",
       "firstNameRequiredError": "请输入您的姓名",
+      "messageRequiredError": "请输入你的留言。",
       "marketingOptInLabel": "订阅育儿技巧与资源更新"
     },
     "faq": {
@@ -1018,6 +1020,7 @@
       "sliderLabelTemplate": "{title}滑动内容"
     },
     "captcha": {
+      "captchaLabel": "验证",
       "requiredError": "提交前请先完成 CAPTCHA 验证。",
       "loadError": "CAPTCHA 加载失败，请刷新页面后重试。",
       "unavailableError": "CAPTCHA 暂时不可用，请稍后再试。"
@@ -1423,10 +1426,13 @@
       "reservationDescription": "请填写你的信息，我们会通过邮箱发送付款确认。",
       "selectedAgeGroupLabel": "孩子年龄组",
       "fullNameLabel": "姓名",
+      "fullNameRequiredError": "请输入你的全名。",
       "emailLabel": "邮箱",
       "phoneLabel": "电话号码",
+      "phoneRequiredError": "请输入你的电话号码。",
       "topicsInterestLabel": "开始前，你希望我先了解你家孩子或阿姨的哪些情况？",
       "topicsInterestPlaceholder": "例如：我女儿 2 岁，我们家阿姨已经照顾我们一年了。",
+      "topicsRequiredError": "请告诉我们你想讨论的内容。",
       "paymentMethodLabel": "付款方式",
       "paymentMethodValue": "通过 FPS 二维码付款",
       "paymentFpsQrInstruction": "请使用你常用的银行应用扫描此 FPS 二维码。",
@@ -1448,6 +1454,7 @@
       "priceBreakdownConfirmedPriceLabel": "确认价格",
       "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "pendingReservationAcknowledgementLabel": "我明白在付款确认前，我的预约仍处于待确认状态",
+      "acknowledgementRequiredError": "请阅读并同意必填条款。",
       "marketingOptInLabel": "订阅育儿技巧与资源更新",
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "条款与细则",
