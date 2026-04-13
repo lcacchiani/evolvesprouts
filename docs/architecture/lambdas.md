@@ -242,8 +242,8 @@ their primary responsibilities.
   download-link email to the submitter, Mailchimp sync (merge fields + tag +
   optional free-resource Customer Journey trigger; consent-gated when
   `MAILCHIMP_REQUIRE_MARKETING_CONSENT=true`), optional welcome journey for
-  `marketing_opt_in`, and SES **admin recap** email to all Cognito admin-group
-  user emails (via proxy `ListUsersInGroup`; not `SUPPORT_EMAIL`)
+  `marketing_opt_in`, and SES **admin recap** on **new** media leads only (via
+  proxy `ListUsersInGroup`; duplicate re-downloads skip recap; not `SUPPORT_EMAIL`)
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES `SendEmail`, `SendRawEmail`, and `SendTemplatedEmail` (verified

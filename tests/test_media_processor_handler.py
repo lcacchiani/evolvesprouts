@@ -426,3 +426,27 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
     )
 
     assert sync_calls == []
+
+
+def test_send_media_lead_admin_recap_delegates_to_send_admin_form_recap(
+    monkeypatch: Any,
+) -> None:
+    handler = _load_handler_module()
+    calls: list[dict[str, Any]] = []
+
+    def _fake_send_admin(**kwargs: Any) -> None:
+        calls.append(dict(kwargs))
+
+    monkeypatch.setattr(handler, "send_admin_form_recap_email", _fake_send_admin)
+    handler._send_media_lead_admin_recap(
+        first_name="A",
+        email="a@example.com",
+        media_name="Guide",
+        resource_key="rk",
+        submitted_at="2026-01-01T00:00:00Z",
+        marketing_opt_in=False,
+        locale="en",
+    )
+    assert len(calls) == 1
+    assert calls[0]["form_title"] == "Media download"
+    assert "Guide" in "\n".join(calls[0]["body_lines"])

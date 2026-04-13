@@ -431,9 +431,10 @@ paths:
       description: |
         Submit a public reservation from `public_www` (execute-api origin).
 
-        On success (HTTP 202), sends a plain-text **admin recap** via SES to every
-        verified email on users in the Cognito admin group. Requires Turnstile and
-        payment confirmation per server rules.
+        On success (HTTP 202), best-effort plain-text **admin recap** via SES to every
+        verified email on users in the Cognito admin group (failures are logged;
+        HTTP 202 is still returned). Requires Turnstile and payment confirmation per
+        server rules.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -456,12 +457,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "500":
-          description: Reservation notification email failed or service misconfigured.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/reservations:
     post:
@@ -489,12 +484,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "500":
-          description: Reservation notification email failed or service misconfigured.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/reservations/payment-intent:
     post:

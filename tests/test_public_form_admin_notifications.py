@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock
 
+import pytest
+
 from app.services import public_form_admin_notifications as n
 
 
@@ -77,3 +79,139 @@ def test_send_contact_inquiry_support_email_sends(monkeypatch: Any) -> None:
     assert captured["to_addresses"] == ["support@example.com"]
     assert "Contact inquiry" in captured["subject"]
     assert "Hello" in captured["body_text"]
+
+
+def test_send_admin_form_recap_required_raises_without_sender(monkeypatch: Any) -> None:
+    monkeypatch.delenv("SES_SENDER_EMAIL", raising=False)
+    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+    with pytest.raises(RuntimeError, match="SES_SENDER_EMAIL"):
+        n.send_admin_form_recap_email(
+            form_title="X",
+            body_lines=["line"],
+            required=True,
+        )
+
+
+def test_send_admin_form_recap_required_raises_without_recipients(monkeypatch: Any) -> None:
+    monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: [])
+    with pytest.raises(RuntimeError, match="No admin notification recipients"):
+        n.send_admin_form_recap_email(
+            form_title="X",
+            body_lines=["line"],
+            required=True,
+        )
+
+
+def test_send_admin_form_recap_optional_swallows_send_failure(monkeypatch: Any) -> None:
+    monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+
+    def _boom(**_kwargs: Any) -> None:
+        raise RuntimeError("ses down")
+
+    log_mock = MagicMock()
+    monkeypatch.setattr(n, "send_email", _boom)
+    monkeypatch.setattr("app.services.public_form_admin_notifications.logger", log_mock)
+    n.send_admin_form_recap_email(
+        form_title="X",
+        body_lines=["line"],
+        required=False,
+    )
+    log_mock.exception.assert_called_once()
+
+
+def test_send_admin_form_recap_uses_run_with_retry_when_configured(monkeypatch: Any) -> None:
+    monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+    retry_calls: list[Any] = []
+
+    def _fake_retry(op: Any, *args: Any, **kwargs: Any) -> None:
+        retry_calls.append((op, args, kwargs))
+        send_kwargs = {
+            k: v for k, v in kwargs.items() if k not in ("logger", "operation_name")
+        }
+        op(*args, **send_kwargs)
+
+    monkeypatch.setattr(n, "run_with_retry", _fake_retry)
+    sent: dict[str, Any] = {}
+
+    def _capture_send(**kwargs: Any) -> None:
+        sent.update(kwargs)
+
+    monkeypatch.setattr(n, "send_email", _capture_send)
+    n.send_admin_form_recap_email(
+        form_title="Media",
+        body_lines=["a", "b"],
+        required=False,
+        retry_transient_failures=True,
+    )
+    assert len(retry_calls) == 1
+    assert retry_calls[0][0] is n.send_email
+    assert sent["to_addresses"] == ["a@example.com"]
+    assert "Media" in sent["subject"]
+
+
+def test_build_contact_us_recap_lines_includes_intent_summary() -> None:
+    lines = n.build_contact_us_recap_lines(
+        payload={
+            "first_name": "Pat",
+            "email_address": "p@example.com",
+            "message": "Hi",
+            "signup_intent": "community_newsletter",
+        }
+    )
+    assert any("Community / newsletter" in ln for ln in lines)
+    assert "p@example.com" in "\n".join(lines)
+
+
+def test_build_media_lead_recap_lines() -> None:
+    lines = n.build_media_lead_recap_lines(
+        first_name="A",
+        email="a@example.com",
+        media_name="Guide",
+        resource_key="rk",
+        submitted_at="2026-01-01",
+        marketing_opt_in=True,
+        locale="en",
+    )
+    body = "\n".join(lines)
+    assert "Guide" in body and "rk" in body and "True" in body
+
+
+def test_build_reservation_recap_lines_optional_fields() -> None:
+    lines = n.build_reservation_recap_lines(
+        payload={
+            "attendee_name": "N",
+            "attendee_email": "n@example.com",
+            "attendee_phone": "1",
+            "child_age_group": "2",
+            "package_label": "P",
+            "month_label": "M",
+            "course_label": "C",
+            "payment_method": "fps",
+            "total_amount": "100",
+            "stripe_payment_intent_id": "pi_x",
+            "schedule_date_label": "D",
+            "schedule_time_label": "T",
+            "interested_topics": "sleep",
+        }
+    )
+    body = "\n".join(lines)
+    assert "pi_x" in body and "sleep" in body
+
+
+def test_build_booking_legacy_recap_lines() -> None:
+    lines = n.build_booking_legacy_recap_lines(
+        payload={
+            "full_name": "Jane Doe",
+            "email": "j@example.com",
+            "course_label": "Course",
+            "payment_method": "stripe",
+            "price": 10,
+            "locale": "zh-HK",
+            "stripe_payment_intent_id": "pi_y",
+        }
+    )
+    body = "\n".join(lines)
+    assert "j@example.com" in body and "pi_y" in body

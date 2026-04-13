@@ -75,22 +75,7 @@ def _handle_public_reservation(
             exc.to_dict(),
             event=event,
         )
-    try:
-        _send_reservation_email(reservation_payload)
-    except RuntimeError:
-        logger.error("Reservation email service is not configured")
-        return json_response(
-            500,
-            {"error": "Service configuration error. Please contact support."},
-            event=event,
-        )
-    except Exception:
-        logger.exception("Failed to send reservation email")
-        return json_response(
-            500,
-            {"error": "Failed to submit reservation. Please try again."},
-            event=event,
-        )
+    _send_reservation_email(reservation_payload)
 
     logger.info(
         "Public reservation accepted",
@@ -326,11 +311,11 @@ def _parse_response_json(raw_body: Any) -> Mapping[str, Any] | None:
 
 
 def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
-    """Send reservation recap email to all admin web users (Cognito admin group)."""
+    """Best-effort reservation recap to Cognito admin-group emails (never raises)."""
     send_admin_form_recap_email(
         form_title="Reservation",
         body_lines=build_reservation_recap_lines(payload=reservation_payload),
-        required=True,
+        required=False,
         retry_transient_failures=True,
     )
 

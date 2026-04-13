@@ -170,7 +170,8 @@ responsive while decoupling downstream processing.
   run only when `marketing_opt_in` is true). When users opt in, a **separate**
   shared welcome journey may be triggered (empty journey env vars disable it).
 - Sends an SES **admin recap** email (internal sender) to all Cognito admin-group
-  user emails (not `SUPPORT_EMAIL`).
+  user emails on **first** media lead creation only (duplicate re-downloads skip
+  the recap; not `SUPPORT_EMAIL`).
 
 ## Expense parsing flow
 

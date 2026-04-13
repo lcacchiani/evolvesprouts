@@ -541,7 +541,8 @@ Website form submit
      field when configured
    - When journey env vars are set, calls the Customer Journey API trigger so
      Mailchimp sends the download email without relying on tag-based automation timing
-   - Sends an SES admin recap to all Cognito admin-group user emails
+   - Sends an SES admin recap to all Cognito admin-group user emails (first lead
+     only; repeat downloads for an existing lead do not send another recap)
 4. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
 

@@ -199,7 +199,6 @@ export class MessagingNestedStack extends cdk.NestedStack {
           MAILCHIMP_LIST_ID: props.mailchimpListId,
           MAILCHIMP_SERVER_PREFIX: props.mailchimpServerPrefix,
           MEDIA_DEFAULT_RESOURCE_KEY: props.mediaDefaultResourceKey,
-          AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
           ASSET_SHARE_LINK_BASE_URL: `https://${props.assetDownloadCustomDomainName}`,
           ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS:
             `${props.publicWwwDomainName},${props.publicWwwStagingDomainName}`,

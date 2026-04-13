@@ -365,12 +365,6 @@ def run_contact_us_post_success(
     )
     if signup_intent not in _ALLOWED_SIGNUP_INTENTS:
         signup_intent = _SIGNUP_INTENT_CONTACT_INQUIRY
-    send_admin_form_recap_email(
-        form_title="Contact us",
-        body_lines=build_contact_us_recap_lines(payload=payload),
-    )
-    if signup_intent == _SIGNUP_INTENT_CONTACT_INQUIRY:
-        send_contact_inquiry_support_email(payload=payload)
     mailchimp_tag = mailchimp_tag_for_contact_signup_intent(signup_intent)
     is_email_only_intent = signup_intent in {
         _SIGNUP_INTENT_COMMUNITY_NEWSLETTER,
@@ -400,6 +394,12 @@ def run_contact_us_post_success(
             "Unexpected error in contact marketing subscribe",
             extra={"lead_email": mask_email(email)},
         )
+    send_admin_form_recap_email(
+        form_title="Contact us",
+        body_lines=build_contact_us_recap_lines(payload=payload),
+    )
+    if signup_intent == _SIGNUP_INTENT_CONTACT_INQUIRY:
+        send_contact_inquiry_support_email(payload=payload)
 
 
 def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:

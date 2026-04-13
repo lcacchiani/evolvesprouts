@@ -188,15 +188,6 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "journey_triggered": journey_triggered,
                 },
             )
-            _send_media_lead_admin_recap(
-                first_name=first_name,
-                email=email,
-                media_name=media_name,
-                resource_key=resource_key,
-                submitted_at=submitted_at,
-                marketing_opt_in=marketing_opt_in,
-                locale=locale,
-            )
             session.commit()
             return False
 
