@@ -380,7 +380,6 @@
 
   .es-intro-community-layout {
     display: flex;
-    min-height: 315px;
     flex-direction: column;
     justify-content: space-between;
   }
@@ -393,12 +392,6 @@
 
   .es-intro-community-layout-cta {
     padding-top: 1.75rem;
-  }
-
-  @media (min-width: 640px) {
-    .es-intro-community-layout {
-      min-height: 400px;
-    }
   }
 
   @media (min-width: 1024px) {
