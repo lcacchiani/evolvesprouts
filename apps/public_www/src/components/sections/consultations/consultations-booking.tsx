@@ -196,11 +196,7 @@ export function ConsultationsBooking({
   }, [content.focusAreas, content.levels, selectedFocusId, selectedLevelId]);
 
   const bookingPayload = isBookingModalOpen
-    ? buildConsultationsBookingModalPayload(
-        reservationForModal,
-        locale,
-        selectionLabels,
-      )
+    ? buildConsultationsBookingModalPayload(reservationForModal, locale)
     : null;
 
   const modalSelectionInfo: ConsultationBookingModalSelectionInfo | undefined =
@@ -208,6 +204,7 @@ export function ConsultationsBooking({
       const focus = content.focusAreas.find((a) => a.id === selectedFocusId);
       const level = content.levels.find((l) => l.id === selectedLevelId);
       if (!focus || !level) return undefined;
+      const deepDiveLevel = content.levels.find((l) => l.id === 'deep-dive');
       return {
         focusLabel: focus.title,
         levelId: level.id,
@@ -217,6 +214,7 @@ export function ConsultationsBooking({
           { focus: focus.title },
         ),
         upgradeToDeepDiveLabel: content.reservation.upgradeToDeepDiveLabel,
+        upgradeToDeepDiveIconSrc: deepDiveLevel?.iconSrc,
       };
     }, [content.focusAreas, content.levels, content.reservation, selectedFocusId, selectedLevelId]);
 

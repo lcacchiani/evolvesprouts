@@ -1272,8 +1272,10 @@
         "locationName": "您的家",
         "locationAddress": "香港",
         "topicsField": {
-          "label": "咨询方向、级别及其他需要说明的信息",
-          "placeholder": "例如：家居评估、基础版 — 孩子3岁，阿姨已工作2年",
+          "label": "其他需要说明的信息",
+          "placeholder": "",
+          "labelTooltip": "您的咨询方向和基础版或深入版已在上方选择。",
+          "placeholderTooltip": "例如：孩子3岁、阿姨已工作2年，或上门前希望我们知道的背景。",
           "required": true
         },
         "essentials": {

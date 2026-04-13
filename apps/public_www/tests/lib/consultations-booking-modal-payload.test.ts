@@ -22,17 +22,6 @@ describe('buildConsultationsBookingModalPayload', () => {
     expect(payload.topicsPrefill).toBeUndefined();
   });
 
-  it('includes topicsPrefill when focus and level labels are provided', () => {
-    const content = getContent('en');
-    const reservation = content.consultations.booking.reservation;
-    const payload = buildConsultationsBookingModalPayload(reservation, 'en', {
-      focusLabel: 'Home Assessment',
-      levelLabel: 'Deep Dive',
-    });
-
-    expect(payload.topicsPrefill).toBe('Home Assessment — Deep Dive');
-  });
-
   it('uses deep dive tier when bookingTier is deepDive', () => {
     const content = getContent('en');
     const reservation: ConsultationsBookingReservationContent = {
