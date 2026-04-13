@@ -48,8 +48,7 @@ interface ResourceCardContentProps {
   formEmailLabel: string;
   formSubmitLabel: string;
   formSubmittingLabel: string;
-  formSuccessTitle: string;
-  formSuccessBody: string;
+  formSuccessMessage: string;
   formErrorMessage: string;
   formMarketingOptInLabel: string;
   locale: Locale;
@@ -191,8 +190,7 @@ function ResourceCardContent({
   formEmailLabel,
   formSubmitLabel,
   formSubmittingLabel,
-  formSuccessTitle,
-  formSuccessBody,
+  formSuccessMessage,
   formErrorMessage,
   formMarketingOptInLabel,
   locale,
@@ -244,8 +242,7 @@ function ResourceCardContent({
         formEmailLabel={formEmailLabel}
         formSubmitLabel={formSubmitLabel}
         formSubmittingLabel={formSubmittingLabel}
-        formSuccessTitle={formSuccessTitle}
-        formSuccessBody={formSuccessBody}
+        formSuccessMessage={formSuccessMessage}
         formErrorMessage={formErrorMessage}
         onFormOpened={onFormOpened}
       />
@@ -280,12 +277,9 @@ export function FreeResourcesForGentleParenting({
   const formSubmittingLabel =
     readOptionalText(content.formSubmittingLabel)
     ?? fallbackResourcesContent.formSubmittingLabel;
-  const formSuccessTitle =
-    readOptionalText(content.formSuccessTitle)
-    ?? fallbackResourcesContent.formSuccessTitle;
-  const formSuccessBody =
-    readOptionalText(content.formSuccessBody) ??
-    fallbackResourcesContent.formSuccessBody;
+  const formSuccessMessage =
+    readOptionalText(content.formSuccessMessage) ??
+    fallbackResourcesContent.formSuccessMessage;
   const formErrorMessage =
     readOptionalText(content.formErrorMessage) ??
     fallbackResourcesContent.formErrorMessage;
@@ -327,8 +321,7 @@ export function FreeResourcesForGentleParenting({
       formEmailLabel={formEmailLabel}
       formSubmitLabel={formSubmitLabel}
       formSubmittingLabel={formSubmittingLabel}
-      formSuccessTitle={formSuccessTitle}
-      formSuccessBody={formSuccessBody}
+      formSuccessMessage={formSuccessMessage}
       formErrorMessage={formErrorMessage}
       formMarketingOptInLabel={formMarketingOptInLabel}
       locale={locale}

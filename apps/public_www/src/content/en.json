@@ -180,8 +180,7 @@
     "formEmailLabel": "Email",
     "formSubmitLabel": "Send Me the Free Guide",
     "formSubmittingLabel": "Submitting…",
-    "formSuccessTitle": "Check Your Email!",
-    "formSuccessBody": "The download link is in there.",
+    "formSuccessMessage": "Check your email! The download link is in there.",
     "formErrorMessage": "Unable to submit right now. Please check your details and try again.",
     "formMarketingOptInLabel": "Keep me updated with parenting tips and resources",
     "sectionConfig": {

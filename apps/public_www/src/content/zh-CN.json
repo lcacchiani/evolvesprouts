@@ -180,8 +180,7 @@
     "formEmailLabel": "邮箱",
     "formSubmitLabel": "发送免费指南给我",
     "formSubmittingLabel": "提交中…",
-    "formSuccessTitle": "请查收你的邮箱！",
-    "formSuccessBody": "下载链接就在里面。",
+    "formSuccessMessage": "请查收你的邮箱！下载链接就在里面。",
     "formErrorMessage": "暂时无法提交，请检查信息后重试。",
     "formMarketingOptInLabel": "订阅育儿技巧与资源更新",
     "sectionConfig": {
