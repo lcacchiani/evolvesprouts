@@ -5,11 +5,17 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
+import {
+  SubmitButtonLoadingContent,
+  submitButtonClassName,
+} from '@/components/shared/submit-button-loading-content';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
-import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import {
+  resolveCaptchaErrorMessage,
+  useFormSubmission,
+} from '@/components/sections/shared/use-form-submission';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
@@ -74,18 +80,28 @@ export function SproutsSquadCommunity({
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
   const submitLoadingLabel = commonFormActionsContent.submittingLabel;
 
-  const captchaErrorMessage = (() => {
-    if (hasCaptchaValidationError) {
-      return content.captchaRequiredError ?? commonCaptchaContent.requiredError;
-    }
-    if (hasCaptchaLoadError) {
-      return content.captchaLoadError ?? commonCaptchaContent.loadError;
-    }
-    if (!isCaptchaConfigured) {
-      return content.captchaUnavailableError ?? commonCaptchaContent.unavailableError;
-    }
-    return '';
-  })();
+  const captchaErrorMessage = resolveCaptchaErrorMessage(
+    {
+      isCaptchaConfigured,
+      hasCaptchaLoadError,
+      hasCaptchaValidationError,
+    },
+    {
+      requiredError:
+        content.captchaRequiredError ?? commonCaptchaContent.requiredError,
+      loadError: content.captchaLoadError ?? commonCaptchaContent.loadError,
+      unavailableError:
+        content.captchaUnavailableError ?? commonCaptchaContent.unavailableError,
+    },
+  );
+  const submitButtonDescribedByParts = [
+    captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
+    submitErrorMessage ? SUBMIT_ERROR_MESSAGE_ID : null,
+  ].filter((id): id is string => id !== null);
+  const submitButtonDescribedBy =
+    submitButtonDescribedByParts.length > 0
+      ? submitButtonDescribedByParts.join(' ')
+      : undefined;
 
   useEffect(() => {
     if (!isFormVisible) {
@@ -279,35 +295,40 @@ export function SproutsSquadCommunity({
                   ) : null}
                   {isFormVisible ? (
                     <>
-                      <input
-                        type='email'
-                        autoComplete='email'
-                        value={email}
-                        onChange={(event) => {
-                          setEmail(event.target.value);
-                        }}
-                        onBlur={() => {
-                          setIsEmailTouched(true);
-                        }}
-                        placeholder={content.emailPlaceholder}
-                        className={`es-form-input es-sprouts-community-email-input ${
-                          hasEmailError ? 'es-form-input-error' : ''
-                        }`}
-                        aria-label={content.emailPlaceholder}
-                        aria-invalid={hasEmailError}
-                        aria-describedby={
-                          hasEmailError
-                            ? EMAIL_ERROR_MESSAGE_ID
-                            : captchaErrorMessage
-                              ? CAPTCHA_ERROR_MESSAGE_ID
-                              : submitErrorMessage
-                                ? SUBMIT_ERROR_MESSAGE_ID
-                                : undefined
-                        }
-                        disabled={isSubmitting || hasSuccessfulSubmission}
-                      />
+                      <label className='block'>
+                        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                          {content.emailLabel}
+                          <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                            *
+                          </span>
+                        </span>
+                        <input
+                          type='email'
+                          required
+                          autoComplete='email'
+                          value={email}
+                          onChange={(event) => {
+                            setEmail(event.target.value);
+                          }}
+                          onBlur={() => {
+                            setIsEmailTouched(true);
+                          }}
+                          className={`es-focus-ring es-form-input ${
+                            hasEmailError ? 'es-form-input-error' : ''
+                          }`}
+                          aria-invalid={hasEmailError}
+                          aria-describedby={
+                            hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined
+                          }
+                          disabled={isSubmitting || hasSuccessfulSubmission}
+                        />
+                      </label>
                       {hasEmailError ? (
-                        <p id={EMAIL_ERROR_MESSAGE_ID} className='text-sm es-text-danger' role='alert'>
+                        <p
+                          id={EMAIL_ERROR_MESSAGE_ID}
+                          className='es-form-field-error'
+                          role='alert'
+                        >
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
@@ -325,7 +346,7 @@ export function SproutsSquadCommunity({
                       {captchaErrorMessage ? (
                         <p
                           id={CAPTCHA_ERROR_MESSAGE_ID}
-                          className='text-sm es-text-danger'
+                          className='es-form-submit-error'
                           role='alert'
                         >
                           {captchaErrorMessage}
@@ -335,11 +356,8 @@ export function SproutsSquadCommunity({
                         variant='primary'
                         type='submit'
                         disabled={isSubmitting || hasSuccessfulSubmission || isCaptchaUnavailable}
-                        className={
-                          isSubmitting
-                            ? 'inline-flex w-full items-center justify-center gap-2'
-                            : undefined
-                        }
+                        className={submitButtonClassName(isSubmitting)}
+                        aria-describedby={submitButtonDescribedBy}
                       >
                         <SubmitButtonLoadingContent
                           isSubmitting={isSubmitting}
@@ -351,7 +369,7 @@ export function SproutsSquadCommunity({
                       {submitErrorMessage ? (
                         <p
                           id={SUBMIT_ERROR_MESSAGE_ID}
-                          className='text-sm es-text-danger'
+                          className='es-form-submit-error'
                           role='alert'
                         >
                           {submitErrorMessage}

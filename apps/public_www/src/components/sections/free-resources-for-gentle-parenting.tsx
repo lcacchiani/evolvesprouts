@@ -53,6 +53,9 @@ interface ResourceCardContentProps {
   formSuccessMessage: string;
   formErrorMessage: string;
   formMarketingOptInLabel: string;
+  formCaptchaRequiredError: string;
+  formCaptchaLoadError: string;
+  formCaptchaUnavailableError: string;
   locale: Locale;
   showChecklist: boolean;
   onFormOpened: () => void;
@@ -197,6 +200,9 @@ function ResourceCardContent({
   formSuccessMessage,
   formErrorMessage,
   formMarketingOptInLabel,
+  formCaptchaRequiredError,
+  formCaptchaLoadError,
+  formCaptchaUnavailableError,
   locale,
   showChecklist,
   onFormOpened,
@@ -250,6 +256,9 @@ function ResourceCardContent({
         formSubmittingLabel={formSubmittingLabel}
         formSuccessMessage={formSuccessMessage}
         formErrorMessage={formErrorMessage}
+        formCaptchaRequiredError={formCaptchaRequiredError}
+        formCaptchaLoadError={formCaptchaLoadError}
+        formCaptchaUnavailableError={formCaptchaUnavailableError}
         onFormOpened={onFormOpened}
       />
     </>
@@ -298,6 +307,15 @@ export function FreeResourcesForGentleParenting({
   const formMarketingOptInLabel =
     readOptionalText(content.formMarketingOptInLabel) ??
     fallbackResourcesContent.formMarketingOptInLabel;
+  const formCaptchaRequiredError =
+    readOptionalText(content.formCaptchaRequiredError) ??
+    fallbackResourcesContent.formCaptchaRequiredError;
+  const formCaptchaLoadError =
+    readOptionalText(content.formCaptchaLoadError) ??
+    fallbackResourcesContent.formCaptchaLoadError;
+  const formCaptchaUnavailableError =
+    readOptionalText(content.formCaptchaUnavailableError) ??
+    fallbackResourcesContent.formCaptchaUnavailableError;
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
     readOptionalText(content.mediaTitleLine1) ??
@@ -338,6 +356,9 @@ export function FreeResourcesForGentleParenting({
       formSuccessMessage={formSuccessMessage}
       formErrorMessage={formErrorMessage}
       formMarketingOptInLabel={formMarketingOptInLabel}
+      formCaptchaRequiredError={formCaptchaRequiredError}
+      formCaptchaLoadError={formCaptchaLoadError}
+      formCaptchaUnavailableError={formCaptchaUnavailableError}
       locale={locale}
       showChecklist={!hasOpenedMediaForm}
       onFormOpened={() => {

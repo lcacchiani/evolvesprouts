@@ -139,7 +139,7 @@ describe('SproutsSquadCommunity section', () => {
     expect(initialCtaButton).toBeInTheDocument();
     expect(initialCtaButton.closest('form')).toHaveAttribute('novalidate');
     expect(
-      screen.queryByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      screen.queryByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: enContent.sproutsSquadCommunity.ctaLabel }),
@@ -162,9 +162,11 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
 
-    expect(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
-    ).toBeInTheDocument();
+    const emailField = screen.getByLabelText(
+      new RegExp(enContent.sproutsSquadCommunity.emailLabel),
+    );
+    expect(emailField).toBeInTheDocument();
+    expect(emailField.closest('form')).toHaveClass('gap-3');
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
@@ -189,8 +191,8 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
 
-    const emailInput = screen.getByPlaceholderText(
-      enContent.sproutsSquadCommunity.emailPlaceholder,
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.sproutsSquadCommunity.emailLabel),
     );
     const form = emailInput.closest('form');
     if (!form) {
@@ -220,8 +222,8 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
 
-    const emailInput = screen.getByPlaceholderText(
-      enContent.sproutsSquadCommunity.emailPlaceholder,
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.sproutsSquadCommunity.emailLabel),
     );
     const submitButton = screen.getByRole('button', {
       name: enContent.sproutsSquadCommunity.formSubmitLabel,
@@ -233,6 +235,10 @@ describe('SproutsSquadCommunity section', () => {
       screen.getByText(enContent.sproutsSquadCommunity.emailValidationMessage),
     ).toBeInTheDocument();
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(emailInput).toHaveAttribute(
+      'aria-describedby',
+      'sprouts-community-email-error',
+    );
   });
 
   it('shows email validation error for invalid email after CTA reveal', () => {
@@ -251,8 +257,8 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
 
-    const emailInput = screen.getByPlaceholderText(
-      enContent.sproutsSquadCommunity.emailPlaceholder,
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.sproutsSquadCommunity.emailLabel),
     );
     const submitButton = screen.getByRole('button', {
       name: enContent.sproutsSquadCommunity.formSubmitLabel,
@@ -266,6 +272,10 @@ describe('SproutsSquadCommunity section', () => {
       screen.getByText(enContent.sproutsSquadCommunity.emailValidationMessage),
     ).toBeInTheDocument();
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(emailInput).toHaveAttribute(
+      'aria-describedby',
+      'sprouts-community-email-error',
+    );
   });
 
   it('shows captcha-required error when token is missing', async () => {
@@ -284,7 +294,7 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
       { target: { value: 'community@example.com' } },
     );
     fireEvent.click(
@@ -298,6 +308,13 @@ describe('SproutsSquadCommunity section', () => {
         screen.getByText(enContent.sproutsSquadCommunity.captchaRequiredError),
       ).toBeInTheDocument();
     });
+    const submitButton = screen.getByRole('button', {
+      name: enContent.sproutsSquadCommunity.formSubmitLabel,
+    });
+    expect(submitButton).toHaveAttribute(
+      'aria-describedby',
+      'sprouts-community-captcha-error',
+    );
   });
 
   it('shows the loading gear on the submit button while the request is in flight', async () => {
@@ -327,7 +344,7 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
       { target: { value: 'community@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -378,7 +395,7 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
       { target: { value: 'community@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -428,7 +445,7 @@ describe('SproutsSquadCommunity section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
       { target: { value: 'community@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -443,5 +460,12 @@ describe('SproutsSquadCommunity section', () => {
         screen.getByText(enContent.sproutsSquadCommunity.submitErrorMessage),
       ).toBeInTheDocument();
     });
+    const submitButton = screen.getByRole('button', {
+      name: enContent.sproutsSquadCommunity.formSubmitLabel,
+    });
+    expect(submitButton).toHaveAttribute(
+      'aria-describedby',
+      'sprouts-community-submit-error',
+    );
   });
 });

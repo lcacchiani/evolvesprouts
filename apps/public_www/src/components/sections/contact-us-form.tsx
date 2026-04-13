@@ -10,7 +10,10 @@ import {
   type ContactUsFormState,
 } from '@/components/sections/contact-us-form-fields';
 import { ContactFormSuccess } from '@/components/sections/contact-us-form-success';
-import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import {
+  resolveCaptchaErrorMessage,
+  useFormSubmission,
+} from '@/components/sections/shared/use-form-submission';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -92,13 +95,18 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
   const hasFirstNameError =
     isFirstNameTouched && !sanitizeSingleLineValue(formState.firstName);
-  const captchaErrorMessage = !isCaptchaConfigured
-    ? content.captchaUnavailableError
-    : hasCaptchaLoadError
-      ? content.captchaLoadError
-      : hasCaptchaValidationError
-        ? content.captchaRequiredError
-        : '';
+  const captchaErrorMessage = resolveCaptchaErrorMessage(
+    {
+      isCaptchaConfigured,
+      hasCaptchaLoadError,
+      hasCaptchaValidationError,
+    },
+    {
+      requiredError: content.captchaRequiredError,
+      loadError: content.captchaLoadError,
+      unavailableError: content.captchaUnavailableError,
+    },
+  );
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
   const whatsappHref = contactConfig.whatsappUrl?.trim() ?? '';
   function updateField(field: keyof ContactUsFormState, value: string) {

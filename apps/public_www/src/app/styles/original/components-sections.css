@@ -239,25 +239,6 @@
     white-space: pre-line;
   }
 
-  .es-sprouts-community-email-input {
-    outline: none;
-    box-shadow: none;
-  }
-
-  .es-sprouts-community-email-input:focus,
-  .es-sprouts-community-email-input:focus-visible,
-  .es-sprouts-community-email-input:invalid {
-    outline: none;
-    box-shadow: none;
-    border-color: var(--es-color-border-input);
-  }
-
-  .es-sprouts-community-email-input.es-form-input-error:focus,
-  .es-sprouts-community-email-input.es-form-input-error:focus-visible,
-  .es-sprouts-community-email-input.es-form-input-error:invalid {
-    border-color: var(--es-color-text-danger, #B42318);
-  }
-
   .es-event-notification-section {
     position: relative;
     padding-top: 40px;
@@ -290,25 +271,6 @@
     line-height: clamp(1.45rem, 2.6vw, 33px);
     letter-spacing: 0.4px;
     white-space: pre-line;
-  }
-
-  .es-event-notification-email-input {
-    outline: none;
-    box-shadow: none;
-  }
-
-  .es-event-notification-email-input:focus,
-  .es-event-notification-email-input:focus-visible,
-  .es-event-notification-email-input:invalid {
-    outline: none;
-    box-shadow: none;
-    border-color: var(--es-color-border-input);
-  }
-
-  .es-event-notification-email-input.es-form-input-error:focus,
-  .es-event-notification-email-input.es-form-input-error:focus-visible,
-  .es-event-notification-email-input.es-form-input-error:invalid {
-    border-color: var(--es-color-text-danger, #B42318);
   }
 
   .es-free-intro-session-section {

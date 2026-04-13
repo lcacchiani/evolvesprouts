@@ -101,7 +101,7 @@ describe('EventNotification section', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText(enContent.events.notification.emailPlaceholder),
+      screen.queryByLabelText(new RegExp(enContent.events.notification.emailLabel)),
     ).not.toBeInTheDocument();
   });
 
@@ -122,7 +122,7 @@ describe('EventNotification section', () => {
     );
 
     expect(
-      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
     ).toBeInTheDocument();
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
@@ -159,7 +159,7 @@ describe('EventNotification section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
       { target: { value: 'events@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -210,7 +210,7 @@ describe('EventNotification section', () => {
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
+      screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
       { target: { value: 'events@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));

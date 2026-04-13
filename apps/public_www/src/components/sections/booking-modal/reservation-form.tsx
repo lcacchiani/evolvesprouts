@@ -20,9 +20,15 @@ import type {
   ReservationCourseSession,
   ReservationSummary,
 } from '@/components/sections/booking-modal/types';
-import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import {
+  resolveCaptchaErrorMessage,
+  useFormSubmission,
+} from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
+import {
+  SubmitButtonLoadingContent,
+  submitButtonClassName,
+} from '@/components/shared/submit-button-loading-content';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent, trackPublicFormOutcome } from '@/lib/analytics';
@@ -59,7 +65,6 @@ import {
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
-import { mergeClassNames } from '@/lib/class-name-utils';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
@@ -534,13 +539,26 @@ export function BookingReservationForm({
       stripePaymentIntent &&
       stripePaymentIntentKey === stripePaymentIntentRequestKey,
   );
-  const captchaErrorMessage = !isCaptchaConfigured
-    ? content.captchaUnavailableError
-    : hasCaptchaLoadError
-      ? content.captchaLoadError
-      : hasCaptchaValidationError
-        ? content.captchaRequiredError
-        : '';
+  const captchaErrorMessage = resolveCaptchaErrorMessage(
+    {
+      isCaptchaConfigured,
+      hasCaptchaLoadError,
+      hasCaptchaValidationError,
+    },
+    {
+      requiredError: content.captchaRequiredError,
+      loadError: content.captchaLoadError,
+      unavailableError: content.captchaUnavailableError,
+    },
+  );
+  const submitButtonDescribedByParts = [
+    captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
+    submitErrorMessage ? SUBMIT_ERROR_MESSAGE_ID : null,
+  ].filter((id): id is string => id !== null);
+  const submitButtonDescribedBy =
+    submitButtonDescribedByParts.length > 0
+      ? submitButtonDescribedByParts.join(' ')
+      : undefined;
   const isSubmitDisabled =
     !fullName.trim() ||
     !email.trim() ||
@@ -1030,7 +1048,11 @@ export function BookingReservationForm({
           {content.reservationDescription}
         </p>
 
-        <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
+        <form
+          noValidate
+          className='relative z-10 mt-4 space-y-3'
+          onSubmit={handleSubmit}
+        >
           <ReservationFormFields
             content={content}
             fullName={fullName}
@@ -1401,7 +1423,7 @@ export function BookingReservationForm({
           {captchaErrorMessage ? (
             <p
               id={CAPTCHA_ERROR_MESSAGE_ID}
-              className='text-sm font-semibold es-text-danger-strong'
+              className='es-form-submit-error'
               role='alert'
             >
               {captchaErrorMessage}
@@ -1410,7 +1432,7 @@ export function BookingReservationForm({
           {submitErrorMessage ? (
             <p
               id={SUBMIT_ERROR_MESSAGE_ID}
-              className='text-sm font-semibold es-text-danger-strong'
+              className='es-form-submit-error'
               role='alert'
             >
               {submitErrorMessage}
@@ -1421,17 +1443,8 @@ export function BookingReservationForm({
             variant='primary'
             type='submit'
             disabled={isSubmitDisabled}
-            aria-describedby={
-              captchaErrorMessage
-                ? CAPTCHA_ERROR_MESSAGE_ID
-                : submitErrorMessage
-                  ? SUBMIT_ERROR_MESSAGE_ID
-                  : undefined
-            }
-            className={mergeClassNames(
-              'mt-1 w-full',
-              isSubmitting ? 'inline-flex items-center justify-center gap-2' : undefined,
-            )}
+            aria-describedby={submitButtonDescribedBy}
+            className={submitButtonClassName(isSubmitting, 'mt-1')}
           >
             <SubmitButtonLoadingContent
               isSubmitting={isSubmitting}

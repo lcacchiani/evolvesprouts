@@ -3,6 +3,32 @@ import { flushSync } from 'react-dom';
 
 export type FormSubmissionStatus = 'idle' | 'submitting' | 'success' | 'error';
 
+interface CaptchaErrorContent {
+  requiredError: string;
+  loadError: string;
+  unavailableError: string;
+}
+
+export function resolveCaptchaErrorMessage(
+  state: {
+    isCaptchaConfigured: boolean;
+    hasCaptchaLoadError: boolean;
+    hasCaptchaValidationError: boolean;
+  },
+  content: CaptchaErrorContent,
+): string {
+  if (!state.isCaptchaConfigured) {
+    return content.unavailableError;
+  }
+  if (state.hasCaptchaLoadError) {
+    return content.loadError;
+  }
+  if (state.hasCaptchaValidationError) {
+    return content.requiredError;
+  }
+  return '';
+}
+
 interface UseFormSubmissionOptions {
   turnstileSiteKey: string;
 }
