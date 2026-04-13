@@ -369,8 +369,8 @@ export function SproutsSquadCommunity({
                 }`}
                 aria-live='polite'
               >
-                <div className='min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4'>
-                  <p className='text-base leading-7 es-text-success'>
+                <div className='es-public-form-success-panel'>
+                  <p className='es-public-form-success-panel-message'>
                     {content.successMessage}
                   </p>
                 </div>

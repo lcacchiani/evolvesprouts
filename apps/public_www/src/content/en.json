@@ -178,6 +178,8 @@
     "resourceKey": "patience-free-guide",
     "formFirstNameLabel": "First Name",
     "formEmailLabel": "Email",
+    "formFirstNameValidationMessage": "Please enter your first name.",
+    "formEmailValidationMessage": "Please enter a valid email address.",
     "formSubmitLabel": "Send Me the Free Guide",
     "formSubmittingLabel": "Submitting…",
     "formSuccessMessage": "Check your email! The download link is in there.",

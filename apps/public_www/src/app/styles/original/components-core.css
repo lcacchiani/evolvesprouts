@@ -157,6 +157,21 @@
     color: var(--es-color-text-success);
   }
 
+  .es-public-form-success-panel {
+    min-height: 0;
+    overflow: hidden;
+    border-radius: var(--radius-inner, 14px);
+    border: 1px solid var(--es-color-text-success);
+    background-color: var(--es-color-surface-success-pale);
+    padding: 1rem;
+  }
+
+  .es-public-form-success-panel-message {
+    font-size: 1rem;
+    line-height: 1.75rem;
+    color: var(--es-color-text-success);
+  }
+
   .es-text-neutral-strong {
     color: var(--es-color-text-neutral-strong);
   }

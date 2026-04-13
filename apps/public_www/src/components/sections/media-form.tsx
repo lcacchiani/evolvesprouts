@@ -23,6 +23,8 @@ interface MediaFormProps {
   formMarketingOptInLabel: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
+  formFirstNameValidationMessage: string;
+  formEmailValidationMessage: string;
   formSubmitLabel: string;
   formSubmittingLabel: string;
   formSuccessMessage: string;
@@ -54,6 +56,8 @@ export function MediaForm({
   formMarketingOptInLabel,
   formFirstNameLabel,
   formEmailLabel,
+  formFirstNameValidationMessage,
+  formEmailValidationMessage,
   formSubmitLabel,
   formSubmittingLabel,
   formSuccessMessage,
@@ -67,6 +71,8 @@ export function MediaForm({
   const mediaFormInstanceId = useId();
   const firstNameInputId = `${mediaFormInstanceId}-media-first-name`;
   const emailInputId = `${mediaFormInstanceId}-media-email`;
+  const firstNameErrorId = `${mediaFormInstanceId}-media-first-name-error`;
+  const emailErrorId = `${mediaFormInstanceId}-media-email-error`;
   const formErrorId = `${mediaFormInstanceId}-media-form-error`;
 
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -100,11 +106,19 @@ export function MediaForm({
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const isSubmitDisabled = isSubmitting || isServiceUnavailable;
   const shouldShowSubmitError =
-    !!submitErrorMessage ||
-    hasCaptchaValidationError ||
-    hasFirstNameError ||
-    hasEmailError ||
-    isServiceUnavailable;
+    !!submitErrorMessage || hasCaptchaValidationError || isServiceUnavailable;
+
+  const firstNameDescribedBy = hasFirstNameError ? firstNameErrorId : undefined;
+  const emailDescribedBy = hasEmailError ? emailErrorId : undefined;
+  const submitButtonDescribedByParts = [
+    shouldShowSubmitError ? formErrorId : null,
+    hasFirstNameError ? firstNameErrorId : null,
+    hasEmailError ? emailErrorId : null,
+  ].filter((id): id is string => id !== null);
+  const submitButtonDescribedBy =
+    submitButtonDescribedByParts.length > 0
+      ? submitButtonDescribedByParts.join(' ')
+      : undefined;
 
   useEffect(() => {
     if (!isFormVisible) {
@@ -239,8 +253,8 @@ export function MediaForm({
   if (hasSuccessfulSubmission) {
     return (
       <div className={className}>
-        <div className='mt-3 w-full max-w-[420px] min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4'>
-          <p className='text-base leading-7 es-text-success'>{formSuccessMessage}</p>
+        <div className='es-public-form-success-panel mt-3 w-full max-w-[420px]'>
+          <p className='es-public-form-success-panel-message'>{formSuccessMessage}</p>
         </div>
       </div>
     );
@@ -272,45 +286,59 @@ export function MediaForm({
       )}
       noValidate
     >
-      <input
-        id={firstNameInputId}
-        type='text'
-        autoComplete='given-name'
-        value={firstName}
-        onChange={(event) => {
-          setFirstName(event.target.value);
-        }}
-        onBlur={() => {
-          setIsFirstNameTouched(true);
-        }}
-        placeholder={formFirstNameLabel}
-        className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
-        aria-label={formFirstNameLabel}
-        aria-invalid={hasFirstNameError}
-        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
-        required
-        disabled={isSubmitting}
-      />
+      <div className='space-y-0'>
+        <input
+          id={firstNameInputId}
+          type='text'
+          autoComplete='given-name'
+          value={firstName}
+          onChange={(event) => {
+            setFirstName(event.target.value);
+          }}
+          onBlur={() => {
+            setIsFirstNameTouched(true);
+          }}
+          placeholder={formFirstNameLabel}
+          className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
+          aria-label={formFirstNameLabel}
+          aria-invalid={hasFirstNameError}
+          aria-describedby={firstNameDescribedBy}
+          required
+          disabled={isSubmitting}
+        />
+        {hasFirstNameError ? (
+          <p id={firstNameErrorId} className='mt-1 text-sm es-text-danger' role='alert'>
+            {formFirstNameValidationMessage}
+          </p>
+        ) : null}
+      </div>
 
-      <input
-        id={emailInputId}
-        type='email'
-        autoComplete='email'
-        value={email}
-        onChange={(event) => {
-          setEmail(event.target.value);
-        }}
-        onBlur={() => {
-          setIsEmailTouched(true);
-        }}
-        placeholder={formEmailLabel}
-        className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
-        aria-label={formEmailLabel}
-        aria-invalid={hasEmailError}
-        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
-        required
-        disabled={isSubmitting}
-      />
+      <div className='space-y-0'>
+        <input
+          id={emailInputId}
+          type='email'
+          autoComplete='email'
+          value={email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+          }}
+          onBlur={() => {
+            setIsEmailTouched(true);
+          }}
+          placeholder={formEmailLabel}
+          className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
+          aria-label={formEmailLabel}
+          aria-invalid={hasEmailError}
+          aria-describedby={emailDescribedBy}
+          required
+          disabled={isSubmitting}
+        />
+        {hasEmailError ? (
+          <p id={emailErrorId} className='mt-1 text-sm es-text-danger' role='alert'>
+            {formEmailValidationMessage}
+          </p>
+        ) : null}
+      </div>
 
       <MarketingOptInCheckbox
         label={formMarketingOptInLabel}
@@ -334,7 +362,7 @@ export function MediaForm({
             : 'w-full'
         }
         disabled={isSubmitDisabled}
-        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
+        aria-describedby={submitButtonDescribedBy}
       >
         <SubmitButtonLoadingContent
           isSubmitting={isSubmitting}

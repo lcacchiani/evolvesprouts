@@ -46,6 +46,8 @@ interface ResourceCardContentProps {
   resourceKey: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
+  formFirstNameValidationMessage: string;
+  formEmailValidationMessage: string;
   formSubmitLabel: string;
   formSubmittingLabel: string;
   formSuccessMessage: string;
@@ -188,6 +190,8 @@ function ResourceCardContent({
   resourceKey,
   formFirstNameLabel,
   formEmailLabel,
+  formFirstNameValidationMessage,
+  formEmailValidationMessage,
   formSubmitLabel,
   formSubmittingLabel,
   formSuccessMessage,
@@ -240,6 +244,8 @@ function ResourceCardContent({
         formMarketingOptInLabel={formMarketingOptInLabel}
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
+        formFirstNameValidationMessage={formFirstNameValidationMessage}
+        formEmailValidationMessage={formEmailValidationMessage}
         formSubmitLabel={formSubmitLabel}
         formSubmittingLabel={formSubmittingLabel}
         formSuccessMessage={formSuccessMessage}
@@ -271,6 +277,12 @@ export function FreeResourcesForGentleParenting({
   const formEmailLabel =
     readOptionalText(content.formEmailLabel)
     ?? fallbackResourcesContent.formEmailLabel;
+  const formFirstNameValidationMessage =
+    readOptionalText(content.formFirstNameValidationMessage)
+    ?? fallbackResourcesContent.formFirstNameValidationMessage;
+  const formEmailValidationMessage =
+    readOptionalText(content.formEmailValidationMessage)
+    ?? fallbackResourcesContent.formEmailValidationMessage;
   const formSubmitLabel =
     readOptionalText(content.formSubmitLabel)
     ?? fallbackResourcesContent.formSubmitLabel;
@@ -319,6 +331,8 @@ export function FreeResourcesForGentleParenting({
       resourceKey={resourceKey}
       formFirstNameLabel={formFirstNameLabel}
       formEmailLabel={formEmailLabel}
+      formFirstNameValidationMessage={formFirstNameValidationMessage}
+      formEmailValidationMessage={formEmailValidationMessage}
       formSubmitLabel={formSubmitLabel}
       formSubmittingLabel={formSubmittingLabel}
       formSuccessMessage={formSuccessMessage}

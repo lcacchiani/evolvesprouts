@@ -862,7 +862,9 @@ describe('my-best-auntie booking modals footer content', () => {
       name: bookingModalContent.submittingLabel,
     });
     expect(submitButton).toBeDisabled();
-    expect(screen.getByTestId('booking-reservation-submit-loading-gear')).toHaveClass('animate-spin');
+    const loadingGear = screen.getByTestId('booking-reservation-submit-loading-gear');
+    expect(loadingGear).toHaveClass('animate-spin');
+    expect(loadingGear.parentElement?.className).toContain('es-loading-gear-bubble');
   });
 
   it('tracks validation_error when email is invalid on submit', async () => {
