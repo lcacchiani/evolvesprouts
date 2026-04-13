@@ -140,6 +140,9 @@ responsive while decoupling downstream processing.
 - Applies a resource-specific tag (`public-www-media-<resource_key>`) to the contact.
 - Sends the **download link** to the submitter via **SES templated email**
   (`evolvesprouts-media-download-{locale}`) using `CONFIRMATION_EMAIL_FROM_ADDRESS`.
+  The template includes follow-on guidance plus a highlighted “hands-on support”
+  box; shell data supplies `my_best_auntie_url` (training course page) and
+  `free_intro_call_url` (WhatsApp prefill when configured, else contact page).
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction` (during a
   **transition** period this may still run for all submissions; when
   `MailchimpRequireMarketingConsent` is `true`, subscribe + free-resource journey

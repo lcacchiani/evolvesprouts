@@ -339,13 +339,17 @@ Template data variables:
 - `{{first_name}}`
 - `{{media_name}}`
 - `{{download_url}}`
+- Plus shared shell keys (logo, footer, `my_best_auntie_url`, `free_intro_call_url`).
 
 Content:
 - Subject: "Your free guide is ready — Evolve Sprouts"
+- Banner title: "YOUR FREE GUIDE IS HERE!" (localized for `zh-CN` / `zh-HK`).
 - Body: Greeting with first name. "Here is your download link for
-  {{media_name}}." Prominent download button/link. "If the button doesn't
-  work, copy this URL: {{download_url}}." Closing.
-- HTML: Branded template. Prominent CTA button for the download URL.
+  {{media_name}}." Left-aligned CTA: "Download your free guide". Fallback URL
+  copy. Horizontal rule, then "What you'll find inside", numbered suggestions,
+  and a bordered callout linking My Best Auntie (`{{my_best_auntie_url}}`) and
+  a free intro call (`{{free_intro_call_url}}`).
+- HTML: Branded template with inline CSS.
 
 **New file:** `backend/src/app/templates/ses/booking_confirmation.py`
 

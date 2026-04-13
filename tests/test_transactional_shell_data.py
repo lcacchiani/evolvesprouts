@@ -105,9 +105,26 @@ def test_build_transactional_template_shell_data_footer(
         "https://www.example.com/images/seo/evolvesprouts-og-default.png"
     )
     assert data["site_home_url"] == f"https://www.example.com/{locale}/"
+    assert data["my_best_auntie_url"] == (
+        f"https://www.example.com/{locale}/services/my-best-auntie-training-course"
+    )
+    assert data["free_intro_call_url"].startswith("https://wa.me/")
+    assert "text=" in data["free_intro_call_url"]
     assert expect_fragment in data["footer_block_html"]
     assert "Instagram" in data["footer_block_html"]
     assert "https://www.instagram.com/evolvesprouts" in data["footer_block_html"]
+
+
+def test_build_free_intro_call_url_falls_back_to_contact_without_whatsapp(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.delenv("PUBLIC_WWW_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    data = build_transactional_template_shell_data(locale="zh-CN")
+    assert data["free_intro_call_url"] == "https://www.example.com/zh-CN/contact-us"
 
 
 def test_merge_transactional_shell_template_data_order(monkeypatch: Any) -> None:

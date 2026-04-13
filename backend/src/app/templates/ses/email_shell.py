@@ -6,7 +6,8 @@ optional repeated sign-off lines (already kept minimal in each template).
 
 The HTML shell expects ``template_data`` to include keys from
 ``build_transactional_template_shell_data`` (``logo_url``, ``site_home_url``,
-``footer_block_html``, ``faq_url``) plus per-template fields. ``footer_block_html``
+``footer_block_html``, ``faq_url``, ``my_best_auntie_url``, ``free_intro_call_url``
+where used) plus per-template fields. ``footer_block_html``
 is pre-rendered HTML and must be bound with triple-brace Handlebars in the stored
 template (``{{{footer_block_html}}}``) so SES does not escape markup.
 """
