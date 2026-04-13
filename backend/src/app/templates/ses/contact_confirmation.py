@@ -29,7 +29,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
     (
         "en",
         "We received your message — Evolve Sprouts",
-        "Your message is in safe hands",
+        "YOUR MESSAGE IS IN SAFE HANDS!",
         (
             '<p style="margin:0 0 12px;">Hi {{first_name}},</p>'
             '<p style="margin:0 0 16px;">We received your message and will get back to you '
@@ -53,7 +53,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
     (
         "zh-CN",
         "我们已收到您的留言 — Evolve Sprouts",
-        "您的留言我们已妥善收到",
+        "您的留言我们已妥善收到！",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 16px;">我们已收到您的留言，并会在 24-48 小时内回复。</p>'
@@ -75,7 +75,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
     (
         "zh-HK",
         "我們已收到您的留言 — Evolve Sprouts",
-        "您的留言我們已妥善收到",
+        "您的留言我們已妥善收到！",
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 16px;">我們已收到您的留言，並會在 24-48 小時內回覆。</p>'
