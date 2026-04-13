@@ -10,7 +10,7 @@ _BUTTON = (
     "display:inline-block;padding:12px 24px;background:#C84A16;"
     "color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;"
 )
-_LINK = "color:#C84A16;font-weight:600;text-decoration:none;"
+_CALLOUT_LINK = "color:#C84A16;font-weight:600;text-decoration:underline;"
 _HR = '<hr style="border:none;border-top:1px solid #eeeeee;margin:24px 0;"/>'
 _SECTION_H2 = "margin:24px 0 10px 0;font-size:18px;line-height:1.35;font-weight:700;color:#333333;"
 _BOX = (
@@ -72,11 +72,11 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             f'<div style="{_BOX}">'
             f'<h3 style="{_BOX_H3}">Want hands-on support?</h3>'
             '<p style="margin:0 0 14px 0;">'
-            f'<a href="{{{{my_best_auntie_url}}}}" style="{_LINK}">My Best Auntie</a> '
+            f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
             "is a 9-week Montessori training programme for domestic helpers — so your child gets "
             "consistent, confident care every day.</p>"
             '<p style="margin:0;">Or '
-            f'<a href="{{{{free_intro_call_url}}}}" style="{_LINK}">book a free intro call</a> '
+            f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">book a free intro call</a> '
             "to see what's right for your family.</p>"
             "</div>"
         ),
@@ -130,10 +130,10 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             f'<div style="{_BOX}">'
             f'<h3 style="{_BOX_H3}">需要实操支持？</h3>'
             '<p style="margin:0 0 14px 0;">'
-            f'<a href="{{{{my_best_auntie_url}}}}" style="{_LINK}">My Best Auntie</a> '
+            f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
             "是一门为期 9 周、面向家政助手的蒙特梭利培训课程，帮助孩子每天获得稳定而自信的照护。</p>"
             '<p style="margin:0;">或 '
-            f'<a href="{{{{free_intro_call_url}}}}" style="{_LINK}">预约免费咨询通话</a>，'
+            f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">预约免费咨询通话</a>，'
             "一起看看哪种方式最适合您的家庭。</p>"
             "</div>"
         ),
@@ -185,10 +185,10 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             f'<div style="{_BOX}">'
             f'<h3 style="{_BOX_H3}">需要實操支援？</h3>'
             '<p style="margin:0 0 14px 0;">'
-            f'<a href="{{{{my_best_auntie_url}}}}" style="{_LINK}">My Best Auntie</a> '
+            f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
             "是一門為期 9 週、面向家傭的蒙特梭利培訓課程，讓孩子每天獲得穩定而自信的照顧。</p>"
             '<p style="margin:0;">或 '
-            f'<a href="{{{{free_intro_call_url}}}}" style="{_LINK}">預約免費諮詢通話</a>，'
+            f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">預約免費諮詢通話</a>，'
             "一起看看哪種方式最適合您的家庭。</p>"
             "</div>"
         ),

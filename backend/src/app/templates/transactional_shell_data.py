@@ -14,7 +14,7 @@ import html
 import os
 import re
 from typing import Any
-from urllib.parse import parse_qsl, quote, urlparse, urlencode, urlunparse
+from urllib.parse import quote, urlparse, urlunparse
 
 from app.templates.constants import (
     build_faq_url,
@@ -168,9 +168,22 @@ def build_my_best_auntie_training_page_url(*, locale: str) -> str:
 
 
 def build_free_intro_call_url(*, locale: str) -> str:
-    """WhatsApp deep link with intro-call prefill, or contact page if WhatsApp is unavailable."""
+    """WhatsApp ``wa.me/<digits>?text=...`` intro link, or contact page if unavailable.
+
+    Prefer ``build_whatsapp_phone_url()`` so the link matches other transactional
+    WhatsApp CTAs (digits path + ``text`` query). If the phone env var is empty
+    but ``PUBLIC_WWW_WHATSAPP_URL`` is already ``https://wa.me/<digits>``, use
+    that number with ``text``. Otherwise fall back to the contact page when a
+    digits-only ``wa.me`` URL cannot be built.
+    """
     loc = locale if locale in _ALLOWED_LOCALES else "en"
     prefill = _FREE_INTRO_WHATSAPP_PREFILL[loc]
+    encoded_prefill = quote(prefill, safe="")
+
+    phone_url = build_whatsapp_phone_url()
+    if phone_url:
+        return f"{phone_url}?text={encoded_prefill}"
+
     base_wa = resolve_whatsapp_url_for_template()
     if not base_wa:
         return _build_contact_us_page_url(locale=loc)
@@ -178,14 +191,17 @@ def build_free_intro_call_url(*, locale: str) -> str:
         parsed = urlparse(base_wa)
     except ValueError:
         return _build_contact_us_page_url(locale=loc)
-    pairs = [
-        (k, v)
-        for k, v in parse_qsl(parsed.query, keep_blank_values=True)
-        if k != "text"
-    ]
-    pairs.append(("text", prefill))
-    new_query = urlencode(pairs, safe="", quote_via=quote)
-    return urlunparse(parsed._replace(query=new_query))
+
+    host = (parsed.hostname or "").lower()
+    if host in ("wa.me", "www.wa.me"):
+        path = parsed.path.strip("/")
+        first_seg = path.split("/", 1)[0] if path else ""
+        if first_seg and not first_seg.lower().startswith("message"):
+            digits_only = re.sub(r"\D", "", first_seg)
+            if digits_only:
+                return f"https://wa.me/{digits_only}?text={encoded_prefill}"
+
+    return _build_contact_us_page_url(locale=loc)
 
 
 def _social_link_segment(*, href: str, label: str) -> str:

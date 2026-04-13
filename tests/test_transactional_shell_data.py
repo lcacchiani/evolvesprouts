@@ -6,6 +6,7 @@ import pytest
 
 from app.templates.transactional_shell_data import (
     build_footer_social_html,
+    build_free_intro_call_url,
     build_transactional_template_shell_data,
     merge_transactional_shell_template_data,
     normalize_optional_absolute_url,
@@ -108,8 +109,7 @@ def test_build_transactional_template_shell_data_footer(
     assert data["my_best_auntie_url"] == (
         f"https://www.example.com/{locale}/services/my-best-auntie-training-course"
     )
-    assert data["free_intro_call_url"].startswith("https://wa.me/")
-    assert "text=" in data["free_intro_call_url"]
+    assert data["free_intro_call_url"].startswith(_TEST_PHONE_WA_URL + "?text=")
     assert expect_fragment in data["footer_block_html"]
     assert "Instagram" in data["footer_block_html"]
     assert "https://www.instagram.com/evolvesprouts" in data["footer_block_html"]
@@ -125,6 +125,38 @@ def test_build_free_intro_call_url_falls_back_to_contact_without_whatsapp(
     monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
     data = build_transactional_template_shell_data(locale="zh-CN")
     assert data["free_intro_call_url"] == "https://www.example.com/zh-CN/contact-us"
+
+
+def test_build_free_intro_call_url_prefers_phone_digits_path(monkeypatch: Any) -> None:
+    """Intro link uses ``wa.me/<digits>?text=`` like other WhatsApp CTAs."""
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
+    monkeypatch.setenv("PUBLIC_WWW_WHATSAPP_URL", "https://wa.me/custom")
+    url = build_free_intro_call_url(locale="en")
+    assert url.startswith(_TEST_PHONE_WA_URL + "?text=")
+    assert "custom" not in url
+
+
+def test_build_free_intro_call_url_digits_from_wa_me_path_without_phone(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.setenv("PUBLIC_WWW_WHATSAPP_URL", "https://wa.me/85291234567")
+    url = build_free_intro_call_url(locale="en")
+    assert url.startswith("https://wa.me/85291234567?text=")
+
+
+def test_build_free_intro_call_url_message_short_link_without_phone_falls_back(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_WHATSAPP_URL",
+        "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    )
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    assert build_free_intro_call_url(locale="en") == "https://www.example.com/en/contact-us"
 
 
 def test_merge_transactional_shell_template_data_order(monkeypatch: Any) -> None:

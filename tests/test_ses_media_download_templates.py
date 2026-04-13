@@ -18,5 +18,6 @@ def test_media_download_ses_templates_preserve_handlebars_placeholders() -> None
     assert "{{free_intro_call_url}}" in en["HtmlPart"]
     assert "What you'll find inside" in en["HtmlPart"]
     assert "Want hands-on support?" in en["HtmlPart"]
+    assert "text-decoration:underline" in en["HtmlPart"]
     assert "{{my_best_auntie_url}}" in en["TextPart"]
     assert "{{free_intro_call_url}}" in en["TextPart"]
