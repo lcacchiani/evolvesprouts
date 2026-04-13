@@ -50,6 +50,11 @@ template names.
 - **Shared HTML shell footer** (`footer_block_html`): after the thank-you line,
   rule, and optional social links, a centered copyright line is appended using
   the **UTC year at send time** (`© <year> Evolve Sprouts. All rights reserved.`).
+- **Booking confirmation** (`evolvesprouts-booking-confirmation-{locale}`): table
+  shows **Service**, a single **Date & time** line, customer-facing **Payment method**
+  (FPS / Credit Card / Bank Transfer), HKD totals with thousands separators, optional
+  **Details** for consultation payloads, and FPS pay instructions only when payment is
+  pending and `payment_method` is `fps_qr` (plus a short “already paid” disclaimer).
 
 ## Components
 

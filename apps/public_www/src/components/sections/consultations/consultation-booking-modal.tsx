@@ -41,6 +41,8 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 export interface ConsultationBookingModalSelectionInfo {
   focusLabel: string;
   levelId: string;
+  /** Level display title for confirmation email Details row. */
+  levelLabel: string;
   levelFeatures: string[];
   focusLabelFormatted: string;
   upgradeToDeepDiveLabel: string;
@@ -452,6 +454,8 @@ export function ConsultationBookingModal({
         dateEndTime={rebasedParts[0]?.endDateTime ?? ''}
         topicsFieldConfig={topicsFieldConfig}
         topicsPrefill={bookingPayload.topicsPrefill}
+        consultationWritingFocusLabel={selectionInfo?.focusLabel ?? ''}
+        consultationLevelLabel={selectionInfo?.levelLabel ?? ''}
         descriptionId={dialogDescriptionId}
         analyticsSectionId={analyticsSectionId}
         metaPixelContentName={metaPixelContentName}

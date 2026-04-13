@@ -111,6 +111,7 @@ describe('ConsultationBookingModal', () => {
     const selectionInfo: ConsultationBookingModalSelectionInfo = {
       focusLabel: 'Home Assessment',
       levelId: 'essentials',
+      levelLabel: essentialsLevel.title,
       levelFeatures: essentialsLevel.features,
       focusLabelFormatted: 'Home Assessment focus',
       upgradeToDeepDiveLabel: enContent.consultations.booking.reservation.upgradeToDeepDiveLabel,
@@ -146,6 +147,7 @@ describe('ConsultationBookingModal', () => {
     const essentialsInfo: ConsultationBookingModalSelectionInfo = {
       focusLabel: 'Home Assessment',
       levelId: 'essentials',
+      levelLabel: enContent.consultations.booking.levels[0].title,
       levelFeatures: enContent.consultations.booking.levels[0].features,
       focusLabelFormatted: 'Home Assessment focus',
       upgradeToDeepDiveLabel: upgradeLabel,
@@ -178,6 +180,7 @@ describe('ConsultationBookingModal', () => {
     const deepDiveInfo: ConsultationBookingModalSelectionInfo = {
       focusLabel: 'Home Assessment',
       levelId: 'deep-dive',
+      levelLabel: enContent.consultations.booking.levels[1].title,
       levelFeatures: enContent.consultations.booking.levels[1].features,
       focusLabelFormatted: 'Home Assessment focus',
       upgradeToDeepDiveLabel: upgradeLabel,
@@ -216,6 +219,7 @@ describe('ConsultationBookingModal', () => {
     const selectionInfo: ConsultationBookingModalSelectionInfo = {
       focusLabel: 'Home Assessment',
       levelId: 'essentials',
+      levelLabel: enContent.consultations.booking.levels[0].title,
       levelFeatures: enContent.consultations.booking.levels[0].features,
       focusLabelFormatted: 'Home Assessment focus',
       upgradeToDeepDiveLabel: upgradeLabel,

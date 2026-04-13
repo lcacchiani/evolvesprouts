@@ -22,23 +22,23 @@ HEADER_TITLE: dict[str, str] = {
 
 TABLE_LABELS: dict[str, dict[str, str]] = {
     "en": {
-        "course": "Course / event",
-        "date": "Date",
-        "time": "Time",
+        "service": "Service",
+        "datetime": "Date & time",
+        "details": "Details",
         "payment": "Payment method",
         "total": "Total",
     },
     "zh-CN": {
-        "course": "课程 / 活动",
-        "date": "日期",
-        "time": "时间",
+        "service": "服务",
+        "datetime": "日期及时间",
+        "details": "详情",
         "payment": "付款方式",
         "total": "总额",
     },
     "zh-HK": {
-        "course": "課程 / 活動",
-        "date": "日期",
-        "time": "時間",
+        "service": "服務",
+        "datetime": "日期及時間",
+        "details": "詳情",
         "payment": "付款方式",
         "total": "總額",
     },
@@ -54,6 +54,36 @@ FPS_QR_INTRO: dict[str, str] = {
     "en": "Use the FPS QR code below with your banking app to pay.",
     "zh-CN": "请使用下方 FPS 二维码，通过您的银行应用付款。",
     "zh-HK": "請使用下方 FPS 二維碼，透過您的銀行應用程式付款。",
+}
+
+FPS_PAYMENT_DISCLAIMER: dict[str, str] = {
+    "en": "If you have already completed payment, you can ignore the QR code below.",
+    "zh-CN": "若您已完成付款，请忽略下方的二维码。",
+    "zh-HK": "若您已完成付款，請忽略下方的二維碼。",
+}
+
+# Sub-lines inside the HTML "Details" row (consultation bookings).
+DETAILS_CONSULTATION_KIND: dict[str, str] = {
+    "en": "Consultation",
+    "zh-CN": "咨询",
+    "zh-HK": "諮詢",
+}
+DETAILS_WRITING_FOCUS_PREFIX: dict[str, str] = {
+    "en": "Writing focus",
+    "zh-CN": "写作重点",
+    "zh-HK": "寫作重點",
+}
+DETAILS_LEVEL_PREFIX: dict[str, str] = {
+    "en": "Level",
+    "zh-CN": "级别",
+    "zh-HK": "級別",
+}
+
+# Customer-facing payment method line in confirmation (maps reservation payload codes).
+PAYMENT_METHOD_LABELS: dict[str, str] = {
+    "fps_qr": "FPS",
+    "bank_transfer": "Bank Transfer",
+    "stripe": "Credit Card",
 }
 
 WHATSAPP_INTRO: dict[str, str] = {

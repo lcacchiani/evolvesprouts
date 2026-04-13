@@ -27,6 +27,10 @@ export interface ReservationSubmissionPayload {
   course_slug?: string;
   schedule_date_label?: string;
   schedule_time_label?: string;
+  /** Consultation booking: writing focus title for confirmation email Details row. */
+  consultation_writing_focus_label?: string;
+  /** Consultation booking: level title for confirmation email Details row. */
+  consultation_level_label?: string;
   location_name?: string;
   /**
    * PNG data URL from the same FPS QR as the booking modal; backend inlines it

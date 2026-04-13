@@ -207,6 +207,7 @@ export function ConsultationsBooking({
       return {
         focusLabel: focus.title,
         levelId: level.id,
+        levelLabel: level.title,
         levelFeatures: level.features,
         focusLabelFormatted: formatContentTemplate(
           content.reservation.modalFocusLabelTemplate,
