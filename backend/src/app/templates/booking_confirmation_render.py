@@ -6,9 +6,12 @@ import html
 from typing import Any
 
 from app.templates.booking_confirmation_content import (
+    CLOSING_NOTE,
     DETAILS_CONSULTATION_KIND,
     DETAILS_LEVEL_PREFIX,
     DETAILS_WRITING_FOCUS_PREFIX,
+    FAQ_INTRO,
+    FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     HEADER_TITLE,
@@ -110,6 +113,7 @@ def booking_confirmation_template_merge_data(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
+    location_name: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -148,6 +152,8 @@ def booking_confirmation_template_merge_data(
     }
     if schedule_line:
         data["schedule_datetime_label"] = schedule_line
+    if location_name and location_name.strip():
+        data["location_name"] = location_name.strip()
     return data
 
 
@@ -176,10 +182,12 @@ def render_booking_confirmation_email(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
+    location_name: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
     whatsapp_url: str,
+    faq_url: str = "",
     include_fps_qr_image: bool,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
@@ -222,6 +230,13 @@ def render_booking_confirmation_email(
         rows_html.append(
             _html_table_row_bordered(labels["details"], details_cell),
         )
+    if location_name and location_name.strip():
+        rows_html.append(
+            _html_table_row_bordered(
+                labels["location"],
+                html.escape(location_name.strip()),
+            )
+        )
     rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
     rows_html.append(_html_table_row_final(labels["total"], esc_total))
 
@@ -254,14 +269,26 @@ def render_booking_confirmation_email(
             "</p>"
         )
 
+    esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url else ""
+    closing_note = html.escape(CLOSING_NOTE[loc])
+    faq_intro_text = html.escape(FAQ_INTRO[loc])
+    faq_label_text = html.escape(FAQ_LINK_LABEL[loc])
     inner_html = (
         f"{greeting}{THANK_YOU_HTML[loc]}"
         f"{table_html}{pending_block}{fps_block}"
+        f'<p style="margin:0 0 16px;">{closing_note}</p>'
         f'<p style="margin:0 0 12px;">{html.escape(WHATSAPP_INTRO[loc])}</p>'
-        f'<p style="margin:0;">'
+        f'<p style="margin:0 0 16px;">'
         f'<a href="{esc_wa}" style="{_CTA_LINK}">WhatsApp</a>'
         f"</p>"
     )
+    if esc_faq:
+        inner_html += (
+            f'<p style="margin:0 0 12px;">{faq_intro_text}</p>'
+            f'<p style="margin:0;">'
+            f'<a href="{esc_faq}" style="{_CTA_LINK}">{faq_label_text}</a>'
+            f"</p>"
+        )
 
     full_html_template = wrap_transactional_html(
         header_title=HEADER_TITLE[loc],
@@ -277,10 +304,12 @@ def render_booking_confirmation_email(
         course_label=course_label.strip(),
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
+        location_name=location_name,
         payment_method_display=pm_display,
         total_amount=total_amount,
         is_pending_payment=is_pending_payment,
         whatsapp_url=whatsapp_url.strip(),
+        faq_url=faq_url.strip() if faq_url else "",
         include_fps_qr_image=include_fps_qr_image,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -313,10 +342,12 @@ def _build_plain_text(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
+    location_name: str | None,
     payment_method_display: str,
     total_amount: str,
     is_pending_payment: bool,
     whatsapp_url: str,
+    faq_url: str,
     include_fps_qr_image: bool,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
@@ -341,6 +372,8 @@ def _build_plain_text(
     )
     if details_plain:
         lines.append(f"{labels['details']}{label_sep}\n{details_plain}\n")
+    if location_name and location_name.strip():
+        lines.append(f"{labels['location']}{label_sep}{location_name.strip()}\n")
     lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
     if is_pending_payment:
@@ -349,10 +382,17 @@ def _build_plain_text(
         lines.append(f"{FPS_QR_INTRO[loc]}\n")
         lines.append(f"{FPS_PAYMENT_DISCLAIMER[loc]}\n")
         lines.append("[FPS QR code image is attached as fps-qr.png]\n\n")
+    lines.append(f"{CLOSING_NOTE[loc]}\n\n")
     lines.append(f"{WHATSAPP_INTRO[loc]}\n")
     if loc == "en":
         lines.append(f"WhatsApp: {whatsapp_url}\n\n")
     else:
         lines.append(f"WhatsApp：{whatsapp_url}\n\n")
+    if faq_url:
+        lines.append(f"{FAQ_INTRO[loc]}\n")
+        if loc == "en":
+            lines.append(f"FAQ: {faq_url}\n\n")
+        else:
+            lines.append(f"{FAQ_LINK_LABEL[loc]}：{faq_url}\n\n")
     lines.append(SIGN_OFF_PLAIN[loc])
     return lines

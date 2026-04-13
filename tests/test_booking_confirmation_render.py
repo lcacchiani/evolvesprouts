@@ -13,10 +13,12 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
         course_label="课程 A",
         schedule_date_label="4月12日",
         schedule_time_label=None,
+        location_name="学习中心",
         payment_method_code="fps_qr",
         total_amount="HK$100.00",
         is_pending_payment=True,
         whatsapp_url="https://wa.me/123",
+        faq_url="https://site.example/zh-CN/contact-us#contact-us-faq",
         include_fps_qr_image=True,
     )
     assert "预约确认" in subject
@@ -24,12 +26,18 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     assert "王敏" in html_doc
     assert "服务" in html_doc
     assert "日期及时间" in html_doc
+    assert "地点" in html_doc
+    assert "学习中心" in html_doc
     assert "付款方式" in html_doc
     assert "FPS" in html_doc
     assert "cid:fps_qr" in html_doc
     assert "若您已完成付款" in html_doc
+    assert "期待与您见面" in html_doc
+    assert "查看常见问题" in html_doc
     assert "付款确认前" in plain
     assert "WhatsApp：" in plain
+    assert "地点：学习中心" in plain
+    assert "期待与您见面" in plain
 
 
 def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
@@ -39,16 +47,24 @@ def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
         course_label="Workshop",
         schedule_date_label=None,
         schedule_time_label=None,
+        location_name=None,
         payment_method_code="bank_transfer",
         total_amount="HK$50.00",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/en/contact-us#contact-us-faq",
         include_fps_qr_image=False,
     )
     assert "Date &amp; time" not in html_doc
+    assert "Location" not in html_doc
     assert "Bank Transfer" in html_doc
     assert "cid:fps_qr" not in html_doc
+    assert "We look forward to seeing you" in html_doc
+    assert "Visit our FAQ" in html_doc
     assert "Date & time:" not in plain
+    assert "Location:" not in plain
+    assert "We look forward to seeing you" in plain
+    assert "FAQ:" in plain
     assert "WhatsApp: https://wa.me/x" in plain
 
 
