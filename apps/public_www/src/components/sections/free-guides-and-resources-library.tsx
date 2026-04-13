@@ -399,7 +399,7 @@ export function FreeGuidesAndResourcesLibrary({
                     {item.description}
                   </p>
                 ) : item.description && hideDescription ? (
-                  <div className='mb-3 mt-3 flex-1' aria-hidden />
+                  <div className='flex-1' aria-hidden />
                 ) : null}
                 {item.resourceKey ? (
                   <MediaForm
