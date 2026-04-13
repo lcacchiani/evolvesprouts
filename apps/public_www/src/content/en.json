@@ -1272,8 +1272,10 @@
         "locationName": "Your Home",
         "locationAddress": "Hong Kong",
         "topicsField": {
-          "label": "Focus, level, and anything we should know",
-          "placeholder": "e.g. Home Assessment, Essentials — child is 3, helper has been with us 2 years",
+          "label": "Anything we should know",
+          "placeholder": "",
+          "labelTooltip": "Your consultation focus and Essentials or Deep Dive level are already selected above.",
+          "placeholderTooltip": "For example: child is 3, helper has been with us 2 years, or any context for the visit.",
           "required": true
         },
         "essentials": {

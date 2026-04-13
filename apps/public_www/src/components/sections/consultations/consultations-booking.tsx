@@ -196,11 +196,7 @@ export function ConsultationsBooking({
   }, [content.focusAreas, content.levels, selectedFocusId, selectedLevelId]);
 
   const bookingPayload = isBookingModalOpen
-    ? buildConsultationsBookingModalPayload(
-        reservationForModal,
-        locale,
-        selectionLabels,
-      )
+    ? buildConsultationsBookingModalPayload(reservationForModal, locale)
     : null;
 
   const modalSelectionInfo: ConsultationBookingModalSelectionInfo | undefined =

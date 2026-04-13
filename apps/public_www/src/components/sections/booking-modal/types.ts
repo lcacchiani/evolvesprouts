@@ -28,4 +28,8 @@ export interface BookingTopicsFieldConfig {
   label?: string;
   placeholder?: string;
   required?: boolean;
+  /** Native `title` tooltip on an info control beside the label (optional). */
+  labelTooltip?: string;
+  /** Native `title` tooltip on the textarea (e.g. when `placeholder` is empty). */
+  placeholderTooltip?: string;
 }

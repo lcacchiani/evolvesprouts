@@ -92,4 +92,44 @@ describe('ReservationFormFields', () => {
       'This will help me better personalise your experience',
     );
   });
+
+  it('omits placeholder and exposes native title tooltips when configured', () => {
+    render(
+      <ReservationFormFields
+        content={enContent.bookingModal.paymentModal}
+        fullName=''
+        email=''
+        phone=''
+        interestedTopics=''
+        hasFullNameError={false}
+        hasEmailError={false}
+        hasPhoneError={false}
+        hasTopicsError={false}
+        topicsFieldConfig={{
+          label: 'Anything we should know',
+          placeholder: '',
+          labelTooltip: 'Focus and level are selected above.',
+          placeholderTooltip: 'Add context for the visit.',
+          required: true,
+        }}
+        onFullNameChange={() => {}}
+        onFullNameBlur={() => {}}
+        onEmailChange={() => {}}
+        onEmailBlur={() => {}}
+        onPhoneChange={() => {}}
+        onPhoneBlur={() => {}}
+        onTopicsChange={() => {}}
+        onTopicsBlur={() => {}}
+      />,
+    );
+
+    const topicsInput = screen.getByRole('textbox', {
+      name: /Anything we should know/i,
+    });
+    expect(topicsInput).not.toHaveAttribute('placeholder');
+    expect(topicsInput).toHaveAttribute('title', 'Add context for the visit.');
+    expect(
+      screen.getByRole('button', { name: 'Focus and level are selected above.' }),
+    ).toHaveAttribute('title', 'Focus and level are selected above.');
+  });
 });
