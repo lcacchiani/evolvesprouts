@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 
+from app.templates.constants import WHATSAPP_URL
 from app.templates.transactional_shell_data import (
     build_footer_social_html,
     build_transactional_template_shell_data,
@@ -32,10 +33,18 @@ def test_resolve_whatsapp_url_for_template_env_override(monkeypatch: Any) -> Non
     assert resolve_whatsapp_url_for_template() == "https://wa.me/custom"
 
 
+def test_resolve_whatsapp_url_coerces_message_short_link(monkeypatch: Any) -> None:
+    monkeypatch.setenv(
+        "PUBLIC_WWW_WHATSAPP_URL",
+        "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    )
+    assert resolve_whatsapp_url_for_template() == WHATSAPP_URL
+
+
 def test_resolve_whatsapp_url_for_template_falls_back(monkeypatch: Any) -> None:
     monkeypatch.delenv("PUBLIC_WWW_WHATSAPP_URL", raising=False)
     monkeypatch.delenv("NEXT_PUBLIC_WHATSAPP_URL", raising=False)
-    assert resolve_whatsapp_url_for_template().startswith("https://wa.me/")
+    assert resolve_whatsapp_url_for_template() == WHATSAPP_URL
 
 
 @pytest.mark.parametrize(

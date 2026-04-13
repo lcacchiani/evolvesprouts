@@ -50,6 +50,21 @@ def _read_env_url(*names: str) -> str | None:
     return None
 
 
+def _coerce_whatsapp_url_for_email(url: str) -> str:
+    """Prefer ``https://wa.me/<digits>``; ``/message/...`` short links often fail in email."""
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return url
+    host = (parsed.hostname or "").lower()
+    if host not in ("wa.me", "www.wa.me"):
+        return url
+    path = parsed.path.strip("/")
+    if path.lower().startswith("message/"):
+        return WHATSAPP_URL
+    return url
+
+
 def normalize_optional_absolute_url(value: str | None) -> str | None:
     """Return https URL string, or None if invalid (aligned with public site-config)."""
     if not value or not value.strip():
@@ -83,7 +98,7 @@ def resolve_whatsapp_url_for_template() -> str:
         _read_env_url("PUBLIC_WWW_WHATSAPP_URL", "NEXT_PUBLIC_WHATSAPP_URL")
     )
     if resolved:
-        return resolved
+        return _coerce_whatsapp_url_for_email(resolved)
     return WHATSAPP_URL
 
 

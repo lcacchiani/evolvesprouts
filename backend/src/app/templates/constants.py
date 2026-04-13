@@ -1,14 +1,17 @@
 """Shared constants for transactional email templates.
 
-Keep WHATSAPP_URL aligned with ``whatsappContact.href`` in
-``apps/public_www/src/content/en.json``.
+WhatsApp links in email use ``https://wa.me/<full phone number in international
+format without + or spaces>`` so they open reliably in mail clients. The public
+site may still use ``wa.me/message/...`` for QR flows; see
+``whatsappContact.href`` in ``apps/public_www/src/content/en.json``.
 """
 
 from __future__ import annotations
 
 import os
 
-WHATSAPP_URL = "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+# +852 9447 9843 (see docs/architecture/marketing-stack.md)
+WHATSAPP_URL = "https://wa.me/85294479843"
 
 
 def resolve_public_www_base_url() -> str:
