@@ -187,6 +187,7 @@
     "formCaptchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
     "formCaptchaLoadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
     "formCaptchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
+    "formCaptchaLabel": "驗證",
     "formMarketingOptInLabel": "訂閱育兒貼士與資源更新",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
@@ -363,6 +364,7 @@
       "emailValidationError": "請輸入有效的電郵地址。",
       "phoneValidationError": "請輸入有效的電話號碼。",
       "firstNameRequiredError": "請輸入你的姓名",
+      "messageRequiredError": "請輸入你的留言。",
       "marketingOptInLabel": "訂閱育兒貼士與資源更新"
     },
     "faq": {
@@ -1018,6 +1020,7 @@
       "sliderLabelTemplate": "{title}滑動內容"
     },
     "captcha": {
+      "captchaLabel": "驗證",
       "requiredError": "提交前請先完成 CAPTCHA 驗證。",
       "loadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
       "unavailableError": "CAPTCHA 暫時不可用，請稍後再試。"
@@ -1423,10 +1426,13 @@
       "reservationDescription": "請填寫你的資料，我們會以電郵發送付款確認。",
       "selectedAgeGroupLabel": "小朋友年齡組別",
       "fullNameLabel": "姓名",
+      "fullNameRequiredError": "請輸入你的全名。",
       "emailLabel": "電郵",
       "phoneLabel": "電話號碼",
+      "phoneRequiredError": "請輸入你的電話號碼。",
       "topicsInterestLabel": "開始前，你想我先了解你的小朋友或姐姐哪些情況？",
       "topicsInterestPlaceholder": "例如：我女兒 2 歲，我們的姐姐已經照顧我們一年。",
+      "topicsRequiredError": "請告訴我們你想討論的內容。",
       "paymentMethodLabel": "付款方式",
       "paymentMethodValue": "以 FPS 二維碼付款",
       "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
@@ -1448,6 +1454,7 @@
       "priceBreakdownConfirmedPriceLabel": "確認價格",
       "paymentConfirmationNote": "收到付款後，你的名額才會確認",
       "pendingReservationAcknowledgementLabel": "我明白在付款確認前，我的預約仍屬待確認狀態",
+      "acknowledgementRequiredError": "請閱讀並同意必填條款。",
       "marketingOptInLabel": "訂閱育兒貼士與資源更新",
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "條款及細則",

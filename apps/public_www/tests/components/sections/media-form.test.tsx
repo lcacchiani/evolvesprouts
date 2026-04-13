@@ -75,6 +75,7 @@ function mediaFormProps() {
     formCaptchaRequiredError: resourcesContent.formCaptchaRequiredError,
     formCaptchaLoadError: resourcesContent.formCaptchaLoadError,
     formCaptchaUnavailableError: resourcesContent.formCaptchaUnavailableError,
+    formCaptchaLabel: resourcesContent.formCaptchaLabel,
   };
 }
 
@@ -186,6 +187,7 @@ describe('MediaForm', () => {
       screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel))).toBeInTheDocument();
+    expect(screen.getByText(enContent.resources.formCaptchaLabel)).toBeInTheDocument();
     expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_open', {
       formKind: 'media_request',
       formId: 'media-form__media-form',

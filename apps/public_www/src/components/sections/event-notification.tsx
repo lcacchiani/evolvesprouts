@@ -78,6 +78,7 @@ export function EventNotification({
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
   const submitLoadingLabel = commonFormActionsContent.submittingLabel;
+  const captchaLabel = commonCaptchaContent.captchaLabel;
 
   const captchaErrorMessage = resolveCaptchaErrorMessage(
     {
@@ -324,17 +325,22 @@ export function EventNotification({
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
-                      <TurnstileCaptcha
-                        siteKey={turnstileSiteKey}
-                        widgetAction='event_notification_submit'
-                        onTokenChange={handleCaptchaTokenChange}
-                        onLoadError={() => {
-                          handleCaptchaLoadError();
-                          setSubmissionError(
-                            content.captchaLoadError ?? commonCaptchaContent.loadError,
-                          );
-                        }}
-                      />
+                      <label className='block'>
+                        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                          {captchaLabel}
+                        </span>
+                        <TurnstileCaptcha
+                          siteKey={turnstileSiteKey}
+                          widgetAction='event_notification_submit'
+                          onTokenChange={handleCaptchaTokenChange}
+                          onLoadError={() => {
+                            handleCaptchaLoadError();
+                            setSubmissionError(
+                              content.captchaLoadError ?? commonCaptchaContent.loadError,
+                            );
+                          }}
+                        />
+                      </label>
                       {captchaErrorMessage ? (
                         <p
                           id={CAPTCHA_ERROR_MESSAGE_ID}

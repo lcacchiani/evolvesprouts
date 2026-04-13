@@ -302,6 +302,40 @@ describe('ContactUsForm section', () => {
     );
   });
 
+  it('shows message required error when message is empty on submit', () => {
+    renderContactUsForm();
+
+    const firstNameInput = screen.getByLabelText(
+      new RegExp(`^${enContent.contactUs.form.firstNameLabel}`),
+    );
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
+    );
+    const messageInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.form.messageLabel),
+    );
+    const formElement = screen
+      .getByRole('button', { name: enContent.contactUs.form.submitLabel })
+      .closest('form');
+    if (!formElement) {
+      throw new Error('Expected contact form');
+    }
+
+    fireEvent.change(firstNameInput, { target: { value: 'Pat' } });
+    fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
+    fireEvent.change(messageInput, { target: { value: '   ' } });
+    fireEvent.submit(formElement);
+
+    expect(
+      screen.getByText(enContent.contactUs.form.messageRequiredError),
+    ).toBeInTheDocument();
+    expect(messageInput).toHaveAttribute('aria-invalid', 'true');
+    expect(messageInput).toHaveAttribute(
+      'aria-describedby',
+      'contact-us-form-message-error',
+    );
+  });
+
   it('validates email only after blur instead of while typing', () => {
     renderContactUsForm();
 

@@ -305,6 +305,7 @@ export function FreeGuidesAndResourcesLibrary({
   const mediaFormCaptchaLoadError = mediaFormContent.formCaptchaLoadError;
   const mediaFormCaptchaUnavailableError =
     mediaFormContent.formCaptchaUnavailableError;
+  const mediaFormCaptchaLabel = mediaFormContent.formCaptchaLabel;
 
   const listBody = (() => {
     if (loadState === 'loading') {
@@ -427,6 +428,7 @@ export function FreeGuidesAndResourcesLibrary({
                     formCaptchaRequiredError={mediaFormCaptchaRequiredError}
                     formCaptchaLoadError={mediaFormCaptchaLoadError}
                     formCaptchaUnavailableError={mediaFormCaptchaUnavailableError}
+                    formCaptchaLabel={mediaFormCaptchaLabel}
                     ctaButtonClassName='es-btn--outline'
                     className='mt-6 w-full sm:w-fit'
                     onFormOpened={() => {

@@ -70,6 +70,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
   const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
+  const [isMessageTouched, setIsMessageTouched] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const {
     captchaToken,
@@ -95,6 +96,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
   const hasFirstNameError =
     isFirstNameTouched && !sanitizeSingleLineValue(formState.firstName);
+  const hasMessageError = isMessageTouched && !sanitizeMultilineValue(formState.message);
   const captchaErrorMessage = resolveCaptchaErrorMessage(
     {
       isCaptchaConfigured,
@@ -131,12 +133,14 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
     setIsFirstNameTouched(true);
+    setIsMessageTouched(true);
     markCaptchaTouched();
 
     if (
       !sanitizeSingleLineValue(formState.firstName) ||
       !isValidEmail(formState.email) ||
-      !isValidPhone(formState.phone)
+      !isValidPhone(formState.phone) ||
+      !sanitizeMultilineValue(formState.message)
     ) {
       trackPublicFormOutcome('contact_form_submit_error', {
         formKind: 'contact',
@@ -358,6 +362,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
                 hasEmailError={hasEmailError}
                 hasPhoneError={hasPhoneError}
                 hasFirstNameError={hasFirstNameError}
+                hasMessageError={hasMessageError}
                 marketingOptIn={marketingOptIn}
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
@@ -374,6 +379,9 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
                 }}
                 onFirstNameBlur={() => {
                   setIsFirstNameTouched(true);
+                }}
+                onMessageBlur={() => {
+                  setIsMessageTouched(true);
                 }}
                 onMarketingOptInChange={setMarketingOptIn}
                 onCaptchaTokenChange={handleCaptchaTokenChange}

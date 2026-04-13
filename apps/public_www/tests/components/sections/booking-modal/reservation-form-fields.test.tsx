@@ -19,12 +19,18 @@ describe('ReservationFormFields', () => {
         email='bad-email'
         phone='12345678'
         interestedTopics='Boundaries'
+        hasFullNameError={false}
         hasEmailError
+        hasPhoneError={false}
+        hasTopicsError={false}
         onFullNameChange={onFullNameChange}
+        onFullNameBlur={vi.fn()}
         onEmailChange={onEmailChange}
         onEmailBlur={onEmailBlur}
         onPhoneChange={onPhoneChange}
+        onPhoneBlur={vi.fn()}
         onTopicsChange={onTopicsChange}
+        onTopicsBlur={vi.fn()}
       />,
     );
 
@@ -59,17 +65,23 @@ describe('ReservationFormFields', () => {
         email=''
         phone=''
         interestedTopics=''
+        hasFullNameError={false}
         hasEmailError={false}
+        hasPhoneError={false}
+        hasTopicsError={false}
         topicsFieldConfig={{
           label: "What's your child's age?",
           placeholder: 'This will help me better personalise your experience',
           required: true,
         }}
         onFullNameChange={() => {}}
+        onFullNameBlur={() => {}}
         onEmailChange={() => {}}
         onEmailBlur={() => {}}
         onPhoneChange={() => {}}
+        onPhoneBlur={() => {}}
         onTopicsChange={() => {}}
+        onTopicsBlur={() => {}}
       />,
     );
 

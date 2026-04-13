@@ -512,6 +512,8 @@ describe('my-best-auntie booking modals footer content', () => {
     const pendingWrapperClassName =
       pendingAcknowledgement.closest('label')?.className ?? '';
     const termsWrapperClassName = termsAcknowledgement.closest('label')?.className ?? '';
+    expect(pendingWrapperClassName).toContain('cursor-pointer');
+    expect(termsWrapperClassName).toContain('cursor-pointer');
     expect(pendingWrapperClassName).not.toContain('border');
     expect(pendingWrapperClassName).not.toContain('bg-');
     expect(termsWrapperClassName).not.toContain('border');
@@ -634,15 +636,15 @@ describe('my-best-auntie booking modals footer content', () => {
     const submitButton = screen.getByRole('button', {
       name: bookingModalContent.submitLabel,
     });
-    expect(submitButton).toBeDisabled();
+    expect(submitButton).toBeEnabled();
 
     fireEvent.change(fullNameField, { target: { value: 'Test User' } });
     fireEvent.change(emailField, { target: { value: 'ida@example.com' } });
     fireEvent.change(phoneField, { target: { value: '85212345678' } });
     fireEvent.click(pendingAcknowledgement);
-    expect(submitButton).toBeDisabled();
+    expect(submitButton).toBeEnabled();
     fireEvent.click(termsAcknowledgement);
-    expect(submitButton).toBeDisabled();
+    expect(submitButton).toBeEnabled();
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     expect(submitButton).toBeEnabled();
@@ -827,6 +829,56 @@ describe('my-best-auntie booking modals footer content', () => {
       throw new Error('Expected reservation form');
     }
     expect(reservationForm).toHaveAttribute('novalidate');
+    expect(submitButton).toBeEnabled();
+  });
+
+  it('shows field-level validation errors when submitting with empty required inputs', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: bookingModalContent.submitLabel,
+    });
+    const reservationForm = submitButton.closest('form');
+    if (!reservationForm) {
+      throw new Error('Expected reservation form');
+    }
+    fireEvent.submit(reservationForm);
+
+    expect(
+      screen.getByText(bookingModalContent.fullNameRequiredError),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.emailValidationError),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.phoneRequiredError),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.acknowledgementRequiredError),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.captchaRequiredError),
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith(
+        'booking_submit_error',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            error_type: 'validation_error',
+          }),
+        }),
+      );
+    });
   });
 
   it('shows the loading gear on the reservation submit button while the request is in flight', async () => {

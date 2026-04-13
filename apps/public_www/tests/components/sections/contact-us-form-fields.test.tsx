@@ -61,6 +61,7 @@ describe('ContactFormFields', () => {
         hasEmailError
         hasPhoneError
         hasFirstNameError={false}
+        hasMessageError={false}
         marketingOptIn={false}
         captchaErrorMessage='captcha failed'
         submitErrorMessage='submit failed'
@@ -72,6 +73,7 @@ describe('ContactFormFields', () => {
         onEmailBlur={onEmailBlur}
         onPhoneBlur={onPhoneBlur}
         onFirstNameBlur={vi.fn()}
+        onMessageBlur={vi.fn()}
         onMarketingOptInChange={vi.fn()}
         onCaptchaTokenChange={onCaptchaTokenChange}
         onCaptchaLoadError={onCaptchaLoadError}
