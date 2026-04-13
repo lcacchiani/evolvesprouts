@@ -145,7 +145,8 @@ responsive while decoupling downstream processing.
   (`evolvesprouts-media-download-{locale}`) using `CONFIRMATION_EMAIL_FROM_ADDRESS`.
   The template includes follow-on guidance plus a highlighted “hands-on support”
   box; shell data supplies `my_best_auntie_url` (training course page) and
-  `free_intro_call_url` (WhatsApp prefill when configured, else contact page).
+  `free_intro_call_url` (`https://wa.me/<digits>?text=...` when a business phone
+  or digit `wa.me` path is configured; otherwise the localized contact page).
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction` (during a
   **transition** period this may still run for all submissions; when
   `MailchimpRequireMarketingConsent` is `true`, subscribe + free-resource journey
