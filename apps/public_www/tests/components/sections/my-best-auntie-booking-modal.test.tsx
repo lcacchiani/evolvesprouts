@@ -857,6 +857,9 @@ describe('my-best-auntie booking modals footer content', () => {
       screen.getByText(bookingModalContent.fullNameRequiredError),
     ).toBeInTheDocument();
     expect(
+      screen.getByText(bookingModalContent.emailValidationError),
+    ).toBeInTheDocument();
+    expect(
       screen.getByText(bookingModalContent.phoneRequiredError),
     ).toBeInTheDocument();
     expect(

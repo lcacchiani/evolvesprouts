@@ -754,6 +754,9 @@ export function BookingReservationForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
     setIsFullNameTouched(true);
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
@@ -788,8 +791,7 @@ export function BookingReservationForm({
       !normalizedPhone ||
       (isTopicsFieldRequired && !interestedTopics.trim()) ||
       !hasPendingReservationAcknowledgement ||
-      !hasTermsAgreement ||
-      !captchaToken;
+      !hasTermsAgreement;
 
     if (hasFieldErrors) {
       trackPublicFormOutcome('booking_submit_error', {
@@ -808,9 +810,6 @@ export function BookingReservationForm({
       return;
     }
 
-    if (isSubmitting) {
-      return;
-    }
     if (isCaptchaUnavailable) {
       trackPublicFormOutcome('booking_submit_error', {
         formKind: 'reservation',
@@ -823,6 +822,22 @@ export function BookingReservationForm({
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'service_unavailable',
+        },
+      });
+      return;
+    }
+    if (!captchaToken) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'validation_error',
         },
       });
       return;
@@ -1454,6 +1469,15 @@ export function BookingReservationForm({
                 </span>
               </span>
             </label>
+            {hasAcknowledgementsError ? (
+              <p
+                id={ACKNOWLEDGEMENT_ERROR_MESSAGE_ID}
+                className='es-form-field-error'
+                role='alert'
+              >
+                {content.acknowledgementRequiredError}
+              </p>
+            ) : null}
 
             <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input
@@ -1468,15 +1492,6 @@ export function BookingReservationForm({
                 {content.marketingOptInLabel}
               </span>
             </label>
-            {hasAcknowledgementsError ? (
-              <p
-                id={ACKNOWLEDGEMENT_ERROR_MESSAGE_ID}
-                className='es-form-field-error'
-                role='alert'
-              >
-                {content.acknowledgementRequiredError}
-              </p>
-            ) : null}
           </div>
 
           <label className='relative z-20 block overflow-visible'>
