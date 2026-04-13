@@ -45,6 +45,7 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   publicWwwInstagramUrl: string;
   publicWwwLinkedinUrl: string;
   publicWwwWhatsappUrl: string;
+  publicWwwBusinessPhoneNumber: string;
   mailchimpMediaDownloadMergeTag: string;
   mailchimpFreeResourceJourneyId: string;
   mailchimpFreeResourceJourneyStepId: string;
@@ -211,6 +212,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
           PUBLIC_WWW_INSTAGRAM_URL: props.publicWwwInstagramUrl,
           PUBLIC_WWW_LINKEDIN_URL: props.publicWwwLinkedinUrl,
           PUBLIC_WWW_WHATSAPP_URL: props.publicWwwWhatsappUrl,
+          PUBLIC_WWW_BUSINESS_PHONE_NUMBER: props.publicWwwBusinessPhoneNumber,
         },
       });
 

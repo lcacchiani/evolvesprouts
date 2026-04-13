@@ -921,6 +921,16 @@ export class ApiStack extends cdk.Stack {
           "Optional WhatsApp URL for transactional emails; when empty, code falls back to app default. Align with NEXT_PUBLIC_WHATSAPP_URL.",
       }
     );
+    const publicWwwBusinessPhoneNumber = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessPhoneNumber",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
+      }
+    );
     const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
       type: "String",
       description: "Admin website domain used for backend CORS allowlisting.",
@@ -1699,6 +1709,7 @@ export class ApiStack extends cdk.Stack {
       publicWwwInstagramUrl: publicWwwInstagramUrl.valueAsString,
       publicWwwLinkedinUrl: publicWwwLinkedinUrl.valueAsString,
       publicWwwWhatsappUrl: publicWwwWhatsappUrl.valueAsString,
+      publicWwwBusinessPhoneNumber: publicWwwBusinessPhoneNumber.valueAsString,
       mailchimpMediaDownloadMergeTag: mailchimpMediaDownloadMergeTag.valueAsString,
       mailchimpFreeResourceJourneyId: mailchimpFreeResourceJourneyId.valueAsString,
       mailchimpFreeResourceJourneyStepId:
@@ -2628,6 +2639,10 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_WHATSAPP_URL",
       publicWwwWhatsappUrl.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
+      publicWwwBusinessPhoneNumber.valueAsString
     );
 
     const calendar = v1.addResource("calendar");

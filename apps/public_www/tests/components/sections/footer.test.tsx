@@ -45,7 +45,7 @@ describe('Footer external links', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_LINKEDIN_URL = 'https://www.linkedin.com/company/evolve-sprouts';
     process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'https://www.instagram.com/evolvesprouts';
-    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'https://wa.me/85294479843';
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'https://wa.me/15550001234';
   });
 
   afterEach(() => {

@@ -619,7 +619,7 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('renders private programme CTA as outline link with dedicated WhatsApp message', () => {
-    const privateProgrammeWhatsappHref = 'https://wa.me/85294479843?text=private-programme';
+    const privateProgrammeWhatsappHref = 'https://wa.me/15550001234?text=private-programme';
     render(
       <MyBestAuntieBooking
         locale='en'

@@ -31,7 +31,7 @@ const DEFAULT_PROPS = {
   localizedCourseHref: '/en/services/my-best-auntie-training-course',
   localizedContactHref: '/en/contact-us',
   localizedEventsHref: '/en/events',
-  whatsappHref: 'https://wa.me/85294479843',
+  whatsappHref: 'https://wa.me/15550001234',
   instagramHref: 'https://www.instagram.com/evolvesprouts',
 };
 

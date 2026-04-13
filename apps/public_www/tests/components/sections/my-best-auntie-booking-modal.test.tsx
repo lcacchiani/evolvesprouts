@@ -1624,7 +1624,7 @@ describe('my-best-auntie booking modals footer content', () => {
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        whatsappHref='https://wa.me/85294479843'
+        whatsappHref='https://wa.me/15550001234'
         whatsappCtaLabel={enContent.contactUs.form.contactMethodLinks.whatsapp}
         onClose={() => {}}
       />,
@@ -1634,7 +1634,7 @@ describe('my-best-auntie booking modals footer content', () => {
     const whatsappLink = screen.getByRole('link', {
       name: enContent.contactUs.form.contactMethodLinks.whatsapp,
     });
-    expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/85294479843');
+    expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/15550001234');
   });
 
   it('tracks thank-you calendar download clicks', () => {

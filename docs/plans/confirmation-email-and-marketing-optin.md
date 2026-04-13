@@ -295,15 +295,19 @@ suffix (default `en`).
 
 **New file:** `backend/src/app/templates/constants.py`
 
-Module-level constants shared across email templates:
+Module-level helpers shared across email templates:
 
 ```python
-WHATSAPP_URL = "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+def build_whatsapp_phone_url() -> str:
+    """Build ``https://wa.me/<digits>`` from the business phone env var."""
 ```
 
-This matches the hardcoded fallback in
-`apps/public_www/src/content/en.json` → `whatsappContact.href`. Must stay
-in sync with that value.
+The phone number is read from `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (or
+`NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), matching the public website env var.
+Transactional email uses the numeric `wa.me` form for reliable link handling;
+`whatsappContact.href` on the public site may still use a `wa.me/message/...` QR
+link. Env-provided `wa.me/message/...` URLs are coerced to the numeric form when
+building template data using this phone number.
 
 Also defines a `resolve_public_www_base_url()` helper that reads
 `PUBLIC_WWW_BASE_URL` env var (set on Lambda from CDK

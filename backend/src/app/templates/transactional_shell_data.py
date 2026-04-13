@@ -17,8 +17,8 @@ from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 from app.templates.constants import (
-    WHATSAPP_URL,
     build_faq_url,
+    build_whatsapp_phone_url,
     resolve_public_www_base_url,
 )
 
@@ -48,6 +48,22 @@ def _read_env_url(*names: str) -> str | None:
         if isinstance(raw, str) and raw.strip():
             return raw.strip()
     return None
+
+
+def _coerce_whatsapp_url_for_email(url: str) -> str:
+    """Prefer ``https://wa.me/<digits>``; ``/message/...`` short links often fail in email."""
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return url
+    host = (parsed.hostname or "").lower()
+    if host not in ("wa.me", "www.wa.me"):
+        return url
+    path = parsed.path.strip("/")
+    if path.lower().startswith("message/"):
+        phone_url = build_whatsapp_phone_url()
+        return phone_url if phone_url else url
+    return url
 
 
 def normalize_optional_absolute_url(value: str | None) -> str | None:
@@ -83,8 +99,8 @@ def resolve_whatsapp_url_for_template() -> str:
         _read_env_url("PUBLIC_WWW_WHATSAPP_URL", "NEXT_PUBLIC_WHATSAPP_URL")
     )
     if resolved:
-        return resolved
-    return WHATSAPP_URL
+        return _coerce_whatsapp_url_for_email(resolved)
+    return build_whatsapp_phone_url()
 
 
 def _resolve_instagram_url() -> str | None:

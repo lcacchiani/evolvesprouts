@@ -12,6 +12,10 @@ from app.templates.transactional_shell_data import (
     resolve_whatsapp_url_for_template,
 )
 
+_TEST_PHONE = "+1 555 000 1234"
+_TEST_PHONE_DIGITS = "15550001234"
+_TEST_PHONE_WA_URL = f"https://wa.me/{_TEST_PHONE_DIGITS}"
+
 
 def test_normalize_optional_absolute_url() -> None:
     assert normalize_optional_absolute_url(None) is None
@@ -32,10 +36,49 @@ def test_resolve_whatsapp_url_for_template_env_override(monkeypatch: Any) -> Non
     assert resolve_whatsapp_url_for_template() == "https://wa.me/custom"
 
 
-def test_resolve_whatsapp_url_for_template_falls_back(monkeypatch: Any) -> None:
+def test_resolve_whatsapp_url_coerces_message_short_link(monkeypatch: Any) -> None:
+    monkeypatch.setenv(
+        "PUBLIC_WWW_WHATSAPP_URL",
+        "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    )
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
+    assert resolve_whatsapp_url_for_template() == _TEST_PHONE_WA_URL
+
+
+def test_resolve_whatsapp_url_coerce_without_phone_keeps_original(
+    monkeypatch: Any,
+) -> None:
+    """When phone env var is missing, coercion cannot rewrite; keep original URL."""
+    monkeypatch.setenv(
+        "PUBLIC_WWW_WHATSAPP_URL",
+        "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    )
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    assert (
+        resolve_whatsapp_url_for_template()
+        == "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+    )
+
+
+def test_resolve_whatsapp_url_for_template_falls_back_to_phone(
+    monkeypatch: Any,
+) -> None:
     monkeypatch.delenv("PUBLIC_WWW_WHATSAPP_URL", raising=False)
     monkeypatch.delenv("NEXT_PUBLIC_WHATSAPP_URL", raising=False)
-    assert resolve_whatsapp_url_for_template().startswith("https://wa.me/")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
+    assert resolve_whatsapp_url_for_template() == _TEST_PHONE_WA_URL
+
+
+def test_resolve_whatsapp_url_for_template_empty_without_env(
+    monkeypatch: Any,
+) -> None:
+    """Without any WhatsApp or phone env vars, return empty string."""
+    monkeypatch.delenv("PUBLIC_WWW_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    assert resolve_whatsapp_url_for_template() == ""
 
 
 @pytest.mark.parametrize(
@@ -50,6 +93,7 @@ def test_build_transactional_template_shell_data_footer(
     monkeypatch: Any, locale: str, expect_fragment: str
 ) -> None:
     monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
     monkeypatch.setenv(
         "PUBLIC_WWW_INSTAGRAM_URL", "https://www.instagram.com/evolvesprouts"
     )
@@ -81,16 +125,17 @@ def test_build_footer_social_html_omits_instagram_linkedin_without_env(
 ) -> None:
     """Without PUBLIC_WWW_* social URLs, do not link IG/LI to the site (matches www footer)."""
     monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
     monkeypatch.delenv("PUBLIC_WWW_INSTAGRAM_URL", raising=False)
     monkeypatch.delenv("NEXT_PUBLIC_INSTAGRAM_URL", raising=False)
     monkeypatch.delenv("PUBLIC_WWW_LINKEDIN_URL", raising=False)
     monkeypatch.delenv("NEXT_PUBLIC_LINKEDIN_URL", raising=False)
-    html = build_footer_social_html(locale="en")
-    assert "Instagram" not in html
-    assert "LinkedIn" not in html
-    assert "https://www.example.com/en/contact-us" not in html
-    assert "WhatsApp" in html
-    assert "Website" in html
+    result = build_footer_social_html(locale="en")
+    assert "Instagram" not in result
+    assert "LinkedIn" not in result
+    assert "https://www.example.com/en/contact-us" not in result
+    assert "WhatsApp" in result
+    assert "Website" in result
 
 
 def test_build_footer_social_html_omits_social_when_env_points_at_own_site(
@@ -98,13 +143,14 @@ def test_build_footer_social_html_omits_social_when_env_points_at_own_site(
 ) -> None:
     """CDK params sometimes copy the site URL; those must not appear as Instagram/LinkedIn."""
     monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
     monkeypatch.setenv(
         "PUBLIC_WWW_INSTAGRAM_URL", "https://www.example.com/en/contact-us"
     )
     monkeypatch.setenv(
         "PUBLIC_WWW_LINKEDIN_URL", "https://www.example.com/zh-HK/contact-us"
     )
-    html = build_footer_social_html(locale="en")
-    assert "Instagram" not in html
-    assert "LinkedIn" not in html
-    assert "WhatsApp" in html
+    result = build_footer_social_html(locale="en")
+    assert "Instagram" not in result
+    assert "LinkedIn" not in result
+    assert "WhatsApp" in result
