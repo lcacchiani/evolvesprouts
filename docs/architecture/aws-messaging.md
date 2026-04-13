@@ -51,10 +51,16 @@ template names.
   rule, and optional social links, a centered copyright line is appended using
   the **UTC year at send time** (`© <year> Evolve Sprouts. All rights reserved.`).
 - **Booking confirmation** (`evolvesprouts-booking-confirmation-{locale}`): table
-  shows **Service**, a single **Date & time** line, customer-facing **Payment method**
-  (FPS / Credit Card / Bank Transfer), HKD totals with thousands separators, optional
-  **Details** for consultation payloads, and FPS pay instructions only when payment is
-  pending and `payment_method` is `fps_qr` (plus a short “already paid” disclaimer).
+  shows **Service**, optional **Details** (My Best Auntie: cohort + age group;
+  consultation: focus + level; omitted for generic event bookings), a single
+  **Date & time** line (when the venue looks like Hong Kong and
+  `primary_session_start_iso` is present, formatted as `16 April @ 18:00 HKT` in
+  `Asia/Hong_Kong`; otherwise the submitted schedule labels are used), **Location**
+  as `venue, address` when both are provided, customer-facing **Payment method**
+  (FPS / Credit Card / Bank Transfer), HKD totals with thousands separators, a
+  horizontal rule before the closing note, a single **WhatsApp** + **FAQ** sentence
+  with CTA links, and FPS pay instructions only when payment is pending and
+  `payment_method` is `fps_qr` (plus a short “already paid” disclaimer).
 
 ## Components
 

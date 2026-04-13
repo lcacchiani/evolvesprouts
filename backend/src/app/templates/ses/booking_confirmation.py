@@ -7,20 +7,23 @@ from typing import Any
 from app.templates.booking_confirmation_content import (
     BOOKING_CONFIRMATION_LOCALES,
     CLOSING_NOTE,
-    FAQ_INTRO,
     FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     GREETING_HTML,
     HEADER_TITLE,
     PENDING_PAYMENT_NOTE,
+    QUESTIONS_LINE_HTML_MIDDLE,
+    QUESTIONS_LINE_HTML_PREFIX,
+    QUESTIONS_LINE_HTML_SUFFIX,
+    QUESTIONS_LINE_TEXT_SES,
     SIGN_OFF_PLAIN,
     SUBJECT_PREFIX,
     SUBJECT_SUFFIX,
     TABLE_LABELS,
     THANK_YOU_HTML,
     THANK_YOU_PLAIN,
-    WHATSAPP_INTRO,
+    WHATSAPP_LINK_LABEL,
 )
 from app.templates.ses.email_shell import wrap_transactional_html
 
@@ -36,18 +39,18 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
         "{{course_label}}</td></tr>"
     )
-    row_datetime = (
-        "{{#if schedule_datetime_label}}"
-        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["datetime"]}</strong></td>'
-        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{schedule_datetime_label}}</td></tr>"
-        "{{/if}}"
-    )
     row_details = (
         "{{#if details_block_html}}"
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["details"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
         "{{{details_block_html}}}</td></tr>"
+        "{{/if}}"
+    )
+    row_datetime = (
+        "{{#if schedule_datetime_label}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["datetime"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{schedule_datetime_label}}</td></tr>"
         "{{/if}}"
     )
     row_location = (
@@ -68,16 +71,21 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
     )
     pending = PENDING_PAYMENT_NOTE[loc]
     closing = CLOSING_NOTE[loc]
-    faq_intro = FAQ_INTRO[loc]
-    faq_label = FAQ_LINK_LABEL[loc]
+    questions_html = (
+        f'<p style="margin:0;">{QUESTIONS_LINE_HTML_PREFIX[loc]}'
+        f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">{WHATSAPP_LINK_LABEL[loc]}</a>'
+        f"{QUESTIONS_LINE_HTML_MIDDLE[loc]}"
+        f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">{FAQ_LINK_LABEL[loc]}</a>'
+        f"{QUESTIONS_LINE_HTML_SUFFIX[loc]}</p>"
+    )
     inner_html = (
         GREETING_HTML[loc]
         + THANK_YOU_HTML[loc]
         + '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
         'style="border-collapse:collapse;margin:0 0 16px;">'
         + row_service
-        + row_datetime
         + row_details
+        + row_datetime
         + row_location
         + row_payment
         + row_total
@@ -94,15 +102,8 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         f"{FPS_PAYMENT_DISCLAIMER[loc]}"
         "</p>"
         "{{/if}}"
-        f'<p style="margin:0 0 16px;">{closing}</p>'
-        f'<p style="margin:0 0 12px;">{WHATSAPP_INTRO[loc]}</p>'
-        '<p style="margin:0 0 16px;">'
-        f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
-        "</p>"
-        f'<p style="margin:0 0 12px;">{faq_intro}</p>'
-        '<p style="margin:0;">'
-        f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">{faq_label}</a>'
-        "</p>"
+        '<hr style="border:0;border-top:1px solid #eeeeee;margin:0 0 16px;"/>'
+        f'<p style="margin:0 0 16px;">{closing}</p>' + questions_html
     )
 
     label_sep = ": " if loc == "en" else "："
@@ -114,13 +115,13 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + THANK_YOU_PLAIN[loc]
         + f"{labels['service']}{label_sep}"
         + "{{course_label}}\n"
-        + "{{#if schedule_datetime_label}}"
-        + f"{labels['datetime']}{label_sep}"
-        + "{{schedule_datetime_label}}\n"
-        + "{{/if}}"
         + "{{#if details_plain}}"
         + f"{labels['details']}{label_sep}\n"
         + "{{details_plain}}\n"
+        + "{{/if}}"
+        + "{{#if schedule_datetime_label}}"
+        + f"{labels['datetime']}{label_sep}"
+        + "{{schedule_datetime_label}}\n"
         + "{{/if}}"
         + "{{#if location_name}}"
         + f"{labels['location']}{label_sep}"
@@ -138,18 +139,8 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + f"{FPS_PAYMENT_DISCLAIMER[loc]}\n\n"
         + "{{/if}}"
         + f"{closing}\n\n"
-        + f"{WHATSAPP_INTRO[loc]}\n"
-        + (
-            "WhatsApp: {{whatsapp_url}}\n\n"
-            if loc == "en"
-            else "WhatsApp：{{whatsapp_url}}\n\n"
-        )
-        + f"{faq_intro}\n"
-        + (
-            "FAQ: {{faq_url}}\n\n"
-            if loc == "en"
-            else f"{faq_label}：{{{{faq_url}}}}\n\n"
-        )
+        + QUESTIONS_LINE_TEXT_SES[loc]
+        + "\n\n"
         + SIGN_OFF_PLAIN[loc]
     )
 

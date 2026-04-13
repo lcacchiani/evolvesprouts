@@ -992,6 +992,9 @@ export function BookingReservationForm({
       schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       schedule_time_label: scheduleTimeLabel,
       location_name: sanitizeSingleLineValue(venueName) || undefined,
+      location_address: sanitizeSingleLineValue(venueAddress) || undefined,
+      primary_session_start_iso: sanitizeSingleLineValue(primarySession?.dateStartTime)
+        || undefined,
       ...(() => {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
         const level = sanitizeSingleLineValue(consultationLevelLabel);

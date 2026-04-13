@@ -1020,6 +1020,19 @@ components:
         location_name:
           type: string
           maxLength: 500
+        location_address:
+          type: string
+          maxLength: 500
+          description: >
+            Optional second line for the venue address. When present with location_name,
+            the booking confirmation email shows "venue, address".
+        primary_session_start_iso:
+          type: string
+          maxLength: 100
+          description: >
+            Optional ISO 8601 start datetime of the primary booked session. When the
+            venue appears to be in Hong Kong, the confirmation email formats date and
+            time in HKT from this value.
         fps_qr_image_data_url:
           type: string
           maxLength: 50000

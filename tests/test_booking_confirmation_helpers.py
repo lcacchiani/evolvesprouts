@@ -28,6 +28,7 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
         course_label="Consultation",
         schedule_date_label="Apr 2026",
         schedule_time_label="Mon, 12 Apr 2026 AM",
+        course_slug="consultation-booking",
         payment_method_code="fps_qr",
         total_amount="HK$1,234.00",
         is_pending_payment=True,
@@ -38,6 +39,25 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
     assert data["schedule_datetime_label"] == "Apr 2026 Mon, 12 Apr 2026 AM"
     assert data["payment_method"] == "FPS"
     assert data["include_fps_instructions"] is True
-    assert "Consultation" in data["details_block_html"]
     assert "College essays" in data["details_block_html"]
-    assert "Writing focus" in data["details_plain"]
+    assert "Focus" in data["details_block_html"]
+    assert "Level" in data["details_plain"]
+
+
+def test_booking_confirmation_hkt_schedule_from_iso() -> None:
+    data = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="X",
+        schedule_date_label="ignored",
+        schedule_time_label="ignored",
+        location_name="HK venue",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-16T18:00:00+08:00",
+        course_slug="event-booking",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+    )
+    assert data["schedule_datetime_label"] == "16 April @ 18:00 HKT"

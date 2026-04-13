@@ -66,20 +66,27 @@ FPS_PAYMENT_DISCLAIMER: dict[str, str] = {
 }
 
 # Sub-lines inside the HTML "Details" row (consultation bookings).
-DETAILS_CONSULTATION_KIND: dict[str, str] = {
-    "en": "Consultation",
-    "zh-CN": "咨询",
-    "zh-HK": "諮詢",
-}
 DETAILS_WRITING_FOCUS_PREFIX: dict[str, str] = {
-    "en": "Writing focus",
-    "zh-CN": "写作重点",
-    "zh-HK": "寫作重點",
+    "en": "Focus",
+    "zh-CN": "重点",
+    "zh-HK": "重點",
 }
 DETAILS_LEVEL_PREFIX: dict[str, str] = {
     "en": "Level",
     "zh-CN": "级别",
     "zh-HK": "級別",
+}
+
+# My Best Auntie — Details row (cohort + age group).
+DETAILS_COHORT_PREFIX: dict[str, str] = {
+    "en": "Cohort",
+    "zh-CN": "班级",
+    "zh-HK": "班級",
+}
+DETAILS_AGE_GROUP_PREFIX: dict[str, str] = {
+    "en": "Age group",
+    "zh-CN": "年龄组",
+    "zh-HK": "年齡組",
 }
 
 # Customer-facing payment method line in confirmation (maps reservation payload codes).
@@ -95,22 +102,46 @@ CLOSING_NOTE: dict[str, str] = {
     "zh-HK": "期待與您見面！如有任何問題，歡迎隨時聯絡我們。",
 }
 
-WHATSAPP_INTRO: dict[str, str] = {
-    "en": "Questions? Message us on WhatsApp:",
-    "zh-CN": "有疑问？请通过 WhatsApp 联系我们：",
-    "zh-HK": "有疑問？請透過 WhatsApp 聯絡我們：",
+# HTML: link labels embedded in QUESTIONS_LINE_HTML_PREFIX / SUFFIX (Handlebars URLs).
+WHATSAPP_LINK_LABEL: dict[str, str] = {
+    "en": "WhatsApp",
+    "zh-CN": "WhatsApp",
+    "zh-HK": "WhatsApp",
 }
-
-FAQ_INTRO: dict[str, str] = {
-    "en": "Or check our FAQ for quick answers:",
-    "zh-CN": "或查看常见问题获取快速解答：",
-    "zh-HK": "或查看常見問題獲取快速解答：",
-}
-
 FAQ_LINK_LABEL: dict[str, str] = {
-    "en": "Visit our FAQ",
-    "zh-CN": "查看常见问题",
-    "zh-HK": "查看常見問題",
+    "en": "FAQ",
+    "zh-CN": "常见问题",
+    "zh-HK": "常見問題",
+}
+
+QUESTIONS_LINE_HTML_PREFIX: dict[str, str] = {
+    "en": "Questions? Message us on ",
+    "zh-CN": "有疑问？请通过 ",
+    "zh-HK": "有疑問？請透過 ",
+}
+QUESTIONS_LINE_HTML_MIDDLE: dict[str, str] = {
+    "en": ", or check our ",
+    "zh-CN": " 联系我们，或查看 ",
+    "zh-HK": " 聯絡我們，或查看 ",
+}
+QUESTIONS_LINE_HTML_SUFFIX: dict[str, str] = {
+    "en": " for quick answers.",
+    "zh-CN": " 获取快速解答。",
+    "zh-HK": " 獲取快速解答。",
+}
+
+# Plain body for MIME render (Python .format).
+QUESTIONS_LINE_PLAIN: dict[str, str] = {
+    "en": "Questions? Message us on WhatsApp ({whatsapp_url}), or check our FAQ ({faq_url}) for quick answers.",
+    "zh-CN": "有疑问？请通过 WhatsApp（{whatsapp_url}）联系我们，或查看常见问题（{faq_url}）获取快速解答。",
+    "zh-HK": "有疑問？請透過 WhatsApp（{whatsapp_url}）聯絡我們，或查看常見問題（{faq_url}）獲取快速解答。",
+}
+
+# SES TextPart uses Handlebars-style {{placeholders}} (merged with shell + template_data).
+QUESTIONS_LINE_TEXT_SES: dict[str, str] = {
+    "en": "Questions? Message us on WhatsApp ({{whatsapp_url}}), or check our FAQ ({{faq_url}}) for quick answers.",
+    "zh-CN": "有疑问？请通过 WhatsApp（{{whatsapp_url}}）联系我们，或查看常见问题（{{faq_url}}）获取快速解答。",
+    "zh-HK": "有疑問？請透過 WhatsApp（{{whatsapp_url}}）聯絡我們，或查看常見問題（{{faq_url}}）獲取快速解答。",
 }
 
 # Greeting / thank-you HTML fragments (SES Handlebars); same prose as MIME render.
