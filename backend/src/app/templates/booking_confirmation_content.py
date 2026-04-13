@@ -24,6 +24,7 @@ TABLE_LABELS: dict[str, dict[str, str]] = {
     "en": {
         "service": "Service",
         "datetime": "Date & time",
+        "location": "Location",
         "details": "Details",
         "payment": "Payment method",
         "total": "Total",
@@ -31,6 +32,7 @@ TABLE_LABELS: dict[str, dict[str, str]] = {
     "zh-CN": {
         "service": "服务",
         "datetime": "日期及时间",
+        "location": "地点",
         "details": "详情",
         "payment": "付款方式",
         "total": "总额",
@@ -38,6 +40,7 @@ TABLE_LABELS: dict[str, dict[str, str]] = {
     "zh-HK": {
         "service": "服務",
         "datetime": "日期及時間",
+        "location": "地點",
         "details": "詳情",
         "payment": "付款方式",
         "total": "總額",
@@ -86,10 +89,28 @@ PAYMENT_METHOD_LABELS: dict[str, str] = {
     "stripe": "Credit Card",
 }
 
+CLOSING_NOTE: dict[str, str] = {
+    "en": "We look forward to seeing you! If you have any questions beforehand, we're happy to help.",
+    "zh-CN": "期待与您见面！如有任何问题，欢迎随时联系我们。",
+    "zh-HK": "期待與您見面！如有任何問題，歡迎隨時聯絡我們。",
+}
+
 WHATSAPP_INTRO: dict[str, str] = {
     "en": "Questions? Message us on WhatsApp:",
     "zh-CN": "有疑问？请通过 WhatsApp 联系我们：",
     "zh-HK": "有疑問？請透過 WhatsApp 聯絡我們：",
+}
+
+FAQ_INTRO: dict[str, str] = {
+    "en": "Or check our FAQ for quick answers:",
+    "zh-CN": "或查看常见问题获取快速解答：",
+    "zh-HK": "或查看常見問題獲取快速解答：",
+}
+
+FAQ_LINK_LABEL: dict[str, str] = {
+    "en": "Visit our FAQ",
+    "zh-CN": "查看常见问题",
+    "zh-HK": "查看常見問題",
 }
 
 # Greeting / thank-you HTML fragments (SES Handlebars); same prose as MIME render.

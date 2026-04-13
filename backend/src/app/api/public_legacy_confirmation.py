@@ -153,6 +153,7 @@ def send_booking_confirmation_email(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
+    location_name: str | None = None,
     payment_method: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -175,6 +176,7 @@ def send_booking_confirmation_email(
         course_label=course_label,
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
+        location_name=location_name,
         payment_method_code=payment_method,
         total_amount=total_amount,
         is_pending_payment=is_pending_payment,
@@ -202,16 +204,19 @@ def send_booking_confirmation_email(
 
     if png_bytes is not None:
         wa_url = str(merged.get("whatsapp_url") or "").strip()
+        faq_url = str(merged.get("faq_url") or "").strip()
         subject, html_doc, plain_text = render_booking_confirmation_email(
             locale=loc,
             full_name=full_name,
             course_label=course_label,
             schedule_date_label=schedule_date_label,
             schedule_time_label=schedule_time_label,
+            location_name=location_name,
             payment_method_code=payment_method,
             total_amount=total_amount,
             is_pending_payment=is_pending_payment,
             whatsapp_url=wa_url,
+            faq_url=faq_url,
             include_fps_qr_image=True,
             consultation_writing_focus_label=consultation_writing_focus_label,
             consultation_level_label=consultation_level_label,
@@ -382,6 +387,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
         course_label = "Your booking"
     schedule_date = _optional_str(payload.get("schedule_date_label"))
     schedule_time = _optional_str(payload.get("schedule_time_label"))
+    location_name = _optional_str(payload.get("location_name"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
     payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
@@ -401,6 +407,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 course_label=course_label,
                 schedule_date_label=schedule_date,
                 schedule_time_label=schedule_time,
+                location_name=location_name,
                 payment_method=payment_method,
                 total_amount=total_amount,
                 is_pending_payment=is_pending,

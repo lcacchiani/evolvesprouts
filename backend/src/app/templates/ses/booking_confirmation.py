@@ -6,6 +6,9 @@ from typing import Any
 
 from app.templates.booking_confirmation_content import (
     BOOKING_CONFIRMATION_LOCALES,
+    CLOSING_NOTE,
+    FAQ_INTRO,
+    FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     GREETING_HTML,
@@ -47,6 +50,13 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         "{{{details_block_html}}}</td></tr>"
         "{{/if}}"
     )
+    row_location = (
+        "{{#if location_name}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["location"]}</strong></td>'
+        '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
+        "{{location_name}}</td></tr>"
+        "{{/if}}"
+    )
     row_payment = (
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["payment"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
@@ -57,6 +67,9 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
     )
     pending = PENDING_PAYMENT_NOTE[loc]
+    closing = CLOSING_NOTE[loc]
+    faq_intro = FAQ_INTRO[loc]
+    faq_label = FAQ_LINK_LABEL[loc]
     inner_html = (
         GREETING_HTML[loc]
         + THANK_YOU_HTML[loc]
@@ -65,6 +78,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + row_service
         + row_datetime
         + row_details
+        + row_location
         + row_payment
         + row_total
         + "</table>"
@@ -80,9 +94,14 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         f"{FPS_PAYMENT_DISCLAIMER[loc]}"
         "</p>"
         "{{/if}}"
+        f'<p style="margin:0 0 16px;">{closing}</p>'
         f'<p style="margin:0 0 12px;">{WHATSAPP_INTRO[loc]}</p>'
-        '<p style="margin:0;">'
+        '<p style="margin:0 0 16px;">'
         f'<a href="{{{{whatsapp_url}}}}" style="{_CTA_LINK}">WhatsApp</a>'
+        "</p>"
+        f'<p style="margin:0 0 12px;">{faq_intro}</p>'
+        '<p style="margin:0;">'
+        f'<a href="{{{{faq_url}}}}" style="{_CTA_LINK}">{faq_label}</a>'
         "</p>"
     )
 
@@ -103,6 +122,10 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + f"{labels['details']}{label_sep}\n"
         + "{{details_plain}}\n"
         + "{{/if}}"
+        + "{{#if location_name}}"
+        + f"{labels['location']}{label_sep}"
+        + "{{location_name}}\n"
+        + "{{/if}}"
         + f"{labels['payment']}{label_sep}"
         + "{{payment_method}}\n"
         + f"{labels['total']}{label_sep}"
@@ -114,11 +137,18 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + f"{FPS_QR_INTRO[loc]}\n"
         + f"{FPS_PAYMENT_DISCLAIMER[loc]}\n\n"
         + "{{/if}}"
+        + f"{closing}\n\n"
         + f"{WHATSAPP_INTRO[loc]}\n"
         + (
             "WhatsApp: {{whatsapp_url}}\n\n"
             if loc == "en"
             else "WhatsApp：{{whatsapp_url}}\n\n"
+        )
+        + f"{faq_intro}\n"
+        + (
+            "FAQ: {{faq_url}}\n\n"
+            if loc == "en"
+            else f"{faq_label}：{{{{faq_url}}}}\n\n"
         )
         + SIGN_OFF_PLAIN[loc]
     )
