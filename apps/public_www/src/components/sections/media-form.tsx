@@ -324,7 +324,6 @@ export function MediaForm({
       <TurnstileCaptcha
         siteKey={turnstileSiteKey}
         widgetAction='media_submit'
-        size='normal'
         onTokenChange={handleCaptchaTokenChange}
         onLoadError={handleCaptchaLoadError}
       />
