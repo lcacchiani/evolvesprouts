@@ -1273,9 +1273,7 @@
         "locationAddress": "Hong Kong",
         "topicsField": {
           "label": "Anything we should know",
-          "placeholder": "",
-          "labelTooltip": "Your consultation focus and Essentials or Deep Dive level are already selected above.",
-          "placeholderTooltip": "i.e. child is 3, helper has been with us 2 years, or any context for the visit.",
+          "placeholder": "i.e. child is 3, helper has been with us 2 years, or any context for the visit",
           "required": true
         },
         "essentials": {

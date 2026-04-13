@@ -28,6 +28,4 @@ export interface BookingTopicsFieldConfig {
   label?: string;
   placeholder?: string;
   required?: boolean;
-  labelTooltip?: string;
-  placeholderTooltip?: string;
 }
