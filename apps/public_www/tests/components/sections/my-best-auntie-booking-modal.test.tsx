@@ -250,6 +250,8 @@ const expectedMbaMarketingFields = {
   schedule_date_label: 'Apr, 2026',
   schedule_time_label: expectedMbaScheduleTimeLabel,
   location_name: selectedCohort.location_name,
+  location_address: selectedCohort.location_address,
+  primary_session_start_iso: primarySessionPart?.start_datetime,
 };
 
 function renderWithPortalContainer(ui: ReactNode) {

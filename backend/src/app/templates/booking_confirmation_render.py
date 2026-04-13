@@ -3,32 +3,89 @@
 from __future__ import annotations
 
 import html
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from app.templates.booking_confirmation_content import (
     CLOSING_NOTE,
-    DETAILS_CONSULTATION_KIND,
+    DETAILS_AGE_GROUP_PREFIX,
+    DETAILS_COHORT_PREFIX,
     DETAILS_LEVEL_PREFIX,
     DETAILS_WRITING_FOCUS_PREFIX,
-    FAQ_INTRO,
     FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     HEADER_TITLE,
     PAYMENT_METHOD_LABELS,
     PENDING_PAYMENT_NOTE,
+    QUESTIONS_LINE_HTML_MIDDLE,
+    QUESTIONS_LINE_HTML_PREFIX,
+    QUESTIONS_LINE_HTML_SUFFIX,
+    QUESTIONS_LINE_PLAIN,
     SIGN_OFF_PLAIN,
     SUBJECT_PREFIX,
     SUBJECT_SUFFIX,
     TABLE_LABELS,
     THANK_YOU_HTML,
     THANK_YOU_PLAIN,
-    WHATSAPP_INTRO,
+    WHATSAPP_LINK_LABEL,
     normalize_booking_locale,
 )
 from app.templates.ses.email_shell import wrap_transactional_html
 
 _CTA_LINK = "color:#C84A16;font-weight:600;"
+
+_HK_LOCATION_MARKERS = (
+    "hong kong",
+    "hk",
+    "h.k.",
+    "香港",
+    "kowloon",
+    "九龍",
+    "九龙",
+    "new territories",
+    "新界",
+    "sheung wan",
+    "上環",
+    "上环",
+    "wan chai",
+    "灣仔",
+    "湾仔",
+    "central",
+    "中環",
+    "中环",
+    "admiralty",
+    "金鐘",
+    "金钟",
+    "causeway bay",
+    "銅鑼灣",
+    "铜锣湾",
+    "mid-levels",
+    "半山",
+    "shek tong tsui",
+    "石塘咀",
+    "pacific place",
+    "太古廣場",
+    "太古广场",
+)
+
+_EMAIL_HKT_TZ = ZoneInfo("Asia/Hong_Kong")
+_MONTH_NAMES_EN = (
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+)
 
 
 def resolve_payment_method_display(payment_method_code: str) -> str:
@@ -55,6 +112,90 @@ def format_schedule_datetime_line(
     return None
 
 
+def _normalize_location_match_text(*parts: str | None) -> str:
+    return " ".join((p or "").strip().lower() for p in parts if (p or "").strip())
+
+
+def location_suggests_hong_kong(
+    *,
+    location_name: str | None,
+    location_address: str | None,
+) -> bool:
+    """Heuristic: venue/address text indicates a Hong Kong location."""
+    blob = _normalize_location_match_text(location_name, location_address)
+    if not blob:
+        return False
+    return any(marker in blob for marker in _HK_LOCATION_MARKERS)
+
+
+def format_booking_location_display_line(
+    *,
+    location_name: str | None,
+    location_address: str | None,
+) -> str | None:
+    """Venue + comma + address when both exist; otherwise whichever is set."""
+    name = (location_name or "").strip()
+    addr = (location_address or "").strip()
+    if name and addr:
+        if name.lower() == addr.lower():
+            return name
+        return f"{name}, {addr}"
+    if name:
+        return name
+    if addr:
+        return addr
+    return None
+
+
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=_EMAIL_HKT_TZ)
+    return dt
+
+
+def _format_hkt_email_line(dt: datetime) -> str:
+    """e.g. ``16 April @ 18:00 HKT`` (24-hour clock, Asia/Hong_Kong)."""
+    local = dt.astimezone(_EMAIL_HKT_TZ)
+    day = local.day
+    month = _MONTH_NAMES_EN[local.month]
+    hm = f"{local.hour:02d}:{local.minute:02d}"
+    return f"{day} {month} @ {hm} HKT"
+
+
+def format_booking_datetime_display(
+    *,
+    primary_session_iso: str | None,
+    schedule_date_label: str | None,
+    schedule_time_label: str | None,
+    location_use_hkt: bool,
+) -> str | None:
+    """Schedule line for email; HKT formatting when the booking is in Hong Kong."""
+    if location_use_hkt:
+        parsed = _parse_iso_datetime(primary_session_iso)
+        if parsed is not None:
+            return _format_hkt_email_line(parsed)
+        line = format_schedule_datetime_line(schedule_date_label, schedule_time_label)
+        if not line:
+            return None
+        if "hkt" not in line.lower():
+            return f"{line} HKT"
+        return line
+    return format_schedule_datetime_line(schedule_date_label, schedule_time_label)
+
+
+def _normalize_course_slug(course_slug: str | None) -> str:
+    return (course_slug or "").strip().lower()
+
+
 def _consultation_details_segments(
     *,
     loc: str,
@@ -65,12 +206,101 @@ def _consultation_details_segments(
     level = (consultation_level_label or "").strip()
     if not focus and not level:
         return []
-    lines: list[str] = [DETAILS_CONSULTATION_KIND[loc]]
+    lines: list[str] = []
     if focus:
         lines.append(f"{DETAILS_WRITING_FOCUS_PREFIX[loc]}: {focus}")
     if level:
         lines.append(f"{DETAILS_LEVEL_PREFIX[loc]}: {level}")
     return lines
+
+
+def _my_best_auntie_details_segments(
+    *,
+    loc: str,
+    cohort_label: str | None,
+    age_group_label: str | None,
+) -> list[str]:
+    cohort = (cohort_label or "").strip()
+    age = (age_group_label or "").strip()
+    if not cohort and not age:
+        return []
+    lines: list[str] = []
+    if cohort:
+        lines.append(f"{DETAILS_COHORT_PREFIX[loc]}: {cohort}")
+    if age:
+        lines.append(f"{DETAILS_AGE_GROUP_PREFIX[loc]}: {age}")
+    return lines
+
+
+def _cohort_label_for_mba_details(
+    course_slug: str | None,
+    schedule_date_label: str | None,
+) -> str | None:
+    if _normalize_course_slug(course_slug) != "my-best-auntie":
+        return None
+    s = (schedule_date_label or "").strip()
+    return s or None
+
+
+def format_booking_details_html_cell(
+    *,
+    loc: str,
+    course_slug: str | None,
+    schedule_date_label: str | None,
+    age_group_label: str | None,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
+) -> str:
+    slug = _normalize_course_slug(course_slug)
+    cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
+    if slug == "my-best-auntie":
+        segments = _my_best_auntie_details_segments(
+            loc=loc,
+            cohort_label=cohort_for_mba,
+            age_group_label=age_group_label,
+        )
+    elif slug == "consultation-booking":
+        segments = _consultation_details_segments(
+            loc=loc,
+            consultation_writing_focus_label=consultation_writing_focus_label,
+            consultation_level_label=consultation_level_label,
+        )
+    else:
+        segments = []
+    if not segments:
+        return ""
+    inner = "<br/>".join(html.escape(s) for s in segments)
+    return f'<span style="display:block;text-align:right;">{inner}</span>'
+
+
+def format_booking_details_plain(
+    *,
+    loc: str,
+    course_slug: str | None,
+    schedule_date_label: str | None,
+    age_group_label: str | None,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
+) -> str:
+    slug = _normalize_course_slug(course_slug)
+    cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
+    if slug == "my-best-auntie":
+        segments = _my_best_auntie_details_segments(
+            loc=loc,
+            cohort_label=cohort_for_mba,
+            age_group_label=age_group_label,
+        )
+    elif slug == "consultation-booking":
+        segments = _consultation_details_segments(
+            loc=loc,
+            consultation_writing_focus_label=consultation_writing_focus_label,
+            consultation_level_label=consultation_level_label,
+        )
+    else:
+        segments = []
+    if not segments:
+        return ""
+    return "\n".join(segments)
 
 
 def format_consultation_details_html_cell(
@@ -79,15 +309,15 @@ def format_consultation_details_html_cell(
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
-    segments = _consultation_details_segments(
+    """Backward-compatible alias for consultation-only formatting."""
+    return format_booking_details_html_cell(
         loc=loc,
+        course_slug="consultation-booking",
+        schedule_date_label=None,
+        age_group_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
-    if not segments:
-        return ""
-    inner = "<br/>".join(html.escape(s) for s in segments)
-    return f'<span style="display:block;text-align:right;">{inner}</span>'
 
 
 def format_consultation_details_plain(
@@ -96,14 +326,33 @@ def format_consultation_details_plain(
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
-    segments = _consultation_details_segments(
+    return format_booking_details_plain(
         loc=loc,
+        course_slug="consultation-booking",
+        schedule_date_label=None,
+        age_group_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
-    if not segments:
-        return ""
-    return "\n".join(segments)
+
+
+def _questions_line_html(loc: str, esc_wa: str, esc_faq: str) -> str:
+    return (
+        f'<p style="margin:0;">{html.escape(QUESTIONS_LINE_HTML_PREFIX[loc])}'
+        f'<a href="{esc_wa}" style="{_CTA_LINK}">'
+        f"{html.escape(WHATSAPP_LINK_LABEL[loc])}</a>"
+        f"{html.escape(QUESTIONS_LINE_HTML_MIDDLE[loc])}"
+        f'<a href="{esc_faq}" style="{_CTA_LINK}">'
+        f"{html.escape(FAQ_LINK_LABEL[loc])}</a>"
+        f"{html.escape(QUESTIONS_LINE_HTML_SUFFIX[loc])}</p>"
+    )
+
+
+def _questions_line_plain(loc: str, whatsapp_url: str, faq_url: str) -> str:
+    return QUESTIONS_LINE_PLAIN[loc].format(
+        whatsapp_url=whatsapp_url,
+        faq_url=faq_url,
+    )
 
 
 def booking_confirmation_template_merge_data(
@@ -114,6 +363,10 @@ def booking_confirmation_template_merge_data(
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
+    location_address: str | None = None,
+    primary_session_iso: str | None = None,
+    course_slug: str | None = None,
+    age_group_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -124,16 +377,33 @@ def booking_confirmation_template_merge_data(
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
     pm_display = resolve_payment_method_display(payment_method_code)
-    schedule_line = format_schedule_datetime_line(
-        schedule_date_label, schedule_time_label
+    loc_line = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
     )
-    details_html = format_consultation_details_html_cell(
+    use_hkt = location_suggests_hong_kong(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    schedule_line = format_booking_datetime_display(
+        primary_session_iso=primary_session_iso,
+        schedule_date_label=schedule_date_label,
+        schedule_time_label=schedule_time_label,
+        location_use_hkt=use_hkt,
+    )
+    details_html = format_booking_details_html_cell(
         loc=loc,
+        course_slug=course_slug,
+        schedule_date_label=schedule_date_label,
+        age_group_label=age_group_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
-    details_plain = format_consultation_details_plain(
+    details_plain = format_booking_details_plain(
         loc=loc,
+        course_slug=course_slug,
+        schedule_date_label=schedule_date_label,
+        age_group_label=age_group_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -152,8 +422,8 @@ def booking_confirmation_template_merge_data(
     }
     if schedule_line:
         data["schedule_datetime_label"] = schedule_line
-    if location_name and location_name.strip():
-        data["location_name"] = location_name.strip()
+    if loc_line:
+        data["location_name"] = loc_line
     return data
 
 
@@ -183,6 +453,10 @@ def render_booking_confirmation_email(
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
+    location_address: str | None = None,
+    primary_session_iso: str | None = None,
+    course_slug: str | None = None,
+    age_group_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -201,6 +475,7 @@ def render_booking_confirmation_email(
     esc_pm = html.escape(pm_display)
     esc_total = html.escape(total_amount)
     esc_wa = html.escape(whatsapp_url.strip(), quote=True)
+    esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url.strip() else ""
 
     greeting = (
         f'<p style="margin:0 0 12px;">Hi {esc_name},</p>'
@@ -208,21 +483,29 @@ def render_booking_confirmation_email(
         else f'<p style="margin:0 0 12px;">您好 {esc_name}，</p>'
     )
 
+    loc_line = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    use_hkt = location_suggests_hong_kong(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    schedule_line = format_booking_datetime_display(
+        primary_session_iso=primary_session_iso,
+        schedule_date_label=schedule_date_label,
+        schedule_time_label=schedule_time_label,
+        location_use_hkt=use_hkt,
+    )
+
     rows_html: list[str] = [
         _html_table_row_bordered(labels["service"], esc_course),
     ]
-    schedule_line = format_schedule_datetime_line(
-        schedule_date_label, schedule_time_label
-    )
-    if schedule_line:
-        rows_html.append(
-            _html_table_row_bordered(
-                labels["datetime"],
-                html.escape(schedule_line),
-            )
-        )
-    details_cell = format_consultation_details_html_cell(
+    details_cell = format_booking_details_html_cell(
         loc=loc,
+        course_slug=course_slug,
+        schedule_date_label=schedule_date_label,
+        age_group_label=age_group_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -230,11 +513,18 @@ def render_booking_confirmation_email(
         rows_html.append(
             _html_table_row_bordered(labels["details"], details_cell),
         )
-    if location_name and location_name.strip():
+    if schedule_line:
+        rows_html.append(
+            _html_table_row_bordered(
+                labels["datetime"],
+                html.escape(schedule_line),
+            )
+        )
+    if loc_line:
         rows_html.append(
             _html_table_row_bordered(
                 labels["location"],
-                html.escape(location_name.strip()),
+                html.escape(loc_line),
             )
         )
     rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
@@ -269,26 +559,15 @@ def render_booking_confirmation_email(
             "</p>"
         )
 
-    esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url else ""
     closing_note = html.escape(CLOSING_NOTE[loc])
-    faq_intro_text = html.escape(FAQ_INTRO[loc])
-    faq_label_text = html.escape(FAQ_LINK_LABEL[loc])
+    questions_html = _questions_line_html(loc, esc_wa, esc_faq) if esc_faq else ""
     inner_html = (
         f"{greeting}{THANK_YOU_HTML[loc]}"
         f"{table_html}{pending_block}{fps_block}"
+        '<hr style="border:0;border-top:1px solid #eeeeee;margin:0 0 16px;"/>'
         f'<p style="margin:0 0 16px;">{closing_note}</p>'
-        f'<p style="margin:0 0 12px;">{html.escape(WHATSAPP_INTRO[loc])}</p>'
-        f'<p style="margin:0 0 16px;">'
-        f'<a href="{esc_wa}" style="{_CTA_LINK}">WhatsApp</a>'
-        f"</p>"
+        f"{questions_html}"
     )
-    if esc_faq:
-        inner_html += (
-            f'<p style="margin:0 0 12px;">{faq_intro_text}</p>'
-            f'<p style="margin:0;">'
-            f'<a href="{esc_faq}" style="{_CTA_LINK}">{faq_label_text}</a>'
-            f"</p>"
-        )
 
     full_html_template = wrap_transactional_html(
         header_title=HEADER_TITLE[loc],
@@ -305,6 +584,10 @@ def render_booking_confirmation_email(
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
         location_name=location_name,
+        location_address=location_address,
+        primary_session_iso=primary_session_iso,
+        course_slug=course_slug,
+        age_group_label=age_group_label,
         payment_method_display=pm_display,
         total_amount=total_amount,
         is_pending_payment=is_pending_payment,
@@ -343,6 +626,10 @@ def _build_plain_text(
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None,
+    location_address: str | None,
+    primary_session_iso: str | None,
+    course_slug: str | None,
+    age_group_label: str | None,
     payment_method_display: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -360,20 +647,38 @@ def _build_plain_text(
         lines.append(f"您好 {full_name}，\n")
     lines.append(THANK_YOU_PLAIN[loc])
     lines.append(f"{labels['service']}{label_sep}{course_label}\n")
-    schedule_line = format_schedule_datetime_line(
-        schedule_date_label, schedule_time_label
-    )
-    if schedule_line:
-        lines.append(f"{labels['datetime']}{label_sep}{schedule_line}\n")
-    details_plain = format_consultation_details_plain(
+
+    details_plain = format_booking_details_plain(
         loc=loc,
+        course_slug=course_slug,
+        schedule_date_label=schedule_date_label,
+        age_group_label=age_group_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
     if details_plain:
         lines.append(f"{labels['details']}{label_sep}\n{details_plain}\n")
-    if location_name and location_name.strip():
-        lines.append(f"{labels['location']}{label_sep}{location_name.strip()}\n")
+
+    use_hkt = location_suggests_hong_kong(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    schedule_line = format_booking_datetime_display(
+        primary_session_iso=primary_session_iso,
+        schedule_date_label=schedule_date_label,
+        schedule_time_label=schedule_time_label,
+        location_use_hkt=use_hkt,
+    )
+    if schedule_line:
+        lines.append(f"{labels['datetime']}{label_sep}{schedule_line}\n")
+
+    loc_line = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    if loc_line:
+        lines.append(f"{labels['location']}{label_sep}{loc_line}\n")
+
     lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
     if is_pending_payment:
@@ -383,16 +688,10 @@ def _build_plain_text(
         lines.append(f"{FPS_PAYMENT_DISCLAIMER[loc]}\n")
         lines.append("[FPS QR code image is attached as fps-qr.png]\n\n")
     lines.append(f"{CLOSING_NOTE[loc]}\n\n")
-    lines.append(f"{WHATSAPP_INTRO[loc]}\n")
-    if loc == "en":
-        lines.append(f"WhatsApp: {whatsapp_url}\n\n")
-    else:
-        lines.append(f"WhatsApp：{whatsapp_url}\n\n")
     if faq_url:
-        lines.append(f"{FAQ_INTRO[loc]}\n")
-        if loc == "en":
-            lines.append(f"FAQ: {faq_url}\n\n")
-        else:
-            lines.append(f"{FAQ_LINK_LABEL[loc]}：{faq_url}\n\n")
+        lines.append(
+            _questions_line_plain(loc, whatsapp_url=whatsapp_url, faq_url=faq_url)
+            + "\n\n"
+        )
     lines.append(SIGN_OFF_PLAIN[loc])
     return lines

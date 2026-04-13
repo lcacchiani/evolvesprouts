@@ -32,6 +32,13 @@ export interface ReservationSubmissionPayload {
   /** Consultation booking: level title for confirmation email Details row. */
   consultation_level_label?: string;
   location_name?: string;
+  /** Venue address line for confirmation email (combined with location_name). */
+  location_address?: string;
+  /**
+   * Primary session start as ISO 8601 (e.g. from course session datetime).
+   * Used for HKT date/time in the confirmation email when the venue is in Hong Kong.
+   */
+  primary_session_start_iso?: string;
   /**
    * PNG data URL from the same FPS QR as the booking modal; backend inlines it
    * in the confirmation email when payment is pending (fps_qr).
