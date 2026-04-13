@@ -37,8 +37,6 @@ export function buildConsultationsBookingModalPayload(
       label: reservation.topicsField.label,
       placeholder: reservation.topicsField.placeholder,
       required: reservation.topicsField.required,
-      labelTooltip: reservation.topicsField.labelTooltip,
-      placeholderTooltip: reservation.topicsField.placeholderTooltip,
     },
   };
   return payload;

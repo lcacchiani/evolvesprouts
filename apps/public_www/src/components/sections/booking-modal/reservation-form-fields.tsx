@@ -1,5 +1,3 @@
-import { useId } from 'react';
-
 import type { BookingPaymentModalContent } from '@/content';
 import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
 
@@ -53,17 +51,6 @@ export function ReservationFormFields({
   const topicsFieldPlaceholder =
     topicsFieldConfig?.placeholder ?? content.topicsInterestPlaceholder;
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
-  const labelTooltip = topicsFieldConfig?.labelTooltip?.trim() ?? '';
-  const placeholderTooltip = topicsFieldConfig?.placeholderTooltip?.trim() ?? '';
-  const hasVisiblePlaceholder = topicsFieldPlaceholder.trim().length > 0;
-  const topicsFieldId = useId();
-  const topicsPlaceholderHintId = useId();
-  const topicsTextareaDescribedBy = [
-    hasTopicsError ? BOOKING_TOPICS_ERROR_MESSAGE_ID : null,
-    placeholderTooltip ? topicsPlaceholderHintId : null,
-  ]
-    .filter((id): id is string => Boolean(id))
-    .join(' ') || undefined;
 
   return (
     <>
@@ -157,50 +144,27 @@ export function ReservationFormFields({
           </p>
         ) : null}
       </label>
-      <div className='block'>
-        {placeholderTooltip ? (
-          <p id={topicsPlaceholderHintId} className='sr-only'>
-            {placeholderTooltip}
-          </p>
-        ) : null}
-        <label
-          htmlFor={topicsFieldId}
-          className='mb-1 flex flex-wrap items-center gap-1.5 text-sm font-semibold es-text-heading'
-        >
-          <span>
-            {topicsFieldLabel}
-            {isTopicsFieldRequired ? (
-              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                *
-              </span>
-            ) : null}
-          </span>
-          {labelTooltip ? (
-            <button
-              type='button'
-              tabIndex={-1}
-              title={labelTooltip}
-              aria-label={labelTooltip}
-              className='inline-flex h-5 min-w-5 cursor-default items-center justify-center rounded-full border border-black/25 px-1 text-[11px] font-bold leading-none es-text-dim'
-            >
-              i
-            </button>
+      <label className='block'>
+        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+          {topicsFieldLabel}
+          {isTopicsFieldRequired ? (
+            <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+              *
+            </span>
           ) : null}
-        </label>
+        </span>
         <textarea
-          id={topicsFieldId}
           required={isTopicsFieldRequired}
           value={interestedTopics}
           onChange={(event) => {
             onTopicsChange(event.target.value);
           }}
           onBlur={onTopicsBlur}
-          placeholder={hasVisiblePlaceholder ? topicsFieldPlaceholder : undefined}
-          title={placeholderTooltip || undefined}
+          placeholder={topicsFieldPlaceholder}
           rows={3}
           className={`es-focus-ring es-form-input resize-y ${hasTopicsError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasTopicsError}
-          aria-describedby={topicsTextareaDescribedBy}
+          aria-describedby={hasTopicsError ? BOOKING_TOPICS_ERROR_MESSAGE_ID : undefined}
         />
         {hasTopicsError ? (
           <p
@@ -211,7 +175,7 @@ export function ReservationFormFields({
             {content.topicsRequiredError}
           </p>
         ) : null}
-      </div>
+      </label>
     </>
   );
 }

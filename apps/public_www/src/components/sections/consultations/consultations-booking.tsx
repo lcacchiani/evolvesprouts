@@ -204,7 +204,6 @@ export function ConsultationsBooking({
       const focus = content.focusAreas.find((a) => a.id === selectedFocusId);
       const level = content.levels.find((l) => l.id === selectedLevelId);
       if (!focus || !level) return undefined;
-      const deepDiveLevel = content.levels.find((l) => l.id === 'deep-dive');
       return {
         focusLabel: focus.title,
         levelId: level.id,
@@ -214,7 +213,6 @@ export function ConsultationsBooking({
           { focus: focus.title },
         ),
         upgradeToDeepDiveLabel: content.reservation.upgradeToDeepDiveLabel,
-        upgradeToDeepDiveIconSrc: deepDiveLevel?.iconSrc,
       };
     }, [content.focusAreas, content.levels, content.reservation, selectedFocusId, selectedLevelId]);
 

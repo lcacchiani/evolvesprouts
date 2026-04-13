@@ -53,7 +53,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home', levelLabel: 'Essentials' },
     );
 
     render(
@@ -81,7 +80,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home', levelLabel: 'Essentials' },
     );
 
     render(
@@ -121,7 +119,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
     );
 
     render(
@@ -157,7 +154,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
     );
 
     const { unmount } = render(
@@ -195,7 +191,6 @@ describe('ConsultationBookingModal', () => {
     const deepDivePayload = buildConsultationsBookingModalPayload(
       deepDiveReservation,
       'en',
-      { focusLabel: 'Home Assessment', levelLabel: 'Deep Dive' },
     );
 
     render(
@@ -229,7 +224,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
     );
 
     render(
@@ -254,7 +248,6 @@ describe('ConsultationBookingModal', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
-      { focusLabel: 'Home', levelLabel: 'Essentials' },
     );
 
     render(
@@ -288,42 +281,4 @@ describe('ConsultationBookingModal', () => {
     );
   });
 
-  it('renders deep dive icon in upgrade button when selectionInfo includes icon src', () => {
-    const upgradeLabel = enContent.consultations.booking.reservation.upgradeToDeepDiveLabel;
-    const deepDiveLevel = enContent.consultations.booking.levels.find((l) => l.id === 'deep-dive');
-    expect(deepDiveLevel).toBeDefined();
-
-    const selectionInfo: ConsultationBookingModalSelectionInfo = {
-      focusLabel: 'Home Assessment',
-      levelId: 'essentials',
-      levelFeatures: enContent.consultations.booking.levels[0].features,
-      focusLabelFormatted: 'Home Assessment focus',
-      upgradeToDeepDiveLabel: upgradeLabel,
-      upgradeToDeepDiveIconSrc: deepDiveLevel!.iconSrc,
-    };
-
-    const bookingPayload = buildConsultationsBookingModalPayload(
-      enContent.consultations.booking.reservation,
-      'en',
-      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
-    );
-
-    render(
-      <ConsultationBookingModal
-        locale='en'
-        paymentModalContent={enContent.bookingModal.paymentModal}
-        bookingPayload={bookingPayload}
-        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
-        calendarAvailability={{ unavailable_slots: [] }}
-        selectionInfo={selectionInfo}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-        onUpgradeToDeepDive={() => {}}
-      />,
-    );
-
-    const upgradeButton = screen.getByRole('button', { name: upgradeLabel });
-    const icon = upgradeButton.querySelector(`img[src="${deepDiveLevel!.iconSrc}"]`);
-    expect(icon).not.toBeNull();
-  });
 });

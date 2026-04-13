@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import {
   useId,
   useMemo,
@@ -45,7 +44,6 @@ export interface ConsultationBookingModalSelectionInfo {
   levelFeatures: string[];
   focusLabelFormatted: string;
   upgradeToDeepDiveLabel: string;
-  upgradeToDeepDiveIconSrc?: string;
 }
 
 interface ConsultationBookingModalProps {
@@ -397,19 +395,10 @@ export function ConsultationBookingModal({
           <ButtonPrimitive
             type='button'
             variant='primary'
-            className='max-w-[360px] es-btn--outline flex flex-col items-center gap-2 py-3'
+            className='max-w-[360px] es-btn--outline'
             onClick={onUpgradeToDeepDive}
           >
-            {selectionInfo.upgradeToDeepDiveIconSrc ? (
-              <Image
-                src={selectionInfo.upgradeToDeepDiveIconSrc}
-                alt=''
-                width={44}
-                height={44}
-                className='h-11 w-11 shrink-0 object-contain'
-              />
-            ) : null}
-            <span className='text-center'>{selectionInfo.upgradeToDeepDiveLabel}</span>
+            {selectionInfo.upgradeToDeepDiveLabel}
           </ButtonPrimitive>
         </div>
       ) : null}
