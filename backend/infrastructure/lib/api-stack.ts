@@ -1627,7 +1627,6 @@ export class ApiStack extends cdk.Stack {
       awsProxyFunction.functionArn
     );
     awsProxyFunction.grantInvoke(adminFunction);
-    awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
 
     const [sesSenderIdentityArn, sesSenderDomainIdentityArn] =
       sesVerifiedAddressAndDomainIdentityArns(this, sesSenderEmail.valueAsString);
@@ -1725,6 +1724,7 @@ export class ApiStack extends cdk.Stack {
       openrouterModel: openrouterModel.valueAsString,
       openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
     });
+    awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
 
     adminFunction.addToRolePolicy(
       new iam.PolicyStatement({
