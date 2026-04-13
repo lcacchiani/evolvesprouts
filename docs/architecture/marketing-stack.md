@@ -638,7 +638,7 @@ Audited via Meta Graph API using cursor-bot system user on 2026-03-17.
 |---|---|---|
 | Account name | Evolve Sprouts | OK |
 | Account status | APPROVED | OK |
-| Phone | +852 9447 9843 | OK |
+| Phone | *(set via `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER` env var)* | OK |
 | Phone API status | **CONNECTED** (coexistence mode, updated 2026-03-17) | Cloud API active alongside WhatsApp Business App |
 | Platform type | CLOUD_API | Coexistence with Business App |
 | Quality rating | UNKNOWN | Will update as messages are sent |

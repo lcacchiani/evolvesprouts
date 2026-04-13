@@ -167,7 +167,7 @@ describe('HomePage', () => {
 
   it('uses locale navbar prefill message when business phone is configured', () => {
     process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
-    process.env[BUSINESS_PHONE_ENV_KEY] = '+852 9447 9843';
+    process.env[BUSINESS_PHONE_ENV_KEY] = '+1 555 000 1234';
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
@@ -184,14 +184,14 @@ describe('HomePage', () => {
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
     const parsedFreeIntroHref = new URL(freeIntroProps.content.ctaHref);
 
-    expect(parsedNavbarHref.pathname).toBe('/85294479843');
+    expect(parsedNavbarHref.pathname).toBe('/15550001234');
     expect(parsedNavbarHref.searchParams.get('text')).toBe(
       localizedContent.navbar.bookNow.prefillMessage,
     );
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       localizedContent.navbar.bookNow.label,
     );
-    expect(parsedFreeIntroHref.pathname).toBe('/85294479843');
+    expect(parsedFreeIntroHref.pathname).toBe('/15550001234');
     expect(parsedFreeIntroHref.searchParams.get('text')).toBe(
       localizedContent.freeIntroSession.prefillMessage,
     );

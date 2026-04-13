@@ -928,7 +928,7 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Business phone number in international format (e.g. +852 9447 9843) used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
+          "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
     const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {

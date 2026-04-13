@@ -12,8 +12,8 @@ from app.templates.transactional_shell_data import (
     resolve_whatsapp_url_for_template,
 )
 
-_TEST_PHONE = "+852 9447 9843"
-_TEST_PHONE_DIGITS = "85294479843"
+_TEST_PHONE = "+1 555 000 1234"
+_TEST_PHONE_DIGITS = "15550001234"
 _TEST_PHONE_WA_URL = f"https://wa.me/{_TEST_PHONE_DIGITS}"
 
 
