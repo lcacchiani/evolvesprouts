@@ -172,6 +172,14 @@
     color: var(--es-color-text-success);
   }
 
+  .es-form-field-error,
+  .es-form-submit-error {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: var(--es-color-text-danger-strong);
+  }
+
   .es-text-neutral-strong {
     color: var(--es-color-text-neutral-strong);
   }

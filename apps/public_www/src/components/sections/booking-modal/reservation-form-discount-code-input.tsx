@@ -68,7 +68,7 @@ export function ReservationFormDiscountCodeInput({
       {discountError ? (
         <p
           id={DISCOUNT_ERROR_MESSAGE_ID}
-          className='text-sm font-semibold es-text-danger-strong'
+          className='es-form-field-error'
           role='alert'
         >
           {discountError}

@@ -2,6 +2,13 @@ import type { ReactNode } from 'react';
 
 import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 
+export function submitButtonClassName(isSubmitting: boolean, extra?: string): string {
+  const base = isSubmitting
+    ? 'inline-flex w-full items-center justify-center gap-2'
+    : 'w-full';
+  return extra ? `${extra} ${base}` : base;
+}
+
 interface SubmitButtonLoadingContentProps {
   isSubmitting: boolean;
   submittingLabel: string;

@@ -72,6 +72,9 @@ function mediaFormProps() {
     formSubmittingLabel: resourcesContent.formSubmittingLabel,
     formSuccessMessage: resourcesContent.formSuccessMessage,
     formErrorMessage: resourcesContent.formErrorMessage,
+    formCaptchaRequiredError: resourcesContent.formCaptchaRequiredError,
+    formCaptchaLoadError: resourcesContent.formCaptchaLoadError,
+    formCaptchaUnavailableError: resourcesContent.formCaptchaUnavailableError,
   };
 }
 
@@ -101,10 +104,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
       { target: { value: '' } },
     );
-    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
       target: { value: 'not-an-email' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -140,6 +143,29 @@ describe('MediaForm', () => {
     expect(screen.queryByText(enContent.resources.formErrorMessage)).toBeNull();
   });
 
+  it('shows captcha-required error when token is missing', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
+      { target: { value: 'Ida' } },
+    );
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)),
+      { target: { value: 'ida@example.com' } },
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    expect(
+      screen.getByText(enContent.resources.formCaptchaRequiredError),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(enContent.resources.formErrorMessage)).toBeNull();
+  });
+
   it('renders the CTA button before the form opens', () => {
     renderMediaForm();
 
@@ -147,7 +173,7 @@ describe('MediaForm', () => {
       screen.getByRole('button', { name: enContent.resources.ctaLabel }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.queryByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
     ).not.toBeInTheDocument();
   });
 
@@ -157,9 +183,9 @@ describe('MediaForm', () => {
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
 
     expect(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(enContent.resources.formEmailLabel)).toBeInTheDocument();
+    expect(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel))).toBeInTheDocument();
     expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_open', {
       formKind: 'media_request',
       formId: 'media-form__media-form',
@@ -176,8 +202,8 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
 
-    const firstNameInput = screen.getByPlaceholderText(
-      enContent.resources.formFirstNameLabel,
+    const firstNameInput = screen.getByLabelText(
+      new RegExp(enContent.resources.formFirstNameLabel),
     );
     const form = firstNameInput.closest('form');
     if (!form) {
@@ -207,10 +233,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
       { target: { value: 'Ida' } },
     );
-    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
       target: { value: 'ida@example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -245,10 +271,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
       { target: { value: ' Ida ' } },
     );
-    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
       target: { value: 'IDA@Example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -302,10 +328,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
       { target: { value: 'Ida' } },
     );
-    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
       target: { value: 'ida@example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -363,10 +389,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: enContent.resources.ctaLabel })[0]);
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
       { target: { value: 'Ida' } },
     );
-    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
       target: { value: 'ida@example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));

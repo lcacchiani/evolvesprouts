@@ -237,6 +237,7 @@ describe('ContactUsForm section', () => {
       name: enContent.contactUs.form.submitLabel,
     });
     const formElement = submitButton.closest('form');
+    expect(formElement).toHaveAttribute('novalidate');
     expect(formElement).not.toBeNull();
     if (!formElement) {
       throw new Error('Expected contact form to exist');
@@ -343,6 +344,10 @@ describe('ContactUsForm section', () => {
     expect(
       screen.getByText(enContent.contactUs.form.captchaRequiredError),
     ).toBeInTheDocument();
+    expect(submitButton).toHaveAttribute(
+      'aria-describedby',
+      'contact-us-form-captcha-error',
+    );
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
 

@@ -301,6 +301,10 @@ export function FreeGuidesAndResourcesLibrary({
   const mediaFormSuccessMessage = mediaFormContent.formSuccessMessage;
   const mediaFormErrorMessage = mediaFormContent.formErrorMessage;
   const mediaFormMarketingOptInLabel = mediaFormContent.formMarketingOptInLabel;
+  const mediaFormCaptchaRequiredError = mediaFormContent.formCaptchaRequiredError;
+  const mediaFormCaptchaLoadError = mediaFormContent.formCaptchaLoadError;
+  const mediaFormCaptchaUnavailableError =
+    mediaFormContent.formCaptchaUnavailableError;
 
   const listBody = (() => {
     if (loadState === 'loading') {
@@ -420,6 +424,9 @@ export function FreeGuidesAndResourcesLibrary({
                     formSubmittingLabel={mediaFormSubmittingLabel}
                     formSuccessMessage={mediaFormSuccessMessage}
                     formErrorMessage={mediaFormErrorMessage}
+                    formCaptchaRequiredError={mediaFormCaptchaRequiredError}
+                    formCaptchaLoadError={mediaFormCaptchaLoadError}
+                    formCaptchaUnavailableError={mediaFormCaptchaUnavailableError}
                     ctaButtonClassName='es-btn--outline'
                     className='mt-6 w-full sm:w-fit'
                     onFormOpened={() => {

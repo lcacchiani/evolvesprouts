@@ -80,7 +80,7 @@ export function ReservationFormFields({
         {hasEmailError ? (
           <p
             id={EMAIL_ERROR_MESSAGE_ID}
-            className='text-sm font-semibold es-text-danger-strong'
+            className='es-form-field-error'
             role='alert'
           >
             {content.emailValidationError}

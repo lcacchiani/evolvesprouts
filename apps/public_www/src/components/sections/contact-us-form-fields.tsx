@@ -1,7 +1,10 @@
 import type { FormEvent } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
+import {
+  SubmitButtonLoadingContent,
+  submitButtonClassName,
+} from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import type { ContactUsContent } from '@/content';
@@ -63,8 +66,17 @@ export function ContactFormFields({
   onCaptchaTokenChange,
   onCaptchaLoadError,
 }: ContactFormFieldsProps) {
+  const submitButtonDescribedByParts = [
+    captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
+    submitErrorMessage ? SUBMIT_ERROR_MESSAGE_ID : null,
+  ].filter((id): id is string => id !== null);
+  const submitButtonDescribedBy =
+    submitButtonDescribedByParts.length > 0
+      ? submitButtonDescribedByParts.join(' ')
+      : undefined;
+
   return (
-    <form onSubmit={onSubmit} className='relative z-10 space-y-3'>
+    <form noValidate onSubmit={onSubmit} className='relative z-10 space-y-3'>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
           {content.firstNameLabel}
@@ -88,7 +100,7 @@ export function ContactFormFields({
         {hasFirstNameError ? (
           <p
             id={FIRST_NAME_ERROR_MESSAGE_ID}
-            className='text-sm es-text-danger'
+            className='es-form-field-error'
             role='alert'
           >
             {content.firstNameRequiredError}
@@ -119,7 +131,7 @@ export function ContactFormFields({
         {hasEmailError ? (
           <p
             id={EMAIL_ERROR_MESSAGE_ID}
-            className='text-sm es-text-danger'
+            className='es-form-field-error'
             role='alert'
           >
             {content.emailValidationError}
@@ -146,7 +158,7 @@ export function ContactFormFields({
         {hasPhoneError ? (
           <p
             id={PHONE_ERROR_MESSAGE_ID}
-            className='text-sm es-text-danger'
+            className='es-form-field-error'
             role='alert'
           >
             {content.phoneValidationError}
@@ -194,7 +206,7 @@ export function ContactFormFields({
       {captchaErrorMessage ? (
         <p
           id={CAPTCHA_ERROR_MESSAGE_ID}
-          className='text-sm es-text-danger'
+          className='es-form-submit-error'
           role='alert'
         >
           {captchaErrorMessage}
@@ -205,18 +217,8 @@ export function ContactFormFields({
         variant='primary'
         type='submit'
         disabled={isSubmitDisabled}
-        className={
-          isSubmitting
-            ? 'mt-2 inline-flex w-full items-center justify-center gap-2'
-            : 'mt-2 w-full'
-        }
-        aria-describedby={
-          captchaErrorMessage
-            ? CAPTCHA_ERROR_MESSAGE_ID
-            : submitErrorMessage
-              ? SUBMIT_ERROR_MESSAGE_ID
-              : undefined
-        }
+        className={submitButtonClassName(isSubmitting, 'mt-2')}
+        aria-describedby={submitButtonDescribedBy}
       >
         <SubmitButtonLoadingContent
           isSubmitting={isSubmitting}
@@ -231,7 +233,7 @@ export function ContactFormFields({
       {submitErrorMessage ? (
         <p
           id={SUBMIT_ERROR_MESSAGE_ID}
-          className='text-sm es-text-danger'
+          className='es-form-submit-error'
           role='alert'
         >
           {submitErrorMessage}

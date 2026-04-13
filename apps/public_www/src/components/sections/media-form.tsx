@@ -4,10 +4,16 @@ import type { FormEvent } from 'react';
 import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
+import {
+  SubmitButtonLoadingContent,
+  submitButtonClassName,
+} from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import {
+  resolveCaptchaErrorMessage,
+  useFormSubmission,
+} from '@/components/sections/shared/use-form-submission';
 import { trackPublicFormOutcome } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
@@ -29,6 +35,9 @@ interface MediaFormProps {
   formSubmittingLabel: string;
   formSuccessMessage: string;
   formErrorMessage: string;
+  formCaptchaRequiredError: string;
+  formCaptchaLoadError: string;
+  formCaptchaUnavailableError: string;
   resourceKey?: string;
   className?: string;
   /** Extra classes for the closed-state CTA (e.g. `es-btn--outline` for primary outline). */
@@ -62,6 +71,9 @@ export function MediaForm({
   formSubmittingLabel,
   formSuccessMessage,
   formErrorMessage,
+  formCaptchaRequiredError,
+  formCaptchaLoadError,
+  formCaptchaUnavailableError,
   resourceKey,
   className,
   ctaButtonClassName,
@@ -74,6 +86,7 @@ export function MediaForm({
   const firstNameErrorId = `${mediaFormInstanceId}-media-first-name-error`;
   const emailErrorId = `${mediaFormInstanceId}-media-email-error`;
   const formErrorId = `${mediaFormInstanceId}-media-form-error`;
+  const captchaErrorId = `${mediaFormInstanceId}-media-captcha-error`;
 
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
@@ -89,8 +102,10 @@ export function MediaForm({
     clearSubmissionError,
     handleCaptchaLoadError,
     handleCaptchaTokenChange,
+    hasCaptchaLoadError,
     hasCaptchaValidationError,
     hasSuccessfulSubmission,
+    isCaptchaConfigured,
     isCaptchaUnavailable,
     isSubmitting,
     markCaptchaTouched,
@@ -105,13 +120,27 @@ export function MediaForm({
   const hasFirstNameError = isFirstNameTouched && !sanitizeSingleLineValue(firstName);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const isSubmitDisabled = isSubmitting || isServiceUnavailable;
-  const shouldShowSubmitError =
-    !!submitErrorMessage || hasCaptchaValidationError || isServiceUnavailable;
+  const captchaErrorMessage = resolveCaptchaErrorMessage(
+    {
+      isCaptchaConfigured,
+      hasCaptchaLoadError,
+      hasCaptchaValidationError,
+    },
+    {
+      requiredError: formCaptchaRequiredError,
+      loadError: formCaptchaLoadError,
+      unavailableError: formCaptchaUnavailableError,
+    },
+  );
+  const shouldShowFormLevelError =
+    Boolean(submitErrorMessage) ||
+    (isServiceUnavailable && !captchaErrorMessage);
 
   const firstNameDescribedBy = hasFirstNameError ? firstNameErrorId : undefined;
   const emailDescribedBy = hasEmailError ? emailErrorId : undefined;
   const submitButtonDescribedByParts = [
-    shouldShowSubmitError ? formErrorId : null,
+    captchaErrorMessage ? captchaErrorId : null,
+    shouldShowFormLevelError ? formErrorId : null,
     hasFirstNameError ? firstNameErrorId : null,
     hasEmailError ? emailErrorId : null,
   ].filter((id): id is string => id !== null);
@@ -286,7 +315,13 @@ export function MediaForm({
       )}
       noValidate
     >
-      <div className='space-y-0'>
+      <label className='block' htmlFor={firstNameInputId}>
+        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+          {formFirstNameLabel}
+          <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+            *
+          </span>
+        </span>
         <input
           id={firstNameInputId}
           type='text'
@@ -299,21 +334,26 @@ export function MediaForm({
             setIsFirstNameTouched(true);
           }}
           placeholder={formFirstNameLabel}
-          className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
-          aria-label={formFirstNameLabel}
+          className={`es-focus-ring es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasFirstNameError}
           aria-describedby={firstNameDescribedBy}
           required
           disabled={isSubmitting}
         />
         {hasFirstNameError ? (
-          <p id={firstNameErrorId} className='mt-1 text-sm es-text-danger' role='alert'>
+          <p id={firstNameErrorId} className='mt-1 es-form-field-error' role='alert'>
             {formFirstNameValidationMessage}
           </p>
         ) : null}
-      </div>
+      </label>
 
-      <div className='space-y-0'>
+      <label className='block' htmlFor={emailInputId}>
+        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+          {formEmailLabel}
+          <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+            *
+          </span>
+        </span>
         <input
           id={emailInputId}
           type='email'
@@ -326,19 +366,18 @@ export function MediaForm({
             setIsEmailTouched(true);
           }}
           placeholder={formEmailLabel}
-          className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
-          aria-label={formEmailLabel}
+          className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasEmailError}
           aria-describedby={emailDescribedBy}
           required
           disabled={isSubmitting}
         />
         {hasEmailError ? (
-          <p id={emailErrorId} className='mt-1 text-sm es-text-danger' role='alert'>
+          <p id={emailErrorId} className='mt-1 es-form-field-error' role='alert'>
             {formEmailValidationMessage}
           </p>
         ) : null}
-      </div>
+      </label>
 
       <MarketingOptInCheckbox
         label={formMarketingOptInLabel}
@@ -353,14 +392,16 @@ export function MediaForm({
         onLoadError={handleCaptchaLoadError}
       />
 
+      {captchaErrorMessage ? (
+        <p id={captchaErrorId} className='es-form-submit-error' role='alert'>
+          {captchaErrorMessage}
+        </p>
+      ) : null}
+
       <ButtonPrimitive
         variant='primary'
         type='submit'
-        className={
-          isSubmitting
-            ? 'inline-flex w-full items-center justify-center gap-2'
-            : 'w-full'
-        }
+        className={submitButtonClassName(isSubmitting)}
         disabled={isSubmitDisabled}
         aria-describedby={submitButtonDescribedBy}
       >
@@ -372,8 +413,8 @@ export function MediaForm({
         />
       </ButtonPrimitive>
 
-      {shouldShowSubmitError ? (
-        <p id={formErrorId} className='text-sm font-semibold es-text-danger-strong' role='alert'>
+      {shouldShowFormLevelError ? (
+        <p id={formErrorId} className='es-form-submit-error' role='alert'>
           {submitErrorMessage || formErrorMessage}
         </p>
       ) : null}
