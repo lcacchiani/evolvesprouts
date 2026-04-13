@@ -15,7 +15,10 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
-from app.services.email import send_email
+from app.services.public_form_admin_notifications import (
+    build_reservation_recap_lines,
+    send_admin_form_recap_email,
+)
 from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key
 from app.services.turnstile import (
     extract_client_ip,
@@ -323,47 +326,12 @@ def _parse_response_json(raw_body: Any) -> Mapping[str, Any] | None:
 
 
 def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
-    """Send reservation notification email to support."""
-    source_email = os.getenv("SES_SENDER_EMAIL", "").strip()
-    support_email = os.getenv("SUPPORT_EMAIL", "").strip()
-    if not source_email or not support_email:
-        raise RuntimeError("SES_SENDER_EMAIL and SUPPORT_EMAIL must be configured")
-
-    email_subject = (
-        f"[Public WWW] Reservation - {reservation_payload['course_label']} "
-        f"({reservation_payload['month_label']})"
-    )
-    email_body_lines = [
-        "A new reservation has been submitted via the public website.",
-        "",
-        f"Attendee Name: {reservation_payload['attendee_name']}",
-        f"Attendee Email: {reservation_payload['attendee_email']}",
-        f"Attendee Phone: {reservation_payload['attendee_phone']}",
-        f"Child Age Group: {reservation_payload['child_age_group']}",
-        f"Package: {reservation_payload['package_label']}",
-        f"Month: {reservation_payload['month_label']}",
-        f"Course: {reservation_payload['course_label']}",
-        f"Payment Method: {reservation_payload['payment_method']}",
-        f"Total Amount: {reservation_payload['total_amount']}",
-    ]
-    stripe_payment_intent_id = reservation_payload.get("stripe_payment_intent_id")
-    if stripe_payment_intent_id:
-        email_body_lines.append(f"Stripe PaymentIntent ID: {stripe_payment_intent_id}")
-    schedule_date_label = reservation_payload.get("schedule_date_label")
-    if schedule_date_label:
-        email_body_lines.append(f"Schedule Date: {schedule_date_label}")
-    schedule_time_label = reservation_payload.get("schedule_time_label")
-    if schedule_time_label:
-        email_body_lines.append(f"Schedule Time: {schedule_time_label}")
-    interested_topics = reservation_payload.get("interested_topics")
-    if interested_topics:
-        email_body_lines.extend(["", "Interested Topics:", interested_topics])
-
-    send_email(
-        source=source_email,
-        to_addresses=[support_email],
-        subject=email_subject,
-        body_text="\n".join(email_body_lines),
+    """Send reservation recap email to all admin web users (Cognito admin group)."""
+    send_admin_form_recap_email(
+        form_title="Reservation",
+        body_lines=build_reservation_recap_lines(payload=reservation_payload),
+        required=True,
+        retry_transient_failures=True,
     )
 
 

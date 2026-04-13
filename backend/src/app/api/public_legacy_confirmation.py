@@ -10,6 +10,12 @@ from app.services.email import (
     send_mime_email_with_inline_png,
     send_templated_email,
 )
+from app.services.public_form_admin_notifications import (
+    build_booking_legacy_recap_lines,
+    build_contact_us_recap_lines,
+    send_admin_form_recap_email,
+    send_contact_inquiry_support_email,
+)
 from app.services.marketing_subscribe import subscribe_to_marketing
 from app.templates.booking_confirmation_render import (
     booking_confirmation_template_merge_data,
@@ -359,6 +365,12 @@ def run_contact_us_post_success(
     )
     if signup_intent not in _ALLOWED_SIGNUP_INTENTS:
         signup_intent = _SIGNUP_INTENT_CONTACT_INQUIRY
+    send_admin_form_recap_email(
+        form_title="Contact us",
+        body_lines=build_contact_us_recap_lines(payload=payload),
+    )
+    if signup_intent == _SIGNUP_INTENT_CONTACT_INQUIRY:
+        send_contact_inquiry_support_email(payload=payload)
     mailchimp_tag = mailchimp_tag_for_contact_signup_intent(signup_intent)
     is_email_only_intent = signup_intent in {
         _SIGNUP_INTENT_COMMUNITY_NEWSLETTER,
@@ -454,6 +466,10 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
             "Unexpected error in booking marketing subscribe",
             extra={"lead_email": mask_email(email)},
         )
+    send_admin_form_recap_email(
+        form_title="Booking",
+        body_lines=build_booking_legacy_recap_lines(payload=payload),
+    )
 
 
 def _optional_str(value: Any) -> str | None:

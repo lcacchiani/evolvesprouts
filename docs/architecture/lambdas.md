@@ -76,8 +76,10 @@ their primary responsibilities.
   align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are
   rewritten to `https://wa.me/<phone>` for reliable email clients),
   `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
-  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL`, `MAILCHIMP_*`
-  welcome journey vars (see `aws-messaging.md`)
+  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL` (contact-us
+  **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,
+  `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (admin form recap recipient resolution),
+  `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
@@ -240,7 +242,8 @@ their primary responsibilities.
   download-link email to the submitter, Mailchimp sync (merge fields + tag +
   optional free-resource Customer Journey trigger; consent-gated when
   `MAILCHIMP_REQUIRE_MARKETING_CONSENT=true`), optional welcome journey for
-  `marketing_opt_in`, and SES notification to sales/support
+  `marketing_opt_in`, and SES **admin recap** email to all Cognito admin-group
+  user emails (via proxy `ListUsersInGroup`; not `SUPPORT_EMAIL`)
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES `SendEmail`, `SendRawEmail`, and `SendTemplatedEmail` (verified
@@ -250,10 +253,11 @@ their primary responsibilities.
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`
+  - `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`, `COGNITO_USER_POOL_ID`,
+    `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN`
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
-  - `MEDIA_DEFAULT_RESOURCE_KEY`, `AWS_PROXY_FUNCTION_ARN`
+  - `MEDIA_DEFAULT_RESOURCE_KEY`
   - `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`
     (same host allowlist as admin for auto-created share links),
     `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional Mailchimp merge field for stable

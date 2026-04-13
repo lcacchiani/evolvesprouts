@@ -412,7 +412,7 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
     monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
     monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", _fake_sync)
     monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
-    monkeypatch.setattr(handler, "_send_sales_notification", lambda **_: None)
+    monkeypatch.setattr(handler, "_send_media_lead_admin_recap", lambda **_: None)
     monkeypatch.setattr(handler, "_create_sales_lead_event", lambda **_: None)
     monkeypatch.setattr(handler, "subscribe_to_marketing", lambda **_: True)
 

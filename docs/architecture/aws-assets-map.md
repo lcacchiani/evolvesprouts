@@ -529,7 +529,7 @@ configured by stack custom resources (including retention and KMS association).
 | `DeviceAttestationFailClosed` | String | No | No | Fail-closed mode (default: `true`, allowed: `true`/`false`) |
 | `ActiveCountryCodes` | String | No | No | Comma-separated country codes (default: `HK`) |
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
-| `SupportEmail` | String | No | No | Email for internal notifications (for example media lead alerts) |
+| `SupportEmail` | String | No | No | Inbox for full **contact_inquiry** contact-us notifications (`SUPPORT_EMAIL` on admin API Lambda only) |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `InboundEmailDomainName` | String | Yes | No | SES-verified inbound email subdomain for invoice ingestion |
 | `InboundInvoiceRecipientLocalPart` | String | No | No | Local-part for the SES-managed invoice mailbox (default: `invoices`) |

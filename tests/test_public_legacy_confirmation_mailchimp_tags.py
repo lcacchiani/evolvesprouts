@@ -62,6 +62,9 @@ def test_run_contact_us_post_success_routes_marketing_tag(
 
     monkeypatch.setattr(plc, "maybe_subscribe_contact_us_marketing", _fake_maybe_subscribe)
     monkeypatch.setattr(plc, "send_contact_confirmation_email", MagicMock())
+    monkeypatch.setattr(plc, "send_admin_form_recap_email", MagicMock())
+    support_mock = MagicMock()
+    monkeypatch.setattr(plc, "send_contact_inquiry_support_email", support_mock)
 
     plc.run_contact_us_post_success(
         event={"headers": {}},
@@ -75,6 +78,10 @@ def test_run_contact_us_post_success_routes_marketing_tag(
     )
 
     assert captured.get("tag_name") == expected_tag
+    if signup_intent == "contact_inquiry":
+        support_mock.assert_called_once()
+    else:
+        support_mock.assert_not_called()
 
 
 def test_run_contact_us_post_success_skips_confirmation_for_community_intent(
@@ -87,6 +94,8 @@ def test_run_contact_us_post_success_skips_confirmation_for_community_intent(
 
     monkeypatch.setattr(plc, "send_contact_confirmation_email", _fake_send)
     monkeypatch.setattr(plc, "maybe_subscribe_contact_us_marketing", MagicMock())
+    monkeypatch.setattr(plc, "send_admin_form_recap_email", MagicMock())
+    monkeypatch.setattr(plc, "send_contact_inquiry_support_email", MagicMock())
 
     plc.run_contact_us_post_success(
         event={"headers": {}},
@@ -118,6 +127,10 @@ def test_run_reservation_post_success_passes_dynamic_tag_to_booking_marketing(
     monkeypatch.setattr(
         "app.api.public_legacy_confirmation.maybe_subscribe_booking_marketing",
         _fake_maybe_subscribe,
+    )
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.send_admin_form_recap_email",
+        MagicMock(),
     )
 
     plc.run_reservation_post_success(

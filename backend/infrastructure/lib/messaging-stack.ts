@@ -23,6 +23,8 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   databaseSecretArn: string;
   databaseProxyEndpoint: string;
   awsProxyFunctionArn: string;
+  cognitoUserPoolId: string;
+  adminGroupName: string;
   sesSenderIdentityArn: string;
   sesSenderDomainIdentityArn: string;
   sesAuthEmailIdentityArn: string;
@@ -34,7 +36,6 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   databaseProxyArn: string;
   databaseSecretKmsKeyArn: string;
   sesSenderEmail: string;
-  supportEmail: string;
   authEmailFromAddress: string;
   mailchimpListId: string;
   mailchimpServerPrefix: string;
@@ -191,7 +192,9 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
           DATABASE_IAM_AUTH: "true",
           SES_SENDER_EMAIL: props.sesSenderEmail,
-          SUPPORT_EMAIL: props.supportEmail,
+          COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
+          ADMIN_GROUP: props.adminGroupName,
+          AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
           MAILCHIMP_API_SECRET_ARN: props.mailchimpApiSecretArn,
           MAILCHIMP_LIST_ID: props.mailchimpListId,
           MAILCHIMP_SERVER_PREFIX: props.mailchimpServerPrefix,
