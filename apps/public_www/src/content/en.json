@@ -1024,8 +1024,7 @@
       "invalidDescription": "This media link is missing a valid token. Please request the media again.",
       "unavailableTitle": "Download temporarily unavailable",
       "unavailableDescription": "We could not prepare your download link. Please try again in a moment.",
-      "preparingTitle": "Preparing your download",
-      "preparingDescription": "If your download does not start automatically, use the link below.",
+      "preparingMessage": "Preparing your download. If your download does not start automatically, use the link below.",
       "manualDownloadLabel": "Download the media manually"
     },
     "placeholder": {

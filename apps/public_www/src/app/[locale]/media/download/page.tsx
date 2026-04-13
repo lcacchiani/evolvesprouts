@@ -24,9 +24,9 @@ export async function generateMetadata({
 }
 
 function LocalizedDownloadPageFallback({
-  title,
+  message,
 }: {
-  title: string;
+  message: string;
 }) {
   return (
     <main
@@ -34,7 +34,12 @@ function LocalizedDownloadPageFallback({
       tabIndex={-1}
       className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
     >
-      <h1 className='text-3xl font-semibold es-text-heading'>{title}</h1>
+      <div className='flex w-full max-w-lg flex-col items-center'>
+        <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
+        <div className='mt-6 w-full min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4 text-left'>
+          <p className='text-base leading-7 es-text-success'>{message}</p>
+        </div>
+      </div>
     </main>
   );
 }
@@ -44,7 +49,11 @@ export default async function LocalizedMediaDownloadPage({ params }: LocaleRoute
   const mediaDownloadContent = content.common.mediaDownload;
 
   return (
-    <Suspense fallback={<LocalizedDownloadPageFallback title={mediaDownloadContent.preparingTitle} />}>
+    <Suspense
+      fallback={
+        <LocalizedDownloadPageFallback message={mediaDownloadContent.preparingMessage} />
+      }
+    >
       <MediaDownloadRedirectPage content={mediaDownloadContent} />
     </Suspense>
   );

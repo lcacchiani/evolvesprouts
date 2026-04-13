@@ -1024,8 +1024,7 @@
       "invalidDescription": "此媒體連結缺少有效權杖。請重新申請媒體下載。",
       "unavailableTitle": "下載暫時不可用",
       "unavailableDescription": "我們暫時未能準備下載連結。請稍後再試。",
-      "preparingTitle": "正在準備你的下載",
-      "preparingDescription": "如果下載未有自動開始，請使用下方連結。",
+      "preparingMessage": "正在準備你的下載。如果下載未有自動開始，請使用下方連結。",
       "manualDownloadLabel": "手動下載媒體"
     },
     "placeholder": {
