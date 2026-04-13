@@ -249,4 +249,81 @@ describe('ConsultationBookingModal', () => {
     fireEvent.click(screen.getByRole('button', { name: upgradeLabel }));
     expect(onUpgrade).toHaveBeenCalledOnce();
   });
+
+  it('keeps PM selected when changing date if afternoon is available on the new day', () => {
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home', levelLabel: 'Essentials' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const pmLabel = enContent.bookingModal.paymentModal.consultationPicker.pmLabel;
+    const amLabel = enContent.bookingModal.paymentModal.consultationPicker.amLabel;
+    const pmButton = screen.getByRole('button', { name: pmLabel });
+    fireEvent.click(pmButton);
+    expect(pmButton).toHaveAttribute('aria-pressed', 'true');
+
+    const day10 = screen.getByRole('button', { name: 'Select day 10' });
+    fireEvent.click(day10);
+
+    expect(screen.getByRole('button', { name: pmLabel })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: amLabel })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('renders deep dive icon in upgrade button when selectionInfo includes icon src', () => {
+    const upgradeLabel = enContent.consultations.booking.reservation.upgradeToDeepDiveLabel;
+    const deepDiveLevel = enContent.consultations.booking.levels.find((l) => l.id === 'deep-dive');
+    expect(deepDiveLevel).toBeDefined();
+
+    const selectionInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'essentials',
+      levelFeatures: enContent.consultations.booking.levels[0].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+      upgradeToDeepDiveIconSrc: deepDiveLevel!.iconSrc,
+    };
+
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={selectionInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    const upgradeButton = screen.getByRole('button', { name: upgradeLabel });
+    const icon = upgradeButton.querySelector(`img[src="${deepDiveLevel!.iconSrc}"]`);
+    expect(icon).not.toBeNull();
+  });
 });

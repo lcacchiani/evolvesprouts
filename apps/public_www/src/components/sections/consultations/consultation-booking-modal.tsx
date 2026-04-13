@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- static SVG from /public/images in upgrade CTA */
 'use client';
 
 import {
@@ -44,6 +45,8 @@ export interface ConsultationBookingModalSelectionInfo {
   levelFeatures: string[];
   focusLabelFormatted: string;
   upgradeToDeepDiveLabel: string;
+  /** Shown above the upgrade label inside the CTA (e.g. Deep Dive tier icon). */
+  upgradeToDeepDiveIconSrc?: string;
 }
 
 interface ConsultationBookingModalProps {
@@ -322,10 +325,15 @@ export function ConsultationBookingModal({
   const dayPeriod = pickerSelection?.period ?? defaultSelection?.period ?? 'am';
 
   function handleSelectYmd(ymd: string) {
-    const period = firstSelectableConsultationPeriod(ymd, unavailableByYmd);
-    if (period) {
-      setPickerSelection({ ymd, period });
-    }
+    setPickerSelection((prev) => {
+      const preferredPeriod =
+        prev?.period ?? defaultSelection?.period ?? 'am';
+      if (!isConsultationPeriodBlocked(ymd, preferredPeriod, unavailableByYmd)) {
+        return { ymd, period: preferredPeriod };
+      }
+      const period = firstSelectableConsultationPeriod(ymd, unavailableByYmd);
+      return period ? { ymd, period } : prev;
+    });
   }
 
   function handleSelectPeriod(period: ConsultationDayPeriod) {
@@ -390,10 +398,19 @@ export function ConsultationBookingModal({
           <ButtonPrimitive
             type='button'
             variant='primary'
-            className='max-w-[360px] es-btn--outline'
+            className='max-w-[360px] es-btn--outline flex flex-col items-center gap-2 py-3'
             onClick={onUpgradeToDeepDive}
           >
-            {selectionInfo.upgradeToDeepDiveLabel}
+            {selectionInfo.upgradeToDeepDiveIconSrc ? (
+              <img
+                src={selectionInfo.upgradeToDeepDiveIconSrc}
+                alt=''
+                width={44}
+                height={44}
+                className='h-11 w-11 shrink-0 object-contain'
+              />
+            ) : null}
+            <span className='text-center'>{selectionInfo.upgradeToDeepDiveLabel}</span>
           </ButtonPrimitive>
         </div>
       ) : null}
