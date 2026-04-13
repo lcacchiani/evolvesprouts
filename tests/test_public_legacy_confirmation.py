@@ -70,6 +70,10 @@ def test_run_reservation_post_success_sets_pending_without_stripe(
         "app.api.public_legacy_confirmation.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.send_admin_form_recap_email",
+        MagicMock(),
+    )
 
     run_reservation_post_success(
         payload={

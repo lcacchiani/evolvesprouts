@@ -33,7 +33,7 @@ from app.api.assets.share_links import (
 from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
-from app.services.email import send_email, send_templated_email
+from app.services.email import send_templated_email
 from app.templates.transactional_shell_data import (
     merge_transactional_shell_template_data,
 )
@@ -43,7 +43,10 @@ from app.services.mailchimp import (
     trigger_customer_journey,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
-from app.templates.media_lead import render_sales_notification_email
+from app.services.public_form_admin_notifications import (
+    build_media_lead_recap_lines,
+    send_admin_form_recap_email,
+)
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
 from app.utils.retry import run_with_retry
@@ -260,11 +263,14 @@ def _process_message(message: dict[str, Any]) -> bool:
                 subscribe_member=not was_mailchimp_synced,
             )
 
-        _send_sales_notification(
+        _send_media_lead_admin_recap(
             first_name=first_name,
             email=email,
             media_name=media_name,
+            resource_key=resource_key,
             submitted_at=submitted_at,
+            marketing_opt_in=marketing_opt_in,
+            locale=locale,
         )
 
         session.commit()
@@ -537,41 +543,33 @@ def _ensure_contact_tag(*, session: Session, contact_id: UUID, tag_name: str) ->
         session.flush()
 
 
-def _send_sales_notification(
+def _send_media_lead_admin_recap(
     *,
     first_name: str,
     email: str,
     media_name: str,
+    resource_key: str,
     submitted_at: str,
+    marketing_opt_in: bool,
+    locale: str,
 ) -> None:
-    sender_email = os.getenv("SES_SENDER_EMAIL", "").strip()
-    support_email = os.getenv("SUPPORT_EMAIL", "").strip()
-    if not sender_email or not support_email:
-        logger.warning(
-            "Skipping sales notification email because SES sender/support is missing"
-        )
-        return
-
-    email_content = render_sales_notification_email(
-        first_name=first_name,
-        email=email,
-        media_name=media_name,
-        submitted_at=submitted_at,
-    )
     try:
-        run_with_retry(
-            send_email,
-            source=sender_email,
-            to_addresses=[support_email],
-            subject=email_content.subject,
-            body_text=email_content.body_text,
-            body_html=email_content.body_html,
-            logger=logger,
-            operation_name="ses.send_email",
+        send_admin_form_recap_email(
+            form_title="Media download",
+            body_lines=build_media_lead_recap_lines(
+                first_name=first_name,
+                email=email,
+                media_name=media_name,
+                resource_key=resource_key,
+                submitted_at=submitted_at,
+                marketing_opt_in=marketing_opt_in,
+                locale=locale,
+            ),
+            retry_transient_failures=True,
         )
     except Exception:
         logger.exception(
-            "Failed to send media sales notification",
+            "Failed to send media lead admin recap",
             extra={"lead_email": mask_email(email)},
         )
 

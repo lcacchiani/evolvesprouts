@@ -583,8 +583,8 @@ export class ApiStack extends cdk.Stack {
       type: "String",
       default: "",
       description:
-        "Email address to receive manager access request notifications. " +
-        "Must be verified in SES.",
+        "Email address to receive contact-us request notifications (full " +
+        "contact_inquiry submissions only). Must be verified in SES.",
     });
     const sesSenderEmail = new cdk.CfnParameter(this, "SesSenderEmail", {
       type: "String",
@@ -1687,6 +1687,8 @@ export class ApiStack extends cdk.Stack {
       databaseSecretArn: database.adminUserSecret.secretArn,
       databaseProxyEndpoint: database.proxy.endpoint,
       awsProxyFunctionArn: awsProxyFunction.functionArn,
+      cognitoUserPoolId: userPool.userPoolId,
+      adminGroupName: adminGroupName,
       sesSenderIdentityArn,
       sesSenderDomainIdentityArn,
       sesAuthEmailIdentityArn,
@@ -1698,7 +1700,6 @@ export class ApiStack extends cdk.Stack {
       databaseProxyArn: database.proxy.dbProxyArn,
       databaseSecretKmsKeyArn: database.adminUserSecretKmsKey?.keyArn ?? "",
       sesSenderEmail: sesSenderEmail.valueAsString,
-      supportEmail: supportEmail.valueAsString,
       authEmailFromAddress: authEmailFromAddress.valueAsString,
       mailchimpListId: mailchimpListId.valueAsString,
       mailchimpServerPrefix: mailchimpServerPrefix.valueAsString,
@@ -1723,6 +1724,7 @@ export class ApiStack extends cdk.Stack {
       openrouterModel: openrouterModel.valueAsString,
       openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
     });
+    awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
 
     adminFunction.addToRolePolicy(
       new iam.PolicyStatement({

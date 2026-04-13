@@ -42,8 +42,14 @@ template names.
 - **From address**: `CONFIRMATION_EMAIL_FROM_ADDRESS` on the relevant Lambdas,
   sourced from the stack `AuthEmailFromAddress` parameter (SES-verified
   customer-facing mailbox, for example `hello@`).
-- **Internal notifications** (for example media lead alerts to the team)
-  continue to use `SES_SENDER_EMAIL` / `SupportEmail` where applicable.
+- **Internal notifications**: plain-text **recap** emails for public forms use
+  `SES_SENDER_EMAIL` as the From address and deliver to every verified **email**
+  attribute on users in the Cognito **admin** group (via `ListUsersInGroup`
+  through `AwsApiProxyFunction`; `COGNITO_USER_POOL_ID`, `ADMIN_GROUP`, and
+  `AWS_PROXY_FUNCTION_ARN` on `MediaRequestProcessor`). The stack parameter
+  `SupportEmail` maps to `SUPPORT_EMAIL` on the admin API Lambda only: it
+  receives **contact-us** submissions with `signup_intent=contact_inquiry` (full
+  inquiry form), not media or reservation recaps.
 - **Mailchimp** remains separate: optional marketing subscribe + journey
   triggers run only when the user opts in; failures are logged and do not
   change the HTTP response for legacy bridge routes.
@@ -163,7 +169,9 @@ responsive while decoupling downstream processing.
   `MailchimpRequireMarketingConsent` is `true`, subscribe + free-resource journey
   run only when `marketing_opt_in` is true). When users opt in, a **separate**
   shared welcome journey may be triggered (empty journey env vars disable it).
-- Sends an SES notification to sales/support (internal sender).
+- Sends an SES **admin recap** email (internal sender) to all Cognito admin-group
+  user emails on **first** media lead creation only (duplicate re-downloads skip
+  the recap; not `SUPPORT_EMAIL`).
 
 ## Expense parsing flow
 
@@ -304,6 +312,11 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp API host prefix |
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
+| `SES_SENDER_EMAIL` | Verified SES sender for internal recap emails |
+| `SUPPORT_EMAIL` | Inbox for full **contact_inquiry** contact-us notifications only |
+| `COGNITO_USER_POOL_ID` | User pool used to resolve admin-group emails for form recaps |
+| `ADMIN_GROUP` | Cognito group name whose members receive public-form recap emails (default `admin`) |
+| `AWS_PROXY_FUNCTION_ARN` | Invoked for `cognito-idp:ListUsersInGroup` from the in-VPC admin Lambda |
 
 ### Processor Lambda
 
@@ -311,8 +324,9 @@ SQS retries or mailbox forwarding duplicates.
 |----------|-------------|
 | `DATABASE_SECRET_ARN` | Database credentials secret |
 | `DATABASE_PROXY_ENDPOINT` | RDS Proxy endpoint |
-| `SUPPORT_EMAIL` | Email to receive notifications |
-| `SES_SENDER_EMAIL` | Verified SES sender address |
+| `SES_SENDER_EMAIL` | Verified SES sender address (admin recap + download emails) |
+| `COGNITO_USER_POOL_ID` | User pool for resolving admin-group emails (media lead recaps) |
+| `ADMIN_GROUP` | Cognito group whose verified `email` attributes receive media lead recaps |
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
@@ -327,7 +341,7 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID for opted-in media leads (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
 | `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (reserved for template helpers) |
-| `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
+| `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for AWS proxy (`ListUsersInGroup` for admin recap recipients) |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
 | `OPENROUTER_MODEL` | OpenRouter model identifier |
