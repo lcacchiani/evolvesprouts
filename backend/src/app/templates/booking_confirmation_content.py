@@ -15,7 +15,7 @@ SUBJECT_PREFIX: dict[str, str] = {
 SUBJECT_SUFFIX: Final[str] = " — Evolve Sprouts"
 
 HEADER_TITLE: dict[str, str] = {
-    "en": "You're all set — booking confirmed",
+    "en": "WE RESERVED YOUR SEAT!",
     "zh-CN": "预订已确认",
     "zh-HK": "預訂已確認",
 }
