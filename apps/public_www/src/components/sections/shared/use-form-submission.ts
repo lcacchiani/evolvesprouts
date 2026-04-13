@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 
 export type FormSubmissionStatus = 'idle' | 'submitting' | 'success' | 'error';
 
-export interface CaptchaErrorContent {
+interface CaptchaErrorContent {
   requiredError: string;
   loadError: string;
   unavailableError: string;

@@ -807,6 +807,28 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.queryByTestId('booking-discount-apply-loading-gear')).toBeNull();
   });
 
+  it('uses noValidate on the reservation form', () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    const submitButton = screen.getByRole('button', {
+      name: bookingModalContent.submitLabel,
+    });
+    const reservationForm = submitButton.closest('form');
+    if (!reservationForm) {
+      throw new Error('Expected reservation form');
+    }
+    expect(reservationForm).toHaveAttribute('novalidate');
+  });
+
   it('shows the loading gear on the reservation submit button while the request is in flight', async () => {
     const requestSpy = vi.fn(
       () =>

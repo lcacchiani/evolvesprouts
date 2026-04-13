@@ -333,7 +333,6 @@ export function MediaForm({
           onBlur={() => {
             setIsFirstNameTouched(true);
           }}
-          placeholder={formFirstNameLabel}
           className={`es-focus-ring es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasFirstNameError}
           aria-describedby={firstNameDescribedBy}
@@ -365,7 +364,6 @@ export function MediaForm({
           onBlur={() => {
             setIsEmailTouched(true);
           }}
-          placeholder={formEmailLabel}
           className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
           aria-invalid={hasEmailError}
           aria-describedby={emailDescribedBy}

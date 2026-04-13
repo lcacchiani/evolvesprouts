@@ -96,6 +96,7 @@ describe('ContactFormFields', () => {
     if (!parentForm) {
       throw new Error('Expected contact form wrapper to exist');
     }
+    expect(parentForm).toHaveAttribute('novalidate');
     fireEvent.submit(parentForm);
 
     expect(onUpdateField).toHaveBeenCalledWith('email', 'valid@example.com');

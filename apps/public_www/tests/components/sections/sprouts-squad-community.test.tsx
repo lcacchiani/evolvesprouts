@@ -166,7 +166,7 @@ describe('SproutsSquadCommunity section', () => {
       new RegExp(enContent.sproutsSquadCommunity.emailLabel),
     );
     expect(emailField).toBeInTheDocument();
-    expect(emailField.closest('form')).toHaveClass('space-y-3');
+    expect(emailField.closest('form')).toHaveClass('gap-3');
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {

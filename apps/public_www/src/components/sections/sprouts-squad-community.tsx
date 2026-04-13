@@ -272,7 +272,7 @@ export function SproutsSquadCommunity({
                 <form
                   onSubmit={handleSubmit}
                   noValidate
-                  className={`flex min-h-0 flex-col space-y-3 overflow-hidden transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+                  className={`flex min-h-0 flex-col gap-3 overflow-hidden transition-opacity duration-300 ease-out motion-reduce:transition-none ${
                     isFormVisible
                       ? isFormFadingIn
                         ? 'opacity-100'
@@ -313,8 +313,7 @@ export function SproutsSquadCommunity({
                           onBlur={() => {
                             setIsEmailTouched(true);
                           }}
-                          placeholder={content.emailPlaceholder}
-                          className={`es-focus-ring es-form-input es-sprouts-community-email-input ${
+                          className={`es-focus-ring es-form-input ${
                             hasEmailError ? 'es-form-input-error' : ''
                           }`}
                           aria-invalid={hasEmailError}

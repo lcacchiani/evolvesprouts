@@ -65,7 +65,6 @@ import {
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
-import { mergeClassNames } from '@/lib/class-name-utils';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
@@ -1445,7 +1444,7 @@ export function BookingReservationForm({
             type='submit'
             disabled={isSubmitDisabled}
             aria-describedby={submitButtonDescribedBy}
-            className={mergeClassNames(submitButtonClassName(isSubmitting, 'mt-1'))}
+            className={submitButtonClassName(isSubmitting, 'mt-1')}
           >
             <SubmitButtonLoadingContent
               isSubmitting={isSubmitting}
