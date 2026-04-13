@@ -47,6 +47,9 @@ template names.
 - **Mailchimp** remains separate: optional marketing subscribe + journey
   triggers run only when the user opts in; failures are logged and do not
   change the HTTP response for legacy bridge routes.
+- **Shared HTML shell footer** (`footer_block_html`): after the thank-you line,
+  rule, and optional social links, a centered copyright line is appended using
+  the **UTC year at send time** (`© <year> Evolve Sprouts. All rights reserved.`).
 
 ## Components
 
