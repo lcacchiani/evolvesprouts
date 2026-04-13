@@ -74,7 +74,9 @@ their primary responsibilities.
   `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
   `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
   align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are
-  rewritten to `https://wa.me/<phone>` for reliable email clients), `SUPPORT_EMAIL`, `MAILCHIMP_*`
+  rewritten to `https://wa.me/<phone>` for reliable email clients),
+  `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
+  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL`, `MAILCHIMP_*`
   welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
@@ -266,6 +268,8 @@ their primary responsibilities.
   - optional `PUBLIC_WWW_INSTAGRAM_URL`, `PUBLIC_WWW_LINKEDIN_URL`,
     `PUBLIC_WWW_WHATSAPP_URL` (same semantics as public site env; empty falls back
     in application code; `wa.me/message/...` is coerced to `wa.me/<digits>` for email)
+  - `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
+    align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction

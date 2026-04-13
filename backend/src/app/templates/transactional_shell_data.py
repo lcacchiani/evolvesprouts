@@ -17,8 +17,8 @@ from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 from app.templates.constants import (
-    WHATSAPP_URL,
     build_faq_url,
+    build_whatsapp_phone_url,
     resolve_public_www_base_url,
 )
 
@@ -61,7 +61,8 @@ def _coerce_whatsapp_url_for_email(url: str) -> str:
         return url
     path = parsed.path.strip("/")
     if path.lower().startswith("message/"):
-        return WHATSAPP_URL
+        phone_url = build_whatsapp_phone_url()
+        return phone_url if phone_url else url
     return url
 
 
@@ -99,7 +100,7 @@ def resolve_whatsapp_url_for_template() -> str:
     )
     if resolved:
         return _coerce_whatsapp_url_for_email(resolved)
-    return WHATSAPP_URL
+    return build_whatsapp_phone_url()
 
 
 def _resolve_instagram_url() -> str | None:
