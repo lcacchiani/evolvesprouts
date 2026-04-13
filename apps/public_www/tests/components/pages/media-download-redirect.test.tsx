@@ -59,7 +59,11 @@ describe('MediaDownloadRedirectPage', () => {
 
     render(<MediaDownloadRedirectPage />);
 
-    expect(screen.getByText('Preparing your download')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Preparing your download. If your download does not start automatically, use the link below.',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Download the media manually' })).toHaveAttribute(
       'href',
       `https://media.evolvesprouts.com/v1/assets/share/${token}`,

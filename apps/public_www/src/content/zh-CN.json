@@ -1024,8 +1024,7 @@
       "invalidDescription": "此媒体链接缺少有效令牌。请重新申请媒体下载。",
       "unavailableTitle": "下载暂时不可用",
       "unavailableDescription": "我们暂时无法准备下载链接。请稍后再试。",
-      "preparingTitle": "正在准备您的下载",
-      "preparingDescription": "如果下载未自动开始，请使用下方链接。",
+      "preparingMessage": "正在准备您的下载。如果下载未自动开始，请使用下方链接。",
       "manualDownloadLabel": "手动下载媒体"
     },
     "placeholder": {

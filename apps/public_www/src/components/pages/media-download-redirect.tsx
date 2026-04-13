@@ -110,17 +110,18 @@ export function MediaDownloadRedirectPage({
       tabIndex={-1}
       className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
     >
-      <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
-      <h1 className='mt-6 text-3xl font-semibold es-text-heading'>{copy.preparingTitle}</h1>
-      <p className='mt-4 text-base leading-7 es-text-body'>
-        {copy.preparingDescription}
-      </p>
-      <a
-        href={destinationUrl}
-        className='mt-5 text-base font-semibold underline underline-offset-4 es-text-brand'
-      >
-        {copy.manualDownloadLabel}
-      </a>
+      <div className='flex w-full max-w-lg flex-col items-center'>
+        <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
+        <div className='mt-6 w-full min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4 text-left'>
+          <p className='text-base leading-7 es-text-success'>{copy.preparingMessage}</p>
+        </div>
+        <a
+          href={destinationUrl}
+          className='mt-5 text-base font-semibold underline underline-offset-4 es-text-brand'
+        >
+          {copy.manualDownloadLabel}
+        </a>
+      </div>
     </main>
   );
 }
