@@ -6,8 +6,13 @@ import html
 from typing import Any
 
 from app.templates.booking_confirmation_content import (
+    DETAILS_CONSULTATION_KIND,
+    DETAILS_LEVEL_PREFIX,
+    DETAILS_WRITING_FOCUS_PREFIX,
+    FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     HEADER_TITLE,
+    PAYMENT_METHOD_LABELS,
     PENDING_PAYMENT_NOTE,
     SIGN_OFF_PLAIN,
     SUBJECT_PREFIX,
@@ -21,6 +26,129 @@ from app.templates.booking_confirmation_content import (
 from app.templates.ses.email_shell import wrap_transactional_html
 
 _CTA_LINK = "color:#C84A16;font-weight:600;"
+
+
+def resolve_payment_method_display(payment_method_code: str) -> str:
+    """Map reservation ``payment_method`` code to the customer-facing email label."""
+    key = (payment_method_code or "").strip().lower()
+    if key in PAYMENT_METHOD_LABELS:
+        return PAYMENT_METHOD_LABELS[key]
+    return (payment_method_code or "").strip() or "unknown"
+
+
+def format_schedule_datetime_line(
+    schedule_date_label: str | None,
+    schedule_time_label: str | None,
+) -> str | None:
+    """Single schedule line: date+time, time-only, or date-only (first session rules)."""
+    date_s = (schedule_date_label or "").strip()
+    time_s = (schedule_time_label or "").strip()
+    if date_s and time_s:
+        return f"{date_s} {time_s}"
+    if time_s:
+        return time_s
+    if date_s:
+        return date_s
+    return None
+
+
+def _consultation_details_segments(
+    *,
+    loc: str,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
+) -> list[str]:
+    focus = (consultation_writing_focus_label or "").strip()
+    level = (consultation_level_label or "").strip()
+    if not focus and not level:
+        return []
+    lines: list[str] = [DETAILS_CONSULTATION_KIND[loc]]
+    if focus:
+        lines.append(f"{DETAILS_WRITING_FOCUS_PREFIX[loc]}: {focus}")
+    if level:
+        lines.append(f"{DETAILS_LEVEL_PREFIX[loc]}: {level}")
+    return lines
+
+
+def format_consultation_details_html_cell(
+    *,
+    loc: str,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
+) -> str:
+    segments = _consultation_details_segments(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    if not segments:
+        return ""
+    inner = "<br/>".join(html.escape(s) for s in segments)
+    return f'<span style="display:block;text-align:right;">{inner}</span>'
+
+
+def format_consultation_details_plain(
+    *,
+    loc: str,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
+) -> str:
+    segments = _consultation_details_segments(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    if not segments:
+        return ""
+    return "\n".join(segments)
+
+
+def booking_confirmation_template_merge_data(
+    *,
+    locale: str,
+    full_name: str,
+    course_label: str,
+    schedule_date_label: str | None,
+    schedule_time_label: str | None,
+    payment_method_code: str,
+    total_amount: str,
+    is_pending_payment: bool,
+    whatsapp_url: str,
+    consultation_writing_focus_label: str | None = None,
+    consultation_level_label: str | None = None,
+) -> dict[str, Any]:
+    """Build SES template_data (before shell merge)."""
+    loc = normalize_booking_locale(locale)
+    pm_display = resolve_payment_method_display(payment_method_code)
+    schedule_line = format_schedule_datetime_line(
+        schedule_date_label, schedule_time_label
+    )
+    details_html = format_consultation_details_html_cell(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    details_plain = format_consultation_details_plain(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    pm_lower = (payment_method_code or "").strip().lower()
+    include_fps_instructions = pm_lower == "fps_qr" and is_pending_payment
+    data: dict[str, Any] = {
+        "full_name": full_name.strip(),
+        "course_label": course_label.strip(),
+        "payment_method": pm_display,
+        "total_amount": total_amount,
+        "is_pending_payment": is_pending_payment,
+        "whatsapp_url": whatsapp_url.strip(),
+        "include_fps_instructions": include_fps_instructions,
+        "details_block_html": details_html,
+        "details_plain": details_plain,
+    }
+    if schedule_line:
+        data["schedule_datetime_label"] = schedule_line
+    return data
 
 
 def _html_table_row_bordered(label: str, value_html: str) -> str:
@@ -48,18 +176,21 @@ def render_booking_confirmation_email(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
-    payment_method: str,
+    payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
     whatsapp_url: str,
     include_fps_qr_image: bool,
+    consultation_writing_focus_label: str | None = None,
+    consultation_level_label: str | None = None,
 ) -> tuple[str, str, str]:
     """Return (subject, full_html, plain_text)."""
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
     esc_course = html.escape(course_label.strip())
-    esc_pm = html.escape(payment_method.strip())
+    pm_display = resolve_payment_method_display(payment_method_code)
+    esc_pm = html.escape(pm_display)
     esc_total = html.escape(total_amount)
     esc_wa = html.escape(whatsapp_url.strip(), quote=True)
 
@@ -70,21 +201,26 @@ def render_booking_confirmation_email(
     )
 
     rows_html: list[str] = [
-        _html_table_row_bordered(labels["course"], esc_course),
+        _html_table_row_bordered(labels["service"], esc_course),
     ]
-    if schedule_date_label and schedule_date_label.strip():
+    schedule_line = format_schedule_datetime_line(
+        schedule_date_label, schedule_time_label
+    )
+    if schedule_line:
         rows_html.append(
             _html_table_row_bordered(
-                labels["date"],
-                html.escape(schedule_date_label.strip()),
+                labels["datetime"],
+                html.escape(schedule_line),
             )
         )
-    if schedule_time_label and schedule_time_label.strip():
+    details_cell = format_consultation_details_html_cell(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    if details_cell:
         rows_html.append(
-            _html_table_row_bordered(
-                labels["time"],
-                html.escape(schedule_time_label.strip()),
-            )
+            _html_table_row_bordered(labels["details"], details_cell),
         )
     rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
     rows_html.append(_html_table_row_final(labels["total"], esc_total))
@@ -109,6 +245,9 @@ def render_booking_confirmation_email(
     if include_fps_qr_image:
         fps_block = (
             f'<p style="margin:0 0 8px;">{html.escape(FPS_QR_INTRO[loc])}</p>'
+            f'<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">'
+            f"{html.escape(FPS_PAYMENT_DISCLAIMER[loc])}"
+            "</p>"
             '<p style="margin:0 0 16px;text-align:center;">'
             '<img src="cid:fps_qr" width="128" height="128" alt="FPS QR code" '
             'style="display:inline-block;border:0;outline:none;"/>'
@@ -138,11 +277,13 @@ def render_booking_confirmation_email(
         course_label=course_label.strip(),
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
-        payment_method=payment_method.strip(),
+        payment_method_display=pm_display,
         total_amount=total_amount,
         is_pending_payment=is_pending_payment,
         whatsapp_url=whatsapp_url.strip(),
         include_fps_qr_image=include_fps_qr_image,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
     )
     plain_text = "\n".join(text_lines)
 
@@ -172,11 +313,13 @@ def _build_plain_text(
     course_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
-    payment_method: str,
+    payment_method_display: str,
     total_amount: str,
     is_pending_payment: bool,
     whatsapp_url: str,
     include_fps_qr_image: bool,
+    consultation_writing_focus_label: str | None,
+    consultation_level_label: str | None,
 ) -> list[str]:
     label_sep = ": " if loc == "en" else "："
     lines: list[str] = []
@@ -185,17 +328,26 @@ def _build_plain_text(
     else:
         lines.append(f"您好 {full_name}，\n")
     lines.append(THANK_YOU_PLAIN[loc])
-    lines.append(f"{labels['course']}{label_sep}{course_label}\n")
-    if schedule_date_label and schedule_date_label.strip():
-        lines.append(f"{labels['date']}{label_sep}{schedule_date_label.strip()}\n")
-    if schedule_time_label and schedule_time_label.strip():
-        lines.append(f"{labels['time']}{label_sep}{schedule_time_label.strip()}\n")
-    lines.append(f"{labels['payment']}{label_sep}{payment_method}\n")
+    lines.append(f"{labels['service']}{label_sep}{course_label}\n")
+    schedule_line = format_schedule_datetime_line(
+        schedule_date_label, schedule_time_label
+    )
+    if schedule_line:
+        lines.append(f"{labels['datetime']}{label_sep}{schedule_line}\n")
+    details_plain = format_consultation_details_plain(
+        loc=loc,
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
+    if details_plain:
+        lines.append(f"{labels['details']}{label_sep}\n{details_plain}\n")
+    lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
     if is_pending_payment:
         lines.append(f"{PENDING_PAYMENT_NOTE[loc]}\n\n")
     if include_fps_qr_image:
         lines.append(f"{FPS_QR_INTRO[loc]}\n")
+        lines.append(f"{FPS_PAYMENT_DISCLAIMER[loc]}\n")
         lines.append("[FPS QR code image is attached as fps-qr.png]\n\n")
     lines.append(f"{WHATSAPP_INTRO[loc]}\n")
     if loc == "en":

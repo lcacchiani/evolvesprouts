@@ -13,7 +13,7 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
         course_label="课程 A",
         schedule_date_label="4月12日",
         schedule_time_label=None,
-        payment_method="fps_qr",
+        payment_method_code="fps_qr",
         total_amount="HK$100.00",
         is_pending_payment=True,
         whatsapp_url="https://wa.me/123",
@@ -22,8 +22,12 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     assert "预约确认" in subject
     assert "课程 A" in subject
     assert "王敏" in html_doc
-    assert "课程 / 活动" in html_doc
+    assert "服务" in html_doc
+    assert "日期及时间" in html_doc
+    assert "付款方式" in html_doc
+    assert "FPS" in html_doc
     assert "cid:fps_qr" in html_doc
+    assert "若您已完成付款" in html_doc
     assert "付款确认前" in plain
     assert "WhatsApp：" in plain
 
@@ -35,16 +39,16 @@ def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
         course_label="Workshop",
         schedule_date_label=None,
         schedule_time_label=None,
-        payment_method="bank_transfer",
+        payment_method_code="bank_transfer",
         total_amount="HK$50.00",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/x",
         include_fps_qr_image=False,
     )
-    assert "Date" not in html_doc
-    assert "Time" not in html_doc
+    assert "Date &amp; time" not in html_doc
+    assert "Bank Transfer" in html_doc
     assert "cid:fps_qr" not in html_doc
-    assert "Date:" not in plain
+    assert "Date & time:" not in plain
     assert "WhatsApp: https://wa.me/x" in plain
 
 
@@ -55,7 +59,7 @@ def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:
         course_label="B",
         schedule_date_label=None,
         schedule_time_label=None,
-        payment_method="m",
+        payment_method_code="m",
         total_amount="HK$1",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",

@@ -93,6 +93,9 @@ interface BookingReservationFormProps {
   dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   topicsPrefill?: string;
+  /** Consultation flow: optional labels for confirmation email Details row. */
+  consultationWritingFocusLabel?: string;
+  consultationLevelLabel?: string;
   descriptionId: string;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
@@ -423,6 +426,8 @@ export function BookingReservationForm({
   dateEndTime = '',
   topicsFieldConfig,
   topicsPrefill = '',
+  consultationWritingFocusLabel = '',
+  consultationLevelLabel = '',
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
@@ -987,6 +992,14 @@ export function BookingReservationForm({
       schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       schedule_time_label: scheduleTimeLabel,
       location_name: sanitizeSingleLineValue(venueName) || undefined,
+      ...(() => {
+        const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
+        const level = sanitizeSingleLineValue(consultationLevelLabel);
+        return {
+          ...(focus ? { consultation_writing_focus_label: focus } : {}),
+          ...(level ? { consultation_level_label: level } : {}),
+        };
+      })(),
     };
 
     await withSubmitting(async () => {

@@ -1005,6 +1005,18 @@ components:
         schedule_time_label:
           type: string
           maxLength: 500
+        consultation_writing_focus_label:
+          type: string
+          maxLength: 500
+          description: >
+            Optional consultation booking: writing focus title shown in the booking
+            confirmation email Details row.
+        consultation_level_label:
+          type: string
+          maxLength: 500
+          description: >
+            Optional consultation booking: level title shown in the booking confirmation
+            email Details row.
         location_name:
           type: string
           maxLength: 500

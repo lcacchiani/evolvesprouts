@@ -10,4 +10,7 @@ def test_booking_ses_templates_preserve_handlebars_placeholders() -> None:
     assert "{{course_label}}" in en["SubjectPart"]
     assert "{{full_name}}" in en["HtmlPart"]
     assert "{{#if is_pending_payment}}" in en["HtmlPart"]
+    assert "{{#if include_fps_instructions}}" in en["HtmlPart"]
+    assert "{{#if schedule_datetime_label}}" in en["HtmlPart"]
+    assert "{{{details_block_html}}}" in en["HtmlPart"]
     assert "{{whatsapp_url}}" in en["TextPart"]

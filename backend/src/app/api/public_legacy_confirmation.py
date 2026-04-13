@@ -12,6 +12,7 @@ from app.services.email import (
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
 from app.templates.booking_confirmation_render import (
+    booking_confirmation_template_merge_data,
     render_booking_confirmation_email,
     substitute_shell_placeholders,
 )
@@ -157,6 +158,8 @@ def send_booking_confirmation_email(
     is_pending_payment: bool,
     locale: str,
     fps_qr_image_data_url: str | None = None,
+    consultation_writing_focus_label: str | None = None,
+    consultation_level_label: str | None = None,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -166,18 +169,19 @@ def send_booking_confirmation_email(
         return
     loc = normalize_body_locale(locale)
     template = f"evolvesprouts-booking-confirmation-{loc}"
-    data: dict[str, Any] = {
-        "full_name": full_name.strip(),
-        "course_label": course_label.strip(),
-        "payment_method": payment_method.strip(),
-        "total_amount": total_amount,
-        "is_pending_payment": is_pending_payment,
-        "whatsapp_url": resolve_whatsapp_url_for_template(),
-    }
-    if schedule_date_label and schedule_date_label.strip():
-        data["schedule_date_label"] = schedule_date_label.strip()
-    if schedule_time_label and schedule_time_label.strip():
-        data["schedule_time_label"] = schedule_time_label.strip()
+    data: dict[str, Any] = booking_confirmation_template_merge_data(
+        locale=loc,
+        full_name=full_name,
+        course_label=course_label,
+        schedule_date_label=schedule_date_label,
+        schedule_time_label=schedule_time_label,
+        payment_method_code=payment_method,
+        total_amount=total_amount,
+        is_pending_payment=is_pending_payment,
+        whatsapp_url=resolve_whatsapp_url_for_template(),
+        consultation_writing_focus_label=consultation_writing_focus_label,
+        consultation_level_label=consultation_level_label,
+    )
     merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
 
     pm_lower = payment_method.lower().strip()
@@ -204,11 +208,13 @@ def send_booking_confirmation_email(
             course_label=course_label,
             schedule_date_label=schedule_date_label,
             schedule_time_label=schedule_time_label,
-            payment_method=payment_method,
+            payment_method_code=payment_method,
             total_amount=total_amount,
             is_pending_payment=is_pending_payment,
             whatsapp_url=wa_url,
             include_fps_qr_image=True,
+            consultation_writing_focus_label=consultation_writing_focus_label,
+            consultation_level_label=consultation_level_label,
         )
         full_html = substitute_shell_placeholders(html_doc, merged)
         try:
@@ -376,6 +382,8 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
         course_label = "Your booking"
     schedule_date = _optional_str(payload.get("schedule_date_label"))
     schedule_time = _optional_str(payload.get("schedule_time_label"))
+    consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
+    consultation_level = _optional_str(payload.get("consultation_level_label"))
     payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
     price = payload.get("price")
     total_amount = _format_hkd_amount(price)
@@ -398,6 +406,8 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 is_pending_payment=is_pending,
                 locale=locale,
                 fps_qr_image_data_url=fps_qr_data_url,
+                consultation_writing_focus_label=consultation_focus,
+                consultation_level_label=consultation_level,
             )
         except Exception:
             logger.exception(
@@ -431,7 +441,7 @@ def _format_hkd_amount(price: Any) -> str:
         n = float(price)
     except (TypeError, ValueError):
         return "HK$0.00"
-    return f"HK${n:.2f}"
+    return f"HK${n:,.2f}"
 
 
 def _get_header_case_insensitive(event: Mapping[str, Any], name: str) -> str:

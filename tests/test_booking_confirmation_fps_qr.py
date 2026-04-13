@@ -99,6 +99,8 @@ def test_send_booking_confirmation_ignores_fps_qr_when_not_pending(
 
     templated.assert_called_once()
     mime.assert_not_called()
+    merged = templated.call_args.kwargs["template_data"]
+    assert merged.get("include_fps_instructions") is False
 
 
 def test_send_booking_confirmation_falls_back_when_fps_qr_invalid(
@@ -131,3 +133,6 @@ def test_send_booking_confirmation_falls_back_when_fps_qr_invalid(
 
     templated.assert_called_once()
     mime.assert_not_called()
+    merged = templated.call_args.kwargs["template_data"]
+    assert merged.get("include_fps_instructions") is True
+    assert merged.get("payment_method") == "FPS"

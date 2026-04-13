@@ -77,10 +77,10 @@ def test_run_reservation_post_success_sets_pending_without_stripe(
             "email": "j@example.com",
             "course_label": "Course",
             "payment_method": "fps_qr",
-            "price": 150,
+            "price": 15234.5,
             "locale": "en",
         }
     )
 
     assert captured["is_pending_payment"] is True
-    assert captured["total_amount"] == "HK$150.00"
+    assert captured["total_amount"] == "HK$15,234.50"

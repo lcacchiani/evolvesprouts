@@ -6,6 +6,8 @@ from typing import Any
 
 from app.templates.booking_confirmation_content import (
     BOOKING_CONFIRMATION_LOCALES,
+    FPS_PAYMENT_DISCLAIMER,
+    FPS_QR_INTRO,
     GREETING_HTML,
     HEADER_TITLE,
     PENDING_PAYMENT_NOTE,
@@ -26,23 +28,23 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
     """Handlebars inner HTML and plain text (copy shared with MIME render module)."""
     labels = TABLE_LABELS[loc]
     border = "border-bottom:1px solid #eeeeee;"
-    row_course = (
-        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["course"]}</strong></td>'
+    row_service = (
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["service"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
         "{{course_label}}</td></tr>"
     )
-    row_date = (
-        "{{#if schedule_date_label}}"
-        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["date"]}</strong></td>'
+    row_datetime = (
+        "{{#if schedule_datetime_label}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["datetime"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{schedule_date_label}}</td></tr>"
+        "{{schedule_datetime_label}}</td></tr>"
         "{{/if}}"
     )
-    row_time = (
-        "{{#if schedule_time_label}}"
-        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["time"]}</strong></td>'
+    row_details = (
+        "{{#if details_block_html}}"
+        f'<tr><td style="padding:8px 0;{border}"><strong>{labels["details"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{schedule_time_label}}</td></tr>"
+        "{{{details_block_html}}}</td></tr>"
         "{{/if}}"
     )
     row_payment = (
@@ -60,9 +62,9 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + THANK_YOU_HTML[loc]
         + '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
         'style="border-collapse:collapse;margin:0 0 16px;">'
-        + row_course
-        + row_date
-        + row_time
+        + row_service
+        + row_datetime
+        + row_details
         + row_payment
         + row_total
         + "</table>"
@@ -70,6 +72,12 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;'
         'color:#5c4a00;">'
         f"{pending}"
+        "</p>"
+        "{{/if}}"
+        "{{#if include_fps_instructions}}"
+        f'<p style="margin:0 0 8px;">{FPS_QR_INTRO[loc]}</p>'
+        '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">'
+        f"{FPS_PAYMENT_DISCLAIMER[loc]}"
         "</p>"
         "{{/if}}"
         f'<p style="margin:0 0 12px;">{WHATSAPP_INTRO[loc]}</p>'
@@ -85,15 +93,15 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
     text_part = (
         greeting_plain
         + THANK_YOU_PLAIN[loc]
-        + f"{labels['course']}{label_sep}"
+        + f"{labels['service']}{label_sep}"
         + "{{course_label}}\n"
-        + "{{#if schedule_date_label}}"
-        + f"{labels['date']}{label_sep}"
-        + "{{schedule_date_label}}\n"
+        + "{{#if schedule_datetime_label}}"
+        + f"{labels['datetime']}{label_sep}"
+        + "{{schedule_datetime_label}}\n"
         + "{{/if}}"
-        + "{{#if schedule_time_label}}"
-        + f"{labels['time']}{label_sep}"
-        + "{{schedule_time_label}}\n"
+        + "{{#if details_plain}}"
+        + f"{labels['details']}{label_sep}\n"
+        + "{{details_plain}}\n"
         + "{{/if}}"
         + f"{labels['payment']}{label_sep}"
         + "{{payment_method}}\n"
@@ -101,6 +109,10 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + "{{total_amount}}\n\n"
         + "{{#if is_pending_payment}}"
         + f"{pending}\n\n"
+        + "{{/if}}"
+        + "{{#if include_fps_instructions}}"
+        + f"{FPS_QR_INTRO[loc]}\n"
+        + f"{FPS_PAYMENT_DISCLAIMER[loc]}\n\n"
         + "{{/if}}"
         + f"{WHATSAPP_INTRO[loc]}\n"
         + (
