@@ -14,7 +14,7 @@ import html
 import os
 import re
 from typing import Any
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import parse_qsl, quote, urlparse, urlencode, urlunparse
 
 from app.templates.constants import (
     build_faq_url,
@@ -30,6 +30,12 @@ _THANK_YOU_HTML = {
     "en": '<p style="margin:0 0 16px;">Thank you,<br/>Evolve Sprouts</p>',
     "zh-CN": '<p style="margin:0 0 16px;">谢谢，<br/>Evolve Sprouts</p>',
     "zh-HK": '<p style="margin:0 0 16px;">謝謝，<br/>Evolve Sprouts</p>',
+}
+
+_FREE_INTRO_WHATSAPP_PREFILL = {
+    "en": "Hi, I'd like to book a free intro call!",
+    "zh-CN": "您好，我想预约免费咨询通话！",
+    "zh-HK": "您好，我想預約免費諮詢通話！",
 }
 
 _SOCIAL_LABELS = {
@@ -152,6 +158,36 @@ def _build_contact_us_page_url(*, locale: str) -> str:
     return f"{base}/{loc}/contact-us"
 
 
+def build_my_best_auntie_training_page_url(*, locale: str) -> str:
+    """Public WWW URL for the My Best Auntie training course page."""
+    base = resolve_public_www_base_url()
+    if not base:
+        return ""
+    loc = locale if locale in _ALLOWED_LOCALES else "en"
+    return f"{base}/{loc}/services/my-best-auntie-training-course"
+
+
+def build_free_intro_call_url(*, locale: str) -> str:
+    """WhatsApp deep link with intro-call prefill, or contact page if WhatsApp is unavailable."""
+    loc = locale if locale in _ALLOWED_LOCALES else "en"
+    prefill = _FREE_INTRO_WHATSAPP_PREFILL[loc]
+    base_wa = resolve_whatsapp_url_for_template()
+    if not base_wa:
+        return _build_contact_us_page_url(locale=loc)
+    try:
+        parsed = urlparse(base_wa)
+    except ValueError:
+        return _build_contact_us_page_url(locale=loc)
+    pairs = [
+        (k, v)
+        for k, v in parse_qsl(parsed.query, keep_blank_values=True)
+        if k != "text"
+    ]
+    pairs.append(("text", prefill))
+    new_query = urlencode(pairs, safe="", quote_via=quote)
+    return urlunparse(parsed._replace(query=new_query))
+
+
 def _social_link_segment(*, href: str, label: str) -> str:
     safe_href = html.escape(href, quote=True)
     safe_label = html.escape(label)
@@ -209,6 +245,8 @@ def build_transactional_template_shell_data(*, locale: str) -> dict[str, str]:
         "site_home_url": site_home_url,
         "faq_url": build_faq_url(locale=loc),
         "footer_block_html": build_footer_block_html(locale=loc),
+        "my_best_auntie_url": build_my_best_auntie_training_page_url(locale=loc),
+        "free_intro_call_url": build_free_intro_call_url(locale=loc),
     }
 
 
