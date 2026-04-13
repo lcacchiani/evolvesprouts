@@ -238,13 +238,10 @@ export function MediaForm({
 
   if (hasSuccessfulSubmission) {
     return (
-      <div
-        className={mergeClassNames(
-          'mt-auto w-full max-w-[420px] min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4',
-          className,
-        )}
-      >
-        <p className='text-base leading-7 es-text-success'>{formSuccessMessage}</p>
+      <div className={className}>
+        <div className='mt-3 w-full max-w-[420px] min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4'>
+          <p className='text-base leading-7 es-text-success'>{formSuccessMessage}</p>
+        </div>
       </div>
     );
   }
@@ -324,7 +321,6 @@ export function MediaForm({
       <TurnstileCaptcha
         siteKey={turnstileSiteKey}
         widgetAction='media_submit'
-        size='normal'
         onTokenChange={handleCaptchaTokenChange}
         onLoadError={handleCaptchaLoadError}
       />

@@ -311,6 +311,12 @@
     color: var(--es-color-brand-orange);
   }
 
+  .es-turnstile-captcha {
+    display: block;
+    width: 100%;
+    min-height: 65px;
+  }
+
   .es-turnstile-captcha,
   .es-turnstile-captcha > div,
   .es-turnstile-captcha iframe {
@@ -318,7 +324,13 @@
     background-color: transparent !important;
   }
 
+  .es-turnstile-captcha > div {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
   .es-turnstile-captcha iframe {
+    width: 100% !important;
     max-width: none !important;
   }
 
