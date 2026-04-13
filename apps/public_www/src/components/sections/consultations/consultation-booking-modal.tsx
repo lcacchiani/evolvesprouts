@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element -- static SVG from /public/images in upgrade CTA */
 'use client';
 
+import Image from 'next/image';
 import {
   useId,
   useMemo,
@@ -45,7 +45,6 @@ export interface ConsultationBookingModalSelectionInfo {
   levelFeatures: string[];
   focusLabelFormatted: string;
   upgradeToDeepDiveLabel: string;
-  /** Shown above the upgrade label inside the CTA (e.g. Deep Dive tier icon). */
   upgradeToDeepDiveIconSrc?: string;
 }
 
@@ -402,7 +401,7 @@ export function ConsultationBookingModal({
             onClick={onUpgradeToDeepDive}
           >
             {selectionInfo.upgradeToDeepDiveIconSrc ? (
-              <img
+              <Image
                 src={selectionInfo.upgradeToDeepDiveIconSrc}
                 alt=''
                 width={44}
