@@ -396,6 +396,7 @@ describe('ContactUsForm section', () => {
     expect(submitButton).toBeDisabled();
     const loadingGear = screen.getByTestId('contact-us-form-submit-loading-gear');
     expect(loadingGear).toHaveClass('animate-spin');
+    expect(loadingGear.parentElement?.className).toContain('es-loading-gear-bubble');
 
     releaseRequest?.();
     await waitFor(() => {

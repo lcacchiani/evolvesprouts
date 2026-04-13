@@ -292,6 +292,10 @@ export function FreeGuidesAndResourcesLibrary({
 
   const mediaFormFirstNameLabel = mediaFormContent.formFirstNameLabel;
   const mediaFormEmailLabel = mediaFormContent.formEmailLabel;
+  const mediaFormFirstNameValidationMessage =
+    mediaFormContent.formFirstNameValidationMessage;
+  const mediaFormEmailValidationMessage =
+    mediaFormContent.formEmailValidationMessage;
   const mediaFormSubmitLabel = mediaFormContent.formSubmitLabel;
   const mediaFormSubmittingLabel = mediaFormContent.formSubmittingLabel;
   const mediaFormSuccessMessage = mediaFormContent.formSuccessMessage;
@@ -410,6 +414,8 @@ export function FreeGuidesAndResourcesLibrary({
                     formMarketingOptInLabel={mediaFormMarketingOptInLabel}
                     formFirstNameLabel={mediaFormFirstNameLabel}
                     formEmailLabel={mediaFormEmailLabel}
+                    formFirstNameValidationMessage={mediaFormFirstNameValidationMessage}
+                    formEmailValidationMessage={mediaFormEmailValidationMessage}
                     formSubmitLabel={mediaFormSubmitLabel}
                     formSubmittingLabel={mediaFormSubmittingLabel}
                     formSuccessMessage={mediaFormSuccessMessage}

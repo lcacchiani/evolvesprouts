@@ -23,10 +23,15 @@ export function SubmitButtonLoadingContent({
     return (
       <>
         <span className='sr-only'>{submittingLabel}</span>
-        <LoadingGearIcon
-          className='h-5 w-5 animate-spin'
-          testId={loadingGearTestId}
-        />
+        <span
+          className='inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border es-border-soft es-loading-gear-bubble'
+          aria-hidden='true'
+        >
+          <LoadingGearIcon
+            className='h-5 w-5 animate-spin'
+            testId={loadingGearTestId}
+          />
+        </span>
       </>
     );
   }

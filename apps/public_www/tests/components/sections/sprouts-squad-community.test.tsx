@@ -345,9 +345,9 @@ describe('SproutsSquadCommunity section', () => {
       name: enContent.common.formActions.submittingLabel,
     });
     expect(submitButton).toBeDisabled();
-    expect(screen.getByTestId('sprouts-squad-community-submit-loading-gear')).toHaveClass(
-      'animate-spin',
-    );
+    const loadingGear = screen.getByTestId('sprouts-squad-community-submit-loading-gear');
+    expect(loadingGear).toHaveClass('animate-spin');
+    expect(loadingGear.parentElement?.className).toContain('es-loading-gear-bubble');
 
     releaseRequest?.();
     await waitFor(() => {

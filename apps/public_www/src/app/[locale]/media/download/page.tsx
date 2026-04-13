@@ -36,8 +36,8 @@ function LocalizedDownloadPageFallback({
     >
       <div className='flex w-full max-w-lg flex-col items-center'>
         <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
-        <div className='mt-6 w-full min-h-0 overflow-hidden rounded-inner border es-border-success es-bg-surface-success-pale p-4 text-left'>
-          <p className='text-base leading-7 es-text-success'>{message}</p>
+        <div className='es-public-form-success-panel mt-6 w-full text-left'>
+          <p className='es-public-form-success-panel-message'>{message}</p>
         </div>
       </div>
     </main>

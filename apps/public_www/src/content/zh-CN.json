@@ -178,6 +178,8 @@
     "resourceKey": "patience-free-guide",
     "formFirstNameLabel": "名字",
     "formEmailLabel": "邮箱",
+    "formFirstNameValidationMessage": "请输入你的名字。",
+    "formEmailValidationMessage": "请输入有效的邮箱地址。",
     "formSubmitLabel": "发送免费指南给我",
     "formSubmittingLabel": "提交中…",
     "formSuccessMessage": "请查收你的邮箱！下载链接就在里面。",

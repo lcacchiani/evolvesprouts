@@ -66,6 +66,8 @@ function mediaFormProps() {
     formMarketingOptInLabel: resourcesContent.formMarketingOptInLabel,
     formFirstNameLabel: resourcesContent.formFirstNameLabel,
     formEmailLabel: resourcesContent.formEmailLabel,
+    formFirstNameValidationMessage: resourcesContent.formFirstNameValidationMessage,
+    formEmailValidationMessage: resourcesContent.formEmailValidationMessage,
     formSubmitLabel: resourcesContent.formSubmitLabel,
     formSubmittingLabel: resourcesContent.formSubmittingLabel,
     formSuccessMessage: resourcesContent.formSuccessMessage,
@@ -129,6 +131,13 @@ describe('MediaForm', () => {
         error_type: 'validation_error',
       },
     });
+    expect(
+      screen.getByText(enContent.resources.formFirstNameValidationMessage),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(enContent.resources.formEmailValidationMessage),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(enContent.resources.formErrorMessage)).toBeNull();
   });
 
   it('renders the CTA button before the form opens', () => {
@@ -217,7 +226,9 @@ describe('MediaForm', () => {
       name: enContent.resources.formSubmittingLabel,
     });
     expect(submitButton).toBeDisabled();
-    expect(screen.getByTestId('media-form-submit-loading-gear')).toHaveClass('animate-spin');
+    const loadingGear = screen.getByTestId('media-form-submit-loading-gear');
+    expect(loadingGear).toHaveClass('animate-spin');
+    expect(loadingGear.parentElement?.className).toContain('es-loading-gear-bubble');
 
     releaseRequest?.();
     await waitFor(() => {
