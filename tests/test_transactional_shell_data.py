@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
 
+import app.templates.transactional_shell_data as transactional_shell_data
 from app.templates.transactional_shell_data import (
+    build_footer_block_html,
     build_footer_social_html,
     build_transactional_template_shell_data,
     merge_transactional_shell_template_data,
@@ -92,6 +95,14 @@ def test_resolve_whatsapp_url_for_template_empty_without_env(
 def test_build_transactional_template_shell_data_footer(
     monkeypatch: Any, locale: str, expect_fragment: str
 ) -> None:
+    fixed_now = datetime(2030, 1, 2, tzinfo=UTC)
+
+    class _DatetimePatch:
+        @staticmethod
+        def now(tz=None):
+            return fixed_now
+
+    monkeypatch.setattr(transactional_shell_data, "datetime", _DatetimePatch)
     monkeypatch.setenv("PUBLIC_WWW_BASE_URL", "https://www.example.com")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", _TEST_PHONE)
     monkeypatch.setenv(
@@ -113,6 +124,27 @@ def test_build_transactional_template_shell_data_footer(
     assert expect_fragment in data["footer_block_html"]
     assert "Instagram" in data["footer_block_html"]
     assert "https://www.instagram.com/evolvesprouts" in data["footer_block_html"]
+    assert "© 2030 Evolve Sprouts. All rights reserved." in data["footer_block_html"]
+    assert "margin:16px 0 0 0;text-align:center" in data["footer_block_html"]
+
+
+def test_build_footer_block_html_copyright_when_no_social_links(monkeypatch: Any) -> None:
+    fixed_now = datetime(2027, 6, 1, tzinfo=UTC)
+
+    class _DatetimePatch:
+        @staticmethod
+        def now(tz=None):
+            return fixed_now
+
+    monkeypatch.setattr(transactional_shell_data, "datetime", _DatetimePatch)
+    monkeypatch.delenv("PUBLIC_WWW_BASE_URL", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_WHATSAPP_URL", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
+    monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
+    html = build_footer_block_html(locale="en")
+    assert build_footer_social_html(locale="en") == ""
+    assert "© 2027 Evolve Sprouts. All rights reserved." in html
 
 
 def test_build_free_intro_call_url_falls_back_to_contact_without_whatsapp(

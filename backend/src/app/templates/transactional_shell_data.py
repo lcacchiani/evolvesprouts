@@ -13,6 +13,7 @@ from __future__ import annotations
 import html
 import os
 import re
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qsl, quote, urlparse, urlencode, urlunparse
 
@@ -222,15 +223,27 @@ def build_footer_social_html(*, locale: str) -> str:
     return f'<p style="margin:0;text-align:center;font-size:13px;line-height:1.8;">{inner}</p>'
 
 
+def _build_footer_copyright_html() -> str:
+    """Centered copyright line (year at send time, UTC)."""
+    year = datetime.now(UTC).year
+    text = f"© {year} Evolve Sprouts. All rights reserved."
+    return (
+        '<p style="margin:16px 0 0 0;text-align:center;font-size:11px;'
+        'line-height:1.5;color:#888888;">'
+        f"{html.escape(text)}</p>"
+    )
+
+
 def build_footer_block_html(*, locale: str) -> str:
-    """Thank-you line, rule, and social links for the shell footer."""
+    """Thank-you line, rule, social links, and copyright for the shell footer."""
     loc = locale if locale in _ALLOWED_LOCALES else "en"
     thank = _THANK_YOU_HTML[loc]
     hr = '<hr style="border:none;border-top:1px solid #eeeeee;margin:0 0 16px 0;"/>'
     social = build_footer_social_html(locale=loc)
+    copyright_html = _build_footer_copyright_html()
     if social:
-        return thank + hr + social
-    return thank + hr
+        return thank + hr + social + copyright_html
+    return thank + hr + copyright_html
 
 
 def build_transactional_template_shell_data(*, locale: str) -> dict[str, str]:
