@@ -1487,15 +1487,28 @@
     },
     "thankYouModal": {
       "closeLabel": "关闭",
-      "title": "我们会尽快与您联系。",
-      "subtitle": "",
-      "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
-      "summaryLocationVirtualFallback": "线上 Zoom 会议",
-      "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "下载邀请并添加到你的个人日历",
-      "paymentConfirmationNote": "收到付款后，你的名额才会确认",
-      "directionLabel": "查看路线",
+      "successTitle": "感谢你的预约！",
+      "successDescription": "我们已收到你的预约，包含全部详情的确认邮件正在发送到你的邮箱。",
+      "confirmationTableSectionLabel": "预约详情",
+      "confirmationTable": {
+        "service": "服务",
+        "datetime": "日期及时间",
+        "location": "地点",
+        "details": "详情",
+        "payment": "付款方式",
+        "total": "总额"
+      },
+      "confirmationDetailsPrefixes": {
+        "cohort": "班级",
+        "ageGroup": "年龄组",
+        "writingFocus": "重点",
+        "level": "级别"
+      },
+      "pendingPaymentNote": "在付款确认前，您的预订仍为待处理状态。",
+      "fpsQrIntro": "请使用下方 FPS 二维码，通过您的银行应用付款。",
+      "fpsQrDisclaimer": "若您已完成付款，请忽略下方的二维码。",
+      "fpsQrImageAlt": "FPS 二维码",
       "followUpPrompt": "有任何问题想立即了解？"
     }
   },

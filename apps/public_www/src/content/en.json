@@ -1487,15 +1487,28 @@
     },
     "thankYouModal": {
       "closeLabel": "Close",
-      "title": "We will get in touch shortly.",
-      "subtitle": "",
-      "successLabel": "Thank you!",
       "courseLabel": "My Best Auntie Training Course.",
-      "summaryLocationVirtualFallback": "Virtual Zoom call",
-      "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "Download the invite to your personal calendar",
-      "paymentConfirmationNote": "Your spot is confirmed once payment is received.",
-      "directionLabel": "Get Directions",
+      "successTitle": "Thank you for your booking!",
+      "successDescription": "We've received your booking and a confirmation email with all the details is on its way to your inbox.",
+      "confirmationTableSectionLabel": "Booking details",
+      "confirmationTable": {
+        "service": "Service",
+        "datetime": "Date & time",
+        "location": "Location",
+        "details": "Details",
+        "payment": "Payment method",
+        "total": "Total"
+      },
+      "confirmationDetailsPrefixes": {
+        "cohort": "Cohort",
+        "ageGroup": "Age group",
+        "writingFocus": "Focus",
+        "level": "Level"
+      },
+      "pendingPaymentNote": "Your reservation is pending until payment is confirmed.",
+      "fpsQrIntro": "Use the FPS QR code below with your banking app to pay.",
+      "fpsQrDisclaimer": "If you have already completed payment, you can ignore the QR code below.",
+      "fpsQrImageAlt": "FPS QR code",
       "followUpPrompt": "Any immediate questions?"
     }
   },

@@ -1447,6 +1447,32 @@
     line-height: 1.5;
   }
 
+  .es-booking-confirmation-table {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+  }
+
+  .es-booking-confirmation-table__row .es-booking-confirmation-table__label,
+  .es-booking-confirmation-table__row .es-booking-confirmation-table__value {
+    padding: 8px 0;
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  .es-booking-confirmation-table__row--last .es-booking-confirmation-table__label,
+  .es-booking-confirmation-table__row--last .es-booking-confirmation-table__value {
+    border-bottom: none;
+  }
+
+  .es-booking-thank-you-pending-note {
+    background: #fff8e6;
+    color: #5c4a00;
+  }
+
+  .es-booking-thank-you-fps-qr {
+    border: 0;
+    outline: none;
+  }
+
   .es-events-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }

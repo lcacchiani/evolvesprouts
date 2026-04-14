@@ -46,11 +46,8 @@ import trainingCoursesContent from '@/content/my-best-auntie-training-courses.js
 import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
+import { formatCurrencyHkd } from '@/lib/format';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
-import {
-  formatSiteCompactDate,
-  formatSiteTimeOfDay,
-} from '@/lib/site-datetime';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -210,28 +207,6 @@ const testBankAccountHolder = 'Test Account Holder';
 const testBankAccountNumber = '123-456-789';
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-const reservationSummary: ReservationSummary = {
-  attendeeName: 'Test User',
-  attendeeEmail: 'test@example.com',
-  attendeePhone: '12345678',
-  ageGroup: '1-3',
-  paymentMethod: 'Pay via FPS QR',
-  totalAmount: 9000,
-  eventTitle: 'My Best Auntie',
-  dateStartTime: selectedCohort.dates[0]?.start_datetime,
-  dateEndTime: selectedCohort.dates[0]?.end_datetime,
-  courseSessions: selectedCohort.dates.slice(0, 2).map((part) => {
-    return {
-      dateStartTime: part.start_datetime,
-      dateEndTime: part.end_datetime,
-    };
-  }),
-  eventSubtitle: myBestAuntieModalContent.subtitle,
-  locationName: selectedCohort.location_name,
-  locationAddress: selectedCohort.location_address,
-  locationDirectionHref: selectedCohort.location_url,
-};
-
 const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
 if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
@@ -252,6 +227,34 @@ const expectedMbaMarketingFields = {
   location_name: selectedCohort.location_name,
   location_address: selectedCohort.location_address,
   primary_session_start_iso: primarySessionPart?.start_datetime,
+};
+
+const reservationSummary: ReservationSummary = {
+  attendeeName: 'Test User',
+  attendeeEmail: 'test@example.com',
+  attendeePhone: '12345678',
+  ageGroup: '1-3',
+  paymentMethod: 'Pay via FPS QR',
+  paymentMethodCode: 'fps_qr',
+  totalAmount: 9000,
+  eventTitle: myBestAuntieModalContent.title,
+  dateStartTime: selectedCohort.dates[0]?.start_datetime,
+  dateEndTime: selectedCohort.dates[0]?.end_datetime,
+  courseSessions: selectedCohort.dates.slice(0, 2).map((part) => {
+    return {
+      dateStartTime: part.start_datetime,
+      dateEndTime: part.end_datetime,
+    };
+  }),
+  eventSubtitle: myBestAuntieModalContent.subtitle,
+  locationName: selectedCohort.location_name,
+  locationAddress: selectedCohort.location_address,
+  locationDirectionHref: selectedCohort.location_url,
+  scheduleDateLabel: expectedMbaMarketingFields.schedule_date_label,
+  scheduleTimeLabel: expectedMbaMarketingFields.schedule_time_label,
+  primarySessionStartIso: expectedMbaMarketingFields.primary_session_start_iso,
+  courseSlug: 'my-best-auntie',
+  reservationPendingUntilPaymentConfirmed: true,
 };
 
 function renderWithPortalContainer(ui: ReactNode) {
@@ -370,14 +373,14 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     const thankYouDialog = screen.getByRole('dialog', {
-      name: thankYouModalContent.title,
+      name: thankYouModalContent.successTitle,
     });
     const thankYouDescriptionId = thankYouDialog.getAttribute('aria-describedby');
     expect(thankYouDialog).toHaveAttribute('aria-labelledby');
     expect(thankYouDescriptionId).toBeTruthy();
     expect(
       document.getElementById(thankYouDescriptionId ?? '')?.textContent ?? '',
-    ).toContain(thankYouModalContent.successLabel);
+    ).toContain(thankYouModalContent.successDescription);
   });
 
   it('hides child age group and renders icon-based payment option radios in booking modal', () => {
@@ -1647,8 +1650,8 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
-  it('renders thank-you detail cards and directions link', () => {
-    const { container } = renderWithPortalContainer(
+  it('renders thank-you confirmation table matching email-style rows', () => {
+    renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
@@ -1657,43 +1660,37 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(container.querySelectorAll('.es-booking-thank-you-detail-card')).toHaveLength(4);
+    expect(screen.getByRole('table')).toBeInTheDocument();
     expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--training'),
-    ).not.toBeNull();
+      screen.getByRole('rowheader', { name: thankYouModalContent.confirmationTable.service }),
+    ).toBeInTheDocument();
     expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--calendar'),
-    ).not.toBeNull();
+      screen.getByRole('cell', { name: reservationSummary.eventTitle }),
+    ).toBeInTheDocument();
+
+    const cohortLine = `${thankYouModalContent.confirmationDetailsPrefixes.cohort}: ${reservationSummary.scheduleDateLabel}`;
+    const ageLine = `${thankYouModalContent.confirmationDetailsPrefixes.ageGroup}: ${reservationSummary.ageGroup}`;
     expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--location'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--dollar'),
-    ).not.toBeNull();
-    expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
-    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
-    const sessionLines =
-      reservationSummary.courseSessions?.map((session) => {
-        const datePart = formatSiteCompactDate(session.dateStartTime, 'en');
-        const timePart = formatSiteTimeOfDay(session.dateStartTime, 'en');
-        return `${datePart}, ${timePart}`;
-      }) ?? [];
-    expect(sessionLines).toHaveLength(2);
-    for (const line of sessionLines) {
-      expect(screen.getByText(line)).toBeInTheDocument();
-    }
-    expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: thankYouModalContent.downloadCalendarInviteLabel,
+      screen.getByRole('cell', {
+        name: new RegExp(
+          `${cohortLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\n]*${ageLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+        ),
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
-    expect(screen.getByText(selectedCohort.location_address)).toBeInTheDocument();
-    const directionLink = screen.getByRole('link', {
-      name: thankYouModalContent.directionLabel,
-    });
-    expect(directionLink).toHaveAttribute('href', reservationSummary.locationDirectionHref);
+
+    expect(
+      screen.getByRole('cell', { name: '19 April @ 09:00 HKT' }),
+    ).toBeInTheDocument();
+
+    const locationCell = `${selectedCohort.location_name}, ${selectedCohort.location_address}`;
+    expect(screen.getByRole('cell', { name: locationCell })).toBeInTheDocument();
+
+    expect(screen.getByRole('cell', { name: 'FPS' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: formatCurrencyHkd(reservationSummary.totalAmount, 'en') }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(thankYouModalContent.pendingPaymentNote)).toBeInTheDocument();
   });
 
   it('renders WhatsApp follow-up when href and label are provided', () => {
@@ -1715,37 +1712,22 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/15550001234');
   });
 
-  it('tracks thank-you calendar download clicks', () => {
-    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
-    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
+  it('renders FPS QR block when pending FPS booking includes QR data URL', () => {
+    const tinyPng =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
     render(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
-        summary={reservationSummary}
+        summary={{ ...reservationSummary, fpsQrImageDataUrl: tinyPng }}
         onClose={() => {}}
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: thankYouModalContent.downloadCalendarInviteLabel,
-      }),
-    );
-
-    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
-      'booking_thank_you_ics_download',
-      expect.objectContaining({
-        sectionId: 'my-best-auntie-booking',
-        ctaLocation: 'thank_you_modal',
-      }),
-    );
-
-    createObjectUrlSpy.mockRestore();
-    revokeSpy.mockRestore();
-    clickSpy.mockRestore();
+    expect(screen.getByText(thankYouModalContent.fpsQrIntro)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.fpsQrDisclaimer)).toBeInTheDocument();
+    const qrImg = screen.getByRole('img', { name: thankYouModalContent.fpsQrImageAlt });
+    expect(qrImg.getAttribute('src')).toBe(tinyPng);
   });
 
   it('allows only one discount code to be applied at a time', async () => {

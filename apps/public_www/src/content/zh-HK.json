@@ -1487,15 +1487,28 @@
     },
     "thankYouModal": {
       "closeLabel": "關閉",
-      "title": "我們會盡快與你聯絡。",
-      "subtitle": "",
-      "successLabel": "多謝你！",
       "courseLabel": "我的最佳姨姨培訓課程。",
-      "summaryLocationVirtualFallback": "網上 Zoom 會議",
-      "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "下載邀請並加入你嘅個人日曆",
-      "paymentConfirmationNote": "收到付款後，你的名額才會確認",
-      "directionLabel": "查看路線",
+      "successTitle": "多謝你的預約！",
+      "successDescription": "我們已收到你的預約，包含全部詳情的確認電郵正在發送到你的收件箱。",
+      "confirmationTableSectionLabel": "預約詳情",
+      "confirmationTable": {
+        "service": "服務",
+        "datetime": "日期及時間",
+        "location": "地點",
+        "details": "詳情",
+        "payment": "付款方式",
+        "total": "總額"
+      },
+      "confirmationDetailsPrefixes": {
+        "cohort": "班級",
+        "ageGroup": "年齡組",
+        "writingFocus": "重點",
+        "level": "級別"
+      },
+      "pendingPaymentNote": "在付款確認前，您的預訂仍為待處理狀態。",
+      "fpsQrIntro": "請使用下方 FPS 二維碼，透過您的銀行應用程式付款。",
+      "fpsQrDisclaimer": "若您已完成付款，請忽略下方的二維碼。",
+      "fpsQrImageAlt": "FPS 二維碼",
       "followUpPrompt": "有任何問題想即時了解？"
     }
   },

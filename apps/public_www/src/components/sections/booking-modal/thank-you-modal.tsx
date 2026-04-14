@@ -3,41 +3,28 @@
 import Image from 'next/image';
 import { useId, useMemo, useRef } from 'react';
 
-import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SmartLink } from '@/components/shared/smart-link';
-import {
-  OverlayDialogPanel,
-  OverlayScrollableBody,
-} from '@/components/shared/overlay-surface';
+import { BookingConfirmationSummaryTable } from '@/components/sections/booking-modal/booking-confirmation-summary-table';
 import {
   CloseButton,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
-import type {
-  ReservationCourseSession,
-  ReservationSummary,
-} from '@/components/sections/booking-modal/types';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
+import {
+  OverlayDialogPanel,
+  OverlayScrollableBody,
+} from '@/components/shared/overlay-surface';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type { BookingThankYouModalContent, Locale } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
-import {
-  buildBookingIcsCalendarContent,
-  buildEvolveSproutsThankYouIcsFilenameBase,
-  triggerBookingIcsDownload,
-} from '@/lib/booking-calendar-download';
+import { buildBookingConfirmationTableRows } from '@/lib/booking-confirmation-table';
 import { formatCurrencyHkd } from '@/lib/format';
-import {
-  formatSiteCompactDate,
-  formatSiteTimeOfDay,
-} from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
-import { getHrefKind } from '@/lib/url-utils';
 
-const THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME =
-  'h-[54px] w-full rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:text-[18px]';
+const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
 export interface BookingThankYouModalProps {
   locale: Locale;
@@ -49,101 +36,19 @@ export interface BookingThankYouModalProps {
   onClose: () => void;
 }
 
-const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
-
-type ThankYouCardIconId = 'training' | 'calendar' | 'location' | 'dollar';
-
-function ThankYouDetailCardIcon({ icon }: { icon: ThankYouCardIconId }) {
-  return (
-    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-booking-thank-you-detail-card-icon-wrap'>
-      <span
-        className={`es-booking-thank-you-detail-icon-mask es-booking-thank-you-detail-icon-mask--${icon}`}
-        aria-hidden='true'
-      />
-    </span>
-  );
-}
-
-function formatSummaryDatePart(dateStartTime: string | undefined, locale: Locale): string {
-  const normalized = dateStartTime?.trim() ?? '';
-  if (!normalized) {
-    return '';
-  }
-
-  return formatSiteCompactDate(normalized, locale);
-}
-
-function formatSummaryTimePart(dateStartTime: string | undefined, locale: Locale): string {
-  const normalized = dateStartTime?.trim() ?? '';
-  if (!normalized) {
-    return '';
-  }
-
-  return formatSiteTimeOfDay(normalized, locale);
-}
-
-function formatSummaryDateTimeLine(
-  dateStartTime: string | undefined,
-  locale: Locale,
-): string {
-  const datePart = formatSummaryDatePart(dateStartTime, locale);
-  const timePart = formatSummaryTimePart(dateStartTime, locale);
-  if (datePart && timePart) {
-    return `${datePart}, ${timePart}`;
-  }
-
-  return datePart || timePart;
-}
-
-function resolveThankYouLocationDisplay(
-  summary: ReservationSummary | null,
-  virtualFallback: string,
-): string {
-  const name = summary?.locationName?.trim() ?? '';
-  const address = summary?.locationAddress?.trim() ?? '';
-  const segments = [name, address].filter(Boolean);
-  if (segments.length > 0) {
-    return segments.join(', ');
-  }
-
-  return virtualFallback;
-}
-
-function resolveThankYouCourseSessions(summary: ReservationSummary | null): ReservationCourseSession[] {
-  if (!summary) {
-    return [];
-  }
-
-  if (summary.courseSessions && summary.courseSessions.length > 0) {
-    return summary.courseSessions;
-  }
-
-  const start = summary.dateStartTime?.trim() ?? '';
-  if (!start) {
-    return [];
-  }
-
-  return [
-    {
-      dateStartTime: start,
-      dateEndTime: summary.dateEndTime?.trim() || undefined,
-    },
-  ];
-}
-
 export function BookingThankYouModal({
   locale,
   content,
   summary,
-  analyticsSectionId,
+  analyticsSectionId: _analyticsSectionId,
   whatsappHref,
   whatsappCtaLabel,
   onClose,
 }: BookingThankYouModalProps) {
+  void _analyticsSectionId;
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
-  const dialogSuccessId = useId();
   const dialogDescriptionId = useId();
 
   useModalLockBody({ onEscape: onClose });
@@ -154,94 +59,41 @@ export function BookingThankYouModal({
     restoreFocus: true,
   });
 
-  const subtitleText = content.subtitle?.trim() ?? '';
-  const hasSubtitleBlock = subtitleText.length > 0;
-  const attendeeEmail = summary?.attendeeEmail ?? '';
-  const eventTitle = summary?.eventTitle ?? content.courseLabel;
-  const eventSubtitle = summary?.eventSubtitle?.trim() ?? '';
-  const thankYouSessions = useMemo(
-    () => resolveThankYouCourseSessions(summary),
-    [summary],
-  );
-  const dateTimeLines = useMemo(() => {
-    return thankYouSessions
-      .map((session) => formatSummaryDateTimeLine(session.dateStartTime, locale))
-      .filter((line) => line.length > 0);
-  }, [thankYouSessions, locale]);
-
-  const locationLine = resolveThankYouLocationDisplay(
-    summary,
-    content.summaryLocationVirtualFallback,
-  );
-  const amountLine = summary
-    ? formatCurrencyHkd(summary.totalAmount, locale)
-    : content.summaryEmptyValue;
-  const locationNameRaw = summary?.locationName?.trim() ?? '';
-  const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
-  const hasStructuredVenue =
-    locationNameRaw.length > 0 || locationAddressRaw.length > 0;
-  const directionHref = summary?.locationDirectionHref?.trim() ?? '';
-  const showDirectionsLink =
-    hasStructuredVenue && getHrefKind(directionHref) === 'http';
-
-  const describedByIds = hasSubtitleBlock
-    ? `${dialogSuccessId} ${dialogDescriptionId}`
-    : dialogSuccessId;
-
   const normalizedWhatsappHref = whatsappHref?.trim() ?? '';
   const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
   const showWhatsappFollowUp =
     normalizedWhatsappHref.length > 0 && normalizedWhatsappLabel.length > 0;
 
-  const icsBody = useMemo(() => {
-    if (thankYouSessions.length === 0) {
-      return null;
+  const confirmationRows = useMemo(() => {
+    if (!summary) {
+      return [];
     }
-
-    return buildBookingIcsCalendarContent({
-      title: eventTitle,
-      location: locationLine,
-      sessions: thankYouSessions.map((session) => {
-        return {
-          dateStartTime: session.dateStartTime,
-          dateEndTime: session.dateEndTime,
-        };
-      }),
+    return buildBookingConfirmationTableRows({
+      courseLabel: summary.eventTitle || content.courseLabel,
+      labels: content.confirmationTable,
+      detailsPrefixes: content.confirmationDetailsPrefixes,
+      courseSlug: summary.courseSlug,
+      scheduleDateLabel: summary.scheduleDateLabel,
+      scheduleTimeLabel: summary.scheduleTimeLabel,
+      primarySessionIso: summary.primarySessionStartIso ?? summary.dateStartTime,
+      ageGroupLabel: summary.ageGroup,
+      consultationWritingFocusLabel: summary.consultationWritingFocusLabel,
+      consultationLevelLabel: summary.consultationLevelLabel,
+      locationName: summary.locationName,
+      locationAddress: summary.locationAddress,
+      paymentMethodCode: summary.paymentMethodCode,
+      totalAmountFormatted: formatCurrencyHkd(summary.totalAmount, locale),
     });
-  }, [thankYouSessions, eventTitle, locationLine]);
+  }, [summary, content.courseLabel, content.confirmationTable, content.confirmationDetailsPrefixes, locale]);
 
-  const canDownloadIcs = Boolean(icsBody);
+  const showPendingPaymentBlock =
+    Boolean(summary?.reservationPendingUntilPaymentConfirmed);
+  const showFpsQrBlock =
+    showPendingPaymentBlock
+    && summary?.paymentMethodCode === 'fps_qr'
+    && Boolean(summary.fpsQrImageDataUrl?.trim());
 
-  function handleDownloadIcs() {
-    if (!icsBody || !summary) {
-      return;
-    }
-
-    const cohortDate =
-      thankYouSessions[0]?.dateStartTime.split('T')[0] ?? '';
-
-    trackAnalyticsEvent('booking_thank_you_ics_download', {
-      sectionId: analyticsSectionId,
-      ctaLocation: 'thank_you_modal',
-      params: {
-        cohort_date: cohortDate,
-        total_amount: summary.totalAmount,
-      },
-    });
-
-    triggerBookingIcsDownload(
-      icsBody,
-      buildEvolveSproutsThankYouIcsFilenameBase(eventTitle),
-    );
-  }
-
-  const locationTitle = hasStructuredVenue
-    ? (locationNameRaw || locationAddressRaw)
-    : locationLine;
-  const showLocationAddressBelow =
-    hasStructuredVenue
-    && locationNameRaw.length > 0
-    && locationAddressRaw.length > 0;
+  const fpsQrSrc = summary?.fpsQrImageDataUrl?.trim() ?? '';
 
   return (
     <ModalOverlay
@@ -251,7 +103,7 @@ export function BookingThankYouModal({
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}
-        ariaDescribedBy={describedByIds}
+        ariaDescribedBy={dialogDescriptionId}
         tabIndex={-1}
         className='es-booking-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
       >
@@ -264,7 +116,7 @@ export function BookingThankYouModal({
         </header>
 
         <OverlayScrollableBody>
-          <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
+          <div className='relative z-10 flex flex-col items-center px-4 pb-2 pt-0 text-center sm:px-8 sm:pt-2'>
             <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-success-soft'>
               <Image
                 src='/images/green-tick-icon.png'
@@ -275,132 +127,61 @@ export function BookingThankYouModal({
                 aria-hidden='true'
               />
             </div>
-            <h3
-              id={dialogSuccessId}
-              className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'
-            >
-              {content.successLabel}
-            </h3>
             <h2
               id={dialogTitleId}
-              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-booking-thank-you-heading'
+              className='mt-4 text-2xl font-semibold es-text-heading'
             >
-              {content.title}
+              {content.successTitle}
             </h2>
-            {hasSubtitleBlock ? (
-              <p
-                id={dialogDescriptionId}
-                className='mt-3 text-lg leading-7 es-booking-thank-you-body'
-              >
-                {content.subtitle}
-                {' '}
-                <span className='font-semibold es-text-emphasis'>
-                  {attendeeEmail}
-                </span>
-              </p>
-            ) : null}
+            <p
+              id={dialogDescriptionId}
+              className='mt-3 max-w-[610px] text-base leading-7 text-[color:var(--site-primary-text)]'
+            >
+              {renderQuotedDescriptionText(content.successDescription)}
+            </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5'>
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {eventTitle}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='training' />
-                </div>
-                {eventSubtitle ? (
-                  <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
-                    {eventSubtitle}
-                  </p>
-                ) : null}
-              </article>
+          {confirmationRows.length > 0 ? (
+            <section
+              className='relative z-10 mx-auto mt-8 w-full max-w-[713px] px-4 sm:px-8'
+              aria-label={content.confirmationTableSectionLabel}
+            >
+              <BookingConfirmationSummaryTable
+                rows={confirmationRows}
+                caption={content.confirmationTableSectionLabel}
+              />
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {amountLine}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='dollar' />
-                </div>
-                <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
-                  {content.paymentConfirmationNote}
+              {showPendingPaymentBlock ? (
+                <p className='es-booking-thank-you-pending-note mt-4 rounded-card-lg px-4 py-3 text-left text-base leading-7'>
+                  {content.pendingPaymentNote}
                 </p>
-              </article>
+              ) : null}
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {locationTitle}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='location' />
+              {showFpsQrBlock ? (
+                <div className='mt-6 text-left'>
+                  <p className='text-base leading-7 text-[color:var(--site-primary-text)]'>
+                    {content.fpsQrIntro}
+                  </p>
+                  <p className='mt-2 text-sm leading-6 es-text-neutral-strong'>
+                    {content.fpsQrDisclaimer}
+                  </p>
+                  <div className='mt-4 flex justify-center sm:justify-start'>
+                    <Image
+                      src={fpsQrSrc}
+                      width={128}
+                      height={128}
+                      alt={content.fpsQrImageAlt}
+                      unoptimized
+                      className='es-booking-thank-you-fps-qr inline-block'
+                    />
+                  </div>
                 </div>
-                <div className='mt-3 flex w-full flex-col text-left'>
-                  {showLocationAddressBelow ? (
-                    <p className='es-booking-thank-you-detail-card-description'>
-                      {locationAddressRaw}
-                    </p>
-                  ) : null}
-                  {showDirectionsLink ? (
-                    <SmartLink
-                      href={directionHref}
-                      className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
-                    >
-                      {({ isExternalHttp }) => (
-                        <ExternalLinkInlineContent
-                          isExternalHttp={isExternalHttp}
-                          externalLabelClassName='es-link-external-label--direction'
-                        >
-                          {content.directionLabel}
-                        </ExternalLinkInlineContent>
-                      )}
-                    </SmartLink>
-                  ) : null}
-                </div>
-              </article>
-
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {dateTimeLines.length === 0 ? (
-                      content.summaryEmptyValue
-                    ) : (
-                      dateTimeLines.map((line, index) => {
-                        return (
-                          <span
-                            key={`${line}-${index}`}
-                            className={
-                              index > 0
-                                ? 'mt-1 block'
-                                : 'block'
-                            }
-                          >
-                            {line}
-                          </span>
-                        );
-                      })
-                    )}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='calendar' />
-                </div>
-                <div className='mt-auto flex w-full pt-4 sm:pt-3'>
-                  <ButtonPrimitive
-                    variant='outline'
-                    type='button'
-                    disabled={!canDownloadIcs}
-                    onClick={handleDownloadIcs}
-                    className={THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME}
-                  >
-                    {content.downloadCalendarInviteLabel}
-                  </ButtonPrimitive>
-                </div>
-              </article>
-            </div>
-          </section>
+              ) : null}
+            </section>
+          ) : null}
 
           {showWhatsappFollowUp ? (
-            <div className='relative z-10 mx-auto mt-8 max-w-[713px] text-center'>
+            <div className='relative z-10 mx-auto mt-8 max-w-[713px] px-4 pb-8 text-center sm:px-8'>
               <p className='text-lg leading-7 es-booking-thank-you-body'>
                 {content.followUpPrompt}
               </p>
@@ -428,7 +209,9 @@ export function BookingThankYouModal({
                 />
               </ButtonPrimitive>
             </div>
-          ) : null}
+          ) : (
+            <div className='pb-8' aria-hidden='true' />
+          )}
         </OverlayScrollableBody>
       </OverlayDialogPanel>
     </ModalOverlay>

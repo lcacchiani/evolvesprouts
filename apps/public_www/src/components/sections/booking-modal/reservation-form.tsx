@@ -907,15 +907,36 @@ export function BookingReservationForm({
     }
 
     const primarySession = resolvedCourseSessions[0];
+    const scheduleTimeLabel = (() => {
+      if (!primarySession) {
+        return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
+      }
+      const start = sanitizeSingleLineValue(primarySession.dateStartTime);
+      const end = sanitizeSingleLineValue(primarySession.dateEndTime ?? '');
+      if (!start) {
+        return undefined;
+      }
+      return end ? `${start} – ${end}` : start;
+    })();
+    const sanitizedScheduleDateLabel =
+      sanitizeSingleLineValue(selectedCohortDateLabel) || undefined;
+    const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '') || undefined;
+    const consultationFocusSanitized =
+      sanitizeSingleLineValue(consultationWritingFocusLabel);
+    const consultationLevelSanitized = sanitizeSingleLineValue(consultationLevelLabel);
+    const primarySessionStartIso =
+      sanitizeSingleLineValue(primarySession?.dateStartTime) || undefined;
+
     const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
       ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
-      cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      cohort: sanitizedScheduleDateLabel,
       paymentMethod: sanitizeSingleLineValue(
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
+      paymentMethodCode: selectedPaymentMethod,
       totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
       dateStartTime: primarySession?.dateStartTime,
@@ -933,6 +954,17 @@ export function BookingReservationForm({
 
         return href;
       })(),
+      scheduleDateLabel: sanitizedScheduleDateLabel,
+      scheduleTimeLabel,
+      primarySessionStartIso,
+      courseSlug: sanitizedCourseSlug,
+      reservationPendingUntilPaymentConfirmed: hasPendingReservationAcknowledgement,
+      ...(consultationFocusSanitized
+        ? { consultationWritingFocusLabel: consultationFocusSanitized }
+        : {}),
+      ...(consultationLevelSanitized
+        ? { consultationLevelLabel: consultationLevelSanitized }
+        : {}),
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
@@ -952,18 +984,6 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
-    const scheduleTimeLabel = (() => {
-      if (!primarySession) {
-        return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
-      }
-      const start = sanitizeSingleLineValue(primarySession.dateStartTime);
-      const end = sanitizeSingleLineValue(primarySession.dateEndTime ?? '');
-      if (!start) {
-        return undefined;
-      }
-      return end ? `${start} – ${end}` : start;
-    })();
-
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -983,26 +1003,22 @@ export function BookingReservationForm({
       course_label: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
-        const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
         return {
           ...(sanitizedServiceKey ? { service_key: sanitizedServiceKey } : {}),
           ...(sanitizedCourseSlug ? { course_slug: sanitizedCourseSlug } : {}),
         };
       })(),
-      schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
-      schedule_time_label: scheduleTimeLabel,
+      schedule_date_label: reservationSummary.scheduleDateLabel,
+      schedule_time_label: reservationSummary.scheduleTimeLabel,
       location_name: sanitizeSingleLineValue(venueName) || undefined,
       location_address: sanitizeSingleLineValue(venueAddress) || undefined,
-      primary_session_start_iso: sanitizeSingleLineValue(primarySession?.dateStartTime)
-        || undefined,
-      ...(() => {
-        const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
-        const level = sanitizeSingleLineValue(consultationLevelLabel);
-        return {
-          ...(focus ? { consultation_writing_focus_label: focus } : {}),
-          ...(level ? { consultation_level_label: level } : {}),
-        };
-      })(),
+      primary_session_start_iso: reservationSummary.primarySessionStartIso,
+      ...(consultationFocusSanitized
+        ? { consultation_writing_focus_label: consultationFocusSanitized }
+        : {}),
+      ...(consultationLevelSanitized
+        ? { consultation_level_label: consultationLevelSanitized }
+        : {}),
     };
 
     await withSubmitting(async () => {
@@ -1097,7 +1113,16 @@ export function BookingReservationForm({
             quantity: 1,
           }],
         });
-        onSubmitReservation(reservationSummary);
+        const includeFpsQrDataUrl =
+          selectedPaymentMethod === PAYMENT_METHOD_FPS
+          && !reservationPayload.stripe_payment_intent_id
+          && fpsQrImageDataUrl.trim();
+        onSubmitReservation({
+          ...reservationSummary,
+          ...(includeFpsQrDataUrl
+            ? { fpsQrImageDataUrl: fpsQrImageDataUrl.trim() }
+            : {}),
+        });
         return;
       }
 
