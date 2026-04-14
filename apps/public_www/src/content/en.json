@@ -497,7 +497,7 @@
       },
       {
         "question": "Is the My Best Auntie course suitable for helpers with no childcare experience?",
-        "answer": "Yes. The My Best Auntie domestic helper childcare training is designed for all experience levels. No Montessori knowledge or prior childcare training is required - just a willingness to learn.",
+        "answer": "Yes. The My Best Auntie domestic helper childcare training is designed for all experience levels. No Montessori knowledge or prior childcare training is required — just a willingness to learn.",
         "labelIds": [
           "general"
         ],
@@ -507,7 +507,7 @@
       },
       {
         "question": "How is My Best Auntie different from a standard helper training course?",
-        "answer": "Unlike generic helper training, My Best Auntie is a Montessori-based programme with home visits, personalised coaching, and ongoing support. We observe your helper with your child in your home and provide specific, actionable guidance - not just classroom theory.",
+        "answer": "Unlike generic helper training, My Best Auntie is a Montessori-based programme with home visits, personalised coaching, and ongoing support. We observe your helper with your child in your home and provide specific, actionable guidance — not just classroom theory.",
         "labelIds": [
           "general"
         ],
@@ -527,7 +527,7 @@
       },
       {
         "question": "Can I join the My Best Auntie course if my helper speaks limited English?",
-        "answer": "Yes. Our Montessori helper training uses clear language, demonstrations, visual guidance, and repetition. Fluent English is not required - understanding and consistency are what matter.",
+        "answer": "Yes. Our Montessori helper training uses clear language, demonstrations, visual guidance, and repetition. Fluent English is not required — understanding and consistency are what matter.",
         "labelIds": [
           "general"
         ],
@@ -557,7 +557,7 @@
       },
       {
         "question": "How is this different from the 9-week course?",
-        "answer": "The course is a full training for your helper — nine weeks of structured learning, practice, and follow-through. Consultations are single-focus and short. They're the right fit if you want a clear answer to one specific question, or if you want to test how we work together before committing to the course.",
+        "answer": "The course is a full training for your helper — nine weeks of structured learning, practice, and follow-through. Consultations are single-focus and short. They're the right fit if you want a clear answer to one specific question — or if you want to test how we work together before committing to the course.",
         "labelIds": [
           "general"
         ],
@@ -627,7 +627,7 @@
       },
       {
         "question": "How soon can we start?",
-        "answer": "Usually within 1–2 weeks of booking. If you're in a tight spot, tell me on the intro call and I'll see what I can do.",
+        "answer": "Usually within 1—2 weeks of booking. If you're in a tight spot, tell me on the intro call and I'll see what I can do.",
         "labelIds": [
           "enrolment"
         ],
