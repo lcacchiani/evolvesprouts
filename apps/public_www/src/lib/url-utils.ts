@@ -94,6 +94,12 @@ function resolveReferenceHostname(currentHostname?: string): string {
     return normalizedCurrentHostname;
   }
 
+  // Explicit '' means no browsing context (tests, SSR). Skip env fallbacks so
+  // isSameRootDomainHttpHref does not use NEXT_PUBLIC_SITE_ORIGIN when none was passed.
+  if (currentHostname === '') {
+    return '';
+  }
+
   const configuredRootDomain = normalizeHostname(
     process.env[INTERNAL_LINK_ROOT_DOMAIN_ENV] ?? '',
   );

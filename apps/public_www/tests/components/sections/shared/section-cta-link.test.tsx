@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 
@@ -19,8 +19,13 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe('SectionCtaAnchor', () => {
   it('renders the shared external link icon for external href values', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_ORIGIN', 'https://acme.test');
     render(<SectionCtaAnchor href='https://example.com'>Visit resource</SectionCtaAnchor>);
 
     const link = screen.getByRole('link', { name: 'Visit resource' });
