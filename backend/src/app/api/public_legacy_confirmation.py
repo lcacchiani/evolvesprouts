@@ -217,6 +217,7 @@ def send_booking_confirmation_email(
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         location_line=loc_line_for_ics,
+        course_slug=course_slug,
     )
     if ics_bytes is not None:
         data["include_calendar_note_after_schedule_html"] = True

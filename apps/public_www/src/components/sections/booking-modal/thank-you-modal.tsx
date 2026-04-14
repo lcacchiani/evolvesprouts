@@ -39,7 +39,7 @@ import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { getHrefKind } from '@/lib/url-utils';
 
 const THANK_YOU_ICS_DOWNLOAD_CLASSNAME =
-  'es-footer-link mt-3 inline-block cursor-pointer rounded-none border-0 bg-transparent p-0 text-left text-base font-normal underline decoration-1 underline-offset-2 transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50';
+  'es-footer-link mt-3 inline-block cursor-pointer rounded-none border-0 bg-transparent p-0 text-left text-base font-semibold underline decoration-1 underline-offset-2 transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50';
 
 export interface BookingThankYouModalProps {
   locale: Locale;
@@ -142,7 +142,7 @@ function buildThankYouDateTimeLines(
     }
 
     const datePart = formatSitePartDate(session.dateStartTime, locale);
-    const amPm = formatSiteAmPmIndicator(session.dateStartTime);
+    const amPm = formatSiteAmPmIndicator(session.dateStartTime, locale);
     if (!datePart || !amPm) {
       return [];
     }
@@ -210,6 +210,9 @@ export function BookingThankYouModal({
   const showDetailsRow = detailLines.length > 0;
   const showDateTimeRow = dateTimeLines.length > 0;
   const showIcsOnlyRow = Boolean(summary) && !showDateTimeRow;
+  const courseSlugNormalized = (summary?.courseSlug ?? '').trim().toLowerCase();
+  const isConsultationBooking = courseSlugNormalized === 'consultation-booking';
+  const showCalendarDownload = !isConsultationBooking;
 
   const messageParts = useMemo(() => {
     return splitMessageTemplate(content.messageTemplate);
@@ -368,19 +371,21 @@ export function BookingThankYouModal({
                           </span>
                         );
                       })}
-                      <button
-                        type='button'
-                        disabled={!canDownloadIcs}
-                        onClick={handleDownloadIcs}
-                        className={THANK_YOU_ICS_DOWNLOAD_CLASSNAME}
-                      >
-                        {content.downloadCalendarInviteLabel}
-                      </button>
+                      {showCalendarDownload ? (
+                        <button
+                          type='button'
+                          disabled={!canDownloadIcs}
+                          onClick={handleDownloadIcs}
+                          className={THANK_YOU_ICS_DOWNLOAD_CLASSNAME}
+                        >
+                          {content.downloadCalendarInviteLabel}
+                        </button>
+                      ) : null}
                     </dd>
                   </div>
                 </div>
               ) : null}
-              {showIcsOnlyRow ? (
+              {showIcsOnlyRow && showCalendarDownload ? (
                 <div className='es-booking-thank-you-recap-row-border py-4'>
                   <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
                     <dt
@@ -486,7 +491,7 @@ export function BookingThankYouModal({
                             width={128}
                             height={128}
                             unoptimized
-                            className='mx-auto mt-2 block h-32 w-32'
+                            className='mt-2 block h-32 w-32'
                           />
                         ) : null}
                       </>

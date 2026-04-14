@@ -115,6 +115,44 @@ def test_send_booking_confirmation_mime_ics_without_inline_fps_when_not_pending(
     templated.assert_not_called()
 
 
+def test_send_booking_confirmation_consultation_skips_ics_attachment(
+    monkeypatch: Any,
+) -> None:
+    templated = MagicMock()
+    mime = MagicMock()
+    monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.send_templated_email",
+        templated,
+    )
+    monkeypatch.setattr(
+        "app.api.public_legacy_confirmation.send_mime_email_with_optional_attachments",
+        mime,
+    )
+
+    send_booking_confirmation_email(
+        to_email="u@example.com",
+        full_name="Jane",
+        course_label="Consultation",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        location_name="Venue",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="consultation-booking",
+        payment_method="stripe",
+        total_amount="HK$1.00",
+        is_pending_payment=False,
+        locale="en",
+    )
+
+    templated.assert_called_once()
+    mime.assert_not_called()
+    merged = templated.call_args.kwargs["template_data"]
+    assert merged.get("include_calendar_note_after_schedule_html") is False
+    assert merged.get("include_calendar_note_after_schedule_plain") is False
+
+
 def test_send_booking_confirmation_falls_back_when_fps_qr_invalid(
     monkeypatch: Any,
 ) -> None:

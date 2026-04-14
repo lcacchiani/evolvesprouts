@@ -158,8 +158,12 @@ def build_booking_confirmation_ics(
     primary_session_iso: str | None,
     primary_session_end_iso: str | None = None,
     location_line: str | None = None,
+    course_slug: str | None = None,
 ) -> bytes | None:
     """Build a single-event UTF-8 .ics for the primary session, or None if no start ISO."""
+    if _normalize_course_slug(course_slug) == "consultation-booking":
+        return None
+
     start_dt = _parse_iso_to_utc_datetime(primary_session_iso)
     if start_dt is None:
         return None
@@ -319,9 +323,13 @@ def _format_hkt_time_email(dt: datetime) -> str:
     return f"{local.hour:02d}:{local.minute:02d}"
 
 
-def _hkt_am_pm_indicator(dt: datetime) -> str:
+def _hkt_consultation_day_part_label(dt: datetime, loc: str) -> str:
+    """Consultation slot wording: English uses phrases; zh locales keep AM/PM."""
     local = dt.astimezone(_EMAIL_HKT_TZ)
-    return "AM" if local.hour < 12 else "PM"
+    is_morning = local.hour < 12
+    if loc == "en":
+        return "in the morning" if is_morning else "in the afternoon"
+    return "AM" if is_morning else "PM"
 
 
 def _format_hkt_email_line_no_tz_suffix(dt: datetime) -> str:
@@ -399,7 +407,7 @@ def format_booking_datetime_display_multi(
         parsed = _parse_iso_datetime(start_raw) if start_raw else None
         if parsed is not None:
             date_part = _format_hkt_part_date_email(parsed)
-            am_pm = _hkt_am_pm_indicator(parsed)
+            am_pm = _hkt_consultation_day_part_label(parsed, loc)
             plain_lines.append(f"{date_part} {am_pm}")
     else:
         # Events and other flows: all course_sessions when present, else primary only
