@@ -21,7 +21,10 @@ import {
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingThankYouRecapLabelTemplates,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
   Locale,
@@ -47,6 +50,7 @@ interface MyBestAuntieBookingModalProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
+  thankYouRecapLabels?: BookingThankYouRecapLabelTemplates;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -61,6 +65,7 @@ export function MyBestAuntieBookingModal({
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
+  thankYouRecapLabels,
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
@@ -183,6 +188,7 @@ export function MyBestAuntieBookingModal({
               analyticsSectionId={analyticsSectionId}
               metaPixelContentName={metaPixelContentName}
               captchaWidgetAction={captchaWidgetAction}
+              thankYouRecapLabels={thankYouRecapLabels}
               onSubmitReservation={onSubmitReservation}
             />
           </div>

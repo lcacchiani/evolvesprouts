@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.templates.booking_confirmation_content import (
+    BOOKING_CALENDAR_SES_FALLBACK_HINT,
     BOOKING_CONFIRMATION_LOCALES,
     CLOSING_NOTE,
     FAQ_LINK_LABEL,
@@ -90,6 +91,11 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + row_payment
         + row_total
         + "</table>"
+        "{{#if include_calendar_fallback_hint}}"
+        '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">'
+        f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}"
+        "</p>"
+        "{{/if}}"
         "{{#if is_pending_payment}}"
         '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;'
         'color:#5c4a00;">'
@@ -131,6 +137,9 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + "{{payment_method}}\n"
         + f"{labels['total']}{label_sep}"
         + "{{total_amount}}\n\n"
+        + "{{#if include_calendar_fallback_hint}}"
+        + f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}\n\n"
+        + "{{/if}}"
         + "{{#if is_pending_payment}}"
         + f"{pending}\n\n"
         + "{{/if}}"

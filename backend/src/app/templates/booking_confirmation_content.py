@@ -170,6 +170,25 @@ SIGN_OFF_PLAIN: dict[str, str] = {
     "zh-HK": "謝謝，\nEvolve Sprouts",
 }
 
+# Shown in MIME-rendered email when an .ics attachment is included.
+BOOKING_ICS_ATTACHED_NOTE: dict[str, str] = {
+    "en": "A calendar invite (.ics) is attached — open it to add this booking to your calendar.",
+    "zh-CN": "已附上日历邀请（.ics 文件），打开即可将此预约加入您的日历。",
+    "zh-HK": "已附上日曆邀請（.ics 檔案），開啟即可將此預約加入你的日曆。",
+}
+
+# SES template path (no attachment): remind customers to use the date/time row in their calendar app.
+BOOKING_CALENDAR_SES_FALLBACK_HINT: dict[str, str] = {
+    "en": "Tip: Add this booking to your calendar using the date and time above.",
+    "zh-CN": "提示：请使用上方的日期和时间，在您的日历应用中添加此预约。",
+    "zh-HK": "提示：請使用上方的日期和時間，在日曆應用程式中加入此預約。",
+}
+
+# RFC 5545 PRODID for generated booking invites (Evolve Sprouts product identifier).
+BOOKING_ICS_PRODID: Final[str] = "-//Evolve Sprouts//Booking Confirmation//EN"
+
+BOOKING_ICS_ATTACHMENT_FILENAME: Final[str] = "evolvesprouts-booking.ics"
+
 
 def normalize_booking_locale(locale: str) -> str:
     return locale if locale in HEADER_TITLE else "en"

@@ -12,7 +12,10 @@ import { BookingEventDetails } from '@/components/sections/booking-modal/event-d
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingThankYouRecapLabelTemplates,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
   Locale,
@@ -61,6 +64,7 @@ interface ConsultationBookingModalProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
+  thankYouRecapLabels?: BookingThankYouRecapLabelTemplates;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
   /** Called when user clicks the "Upgrade to Deep Dive" CTA in the modal. */
@@ -294,6 +298,7 @@ export function ConsultationBookingModal({
   analyticsSectionId = 'consultations-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.consultation_booking,
   captchaWidgetAction = 'consultation_reservation_submit',
+  thankYouRecapLabels,
   onClose,
   onSubmitReservation,
   onUpgradeToDeepDive,
@@ -460,6 +465,7 @@ export function ConsultationBookingModal({
         analyticsSectionId={analyticsSectionId}
         metaPixelContentName={metaPixelContentName}
         captchaWidgetAction={captchaWidgetAction}
+        thankYouRecapLabels={thankYouRecapLabels}
         onSubmitReservation={onSubmitReservation}
       />
     </BookingFlowModalShell>

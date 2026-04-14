@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from app.templates.booking_confirmation_render import (
+    build_booking_confirmation_ics,
+    booking_confirmation_template_merge_data,
     render_booking_confirmation_email,
     substitute_shell_placeholders,
 )
@@ -139,6 +141,114 @@ def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
     assert "Location:" not in plain
     assert "We look forward to seeing you" in plain
     assert "FAQ" in plain
+
+
+def test_build_booking_confirmation_ics_primary_session_and_location() -> None:
+    ics = build_booking_confirmation_ics(
+        course_label="Workshop A",
+        primary_session_iso="2026-04-16T10:00:00Z",
+        location_line="Venue, Hong Kong",
+    )
+    assert ics is not None
+    text = ics.decode("utf-8")
+    assert "BEGIN:VCALENDAR" in text
+    assert "BEGIN:VEVENT" in text
+    assert "SUMMARY:Workshop A" in text
+    assert "LOCATION:Venue\\, Hong Kong" in text
+    assert "DTSTART:20260416T100000Z" in text
+    assert "DTEND:20260416T110000Z" in text
+    assert "UID:" in text
+    # RFC 5545 folding inserts CRLF + space; unfold for stable substring checks.
+    assert "@evolvesprouts.com" in text.replace("\r\n ", "")
+
+
+def test_build_booking_confirmation_ics_uses_primary_session_end_iso() -> None:
+    ics = build_booking_confirmation_ics(
+        course_label="X",
+        primary_session_iso="2026-04-16T10:00:00Z",
+        primary_session_end_iso="2026-04-16T11:30:00Z",
+        location_line=None,
+    )
+    assert ics is not None
+    assert "DTEND:20260416T113000Z" in ics.decode("utf-8")
+
+
+def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_limit() -> None:
+    course = "课" * 40
+    ics = build_booking_confirmation_ics(
+        course_label=course,
+        primary_session_iso="2026-04-16T10:00:00Z",
+        location_line=None,
+    )
+    assert ics is not None
+    for raw_line in ics.decode("utf-8").split("\r\n"):
+        if not raw_line:
+            continue
+        assert len(raw_line.encode("utf-8")) <= 75
+
+
+def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
+    assert (
+        build_booking_confirmation_ics(
+            course_label="Y",
+            primary_session_iso=None,
+            location_line=None,
+        )
+        is None
+    )
+
+
+def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
+    data = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="C",
+        schedule_date_label="May 1",
+        schedule_time_label="10:00",
+        primary_session_iso=None,
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+    )
+    assert data.get("include_calendar_fallback_hint") is True
+
+    data2 = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="C",
+        schedule_date_label="May 1",
+        schedule_time_label="10:00",
+        primary_session_iso="2026-05-01T10:00:00+08:00",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+    )
+    assert data2.get("include_calendar_fallback_hint") is False
+
+
+def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        course_label="Workshop",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        location_name=None,
+        location_address=None,
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        payment_method_code="stripe",
+        total_amount="HK$50.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/en/contact-us#contact-us-faq",
+        include_fps_qr_image=False,
+        attach_calendar_invite_ics=True,
+    )
+    assert "calendar invite" in html_doc.lower()
+    assert "ics" in html_doc.lower()
+    assert "calendar invite" in plain.lower()
 
 
 def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:

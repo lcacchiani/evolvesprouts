@@ -7,7 +7,7 @@ import re
 from typing import Any, Mapping
 
 from app.services.email import (
-    send_mime_email_with_inline_png,
+    send_mime_email_with_optional_attachments,
     send_templated_email,
 )
 from app.services.public_form_internal_notifications import (
@@ -17,8 +17,11 @@ from app.services.public_form_internal_notifications import (
     send_contact_inquiry_support_email,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
+from app.templates.booking_confirmation_content import BOOKING_ICS_ATTACHMENT_FILENAME
 from app.templates.booking_confirmation_render import (
     booking_confirmation_template_merge_data,
+    build_booking_confirmation_ics,
+    format_booking_location_display_line,
     render_booking_confirmation_email,
     substitute_shell_placeholders,
 )
@@ -162,6 +165,7 @@ def send_booking_confirmation_email(
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
+    primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
     age_group_label: str | None = None,
     payment_method: str,
@@ -200,6 +204,17 @@ def send_booking_confirmation_email(
     )
     merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
 
+    loc_line_for_ics = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    ics_bytes = build_booking_confirmation_ics(
+        course_label=course_label,
+        primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
+        location_line=loc_line_for_ics,
+    )
+
     pm_lower = payment_method.lower().strip()
     png_bytes: bytes | None = None
     if (
@@ -216,9 +231,12 @@ def send_booking_confirmation_email(
                 extra={"lead_email": mask_email(to_email)},
             )
 
-    if png_bytes is not None:
+    use_mime_path = png_bytes is not None or ics_bytes is not None
+
+    if use_mime_path:
         wa_url = str(merged.get("whatsapp_url") or "").strip()
         faq_url = str(merged.get("faq_url") or "").strip()
+        attach_ics = ics_bytes is not None
         subject, html_doc, plain_text = render_booking_confirmation_email(
             locale=loc,
             full_name=full_name,
@@ -235,24 +253,35 @@ def send_booking_confirmation_email(
             is_pending_payment=is_pending_payment,
             whatsapp_url=wa_url,
             faq_url=faq_url,
-            include_fps_qr_image=True,
+            include_fps_qr_image=png_bytes is not None,
             consultation_writing_focus_label=consultation_writing_focus_label,
             consultation_level_label=consultation_level_label,
+            attach_calendar_invite_ics=attach_ics,
         )
         full_html = substitute_shell_placeholders(html_doc, merged)
+        attachments: list[tuple[str, str, bytes]] | None = None
+        if ics_bytes is not None:
+            attachments = [
+                (
+                    BOOKING_ICS_ATTACHMENT_FILENAME,
+                    "text/calendar; charset=utf-8; method=PUBLISH",
+                    ics_bytes,
+                )
+            ]
         try:
-            send_mime_email_with_inline_png(
+            send_mime_email_with_optional_attachments(
                 source=from_addr,
                 to_addresses=[to_email.strip().lower()],
                 subject=subject,
                 body_text=plain_text,
                 body_html=full_html,
-                inline_image_cid="fps_qr",
+                inline_image_cid="fps_qr" if png_bytes is not None else None,
                 png_bytes=png_bytes,
+                attachments=attachments,
             )
         except Exception:
             logger.exception(
-                "Booking confirmation email failed (MIME with FPS QR)",
+                "Booking confirmation email failed (MIME path)",
                 extra={"lead_email": mask_email(to_email)},
             )
         return
@@ -414,6 +443,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     location_name = _optional_str(payload.get("location_name"))
     location_address = _optional_str(payload.get("location_address"))
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
+    primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
     course_slug = _optional_str(payload.get("course_slug"))
     age_group_label = _optional_str(payload.get("cohort_age"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
@@ -438,6 +468,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 location_name=location_name,
                 location_address=location_address,
                 primary_session_iso=primary_session_iso,
+                primary_session_end_iso=primary_session_end_iso,
                 course_slug=course_slug,
                 age_group_label=age_group_label,
                 payment_method=payment_method,

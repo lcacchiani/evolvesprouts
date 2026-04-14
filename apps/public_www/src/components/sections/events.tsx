@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -189,6 +190,7 @@ export function Events({
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={activeBookingPayload}
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setActiveBookingEventId('');
           }}
@@ -211,6 +213,7 @@ export function Events({
           analyticsSectionId='events-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.my_best_auntie}
           captchaWidgetAction='events_mba_reservation_submit'
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setActiveBookingEventId('');
           }}

@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import {
   type BookingTopicsFieldConfig,
   type ReservationSummary,
@@ -219,6 +220,7 @@ export function LandingPageBookingCtaAction({
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
           topicsFieldConfig={topicsFieldConfig}
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}
