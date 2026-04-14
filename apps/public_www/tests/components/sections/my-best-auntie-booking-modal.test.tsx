@@ -1722,6 +1722,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(calendarDownload).toBeInTheDocument();
     expect(calendarDownload.className).toContain('es-footer-link');
     expect(calendarDownload.className).toContain('underline');
+    expect(calendarDownload.className).toContain('hover:opacity-70');
     expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
     expect(screen.getByText(selectedCohort.location_address)).toBeInTheDocument();
     const directionLink = screen.getByRole('link', {

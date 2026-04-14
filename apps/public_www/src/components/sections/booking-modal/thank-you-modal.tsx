@@ -39,7 +39,7 @@ import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { getHrefKind } from '@/lib/url-utils';
 
 const THANK_YOU_ICS_DOWNLOAD_CLASSNAME =
-  'es-footer-link mt-3 inline-block cursor-pointer rounded-none border-0 bg-transparent p-0 text-left text-base font-normal underline decoration-1 underline-offset-2';
+  'es-footer-link mt-3 inline-block cursor-pointer rounded-none border-0 bg-transparent p-0 text-left text-base font-normal underline decoration-1 underline-offset-2 transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50';
 
 export interface BookingThankYouModalProps {
   locale: Locale;
