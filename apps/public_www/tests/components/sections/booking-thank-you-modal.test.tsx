@@ -27,7 +27,7 @@ describe('BookingThankYouModal', () => {
   const thankYouEn = enContent.bookingModal.thankYouModal;
   const thankYouZhCn = zhCnContent.bookingModal.thankYouModal;
 
-  it('shows consultation date with AM from HKT hour', () => {
+  it('shows consultation date with morning phrasing from HKT hour', () => {
     const summary: ReservationSummary = {
       attendeeName: 'Pat',
       attendeeEmail: 'pat@example.com',
@@ -51,7 +51,37 @@ describe('BookingThankYouModal', () => {
       />,
     );
 
-    expect(screen.getByText('16 May AM')).toBeInTheDocument();
+    expect(screen.getByText('16 May in the morning')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: thankYouEn.downloadCalendarInviteLabel }),
+    ).toBeNull();
+  });
+
+  it('shows consultation date with AM marker for zh-CN', () => {
+    const summary: ReservationSummary = {
+      attendeeName: 'Pat',
+      attendeeEmail: 'pat@example.com',
+      attendeePhone: '123',
+      paymentMethod: 'Credit Card',
+      paymentMethodCode: 'stripe',
+      totalAmount: 100,
+      eventTitle: '咨询',
+      courseSlug: 'consultation-booking',
+      dateStartTime: '2026-05-16T02:00:00Z',
+      courseSessions: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
+    };
+
+    render(
+      <BookingThankYouModal
+        locale='zh-CN'
+        content={thankYouZhCn}
+        summary={summary}
+        analyticsSectionId='test'
+        onClose={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('5月16日 AM')).toBeInTheDocument();
   });
 
   it('uses zh-CN ordinals for MBA group session lines', () => {

@@ -189,11 +189,11 @@ SIGN_OFF_PLAIN: dict[str, str] = {
     "zh-HK": "謝謝，\nEvolve Sprouts",
 }
 
-# Shown in MIME-rendered email when an .ics attachment is included.
+# Shown in MIME-rendered email and SES when an .ics attachment is included.
 BOOKING_ICS_ATTACHED_NOTE: dict[str, str] = {
-    "en": "A calendar invite (.ics) is attached — open it to add this booking to your calendar.",
-    "zh-CN": "已附上日历邀请（.ics 文件），打开即可将此预约加入您的日历。",
-    "zh-HK": "已附上日曆邀請（.ics 檔案），開啟即可將此預約加入你的日曆。",
+    "en": "A calendar invite (.ics) is attached.",
+    "zh-CN": "已附上日历邀请（.ics 文件）。",
+    "zh-HK": "已附上日曆邀請（.ics 檔案）。",
 }
 
 # SES template path (no attachment): remind customers to use the date/time row in their calendar app.

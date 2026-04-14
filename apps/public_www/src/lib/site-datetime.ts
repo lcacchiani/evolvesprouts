@@ -106,9 +106,13 @@ export function formatSitePartDate(isoDateTime: string, locale: Locale): string 
 }
 
 /**
- * "AM" or "PM" from the HKT wall-clock hour of the instant (12:00–12:59 → PM).
+ * English consultation slot phrasing from the HKT wall-clock hour (12:00–12:59 → afternoon).
+ * Other locales keep compact "AM"/"PM" markers.
  */
-export function formatSiteAmPmIndicator(isoDateTime: string): 'AM' | 'PM' | '' {
+export function formatSiteAmPmIndicator(
+  isoDateTime: string,
+  locale: Locale = 'en',
+): 'AM' | 'PM' | 'in the morning' | 'in the afternoon' | '' {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
@@ -121,7 +125,12 @@ export function formatSiteAmPmIndicator(isoDateTime: string): 'AM' | 'PM' | '' {
     return '';
   }
 
-  return hour < 12 ? 'AM' : 'PM';
+  const isMorning = hour < 12;
+  if (locale === 'en') {
+    return isMorning ? 'in the morning' : 'in the afternoon';
+  }
+
+  return isMorning ? 'AM' : 'PM';
 }
 
 export function formatSiteCompactDate(isoDateTime: string, locale: Locale): string {

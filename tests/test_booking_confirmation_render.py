@@ -206,6 +206,18 @@ def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
     )
 
 
+def test_build_booking_confirmation_ics_skips_consultation_bookings() -> None:
+    assert (
+        build_booking_confirmation_ics(
+            course_label="Consultation",
+            primary_session_iso="2026-04-12T10:30:00+08:00",
+            location_line="HK",
+            course_slug="consultation-booking",
+        )
+        is None
+    )
+
+
 def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
@@ -258,7 +270,9 @@ def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
     )
     assert "calendar invite" in html_doc.lower()
     assert "ics" in html_doc.lower()
+    assert "open it" not in html_doc.lower()
     assert "calendar invite" in plain.lower()
+    assert "open it" not in plain.lower()
 
 
 def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None:
@@ -408,8 +422,9 @@ def test_render_booking_confirmation_consultation_am_pm_from_iso() -> None:
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
     )
-    assert "12 April PM" in html_doc
-    assert "12 April PM" in plain
+    assert "12 April in the afternoon" in html_doc
+    assert "12 April in the afternoon" in plain
+    assert "calendar invite" not in html_doc.lower()
 
 
 def test_render_booking_confirmation_location_includes_directions_link() -> None:
