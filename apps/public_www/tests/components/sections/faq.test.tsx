@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { usePathname } from 'next/navigation';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Faq } from '@/components/sections/faq';
 import enContent from '@/content/en.json';
+import { ROUTES } from '@/lib/routes';
 
 vi.mock('next/link', () => ({
   default: ({
@@ -21,7 +23,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/zh-CN/about-us',
+  usePathname: vi.fn(() => '/zh-CN/about-us'),
 }));
 
 describe('Faq section', () => {
@@ -134,5 +136,43 @@ describe('Faq section', () => {
       expect(question).toBeDefined();
       expect(question?.labelIds).toContain(secondLabel.id);
     }
+  });
+
+  it('shows consultation-only FAQs on the consultations service path', () => {
+    vi.mocked(usePathname).mockReturnValue(`/en${ROUTES.servicesConsultations}`);
+
+    render(<Faq content={enContent.faq} />);
+
+    expect(
+      screen.getByRole('heading', {
+        level: 3,
+        name: 'Do I need to have a helper to book a consultation?',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        level: 3,
+        name: 'What will my child gain from the My Best Auntie course?',
+      }),
+    ).toBeNull();
+  });
+
+  it('shows MBA-only FAQs on the training course service path', () => {
+    vi.mocked(usePathname).mockReturnValue(`/en${ROUTES.servicesMyBestAuntieTrainingCourse}`);
+
+    render(<Faq content={enContent.faq} />);
+
+    expect(
+      screen.getByRole('heading', {
+        level: 3,
+        name: 'What will my child gain from the My Best Auntie course?',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        level: 3,
+        name: 'Do I need to have a helper to book a consultation?',
+      }),
+    ).toBeNull();
   });
 });

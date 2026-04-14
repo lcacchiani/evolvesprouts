@@ -490,20 +490,29 @@
         "answer": "你孩子的照護者將學到蒙特梭利日常實操技巧、不用威脅或賄賂的溫和紀律方法、適合 0-6 歲孩子的活動，以及如何在香港小戶型中培養獨立性。結果是：你的孩子透過日常時刻建立自信、情緒調節和真正的技能。課程包含小組課、家訪和個性化輔導。",
         "labelIds": [
           "general"
+        ],
+        "pageAudiences": [
+          "my-best-auntie-training-course"
         ]
       },
       {
         "question": "My Best Auntie 課程適合無育兒經驗的姨姨嗎？",
-        "answer": "適合。My Best Auntie 家傭育兒培訓課程面向所有經驗水平的姨姨。無需蒙特梭利知識或之前的育兒培訓經歷-只需要願意學習嘅心。",
+        "answer": "適合。My Best Auntie 家傭育兒培訓課程面向所有經驗水平的姨姨。無需蒙特梭利知識或之前的育兒培訓經歷 - 只需要願意學習嘅心。",
         "labelIds": [
           "general"
+        ],
+        "pageAudiences": [
+          "my-best-auntie-training-course"
         ]
       },
       {
         "question": "My Best Auntie 同一般的姨姨培訓課程有甚麼分別？",
-        "answer": "不同於一般的姨姨培訓，My Best Auntie 是一個蒙特梭利導向的課程，包含家訪、個人化輔導和持續支援。我們會喺你屋企觀察姨姨同孩子的互動，提供具體可行的指導-而唔只係課堂理論。",
+        "answer": "不同於一般的姨姨培訓，My Best Auntie 是一個蒙特梭利導向的課程，包含家訪、個人化輔導和持續支援。我們會喺你屋企觀察姨姨同孩子的互動，提供具體可行的指導 - 而唔只係課堂理論。",
         "labelIds": [
           "general"
+        ],
+        "pageAudiences": [
+          "my-best-auntie-training-course"
         ]
       },
       {
@@ -511,13 +520,139 @@
         "answer": "課程為期 9 週，包含三次小組培訓、三次家訪和三次家長溝通電話。課程設計旨在實現持久的行為改變，而非一次性講座。",
         "labelIds": [
           "general"
+        ],
+        "pageAudiences": [
+          "my-best-auntie-training-course"
         ]
       },
       {
         "question": "如果我的姨姨英文唔太好，可以參加 My Best Auntie 課程嗎？",
-        "answer": "可以。我們的蒙特梭利姨姨培訓採用清晰語言、示範、視覺引導和重複練習。流利英語並非必須-理解和一致性先係最重要。",
+        "answer": "可以。我們的蒙特梭利姨姨培訓採用清晰語言、示範、視覺引導和重複練習。流利英語並非必須 - 理解和一致性先係最重要。",
         "labelIds": [
           "general"
+        ],
+        "pageAudiences": [
+          "my-best-auntie-training-course"
+        ]
+      },
+      {
+        "question": "預約諮詢一定要有姨姨嗎？",
+        "answer": "只有「姨姨與孩子」呢個焦點需要姨姨參與。家居評估同家長-孩子焦點有冇姨姨都得。如果你有姨姨，我會喺有用嘅地方納入佢 - 屋企大人之間嘅一致性係工作好大一部分。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "我唔確定自己需要邊個焦點，點揀？",
+        "answer": "呢個就係 20 分鐘免費通話嘅作用。話我知邊度最難 - 朝早、食飯、遊戲區亂、你同姨姨方向唔一致 - 我會話你知邊個焦點可以帶嚟最大進展。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "呢個同 9 週課程有咩分別？",
+        "answer": "課程係俾姨姨嘅完整培訓 - 九週結構化學習、練習同跟進。諮詢係單一焦點、時間較短。如果你想先處理一個具體問題，或者想報課程前試下我哋點合作，諮詢會更啱。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "之後可以由 Essentials 升級去 Deep Dive 嗎？",
+        "answer": "可以。如果你由 Essentials 開始，後來發現需要我喺執行階段陪住做，可以喺 30 日內升級，只補差價。",
+        "labelIds": [
+          "pricing"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "面對面定線上？",
+        "answer": "評估家訪要面對面 - 我要睇到你哋真實空間、孩子同姨姨。之後跟進通話同 WhatsApp 支援線上做。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "你哋服務幾大嘅孩子？",
+        "answer": "由嬰兒（0 歲）到 6 歲。如果孩子再大啲，私訊我，我會坦誠話你知我係咪啱。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "姨姨英文唔太好點算？",
+        "answer": "冇問題。我會用簡單語言、多示範少講大道理，並俾佢可以反覆睇嘅視覺或文字腳本。好多我合作嘅姨姨更習慣他加祿語或印尼語 - 我會調整。",
+        "labelIds": [
+          "support"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "家訪前要準備啲咩？",
+        "answer": "唔使。真實就好。過度「執到好齊」嘅屋或者排練過嘅流程反而令我睇唔到日常。我想睇到真實生活。",
+        "labelIds": [
+          "general"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "書面報告入面有咩？",
+        "answer": "按優先次序列要改咩、點解要改，必要時附相或草圖，同埋為你哋屋企度身嘅腳本或流程。唔係泛泛嘅單張 - 你同姨姨可以直接用。",
+        "labelIds": [
+          "support"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "幾時可以開始？",
+        "answer": "通常預訂後 1-2 週內。如果你好急，喺介紹通話度話我知，我會盡力安排。",
+        "labelIds": [
+          "enrolment"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "如果預訂後要改期點算？",
+        "answer": "有細路嘅生活好難預計 - 我明白。提早至少 24 小時可隨時改期，唔收費。",
+        "labelIds": [
+          "trust"
+        ],
+        "pageAudiences": [
+          "family-consultations"
+        ]
+      },
+      {
+        "question": "可以預約多過一個焦點嗎？",
+        "answer": "可以，好多家庭會 - 通常先做家居評估，空間理順後再做「姨姨與孩子」。如果你想做多過一個焦點，我會喺介紹通話度建議順序。",
+        "labelIds": [
+          "enrolment"
+        ],
+        "pageAudiences": [
+          "family-consultations"
         ]
       },
       {
