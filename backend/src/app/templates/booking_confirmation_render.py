@@ -9,9 +9,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from app.templates.booking_confirmation_content import (
-    BOOKING_CALENDAR_SES_FALLBACK_HINT,
     BOOKING_ICS_ATTACHED_NOTE,
-    BOOKING_ICS_ATTACHMENT_FILENAME,
     BOOKING_ICS_PRODID,
     CLOSING_NOTE,
     DETAILS_AGE_GROUP_PREFIX,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from email import policy
+from email.message import Message
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
@@ -130,27 +131,32 @@ def send_mime_email_with_optional_attachments(
         root.attach(body_root)
         for filename, content_type, payload in file_parts:
             ct_lower = content_type.lower().strip()
+            part: Message
             if ct_lower.startswith("text/calendar"):
-                part = MIMEText(
+                cal_part = MIMEText(
                     payload.decode("utf-8"),
                     "calendar",
                     "utf-8",
                 )
-                part.set_param("method", "PUBLISH")
-                part.add_header(
+                cal_part.set_param("method", "PUBLISH")
+                cal_part.add_header(
                     "Content-Disposition",
                     "attachment",
                     filename=filename,
                 )
+                part = cal_part
             else:
                 maintype, _, subtype = content_type.partition("/")
                 if not subtype:
                     maintype, subtype = "application", "octet-stream"
-                part = MIMEBase(maintype, subtype.split(";")[0].strip())
-                part.set_payload(payload)
-                encoders.encode_base64(part)
-                part.add_header("Content-Disposition", "attachment", filename=filename)
-                part.add_header("Content-Type", content_type)
+                bin_part = MIMEBase(maintype, subtype.split(";")[0].strip())
+                bin_part.set_payload(payload)
+                encoders.encode_base64(bin_part)
+                bin_part.add_header(
+                    "Content-Disposition", "attachment", filename=filename
+                )
+                bin_part.add_header("Content-Type", content_type)
+                part = bin_part
             root.attach(part)
         raw_bytes = root.as_bytes()
     else:
