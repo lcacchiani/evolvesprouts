@@ -71,7 +71,7 @@ def test_run_reservation_post_success_sets_pending_without_stripe(
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_admin_form_recap_email",
+        "app.api.public_legacy_confirmation.send_sales_form_recap_email",
         MagicMock(),
     )
 

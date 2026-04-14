@@ -78,8 +78,8 @@ their primary responsibilities.
   `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
   align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL` (contact-us
   **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,
-  `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (admin form recap recipient resolution),
-  `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; default `Asia/Hong_Kong`),
+  `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (sales recap recipient resolution via Cognito group),
+  `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; default `Asia/Hong_Kong`; deprecated alias `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE`),
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
@@ -243,8 +243,8 @@ their primary responsibilities.
   download-link email to the submitter, Mailchimp sync (merge fields + tag +
   optional free-resource Customer Journey trigger; consent-gated when
   `MAILCHIMP_REQUIRE_MARKETING_CONSENT=true`), optional welcome journey for
-  `marketing_opt_in`, and SES **admin recap** on **new** media leads only (via
-  proxy `ListUsersInGroup`; duplicate re-downloads skip recap; not `SUPPORT_EMAIL`)
+  `marketing_opt_in`, and SES **sales recap** on **new** media leads only (via
+  proxy `ListUsersInGroup` to `ADMIN_GROUP`; duplicate re-downloads skip recap; not `SUPPORT_EMAIL`)
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES `SendEmail`, `SendRawEmail`, and `SendTemplatedEmail` (verified
@@ -255,7 +255,7 @@ their primary responsibilities.
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`, `COGNITO_USER_POOL_ID`,
-    `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN`, `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE`
+    `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN`, `SALES_RECAP_DISPLAY_TIMEZONE`
     (IANA timezone for media-lead recap **Submitted at**; CDK `Asia/Hong_Kong`)
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`

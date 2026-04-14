@@ -192,7 +192,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
           DATABASE_IAM_AUTH: "true",
           SES_SENDER_EMAIL: props.sesSenderEmail,
-          ADMIN_FORM_RECAP_DISPLAY_TIMEZONE: "Asia/Hong_Kong",
+          SALES_RECAP_DISPLAY_TIMEZONE: "Asia/Hong_Kong",
           COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
           ADMIN_GROUP: props.adminGroupName,
           AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,

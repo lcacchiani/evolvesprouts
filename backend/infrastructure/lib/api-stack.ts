@@ -1553,7 +1553,7 @@ export class ApiStack extends cdk.Stack {
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
         SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
-        ADMIN_FORM_RECAP_DISPLAY_TIMEZONE: "Asia/Hong_Kong",
+        SALES_RECAP_DISPLAY_TIMEZONE: "Asia/Hong_Kong",
       },
     });
     database.grantAdminUserSecretRead(adminFunction);

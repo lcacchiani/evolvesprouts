@@ -8,13 +8,13 @@ import pytest
 from app.services import public_form_admin_notifications as n
 
 
-def test_list_admin_notification_emails_empty_without_env(monkeypatch: Any) -> None:
+def test_list_sales_recap_recipient_emails_empty_without_env(monkeypatch: Any) -> None:
     monkeypatch.delenv("COGNITO_USER_POOL_ID", raising=False)
     monkeypatch.delenv("AWS_PROXY_FUNCTION_ARN", raising=False)
-    assert n.list_admin_notification_emails() == []
+    assert n.list_sales_recap_recipient_emails() == []
 
 
-def test_list_admin_notification_emails_collects_pages(monkeypatch: Any) -> None:
+def test_list_sales_recap_recipient_emails_collects_pages(monkeypatch: Any) -> None:
     monkeypatch.setenv("COGNITO_USER_POOL_ID", "pool-1")
     monkeypatch.setenv("AWS_PROXY_FUNCTION_ARN", "arn:aws:lambda:us-east-1:1:function:proxy")
     monkeypatch.setenv("ADMIN_GROUP", "admin")
@@ -42,7 +42,7 @@ def test_list_admin_notification_emails_collects_pages(monkeypatch: Any) -> None
         }
 
     monkeypatch.setattr(n, "invoke", _fake_invoke)
-    assert n.list_admin_notification_emails() == ["a@example.com", "b@example.com"]
+    assert n.list_sales_recap_recipient_emails() == ["a@example.com", "b@example.com"]
 
 
 def test_send_contact_inquiry_support_email_skips_without_config(monkeypatch: Any) -> None:
@@ -81,31 +81,31 @@ def test_send_contact_inquiry_support_email_sends(monkeypatch: Any) -> None:
     assert "Hello" in captured["body_text"]
 
 
-def test_send_admin_form_recap_required_raises_without_sender(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_required_raises_without_sender(monkeypatch: Any) -> None:
     monkeypatch.delenv("SES_SENDER_EMAIL", raising=False)
-    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
     with pytest.raises(RuntimeError, match="SES_SENDER_EMAIL"):
-        n.send_admin_form_recap_email(
+        n.send_sales_form_recap_email(
             form_title="X",
             body_lines=["line"],
             required=True,
         )
 
 
-def test_send_admin_form_recap_required_raises_without_recipients(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_required_raises_without_recipients(monkeypatch: Any) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
-    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: [])
-    with pytest.raises(RuntimeError, match="No admin notification recipients"):
-        n.send_admin_form_recap_email(
+    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: [])
+    with pytest.raises(RuntimeError, match="No sales recap recipients"):
+        n.send_sales_form_recap_email(
             form_title="X",
             body_lines=["line"],
             required=True,
         )
 
 
-def test_send_admin_form_recap_optional_swallows_send_failure(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_optional_swallows_send_failure(monkeypatch: Any) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
-    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
 
     def _boom(**_kwargs: Any) -> None:
         raise RuntimeError("ses down")
@@ -113,7 +113,7 @@ def test_send_admin_form_recap_optional_swallows_send_failure(monkeypatch: Any) 
     log_mock = MagicMock()
     monkeypatch.setattr(n, "send_email", _boom)
     monkeypatch.setattr("app.services.public_form_admin_notifications.logger", log_mock)
-    n.send_admin_form_recap_email(
+    n.send_sales_form_recap_email(
         form_title="X",
         body_lines=["line"],
         required=False,
@@ -121,9 +121,9 @@ def test_send_admin_form_recap_optional_swallows_send_failure(monkeypatch: Any) 
     log_mock.exception.assert_called_once()
 
 
-def test_send_admin_form_recap_uses_run_with_retry_when_configured(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_uses_run_with_retry_when_configured(monkeypatch: Any) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
-    monkeypatch.setattr(n, "list_admin_notification_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
     retry_calls: list[Any] = []
 
     def _fake_retry(op: Any, *args: Any, **kwargs: Any) -> None:
@@ -140,7 +140,7 @@ def test_send_admin_form_recap_uses_run_with_retry_when_configured(monkeypatch: 
         sent.update(kwargs)
 
     monkeypatch.setattr(n, "send_email", _capture_send)
-    n.send_admin_form_recap_email(
+    n.send_sales_form_recap_email(
         form_title="Media",
         body_lines=["a", "b"],
         required=False,
@@ -166,7 +166,7 @@ def test_build_contact_us_recap_lines_includes_intent_summary() -> None:
 
 
 def test_build_media_lead_recap_lines(monkeypatch: Any) -> None:
-    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("SALES_RECAP_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     lines = n.build_media_lead_recap_lines(
         first_name="A",
         email="a@example.com",
@@ -184,7 +184,7 @@ def test_build_media_lead_recap_lines(monkeypatch: Any) -> None:
 def test_build_media_lead_recap_respects_display_timezone_env(
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "America/New_York")
+    monkeypatch.setenv("SALES_RECAP_DISPLAY_TIMEZONE", "America/New_York")
     lines = n.build_media_lead_recap_lines(
         first_name="A",
         email="a@example.com",
@@ -210,10 +210,42 @@ def test_format_submitted_at_recap_display_unparseable_returns_original() -> Non
     assert "Submitted at: not-a-date" in "\n".join(lines)
 
 
-def test_admin_recap_display_timezone_invalid_env_falls_back(
+def test_sales_recap_display_timezone_invalid_env_falls_back(
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "Not/A/Zone")
+    monkeypatch.setenv("SALES_RECAP_DISPLAY_TIMEZONE", "Not/A/Zone")
+    lines = n.build_media_lead_recap_lines(
+        first_name="A",
+        email="a@example.com",
+        media_name="G",
+        resource_key="k",
+        submitted_at="2026-03-03T03:14:00+00:00",
+        marketing_opt_in=False,
+        locale="en",
+    )
+    assert "Submitted at: 2026-03-03 11:14:00 HKT" in "\n".join(lines)
+
+
+def test_sales_recap_display_timezone_legacy_env_used_when_new_unset(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.delenv("SALES_RECAP_DISPLAY_TIMEZONE", raising=False)
+    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "America/New_York")
+    lines = n.build_media_lead_recap_lines(
+        first_name="A",
+        email="a@example.com",
+        media_name="G",
+        resource_key="k",
+        submitted_at="2026-03-03T03:14:00+00:00",
+        marketing_opt_in=False,
+        locale="en",
+    )
+    assert "Submitted at: 2026-03-02 22:14:00 EST" in "\n".join(lines)
+
+
+def test_sales_recap_display_timezone_new_env_overrides_legacy(monkeypatch: Any) -> None:
+    monkeypatch.setenv("SALES_RECAP_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "America/New_York")
     lines = n.build_media_lead_recap_lines(
         first_name="A",
         email="a@example.com",
