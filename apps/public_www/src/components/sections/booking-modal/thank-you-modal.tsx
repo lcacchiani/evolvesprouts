@@ -209,6 +209,7 @@ export function BookingThankYouModal({
   const detailLines = summary?.detailLines?.filter((line) => line.trim().length > 0) ?? [];
   const showDetailsRow = detailLines.length > 0;
   const showDateTimeRow = dateTimeLines.length > 0;
+  const showIcsOnlyRow = Boolean(summary) && !showDateTimeRow;
 
   const messageParts = useMemo(() => {
     return splitMessageTemplate(content.messageTemplate);
@@ -367,6 +368,26 @@ export function BookingThankYouModal({
                           </span>
                         );
                       })}
+                      <button
+                        type='button'
+                        disabled={!canDownloadIcs}
+                        onClick={handleDownloadIcs}
+                        className={THANK_YOU_ICS_LINK_BUTTON_CLASSNAME}
+                      >
+                        {content.downloadCalendarInviteLabel}
+                      </button>
+                    </dd>
+                  </div>
+                </div>
+              ) : null}
+              {showIcsOnlyRow ? (
+                <div className='es-booking-thank-you-recap-row-border py-4'>
+                  <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                    <dt
+                      className='hidden sm:block sm:min-w-[140px]'
+                      aria-hidden='true'
+                    />
+                    <dd className='es-booking-thank-you-recap-value m-0'>
                       <button
                         type='button'
                         disabled={!canDownloadIcs}

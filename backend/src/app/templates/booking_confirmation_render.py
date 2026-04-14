@@ -376,6 +376,7 @@ def format_booking_datetime_display_multi(
         template = GROUP_SESSION_LABEL_TEMPLATE.get(
             loc, GROUP_SESSION_LABEL_TEMPLATE["en"]
         )
+        ordinals = SESSION_ORDINAL_LABELS.get(loc, SESSION_ORDINAL_LABELS["en"])
         for idx, row in enumerate(sessions):
             start_raw = (row.get("start_iso") or "").strip()
             if not start_raw:
@@ -383,11 +384,7 @@ def format_booking_datetime_display_multi(
             parsed = _parse_iso_datetime(start_raw)
             if parsed is None:
                 continue
-            ordinal = (
-                SESSION_ORDINAL_LABELS[idx]
-                if idx < len(SESSION_ORDINAL_LABELS)
-                else str(idx + 1)
-            )
+            ordinal = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
             part = _format_hkt_email_line_no_tz_suffix(parsed)
             if location_use_hkt:
                 part = f"{part} HKT"
@@ -404,11 +401,27 @@ def format_booking_datetime_display_multi(
             am_pm = _hkt_am_pm_indicator(parsed)
             plain_lines.append(f"{date_part} {am_pm}")
     else:
-        # Events and other flows: single line
-        start_raw = (primary_session_iso or "").strip()
-        parsed = _parse_iso_datetime(start_raw) if start_raw else None
-        if parsed is not None and location_use_hkt:
-            plain_lines.append(_format_hkt_email_line(parsed))
+        # Events and other flows: all course_sessions when present, else primary only
+        event_sessions = sessions if sessions else []
+        if not event_sessions and (primary_session_iso or "").strip():
+            event_sessions = [{"start_iso": (primary_session_iso or "").strip()}]
+        if event_sessions:
+            for row in event_sessions:
+                start_raw = (row.get("start_iso") or "").strip()
+                if not start_raw:
+                    continue
+                parsed = _parse_iso_datetime(start_raw)
+                if parsed is not None and location_use_hkt:
+                    plain_lines.append(_format_hkt_email_line(parsed))
+                else:
+                    one = format_booking_datetime_display(
+                        primary_session_iso=start_raw,
+                        schedule_date_label=None,
+                        schedule_time_label=None,
+                        location_use_hkt=location_use_hkt,
+                    )
+                    if one:
+                        plain_lines.append(one)
         else:
             fallback = format_booking_datetime_display(
                 primary_session_iso=primary_session_iso,
@@ -738,10 +751,14 @@ def booking_confirmation_template_merge_data(
     }
     if schedule_html:
         data["schedule_datetime_label"] = schedule_html
+        if schedule_plain and "\n" in schedule_plain:
+            data["schedule_datetime_plain_multiline"] = True
     if loc_cell_html:
         data["location_block_html"] = loc_cell_html
     if loc_plain_block:
         data["location_plain"] = loc_plain_block
+        if "\n" in loc_plain_block:
+            data["location_plain_multiline"] = True
     safe_location_url = _normalize_http_location_url(location_url)
     if safe_location_url:
         data["location_url"] = safe_location_url

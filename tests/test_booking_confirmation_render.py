@@ -256,6 +256,105 @@ def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
     assert "calendar invite" in plain.lower()
 
 
+def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="zh-CN",
+        full_name="王",
+        course_label="课程",
+        schedule_date_label="2026年4月",
+        schedule_time_label="ignored",
+        location_name="场地",
+        location_address="香港",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="my-best-auntie",
+        age_group_label="1-3",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+        course_sessions=[
+            {"start_iso": "2026-04-10T14:00:00+08:00"},
+            {"start_iso": "2026-05-01T14:00:00+08:00"},
+        ],
+    )
+    assert "第一节" in html_doc
+    assert "第二节" in html_doc
+    assert "第一节" in plain
+
+
+def test_render_booking_confirmation_event_multi_part_course_sessions() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="A",
+        course_label="Event",
+        schedule_date_label="ignored",
+        schedule_time_label="ignored",
+        location_name="Venue",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="event-booking",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+        course_sessions=[
+            {"start_iso": "2026-04-10T14:00:00+08:00"},
+            {"start_iso": "2026-05-01T14:00:00+08:00"},
+        ],
+    )
+    assert "10 April @ 14:00 HKT" in html_doc
+    assert "1 May @ 14:00 HKT" in html_doc
+    assert "10 April @ 14:00 HKT" in plain
+    assert "1 May @ 14:00 HKT" in plain
+
+
+def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
+    data = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="MBA",
+        schedule_date_label="Apr",
+        schedule_time_label="x",
+        location_name="V",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="my-best-auntie",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        course_sessions=[
+            {"start_iso": "2026-04-10T14:00:00+08:00"},
+            {"start_iso": "2026-05-01T14:00:00+08:00"},
+        ],
+        location_url="https://maps.example/x",
+    )
+    assert data.get("schedule_datetime_plain_multiline") is True
+    assert data.get("location_plain_multiline") is True
+
+    data_single = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="E",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        location_name="V",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-16T18:00:00+08:00",
+        course_slug="event-booking",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+    )
+    assert "schedule_datetime_plain_multiline" not in data_single
+    assert "location_plain_multiline" not in data_single
+
+
 def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",

@@ -18,6 +18,11 @@ const compactDateFormatterCache = new Map<Locale, Intl.DateTimeFormat>();
 const timeOfDayFormatterCache = new Map<Locale, Intl.DateTimeFormat>();
 const timeZoneShortFormatterCache = new Map<Locale, Intl.DateTimeFormat>();
 const partDateFormatterCache = new Map<Locale, Intl.DateTimeFormat>();
+const hktHour24Formatter = new Intl.DateTimeFormat('en-GB', {
+  hour: 'numeric',
+  hour12: false,
+  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+});
 
 function getCompactDateFormatter(locale: Locale): Intl.DateTimeFormat {
   const cached = compactDateFormatterCache.get(locale);
@@ -110,11 +115,7 @@ export function formatSiteAmPmIndicator(isoDateTime: string): 'AM' | 'PM' | '' {
   }
 
   const hour = Number(
-    new Intl.DateTimeFormat('en-GB', {
-      hour: 'numeric',
-      hour12: false,
-      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    }).formatToParts(date).find((p) => p.type === 'hour')?.value,
+    hktHour24Formatter.formatToParts(date).find((p) => p.type === 'hour')?.value,
   );
   if (!Number.isFinite(hour)) {
     return '';

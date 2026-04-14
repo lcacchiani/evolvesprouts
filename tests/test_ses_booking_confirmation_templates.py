@@ -13,6 +13,8 @@ def test_booking_ses_templates_preserve_handlebars_placeholders() -> None:
     assert "{{#if include_fps_instructions}}" in en["HtmlPart"]
     assert "{{#if schedule_datetime_label}}" in en["HtmlPart"]
     assert "{{{schedule_datetime_label}}}" in en["HtmlPart"]
+    assert "{{#if schedule_datetime_plain_multiline}}" in en["TextPart"]
+    assert "{{#if location_plain_multiline}}" in en["TextPart"]
     assert "{{{details_block_html}}}" in en["HtmlPart"]
     assert "{{#if location_block_html}}" in en["HtmlPart"]
     assert "{{{location_block_html}}}" in en["HtmlPart"]

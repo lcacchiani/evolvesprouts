@@ -89,14 +89,12 @@ DETAILS_AGE_GROUP_PREFIX: dict[str, str] = {
     "zh-HK": "年齡組",
 }
 
-# MBA schedule lines (ordinal + session time); ordinals stay English in all locales.
-SESSION_ORDINAL_LABELS: tuple[str, ...] = (
-    "First",
-    "Second",
-    "Third",
-    "Fourth",
-    "Fifth",
-)
+# MBA schedule line ordinals (must match public site locale JSON `groupSessionOrdinals`).
+SESSION_ORDINAL_LABELS: dict[str, tuple[str, ...]] = {
+    "en": ("First", "Second", "Third", "Fourth", "Fifth"),
+    "zh-CN": ("第一节", "第二节", "第三节", "第四节", "第五节"),
+    "zh-HK": ("第一節", "第二節", "第三節", "第四節", "第五節"),
+}
 
 GROUP_SESSION_LABEL_TEMPLATE: dict[str, str] = {
     "en": "{ordinal} group session: {dateTime}",
