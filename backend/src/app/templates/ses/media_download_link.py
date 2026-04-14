@@ -8,7 +8,7 @@ from app.templates.ses.email_shell import wrap_transactional_html
 
 # Table + td padding/bgcolor: Outlook (Word engine) often drops padding/background on <a>/<div>.
 _CTA_BTN_OPEN = (
-    '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0;">'
+    '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">'
     '<tr><td bgcolor="#C84A16" align="left" '
     'style="background-color:#C84A16;border-radius:8px;padding:12px 24px;">'
     '<a href="{{{{download_url}}}}" '
@@ -58,9 +58,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         (
             '<p style="margin:0 0 12px;">Hi {{first_name}},</p>'
             '<p style="margin:0 0 20px;">Here is your download link for <strong>{{media_name}}</strong>.</p>'
-            '<p style="margin:0 0 16px;">'
             f"{_CTA_BTN_OPEN}Download your free guide{_CTA_BTN_CLOSE}"
-            "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">If the button does not work, '
             "copy this URL:</p>"
             '<p style="margin:0 0 0 0;word-break:break-all;font-size:13px;color:#C84A16;">'
@@ -119,9 +117,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 20px;">这是 <strong>{{media_name}}</strong> 的下载链接。</p>'
-            '<p style="margin:0 0 16px;">'
             f"{_CTA_BTN_OPEN}下载您的免费指南{_CTA_BTN_CLOSE}"
-            "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">若按钮无法使用，请复制以下网址：</p>'
             '<p style="margin:0 0 0 0;word-break:break-all;font-size:13px;color:#C84A16;">'
             "{{download_url}}</p>"
@@ -174,9 +170,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
         (
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 20px;">這是 <strong>{{media_name}}</strong> 的下載連結。</p>'
-            '<p style="margin:0 0 16px;">'
             f"{_CTA_BTN_OPEN}下載您的免費指南{_CTA_BTN_CLOSE}"
-            "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">若按鈕無法使用，請複製以下網址：</p>'
             '<p style="margin:0 0 0 0;word-break:break-all;font-size:13px;color:#C84A16;">'
             "{{download_url}}</p>"
