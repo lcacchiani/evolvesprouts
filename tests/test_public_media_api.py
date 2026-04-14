@@ -99,6 +99,7 @@ def test_media_request_publishes_to_sns(
             return {"MessageId": "abc123"}
 
     fake_sns_client = _FakeSnsClient()
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     monkeypatch.setenv("MEDIA_REQUEST_TOPIC_ARN", "arn:aws:sns:ap-southeast-1:123:topic")
     monkeypatch.setattr(
         "app.api.public_media.verify_turnstile_token",
