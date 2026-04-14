@@ -24,10 +24,8 @@ _STAGING_TEST_EMAIL_ENV = "STAGING_TEST_EMAIL_ADDRESS"
 _BODY_PREVIEW_MAX = 2000
 
 
-def _maybe_redirect_staging_recipients(
-    to_addresses: Iterable[str],
-) -> list[str] | None:
-    """If staging redirect is configured, return redirected list; else None."""
+def _maybe_redirect_staging_recipients() -> list[str] | None:
+    """If staging redirect is configured, return single-address list; else None."""
     redirect = os.getenv(_STAGING_TEST_EMAIL_ENV, "").strip()
     if not redirect:
         return None
@@ -78,19 +76,20 @@ def send_email(
     body_html: str | None = None,
 ) -> None:
     """Send a plain or HTML email via SES."""
+    to_list = list(to_addresses)
     if not is_production():
-        redirected = _maybe_redirect_staging_recipients(to_addresses)
+        redirected = _maybe_redirect_staging_recipients()
         if redirected is None:
             _log_staging_email_skip(
                 kind="send_email",
                 source=source,
-                to_addresses=to_addresses,
+                to_addresses=to_list,
                 subject=subject,
                 body_text=body_text,
                 body_html=body_html,
             )
             return
-        to_addresses = redirected
+        to_list = redirected
     message: dict[str, Any] = {
         "Subject": {"Data": subject, "Charset": "UTF-8"},
         "Body": {"Text": {"Data": body_text, "Charset": "UTF-8"}},
@@ -100,7 +99,7 @@ def send_email(
 
     get_ses_client().send_email(
         Source=source,
-        Destination={"ToAddresses": list(to_addresses)},
+        Destination={"ToAddresses": to_list},
         Message=message,
     )
 
@@ -113,21 +112,22 @@ def send_templated_email(
     template_data: dict[str, Any],
 ) -> None:
     """Send a templated email via SES."""
+    to_list = list(to_addresses)
     if not is_production():
-        redirected = _maybe_redirect_staging_recipients(to_addresses)
+        redirected = _maybe_redirect_staging_recipients()
         if redirected is None:
             _log_staging_email_skip(
                 kind="send_templated_email",
                 source=source,
-                to_addresses=to_addresses,
+                to_addresses=to_list,
                 template_name=template_name,
                 template_data=template_data,
             )
             return
-        to_addresses = redirected
+        to_list = redirected
     get_ses_client().send_templated_email(
         Source=source,
-        Destination={"ToAddresses": list(to_addresses)},
+        Destination={"ToAddresses": to_list},
         Template=template_name,
         TemplateData=json.dumps(template_data),
     )
@@ -145,20 +145,20 @@ def send_mime_email_with_inline_png(
     inline_filename: str = "fps-qr.png",
 ) -> None:
     """Send multipart/related HTML email with one inline PNG (referenced as cid:...)."""
+    to_list = list(to_addresses)
     if not is_production():
-        redirected = _maybe_redirect_staging_recipients(to_addresses)
+        redirected = _maybe_redirect_staging_recipients()
         if redirected is None:
             _log_staging_email_skip(
                 kind="send_mime_email_with_inline_png",
                 source=source,
-                to_addresses=to_addresses,
+                to_addresses=to_list,
                 subject=subject,
                 body_text=body_text,
                 body_html=body_html,
             )
             return
-        to_addresses = redirected
-    to_list = list(to_addresses)
+        to_list = redirected
     root = MIMEMultipart("related", policy=policy.SMTP)
     root["Subject"] = subject
     root["From"] = source
@@ -195,20 +195,20 @@ def send_mime_email_with_optional_attachments(
     attachments: Iterable[tuple[str, str, bytes]] | None = None,
 ) -> None:
     """Send multipart email: optional inline PNG (cid) and optional file attachments."""
+    to_list = list(to_addresses)
     if not is_production():
-        redirected = _maybe_redirect_staging_recipients(to_addresses)
+        redirected = _maybe_redirect_staging_recipients()
         if redirected is None:
             _log_staging_email_skip(
                 kind="send_mime_email_with_optional_attachments",
                 source=source,
-                to_addresses=to_addresses,
+                to_addresses=to_list,
                 subject=subject,
                 body_text=body_text,
                 body_html=body_html,
             )
             return
-        to_addresses = redirected
-    to_list = list(to_addresses)
+        to_list = redirected
     alt = MIMEMultipart("alternative")
     alt.attach(MIMEText(body_text, "plain", "utf-8"))
     alt.attach(MIMEText(body_html, "html", "utf-8"))

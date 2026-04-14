@@ -272,25 +272,3 @@ def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
     assert "Level: Essentials" in body
 
 
-def test_build_booking_legacy_recap_lines() -> None:
-    lines = n.build_booking_legacy_recap_lines(
-        payload={
-            "full_name": "Jane Doe",
-            "email": "j@example.com",
-            "phone_number": "+852 9000 0000",
-            "course_label": "Course",
-            "payment_method": "stripe",
-            "price": 10,
-            "locale": "zh-HK",
-            "stripe_payment_intent_id": "pi_y",
-            "comments": "Need evening slot",
-            "comments_field_label": "Notes",
-            "consultation_writing_focus_label": "Focus A",
-            "consultation_level_label": "Deep dive",
-        }
-    )
-    body = "\n".join(lines)
-    assert "j@example.com" in body and "pi_y" in body
-    assert "Telephone: +852 9000 0000" in body
-    assert "Question (Notes):" in body and "Need evening slot" in body
-    assert "Focus: Focus A" in body and "Level: Deep dive" in body

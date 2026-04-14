@@ -47,6 +47,14 @@ The backend stack also requires Mailchimp/media lead parameters:
 `MediaDefaultResourceKey` should match the `resource_key` value saved on the
 default downloadable asset in the admin asset catalog.
 
+## Deployment stage (SES / Mailchimp / SNS guards)
+
+The Admin Lambda and Media Request Processor receive `DEPLOYMENT_STAGE` from CDK.
+By default the API stack sets it to `production`. For a **non-production** stack
+synth/deploy (for example a staging account or sandbox), set the environment
+variable **`CDK_DEPLOYMENT_STAGE=staging`** when running `cdk deploy` so outbound
+SES, Mailchimp, and SNS publishes are gated consistently with app defaults.
+
 ## OpenRouter invoice parsing parameters
 
 The backend stack requires these OpenRouter parameters:

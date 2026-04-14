@@ -11,7 +11,6 @@ from app.services.email import (
     send_templated_email,
 )
 from app.services.public_form_internal_notifications import (
-    build_booking_legacy_recap_lines,
     build_contact_us_recap_lines,
     send_sales_form_recap_email,
     send_contact_inquiry_support_email,
@@ -448,118 +447,6 @@ def run_contact_us_post_success(
     )
     if signup_intent == _SIGNUP_INTENT_CONTACT_INQUIRY:
         send_contact_inquiry_support_email(payload=payload)
-
-
-def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
-    email = str(payload.get("email") or "").strip()
-    full_name = str(payload.get("full_name") or "").strip()
-    locale = normalize_body_locale(payload.get("locale"))
-    course_label = str(payload.get("course_label") or "").strip()
-    if not course_label:
-        course_label = "Your booking"
-    schedule_date = _optional_str(payload.get("schedule_date_label"))
-    schedule_time = _optional_str(payload.get("schedule_time_label"))
-    location_name = _optional_str(payload.get("location_name"))
-    location_address = _optional_str(payload.get("location_address"))
-    primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
-    primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
-    course_slug = _optional_str(payload.get("course_slug"))
-    age_group_label = _optional_str(payload.get("cohort_age"))
-    consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
-    consultation_level = _optional_str(payload.get("consultation_level_label"))
-    course_sessions = _parse_course_sessions_from_payload(payload)
-    location_url = _optional_str(payload.get("location_url"))
-    payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
-    price = payload.get("price")
-    total_amount = _format_hkd_amount(price)
-    stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
-    pm_lower = payment_method.lower()
-    is_pending = pm_lower != "stripe" and not stripe_pi
-    fps_qr_data_url = optional_fps_qr_data_url_from_payload(
-        payload.get("fps_qr_image_data_url")
-    )
-    if email and full_name:
-        try:
-            send_booking_confirmation_email(
-                to_email=email,
-                full_name=full_name,
-                course_label=course_label,
-                schedule_date_label=schedule_date,
-                schedule_time_label=schedule_time,
-                location_name=location_name,
-                location_address=location_address,
-                primary_session_iso=primary_session_iso,
-                primary_session_end_iso=primary_session_end_iso,
-                course_slug=course_slug,
-                age_group_label=age_group_label,
-                payment_method=payment_method,
-                total_amount=total_amount,
-                is_pending_payment=is_pending,
-                locale=locale,
-                fps_qr_image_data_url=fps_qr_data_url,
-                consultation_writing_focus_label=consultation_focus,
-                consultation_level_label=consultation_level,
-                course_sessions=course_sessions,
-                location_url=location_url,
-            )
-        except Exception:
-            logger.exception(
-                "Unexpected error sending booking confirmation",
-                extra={"lead_email": mask_email(email)},
-            )
-    try:
-        booking_tag = mailchimp_booking_tag_from_payload(payload)
-        maybe_subscribe_booking_marketing(
-            marketing_opt_in=payload.get("marketing_opt_in"),
-            email=email,
-            full_name=full_name,
-            tag_name=booking_tag,
-        )
-    except Exception:
-        logger.exception(
-            "Unexpected error in booking marketing subscribe",
-            extra={"lead_email": mask_email(email)},
-        )
-    send_sales_form_recap_email(
-        form_title="Booking",
-        body_lines=build_booking_legacy_recap_lines(payload=payload),
-    )
-
-
-def _optional_str(value: Any) -> str | None:
-    if value is None:
-        return None
-    s = str(value).strip()
-    return s or None
-
-
-def _parse_course_sessions_from_payload(
-    payload: Mapping[str, Any],
-) -> list[dict[str, str]] | None:
-    raw = payload.get("course_sessions")
-    if not isinstance(raw, list) or not raw:
-        return None
-    out: list[dict[str, str]] = []
-    for item in raw:
-        if not isinstance(item, Mapping):
-            continue
-        start = item.get("start_iso") or item.get("startIso")
-        if not isinstance(start, str) or not start.strip():
-            continue
-        row: dict[str, str] = {"start_iso": start.strip()}
-        end = item.get("end_iso") or item.get("endIso")
-        if isinstance(end, str) and end.strip():
-            row["end_iso"] = end.strip()
-        out.append(row)
-    return out or None
-
-
-def _format_hkd_amount(price: Any) -> str:
-    try:
-        n = float(price)
-    except (TypeError, ValueError):
-        return "HK$0.00"
-    return f"HK${n:,.2f}"
 
 
 def _get_header_case_insensitive(event: Mapping[str, Any], name: str) -> str:

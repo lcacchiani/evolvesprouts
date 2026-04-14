@@ -203,8 +203,6 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
         payload.get("fps_qr_image_data_url")
     )
 
-    hook_payload = _hook_payload_for_mailchimp(payload)
-
     if email and full_name:
         try:
             send_booking_confirmation_email(
@@ -236,7 +234,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
             )
 
     try:
-        booking_tag = mailchimp_booking_tag_from_payload(hook_payload)
+        booking_tag = mailchimp_booking_tag_from_payload(payload)
         maybe_subscribe_booking_marketing(
             marketing_opt_in=payload.get("marketing_opt_in"),
             email=email,
@@ -255,16 +253,6 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
         required=False,
         retry_transient_failures=True,
     )
-
-
-def _hook_payload_for_mailchimp(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Keys for ``mailchimp_booking_tag_from_payload`` (snake_case + camelCase)."""
-    out: dict[str, Any] = dict(payload)
-    if payload.get("service_key"):
-        out["service_key"] = payload["service_key"]
-    if payload.get("course_slug"):
-        out["course_slug"] = payload["course_slug"]
-    return out
 
 
 def _optional_str(value: Any) -> str | None:

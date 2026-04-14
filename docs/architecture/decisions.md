@@ -419,7 +419,9 @@ configuration. `public_www` calls native Aurora-backed handlers:
 
 **Non-production safety:** `DEPLOYMENT_STAGE` gates outbound SES, Mailchimp, and
 SNS media publishes in non-production environments (see `deployment.py` and CDK
-`DEPLOYMENT_STAGE` on the admin and media-processor Lambdas).
+`DEPLOYMENT_STAGE` on the admin and media-processor Lambdas). The API stack
+defaults this to `production`; override with **`CDK_DEPLOYMENT_STAGE=staging`**
+at synth time for explicit non-prod stacks.
 
 ## Keeping Documentation Up to Date
 

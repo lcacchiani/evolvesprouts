@@ -217,6 +217,10 @@ export class ApiStack extends cdk.Stack {
 
     const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
+    /** production | staging — gates SES/Mailchimp/SNS in app code; override via CDK_DEPLOYMENT_STAGE for non-prod stacks. */
+    const deploymentStage = (
+      process.env.CDK_DEPLOYMENT_STAGE ?? "production"
+    ).trim() || "production";
     const existingDbCredentialsSecretName =
       process.env.EXISTING_DB_CREDENTIALS_SECRET_NAME;
     const existingDbCredentialsSecretArn =
@@ -1542,7 +1546,7 @@ export class ApiStack extends cdk.Stack {
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
         INSTRUCTOR_GROUP: "instructor",
-        DEPLOYMENT_STAGE: "production",
+        DEPLOYMENT_STAGE: deploymentStage,
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
         SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
@@ -1716,7 +1720,7 @@ export class ApiStack extends cdk.Stack {
       openrouterModel: openrouterModel.valueAsString,
       openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
       salesRecapDisplayTimezone: salesRecapDisplayTimezone.valueAsString,
-      deploymentStage: "production",
+      deploymentStage,
     });
     awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
 

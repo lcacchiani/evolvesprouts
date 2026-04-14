@@ -119,9 +119,13 @@ def test_run_contact_us_post_success_skips_confirmation_for_community_intent(
     assert calls == []
 
 
-def test_run_reservation_post_success_passes_dynamic_tag_to_booking_marketing(
+def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_marketing(
     monkeypatch: Any,
 ) -> None:
+    from decimal import Decimal
+
+    from app.api import public_reservations as pr
+
     captured: dict[str, Any] = {}
 
     def _fake_maybe_subscribe(**kwargs: Any) -> None:
@@ -129,29 +133,31 @@ def test_run_reservation_post_success_passes_dynamic_tag_to_booking_marketing(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_form_hooks.send_booking_confirmation_email",
+        "app.api.public_reservations.send_booking_confirmation_email",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_form_hooks.maybe_subscribe_booking_marketing",
+        "app.api.public_reservations.maybe_subscribe_booking_marketing",
         _fake_maybe_subscribe,
     )
     monkeypatch.setattr(
-        "app.api.public_form_hooks.send_sales_form_recap_email",
+        "app.api.public_reservations.send_sales_form_recap_email",
         MagicMock(),
     )
 
-    plc.run_reservation_post_success(
-        payload={
-            "full_name": "Jane Doe",
-            "email": "j@example.com",
-            "course_label": "Course",
+    pr._run_reservation_post_success_hooks(
+        {
+            "attendee_email": "j@example.com",
+            "attendee_name": "Jane Doe",
+            "child_age_group": "3",
             "payment_method": "fps_qr",
-            "price": 150,
+            "total_amount": Decimal("150"),
+            "course_label": "Course",
             "locale": "en",
             "marketing_opt_in": True,
             "service_key": "easter-workshop",
             "course_slug": "event-booking",
+            "stripe_payment_intent_id": None,
         }
     )
 
