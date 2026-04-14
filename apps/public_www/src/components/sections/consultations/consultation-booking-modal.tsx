@@ -271,13 +271,13 @@ function ConsultationDatePickerGrid({
 
       {selectedSlotSummary ? (
         <div
-          className='flex items-start gap-4'
+          className='mt-3 flex items-start gap-4'
           data-testid='consultation-modal-selected-slot'
         >
           <span className='es-icon-circle-lg shrink-0'>
             <span
               data-testid='consultation-modal-selected-slot-calendar-icon'
-              className='es-mask-calendar-danger h-[46px] w-[46px] shrink-0'
+              className='es-mask-calendar-danger h-[36.8px] w-[36.8px] shrink-0'
               aria-hidden='true'
             />
           </span>
