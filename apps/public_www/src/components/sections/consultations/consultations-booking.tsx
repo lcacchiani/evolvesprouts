@@ -62,8 +62,11 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-3 py-4 text-center sm:px-4 md:py-5',
   'flex min-h-0 flex-col items-center justify-center gap-3',
-  'md:flex-row md:items-center md:justify-start md:gap-[50px] md:px-8 md:py-8 md:text-left',
 );
+
+/** Step 2 (level picker + description) stays columnar like mobile; width cap keeps it narrower than step 1 / CTA. */
+const CONSULTATIONS_BOOKING_LEVEL_BLOCK_CLASSNAME =
+  'mx-auto w-full max-w-[min(100%,22rem)] sm:max-w-[26rem] md:max-w-[28rem]';
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
   'mt-3 w-full min-w-0 list-none space-y-2 ps-0 text-left';
@@ -398,9 +401,12 @@ export function ConsultationsBooking({
                 role='group'
                 aria-label={content.step2Title}
                 data-testid='consultations-booking-level-grid'
-                className='flex flex-col gap-6 md:grid md:grid-cols-3 md:gap-6'
+                className={mergeClassNames(
+                  'flex flex-col gap-6',
+                  CONSULTATIONS_BOOKING_LEVEL_BLOCK_CLASSNAME,
+                )}
               >
-                <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4 md:flex md:flex-col md:gap-4'>
+                <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4'>
                   {content.levels.map((level) => {
                     const isSelected = level.id === selectedLevelId;
                     return (
@@ -436,7 +442,7 @@ export function ConsultationsBooking({
                               )}
                             />
                           </span>
-                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:w-auto md:max-w-none md:text-left md:text-lg'>
+                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base'>
                             {level.title}
                           </span>
                         </ButtonPrimitive>
@@ -445,7 +451,7 @@ export function ConsultationsBooking({
                   })}
                 </ul>
                 <div
-                  className='min-w-0 md:col-span-2 md:min-h-0'
+                  className='min-w-0'
                   aria-live='polite'
                   aria-atomic='true'
                   data-testid='consultations-booking-level-description'
