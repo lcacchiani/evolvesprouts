@@ -1098,6 +1098,14 @@
     filter: none;
   }
 
+  #consultations-booking .es-consultations-booking-level-features {
+    list-style-type: disc;
+  }
+
+  #consultations-booking .es-consultations-booking-level-features li::marker {
+    color: var(--es-color-brand-orange);
+  }
+
   @keyframes es-consultations-booking-fade-in {
     from {
       opacity: 0;

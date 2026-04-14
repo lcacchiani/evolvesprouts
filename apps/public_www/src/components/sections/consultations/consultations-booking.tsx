@@ -29,6 +29,7 @@ import {
 } from '@/lib/consultations-booking-modal-payload';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
+import { useHeightTransitionOnChange } from '@/lib/hooks/use-height-transition-on-change';
 import { useMatchMedia } from '@/lib/hooks/use-match-media';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
@@ -66,11 +67,11 @@ const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
 
 /** Step 2 (level picker + description) stays columnar like mobile; width cap keeps it narrower than step 1 / CTA. */
 const CONSULTATIONS_BOOKING_LEVEL_BLOCK_CLASSNAME =
-  'mx-auto w-full max-w-[min(100%,22rem)] sm:max-w-[26rem] md:max-w-[28rem]';
+  'mx-auto w-full max-w-[min(100%,22rem)] sm:max-w-[26rem] md:mx-0 md:max-w-[28rem]';
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
-  'mt-3 w-full min-w-0 list-none space-y-2 ps-0 text-left';
-const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-dim';
+  'es-consultations-booking-level-features mt-3 w-full min-w-0 list-disc space-y-2 ps-5 text-left';
+const LEVEL_FEATURE_LINE_CLASSNAME = 'es-type-body es-text-dim';
 
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
@@ -231,6 +232,11 @@ export function ConsultationsBooking({
   }, [bookingModalContent.paymentModal]);
 
   const isMdUp = useMatchMedia(MD_UP_MEDIA_QUERY);
+
+  const levelDescriptionShellRef = useHeightTransitionOnChange(
+    isMdUp,
+    selectedLevelId,
+  );
 
   const { carouselRef: focusCarouselRef } =
     useHorizontalCarousel<HTMLDivElement>({
@@ -393,18 +399,24 @@ export function ConsultationsBooking({
           </div>
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body'>
+            <h3 className='text-xl font-semibold es-type-body md:hidden'>
               {content.step2Title}
             </h3>
-            <div className='relative mt-6'>
+            <div
+              data-testid='consultations-booking-level-block'
+              className={mergeClassNames(
+                'mt-6 flex flex-col gap-6 md:mt-6',
+                CONSULTATIONS_BOOKING_LEVEL_BLOCK_CLASSNAME,
+              )}
+            >
+              <h3 className='hidden text-xl font-semibold es-type-body md:block'>
+                {content.step2Title}
+              </h3>
               <div
                 role='group'
                 aria-label={content.step2Title}
                 data-testid='consultations-booking-level-grid'
-                className={mergeClassNames(
-                  'flex flex-col gap-6',
-                  CONSULTATIONS_BOOKING_LEVEL_BLOCK_CLASSNAME,
-                )}
+                className='flex flex-col gap-6'
               >
                 <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4'>
                   {content.levels.map((level) => {
@@ -451,7 +463,8 @@ export function ConsultationsBooking({
                   })}
                 </ul>
                 <div
-                  className='min-w-0'
+                  ref={levelDescriptionShellRef}
+                  className={mergeClassNames('min-w-0', isMdUp && 'overflow-hidden')}
                   aria-live='polite'
                   aria-atomic='true'
                   data-testid='consultations-booking-level-description'

@@ -100,9 +100,11 @@ describe('ConsultationsBooking', () => {
       ).toBeGreaterThanOrEqual(1);
     }
 
+    const levelBlock = screen.getByTestId('consultations-booking-level-block');
+    expect(levelBlock.className).toContain('max-w-[');
+    expect(levelBlock.className).not.toContain('md:grid');
+
     const levelGrid = screen.getByTestId('consultations-booking-level-grid');
-    expect(levelGrid.className).toContain('max-w-[');
-    expect(levelGrid.className).not.toContain('md:grid');
     const levelSelectorList = levelGrid.querySelector(':scope > ul');
     expect(levelSelectorList).not.toBeNull();
     expect(levelSelectorList!.className).toContain('grid-cols-2');
@@ -198,6 +200,9 @@ describe('ConsultationsBooking', () => {
 
     expect(screen.queryByTestId('consultations-booking-focus-grid')).toBeNull();
     expect(screen.queryByTestId('consultations-booking-level-carousel')).toBeNull();
+
+    const levelBlock = screen.getByTestId('consultations-booking-level-block');
+    expect(levelBlock.className).toContain('max-w-[');
 
     const levelGrid = screen.getByTestId('consultations-booking-level-grid');
     expect(levelGrid.getAttribute('role')).toBe('group');
