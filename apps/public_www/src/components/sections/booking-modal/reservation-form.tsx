@@ -73,6 +73,7 @@ import {
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import { getHrefKind } from '@/lib/url-utils';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
@@ -950,20 +951,7 @@ export function BookingReservationForm({
             }),
           );
         }
-      } else {
-        const subtitleLine = sanitizeSingleLineValue(eventSubtitle);
-        if (subtitleLine) {
-          detailLines.push(subtitleLine);
-        }
       }
-    }
-    const subtitleForRecap = sanitizeSingleLineValue(eventSubtitle);
-    if (
-      thankYouRecapLabels
-      && subtitleForRecap
-      && !detailLines.includes(subtitleForRecap)
-    ) {
-      detailLines.push(subtitleForRecap);
     }
 
     const reservationSummary: ReservationSummary = {
@@ -975,13 +963,18 @@ export function BookingReservationForm({
       paymentMethod: sanitizeSingleLineValue(
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
+      paymentMethodCode: selectedPaymentMethod,
       totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
+      courseSlug: sanitizeSingleLineValue(courseSlug ?? '') || undefined,
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
       courseSessions:
         resolvedCourseSessions.length > 0 ? resolvedCourseSessions : undefined,
       eventSubtitle: sanitizeSingleLineValue(eventSubtitle) || undefined,
+      ...(selectedPaymentMethod === 'fps_qr' && fpsQrImageDataUrl.trim()
+        ? { fpsQrImageDataUrl: fpsQrImageDataUrl.trim() }
+        : {}),
       locationName: sanitizeSingleLineValue(venueName) || undefined,
       locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
       locationDirectionHref: (() => {
@@ -1068,6 +1061,28 @@ export function BookingReservationForm({
           ...(level ? { consultation_level_label: level } : {}),
           ...(questionLabel ? { comments_field_label: questionLabel } : {}),
         };
+      })(),
+      ...(() => {
+        if (resolvedCourseSessions.length === 0) {
+          return {};
+        }
+
+        return {
+          course_sessions: resolvedCourseSessions.map((s) => {
+            return {
+              start_iso: s.dateStartTime,
+              ...(s.dateEndTime ? { end_iso: s.dateEndTime } : {}),
+            };
+          }),
+        };
+      })(),
+      ...(() => {
+        const href = sanitizeSingleLineValue(venueDirectionHref);
+        if (!href || href === '#' || getHrefKind(href) !== 'http') {
+          return {};
+        }
+
+        return { location_url: href };
       })(),
     };
 

@@ -1,3 +1,5 @@
+import type { ReservationPaymentMethodCode } from '@/lib/reservations-data';
+
 export interface ReservationCourseSession {
   dateStartTime: string;
   dateEndTime?: string;
@@ -18,10 +20,16 @@ export interface ReservationSummary {
   courseSessions?: ReservationCourseSession[];
   /** Subtitle shown under the title in the booking modal (course / event). */
   eventSubtitle?: string;
+  /** Booking flow slug (e.g. my-best-auntie, consultation-booking, event-booking). */
+  courseSlug?: string;
   locationName?: string;
   locationAddress?: string;
   /** Maps or venue URL for “Get directions” on the thank-you step. */
   locationDirectionHref?: string;
+  /** Raw payment method code from the form (fps_qr, bank_transfer, stripe). */
+  paymentMethodCode?: ReservationPaymentMethodCode;
+  /** Inline FPS QR for thank-you recap when payment is FPS. */
+  fpsQrImageDataUrl?: string;
 
   /** Structured detail lines for the thank-you recap (e.g. cohort, age group, consultation focus). */
   detailLines?: string[];

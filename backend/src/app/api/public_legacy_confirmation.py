@@ -175,6 +175,8 @@ def send_booking_confirmation_email(
     fps_qr_image_data_url: str | None = None,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
+    course_sessions: list[dict[str, str]] | None = None,
+    location_url: str | None = None,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -193,6 +195,7 @@ def send_booking_confirmation_email(
         location_name=location_name,
         location_address=location_address,
         primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
         course_slug=course_slug,
         age_group_label=age_group_label,
         payment_method_code=payment_method,
@@ -201,6 +204,8 @@ def send_booking_confirmation_email(
         whatsapp_url=resolve_whatsapp_url_for_template(),
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
+        course_sessions=course_sessions,
+        location_url=location_url,
     )
     merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
 
@@ -246,6 +251,7 @@ def send_booking_confirmation_email(
             location_name=location_name,
             location_address=location_address,
             primary_session_iso=primary_session_iso,
+            primary_session_end_iso=primary_session_end_iso,
             course_slug=course_slug,
             age_group_label=age_group_label,
             payment_method_code=payment_method,
@@ -257,6 +263,8 @@ def send_booking_confirmation_email(
             consultation_writing_focus_label=consultation_writing_focus_label,
             consultation_level_label=consultation_level_label,
             attach_calendar_invite_ics=attach_ics,
+            course_sessions=course_sessions,
+            location_url=location_url,
         )
         full_html = substitute_shell_placeholders(html_doc, merged)
         attachments: list[tuple[str, str, bytes]] | None = None
@@ -448,6 +456,8 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     age_group_label = _optional_str(payload.get("cohort_age"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
+    course_sessions = _parse_course_sessions_from_payload(payload)
+    location_url = _optional_str(payload.get("location_url"))
     payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
     price = payload.get("price")
     total_amount = _format_hkd_amount(price)
@@ -478,6 +488,8 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 fps_qr_image_data_url=fps_qr_data_url,
                 consultation_writing_focus_label=consultation_focus,
                 consultation_level_label=consultation_level,
+                course_sessions=course_sessions,
+                location_url=location_url,
             )
         except Exception:
             logger.exception(
@@ -508,6 +520,27 @@ def _optional_str(value: Any) -> str | None:
         return None
     s = str(value).strip()
     return s or None
+
+
+def _parse_course_sessions_from_payload(
+    payload: Mapping[str, Any],
+) -> list[dict[str, str]] | None:
+    raw = payload.get("course_sessions")
+    if not isinstance(raw, list) or not raw:
+        return None
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, Mapping):
+            continue
+        start = item.get("start_iso")
+        if not isinstance(start, str) or not start.strip():
+            continue
+        row: dict[str, str] = {"start_iso": start.strip()}
+        end = item.get("end_iso")
+        if isinstance(end, str) and end.strip():
+            row["end_iso"] = end.strip()
+        out.append(row)
+    return out or None
 
 
 def _format_hkd_amount(price: Any) -> str:

@@ -19,6 +19,7 @@ import type {
   ReservationSummary,
 } from '@/components/sections/booking-modal/types';
 import type { BookingThankYouModalContent, Locale } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import {
   buildBookingIcsCalendarContent,
@@ -27,8 +28,9 @@ import {
 } from '@/lib/booking-calendar-download';
 import { formatCurrencyHkd } from '@/lib/format';
 import {
-  formatSiteCompactDate,
-  formatSiteTimeOfDay,
+  formatPartDateTimeLabel,
+  formatSiteAmPmIndicator,
+  formatSitePartDate,
 } from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -36,8 +38,8 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { getHrefKind } from '@/lib/url-utils';
 
-const THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME =
-  'h-[54px] w-full rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:text-[18px]';
+const THANK_YOU_ICS_LINK_BUTTON_CLASSNAME =
+  'mt-3 block text-left text-base font-semibold underline decoration-1 underline-offset-2 es-text-heading';
 
 export interface BookingThankYouModalProps {
   locale: Locale;
@@ -50,37 +52,6 @@ export interface BookingThankYouModalProps {
 }
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
-
-function formatSummaryDatePart(dateStartTime: string | undefined, locale: Locale): string {
-  const normalized = dateStartTime?.trim() ?? '';
-  if (!normalized) {
-    return '';
-  }
-
-  return formatSiteCompactDate(normalized, locale);
-}
-
-function formatSummaryTimePart(dateStartTime: string | undefined, locale: Locale): string {
-  const normalized = dateStartTime?.trim() ?? '';
-  if (!normalized) {
-    return '';
-  }
-
-  return formatSiteTimeOfDay(normalized, locale);
-}
-
-function formatSummaryDateTimeLine(
-  dateStartTime: string | undefined,
-  locale: Locale,
-): string {
-  const datePart = formatSummaryDatePart(dateStartTime, locale);
-  const timePart = formatSummaryTimePart(dateStartTime, locale);
-  if (datePart && timePart) {
-    return `${datePart}, ${timePart}`;
-  }
-
-  return datePart || timePart;
-}
 
 function resolveThankYouLocationDisplay(
   summary: ReservationSummary | null,
@@ -131,6 +102,59 @@ function splitMessageTemplate(template: string): { before: string; after: string
   };
 }
 
+function buildThankYouDateTimeLines(
+  summary: ReservationSummary | null,
+  thankYouSessions: ReservationCourseSession[],
+  locale: Locale,
+  content: BookingThankYouModalContent,
+): string[] {
+  if (!summary || thankYouSessions.length === 0) {
+    return [];
+  }
+
+  const slug = (summary.courseSlug ?? '').trim().toLowerCase();
+  if (slug === 'my-best-auntie') {
+    const ordinals = content.groupSessionOrdinals;
+    return thankYouSessions
+      .map((session, index) => {
+        const dateTime = formatPartDateTimeLabel(session.dateStartTime, locale);
+        if (!dateTime) {
+          return '';
+        }
+
+        const ordinal = ordinals[index]?.trim() ?? '';
+        if (!ordinal) {
+          return dateTime;
+        }
+
+        return formatContentTemplate(content.groupSessionLabelTemplate, {
+          ordinal,
+          dateTime,
+        });
+      })
+      .filter((line) => line.length > 0);
+  }
+
+  if (slug === 'consultation-booking') {
+    const session = thankYouSessions[0];
+    if (!session) {
+      return [];
+    }
+
+    const datePart = formatSitePartDate(session.dateStartTime, locale);
+    const amPm = formatSiteAmPmIndicator(session.dateStartTime);
+    if (!datePart || !amPm) {
+      return [];
+    }
+
+    return [`${datePart} ${amPm}`];
+  }
+
+  return thankYouSessions
+    .map((session) => formatPartDateTimeLabel(session.dateStartTime, locale))
+    .filter((line) => line.length > 0);
+}
+
 export function BookingThankYouModal({
   locale,
   content,
@@ -160,10 +184,8 @@ export function BookingThankYouModal({
     [summary],
   );
   const dateTimeLines = useMemo(() => {
-    return thankYouSessions
-      .map((session) => formatSummaryDateTimeLine(session.dateStartTime, locale))
-      .filter((line) => line.length > 0);
-  }, [thankYouSessions, locale]);
+    return buildThankYouDateTimeLines(summary, thankYouSessions, locale, content);
+  }, [summary, thankYouSessions, locale, content]);
 
   const locationLine = resolveThankYouLocationDisplay(
     summary,
@@ -172,7 +194,10 @@ export function BookingThankYouModal({
   const amountLine = summary
     ? formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
-  const paymentMethodLine = summary?.paymentMethod?.trim() ?? content.summaryEmptyValue;
+  const isFpsPayment = summary?.paymentMethodCode === 'fps_qr';
+  const paymentMethodLine = isFpsPayment
+    ? content.fpsPaymentLabel
+    : (summary?.paymentMethod?.trim() ?? content.summaryEmptyValue);
   const locationNameRaw = summary?.locationName?.trim() ?? '';
   const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
   const hasStructuredVenue =
@@ -184,6 +209,7 @@ export function BookingThankYouModal({
   const detailLines = summary?.detailLines?.filter((line) => line.trim().length > 0) ?? [];
   const showDetailsRow = detailLines.length > 0;
   const showDateTimeRow = dateTimeLines.length > 0;
+  const showIcsOnlyRow = Boolean(summary) && !showDateTimeRow;
 
   const messageParts = useMemo(() => {
     return splitMessageTemplate(content.messageTemplate);
@@ -342,6 +368,34 @@ export function BookingThankYouModal({
                           </span>
                         );
                       })}
+                      <button
+                        type='button'
+                        disabled={!canDownloadIcs}
+                        onClick={handleDownloadIcs}
+                        className={THANK_YOU_ICS_LINK_BUTTON_CLASSNAME}
+                      >
+                        {content.downloadCalendarInviteLabel}
+                      </button>
+                    </dd>
+                  </div>
+                </div>
+              ) : null}
+              {showIcsOnlyRow ? (
+                <div className='es-booking-thank-you-recap-row-border py-4'>
+                  <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                    <dt
+                      className='hidden sm:block sm:min-w-[140px]'
+                      aria-hidden='true'
+                    />
+                    <dd className='es-booking-thank-you-recap-value m-0'>
+                      <button
+                        type='button'
+                        disabled={!canDownloadIcs}
+                        onClick={handleDownloadIcs}
+                        className={THANK_YOU_ICS_LINK_BUTTON_CLASSNAME}
+                      >
+                        {content.downloadCalendarInviteLabel}
+                      </button>
                     </dd>
                   </div>
                 </div>
@@ -394,9 +448,33 @@ export function BookingThankYouModal({
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
                     <span className='block'>{paymentMethodLine}</span>
-                    <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
-                      {content.paymentConfirmationNote}
-                    </span>
+                    {isFpsPayment ? (
+                      <>
+                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                          {content.fpsReservationPendingNote}
+                        </span>
+                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                          {content.fpsQrInstruction}
+                        </span>
+                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                          {content.fpsPaymentDisclaimer}
+                        </span>
+                        {summary?.fpsQrImageDataUrl ? (
+                          <Image
+                            src={summary.fpsQrImageDataUrl}
+                            alt={content.fpsQrCodeAltLabel}
+                            width={128}
+                            height={128}
+                            unoptimized
+                            className='mx-auto mt-3 block h-32 w-32'
+                          />
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                        {content.paymentConfirmationNote}
+                      </span>
+                    )}
                   </dd>
                 </div>
               </div>
@@ -412,18 +490,6 @@ export function BookingThankYouModal({
                 </div>
               </div>
             </dl>
-
-            <div className='mt-6'>
-              <ButtonPrimitive
-                variant='outline'
-                type='button'
-                disabled={!canDownloadIcs}
-                onClick={handleDownloadIcs}
-                className={THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME}
-              >
-                {content.downloadCalendarInviteLabel}
-              </ButtonPrimitive>
-            </div>
           </section>
 
           {showWhatsappFollowUp ? (

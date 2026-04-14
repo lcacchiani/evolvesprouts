@@ -49,10 +49,7 @@ import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
-import {
-  formatSiteCompactDate,
-  formatSiteTimeOfDay,
-} from '@/lib/site-datetime';
+import { formatPartDateTimeLabel } from '@/lib/site-datetime';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -218,6 +215,8 @@ const reservationSummary: ReservationSummary = {
   attendeePhone: '12345678',
   ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
+  paymentMethodCode: 'fps_qr',
+  courseSlug: 'my-best-auntie',
   totalAmount: 9000,
   eventTitle: 'My Best Auntie',
   dateStartTime: selectedCohort.dates[0]?.start_datetime,
@@ -232,6 +231,8 @@ const reservationSummary: ReservationSummary = {
   locationName: selectedCohort.location_name,
   locationAddress: selectedCohort.location_address,
   locationDirectionHref: selectedCohort.location_url,
+  fpsQrImageDataUrl:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   detailLines: [
     formatContentTemplate(thankYouModalContent.detailCohortLineTemplate, {
       cohort: 'Apr, 2026',
@@ -257,11 +258,19 @@ const expectedMbaMarketingFields = {
   marketing_opt_in: false,
   locale: 'en' as const,
   course_label: myBestAuntieModalContent.title,
+  course_slug: 'my-best-auntie',
   schedule_date_label: 'Apr, 2026',
   schedule_time_label: expectedMbaScheduleTimeLabel,
   location_name: selectedCohort.location_name,
   location_address: selectedCohort.location_address,
+  location_url: selectedCohort.location_url,
   primary_session_start_iso: primarySessionPart?.start_datetime,
+  course_sessions: selectedCohort.dates.map((part) => {
+    return {
+      start_iso: part.start_datetime,
+      end_iso: part.end_datetime,
+    };
+  }),
 };
 
 function renderWithPortalContainer(ui: ReactNode) {
@@ -1684,18 +1693,28 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
     const sessionLines =
-      reservationSummary.courseSessions?.map((session) => {
-        const datePart = formatSiteCompactDate(session.dateStartTime, 'en');
-        const timePart = formatSiteTimeOfDay(session.dateStartTime, 'en');
-        return `${datePart}, ${timePart}`;
+      reservationSummary.courseSessions?.map((session, index) => {
+        const dateTime = formatPartDateTimeLabel(session.dateStartTime, 'en');
+        const ordinal = thankYouModalContent.groupSessionOrdinals[index] ?? '';
+        return formatContentTemplate(thankYouModalContent.groupSessionLabelTemplate, {
+          ordinal,
+          dateTime,
+        });
       }) ?? [];
     expect(sessionLines).toHaveLength(2);
     for (const line of sessionLines) {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
-    expect(screen.getByText(reservationSummary.paymentMethod)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.fpsPaymentLabel)).toBeInTheDocument();
     expect(screen.getByText(/HK\$9,?000(\.00)?/u)).toBeInTheDocument();
-    expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
+    expect(
+      screen.getByText(thankYouModalContent.fpsReservationPendingNote),
+    ).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.fpsQrInstruction)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.fpsPaymentDisclaimer)).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: thankYouModalContent.fpsQrCodeAltLabel }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
         name: thankYouModalContent.downloadCalendarInviteLabel,

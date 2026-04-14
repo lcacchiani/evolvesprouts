@@ -1,0 +1,242 @@
+/* eslint-disable @next/next/no-img-element */
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ReactNode } from 'react';
+
+import { EventBookingModal } from '@/components/sections/events/event-booking-modal';
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
+import enContent from '@/content/en.json';
+import type { EventCalendarBookingModalPayload } from '@/lib/events-data';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
+
+vi.mock('@/lib/hooks/use-modal-lock-body', () => ({
+  useModalLockBody: () => {},
+}));
+
+vi.mock('@/lib/hooks/use-modal-focus-management', () => ({
+  useModalFocusManagement: () => {},
+}));
+
+vi.mock('@/lib/crm-api-client', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
+    '@/lib/crm-api-client',
+  );
+
+  return {
+    ...actual,
+    createPublicApiClient: vi.fn(() => null),
+    createPublicCrmApiClient: vi.fn(() => null),
+    isAbortRequestError: (error: unknown) =>
+      error instanceof Error && error.name === 'AbortError',
+  };
+});
+
+vi.mock('@/lib/fps-qr-code', () => ({
+  generateFpsQrImageDataUrl: vi.fn(() =>
+    Promise.resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+  ),
+  hasFpsQrConfiguration: vi.fn(() => true),
+}));
+
+vi.mock('@/lib/discounts-data', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/discounts-data')>(
+    '@/lib/discounts-data',
+  );
+
+  return {
+    ...actual,
+    validateDiscountCode: vi.fn(() => Promise.resolve(null)),
+  };
+});
+
+vi.mock('@/lib/reservation-payments-data', () => ({
+  createReservationPaymentIntent: vi.fn(() =>
+    Promise.resolve({
+      payment_intent_id: 'pi_mock_123',
+      client_secret: 'pi_mock_123_secret_abc',
+    })),
+}));
+
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
+}));
+
+vi.mock('@/components/shared/turnstile-captcha', () => ({
+  TurnstileCaptcha: ({
+    onTokenChange,
+  }: {
+    onTokenChange: (token: string | null) => void;
+  }) => (
+    <div data-testid='mock-turnstile-captcha'>
+      <button
+        data-testid='mock-turnstile-captcha-solve'
+        type='button'
+        onClick={() => {
+          onTokenChange('mock-turnstile-token');
+        }}
+      >
+        Solve CAPTCHA
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    ...props
+  }: {
+    alt?: string;
+  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock('@stripe/stripe-js', () => ({
+  loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock('@stripe/react-stripe-js', () => ({
+  Elements: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
+  useElements: () => ({}),
+  useStripe: () => ({
+    confirmPayment: vi.fn(async () => ({
+      paymentIntent: { id: 'pi_test', status: 'succeeded' },
+    })),
+  }),
+}));
+
+const paymentModal = enContent.bookingModal.paymentModal;
+const thankYouModalContent = enContent.bookingModal.thankYouModal;
+const mapsUrl = 'https://maps.example.com/dir?q=venue';
+
+const eventPayload: EventCalendarBookingModalPayload = {
+  variant: 'event',
+  bookingSystem: 'event-booking',
+  serviceKey: 'test-event-1',
+  title: 'Test Event',
+  subtitle: 'Event subtitle',
+  originalAmount: 100,
+  locationName: 'Venue Name',
+  locationAddress: '1 Test St, Hong Kong',
+  directionHref: mapsUrl,
+  dateParts: [
+    {
+      id: 'part-1',
+      startDateTime: '2026-06-15T10:00:00.000Z',
+      endDateTime: '2026-06-15T11:00:00.000Z',
+      description: 'Part one',
+    },
+  ],
+  selectedDateLabel: '15 Jun 2026',
+  selectedDateStartTime: '2026-06-15T10:00:00.000Z',
+};
+
+describe('EventBookingModal', () => {
+  const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+  const mockedGenerateFpsQr = vi.mocked(generateFpsQrImageDataUrl);
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+    process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = 'Test FPS Merchant';
+    process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = '85200000000';
+    process.env.NEXT_PUBLIC_BANK_NAME = 'Test Bank';
+    process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = 'Test Holder';
+    process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = '123';
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_mock_123';
+  });
+
+  afterEach(() => {
+    mockedGenerateFpsQr.mockImplementation(() =>
+      Promise.resolve(
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      ),
+    );
+    mockedCreateCrmApiClient.mockReturnValue(null);
+    vi.clearAllMocks();
+  });
+
+  it('submits location_url when direction link is a valid HTTP URL', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'ok' });
+    mockedCreateCrmApiClient.mockReturnValue({ request: requestSpy });
+
+    render(
+      <EventBookingModal
+        paymentModalContent={paymentModal}
+        bookingPayload={eventPayload}
+        thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
+      target: { value: 'u@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
+      target: { value: 'Note' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(paymentModal.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(paymentModal.termsLinkLabel),
+      }),
+    );
+
+    await waitFor(() => {
+      const qrImg = document.querySelector(
+        '[aria-label="FPS payment QR code"] img',
+      ) as HTMLImageElement | null;
+      expect(qrImg?.getAttribute('src') ?? '').toMatch(/^data:image\/png/);
+    });
+
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: paymentModal.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalled();
+    });
+
+    expect(requestSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        endpointPath: '/v1/legacy/reservations',
+        body: expect.objectContaining({
+          location_url: mapsUrl,
+          course_slug: 'event-booking',
+        }),
+      }),
+    );
+  });
+});

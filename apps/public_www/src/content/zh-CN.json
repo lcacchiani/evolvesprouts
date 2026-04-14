@@ -1502,7 +1502,20 @@
       "detailLevelLineTemplate": "级别：{label}",
       "summaryLocationVirtualFallback": "线上 Zoom 会议",
       "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "下载邀请并添加到你的个人日历",
+      "groupSessionLabelTemplate": "{ordinal}小组课：{dateTime}",
+      "groupSessionOrdinals": [
+        "第一节",
+        "第二节",
+        "第三节",
+        "第四节",
+        "第五节"
+      ],
+      "downloadCalendarInviteLabel": "下载日历邀请",
+      "fpsPaymentLabel": "FPS",
+      "fpsReservationPendingNote": "在付款确认前，您的预订仍为待处理状态。",
+      "fpsQrInstruction": "请使用下方 FPS 二维码，通过您的银行应用付款。",
+      "fpsPaymentDisclaimer": "若您已完成付款，请忽略下方的二维码。",
+      "fpsQrCodeAltLabel": "FPS 付款二维码",
       "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "directionLabel": "查看路线",
       "followUpPrompt": "有任何问题想立即了解？"

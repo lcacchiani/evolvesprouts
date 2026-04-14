@@ -89,6 +89,25 @@ DETAILS_AGE_GROUP_PREFIX: dict[str, str] = {
     "zh-HK": "年齡組",
 }
 
+# MBA schedule line ordinals (must match public site locale JSON `groupSessionOrdinals`).
+SESSION_ORDINAL_LABELS: dict[str, tuple[str, ...]] = {
+    "en": ("First", "Second", "Third", "Fourth", "Fifth"),
+    "zh-CN": ("第一节", "第二节", "第三节", "第四节", "第五节"),
+    "zh-HK": ("第一節", "第二節", "第三節", "第四節", "第五節"),
+}
+
+GROUP_SESSION_LABEL_TEMPLATE: dict[str, str] = {
+    "en": "{ordinal} group session: {dateTime}",
+    "zh-CN": "{ordinal}小组课：{dateTime}",
+    "zh-HK": "{ordinal}小組課：{dateTime}",
+}
+
+DIRECTIONS_LINK_LABEL: dict[str, str] = {
+    "en": "Get Directions",
+    "zh-CN": "获取路线",
+    "zh-HK": "獲取路線",
+}
+
 # Customer-facing payment method line in confirmation (maps reservation payload codes).
 PAYMENT_METHOD_LABELS: dict[str, str] = {
     "fps_qr": "FPS",

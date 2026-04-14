@@ -16,12 +16,15 @@ from app.templates.booking_confirmation_content import (
     DETAILS_COHORT_PREFIX,
     DETAILS_LEVEL_PREFIX,
     DETAILS_WRITING_FOCUS_PREFIX,
+    DIRECTIONS_LINK_LABEL,
     FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
+    GROUP_SESSION_LABEL_TEMPLATE,
     HEADER_TITLE,
     PAYMENT_METHOD_LABELS,
     PENDING_PAYMENT_NOTE,
+    SESSION_ORDINAL_LABELS,
     QUESTIONS_LINE_HTML_MIDDLE,
     QUESTIONS_LINE_HTML_PREFIX,
     QUESTIONS_LINE_HTML_SUFFIX,
@@ -301,6 +304,187 @@ def _format_hkt_email_line(dt: datetime) -> str:
     return f"{day} {month} @ {hm} HKT"
 
 
+def _format_hkt_part_date_email(dt: datetime) -> str:
+    """e.g. ``16 April`` (month name in English, Asia/Hong_Kong)."""
+    local = dt.astimezone(_EMAIL_HKT_TZ)
+    day = local.day
+    month = _MONTH_NAMES_EN[local.month]
+    return f"{day} {month}"
+
+
+def _format_hkt_time_email(dt: datetime) -> str:
+    """24-hour ``HH:MM`` in Asia/Hong_Kong."""
+    local = dt.astimezone(_EMAIL_HKT_TZ)
+    return f"{local.hour:02d}:{local.minute:02d}"
+
+
+def _hkt_am_pm_indicator(dt: datetime) -> str:
+    local = dt.astimezone(_EMAIL_HKT_TZ)
+    return "AM" if local.hour < 12 else "PM"
+
+
+def _format_hkt_email_line_no_tz_suffix(dt: datetime) -> str:
+    """e.g. ``16 April @ 18:00`` (for MBA modal parity; email adds HKT per line)."""
+    local = dt.astimezone(_EMAIL_HKT_TZ)
+    day = local.day
+    month = _MONTH_NAMES_EN[local.month]
+    hm = _format_hkt_time_email(dt)
+    return f"{day} {month} @ {hm}"
+
+
+def _normalize_http_location_url(value: str | None) -> str | None:
+    s = (value or "").strip()
+    if not s:
+        return None
+    lower = s.lower()
+    if lower.startswith("https://") or lower.startswith("http://"):
+        return s
+    return None
+
+
+def format_booking_datetime_display_multi(
+    *,
+    course_slug: str | None,
+    course_sessions: list[dict[str, str]] | None,
+    primary_session_iso: str | None,
+    primary_session_end_iso: str | None,
+    schedule_date_label: str | None,
+    schedule_time_label: str | None,
+    location_use_hkt: bool,
+    locale: str,
+) -> tuple[str | None, str | None]:
+    """Return (schedule_html, schedule_plain); lines joined with <br/> / newlines."""
+    loc = normalize_booking_locale(locale)
+    slug = _normalize_course_slug(course_slug)
+    sessions = list(course_sessions or [])
+    plain_lines: list[str] = []
+
+    if (
+        slug == "my-best-auntie"
+        and not sessions
+        and (primary_session_iso or "").strip()
+    ):
+        end = (primary_session_end_iso or "").strip()
+        sessions = [
+            {
+                "start_iso": (primary_session_iso or "").strip(),
+                **({"end_iso": end} if end else {}),
+            }
+        ]
+
+    if slug == "my-best-auntie" and sessions:
+        template = GROUP_SESSION_LABEL_TEMPLATE.get(
+            loc, GROUP_SESSION_LABEL_TEMPLATE["en"]
+        )
+        ordinals = SESSION_ORDINAL_LABELS.get(loc, SESSION_ORDINAL_LABELS["en"])
+        for idx, row in enumerate(sessions):
+            start_raw = (row.get("start_iso") or "").strip()
+            if not start_raw:
+                continue
+            parsed = _parse_iso_datetime(start_raw)
+            if parsed is None:
+                continue
+            ordinal = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
+            part = _format_hkt_email_line_no_tz_suffix(parsed)
+            if location_use_hkt:
+                part = f"{part} HKT"
+            plain_lines.append(
+                template.format(ordinal=ordinal, dateTime=part),
+            )
+    elif slug == "consultation-booking":
+        start_raw = (primary_session_iso or "").strip()
+        if not start_raw and sessions:
+            start_raw = (sessions[0].get("start_iso") or "").strip()
+        parsed = _parse_iso_datetime(start_raw) if start_raw else None
+        if parsed is not None:
+            date_part = _format_hkt_part_date_email(parsed)
+            am_pm = _hkt_am_pm_indicator(parsed)
+            plain_lines.append(f"{date_part} {am_pm}")
+    else:
+        # Events and other flows: all course_sessions when present, else primary only
+        event_sessions = sessions if sessions else []
+        if not event_sessions and (primary_session_iso or "").strip():
+            event_sessions = [{"start_iso": (primary_session_iso or "").strip()}]
+        if event_sessions:
+            for row in event_sessions:
+                start_raw = (row.get("start_iso") or "").strip()
+                if not start_raw:
+                    continue
+                parsed = _parse_iso_datetime(start_raw)
+                if parsed is not None and location_use_hkt:
+                    plain_lines.append(_format_hkt_email_line(parsed))
+                else:
+                    one = format_booking_datetime_display(
+                        primary_session_iso=start_raw,
+                        schedule_date_label=None,
+                        schedule_time_label=None,
+                        location_use_hkt=location_use_hkt,
+                    )
+                    if one:
+                        plain_lines.append(one)
+        else:
+            fallback = format_booking_datetime_display(
+                primary_session_iso=primary_session_iso,
+                schedule_date_label=schedule_date_label,
+                schedule_time_label=schedule_time_label,
+                location_use_hkt=location_use_hkt,
+            )
+            if fallback:
+                plain_lines.append(fallback)
+
+    if not plain_lines:
+        return None, None
+
+    esc = [html.escape(line) for line in plain_lines]
+    return "<br/>".join(esc), "\n".join(plain_lines)
+
+
+def format_booking_location_html_cell(
+    *,
+    loc: str,
+    location_name: str | None,
+    location_address: str | None,
+    location_url: str | None,
+) -> str:
+    """Location <td> inner HTML: venue lines + optional directions link."""
+    loc_line = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    if not loc_line:
+        return ""
+    esc_line = html.escape(loc_line)
+    safe_url = _normalize_http_location_url(location_url)
+    if not safe_url:
+        return f'<span style="display:block;text-align:right;">{esc_line}</span>'
+    esc_href = html.escape(safe_url, quote=True)
+    link_label = html.escape(
+        DIRECTIONS_LINK_LABEL.get(loc, DIRECTIONS_LINK_LABEL["en"])
+    )
+    link = f'<a href="{esc_href}" style="{_CTA_LINK}">{link_label} ↗</a>'
+    return f'<span style="display:block;text-align:right;">{esc_line}<br/>{link}</span>'
+
+
+def format_booking_location_plain_block(
+    *,
+    loc: str,
+    location_name: str | None,
+    location_address: str | None,
+    location_url: str | None,
+) -> str:
+    loc_line = format_booking_location_display_line(
+        location_name=location_name,
+        location_address=location_address,
+    )
+    if not loc_line:
+        return ""
+    safe_url = _normalize_http_location_url(location_url)
+    label = DIRECTIONS_LINK_LABEL.get(loc, DIRECTIONS_LINK_LABEL["en"])
+    if safe_url:
+        return f"{loc_line}\n{label}: {safe_url}"
+    return loc_line
+
+
 def format_booking_datetime_display(
     *,
     primary_session_iso: str | None,
@@ -495,6 +679,7 @@ def booking_confirmation_template_merge_data(
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
+    primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
     age_group_label: str | None = None,
     payment_method_code: str,
@@ -503,23 +688,37 @@ def booking_confirmation_template_merge_data(
     whatsapp_url: str,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
+    course_sessions: list[dict[str, str]] | None = None,
+    location_url: str | None = None,
 ) -> dict[str, Any]:
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
     pm_display = resolve_payment_method_display(payment_method_code)
-    loc_line = format_booking_location_display_line(
-        location_name=location_name,
-        location_address=location_address,
-    )
     use_hkt = location_suggests_hong_kong(
         location_name=location_name,
         location_address=location_address,
     )
-    schedule_line = format_booking_datetime_display(
+    schedule_html, schedule_plain = format_booking_datetime_display_multi(
+        course_slug=course_slug,
+        course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
         location_use_hkt=use_hkt,
+        locale=loc,
+    )
+    loc_cell_html = format_booking_location_html_cell(
+        loc=loc,
+        location_name=location_name,
+        location_address=location_address,
+        location_url=location_url,
+    )
+    loc_plain_block = format_booking_location_plain_block(
+        loc=loc,
+        location_name=location_name,
+        location_address=location_address,
+        location_url=location_url,
     )
     details_html = format_booking_details_html_cell(
         loc=loc,
@@ -550,13 +749,22 @@ def booking_confirmation_template_merge_data(
         "details_block_html": details_html,
         "details_plain": details_plain,
     }
-    if schedule_line:
-        data["schedule_datetime_label"] = schedule_line
-    if loc_line:
-        data["location_name"] = loc_line
+    if schedule_html:
+        data["schedule_datetime_label"] = schedule_html
+        if schedule_plain and "\n" in schedule_plain:
+            data["schedule_datetime_plain_multiline"] = True
+    if loc_cell_html:
+        data["location_block_html"] = loc_cell_html
+    if loc_plain_block:
+        data["location_plain"] = loc_plain_block
+        if "\n" in loc_plain_block:
+            data["location_plain_multiline"] = True
+    safe_location_url = _normalize_http_location_url(location_url)
+    if safe_location_url:
+        data["location_url"] = safe_location_url
     iso_set = bool((primary_session_iso or "").strip())
     # SES path cannot attach .ics; nudge recipients to copy the human-readable schedule.
-    data["include_calendar_fallback_hint"] = bool(schedule_line) and not iso_set
+    data["include_calendar_fallback_hint"] = bool(schedule_plain) and not iso_set
     return data
 
 
@@ -588,6 +796,7 @@ def render_booking_confirmation_email(
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
+    primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
     age_group_label: str | None = None,
     payment_method_code: str,
@@ -599,6 +808,8 @@ def render_booking_confirmation_email(
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
     attach_calendar_invite_ics: bool = False,
+    course_sessions: list[dict[str, str]] | None = None,
+    location_url: str | None = None,
 ) -> tuple[str, str, str]:
     """Return (subject, full_html, plain_text)."""
     loc = normalize_booking_locale(locale)
@@ -617,19 +828,19 @@ def render_booking_confirmation_email(
         else f'<p style="margin:0 0 12px;">您好 {esc_name}，</p>'
     )
 
-    loc_line = format_booking_location_display_line(
-        location_name=location_name,
-        location_address=location_address,
-    )
     use_hkt = location_suggests_hong_kong(
         location_name=location_name,
         location_address=location_address,
     )
-    schedule_line = format_booking_datetime_display(
+    schedule_html, _schedule_plain_preview = format_booking_datetime_display_multi(
+        course_slug=course_slug,
+        course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
         location_use_hkt=use_hkt,
+        locale=loc,
     )
 
     rows_html: list[str] = [
@@ -647,18 +858,24 @@ def render_booking_confirmation_email(
         rows_html.append(
             _html_table_row_bordered(labels["details"], details_cell),
         )
-    if schedule_line:
+    if schedule_html:
         rows_html.append(
             _html_table_row_bordered(
                 labels["datetime"],
-                html.escape(schedule_line),
+                f'<span style="display:block;text-align:right;">{schedule_html}</span>',
             )
         )
-    if loc_line:
+    loc_cell_html = format_booking_location_html_cell(
+        loc=loc,
+        location_name=location_name,
+        location_address=location_address,
+        location_url=location_url,
+    )
+    if loc_cell_html:
         rows_html.append(
             _html_table_row_bordered(
                 labels["location"],
-                html.escape(loc_line),
+                loc_cell_html,
             )
         )
     rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
@@ -728,6 +945,7 @@ def render_booking_confirmation_email(
         location_name=location_name,
         location_address=location_address,
         primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
         course_slug=course_slug,
         age_group_label=age_group_label,
         payment_method_display=pm_display,
@@ -739,6 +957,8 @@ def render_booking_confirmation_email(
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
         attach_calendar_invite_ics=attach_calendar_invite_ics,
+        course_sessions=course_sessions,
+        location_url=location_url,
     )
     plain_text = "\n".join(text_lines)
 
@@ -771,6 +991,7 @@ def _build_plain_text(
     location_name: str | None,
     location_address: str | None,
     primary_session_iso: str | None,
+    primary_session_end_iso: str | None,
     course_slug: str | None,
     age_group_label: str | None,
     payment_method_display: str,
@@ -782,6 +1003,8 @@ def _build_plain_text(
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
     attach_calendar_invite_ics: bool,
+    course_sessions: list[dict[str, str]] | None,
+    location_url: str | None,
 ) -> list[str]:
     label_sep = ": " if loc == "en" else "："
     lines: list[str] = []
@@ -807,21 +1030,27 @@ def _build_plain_text(
         location_name=location_name,
         location_address=location_address,
     )
-    schedule_line = format_booking_datetime_display(
+    _schedule_html, schedule_plain = format_booking_datetime_display_multi(
+        course_slug=course_slug,
+        course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
+        primary_session_end_iso=primary_session_end_iso,
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
         location_use_hkt=use_hkt,
+        locale=loc,
     )
-    if schedule_line:
-        lines.append(f"{labels['datetime']}{label_sep}{schedule_line}\n")
+    if schedule_plain:
+        lines.append(f"{labels['datetime']}{label_sep}\n{schedule_plain}\n")
 
-    loc_line = format_booking_location_display_line(
+    loc_plain_block = format_booking_location_plain_block(
+        loc=loc,
         location_name=location_name,
         location_address=location_address,
+        location_url=location_url,
     )
-    if loc_line:
-        lines.append(f"{labels['location']}{label_sep}{loc_line}\n")
+    if loc_plain_block:
+        lines.append(f"{labels['location']}{label_sep}\n{loc_plain_block}\n")
 
     lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")

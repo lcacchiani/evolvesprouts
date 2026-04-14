@@ -51,14 +51,14 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         "{{#if schedule_datetime_label}}"
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["datetime"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{schedule_datetime_label}}</td></tr>"
+        "{{{schedule_datetime_label}}}</td></tr>"
         "{{/if}}"
     )
     row_location = (
-        "{{#if location_name}}"
+        "{{#if location_block_html}}"
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["location"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{location_name}}</td></tr>"
+        "{{{location_block_html}}}</td></tr>"
         "{{/if}}"
     )
     row_payment = (
@@ -126,12 +126,22 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + "{{details_plain}}\n"
         + "{{/if}}"
         + "{{#if schedule_datetime_label}}"
+        + "{{#if schedule_datetime_plain_multiline}}"
+        + f"{labels['datetime']}{label_sep}\n"
+        + "{{{schedule_datetime_label}}}\n"
+        + "{{else}}"
         + f"{labels['datetime']}{label_sep}"
-        + "{{schedule_datetime_label}}\n"
+        + "{{{schedule_datetime_label}}}\n"
         + "{{/if}}"
-        + "{{#if location_name}}"
+        + "{{/if}}"
+        + "{{#if location_plain}}"
+        + "{{#if location_plain_multiline}}"
+        + f"{labels['location']}{label_sep}\n"
+        + "{{location_plain}}\n"
+        + "{{else}}"
         + f"{labels['location']}{label_sep}"
-        + "{{location_name}}\n"
+        + "{{location_plain}}\n"
+        + "{{/if}}"
         + "{{/if}}"
         + f"{labels['payment']}{label_sep}"
         + "{{payment_method}}\n"

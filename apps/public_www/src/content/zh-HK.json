@@ -1502,7 +1502,20 @@
       "detailLevelLineTemplate": "級別：{label}",
       "summaryLocationVirtualFallback": "網上 Zoom 會議",
       "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "下載邀請並加入你嘅個人日曆",
+      "groupSessionLabelTemplate": "{ordinal}小組課：{dateTime}",
+      "groupSessionOrdinals": [
+        "第一節",
+        "第二節",
+        "第三節",
+        "第四節",
+        "第五節"
+      ],
+      "downloadCalendarInviteLabel": "下載日曆邀請",
+      "fpsPaymentLabel": "FPS",
+      "fpsReservationPendingNote": "在付款確認前，您的預訂仍為待處理狀態。",
+      "fpsQrInstruction": "請使用下方 FPS 二維碼，透過您的銀行應用程式付款。",
+      "fpsPaymentDisclaimer": "若您已完成付款，請忽略下方的二維碼。",
+      "fpsQrCodeAltLabel": "FPS 付款二維碼",
       "paymentConfirmationNote": "收到付款後，你的名額才會確認",
       "directionLabel": "查看路線",
       "followUpPrompt": "有任何問題想即時了解？"
