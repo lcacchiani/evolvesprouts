@@ -72,7 +72,7 @@ describe('LandingPageCta section', () => {
   });
 
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
-    const resolvedEyebrow = '⚡ 6 spots left — Monday 6 April';
+    const resolvedEyebrow = '⚡ 6 spots left - Monday 6 April';
     const { container } = render(
       <LandingPageCta
         locale='en'

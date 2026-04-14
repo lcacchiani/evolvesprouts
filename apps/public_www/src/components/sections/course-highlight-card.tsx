@@ -134,7 +134,7 @@ export function CourseHighlightCard({
       onKeyDown={handleCardSurfaceKeyDown}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
-      {/* Dark overlay — activated by pointer hover or tap */}
+      {/* Dark overlay - activated by pointer hover or tap */}
       <div
         aria-hidden='true'
         className={`pointer-events-none absolute inset-0 z-[1] transition-all duration-300 ${isActive ? '' : 'bg-black/0'} group-hover:bg-black/70 group-hover:backdrop-blur-[4px] ${overlayActive}`}
@@ -155,7 +155,7 @@ export function CourseHighlightCard({
         />
       </div>
 
-      {/* Arrow button — triggers reveal on tap */}
+      {/* Arrow button - triggers reveal on tap */}
       <ButtonPrimitive
         variant='icon'
         aria-label={formatContentTemplate(showDetailsLabelTemplate, { title })}

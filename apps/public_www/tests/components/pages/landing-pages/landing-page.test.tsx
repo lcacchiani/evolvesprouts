@@ -238,7 +238,7 @@ describe('LandingPage composition', () => {
       `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,
     );
     expect(screen.getByTestId('landing-page-cta-eyebrow')).toHaveTextContent(
-      '⚡ 6 spots left — Monday 6 April',
+      '⚡ 6 spots left - Monday 6 April',
     );
   });
 });

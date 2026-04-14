@@ -28,7 +28,7 @@ export interface ConsultationBookingDatePart {
 export interface ConsultationPickerDayCell {
   /** ISO-like calendar key `YYYY-MM-DD` in the given IANA timezone. */
   ymd: string;
-  /** Day of month 1–31 for display. */
+  /** Day of month 1-31 for display. */
   dayOfMonth: number;
   /** Before today in that timezone. */
   isPast: boolean;
@@ -37,7 +37,7 @@ export interface ConsultationPickerDayCell {
 }
 
 export interface ConsultationPickerWeekRow {
-  /** Monday–Friday cells; Saturday/Sunday omitted. */
+  /** Monday-Friday cells; Saturday/Sunday omitted. */
   days: ConsultationPickerDayCell[];
 }
 
@@ -126,7 +126,7 @@ export function getMondayOfWeekContainingInZone(instant: Date, timeZone: string)
 }
 
 /**
- * Four consecutive weeks (Mon–Fri only each week), starting at the Monday of the current week in `timeZone`.
+ * Four consecutive weeks (Mon-Fri only each week), starting at the Monday of the current week in `timeZone`.
  */
 export function buildConsultationPickerWeeks(
   timeZone: string,

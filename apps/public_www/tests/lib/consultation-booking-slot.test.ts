@@ -43,7 +43,7 @@ describe('consultation-booking-slot', () => {
     expect(getMondayOfWeekContainingInZone(tuesdayHk, HK)).toBe('2026-04-06');
   });
 
-  it('buildConsultationPickerWeeks lists Mon–Fri for four weeks and disables past dates in zone', () => {
+  it('buildConsultationPickerWeeks lists Mon-Fri for four weeks and disables past dates in zone', () => {
     const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
     const weeks = buildConsultationPickerWeeks(HK, emptyUnavailable, tuesdayHk);
     expect(weeks).toHaveLength(4);

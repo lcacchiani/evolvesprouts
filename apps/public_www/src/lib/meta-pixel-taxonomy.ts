@@ -37,19 +37,19 @@ export const META_PIXEL_CONTENT_NAMES = {
     allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
   },
   my_best_auntie_course: {
-    label: 'Links hub — course',
+    label: 'Links hub - course',
     allowedEvents: ['ViewContent'] as const,
   },
   contact_us: {
-    label: 'Links hub — contact',
+    label: 'Links hub - contact',
     allowedEvents: ['ViewContent'] as const,
   },
   events: {
-    label: 'Links hub — events',
+    label: 'Links hub - events',
     allowedEvents: ['ViewContent'] as const,
   },
   instagram: {
-    label: 'Links hub — Instagram',
+    label: 'Links hub - Instagram',
     allowedEvents: ['ViewContent'] as const,
   },
 } as const;
