@@ -68,8 +68,12 @@ export function useHeightTransitionOnChange(
       if (ev.propertyName !== 'height') {
         return;
       }
-      el.style.transition = '';
-      el.style.height = '';
+      const target = ev.currentTarget;
+      if (!(target instanceof HTMLDivElement)) {
+        return;
+      }
+      target.style.transition = '';
+      target.style.height = '';
     }
 
     el.addEventListener('transitionend', onTransitionEnd);
