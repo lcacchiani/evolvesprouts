@@ -254,6 +254,73 @@ describe('ConsultationBookingModal', () => {
     expect(onUpgrade).toHaveBeenCalledOnce();
   });
 
+  it('applies level-features list class and fade-in when selection upgrades to deep-dive', () => {
+    const upgradeLabel = enContent.consultations.booking.reservation.upgradeToDeepDiveLabel;
+    const essentialsInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'essentials',
+      levelLabel: enContent.consultations.booking.levels[0].title,
+      levelFeatures: enContent.consultations.booking.levels[0].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+    };
+
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+    );
+
+    const { rerender } = render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={essentialsInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    const subtitleSlot = document.body.querySelector(
+      '.es-consultation-booking-modal-subtitle-slot',
+    );
+    const list = subtitleSlot?.querySelector('.es-consultations-booking-level-features');
+    expect(list).toBeTruthy();
+    expect(list?.className).toContain('list-disc');
+
+    const deepDiveInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'deep-dive',
+      levelLabel: enContent.consultations.booking.levels[1].title,
+      levelFeatures: enContent.consultations.booking.levels[1].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+    };
+
+    rerender(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={deepDiveInfo}
+        levelFeaturesEnterAnimationNonce={1}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    const animWrap = document.body.querySelector(
+      '.es-consultation-booking-modal-subtitle-slot .es-consultations-booking-level-description-enter',
+    );
+    expect(animWrap).toBeTruthy();
+  });
+
   it('keeps PM selected when changing date if afternoon is available on the new day', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,

@@ -41,6 +41,11 @@ import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management'
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 
+/** Matches `consultations-booking` level feature list (discs + orange markers via CSS). */
+const CONSULTATION_MODAL_LEVEL_FEATURES_LIST_CLASSNAME =
+  'es-consultations-booking-level-features mt-3 w-full min-w-0 list-disc space-y-2 ps-5 text-left';
+const CONSULTATION_MODAL_LEVEL_FEATURE_LINE_CLASSNAME = 'es-type-body es-text-dim';
+
 export interface ConsultationBookingModalSelectionInfo {
   focusLabel: string;
   levelId: string;
@@ -61,6 +66,12 @@ interface ConsultationBookingModalProps {
   calendarAvailability: CalendarAvailabilityPayload;
   /** Selection context: focus label, level features, upgrade label. */
   selectionInfo?: ConsultationBookingModalSelectionInfo;
+  /**
+   * Increment when the user upgrades from essentials to deep-dive (e.g. parent
+   * `setState` in the upgrade handler) so the feature list can play the same
+   * enter animation as the booking section. Reset when the modal closes.
+   */
+  levelFeaturesEnterAnimationNonce?: number;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
@@ -302,6 +313,7 @@ export function ConsultationBookingModal({
   pickerContent,
   calendarAvailability,
   selectionInfo,
+  levelFeaturesEnterAnimationNonce = 0,
   analyticsSectionId = 'consultations-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.consultation_booking,
   captchaWidgetAction = 'consultation_reservation_submit',
@@ -331,6 +343,11 @@ export function ConsultationBookingModal({
     ymd: string;
     period: ConsultationDayPeriod;
   } | null>(null);
+
+  const featuresListAnimationClass =
+    selectionInfo?.levelId === 'deep-dive' && levelFeaturesEnterAnimationNonce > 0
+      ? 'es-consultations-booking-level-description-enter'
+      : undefined;
 
   const selectedYmd = pickerSelection?.ymd ?? defaultSelection?.ymd ?? '';
   const dayPeriod = pickerSelection?.period ?? defaultSelection?.period ?? 'am';
@@ -390,20 +407,25 @@ export function ConsultationBookingModal({
   );
 
   const subtitleSlot = selectionInfo ? (
-    <div className='mt-3'>
+    <div className='es-consultation-booking-modal-subtitle-slot mt-3'>
       <p className='text-xl font-semibold leading-7 es-text-heading'>
         {selectionInfo.focusLabelFormatted}
       </p>
-      <ul className='mt-3 list-none space-y-2 ps-0'>
-        {selectionInfo.levelFeatures.map((feature, index) => (
-          <li
-            key={`modal-feature-${index}`}
-            className='block ps-0 text-base es-type-body es-text-dim'
-          >
-            {feature}
-          </li>
-        ))}
-      </ul>
+      <div
+        key={`${selectionInfo.levelId}-${levelFeaturesEnterAnimationNonce}`}
+        className={featuresListAnimationClass}
+      >
+        <ul className={CONSULTATION_MODAL_LEVEL_FEATURES_LIST_CLASSNAME}>
+          {selectionInfo.levelFeatures.map((feature, index) => (
+            <li
+              key={`modal-feature-${selectionInfo.levelId}-${index}`}
+              className={CONSULTATION_MODAL_LEVEL_FEATURE_LINE_CLASSNAME}
+            >
+              {feature}
+            </li>
+          ))}
+        </ul>
+      </div>
       {selectionInfo.levelId === 'essentials' && onUpgradeToDeepDive ? (
         <div className='mt-5'>
           <ButtonPrimitive
