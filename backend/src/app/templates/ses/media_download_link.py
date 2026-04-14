@@ -6,17 +6,27 @@ from typing import Any
 
 from app.templates.ses.email_shell import wrap_transactional_html
 
-_BUTTON = (
-    "display:inline-block;padding:12px 24px;background:#C84A16;"
-    "color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;"
+# Table + td padding/bgcolor: Outlook (Word engine) often drops padding/background on <a>/<div>.
+_CTA_BTN_OPEN = (
+    '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0;">'
+    '<tr><td bgcolor="#C84A16" align="left" '
+    'style="background-color:#C84A16;border-radius:8px;padding:12px 24px;">'
+    '<a href="{{{{download_url}}}}" '
+    'style="color:#ffffff;text-decoration:none;font-weight:600;'
+    'font-size:15px;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">'
 )
+_CTA_BTN_CLOSE = "</a></td></tr></table>"
 _CALLOUT_LINK = "color:#C84A16;font-weight:600;text-decoration:underline;"
 _HR = '<hr style="border:none;border-top:1px solid #eeeeee;margin:24px 0;"/>'
 _SECTION_H2 = "margin:24px 0 10px 0;font-size:18px;line-height:1.35;font-weight:700;color:#333333;"
-_BOX = (
-    "margin:24px 0 0 0;padding:18px 20px;background-color:#FDF5EF;"
-    "border:1px solid #C84A16;border-radius:10px;"
+_CALLOUT_BOX_OPEN = (
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" '
+    'style="margin:24px 0 0 0;width:100%;">'
+    '<tr><td bgcolor="#FDF5EF" '
+    'style="background-color:#FDF5EF;border:1px solid #C84A16;border-radius:10px;'
+    'padding:18px 20px;">'
 )
+_CALLOUT_BOX_CLOSE = "</td></tr></table>"
 _BOX_H3 = (
     "margin:0 0 12px 0;font-size:17px;line-height:1.35;font-weight:700;color:#333333;"
 )
@@ -49,7 +59,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0 0 12px;">Hi {{first_name}},</p>'
             '<p style="margin:0 0 20px;">Here is your download link for <strong>{{media_name}}</strong>.</p>'
             '<p style="margin:0 0 16px;">'
-            f'<a href="{{{{download_url}}}}" style="{_BUTTON}">Download your free guide</a>'
+            f"{_CTA_BTN_OPEN}Download your free guide{_CTA_BTN_CLOSE}"
             "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">If the button does not work, '
             "copy this URL:</p>"
@@ -69,7 +79,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             "</ol>"
             '<p style="margin:0 0 0 0;">And if you have questions or want to go deeper, '
             "I'm always happy to chat.</p>"
-            f'<div style="{_BOX}">'
+            f"{_CALLOUT_BOX_OPEN}"
             f'<h3 style="{_BOX_H3}">Want hands-on support?</h3>'
             '<p style="margin:0 0 14px 0;">'
             f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
@@ -78,7 +88,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0;">Or '
             f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">book a free intro call</a> '
             "to see what's right for your family.</p>"
-            "</div>"
+            f"{_CALLOUT_BOX_CLOSE}"
         ),
         (
             "Hi {{first_name}},\n\n"
@@ -110,7 +120,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 20px;">这是 <strong>{{media_name}}</strong> 的下载链接。</p>'
             '<p style="margin:0 0 16px;">'
-            f'<a href="{{{{download_url}}}}" style="{_BUTTON}">下载您的免费指南</a>'
+            f"{_CTA_BTN_OPEN}下载您的免费指南{_CTA_BTN_CLOSE}"
             "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">若按钮无法使用，请复制以下网址：</p>'
             '<p style="margin:0 0 0 0;word-break:break-all;font-size:13px;color:#C84A16;">'
@@ -127,7 +137,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             f'<li style="{_LI}">留意变化，哪怕是很小的转变也值得肯定</li>'
             "</ol>"
             '<p style="margin:0 0 0 0;">若您有疑问或想更深入交流，欢迎随时与我联系。</p>'
-            f'<div style="{_BOX}">'
+            f"{_CALLOUT_BOX_OPEN}"
             f'<h3 style="{_BOX_H3}">需要实操支持？</h3>'
             '<p style="margin:0 0 14px 0;">'
             f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
@@ -135,7 +145,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0;">或 '
             f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">预约免费咨询通话</a>，'
             "一起看看哪种方式最适合您的家庭。</p>"
-            "</div>"
+            f"{_CALLOUT_BOX_CLOSE}"
         ),
         (
             "您好 {{first_name}}，\n\n"
@@ -165,7 +175,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0 0 12px;">您好 {{first_name}}，</p>'
             '<p style="margin:0 0 20px;">這是 <strong>{{media_name}}</strong> 的下載連結。</p>'
             '<p style="margin:0 0 16px;">'
-            f'<a href="{{{{download_url}}}}" style="{_BUTTON}">下載您的免費指南</a>'
+            f"{_CTA_BTN_OPEN}下載您的免費指南{_CTA_BTN_CLOSE}"
             "</p>"
             '<p style="margin:0 0 8px;font-size:13px;color:#555555;">若按鈕無法使用，請複製以下網址：</p>'
             '<p style="margin:0 0 0 0;word-break:break-all;font-size:13px;color:#C84A16;">'
@@ -182,7 +192,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             f'<li style="{_LI}">留意變化，哪怕是很小的轉變也值得肯定</li>'
             "</ol>"
             '<p style="margin:0 0 0 0;">若您有疑問或想更深入交流，歡迎隨時與我聯絡。</p>'
-            f'<div style="{_BOX}">'
+            f"{_CALLOUT_BOX_OPEN}"
             f'<h3 style="{_BOX_H3}">需要實操支援？</h3>'
             '<p style="margin:0 0 14px 0;">'
             f'<a href="{{{{my_best_auntie_url}}}}" style="{_CALLOUT_LINK}">My Best Auntie</a> '
@@ -190,7 +200,7 @@ _LOCALE_ROWS: list[tuple[str, str, str, str, str]] = [
             '<p style="margin:0;">或 '
             f'<a href="{{{{free_intro_call_url}}}}" style="{_CALLOUT_LINK}">預約免費諮詢通話</a>，'
             "一起看看哪種方式最適合您的家庭。</p>"
-            "</div>"
+            f"{_CALLOUT_BOX_CLOSE}"
         ),
         (
             "您好 {{first_name}}，\n\n"

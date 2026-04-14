@@ -12,6 +12,10 @@ def test_media_download_ses_templates_preserve_handlebars_placeholders() -> None
     btn_para_start = en["HtmlPart"].index("Download your free guide")
     btn_para_snippet = en["HtmlPart"][max(0, btn_para_start - 120) : btn_para_start]
     assert "text-align:center" not in btn_para_snippet
+    assert 'bgcolor="#C84A16"' in en["HtmlPart"]
+    assert "padding:12px 24px" in en["HtmlPart"]
+    assert 'bgcolor="#FDF5EF"' in en["HtmlPart"]
+    assert "padding:18px 20px" in en["HtmlPart"]
     assert "{{first_name}}" in en["HtmlPart"]
     assert "{{download_url}}" in en["HtmlPart"]
     assert "{{my_best_auntie_url}}" in en["HtmlPart"]
