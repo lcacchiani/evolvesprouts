@@ -9,6 +9,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from app.templates.booking_confirmation_content import (
+    BOOKING_CALENDAR_SES_FALLBACK_HINT,
     BOOKING_ICS_ATTACHED_NOTE,
     BOOKING_ICS_PRODID,
     CLOSING_NOTE,
@@ -422,6 +423,8 @@ def format_booking_datetime_display_multi(
                     )
                     if one:
                         plain_lines.append(one)
+                    elif parsed is not None:
+                        plain_lines.append(_format_hkt_email_line(parsed))
         else:
             fallback = format_booking_datetime_display(
                 primary_session_iso=primary_session_iso,
@@ -446,23 +449,45 @@ def format_booking_location_html_cell(
     location_address: str | None,
     location_url: str | None,
 ) -> str:
-    """Location <td> inner HTML: venue lines + optional directions link."""
-    loc_line = format_booking_location_display_line(
-        location_name=location_name,
-        location_address=location_address,
-    )
-    if not loc_line:
+    """Location <td> inner HTML: venue and address on separate lines + optional directions link."""
+    name = (location_name or "").strip()
+    addr = (location_address or "").strip()
+    if not name and not addr:
         return ""
-    esc_line = html.escape(loc_line)
+
+    blocks: list[str] = []
+    if name and addr:
+        if name.lower() == addr.lower():
+            blocks.append(
+                f'<span style="display:block;text-align:right;">{html.escape(name)}</span>'
+            )
+        else:
+            blocks.append(
+                f'<span style="display:block;text-align:right;">{html.escape(name)}</span>'
+            )
+            blocks.append(
+                '<span style="display:block;text-align:right;margin-top:4px;">'
+                f"{html.escape(addr)}</span>"
+            )
+    elif name:
+        blocks.append(
+            f'<span style="display:block;text-align:right;">{html.escape(name)}</span>'
+        )
+    else:
+        blocks.append(
+            f'<span style="display:block;text-align:right;">{html.escape(addr)}</span>'
+        )
+
+    body = "".join(blocks)
     safe_url = _normalize_http_location_url(location_url)
     if not safe_url:
-        return f'<span style="display:block;text-align:right;">{esc_line}</span>'
+        return body
     esc_href = html.escape(safe_url, quote=True)
     link_label = html.escape(
         DIRECTIONS_LINK_LABEL.get(loc, DIRECTIONS_LINK_LABEL["en"])
     )
-    link = f'<a href="{esc_href}" style="{_CTA_LINK}">{link_label} ↗</a>'
-    return f'<span style="display:block;text-align:right;">{esc_line}<br/>{link}</span>'
+    link = f'<a href="{esc_href}" style="{_CTA_LINK}">{link_label}</a>'
+    return f"{body}<br/>{link}"
 
 
 def format_booking_location_plain_block(
@@ -472,17 +497,26 @@ def format_booking_location_plain_block(
     location_address: str | None,
     location_url: str | None,
 ) -> str:
-    loc_line = format_booking_location_display_line(
-        location_name=location_name,
-        location_address=location_address,
-    )
-    if not loc_line:
+    name = (location_name or "").strip()
+    addr = (location_address or "").strip()
+    lines: list[str] = []
+    if name and addr:
+        if name.lower() == addr.lower():
+            lines.append(name)
+        else:
+            lines.append(name)
+            lines.append(addr)
+    elif name:
+        lines.append(name)
+    elif addr:
+        lines.append(addr)
+    else:
         return ""
     safe_url = _normalize_http_location_url(location_url)
     label = DIRECTIONS_LINK_LABEL.get(loc, DIRECTIONS_LINK_LABEL["en"])
     if safe_url:
-        return f"{loc_line}\n{label}: {safe_url}"
-    return loc_line
+        lines.append(f"{label}: {safe_url}")
+    return "\n".join(lines)
 
 
 def format_booking_datetime_display(
@@ -750,8 +784,10 @@ def booking_confirmation_template_merge_data(
         "details_plain": details_plain,
     }
     if schedule_html:
-        data["schedule_datetime_label"] = schedule_html
-        if schedule_plain and "\n" in schedule_plain:
+        data["schedule_datetime_label_html"] = schedule_html
+    if schedule_plain:
+        data["schedule_datetime_plain"] = schedule_plain
+        if "\n" in schedule_plain:
             data["schedule_datetime_plain_multiline"] = True
     if loc_cell_html:
         data["location_block_html"] = loc_cell_html
@@ -763,8 +799,11 @@ def booking_confirmation_template_merge_data(
     if safe_location_url:
         data["location_url"] = safe_location_url
     iso_set = bool((primary_session_iso or "").strip())
-    # SES path cannot attach .ics; nudge recipients to copy the human-readable schedule.
-    data["include_calendar_fallback_hint"] = bool(schedule_plain) and not iso_set
+    # Calendar reminder sits under the Date & time row in SES HTML; MIME path uses the same layout.
+    data["include_calendar_fallback_hint_html"] = bool(schedule_html) and not iso_set
+    data["include_calendar_fallback_hint_plain"] = bool(schedule_plain) and not iso_set
+    data["include_calendar_note_after_schedule_html"] = False
+    data["include_calendar_note_after_schedule_plain"] = False
     return data
 
 
@@ -859,10 +898,28 @@ def render_booking_confirmation_email(
             _html_table_row_bordered(labels["details"], details_cell),
         )
     if schedule_html:
+        iso_set = bool((primary_session_iso or "").strip())
+        datetime_value = (
+            f'<span style="display:block;text-align:right;">{schedule_html}</span>'
+        )
+        if attach_calendar_invite_ics:
+            datetime_value += (
+                '<p style="margin:12px 0 0;font-size:14px;line-height:1.5;'
+                'color:#333333;text-align:right;">'
+                f"{html.escape(BOOKING_ICS_ATTACHED_NOTE[loc])}"
+                "</p>"
+            )
+        elif not iso_set:
+            datetime_value += (
+                '<p style="margin:12px 0 0;font-size:14px;line-height:1.5;'
+                'color:#333333;text-align:right;">'
+                f"{html.escape(BOOKING_CALENDAR_SES_FALLBACK_HINT[loc])}"
+                "</p>"
+            )
         rows_html.append(
             _html_table_row_bordered(
                 labels["datetime"],
-                f'<span style="display:block;text-align:right;">{schedule_html}</span>',
+                datetime_value,
             )
         )
     loc_cell_html = format_booking_location_html_cell(
@@ -887,14 +944,6 @@ def render_booking_confirmation_email(
         + "".join(rows_html)
         + "</table>"
     )
-
-    ics_note_html = ""
-    if attach_calendar_invite_ics:
-        ics_note_html = (
-            '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">'
-            f"{html.escape(BOOKING_ICS_ATTACHED_NOTE[loc])}"
-            "</p>"
-        )
 
     pending_block = ""
     if is_pending_payment:
@@ -922,7 +971,7 @@ def render_booking_confirmation_email(
     questions_html = _questions_line_html(loc, esc_wa, esc_faq) if esc_faq else ""
     inner_html = (
         f"{greeting}{THANK_YOU_HTML[loc]}"
-        f"{table_html}{ics_note_html}{pending_block}{fps_block}"
+        f"{table_html}{pending_block}{fps_block}"
         '<hr style="border:0;border-top:1px solid #eeeeee;margin:0 0 16px;"/>'
         f'<p style="margin:0 0 16px;">{closing_note}</p>'
         f"{questions_html}"
@@ -1042,6 +1091,11 @@ def _build_plain_text(
     )
     if schedule_plain:
         lines.append(f"{labels['datetime']}{label_sep}\n{schedule_plain}\n")
+        iso_set = bool((primary_session_iso or "").strip())
+        if attach_calendar_invite_ics:
+            lines.append(f"{BOOKING_ICS_ATTACHED_NOTE[loc]}\n\n")
+        elif not iso_set:
+            lines.append(f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}\n\n")
 
     loc_plain_block = format_booking_location_plain_block(
         loc=loc,
@@ -1054,8 +1108,6 @@ def _build_plain_text(
 
     lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
-    if attach_calendar_invite_ics:
-        lines.append(f"{BOOKING_ICS_ATTACHED_NOTE[loc]}\n\n")
     if is_pending_payment:
         lines.append(f"{PENDING_PAYMENT_NOTE[loc]}\n\n")
     if include_fps_qr_image:

@@ -1712,14 +1712,17 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(thankYouModalContent.fpsQrInstruction)).toBeInTheDocument();
     expect(screen.getByText(thankYouModalContent.fpsPaymentDisclaimer)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.fpsQrCodeAltLabel)).toBeInTheDocument();
     expect(
-      screen.getByRole('img', { name: thankYouModalContent.fpsQrCodeAltLabel }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: thankYouModalContent.downloadCalendarInviteLabel,
-      }),
-    ).toBeInTheDocument();
+      document.querySelector('.es-booking-thank-you-recap-card img.h-32.w-32'),
+    ).not.toBeNull();
+    const calendarDownload = screen.getByRole('button', {
+      name: thankYouModalContent.downloadCalendarInviteLabel,
+    });
+    expect(calendarDownload).toBeInTheDocument();
+    expect(calendarDownload.className).toContain('es-footer-link');
+    expect(calendarDownload.className).toContain('underline');
+    expect(calendarDownload.className).toContain('hover:opacity-70');
     expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
     expect(screen.getByText(selectedCohort.location_address)).toBeInTheDocument();
     const directionLink = screen.getByRole('link', {

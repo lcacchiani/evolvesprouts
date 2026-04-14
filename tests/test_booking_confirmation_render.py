@@ -34,6 +34,8 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     assert "地点" in html_doc
     assert "学习中心" in html_doc
     assert "香港中环" in html_doc
+    assert "学习中心" in plain
+    assert "香港中环" in plain
     assert "付款方式" in html_doc
     assert "FPS" in html_doc
     assert "cid:fps_qr" in html_doc
@@ -68,7 +70,8 @@ def test_render_booking_confirmation_en_hkt_from_iso() -> None:
     )
     assert "16 April @ 18:00 HKT" in html_doc
     assert "16 April @ 18:00 HKT" in plain
-    assert "Evolve Sprouts, Sheung Wan, Hong Kong" in html_doc
+    assert "Evolve Sprouts" in html_doc
+    assert "Sheung Wan, Hong Kong" in html_doc
 
 
 def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
@@ -216,7 +219,8 @@ def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
     )
-    assert data.get("include_calendar_fallback_hint") is True
+    assert data.get("include_calendar_fallback_hint_html") is True
+    assert data.get("include_calendar_fallback_hint_plain") is True
 
     data2 = booking_confirmation_template_merge_data(
         locale="en",
@@ -230,7 +234,8 @@ def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
     )
-    assert data2.get("include_calendar_fallback_hint") is False
+    assert data2.get("include_calendar_fallback_hint_html") is False
+    assert data2.get("include_calendar_fallback_hint_plain") is False
 
 
 def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
@@ -352,7 +357,7 @@ def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
         whatsapp_url="https://wa.me/1",
     )
     assert "schedule_datetime_plain_multiline" not in data_single
-    assert "location_plain_multiline" not in data_single
+    assert data_single.get("location_plain_multiline") is True
 
 
 def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
