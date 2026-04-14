@@ -31,6 +31,10 @@ export interface ReservationSubmissionPayload {
   consultation_writing_focus_label?: string;
   /** Consultation booking: level title for confirmation email Details row. */
   consultation_level_label?: string;
+  /**
+   * Label for the free-text question field (topics / notes). Sent for internal sales recap.
+   */
+  comments_field_label?: string;
   location_name?: string;
   /** Venue address line for confirmation email (combined with location_name). */
   location_address?: string;

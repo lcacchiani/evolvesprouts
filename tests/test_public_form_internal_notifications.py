@@ -242,10 +242,34 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
             "schedule_date_label": "D",
             "schedule_time_label": "T",
             "interested_topics": "sleep",
+            "comments_field_label": "What should we know?",
         }
     )
     body = "\n".join(lines)
     assert "pi_x" in body and "sleep" in body
+    assert "Telephone: 1" in body
+    assert "Question (What should we know?):" in body
+
+
+def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
+    lines = n.build_reservation_recap_lines(
+        payload={
+            "attendee_name": "N",
+            "attendee_email": "n@example.com",
+            "attendee_phone": "999",
+            "child_age_group": "2",
+            "package_label": "P",
+            "month_label": "M",
+            "course_label": "C",
+            "payment_method": "fps",
+            "total_amount": "100",
+            "consultation_writing_focus_label": "Home routines",
+            "consultation_level_label": "Essentials",
+        }
+    )
+    body = "\n".join(lines)
+    assert "Focus: Home routines" in body
+    assert "Level: Essentials" in body
 
 
 def test_build_booking_legacy_recap_lines() -> None:
@@ -253,12 +277,20 @@ def test_build_booking_legacy_recap_lines() -> None:
         payload={
             "full_name": "Jane Doe",
             "email": "j@example.com",
+            "phone_number": "+852 9000 0000",
             "course_label": "Course",
             "payment_method": "stripe",
             "price": 10,
             "locale": "zh-HK",
             "stripe_payment_intent_id": "pi_y",
+            "comments": "Need evening slot",
+            "comments_field_label": "Notes",
+            "consultation_writing_focus_label": "Focus A",
+            "consultation_level_label": "Deep dive",
         }
     )
     body = "\n".join(lines)
     assert "j@example.com" in body and "pi_y" in body
+    assert "Telephone: +852 9000 0000" in body
+    assert "Question (Notes):" in body and "Need evening slot" in body
+    assert "Focus: Focus A" in body and "Level: Deep dive" in body

@@ -154,6 +154,22 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "interestedTopics",
         _MAX_TOPICS_LENGTH,
     )
+    consultation_writing_focus_label = _optional_text(
+        body.get("consultationWritingFocusLabel")
+        or body.get("consultation_writing_focus_label"),
+        "consultationWritingFocusLabel",
+        _MAX_LABEL_LENGTH,
+    )
+    consultation_level_label = _optional_text(
+        body.get("consultationLevelLabel") or body.get("consultation_level_label"),
+        "consultationLevelLabel",
+        _MAX_LABEL_LENGTH,
+    )
+    comments_field_label = _optional_text(
+        body.get("commentsFieldLabel") or body.get("comments_field_label"),
+        "commentsFieldLabel",
+        _MAX_LABEL_LENGTH,
+    )
 
     return {
         "attendee_name": attendee_name,
@@ -169,6 +185,9 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "schedule_time_label": schedule_time_label,
         "interested_topics": interested_topics,
         "stripe_payment_intent_id": stripe_payment_intent_id,
+        "consultation_writing_focus_label": consultation_writing_focus_label,
+        "consultation_level_label": consultation_level_label,
+        "comments_field_label": comments_field_label,
     }
 
 

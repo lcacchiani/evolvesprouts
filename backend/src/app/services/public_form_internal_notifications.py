@@ -301,12 +301,20 @@ def build_media_lead_recap_lines(
 
 
 def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
+    phone = str(payload.get("attendee_phone") or "").strip()
+    focus = str(payload.get("consultation_writing_focus_label") or "").strip()
+    level = str(payload.get("consultation_level_label") or "").strip()
+    topics = str(payload.get("interested_topics") or "").strip()
+    question_label = str(payload.get("comments_field_label") or "").strip()
+    question_heading = (
+        f"Question ({question_label})" if question_label else "Interested topics"
+    )
     lines = [
         "Form: Reservation / booking",
         "",
         f"Attendee name: {payload.get('attendee_name', '')}",
         f"Attendee email: {payload.get('attendee_email', '')}",
-        f"Attendee phone: {payload.get('attendee_phone', '')}",
+        f"Telephone: {phone or '(not provided)'}",
         f"Child age group: {payload.get('child_age_group', '')}",
         f"Package: {payload.get('package_label', '')}",
         f"Month: {payload.get('month_label', '')}",
@@ -314,6 +322,9 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Payment method: {payload.get('payment_method', '')}",
         f"Total amount: {payload.get('total_amount', '')}",
     ]
+    if focus or level:
+        lines.append(f"Focus: {focus or '(not set)'}")
+        lines.append(f"Level: {level or '(not set)'}")
     stripe_pi = payload.get("stripe_payment_intent_id")
     if stripe_pi:
         lines.append(f"Stripe PaymentIntent ID: {stripe_pi}")
@@ -321,9 +332,7 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         lines.append(f"Schedule date: {payload['schedule_date_label']}")
     if payload.get("schedule_time_label"):
         lines.append(f"Schedule time: {payload['schedule_time_label']}")
-    topics = payload.get("interested_topics")
-    if topics:
-        lines.extend(["", "Interested topics:", str(topics)])
+    lines.extend(["", f"{question_heading}:", topics or "(not provided)"])
     return lines
 
 
@@ -331,20 +340,32 @@ def build_booking_legacy_recap_lines(*, payload: Mapping[str, Any]) -> list[str]
     """Recap lines for legacy reservation JSON (post-upstream success)."""
     full_name = str(payload.get("full_name") or "").strip()
     email = str(payload.get("email") or "").strip()
+    phone = str(payload.get("phone_number") or "").strip()
     course = str(payload.get("course_label") or "").strip() or "(not set)"
     payment = str(payload.get("payment_method") or "").strip() or "(not set)"
     price = payload.get("price")
     locale = str(payload.get("locale") or "").strip() or "(not set)"
+    focus = str(payload.get("consultation_writing_focus_label") or "").strip()
+    level = str(payload.get("consultation_level_label") or "").strip()
+    comments = str(payload.get("comments") or "").strip()
+    question_label = str(payload.get("comments_field_label") or "").strip()
+    question_heading = (
+        f"Question ({question_label})" if question_label else "Notes / question"
+    )
     lines = [
         "Form: Booking (legacy API)",
         "",
         f"Name: {full_name}",
         f"Email: {email}",
+        f"Telephone: {phone or '(not provided)'}",
         f"Course: {course}",
         f"Payment method: {payment}",
         f"Price: {price}",
         f"Locale: {locale}",
     ]
+    if focus or level:
+        lines.append(f"Focus: {focus or '(not set)'}")
+        lines.append(f"Level: {level or '(not set)'}")
     if payload.get("schedule_date_label"):
         lines.append(f"Schedule date: {payload['schedule_date_label']}")
     if payload.get("schedule_time_label"):
@@ -352,4 +373,5 @@ def build_booking_legacy_recap_lines(*, payload: Mapping[str, Any]) -> list[str]
     stripe_pi = payload.get("stripe_payment_intent_id")
     if stripe_pi:
         lines.append(f"Stripe PaymentIntent ID: {stripe_pi}")
+    lines.extend(["", f"{question_heading}:", comments or "(not provided)"])
     return lines
