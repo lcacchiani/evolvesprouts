@@ -10,8 +10,28 @@ from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
 
+from sqlalchemy.orm import Session
+
 from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
+from app.api.public_form_hooks import (
+    first_name_from_full_name,
+    mailchimp_booking_tag_from_payload,
+    maybe_subscribe_booking_marketing,
+    normalize_body_locale,
+    send_booking_confirmation_email,
+)
+from app.db.engine import get_engine
+from app.db.models.enums import (
+    ContactSource,
+    ContactType,
+    FunnelStage,
+    LeadEventType,
+    LeadType,
+)
+from app.db.models.sales_lead import SalesLead
+from app.db.repositories.contact import ContactRepository
+from app.db.repositories.sales_lead import SalesLeadRepository
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.public_form_internal_notifications import (
@@ -25,6 +45,7 @@ from app.services.turnstile import (
     verify_turnstile_token,
 )
 from app.utils import json_response
+from app.utils.fps_qr_png import optional_fps_qr_data_url_from_payload
 from app.utils.logging import get_logger, mask_email, mask_pii
 
 logger = get_logger(__name__)
@@ -34,9 +55,18 @@ _MAX_PHONE_LENGTH = 40
 _MAX_LABEL_LENGTH = 200
 _MAX_PAYMENT_METHOD_LENGTH = 100
 _MAX_TOPICS_LENGTH = 1000
+_MAX_SLUG_KEY_LENGTH = 100
+_MAX_LOCATION_NAME = 200
+_MAX_LOCATION_ADDRESS = 300
+_MAX_LOCATION_URL = 500
+_MAX_ISO_FIELD = 50
+_MAX_COHORT_DATE = 100
+_MAX_DISCOUNT_CODE = 100
+_MAX_FPS_DATA_URL_BYTES = 120_000
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
 _STRIPE_PAYMENT_INTENT_ID_PATTERN = re.compile(r"^pi_[A-Za-z0-9]+$")
+_ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 
 
 def _handle_public_reservation(
@@ -64,8 +94,16 @@ def _handle_public_reservation(
             event=event,
         )
 
-    body = parse_body(event)
-    reservation_payload = _validate_reservation_payload(body)
+    try:
+        body = parse_body(event)
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    try:
+        reservation_payload = _validate_reservation_payload(body)
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
     try:
         _validate_payment_confirmation(event, reservation_payload)
     except ValidationError as exc:
@@ -74,7 +112,52 @@ def _handle_public_reservation(
             exc.to_dict(),
             event=event,
         )
-    _send_reservation_email(reservation_payload)
+
+    try:
+        with Session(get_engine()) as session:
+            contact_repo = ContactRepository(session)
+            lead_repo = SalesLeadRepository(session)
+            contact, _created = contact_repo.upsert_by_email(
+                reservation_payload["attendee_email"],
+                first_name=first_name_from_full_name(
+                    reservation_payload["attendee_name"]
+                ),
+                source=ContactSource.RESERVATION,
+                source_detail="public-www-booking",
+                contact_type=ContactType.PARENT,
+            )
+            lead_metadata: dict[str, object] = {
+                "payment_method": reservation_payload["payment_method"],
+                "course_label": reservation_payload["course_label"],
+                "locale": reservation_payload["locale"],
+            }
+            if reservation_payload.get("service_key"):
+                lead_metadata["service_key"] = reservation_payload["service_key"]
+            if reservation_payload.get("course_slug"):
+                lead_metadata["course_slug"] = reservation_payload["course_slug"]
+            lead = SalesLead(
+                contact_id=contact.id,
+                lead_type=LeadType.PROGRAM_ENROLLMENT,
+                funnel_stage=FunnelStage.NEW,
+            )
+            lead_repo.create_with_event(
+                lead,
+                LeadEventType.CREATED,
+                metadata=lead_metadata,
+            )
+            session.commit()
+    except Exception:
+        logger.exception("Reservation Aurora persistence failed")
+        return json_response(
+            500,
+            {"error": "Unable to save reservation. Please try again."},
+            event=event,
+        )
+
+    try:
+        _run_reservation_post_success_hooks(reservation_payload)
+    except Exception:
+        logger.exception("Reservation post-success hooks failed after commit")
 
     logger.info(
         "Public reservation accepted",
@@ -90,6 +173,113 @@ def _handle_public_reservation(
         {"message": "Reservation submitted"},
         event=event,
     )
+
+
+def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
+    """Transactional email, Mailchimp, and sales recap (best-effort)."""
+    email = str(payload.get("attendee_email") or "").strip()
+    full_name = str(payload.get("attendee_name") or "").strip()
+    locale = normalize_body_locale(payload.get("locale"))
+    course_label = str(payload.get("course_label") or "").strip() or "Your booking"
+    schedule_date = _optional_str(payload.get("schedule_date_label"))
+    schedule_time = _optional_str(payload.get("schedule_time_label"))
+    location_name = _optional_str(payload.get("location_name"))
+    location_address = _optional_str(payload.get("location_address"))
+    primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
+    primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
+    course_slug = _optional_str(payload.get("course_slug"))
+    age_group_label = _optional_str(payload.get("child_age_group"))
+    consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
+    consultation_level = _optional_str(payload.get("consultation_level_label"))
+    course_sessions = _course_sessions_for_email(payload.get("course_sessions"))
+    location_url = _optional_str(payload.get("location_url"))
+    payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
+    total_dec = payload["total_amount"]
+    total_amount = f"HK${float(total_dec):,.2f}"
+    stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
+    pm_lower = payment_method.lower()
+    is_pending = pm_lower != "stripe" and not stripe_pi
+    fps_qr_data_url = optional_fps_qr_data_url_from_payload(
+        payload.get("fps_qr_image_data_url")
+    )
+
+    if email and full_name:
+        try:
+            send_booking_confirmation_email(
+                to_email=email,
+                full_name=full_name,
+                course_label=course_label,
+                schedule_date_label=schedule_date,
+                schedule_time_label=schedule_time,
+                location_name=location_name,
+                location_address=location_address,
+                primary_session_iso=primary_session_iso,
+                primary_session_end_iso=primary_session_end_iso,
+                course_slug=course_slug,
+                age_group_label=age_group_label,
+                payment_method=payment_method,
+                total_amount=total_amount,
+                is_pending_payment=is_pending,
+                locale=locale,
+                fps_qr_image_data_url=fps_qr_data_url,
+                consultation_writing_focus_label=consultation_focus,
+                consultation_level_label=consultation_level,
+                course_sessions=course_sessions,
+                location_url=location_url,
+            )
+        except Exception:
+            logger.exception(
+                "Unexpected error sending booking confirmation",
+                extra={"lead_email": mask_email(email)},
+            )
+
+    try:
+        booking_tag = mailchimp_booking_tag_from_payload(payload)
+        maybe_subscribe_booking_marketing(
+            marketing_opt_in=payload.get("marketing_opt_in"),
+            email=email,
+            full_name=full_name,
+            tag_name=booking_tag,
+        )
+    except Exception:
+        logger.exception(
+            "Unexpected error in booking marketing subscribe",
+            extra={"lead_email": mask_email(email)},
+        )
+
+    send_sales_form_recap_email(
+        form_title="Reservation",
+        body_lines=build_reservation_recap_lines(payload=payload),
+        required=False,
+        retry_transient_failures=True,
+    )
+
+
+def _optional_str(value: Any) -> str | None:
+    if value is None:
+        return None
+    s = str(value).strip()
+    return s or None
+
+
+def _course_sessions_for_email(
+    raw: Any,
+) -> list[dict[str, str]] | None:
+    if not isinstance(raw, list) or not raw:
+        return None
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, Mapping):
+            continue
+        start = item.get("start_iso")
+        if not isinstance(start, str) or not start.strip():
+            continue
+        row: dict[str, str] = {"start_iso": start.strip()}
+        end = item.get("end_iso")
+        if isinstance(end, str) and end.strip():
+            row["end_iso"] = end.strip()
+        out.append(row)
+    return out or None
 
 
 def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
@@ -113,12 +303,12 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "childAgeGroup",
         _MAX_LABEL_LENGTH,
     )
-    package_label = _require_text(
+    package_label = _optional_text(
         body.get("packageLabel"),
         "packageLabel",
         _MAX_LABEL_LENGTH,
     )
-    month_label = _require_text(
+    month_label = _optional_text(
         body.get("monthLabel"),
         "monthLabel",
         _MAX_LABEL_LENGTH,
@@ -134,11 +324,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
-    stripe_payment_intent_id = _optional_text(
-        body.get("stripe_payment_intent_id"),
-        "stripe_payment_intent_id",
-        200,
-    )
+    stripe_payment_intent_id = _stripe_payment_intent_id_from_body(body)
     schedule_date_label = _optional_text(
         body.get("scheduleDateLabel"),
         "scheduleDateLabel",
@@ -171,6 +357,66 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         _MAX_LABEL_LENGTH,
     )
 
+    cohort_date = _optional_text(
+        body.get("cohortDate"),
+        "cohortDate",
+        _MAX_COHORT_DATE,
+    )
+    service_key = _optional_text(
+        body.get("serviceKey"),
+        "serviceKey",
+        _MAX_SLUG_KEY_LENGTH,
+    )
+    course_slug = _optional_text(
+        body.get("courseSlug"),
+        "courseSlug",
+        _MAX_SLUG_KEY_LENGTH,
+    )
+    location_name = _optional_text(
+        body.get("locationName"),
+        "locationName",
+        _MAX_LOCATION_NAME,
+    )
+    location_address = _optional_text(
+        body.get("locationAddress"),
+        "locationAddress",
+        _MAX_LOCATION_ADDRESS,
+    )
+    location_url = _optional_text(
+        body.get("locationUrl"),
+        "locationUrl",
+        _MAX_LOCATION_URL,
+    )
+    primary_session_start_iso = _optional_text(
+        body.get("primarySessionStartIso"),
+        "primarySessionStartIso",
+        _MAX_ISO_FIELD,
+    )
+    primary_session_end_iso = _optional_text(
+        body.get("primarySessionEndIso"),
+        "primarySessionEndIso",
+        _MAX_ISO_FIELD,
+    )
+    course_sessions = _parse_course_sessions(body.get("courseSessions"))
+    fps_qr_image_data_url = _optional_fps_qr_data_url(body.get("fpsQrImageDataUrl"))
+    marketing_opt_in = _parse_bool_opt(body.get("marketingOptIn"), default=False)
+    locale = _normalize_locale_field(body.get("locale"))
+    discount_code = _optional_text(
+        body.get("discountCode"),
+        "discountCode",
+        _MAX_DISCOUNT_CODE,
+    )
+    agreed = body.get("agreedToTermsAndConditions")
+    if agreed is not True:
+        raise ValidationError(
+            "agreedToTermsAndConditions must be true",
+            field="agreedToTermsAndConditions",
+        )
+    reservation_pending = _parse_bool_opt(
+        body.get("reservationPendingUntilPaymentConfirmed"),
+        default=False,
+    )
+
     return {
         "attendee_name": attendee_name,
         "attendee_email": attendee_email,
@@ -188,7 +434,116 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "consultation_writing_focus_label": consultation_writing_focus_label,
         "consultation_level_label": consultation_level_label,
         "comments_field_label": comments_field_label,
+        "cohort_date": cohort_date,
+        "service_key": service_key,
+        "course_slug": course_slug,
+        "location_name": location_name,
+        "location_address": location_address,
+        "location_url": location_url,
+        "primary_session_start_iso": primary_session_start_iso,
+        "primary_session_end_iso": primary_session_end_iso,
+        "course_sessions": course_sessions,
+        "fps_qr_image_data_url": fps_qr_image_data_url,
+        "marketing_opt_in": marketing_opt_in,
+        "locale": locale,
+        "discount_code": discount_code,
+        "agreed_to_terms_and_conditions": True,
+        "reservation_pending_until_payment_confirmed": reservation_pending,
     }
+
+
+def _stripe_payment_intent_id_from_body(body: Mapping[str, Any]) -> str | None:
+    raw = body.get("stripePaymentIntentId")
+    if raw is None:
+        raw = body.get("stripe_payment_intent_id")
+    if raw is None:
+        return None
+    return _optional_text(raw, "stripePaymentIntentId", 200)
+
+
+def _normalize_locale_field(value: Any) -> str:
+    if not isinstance(value, str):
+        return "en"
+    s = value.strip()
+    return s if s in _ALLOWED_LOCALES else "en"
+
+
+def _parse_bool_opt(value: Any, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes"}:
+            return True
+        if lowered in {"false", "0", "no"}:
+            return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return default
+
+
+def _parse_course_sessions(raw: Any) -> list[dict[str, str]] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, list):
+        raise ValidationError("courseSessions must be an array", field="courseSessions")
+    out: list[dict[str, str]] = []
+    for idx, item in enumerate(raw):
+        if not isinstance(item, Mapping):
+            raise ValidationError(
+                "courseSessions items must be objects",
+                field="courseSessions",
+            )
+        start = item.get("startIso")
+        if not isinstance(start, str) or not start.strip():
+            raise ValidationError(
+                f"courseSessions[{idx}].startIso is required",
+                field="courseSessions",
+            )
+        start_norm = start.strip()
+        if len(start_norm) > _MAX_ISO_FIELD:
+            raise ValidationError(
+                f"courseSessions[{idx}].startIso is too long",
+                field="courseSessions",
+            )
+        row: dict[str, str] = {"start_iso": start_norm}
+        end_raw = item.get("endIso")
+        if end_raw is not None:
+            if not isinstance(end_raw, str):
+                raise ValidationError(
+                    f"courseSessions[{idx}].endIso must be a string",
+                    field="courseSessions",
+                )
+            end_norm = end_raw.strip()
+            if len(end_norm) > _MAX_ISO_FIELD:
+                raise ValidationError(
+                    f"courseSessions[{idx}].endIso is too long",
+                    field="courseSessions",
+                )
+            if end_norm:
+                row["end_iso"] = end_norm
+        out.append(row)
+    return out or None
+
+
+def _optional_fps_qr_data_url(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(
+            "fpsQrImageDataUrl must be a string", field="fpsQrImageDataUrl"
+        )
+    s = value.strip()
+    if not s:
+        return None
+    if len(s.encode("utf-8")) > _MAX_FPS_DATA_URL_BYTES:
+        raise ValidationError(
+            "fpsQrImageDataUrl exceeds maximum size",
+            field="fpsQrImageDataUrl",
+        )
+    return s
 
 
 def _validate_payment_confirmation(
@@ -209,14 +564,14 @@ def _validate_payment_confirmation(
 
     if not stripe_payment_intent_id:
         raise ValidationError(
-            "stripe_payment_intent_id is required for Stripe payment method",
-            field="stripe_payment_intent_id",
+            "stripePaymentIntentId is required for Stripe payment method",
+            field="stripePaymentIntentId",
         )
 
     if not _STRIPE_PAYMENT_INTENT_ID_PATTERN.match(stripe_payment_intent_id):
         raise ValidationError(
-            "stripe_payment_intent_id must be a valid PaymentIntent id",
-            field="stripe_payment_intent_id",
+            "stripePaymentIntentId must be a valid PaymentIntent id",
+            field="stripePaymentIntentId",
         )
 
     stripe_secret_key = resolve_public_www_stripe_secret_key(event)
@@ -226,7 +581,7 @@ def _validate_payment_confirmation(
         )
         raise ValidationError(
             "Payment verification is unavailable. Please try again later.",
-            field="stripe_payment_intent_id",
+            field="stripePaymentIntentId",
         )
 
     stripe_intent = _retrieve_stripe_payment_intent(
@@ -263,7 +618,7 @@ def _retrieve_stripe_payment_intent(
         )
         raise ValidationError(
             "Payment verification failed. Please try again.",
-            field="stripe_payment_intent_id",
+            field="stripePaymentIntentId",
         ) from exc
 
     status_code = _safe_status_code(stripe_response.get("status"))
@@ -275,7 +630,7 @@ def _retrieve_stripe_payment_intent(
         )
         raise ValidationError(
             "Payment verification failed. Please try again.",
-            field="stripe_payment_intent_id",
+            field="stripePaymentIntentId",
         )
     return response_body
 
@@ -289,7 +644,7 @@ def _assert_stripe_payment_matches_reservation(
     if intent_status != "succeeded":
         raise ValidationError(
             "Stripe payment is not confirmed",
-            field="stripe_payment_intent_id",
+            field="stripePaymentIntentId",
         )
 
     try:
@@ -302,7 +657,7 @@ def _assert_stripe_payment_matches_reservation(
     if intent_amount_minor_units != expected_amount_minor_units:
         raise ValidationError(
             "Stripe payment amount does not match reservation amount",
-            field="stripe_payment_intent_id",
+            field="stripePaymentIntentId",
         )
 
 
@@ -326,16 +681,6 @@ def _parse_response_json(raw_body: Any) -> Mapping[str, Any] | None:
     if isinstance(parsed, Mapping):
         return parsed
     return None
-
-
-def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
-    """Best-effort reservation recap to Cognito admin-group emails (never raises)."""
-    send_sales_form_recap_email(
-        form_title="Reservation",
-        body_lines=build_reservation_recap_lines(payload=reservation_payload),
-        required=False,
-        retry_transient_failures=True,
-    )
 
 
 def _require_text(value: Any, field_name: str, max_length: int) -> str:

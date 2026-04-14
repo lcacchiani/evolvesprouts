@@ -270,11 +270,10 @@ Process to add a new public API path:
 
 Current allowlisted public website POST paths include:
 
-- `/www/v1/legacy/contact-us`
+- `/www/v1/contact-us`
 - `/www/v1/discounts/validate`
-- `/www/v1/legacy/discounts/validate`
 - `/www/v1/assets/free/request`
-- `/www/v1/legacy/reservations`
+- `/www/v1/reservations`
 - `/www/v1/reservations/payment-intent`
 
 ### Third-party invoice parser egress controls

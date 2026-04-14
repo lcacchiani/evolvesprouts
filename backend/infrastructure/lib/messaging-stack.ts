@@ -58,6 +58,8 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   openrouterMaxFileBytes: string;
   /** IANA timezone id for SALES_RECAP_DISPLAY_TIMEZONE (empty = app default). */
   salesRecapDisplayTimezone: string;
+  /** production | staging — gates outbound SES/Mailchimp in media processor. */
+  deploymentStage: string;
 }
 
 /**
@@ -193,6 +195,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_USERNAME: "evolvesprouts_admin",
           DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
           DATABASE_IAM_AUTH: "true",
+          DEPLOYMENT_STAGE: props.deploymentStage,
           SES_SENDER_EMAIL: props.sesSenderEmail,
           SALES_RECAP_DISPLAY_TIMEZONE: props.salesRecapDisplayTimezone,
           COGNITO_USER_POOL_ID: props.cognitoUserPoolId,

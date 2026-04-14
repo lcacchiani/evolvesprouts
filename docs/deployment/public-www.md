@@ -129,10 +129,10 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
   - verifies public API endpoints:
     - `GET /www/v1/calendar/public`
     - `GET /www/v1/assets/free?limit=100`
-    - `POST /www/v1/legacy/contact-us`
+    - `POST /www/v1/contact-us`
     - `POST /www/v1/discounts/validate`
     - `POST /www/v1/assets/free/request`
-    - `POST /www/v1/legacy/reservations`
+    - `POST /www/v1/reservations`
     - `POST /www/v1/reservations/payment-intent`
   - when same-origin `/www/*` checks return `404`, retries API checks through
     configured fallback API base URLs before failing

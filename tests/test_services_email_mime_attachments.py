@@ -11,6 +11,7 @@ from app.services.email import send_mime_email_with_optional_attachments
 def test_send_mime_email_with_optional_attachments_mixed_inline_png_and_ics(
     monkeypatch: Any,
 ) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     captured: dict[str, bytes] = {}
 
     class _FakeSes:
@@ -65,6 +66,7 @@ def test_send_mime_email_with_optional_attachments_mixed_inline_png_and_ics(
 def test_send_mime_email_with_optional_attachments_ics_only_no_png(
     monkeypatch: Any,
 ) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     captured: dict[str, bytes] = {}
 
     class _FakeSes:

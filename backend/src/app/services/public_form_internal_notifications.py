@@ -316,12 +316,39 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Attendee email: {payload.get('attendee_email', '')}",
         f"Telephone: {phone or '(not provided)'}",
         f"Child age group: {payload.get('child_age_group', '')}",
-        f"Package: {payload.get('package_label', '')}",
-        f"Month: {payload.get('month_label', '')}",
+        f"Package: {payload.get('package_label', '') or '(not set)'}",
+        f"Month: {payload.get('month_label', '') or '(not set)'}",
         f"Course: {payload.get('course_label', '')}",
         f"Payment method: {payload.get('payment_method', '')}",
         f"Total amount: {payload.get('total_amount', '')}",
     ]
+    if payload.get("cohort_date"):
+        lines.append(f"Cohort date: {payload['cohort_date']}")
+    if payload.get("discount_code"):
+        lines.append(f"Discount code: {payload['discount_code']}")
+    if payload.get("service_key"):
+        lines.append(f"Service key: {payload['service_key']}")
+    if payload.get("course_slug"):
+        lines.append(f"Course slug: {payload['course_slug']}")
+    loc_name = str(payload.get("location_name") or "").strip()
+    loc_addr = str(payload.get("location_address") or "").strip()
+    if loc_name or loc_addr:
+        lines.append(f"Location: {loc_name or '(not set)'} / {loc_addr or '(not set)'}")
+    if payload.get("location_url"):
+        lines.append(f"Location URL: {payload['location_url']}")
+    if payload.get("primary_session_start_iso"):
+        lines.append(f"Primary session start: {payload['primary_session_start_iso']}")
+    if payload.get("primary_session_end_iso"):
+        lines.append(f"Primary session end: {payload['primary_session_end_iso']}")
+    if payload.get("locale"):
+        lines.append(f"Locale: {payload['locale']}")
+    if "marketing_opt_in" in payload:
+        lines.append(f"Marketing opt-in: {payload.get('marketing_opt_in')}")
+    if "reservation_pending_until_payment_confirmed" in payload:
+        lines.append(
+            "Pending until payment confirmed: "
+            f"{payload.get('reservation_pending_until_payment_confirmed')}"
+        )
     if focus or level:
         lines.append(f"Focus: {focus or '(not set)'}")
         lines.append(f"Level: {level or '(not set)'}")
@@ -333,45 +360,4 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
     if payload.get("schedule_time_label"):
         lines.append(f"Schedule time: {payload['schedule_time_label']}")
     lines.extend(["", f"{question_heading}:", topics or "(not provided)"])
-    return lines
-
-
-def build_booking_legacy_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
-    """Recap lines for legacy reservation JSON (post-upstream success)."""
-    full_name = str(payload.get("full_name") or "").strip()
-    email = str(payload.get("email") or "").strip()
-    phone = str(payload.get("phone_number") or "").strip()
-    course = str(payload.get("course_label") or "").strip() or "(not set)"
-    payment = str(payload.get("payment_method") or "").strip() or "(not set)"
-    price = payload.get("price")
-    locale = str(payload.get("locale") or "").strip() or "(not set)"
-    focus = str(payload.get("consultation_writing_focus_label") or "").strip()
-    level = str(payload.get("consultation_level_label") or "").strip()
-    comments = str(payload.get("comments") or "").strip()
-    question_label = str(payload.get("comments_field_label") or "").strip()
-    question_heading = (
-        f"Question ({question_label})" if question_label else "Notes / question"
-    )
-    lines = [
-        "Form: Booking (legacy API)",
-        "",
-        f"Name: {full_name}",
-        f"Email: {email}",
-        f"Telephone: {phone or '(not provided)'}",
-        f"Course: {course}",
-        f"Payment method: {payment}",
-        f"Price: {price}",
-        f"Locale: {locale}",
-    ]
-    if focus or level:
-        lines.append(f"Focus: {focus or '(not set)'}")
-        lines.append(f"Level: {level or '(not set)'}")
-    if payload.get("schedule_date_label"):
-        lines.append(f"Schedule date: {payload['schedule_date_label']}")
-    if payload.get("schedule_time_label"):
-        lines.append(f"Schedule time: {payload['schedule_time_label']}")
-    stripe_pi = payload.get("stripe_payment_intent_id")
-    if stripe_pi:
-        lines.append(f"Stripe PaymentIntent ID: {stripe_pi}")
-    lines.extend(["", f"{question_heading}:", comments or "(not provided)"])
     return lines

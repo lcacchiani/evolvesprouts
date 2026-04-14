@@ -32,8 +32,9 @@ Between phases, drain SQS queues and DLQs where possible; expect brief SNS topic
 
 ## Public website transactional confirmations (SES)
 
-The public website contact form, booking modal (`/www/v1/legacy/*`), and media
-download flow send **customer-facing** confirmation or download-link emails
+The public website contact form, booking modal (`/www/v1/contact-us`,
+`/www/v1/reservations`), and media download flow send **customer-facing**
+confirmation or download-link emails
 through **Amazon SES templated send** (`SendTemplatedEmail`). Templates are
 stored in SES and upserted at deploy time by a **CloudFormation custom
 resource** (`SesTemplateManagerFunction`) so runtime Lambdas only reference
@@ -52,7 +53,7 @@ template names.
   inquiry form), not media or reservation recaps.
 - **Mailchimp** remains separate: optional marketing subscribe + journey
   triggers run only when the user opts in; failures are logged and do not
-  change the HTTP response for legacy bridge routes.
+  change the HTTP response for public form routes.
 - **Shared HTML shell footer** (`footer_block_html`): after the thank-you line,
   rule, and optional social links, a centered copyright line is appended using
   the **UTC year at send time** (`© <year> Evolve Sprouts. All rights reserved.`).
@@ -62,7 +63,8 @@ template names.
   **Date & time** line (when the venue looks like Hong Kong and
   `primary_session_start_iso` is present, formatted as `16 April @ 18:00 HKT` in
   `Asia/Hong_Kong`; otherwise the submitted schedule labels are used). When the
-  legacy reservation payload includes `primary_session_end_iso` alongside the start,
+  reservation payload includes `primary_session_end_iso` (or camelCase
+  `primarySessionEndIso` on native routes) alongside the start,
   MIME booking confirmations may use it for the calendar attachment end time.
   **Location**
   as `venue, address` when both are provided, customer-facing **Payment method**

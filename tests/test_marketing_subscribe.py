@@ -23,6 +23,7 @@ def test_subscribe_to_marketing_skips_journey_when_ids_empty(
     monkeypatch: Any,
 ) -> None:
     logger = MagicMock()
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_ID", "")
     monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", "")
     calls: list[str] = []
@@ -50,6 +51,7 @@ def test_subscribe_to_marketing_skips_member_when_subscribe_member_false(
     monkeypatch: Any,
 ) -> None:
     logger = MagicMock()
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_ID", "j1")
     monkeypatch.setenv("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", "s1")
     calls: list[Any] = []

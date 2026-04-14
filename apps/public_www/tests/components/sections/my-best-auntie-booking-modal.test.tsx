@@ -255,20 +255,20 @@ const expectedMbaScheduleTimeLabel =
     : primarySessionPart?.start_datetime;
 
 const expectedMbaMarketingFields = {
-  marketing_opt_in: false,
+  marketingOptIn: false,
   locale: 'en' as const,
-  course_label: myBestAuntieModalContent.title,
-  course_slug: 'my-best-auntie',
-  schedule_date_label: 'Apr, 2026',
-  schedule_time_label: expectedMbaScheduleTimeLabel,
-  location_name: selectedCohort.location_name,
-  location_address: selectedCohort.location_address,
-  location_url: selectedCohort.location_url,
-  primary_session_start_iso: primarySessionPart?.start_datetime,
-  course_sessions: selectedCohort.dates.map((part) => {
+  courseLabel: myBestAuntieModalContent.title,
+  courseSlug: 'my-best-auntie',
+  scheduleDateLabel: 'Apr, 2026',
+  scheduleTimeLabel: expectedMbaScheduleTimeLabel,
+  locationName: selectedCohort.location_name,
+  locationAddress: selectedCohort.location_address,
+  locationUrl: selectedCohort.location_url,
+  primarySessionStartIso: primarySessionPart?.start_datetime,
+  courseSessions: selectedCohort.dates.map((part) => {
     return {
-      start_iso: part.start_datetime,
-      end_iso: part.end_datetime,
+      startIso: part.start_datetime,
+      endIso: part.end_datetime,
     };
   }),
 };
@@ -1081,22 +1081,22 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(requestSpy).toHaveBeenCalled();
     });
     expect(requestSpy).toHaveBeenCalledWith({
-      endpointPath: '/v1/legacy/reservations',
+      endpointPath: '/v1/reservations',
       method: 'POST',
       body: expect.objectContaining({
-        full_name: 'Test User',
-        email: 'ida@example.com',
-        phone_number: '85212345678',
-        cohort_age: '18-24 months',
-        cohort_date: selectedCohortDate,
-        comments: 'Need details',
-        discount_code: undefined,
-        price: 9000,
-        reservation_pending_until_payment_confirmed: true,
-        agreed_to_terms_and_conditions: true,
-        payment_method: 'fps_qr',
-        stripe_payment_intent_id: undefined,
-        fps_qr_image_data_url:
+        attendeeName: 'Test User',
+        attendeeEmail: 'ida@example.com',
+        attendeePhone: '85212345678',
+        childAgeGroup: '18-24 months',
+        cohortDate: selectedCohortDate,
+        interestedTopics: 'Need details',
+        discountCode: undefined,
+        totalAmount: 9000,
+        reservationPendingUntilPaymentConfirmed: true,
+        agreedToTermsAndConditions: true,
+        paymentMethod: 'fps_qr',
+        stripePaymentIntentId: undefined,
+        fpsQrImageDataUrl:
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
         ...expectedMbaMarketingFields,
       }),
@@ -1222,7 +1222,7 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(requestSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({
-            payment_method: 'bank_transfer',
+            paymentMethod: 'bank_transfer',
           }),
         }),
       );
@@ -1305,21 +1305,21 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(requestSpy).toHaveBeenCalled();
     });
     expect(requestSpy).toHaveBeenCalledWith({
-      endpointPath: '/v1/legacy/reservations',
+      endpointPath: '/v1/reservations',
       method: 'POST',
       body: expect.objectContaining({
-        full_name: 'Test User',
-        email: 'ida@example.com',
-        phone_number: '85212345678',
-        cohort_age: '18-24 months',
-        cohort_date: selectedCohortDate,
-        comments: 'Need details',
-        discount_code: undefined,
-        price: 9000,
-        reservation_pending_until_payment_confirmed: true,
-        agreed_to_terms_and_conditions: true,
-        payment_method: 'stripe',
-        stripe_payment_intent_id: 'pi_test_booking_modal',
+        attendeeName: 'Test User',
+        attendeeEmail: 'ida@example.com',
+        attendeePhone: '85212345678',
+        childAgeGroup: '18-24 months',
+        cohortDate: selectedCohortDate,
+        interestedTopics: 'Need details',
+        discountCode: undefined,
+        totalAmount: 9000,
+        reservationPendingUntilPaymentConfirmed: true,
+        agreedToTermsAndConditions: true,
+        paymentMethod: 'stripe',
+        stripePaymentIntentId: 'pi_test_booking_modal',
         ...expectedMbaMarketingFields,
       }),
       turnstileToken: 'mock-turnstile-token',

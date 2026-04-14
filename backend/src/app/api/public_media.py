@@ -19,6 +19,7 @@ from app.services.turnstile import (
     verify_turnstile_token,
 )
 from app.utils import json_response
+from app.utils.deployment import is_production
 from app.utils.logging import get_logger, mask_email
 
 logger = get_logger(__name__)
@@ -82,27 +83,36 @@ def handle_media_request(
     if resource_key is not None:
         message_payload["resource_key"] = resource_key
 
-    try:
-        get_sns_client().publish(
-            TopicArn=topic_arn,
-            Message=json.dumps(message_payload),
-            MessageAttributes={
-                "event_type": {
-                    "DataType": "String",
-                    "StringValue": _EVENT_TYPE,
-                },
+    if not is_production():
+        logger.info(
+            "Staging SNS publish skipped for media request",
+            extra={
+                "lead_email": mask_email(email),
+                "message_payload": message_payload,
             },
         )
-    except Exception:
-        logger.exception(
-            "Failed to publish media request",
-            extra={"lead_email": mask_email(email)},
-        )
-        return json_response(
-            500,
-            {"error": "Failed to submit request. Please try again."},
-            event=event,
-        )
+    else:
+        try:
+            get_sns_client().publish(
+                TopicArn=topic_arn,
+                Message=json.dumps(message_payload),
+                MessageAttributes={
+                    "event_type": {
+                        "DataType": "String",
+                        "StringValue": _EVENT_TYPE,
+                    },
+                },
+            )
+        except Exception:
+            logger.exception(
+                "Failed to publish media request",
+                extra={"lead_email": mask_email(email)},
+            )
+            return json_response(
+                500,
+                {"error": "Failed to submit request. Please try again."},
+                event=event,
+            )
 
     logger.info(
         "Media request accepted",

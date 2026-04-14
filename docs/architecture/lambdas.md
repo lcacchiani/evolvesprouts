@@ -27,9 +27,7 @@ their primary responsibilities.
   `/v1/reservations/payment-intent`,
   `/v1/calendar/public`,
   `/v1/discounts/validate`,
-  `/v1/legacy/reservations`,
-  `/v1/legacy/contact-us`,
-  `/v1/legacy/discounts/validate`,
+  `/v1/contact-us`,
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*` (including `POST /v1/admin/locations/geocode` for
@@ -50,8 +48,8 @@ their primary responsibilities.
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
   and `GET /v1/assets/free`,
   plus public website proxy routes including
-  `/www/v1/discounts/validate` (native Aurora-backed discount validation;
-  same JSON contract as `/www/v1/legacy/discounts/validate`),
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation),
+  `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity
@@ -69,7 +67,7 @@ their primary responsibilities.
 - Permissions: SES `SendEmail` / `SendRawEmail` / `SendTemplatedEmail` on the
   verified `SesSenderEmail` identity **and** the `AuthEmailFromAddress` identity
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
-  secret when marketing hooks run on legacy routes
+  secret when marketing hooks run on public form routes
 - Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
   `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
   `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
@@ -104,14 +102,10 @@ their primary responsibilities.
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
   `/v1/assets/free/request`, Mailchimp webhook ingestion and contact sync-status
-  reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
-  on `/v1/legacy/*` (proxying to upstream legacy endpoints via
-  `AwsApiProxyFunction`; after successful upstream acceptance, sends SES
-  **templated** confirmation emails for contact-us and reservations and may
-  subscribe contacts to Mailchimp + optional welcome journey (contact-us tags
-  from optional `signup_intent`: `contact_inquiry`, `community_newsletter`,
-  `event_notification`; reservation tags `public-www-booking-customer-{slug}`
-  from optional `service_key` / `course_slug`),
+  reconciliation on `/v1/mailchimp/webhook`, native public contact-us on
+  `/v1/contact-us` (Turnstile + Aurora contact upsert; optional sales lead for
+  `contact_inquiry`; post-success SES + Mailchimp + recaps via
+  `run_contact_us_post_success`),
   Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (card-only `payment_method_types[]=card`; wallet buttons are disabled in the
@@ -121,9 +115,9 @@ their primary responsibilities.
   the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
   `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
-  fields and sends a plain-text **sales recap** that includes telephone, optional
-  consultation focus/level, and the free-text question label plus answer when provided.
-  (via `AwsApiProxyFunction`), and signed upload/download URL generation in
+  fields, persists contact + program-enrollment lead, then sends booking confirmation
+  (SES), optional Mailchimp subscribe, and a plain-text **sales recap** with extended
+  booking context when provided, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

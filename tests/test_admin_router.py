@@ -49,14 +49,10 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/assets/free/request",
         "/v1/reservations",
         "/v1/reservations/payment-intent",
-        "/v1/legacy/reservations",
-        "/v1/legacy/contact-us",
-        "/v1/legacy/discounts/validate",
+        "/v1/contact-us",
         "/v1/discounts/validate",
         "/www/v1/discounts/validate",
-        "/www/v1/legacy/reservations",
-        "/www/v1/legacy/contact-us",
-        "/www/v1/legacy/discounts/validate",
+        "/www/v1/contact-us",
         "/v1/mailchimp/webhook",
         "/v1/calendar/public",
         "/www/v1/calendar/public",
@@ -97,17 +93,7 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is not None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/v1/legacy/reservations")
-        is not None
-    )
-    assert (
-        _match_handler(event=event, method="POST", path="/v1/legacy/contact-us")
-        is not None
-    )
-    assert (
-        _match_handler(
-            event=event, method="POST", path="/v1/legacy/discounts/validate"
-        )
+        _match_handler(event=event, method="POST", path="/v1/contact-us")
         is not None
     )
     assert (
@@ -119,17 +105,11 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is not None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/www/v1/legacy/reservations")
+        _match_handler(event=event, method="POST", path="/www/v1/reservations")
         is not None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/www/v1/legacy/contact-us")
-        is not None
-    )
-    assert (
-        _match_handler(
-            event=event, method="POST", path="/www/v1/legacy/discounts/validate"
-        )
+        _match_handler(event=event, method="POST", path="/www/v1/contact-us")
         is not None
     )
     assert (
@@ -158,38 +138,12 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
-        _match_handler(
-            event=event, method="POST", path="/v1/legacy/reservations/extra"
-        )
-        is None
-    )
-    assert (
-        _match_handler(event=event, method="POST", path="/v1/legacy/contact-us/extra")
+        _match_handler(event=event, method="POST", path="/v1/contact-us/extra")
         is None
     )
     assert (
         _match_handler(
-            event=event, method="POST", path="/v1/legacy/discounts/validate/extra"
-        )
-        is None
-    )
-    assert (
-        _match_handler(
-            event=event, method="POST", path="/www/v1/legacy/reservations/extra"
-        )
-        is None
-    )
-    assert (
-        _match_handler(
-            event=event, method="POST", path="/www/v1/legacy/contact-us/extra"
-        )
-        is None
-    )
-    assert (
-        _match_handler(
-            event=event,
-            method="POST",
-            path="/www/v1/legacy/discounts/validate/extra",
+            event=event, method="POST", path="/www/v1/contact-us/extra"
         )
         is None
     )

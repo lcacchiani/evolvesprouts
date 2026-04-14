@@ -1018,37 +1018,37 @@ export function BookingReservationForm({
     })();
 
     const reservationPayload: ReservationSubmissionPayload = {
-      full_name: reservationSummary.attendeeName,
-      email: reservationSummary.attendeeEmail,
-      phone_number: reservationSummary.attendeePhone,
-      cohort_age: reservationSummary.ageGroup ?? '',
-      cohort_date: normalizedCohortDate,
-      comments: sanitizeSingleLineValue(interestedTopics) || undefined,
-      discount_code: discountRule?.code || undefined,
-      price: totalAmount,
-      reservation_pending_until_payment_confirmed:
+      attendeeName: reservationSummary.attendeeName,
+      attendeeEmail: reservationSummary.attendeeEmail,
+      attendeePhone: reservationSummary.attendeePhone,
+      childAgeGroup: reservationSummary.ageGroup ?? '',
+      cohortDate: normalizedCohortDate,
+      interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
+      discountCode: discountRule?.code || undefined,
+      totalAmount,
+      reservationPendingUntilPaymentConfirmed:
         hasPendingReservationAcknowledgement,
-      agreed_to_terms_and_conditions: hasTermsAgreement,
-      payment_method: selectedPaymentMethod,
-      stripe_payment_intent_id: undefined,
-      marketing_opt_in: marketingOptIn,
+      agreedToTermsAndConditions: hasTermsAgreement,
+      paymentMethod: selectedPaymentMethod,
+      stripePaymentIntentId: undefined,
+      marketingOptIn: marketingOptIn,
       locale,
-      course_label: sanitizeSingleLineValue(eventTitle) || undefined,
+      courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
         return {
-          ...(sanitizedServiceKey ? { service_key: sanitizedServiceKey } : {}),
-          ...(sanitizedCourseSlug ? { course_slug: sanitizedCourseSlug } : {}),
+          ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
+          ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
         };
       })(),
-      schedule_date_label: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
-      schedule_time_label: scheduleTimeLabel,
-      location_name: sanitizeSingleLineValue(venueName) || undefined,
-      location_address: sanitizeSingleLineValue(venueAddress) || undefined,
-      primary_session_start_iso: sanitizeSingleLineValue(primarySession?.dateStartTime)
+      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      scheduleTimeLabel: scheduleTimeLabel,
+      locationName: sanitizeSingleLineValue(venueName) || undefined,
+      locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
+      primarySessionStartIso: sanitizeSingleLineValue(primarySession?.dateStartTime)
         || undefined,
-      primary_session_end_iso: sanitizeSingleLineValue(primarySession?.dateEndTime ?? '')
+      primarySessionEndIso: sanitizeSingleLineValue(primarySession?.dateEndTime ?? '')
         || undefined,
       ...(() => {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
@@ -1057,9 +1057,9 @@ export function BookingReservationForm({
           topicsFieldConfig?.label ?? content.topicsInterestLabel,
         );
         return {
-          ...(focus ? { consultation_writing_focus_label: focus } : {}),
-          ...(level ? { consultation_level_label: level } : {}),
-          ...(questionLabel ? { comments_field_label: questionLabel } : {}),
+          ...(focus ? { consultationWritingFocusLabel: focus } : {}),
+          ...(level ? { consultationLevelLabel: level } : {}),
+          ...(questionLabel ? { commentsFieldLabel: questionLabel } : {}),
         };
       })(),
       ...(() => {
@@ -1068,10 +1068,10 @@ export function BookingReservationForm({
         }
 
         return {
-          course_sessions: resolvedCourseSessions.map((s) => {
+          courseSessions: resolvedCourseSessions.map((s) => {
             return {
-              start_iso: s.dateStartTime,
-              ...(s.dateEndTime ? { end_iso: s.dateEndTime } : {}),
+              startIso: s.dateStartTime,
+              ...(s.dateEndTime ? { endIso: s.dateEndTime } : {}),
             };
           }),
         };
@@ -1082,7 +1082,7 @@ export function BookingReservationForm({
           return {};
         }
 
-        return { location_url: href };
+        return { locationUrl: href };
       })(),
     };
 
@@ -1126,15 +1126,15 @@ export function BookingReservationForm({
           return;
         }
         stripePaymentIntentId = stripeConfirmation.paymentIntentId;
-        reservationPayload.stripe_payment_intent_id = stripePaymentIntentId;
+        reservationPayload.stripePaymentIntentId = stripePaymentIntentId;
       }
 
       if (
         selectedPaymentMethod === PAYMENT_METHOD_FPS &&
-        !reservationPayload.stripe_payment_intent_id &&
+        !reservationPayload.stripePaymentIntentId &&
         fpsQrImageDataUrl.trim()
       ) {
-        reservationPayload.fps_qr_image_data_url = fpsQrImageDataUrl.trim();
+        reservationPayload.fpsQrImageDataUrl = fpsQrImageDataUrl.trim();
       }
 
       const submissionResult = await ServerSubmissionResult.resolve({

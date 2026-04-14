@@ -2,6 +2,11 @@
 
 **Status**: Draft — awaiting owner approval before implementation.
 
+> **Update (2026-04):** The legacy public API bridge described in this draft was
+> removed. Contact-us and booking flows are native: `public_contact.py`,
+> `public_reservations.py`, and shared hooks in `public_form_hooks.py`. Treat the
+> legacy-proxy sections below as historical context only.
+
 ---
 
 ## 1. Goal
