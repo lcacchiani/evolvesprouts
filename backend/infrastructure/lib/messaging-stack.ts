@@ -56,6 +56,8 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   openrouterChatCompletionsUrl: string;
   openrouterModel: string;
   openrouterMaxFileBytes: string;
+  /** IANA timezone id for SALES_RECAP_DISPLAY_TIMEZONE (empty = app default). */
+  salesRecapDisplayTimezone: string;
 }
 
 /**
@@ -192,6 +194,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
           DATABASE_IAM_AUTH: "true",
           SES_SENDER_EMAIL: props.sesSenderEmail,
+          SALES_RECAP_DISPLAY_TIMEZONE: props.salesRecapDisplayTimezone,
           COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
           ADMIN_GROUP: props.adminGroupName,
           AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,

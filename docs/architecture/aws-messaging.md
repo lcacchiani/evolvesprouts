@@ -169,9 +169,10 @@ responsive while decoupling downstream processing.
   `MailchimpRequireMarketingConsent` is `true`, subscribe + free-resource journey
   run only when `marketing_opt_in` is true). When users opt in, a **separate**
   shared welcome journey may be triggered (empty journey env vars disable it).
-- Sends an SES **admin recap** email (internal sender) to all Cognito admin-group
-  user emails on **first** media lead creation only (duplicate re-downloads skip
-  the recap; not `SUPPORT_EMAIL`).
+- Sends an SES **sales recap** email (internal sender) to all verified emails on
+  users in the Cognito group named by `ADMIN_GROUP` (today the admin group) on
+  **first** media lead creation only (duplicate re-downloads skip the recap; not
+  `SUPPORT_EMAIL`).
 
 ## Expense parsing flow
 
@@ -312,10 +313,11 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp API host prefix |
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
-| `SES_SENDER_EMAIL` | Verified SES sender for internal recap emails |
+| `SES_SENDER_EMAIL` | Verified SES sender for internal sales recap emails |
+| `SALES_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in sales recap bodies. CDK passes the stack parameter `SalesRecapDisplayTimezone` (deploy maps GitHub var `CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE` via `production.json`). Empty string uses the app built-in default. Invalid values log a warning and fall back to the same default. |
 | `SUPPORT_EMAIL` | Inbox for full **contact_inquiry** contact-us notifications only |
-| `COGNITO_USER_POOL_ID` | User pool used to resolve admin-group emails for form recaps |
-| `ADMIN_GROUP` | Cognito group name whose members receive public-form recap emails (default `admin`) |
+| `COGNITO_USER_POOL_ID` | User pool used with `ADMIN_GROUP` to resolve sales recap recipient emails |
+| `ADMIN_GROUP` | Cognito group whose verified emails receive public-form **sales** recaps (default `admin`; today this is the admin group) |
 | `AWS_PROXY_FUNCTION_ARN` | Invoked for `cognito-idp:ListUsersInGroup` from the in-VPC admin Lambda |
 
 ### Processor Lambda
@@ -324,9 +326,10 @@ SQS retries or mailbox forwarding duplicates.
 |----------|-------------|
 | `DATABASE_SECRET_ARN` | Database credentials secret |
 | `DATABASE_PROXY_ENDPOINT` | RDS Proxy endpoint |
-| `SES_SENDER_EMAIL` | Verified SES sender address (admin recap + download emails) |
-| `COGNITO_USER_POOL_ID` | User pool for resolving admin-group emails (media lead recaps) |
-| `ADMIN_GROUP` | Cognito group whose verified `email` attributes receive media lead recaps |
+| `SES_SENDER_EMAIL` | Verified SES sender address (sales recap + download emails) |
+| `SALES_RECAP_DISPLAY_TIMEZONE` | Same as API Lambda: from `SalesRecapDisplayTimezone` / `CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE`; empty uses app default. |
+| `COGNITO_USER_POOL_ID` | User pool for resolving `ADMIN_GROUP` emails (media lead sales recaps) |
+| `ADMIN_GROUP` | Cognito group whose verified `email` attributes receive media lead sales recaps |
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
@@ -341,7 +344,7 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID for opted-in media leads (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
 | `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (reserved for template helpers) |
-| `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for AWS proxy (`ListUsersInGroup` for admin recap recipients) |
+| `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for AWS proxy (`ListUsersInGroup` for sales recap recipients) |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
 | `OPENROUTER_MODEL` | OpenRouter model identifier |

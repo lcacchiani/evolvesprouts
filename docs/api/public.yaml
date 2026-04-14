@@ -388,14 +388,15 @@ paths:
   /www/v1/legacy/reservations:
     post:
       summary: Submit reservation
-      description: |
+      description: >
         Submit a public reservation request from `public_www`.
 
         On successful upstream acceptance (HTTP 200/202), the API also sends a
         transactional booking confirmation email via SES to the attendee when
-        configured, and a plain-text admin recap to every verified email on users
-        in the Cognito admin group. Optional marketing opt-in may enqueue a
-        Mailchimp audience update; marketing failures do not change the HTTP response.
+        configured, and a plain-text **sales recap** to every verified email on
+        users in the Cognito group named by `ADMIN_GROUP` (today the admin group).
+        Optional marketing opt-in may enqueue a Mailchimp audience update;
+        marketing failures do not change the HTTP response.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -428,13 +429,13 @@ paths:
   /v1/reservations:
     post:
       summary: Submit reservation (direct API path)
-      description: |
+      description: >
         Submit a public reservation from `public_www` (execute-api origin).
 
-        On success (HTTP 202), best-effort plain-text **admin recap** via SES to every
-        verified email on users in the Cognito admin group (failures are logged;
-        HTTP 202 is still returned). Requires Turnstile and payment confirmation per
-        server rules.
+        On success (HTTP 202), best-effort plain-text **sales recap** via SES to
+        every verified email on users in the Cognito group named by
+        `ADMIN_GROUP` (failures are logged; HTTP 202 is still returned). Requires
+        Turnstile and payment confirmation per server rules.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -518,21 +519,22 @@ paths:
   /www/v1/legacy/contact-us:
     post:
       summary: Submit contact-us form
-      description: |
+      description: >
         Submit a contact-us message from `public_www`.
 
         On successful upstream acceptance (HTTP 200/202), the API may send a
         transactional confirmation email via SES when configured, except for
         `signup_intent` values `community_newsletter` and `event_notification`
-        (those flows skip the contact confirmation email). A plain-text **admin
-        recap** is emailed to every verified email on users in the Cognito admin
-        group for all contact-us intents. When `signup_intent` is `contact_inquiry`
-        (or omitted, which defaults to `contact_inquiry`), an additional internal
-        email is sent to `SUPPORT_EMAIL` with the inquiry details. Optional
-        marketing opt-in may enqueue a Mailchimp audience update; marketing failures
-        do not change the HTTP response. Locale for the confirmation email is
-        derived from the `Accept-Language` header when possible (or the JSON
-        `locale` field when valid).
+        (those flows skip the contact confirmation email). A plain-text **sales
+        recap** is emailed to every verified email on users in the Cognito group
+        named by `ADMIN_GROUP` (today the admin group) for all contact-us
+        intents. When `signup_intent` is `contact_inquiry` (or omitted, which
+        defaults to `contact_inquiry`), an additional internal email is sent to
+        `SUPPORT_EMAIL` with the inquiry details. Optional marketing opt-in may
+        enqueue a Mailchimp audience update; marketing failures do not change the
+        HTTP response. Locale for the confirmation email is derived from the
+        `Accept-Language` header when possible (or the JSON `locale` field when
+        valid).
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -562,15 +564,15 @@ paths:
   /v1/assets/free/request:
     post:
       summary: Submit media request (direct API path)
-      description: |
-        Submit a media lead form. Routed on the public website via CloudFront
-        as `POST /www/v1/assets/free/request` (execute-api origin).
+      description: >
+        Submit a media lead form. Routed on the public website via CloudFront as
+        `POST /www/v1/assets/free/request` (execute-api origin).
 
         The download link is delivered by SES (templated email). After async
-        processing, a plain-text recap is emailed to every verified email on
-        users in the Cognito admin group. During a transition period, Mailchimp
-        may still mirror legacy journey delivery unless consent gating is enabled
-        in deployment configuration.
+        processing, a plain-text **sales recap** is emailed to every verified
+        email on users in the Cognito group named by `ADMIN_GROUP`. During a
+        transition period, Mailchimp may still mirror legacy journey delivery
+        unless consent gating is enabled in deployment configuration.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []

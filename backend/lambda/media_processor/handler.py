@@ -43,9 +43,9 @@ from app.services.mailchimp import (
     trigger_customer_journey,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_media_lead_recap_lines,
-    send_admin_form_recap_email,
+    send_sales_form_recap_email,
 )
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
@@ -263,7 +263,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 subscribe_member=not was_mailchimp_synced,
             )
 
-        _send_media_lead_admin_recap(
+        _send_media_lead_sales_recap(
             first_name=first_name,
             email=email,
             media_name=media_name,
@@ -543,7 +543,7 @@ def _ensure_contact_tag(*, session: Session, contact_id: UUID, tag_name: str) ->
         session.flush()
 
 
-def _send_media_lead_admin_recap(
+def _send_media_lead_sales_recap(
     *,
     first_name: str,
     email: str,
@@ -554,7 +554,7 @@ def _send_media_lead_admin_recap(
     locale: str,
 ) -> None:
     try:
-        send_admin_form_recap_email(
+        send_sales_form_recap_email(
             form_title="Media download",
             body_lines=build_media_lead_recap_lines(
                 first_name=first_name,
@@ -569,7 +569,7 @@ def _send_media_lead_admin_recap(
         )
     except Exception:
         logger.exception(
-            "Failed to send media lead admin recap",
+            "Failed to send media lead sales recap",
             extra={"lead_email": mask_email(email)},
         )
 

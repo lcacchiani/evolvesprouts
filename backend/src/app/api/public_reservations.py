@@ -14,9 +14,9 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
-    send_admin_form_recap_email,
+    send_sales_form_recap_email,
 )
 from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key
 from app.services.turnstile import (
@@ -311,7 +311,7 @@ def _parse_response_json(raw_body: Any) -> Mapping[str, Any] | None:
 
 def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
     """Best-effort reservation recap to Cognito admin-group emails (never raises)."""
-    send_admin_form_recap_email(
+    send_sales_form_recap_email(
         form_title="Reservation",
         body_lines=build_reservation_recap_lines(payload=reservation_payload),
         required=False,

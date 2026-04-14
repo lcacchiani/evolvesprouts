@@ -412,7 +412,7 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
     monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
     monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", _fake_sync)
     monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
-    monkeypatch.setattr(handler, "_send_media_lead_admin_recap", lambda **_: None)
+    monkeypatch.setattr(handler, "_send_media_lead_sales_recap", lambda **_: None)
     monkeypatch.setattr(handler, "_create_sales_lead_event", lambda **_: None)
     monkeypatch.setattr(handler, "subscribe_to_marketing", lambda **_: True)
 
@@ -428,17 +428,17 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
     assert sync_calls == []
 
 
-def test_send_media_lead_admin_recap_delegates_to_send_admin_form_recap(
+def test_send_media_lead_sales_recap_delegates_to_send_sales_form_recap(
     monkeypatch: Any,
 ) -> None:
     handler = _load_handler_module()
     calls: list[dict[str, Any]] = []
 
-    def _fake_send_admin(**kwargs: Any) -> None:
+    def _fake_send_sales_recap(**kwargs: Any) -> None:
         calls.append(dict(kwargs))
 
-    monkeypatch.setattr(handler, "send_admin_form_recap_email", _fake_send_admin)
-    handler._send_media_lead_admin_recap(
+    monkeypatch.setattr(handler, "send_sales_form_recap_email", _fake_send_sales_recap)
+    handler._send_media_lead_sales_recap(
         first_name="A",
         email="a@example.com",
         media_name="Guide",

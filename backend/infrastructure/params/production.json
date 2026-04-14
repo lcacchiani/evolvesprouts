@@ -1,6 +1,7 @@
 {
   "SupportEmail": "support@evolvesprouts.com",
   "SesSenderEmail": "no-reply@evolvesprouts.com",
+  "SalesRecapDisplayTimezone": "<FROM_GITHUB_VAR: CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE>",
   "InboundEmailDomainName": "inbound.evolvesprouts.com",
   "InboundInvoiceAllowedSenderPatterns": "<FROM_GITHUB_VAR: CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS>",
   "CognitoDomainPrefix": "evolvesprouts-prod",

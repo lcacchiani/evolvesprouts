@@ -285,13 +285,13 @@ Email is used in two distinct ways:
 #### 1. Outbound transactional email (AWS SES)
 
 The backend uses **Amazon SES** (not iCloud) for all automated outbound
-email — customer confirmations, internal **form recaps** to Cognito admin-group
-users, and contact-inquiry notifications to `SUPPORT_EMAIL`. This is configured
+email — customer confirmations, internal **sales recaps** to verified emails on
+Cognito `ADMIN_GROUP` users (today the admin group), and contact-inquiry notifications to `SUPPORT_EMAIL`. This is configured
 in the Lambda environment:
 
 | Variable | Purpose |
 |---|---|
-| `SES_SENDER_EMAIL` | Verified SES sender address for internal notifications and recaps |
+| `SES_SENDER_EMAIL` | Verified SES sender address for internal notifications and sales recaps |
 | `SUPPORT_EMAIL` | Inbox for full **contact_inquiry** contact-us messages only (admin API Lambda) |
 
 SES is used because iCloud Mail does not provide an SMTP API for
@@ -302,7 +302,7 @@ programmatic sending. The SES sender domain must be verified in AWS.
 The `ida@evolvesprouts.com` inbox is used for:
 - Direct replies to leads and clients
 - Receiving forwarded or direct mail as needed (programmatic form alerts go to
-  `SUPPORT_EMAIL` for contact inquiries and to Cognito admin user emails for recaps)
+  `SUPPORT_EMAIL` for contact inquiries and to Cognito `ADMIN_GROUP` user emails for sales recaps)
 - Google account owner email (GA4, GTM, Google Ads, Search Console)
 - Domain verification for Google Search Console
 
@@ -315,11 +315,11 @@ The inbox notification is an alert, not the source of truth.
 
 ```
 Lead sources:
-  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES recap (admins) + contact_inquiry → SUPPORT_EMAIL ──▶ Mailchimp (opt-in)
-  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES recap (admins) ──▶ Mailchimp (rules below)
+  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES sales recap (`ADMIN_GROUP`) + contact_inquiry → SUPPORT_EMAIL ──▶ Mailchimp (opt-in)
+  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES sales recap (`ADMIN_GROUP`) ──▶ Mailchimp (rules below)
   Community signup ─▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
   Event notification ▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
-  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES recap (admins) ──▶ Mailchimp (opt-in)
+  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES sales recap (`ADMIN_GROUP`) ──▶ Mailchimp (opt-in)
 
   WhatsApp DMs ──────▶ Manual entry (or future WhatsApp Business API)
   LinkedIn DMs ──────▶ Manual entry (redirect to trackable channel)
@@ -477,7 +477,7 @@ Website form submit
         │
         ├─▶ Database: upsert contact, create sales lead
         ├─▶ Mailchimp: add/update subscriber + apply tag
-        └─▶ SES: send admin recap to Cognito admin-group user emails
+        └─▶ SES: send sales recap to verified emails on Cognito `ADMIN_GROUP` users
 ```
 
 #### Backend code
@@ -541,8 +541,8 @@ Website form submit
      field when configured
    - When journey env vars are set, calls the Customer Journey API trigger so
      Mailchimp sends the download email without relying on tag-based automation timing
-   - Sends an SES admin recap to all Cognito admin-group user emails (first lead
-     only; repeat downloads for an existing lead do not send another recap)
+   - Sends an SES sales recap to all verified emails on Cognito `ADMIN_GROUP` users
+     (first lead only; repeat downloads for an existing lead do not send another recap)
 4. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
 

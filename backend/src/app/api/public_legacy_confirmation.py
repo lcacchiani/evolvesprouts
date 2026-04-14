@@ -10,10 +10,10 @@ from app.services.email import (
     send_mime_email_with_inline_png,
     send_templated_email,
 )
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_booking_legacy_recap_lines,
     build_contact_us_recap_lines,
-    send_admin_form_recap_email,
+    send_sales_form_recap_email,
     send_contact_inquiry_support_email,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
@@ -394,7 +394,7 @@ def run_contact_us_post_success(
             "Unexpected error in contact marketing subscribe",
             extra={"lead_email": mask_email(email)},
         )
-    send_admin_form_recap_email(
+    send_sales_form_recap_email(
         form_title="Contact us",
         body_lines=build_contact_us_recap_lines(payload=payload),
     )
@@ -466,7 +466,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
             "Unexpected error in booking marketing subscribe",
             extra={"lead_email": mask_email(email)},
         )
-    send_admin_form_recap_email(
+    send_sales_form_recap_email(
         form_title="Booking",
         body_lines=build_booking_legacy_recap_lines(payload=payload),
     )

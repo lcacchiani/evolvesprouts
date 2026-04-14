@@ -1,9 +1,18 @@
-"""Internal SES notifications for public website form submissions."""
+"""Internal SES notifications for public website form submissions.
+
+Includes **sales recaps** (contact, media lead, reservation, legacy booking) to
+verified emails on the Cognito group named by ``ADMIN_GROUP`` (default ``admin``),
+and **contact_inquiry** notifications to ``SUPPORT_EMAIL``. Module name avoids
+implying that recaps are an "admin product" concept.
+"""
 
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any, Mapping
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.services.aws_proxy import AwsProxyError, invoke
 from app.services.email import send_email
@@ -11,6 +20,10 @@ from app.utils.logging import get_logger, mask_email
 from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
+
+# IANA tz database id (e.g. Asia/Hong_Kong). Default matches Evolve Sprouts' primary market.
+_DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE = "Asia/Hong_Kong"
+_ENV_SALES_RECAP_DISPLAY_TIMEZONE = "SALES_RECAP_DISPLAY_TIMEZONE"
 
 _SIGNUP_INTENT_CONTACT_INQUIRY = "contact_inquiry"
 _SIGNUP_INTENT_COMMUNITY_NEWSLETTER = "community_newsletter"
@@ -34,8 +47,12 @@ def _emails_from_list_users_response(response: Mapping[str, Any]) -> list[str]:
     return found
 
 
-def list_admin_notification_emails() -> list[str]:
-    """Return verified lowercased emails for users in the admin Cognito group."""
+def list_sales_recap_recipient_emails() -> list[str]:
+    """Return verified lowercased emails for the Cognito group used as sales recap recipients.
+
+    Uses ``ADMIN_GROUP`` (default ``admin``). Today that group is the admin group; naming
+    reflects the **sales recap** purpose rather than a generic admin notification.
+    """
     pool_id = os.getenv("COGNITO_USER_POOL_ID", "").strip()
     group = os.getenv("ADMIN_GROUP", "admin").strip() or "admin"
     proxy_arn = os.getenv("AWS_PROXY_FUNCTION_ARN", "").strip()
@@ -55,7 +72,7 @@ def list_admin_notification_emails() -> list[str]:
             response = invoke("cognito-idp", "list_users_in_group", params)
         except (AwsProxyError, OSError, RuntimeError, TypeError, ValueError) as exc:
             logger.warning(
-                "Failed to list admin Cognito users for form recap emails",
+                "Failed to list Cognito users for sales recap recipient resolution",
                 extra={"error": type(exc).__name__},
             )
             return []
@@ -119,6 +136,49 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
         )
 
 
+@lru_cache(maxsize=16)
+def _zoneinfo_for_sales_recap(zone_id: str) -> ZoneInfo:
+    """Return ZoneInfo for a valid IANA id (cached; invalid ids must not reach here)."""
+    return ZoneInfo(zone_id)
+
+
+def _sales_recap_display_timezone() -> ZoneInfo:
+    """Resolve IANA timezone for formatting **Submitted at** in sales recap bodies."""
+    raw = os.getenv(_ENV_SALES_RECAP_DISPLAY_TIMEZONE, "").strip()
+    zone_id = raw or _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE
+    try:
+        return _zoneinfo_for_sales_recap(zone_id)
+    except ZoneInfoNotFoundError:
+        logger.warning(
+            "Invalid sales recap display timezone, using default",
+            extra={
+                "env": _ENV_SALES_RECAP_DISPLAY_TIMEZONE,
+                "zone_id": zone_id,
+                "fallback": _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE,
+            },
+        )
+        return _zoneinfo_for_sales_recap(_DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE)
+
+
+def _format_submitted_at_for_recap_display(raw: str) -> str:
+    """Format an ISO-like timestamp in the configured display timezone."""
+    text = raw.strip()
+    if not text:
+        return "(not set)"
+    normalized = text.replace("Z", "+00:00") if text.endswith("Z") else text
+    try:
+        dt = datetime.fromisoformat(normalized)
+    except ValueError:
+        return text
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    tz = _sales_recap_display_timezone()
+    local = dt.astimezone(tz)
+    abbrev = local.tzname()
+    suffix = f" {abbrev}" if abbrev else ""
+    return f"{local.strftime('%Y-%m-%d %H:%M:%S')}{suffix}"
+
+
 def signup_intent_summary(signup_intent: str) -> str:
     if signup_intent == _SIGNUP_INTENT_COMMUNITY_NEWSLETTER:
         return "Community / newsletter signup"
@@ -127,31 +187,31 @@ def signup_intent_summary(signup_intent: str) -> str:
     return "Contact inquiry (full form)"
 
 
-def send_admin_form_recap_email(
+def send_sales_form_recap_email(
     *,
     form_title: str,
     body_lines: list[str],
     required: bool = False,
     retry_transient_failures: bool = False,
 ) -> None:
-    """Send a plain-text recap to every admin Cognito user."""
+    """Send a plain-text sales recap to each address from ``list_sales_recap_recipient_emails``."""
     source = _source_email()
     if not source:
         if required:
             raise RuntimeError("SES_SENDER_EMAIL must be configured")
         logger.warning(
-            "Skipping admin form recap: SES_SENDER_EMAIL missing",
+            "Skipping sales form recap: SES_SENDER_EMAIL missing",
             extra={"form": form_title},
         )
         return
-    recipients = list_admin_notification_emails()
+    recipients = list_sales_recap_recipient_emails()
     if not recipients:
         if required:
             raise RuntimeError(
-                "No admin notification recipients: Cognito admin group has no email addresses"
+                "No sales recap recipients: Cognito group (ADMIN_GROUP) has no verified email addresses"
             )
         logger.warning(
-            "Skipping admin form recap: no admin emails resolved from Cognito",
+            "Skipping sales form recap: no recipient emails resolved from Cognito",
             extra={"form": form_title},
         )
         return
@@ -167,7 +227,7 @@ def send_admin_form_recap_email(
                 subject=subject,
                 body_text=body_text,
                 logger=logger,
-                operation_name="ses.send_email.admin_form_recap",
+                operation_name="ses.send_email.sales_form_recap",
             )
         else:
             send_email(
@@ -184,7 +244,7 @@ def send_admin_form_recap_email(
         _dispatch_send()
     except Exception:
         logger.exception(
-            "Admin form recap email failed",
+            "Sales form recap email failed",
             extra={"form": form_title, "recipient_count": len(recipients)},
         )
 
@@ -234,7 +294,7 @@ def build_media_lead_recap_lines(
         f"Email: {email}",
         f"Media: {media_name}",
         f"Resource key: {resource_key}",
-        f"Submitted at: {submitted_at}",
+        f"Submitted at: {_format_submitted_at_for_recap_display(submitted_at)}",
         f"Marketing opt-in: {marketing_opt_in}",
         f"Locale: {locale}",
     ]
