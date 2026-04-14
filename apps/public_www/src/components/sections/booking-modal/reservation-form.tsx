@@ -998,9 +998,13 @@ export function BookingReservationForm({
       ...(() => {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
         const level = sanitizeSingleLineValue(consultationLevelLabel);
+        const questionLabel = sanitizeSingleLineValue(
+          topicsFieldConfig?.label ?? content.topicsInterestLabel,
+        );
         return {
           ...(focus ? { consultation_writing_focus_label: focus } : {}),
           ...(level ? { consultation_level_label: level } : {}),
+          ...(questionLabel ? { comments_field_label: questionLabel } : {}),
         };
       })(),
     };

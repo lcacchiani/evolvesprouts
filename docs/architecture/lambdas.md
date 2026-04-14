@@ -120,6 +120,9 @@ their primary responsibilities.
   are set, requests whose `Origin` or `Referer` matches that staging site use
   the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
+  `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
+  fields and sends a plain-text **sales recap** that includes telephone, optional
+  consultation focus/level, and the free-text question label plus answer when provided.
   (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 

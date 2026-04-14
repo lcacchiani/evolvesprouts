@@ -446,7 +446,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReservationSubmissionRequest"
+              $ref: "#/components/schemas/PublicReservationSubmissionRequest"
       responses:
         "202":
           description: Reservation submitted.
@@ -473,7 +473,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReservationSubmissionRequest"
+              $ref: "#/components/schemas/PublicReservationSubmissionRequest"
       responses:
         "202":
           description: Reservation submitted.
@@ -1017,6 +1017,13 @@ components:
         comments:
           type: string
           maxLength: 1000
+        comments_field_label:
+          type: string
+          maxLength: 200
+          description: >
+            Optional label for the free-text question field (e.g. topics interest).
+            Included in the internal sales recap email so the answer is attributed to
+            the correct form prompt.
         discount_code:
           type: string
           maxLength: 100
@@ -1110,6 +1117,77 @@ components:
             FPS QR shown in the public booking modal. When payment is pending and
             payment_method is fps_qr, the API may embed this image in the booking
             confirmation email.
+    PublicReservationSubmissionRequest:
+      type: object
+      required:
+        - attendeeName
+        - attendeeEmail
+        - attendeePhone
+        - childAgeGroup
+        - packageLabel
+        - monthLabel
+        - paymentMethod
+        - totalAmount
+        - courseLabel
+      properties:
+        attendeeName:
+          type: string
+          maxLength: 200
+        attendeeEmail:
+          type: string
+          format: email
+        attendeePhone:
+          type: string
+          maxLength: 40
+        childAgeGroup:
+          type: string
+          maxLength: 200
+        packageLabel:
+          type: string
+          maxLength: 200
+        monthLabel:
+          type: string
+          maxLength: 200
+        paymentMethod:
+          type: string
+          maxLength: 100
+        totalAmount:
+          type: number
+          minimum: 0
+          maximum: 1000000
+        courseLabel:
+          type: string
+          maxLength: 200
+        stripe_payment_intent_id:
+          type: string
+          maxLength: 200
+          description: Required when payment method implies Stripe; PaymentIntent id.
+          pattern: '^pi_[A-Za-z0-9]+$'
+        scheduleDateLabel:
+          type: string
+          maxLength: 200
+        scheduleTimeLabel:
+          type: string
+          maxLength: 200
+        interestedTopics:
+          type: string
+          maxLength: 1000
+        commentsFieldLabel:
+          type: string
+          maxLength: 200
+          description: >
+            Label for the free-text question field as shown to the user. Included in the
+            internal sales recap email next to their answer.
+        consultationWritingFocusLabel:
+          type: string
+          maxLength: 200
+          description: >
+            Consultation booking: writing focus title for confirmation and sales recap.
+        consultationLevelLabel:
+          type: string
+          maxLength: 200
+          description: >
+            Consultation booking: level title for confirmation and sales recap.
     ReservationPaymentIntentRequest:
       type: object
       required:
