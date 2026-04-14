@@ -270,5 +270,3 @@ def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
     body = "\n".join(lines)
     assert "Focus: Home routines" in body
     assert "Level: Essentials" in body
-
-

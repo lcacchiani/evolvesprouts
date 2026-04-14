@@ -31,7 +31,6 @@ from app.templates.transactional_shell_data import (
 )
 from app.utils.fps_qr_png import (
     decode_fps_qr_png_data_url,
-    optional_fps_qr_data_url_from_payload,
 )
 from app.utils.logging import get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
