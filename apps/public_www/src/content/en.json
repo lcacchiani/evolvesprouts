@@ -1274,7 +1274,7 @@
         "topicsField": {
           "label": "Anything we should know",
           "placeholder": "i.e. child is 3, helper has been with us 2 years, or any context for the visit",
-          "required": true
+          "required": false
         },
         "essentials": {
           "priceHkd": 2800,
