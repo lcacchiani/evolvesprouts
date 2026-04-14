@@ -37,7 +37,7 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
         consultation_writing_focus_label="College essays",
         consultation_level_label="Essentials",
     )
-    assert data["schedule_datetime_label"] == "12 April AM"
+    assert data["schedule_datetime_label_html"] == "12 April AM"
     assert data["payment_method"] == "FPS"
     assert data["include_fps_instructions"] is True
     assert "College essays" in data["details_block_html"]
@@ -61,7 +61,7 @@ def test_booking_confirmation_hkt_schedule_from_iso() -> None:
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
     )
-    assert data["schedule_datetime_label"] == "16 April @ 18:00 HKT"
+    assert data["schedule_datetime_label_html"] == "16 April @ 18:00 HKT"
 
 
 def test_booking_confirmation_template_merge_includes_directions_when_url() -> None:
@@ -83,4 +83,7 @@ def test_booking_confirmation_template_merge_includes_directions_when_url() -> N
     )
     assert "Get Directions" in data["location_block_html"]
     assert "https://maps.example/dir" in data["location_block_html"]
+    assert "Venue" in data["location_block_html"]
+    assert "Hong Kong" in data["location_block_html"]
     assert "Get Directions: https://maps.example/dir" in data["location_plain"]
+    assert "Venue\nHong Kong" in data["location_plain"]

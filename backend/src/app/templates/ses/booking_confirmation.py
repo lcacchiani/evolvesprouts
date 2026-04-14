@@ -7,6 +7,7 @@ from typing import Any
 from app.templates.booking_confirmation_content import (
     BOOKING_CALENDAR_SES_FALLBACK_HINT,
     BOOKING_CONFIRMATION_LOCALES,
+    BOOKING_ICS_ATTACHED_NOTE,
     CLOSING_NOTE,
     FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
@@ -48,10 +49,22 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         "{{/if}}"
     )
     row_datetime = (
-        "{{#if schedule_datetime_label}}"
+        "{{#if schedule_datetime_label_html}}"
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["datetime"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{{schedule_datetime_label}}}</td></tr>"
+        '<span style="display:block;text-align:right;">{{{schedule_datetime_label_html}}}</span>'
+        "{{#if include_calendar_note_after_schedule_html}}"
+        '<p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#333333;text-align:right;">'
+        f"{BOOKING_ICS_ATTACHED_NOTE[loc]}"
+        "</p>"
+        "{{else}}"
+        "{{#if include_calendar_fallback_hint_html}}"
+        '<p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#333333;text-align:right;">'
+        f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}"
+        "</p>"
+        "{{/if}}"
+        "{{/if}}"
+        "</td></tr>"
         "{{/if}}"
     )
     row_location = (
@@ -91,11 +104,6 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + row_payment
         + row_total
         + "</table>"
-        "{{#if include_calendar_fallback_hint}}"
-        '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">'
-        f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}"
-        "</p>"
-        "{{/if}}"
         "{{#if is_pending_payment}}"
         '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;'
         'color:#5c4a00;">'
@@ -125,13 +133,20 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + f"{labels['details']}{label_sep}\n"
         + "{{details_plain}}\n"
         + "{{/if}}"
-        + "{{#if schedule_datetime_label}}"
+        + "{{#if schedule_datetime_plain}}"
         + "{{#if schedule_datetime_plain_multiline}}"
         + f"{labels['datetime']}{label_sep}\n"
-        + "{{{schedule_datetime_label}}}\n"
+        + "{{schedule_datetime_plain}}\n"
         + "{{else}}"
         + f"{labels['datetime']}{label_sep}"
-        + "{{{schedule_datetime_label}}}\n"
+        + "{{schedule_datetime_plain}}\n"
+        + "{{/if}}"
+        + "{{#if include_calendar_note_after_schedule_plain}}"
+        + f"{BOOKING_ICS_ATTACHED_NOTE[loc]}\n\n"
+        + "{{else}}"
+        + "{{#if include_calendar_fallback_hint_plain}}"
+        + f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}\n\n"
+        + "{{/if}}"
         + "{{/if}}"
         + "{{/if}}"
         + "{{#if location_plain}}"
@@ -147,9 +162,6 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + "{{payment_method}}\n"
         + f"{labels['total']}{label_sep}"
         + "{{total_amount}}\n\n"
-        + "{{#if include_calendar_fallback_hint}}"
-        + f"{BOOKING_CALENDAR_SES_FALLBACK_HINT[loc]}\n\n"
-        + "{{/if}}"
         + "{{#if is_pending_payment}}"
         + f"{pending}\n\n"
         + "{{/if}}"

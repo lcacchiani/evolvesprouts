@@ -38,8 +38,8 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { getHrefKind } from '@/lib/url-utils';
 
-const THANK_YOU_ICS_LINK_BUTTON_CLASSNAME =
-  'mt-3 block text-left text-base font-semibold underline decoration-1 underline-offset-2 es-text-heading';
+const THANK_YOU_ICS_DOWNLOAD_CLASSNAME =
+  'es-footer-link mt-3 inline-block cursor-pointer rounded-none border-0 bg-transparent p-0 text-left text-base font-normal underline decoration-1 underline-offset-2';
 
 export interface BookingThankYouModalProps {
   locale: Locale;
@@ -372,7 +372,7 @@ export function BookingThankYouModal({
                         type='button'
                         disabled={!canDownloadIcs}
                         onClick={handleDownloadIcs}
-                        className={THANK_YOU_ICS_LINK_BUTTON_CLASSNAME}
+                        className={THANK_YOU_ICS_DOWNLOAD_CLASSNAME}
                       >
                         {content.downloadCalendarInviteLabel}
                       </button>
@@ -392,7 +392,7 @@ export function BookingThankYouModal({
                         type='button'
                         disabled={!canDownloadIcs}
                         onClick={handleDownloadIcs}
-                        className={THANK_YOU_ICS_LINK_BUTTON_CLASSNAME}
+                        className={THANK_YOU_ICS_DOWNLOAD_CLASSNAME}
                       >
                         {content.downloadCalendarInviteLabel}
                       </button>
@@ -448,33 +448,11 @@ export function BookingThankYouModal({
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
                     <span className='block'>{paymentMethodLine}</span>
-                    {isFpsPayment ? (
-                      <>
-                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
-                          {content.fpsReservationPendingNote}
-                        </span>
-                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
-                          {content.fpsQrInstruction}
-                        </span>
-                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
-                          {content.fpsPaymentDisclaimer}
-                        </span>
-                        {summary?.fpsQrImageDataUrl ? (
-                          <Image
-                            src={summary.fpsQrImageDataUrl}
-                            alt={content.fpsQrCodeAltLabel}
-                            width={128}
-                            height={128}
-                            unoptimized
-                            className='mx-auto mt-3 block h-32 w-32'
-                          />
-                        ) : null}
-                      </>
-                    ) : (
+                    {!isFpsPayment ? (
                       <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
                         {content.paymentConfirmationNote}
                       </span>
-                    )}
+                    ) : null}
                   </dd>
                 </div>
               </div>
@@ -485,7 +463,34 @@ export function BookingThankYouModal({
                     {content.totalLabel}
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
-                    {amountLine}
+                    <span className='block'>{amountLine}</span>
+                    {isFpsPayment ? (
+                      <>
+                        <span className='mt-3 block text-base font-semibold leading-6'>
+                          {content.fpsReservationPendingNote}
+                        </span>
+                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                          {content.fpsQrInstruction}
+                        </span>
+                        <span className='mt-1 block text-sm font-normal leading-5 opacity-80'>
+                          {content.fpsPaymentDisclaimer}
+                        </span>
+                        <span className='mt-3 block text-base font-semibold leading-6'>
+                          {content.fpsQrCodeAltLabel}
+                        </span>
+                        {summary?.fpsQrImageDataUrl ? (
+                          <Image
+                            src={summary.fpsQrImageDataUrl}
+                            alt=''
+                            aria-hidden='true'
+                            width={128}
+                            height={128}
+                            unoptimized
+                            className='mx-auto mt-2 block h-32 w-32'
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
                   </dd>
                 </div>
               </div>

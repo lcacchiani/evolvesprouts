@@ -207,7 +207,6 @@ def send_booking_confirmation_email(
         course_sessions=course_sessions,
         location_url=location_url,
     )
-    merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
 
     loc_line_for_ics = format_booking_location_display_line(
         location_name=location_name,
@@ -219,6 +218,13 @@ def send_booking_confirmation_email(
         primary_session_end_iso=primary_session_end_iso,
         location_line=loc_line_for_ics,
     )
+    if ics_bytes is not None:
+        data["include_calendar_note_after_schedule_html"] = True
+        data["include_calendar_note_after_schedule_plain"] = True
+        data["include_calendar_fallback_hint_html"] = False
+        data["include_calendar_fallback_hint_plain"] = False
+
+    merged = merge_transactional_shell_template_data(locale=loc, template_data=data)
 
     pm_lower = payment_method.lower().strip()
     png_bytes: bytes | None = None
