@@ -966,7 +966,7 @@ export function BookingReservationForm({
       paymentMethodCode: selectedPaymentMethod,
       totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
-      courseSlug: sanitizeSingleLineValue(courseSlug) || undefined,
+      courseSlug: sanitizeSingleLineValue(courseSlug ?? '') || undefined,
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
       courseSessions:
