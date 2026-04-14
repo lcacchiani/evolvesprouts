@@ -439,11 +439,12 @@ export function BookingThankYouModal({
                           {content.fpsPaymentDisclaimer}
                         </span>
                         {summary?.fpsQrImageDataUrl ? (
-                          <img
+                          <Image
                             src={summary.fpsQrImageDataUrl}
                             alt={content.fpsQrCodeAltLabel}
                             width={128}
                             height={128}
+                            unoptimized
                             className='mx-auto mt-3 block h-32 w-32'
                           />
                         ) : null}
