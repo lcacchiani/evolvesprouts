@@ -1,9 +1,9 @@
 """Internal SES notifications for public website form submissions.
 
-Sales-facing plain-text **recaps** (contact, media lead, reservation, legacy booking)
-are sent to verified emails on the Cognito group named by ``ADMIN_GROUP`` (default
-``admin``). That group is the admin group today; naming in this module reflects the
-**sales recap** purpose.
+Includes **sales recaps** (contact, media lead, reservation, legacy booking) to
+verified emails on the Cognito group named by ``ADMIN_GROUP`` (default ``admin``),
+and **contact_inquiry** notifications to ``SUPPORT_EMAIL``. Module name avoids
+implying that recaps are an "admin product" concept.
 """
 
 from __future__ import annotations

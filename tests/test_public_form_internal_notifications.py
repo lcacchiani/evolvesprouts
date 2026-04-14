@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.services import public_form_admin_notifications as n
+from app.services import public_form_internal_notifications as n
 
 
 def test_list_sales_recap_recipient_emails_empty_without_env(monkeypatch: Any) -> None:
@@ -112,7 +112,7 @@ def test_send_sales_form_recap_optional_swallows_send_failure(monkeypatch: Any) 
 
     log_mock = MagicMock()
     monkeypatch.setattr(n, "send_email", _boom)
-    monkeypatch.setattr("app.services.public_form_admin_notifications.logger", log_mock)
+    monkeypatch.setattr("app.services.public_form_internal_notifications.logger", log_mock)
     n.send_sales_form_recap_email(
         form_title="X",
         body_lines=["line"],

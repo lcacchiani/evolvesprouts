@@ -10,7 +10,7 @@ from app.services.email import (
     send_mime_email_with_inline_png,
     send_templated_email,
 )
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_booking_legacy_recap_lines,
     build_contact_us_recap_lines,
     send_sales_form_recap_email,

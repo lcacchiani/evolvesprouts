@@ -43,7 +43,7 @@ from app.services.mailchimp import (
     trigger_customer_journey,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_media_lead_recap_lines,
     send_sales_form_recap_email,
 )

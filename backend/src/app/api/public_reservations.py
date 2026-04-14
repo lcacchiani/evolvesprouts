@@ -14,7 +14,7 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
-from app.services.public_form_admin_notifications import (
+from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
     send_sales_form_recap_email,
 )
