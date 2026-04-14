@@ -497,7 +497,7 @@
       },
       {
         "question": "Is the My Best Auntie course suitable for helpers with no childcare experience?",
-        "answer": "Yes. The My Best Auntie domestic helper childcare training is designed for all experience levels. No Montessori knowledge or prior childcare training is required — just a willingness to learn.",
+        "answer": "Yes. The My Best Auntie domestic helper childcare training is designed for all experience levels. No Montessori knowledge or prior childcare training is required - just a willingness to learn.",
         "labelIds": [
           "general"
         ],
@@ -507,7 +507,7 @@
       },
       {
         "question": "How is My Best Auntie different from a standard helper training course?",
-        "answer": "Unlike generic helper training, My Best Auntie is a Montessori-based programme with home visits, personalised coaching, and ongoing support. We observe your helper with your child in your home and provide specific, actionable guidance — not just classroom theory.",
+        "answer": "Unlike generic helper training, My Best Auntie is a Montessori-based programme with home visits, personalised coaching, and ongoing support. We observe your helper with your child in your home and provide specific, actionable guidance - not just classroom theory.",
         "labelIds": [
           "general"
         ],
@@ -527,7 +527,7 @@
       },
       {
         "question": "Can I join the My Best Auntie course if my helper speaks limited English?",
-        "answer": "Yes. Our Montessori helper training uses clear language, demonstrations, visual guidance, and repetition. Fluent English is not required — understanding and consistency are what matter.",
+        "answer": "Yes. Our Montessori helper training uses clear language, demonstrations, visual guidance, and repetition. Fluent English is not required - understanding and consistency are what matter.",
         "labelIds": [
           "general"
         ],
@@ -537,7 +537,7 @@
       },
       {
         "question": "Do I need to have a helper to book a consultation?",
-        "answer": "Only for the Auntie-Child focus. Home Assessment and Parent-Child work whether you have help or not. If you have a helper, I'll still loop her in where it's useful — consistency between the adults in the house is half the work.",
+        "answer": "Only for the Auntie-Child focus. Home Assessment and Parent-Child work whether you have help or not. If you have a helper, I'll still loop her in where it's useful - consistency between the adults in the house is half the work.",
         "labelIds": [
           "general"
         ],
@@ -547,7 +547,7 @@
       },
       {
         "question": "I'm not sure which focus I need. How do I choose?",
-        "answer": "That's what the free 20-minute call is for. Tell me what's feeling hard — mornings, mealtimes, the playroom chaos, your helper and you pulling in different directions — and I'll tell you which focus will give you the most traction.",
+        "answer": "That's what the free 20-minute call is for. Tell me what's feeling hard - mornings, mealtimes, the playroom chaos, your helper and you pulling in different directions - and I'll tell you which focus will give you the most traction.",
         "labelIds": [
           "general"
         ],
@@ -557,7 +557,7 @@
       },
       {
         "question": "How is this different from the 9-week course?",
-        "answer": "The course is a full training for your helper — nine weeks of structured learning, practice, and follow-through. Consultations are single-focus and short. They're the right fit if you want a clear answer to one specific question — or if you want to test how we work together before committing to the course.",
+        "answer": "The course is a full training for your helper - nine weeks of structured learning, practice, and follow-through. Consultations are single-focus and short. They're the right fit if you want a clear answer to one specific question - or if you want to test how we work together before committing to the course.",
         "labelIds": [
           "general"
         ],
@@ -577,7 +577,7 @@
       },
       {
         "question": "In-person or online?",
-        "answer": "In-person for the assessment visits — I need to see your space, your child, and your helper in their actual environment. The follow-up call and WhatsApp support are remote.",
+        "answer": "In-person for the assessment visits - I need to see your space, your child, and your helper in their actual environment. The follow-up call and WhatsApp support are remote.",
         "labelIds": [
           "general"
         ],
@@ -597,7 +597,7 @@
       },
       {
         "question": "What if my helper's English isn't strong?",
-        "answer": "Not a problem. I keep language simple, demonstrate rather than lecture, and leave her with visual or written scripts she can refer back to. Many of the helpers I work with are more comfortable in Tagalog or Bahasa — I adapt.",
+        "answer": "Not a problem. I keep language simple, demonstrate rather than lecture, and leave her with visual or written scripts she can refer back to. Many of the helpers I work with are more comfortable in Tagalog or Bahasa - I adapt.",
         "labelIds": [
           "support"
         ],
@@ -617,7 +617,7 @@
       },
       {
         "question": "What's in the written report?",
-        "answer": "A prioritised list of what to change and why, photos or sketches where useful, and specific scripts or routines tailored to your family. Not a generic handout — something you and your helper can actually use.",
+        "answer": "A prioritised list of what to change and why, photos or sketches where useful, and specific scripts or routines tailored to your family. Not a generic handout - something you and your helper can actually use.",
         "labelIds": [
           "support"
         ],
@@ -627,7 +627,7 @@
       },
       {
         "question": "How soon can we start?",
-        "answer": "Usually within 1—2 weeks of booking. If you're in a tight spot, tell me on the intro call and I'll see what I can do.",
+        "answer": "Usually within 1-2 weeks of booking. If you're in a tight spot, tell me on the intro call and I'll see what I can do.",
         "labelIds": [
           "enrolment"
         ],
@@ -637,7 +637,7 @@
       },
       {
         "question": "What if I book and then need to reschedule?",
-        "answer": "Life with small children — I get it. Reschedule anytime up to 24 hours before, no charge.",
+        "answer": "Life with small children - I get it. Reschedule anytime up to 24 hours before, no charge.",
         "labelIds": [
           "trust"
         ],
@@ -647,7 +647,7 @@
       },
       {
         "question": "Can I book more than one focus?",
-        "answer": "Yes, and many families do — often Home Assessment first, then Auntie-Child once the space is set up. I'll suggest an order on the intro call if you want to do more than one.",
+        "answer": "Yes, and many families do - often Home Assessment first, then Auntie-Child once the space is set up. I'll suggest an order on the intro call if you want to do more than one.",
         "labelIds": [
           "enrolment"
         ],
