@@ -11,7 +11,7 @@ _CTA_BTN_OPEN = (
     '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0;">'
     '<tr><td bgcolor="#C84A16" align="left" '
     'style="background-color:#C84A16;border-radius:8px;padding:12px 24px;">'
-    '<a href="{{{{download_url}}}}" '
+    '<a href="{{download_url}}" '
     'style="color:#ffffff;text-decoration:none;font-weight:600;'
     'font-size:15px;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">'
 )

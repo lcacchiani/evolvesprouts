@@ -18,6 +18,7 @@ def test_media_download_ses_templates_preserve_handlebars_placeholders() -> None
     assert "padding:18px 20px" in en["HtmlPart"]
     assert "{{first_name}}" in en["HtmlPart"]
     assert "{{download_url}}" in en["HtmlPart"]
+    assert "{{{{" not in en["HtmlPart"]
     assert "{{my_best_auntie_url}}" in en["HtmlPart"]
     assert "{{free_intro_call_url}}" in en["HtmlPart"]
     assert "What you'll find inside" in en["HtmlPart"]
