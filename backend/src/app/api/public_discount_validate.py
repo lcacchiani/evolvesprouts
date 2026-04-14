@@ -27,7 +27,7 @@ def handle_public_discount_validate(
     event: Mapping[str, Any],
     method: str,
 ) -> dict[str, Any]:
-    """Validate a discount code; response shape matches legacy DiscountRule."""
+    """Validate a discount code; response shape matches the public booking contract."""
     logger.info(
         "Handling public discount validate request",
         extra={"method": method},

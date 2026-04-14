@@ -1,6 +1,6 @@
 """Internal SES notifications for public website form submissions.
 
-Includes **sales recaps** (contact, media lead, reservation, legacy booking) to
+Includes **sales recaps** (contact, media lead, reservation / booking) to
 verified emails on the Cognito group named by ``ADMIN_GROUP`` (default ``admin``),
 and **contact_inquiry** notifications to ``SUPPORT_EMAIL``. Module name avoids
 implying that recaps are an "admin product" concept.

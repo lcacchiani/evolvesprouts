@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Drop legacy domain tables and related columns."""
+    """Drop unused domain tables and related columns."""
     op.execute(
         """
         ALTER TABLE IF EXISTS assets

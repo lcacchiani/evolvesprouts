@@ -27,7 +27,7 @@ const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
 const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
   /^https:\/\/(?:www\.)?(linkedin\.com|instagram\.com)\/?$/i;
-const LEGACY_SECTION_ROOT_KEYS = {
+const DISALLOWED_SECTION_ROOT_KEYS = {
   hero: ['headline', 'subheadline', 'supportingParagraph'],
   'aboutUs.intro': ['heading', 'body'],
   'myBestAuntie.hero': ['body'],
@@ -418,18 +418,18 @@ function validateSemanticRules(value, keyPath, errors, routePaths) {
   }
 }
 
-function validateNoLegacySectionRootKeys(content, locale, errors) {
-  for (const [sectionPath, legacyKeys] of Object.entries(LEGACY_SECTION_ROOT_KEYS)) {
+function validateNoDisallowedSectionRootKeys(content, locale, errors) {
+  for (const [sectionPath, disallowedKeys] of Object.entries(DISALLOWED_SECTION_ROOT_KEYS)) {
     const sectionValue = readObjectAtPath(content, sectionPath);
     if (!sectionValue) {
       errors.push(`${locale}: missing or invalid section "${sectionPath}"`);
       continue;
     }
 
-    for (const legacyKey of legacyKeys) {
-      if (legacyKey in sectionValue) {
+    for (const disallowedKey of disallowedKeys) {
+      if (disallowedKey in sectionValue) {
         errors.push(
-          `${locale}.${sectionPath}: legacy key "${legacyKey}" is not allowed; use canonical copy keys`,
+          `${locale}.${sectionPath}: key "${disallowedKey}" is not allowed; use canonical copy keys`,
         );
       }
     }
@@ -463,7 +463,7 @@ async function main() {
     validateShape(englishContent, localeContent, locale, errors);
     assertLocaleMetadata(localeContent, locale, errors);
     validateSemanticRules(localeContent, locale, errors, localeRoutePaths);
-    validateNoLegacySectionRootKeys(localeContent, locale, errors);
+    validateNoDisallowedSectionRootKeys(localeContent, locale, errors);
   }
 
   if (errors.length > 0) {

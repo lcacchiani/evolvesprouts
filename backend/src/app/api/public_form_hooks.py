@@ -54,7 +54,7 @@ TAG_PUBLIC_WWW_EVENT_NOTIFICATION = "public-www-event-notification"
 TAG_BOOKING_PREFIX = "public-www-booking-customer-"
 
 # Mailchimp FNAME fallback when first_name is empty for community/event tags.
-# Public forms normally send deriveFirstNameFromEmailLocalPart + locale fallback;
+# Public forms normally send email-derived first_name + locale fallback;
 # this is defensive only (English placeholder if an edge-case request omits FNAME).
 _MAILCHIMP_EMAIL_ONLY_FIRST_NAME = "Friend"
 

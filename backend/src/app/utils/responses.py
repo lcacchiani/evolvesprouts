@@ -75,7 +75,7 @@ def get_security_headers() -> dict[str, str]:
     SECURITY: These headers protect against common web vulnerabilities:
     - X-Content-Type-Options: Prevents MIME type sniffing
     - X-Frame-Options: Prevents clickjacking
-    - X-XSS-Protection: Enables browser XSS filter (legacy)
+    - X-XSS-Protection: Enables browser XSS filter (older browsers)
     - Cache-Control: Prevents caching of sensitive data
 
     Returns:

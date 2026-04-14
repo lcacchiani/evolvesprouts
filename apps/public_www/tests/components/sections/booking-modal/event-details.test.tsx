@@ -26,11 +26,11 @@ describe('BookingEventDetails (event variant)', () => {
         activePartRows={[
           {
             date: '21 May 2026 · 10:00 AM - 12:00 PM',
-            description: 'Legacy schedule description one',
+            description: 'Old-format schedule description one',
           },
           {
             date: '28 May 2026 · 10:00 AM - 12:00 PM',
-            description: 'Legacy schedule description two',
+            description: 'Old-format schedule description two',
           },
         ]}
         originalAmount={1280}
@@ -53,8 +53,8 @@ describe('BookingEventDetails (event variant)', () => {
     expect(screen.getByText('28 May 2026 · 10:00 AM - 12:00 PM')).toBeInTheDocument();
 
     expect(container.querySelectorAll('span[data-course-part-chip="true"]')).toHaveLength(0);
-    expect(screen.queryByText('Legacy schedule description one')).not.toBeInTheDocument();
-    expect(screen.queryByText('Legacy schedule description two')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old-format schedule description one')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old-format schedule description two')).not.toBeInTheDocument();
 
     expect(screen.getByText('HK$1,280')).toBeInTheDocument();
     expect(container.querySelector('span.es-mask-dollar-danger')).not.toBeNull();
