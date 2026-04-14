@@ -36,6 +36,7 @@ function buildPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    dateConfirmationNote: p.dateConfirmationNote,
   };
 }
 
@@ -74,6 +75,11 @@ describe('ConsultationBookingModal', () => {
     expect(screen.getByTestId('consultation-modal-selected-slot')).toBeInTheDocument();
     const icon = screen.getByTestId('consultation-modal-selected-slot-calendar-icon');
     expect(icon.className).toContain('es-mask-calendar-danger');
+    expect(
+      screen.getByText(
+        enContent.bookingModal.paymentModal.consultationPicker.dateConfirmationNote,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('selects PM when only the afternoon slot is available for that day', () => {

@@ -14,6 +14,7 @@ import {
   collectDistinctYearMonthsFromYmds,
   CONSULTATION_SLOT_AM_HOUR_LOCAL,
   CONSULTATION_SLOT_PM_HOUR_LOCAL,
+  earliestConsultationBookableYmd,
   firstSelectableConsultationPeriod,
   formatConsultationPickerMonthHeading,
   formatConsultationSelectedSlotSummary,
@@ -61,7 +62,14 @@ describe('consultation-booking-slot', () => {
 
     expect(weeks[0]?.days[0]?.isPast).toBe(true);
     expect(weeks[0]?.days[0]?.isDisabled).toBe(true);
-    expect(weeks[0]?.days[1]?.isDisabled).toBe(false);
+    expect(weeks[0]?.days[1]?.isPast).toBe(false);
+    expect(weeks[0]?.days[1]?.isDisabled).toBe(true);
+    expect(weeks[0]?.days[2]?.isDisabled).toBe(true);
+    expect(weeks[0]?.days[3]?.isDisabled).toBe(false);
+  });
+
+  it('earliestConsultationBookableYmd is two calendar days after today in zone', () => {
+    expect(earliestConsultationBookableYmd('2026-04-14', HK)).toBe('2026-04-16');
   });
 
   it('disables a day when both am and pm are unavailable', () => {

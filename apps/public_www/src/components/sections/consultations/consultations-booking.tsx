@@ -126,6 +126,7 @@ function buildConsultationPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    dateConfirmationNote: p.dateConfirmationNote,
   };
 }
 

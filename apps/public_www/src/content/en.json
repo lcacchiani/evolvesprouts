@@ -1482,7 +1482,8 @@
         "weekdayShortFri": "Fri",
         "datePickerLegend": "Preferred home visit date and time of day",
         "datePickerDayTemplate": "Select day {day}",
-        "datePickerUnavailableDayTemplate": "Day {day} unavailable"
+        "datePickerUnavailableDayTemplate": "Day {day} unavailable",
+        "dateConfirmationNote": "Date/time confirmed once booking is complete."
       }
     },
     "thankYouModal": {
