@@ -101,8 +101,12 @@ describe('ConsultationsBooking', () => {
     }
 
     const levelGrid = screen.getByTestId('consultations-booking-level-grid');
+    expect(levelGrid.className).toContain('max-w-[');
+    expect(levelGrid.className).not.toContain('md:grid');
     const levelSelectorList = levelGrid.querySelector(':scope > ul');
     expect(levelSelectorList).not.toBeNull();
+    expect(levelSelectorList!.className).toContain('grid-cols-2');
+    expect(levelSelectorList!.className).not.toContain('md:flex');
     for (const level of booking.levels) {
       expect(
         within(levelGrid).getByRole('button', { name: level.title }),
