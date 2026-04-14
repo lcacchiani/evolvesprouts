@@ -1055,7 +1055,7 @@ export function BookingReservationForm({
       location_address: sanitizeSingleLineValue(venueAddress) || undefined,
       primary_session_start_iso: sanitizeSingleLineValue(primarySession?.dateStartTime)
         || undefined,
-      primary_session_end_iso: sanitizeSingleLineValue(primarySession?.dateEndTime)
+      primary_session_end_iso: sanitizeSingleLineValue(primarySession?.dateEndTime ?? '')
         || undefined,
       ...(() => {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
