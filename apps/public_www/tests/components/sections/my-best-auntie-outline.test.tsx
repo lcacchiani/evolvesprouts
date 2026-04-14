@@ -103,7 +103,7 @@ describe('MyBestAuntieOutline section', () => {
     expect(renderedModuleIconCount).toBe(moduleIcons.length * 2);
   });
 
-  it('reveals the desktop card description when clicked', () => {
+  it('defaults the first desktop column expanded and toggles it on click', () => {
     const { container } = render(
       <MyBestAuntieOutline content={enContent.myBestAuntie.outline} />,
     );
@@ -125,6 +125,12 @@ describe('MyBestAuntieOutline section', () => {
     );
     expect(description).not.toBeNull();
     expect(countLine).not.toBeNull();
+    expect(description?.className).not.toContain('max-h-[92px]');
+    expect(description?.className).not.toContain('overflow-hidden');
+    expect(countLine?.className).toContain('h-[74px]');
+    expect(countLine?.className).toContain('-top-[70px]');
+
+    fireEvent.click(firstCard!);
     expect(description?.className).toContain('max-h-[92px]');
     expect(description?.className).toContain('overflow-hidden');
     expect(countLine?.className).toContain('h-[148px]');
@@ -136,12 +142,6 @@ describe('MyBestAuntieOutline section', () => {
     expect(countLine?.className).toContain('h-[74px]');
     expect(countLine?.className).toContain('-top-[70px]');
     expect(countLine?.className).not.toContain('h-[148px]');
-
-    fireEvent.click(firstCard!);
-    expect(description?.className).toContain('max-h-[92px]');
-    expect(description?.className).toContain('overflow-hidden');
-    expect(countLine?.className).toContain('h-[148px]');
-    expect(countLine?.className).toContain('-top-[144px]');
   });
 
   it('renders three key points per module without visible bullet glyphs', () => {

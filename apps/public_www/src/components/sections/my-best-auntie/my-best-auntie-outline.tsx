@@ -257,8 +257,10 @@ export function MyBestAuntieOutline({
   ctaHref,
   commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieOutlineProps) {
+  const firstModuleStep = content.modules[0]?.step ?? null;
+
   const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
-    null,
+    firstModuleStep,
   );
 
   const { carouselRef } = useHorizontalCarousel<HTMLDivElement>({
