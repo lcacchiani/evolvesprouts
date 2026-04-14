@@ -8,6 +8,12 @@ export type ConsultationDayPeriod = 'am' | 'pm';
 export const CONSULTATION_SLOT_AM_HOUR_LOCAL = 9;
 export const CONSULTATION_SLOT_PM_HOUR_LOCAL = 14;
 
+/**
+ * Earliest selectable calendar day is this many whole days after "today" in the picker timezone
+ * (e.g. when today is the 14th, the first bookable day is the 16th).
+ */
+export const CONSULTATION_BOOKING_MIN_LEAD_CALENDAR_DAYS = 2;
+
 const WEEKDAY_LONG_MONDAY_FIRST = [
   'Monday',
   'Tuesday',
@@ -87,13 +93,22 @@ export function isConsultationPeriodBlocked(
   return period === 'am' ? row.am : row.pm;
 }
 
-/** True when both AM and PM are blocked, or the calendar date is in the past (caller passes `todayYmd`). */
+/** First calendar day that can be selected (inclusive), in the same YYYY-MM-DD space as `todayYmd`. */
+export function earliestConsultationBookableYmd(todayYmd: string, timeZone: string): string {
+  return addCalendarDaysInZone(todayYmd, CONSULTATION_BOOKING_MIN_LEAD_CALENDAR_DAYS, timeZone);
+}
+
+/** True when the day is before today, before the minimum lead time, or both AM and PM are blocked. */
 export function isConsultationPickerDayFullyBlocked(
   ymd: string,
   todayYmd: string,
   unavailableByYmd: ConsultationUnavailableByYmd,
+  timeZone: string,
 ): boolean {
   if (ymd < todayYmd) {
+    return true;
+  }
+  if (ymd < earliestConsultationBookableYmd(todayYmd, timeZone)) {
     return true;
   }
   const row = unavailableByYmd.get(ymd);
@@ -147,7 +162,7 @@ export function buildConsultationPickerWeeks(
         ymd,
         dayOfMonth: ymdToDayOfMonth(ymd),
         isPast,
-        isDisabled: isConsultationPickerDayFullyBlocked(ymd, todayYmd, unavailableByYmd),
+        isDisabled: isConsultationPickerDayFullyBlocked(ymd, todayYmd, unavailableByYmd, timeZone),
       });
     }
     weeks.push({ days });

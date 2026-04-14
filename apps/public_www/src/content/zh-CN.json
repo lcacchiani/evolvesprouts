@@ -1482,7 +1482,8 @@
         "weekdayShortFri": "五",
         "datePickerLegend": "首选上门评估日期与时段",
         "datePickerDayTemplate": "选择 {day} 日",
-        "datePickerUnavailableDayTemplate": "{day} 日不可选"
+        "datePickerUnavailableDayTemplate": "{day} 日不可选",
+        "dateConfirmationNote": "完成预约后才会最终确认日期。"
       }
     },
     "thankYouModal": {

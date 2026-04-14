@@ -82,6 +82,8 @@ export interface ConsultationBookingPickerContent {
   datePickerDayTemplate: string;
   /** Interpolate `{day}`; use when the day is unavailable (past or fully blocked). */
   datePickerUnavailableDayTemplate: string;
+  /** Shown under the selected date summary; same tone as payment modal refund hint. */
+  dateConfirmationNote: string;
 }
 
 function ConsultationDatePickerGrid({
@@ -268,19 +270,21 @@ function ConsultationDatePickerGrid({
       </div>
 
       {selectedSlotSummary ? (
-        <div
-          className='flex items-center gap-4'
-          data-testid='consultation-modal-selected-slot'
-        >
-          <span className='es-icon-circle-lg shrink-0'>
-            <span
-              data-testid='consultation-modal-selected-slot-calendar-icon'
-              className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
-              aria-hidden='true'
-            />
-          </span>
-          <p className='min-w-0 flex-1 text-[17px] font-semibold leading-6 es-text-heading'>
-            {selectedSlotSummary}
+        <div className='flex flex-col gap-4' data-testid='consultation-modal-selected-slot'>
+          <div className='flex items-center gap-4'>
+            <span className='es-icon-circle-lg shrink-0'>
+              <span
+                data-testid='consultation-modal-selected-slot-calendar-icon'
+                className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
+                aria-hidden='true'
+              />
+            </span>
+            <p className='min-w-0 flex-1 text-[17px] font-semibold leading-6 es-text-heading'>
+              {selectedSlotSummary}
+            </p>
+          </div>
+          <p className='text-base font-semibold leading-6 es-text-heading'>
+            {content.dateConfirmationNote}
           </p>
         </div>
       ) : null}

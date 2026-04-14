@@ -1482,7 +1482,8 @@
         "weekdayShortFri": "五",
         "datePickerLegend": "首選上門評估日期與時段",
         "datePickerDayTemplate": "選擇 {day} 日",
-        "datePickerUnavailableDayTemplate": "{day} 日不可選"
+        "datePickerUnavailableDayTemplate": "{day} 日不可選",
+        "dateConfirmationNote": "完成預約後先會最終確認日期。"
       }
     },
     "thankYouModal": {
