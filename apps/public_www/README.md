@@ -176,10 +176,10 @@ What the runner validates:
 - Public API smoke (same-origin `/www/v1/*` with optional direct `/v1/*` fallback):
   - `GET /www/v1/calendar/public`
   - `GET /www/v1/assets/free?limit=100`
-  - `POST /www/v1/legacy/contact-us`
+  - `POST /www/v1/contact-us`
   - `POST /www/v1/discounts/validate`
   - `POST /www/v1/assets/free/request`
-  - `POST /www/v1/legacy/reservations`
+  - `POST /www/v1/reservations`
   - `POST /www/v1/reservations/payment-intent`
 
 Status handling for API checks:
@@ -259,19 +259,18 @@ CSP generation derives `connect-src` API origins from
 `NEXT_PUBLIC_API_BASE_URL`.
 When set to an absolute URL, that same variable also determines which API
 origins are allowed in CSP `connect-src`.
-`NEXT_PUBLIC_API_BASE_URL` is used for public website API calls such as legacy
-bridge routes, Stripe payment-intent initialization
-(`/v1/reservations/payment-intent`), and the free guides resource library list
-(`GET /v1/assets/free`, same-origin as `/www/v1/assets/free` when proxied).
+`NEXT_PUBLIC_API_BASE_URL` is used for public website API calls such as contact-us,
+reservations, Stripe payment-intent initialization (`/v1/reservations/payment-intent`),
+and the free guides resource library list (`GET /v1/assets/free`, same-origin as
+`/www/v1/assets/free` when proxied).
 The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
 for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
 injects the beacon at the edge.
-Public website discount validation uses the native route
-`/v1/discounts/validate` (same JSON contract as the legacy bridge). Contact-us
-and reservation submission use the legacy bridge routes:
+Public website discount validation uses `/v1/discounts/validate`. Contact-us and
+reservation submission use:
 
-- `/v1/legacy/contact-us`
-- `/v1/legacy/reservations`
+- `/v1/contact-us`
+- `/v1/reservations`
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the

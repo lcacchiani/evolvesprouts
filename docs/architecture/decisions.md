@@ -405,6 +405,22 @@ sections.
 - `AssetDownloadCloudFrontPublicKeyPem`
 - `AssetDownloadCloudFrontPrivateKeySecretArn`
 
+## Public website: remove legacy CRM API bridge
+
+**Decision:** Retire `/v1/legacy/*` proxy routes and the `LEGACY_PUBLIC_API_*`
+configuration. `public_www` calls native Aurora-backed handlers:
+`POST /v1/contact-us`, `POST /v1/reservations`, and existing
+`POST /v1/discounts/validate`.
+
+**Why:**
+- Single source of truth in Aurora for contacts and sales leads.
+- Fewer moving parts (no outbound legacy HTTP from the admin Lambda).
+- Aligns transactional email and Mailchimp hooks with persisted data.
+
+**Non-production safety:** `DEPLOYMENT_STAGE` gates outbound SES, Mailchimp, and
+SNS media publishes in non-production environments (see `deployment.py` and CDK
+`DEPLOYMENT_STAGE` on the admin and media-processor Lambdas).
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

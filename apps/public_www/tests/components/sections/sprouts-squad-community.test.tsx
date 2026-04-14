@@ -408,7 +408,7 @@ describe('SproutsSquadCommunity section', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/contact-us',
+        endpointPath: '/v1/contact-us',
         method: 'POST',
         body: {
           email_address: 'community@example.com',

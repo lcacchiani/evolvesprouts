@@ -10,6 +10,7 @@ from app.services.mailchimp import (
     add_subscriber_with_tag,
     trigger_customer_journey,
 )
+from app.utils.deployment import is_production
 from app.utils.logging import ContextLogger, mask_email
 from app.utils.retry import run_with_retry
 
@@ -44,6 +45,22 @@ def subscribe_to_marketing(
             extra={"lead_email": mask_email(normalized_email)},
         )
         return False
+
+    if not is_production():
+        logger.info(
+            "Staging marketing subscribe skipped (no Mailchimp in non-production)",
+            extra={
+                "lead_email": mask_email(normalized_email),
+                "tag_name": tag_name,
+                "journey_id_set": bool(
+                    os.getenv("MAILCHIMP_WELCOME_JOURNEY_ID", "").strip()
+                ),
+                "journey_step_set": bool(
+                    os.getenv("MAILCHIMP_WELCOME_JOURNEY_STEP_ID", "").strip()
+                ),
+            },
+        )
+        return True
 
     if subscribe_member:
         try:

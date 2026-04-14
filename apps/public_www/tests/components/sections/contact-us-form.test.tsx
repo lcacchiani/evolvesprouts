@@ -483,7 +483,7 @@ describe('ContactUsForm section', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/legacy/contact-us',
+        endpointPath: '/v1/contact-us',
         method: 'POST',
         body: {
           first_name: 'Ida',
@@ -494,6 +494,7 @@ describe('ContactUsForm section', () => {
           signup_intent: 'contact_inquiry',
           locale: 'en',
         },
+        turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
       });
       expect(

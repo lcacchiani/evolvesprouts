@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.api import public_legacy_confirmation as plc
+from app.api import public_form_hooks as plc
 
 
 def test_mailchimp_tag_for_contact_signup_intent() -> None:
@@ -40,6 +40,14 @@ def test_mailchimp_booking_tag_from_payload() -> None:
         == "public-www-booking-customer-primary"
     )
     assert plc.mailchimp_booking_tag_from_payload({}) == "public-www-booking-customer-unknown"
+    assert (
+        plc.mailchimp_booking_tag_from_payload({"serviceKey": "From Camel"})
+        == "public-www-booking-customer-from-camel"
+    )
+    assert (
+        plc.mailchimp_booking_tag_from_payload({"courseSlug": "mba-track"})
+        == "public-www-booking-customer-mba-track"
+    )
 
 
 @pytest.mark.parametrize(
@@ -121,15 +129,15 @@ def test_run_reservation_post_success_passes_dynamic_tag_to_booking_marketing(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_booking_confirmation_email",
+        "app.api.public_form_hooks.send_booking_confirmation_email",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.maybe_subscribe_booking_marketing",
+        "app.api.public_form_hooks.maybe_subscribe_booking_marketing",
         _fake_maybe_subscribe,
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_sales_form_recap_email",
+        "app.api.public_form_hooks.send_sales_form_recap_email",
         MagicMock(),
     )
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock
 
-from app.api.public_legacy_confirmation import (
+from app.api.public_form_hooks import (
     first_name_from_full_name,
     normalize_body_locale,
     resolve_contact_confirmation_locale,
@@ -63,15 +63,15 @@ def test_run_reservation_post_success_sets_pending_without_stripe(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_booking_confirmation_email",
+        "app.api.public_form_hooks.send_booking_confirmation_email",
         _fake_send,
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.maybe_subscribe_booking_marketing",
+        "app.api.public_form_hooks.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_sales_form_recap_email",
+        "app.api.public_form_hooks.send_sales_form_recap_email",
         MagicMock(),
     )
 

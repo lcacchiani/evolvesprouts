@@ -1,4 +1,4 @@
-"""Post-success transactional email + marketing hooks for legacy public proxy."""
+"""Post-success transactional email, marketing, and internal notifications for public forms."""
 
 from __future__ import annotations
 
@@ -327,8 +327,12 @@ def mailchimp_tag_for_contact_signup_intent(signup_intent: str | None) -> str:
 
 def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
     """Build ``public-www-booking-customer-{slug}`` from stable booking identifiers."""
-    service_key = normalize_public_slug(payload.get("service_key"))
-    course_slug = normalize_public_slug(payload.get("course_slug"))
+    service_key = normalize_public_slug(
+        payload.get("service_key") or payload.get("serviceKey")
+    )
+    course_slug = normalize_public_slug(
+        payload.get("course_slug") or payload.get("courseSlug")
+    )
     slug_part = service_key or course_slug or "unknown"
     return f"{TAG_BOOKING_PREFIX}{slug_part}"
 
@@ -539,11 +543,11 @@ def _parse_course_sessions_from_payload(
     for item in raw:
         if not isinstance(item, Mapping):
             continue
-        start = item.get("start_iso")
+        start = item.get("start_iso") or item.get("startIso")
         if not isinstance(start, str) or not start.strip():
             continue
         row: dict[str, str] = {"start_iso": start.strip()}
-        end = item.get("end_iso")
+        end = item.get("end_iso") or item.get("endIso")
         if isinstance(end, str) and end.strip():
             row["end_iso"] = end.strip()
         out.append(row)

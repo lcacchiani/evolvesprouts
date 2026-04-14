@@ -238,6 +238,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
             endpointPath: CONTACT_US_API_PATH,
             method: 'POST',
             body: requestBody,
+            turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],
           }),
         failureMessage: content.submitErrorMessage,

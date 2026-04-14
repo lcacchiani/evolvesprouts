@@ -317,8 +317,8 @@ The inbox notification is an alert, not the source of truth.
 Lead sources:
   Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES sales recap (`ADMIN_GROUP`) + contact_inquiry → SUPPORT_EMAIL ──▶ Mailchimp (opt-in)
   Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES sales recap (`ADMIN_GROUP`) ──▶ Mailchimp (rules below)
-  Community signup ─▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
-  Event notification ▶ /www/v1/legacy/contact-us (signup_intent) ──▶ legacy CRM ──▶ SES hook ──▶ Mailchimp
+  Community signup ─▶ /www/v1/contact-us (signup_intent) ──▶ Aurora CRM ──▶ SES hook ──▶ Mailchimp
+  Event notification ▶ /www/v1/contact-us (signup_intent) ──▶ Aurora CRM ──▶ SES hook ──▶ Mailchimp
   Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES sales recap (`ADMIN_GROUP`) ──▶ Mailchimp (opt-in)
 
   WhatsApp DMs ──────▶ Manual entry (or future WhatsApp Business API)
@@ -525,12 +525,12 @@ Website form submit
 
 1. User submits a form on the website. **Media download** requests hit API
    Gateway and flow through SNS/SQS to the media processor. **Contact,
-   newsletter, and event-notification** email captures use the legacy
-   `/www/v1/legacy/contact-us` proxy (after upstream acceptance, the admin Lambda
-   runs `run_contact_us_post_success`, which routes Mailchimp tags from optional
-   `signup_intent`). **Booking** submissions use `/www/v1/legacy/reservations`;
-   after upstream acceptance, `run_reservation_post_success` may subscribe with
-   `public-www-booking-customer-{slug}` from optional `service_key` / `course_slug`.
+   newsletter, and event-notification** captures use `/www/v1/contact-us` (native
+   Aurora persistence, then `run_contact_us_post_success` for SES + Mailchimp tags
+   from `signup_intent`). **Booking** submissions use `/www/v1/reservations`; after
+   persistence, booking confirmation + optional Mailchimp subscribe use
+   `public-www-booking-customer-{slug}` from optional `serviceKey` / `courseSlug`
+   (camelCase) or legacy snake_case keys in internal payloads.
 2. For media: the admin Lambda publishes to SNS, which delivers to the SQS queue.
 3. The media processor Lambda picks up the message and:
    - Upserts the contact in the database

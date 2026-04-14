@@ -290,9 +290,7 @@ paths:
       summary: Validate discount code (native)
       description: |
         Validates an admin-managed discount code against Aurora (`discount_codes`).
-        Request and successful response shapes match the legacy bridge
-        `POST /www/v1/legacy/discounts/validate` so clients can migrate off the
-        legacy upstream without changing JSON contracts.
+        Request and successful response shapes match historical public booking clients.
 
         Validity window: when `valid_from` / `valid_until` are set on the code, validation
         succeeds only while the server UTC instant is **on or after** `valid_from` and
@@ -355,48 +353,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /www/v1/legacy/discounts/validate:
+  /v1/contact-us:
     post:
-      summary: Validate discount code
-      description: Validate a discount code for the public booking flow.
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DiscountValidationRequest"
-      responses:
-        "200":
-          description: Discount validation response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DiscountValidationResponse"
-        "202":
-          description: Discount validation accepted.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DiscountValidationResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /www/v1/legacy/reservations:
-    post:
-      summary: Submit reservation
+      summary: Submit contact-us form (direct API path)
       description: >
-        Submit a public reservation request from `public_www`.
-
-        On successful upstream acceptance (HTTP 200/202), the API also sends a
-        transactional booking confirmation email via SES to the attendee when
-        configured, and a plain-text **sales recap** to every verified email on
-        users in the Cognito group named by `ADMIN_GROUP` (today the admin group).
-        Optional marketing opt-in may enqueue a Mailchimp audience update;
-        marketing failures do not change the HTTP response.
+        Accepts contact-us, community newsletter, and event-notification signups from
+        `public_www`. Requires Turnstile. Persists to Aurora (contact; sales lead
+        for `contact_inquiry` only), then runs best-effort SES confirmation (skipped
+        for newsletter/event-notification intents), optional Mailchimp subscribe,
+        sales recap, and `SUPPORT_EMAIL` notification for `contact_inquiry`.
+        Returns **500** when persistence fails. If hooks fail after commit, the API
+        still returns **202** (data is saved).
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -407,16 +374,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReservationSubmissionRequest"
+              $ref: "#/components/schemas/ContactUsSubmissionRequest"
       responses:
-        "200":
-          description: Reservation accepted.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReservationSubmissionAccepted"
         "202":
-          description: Reservation accepted.
+          description: Contact submission accepted.
           content:
             application/json:
               schema:
@@ -425,6 +386,57 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/contact-us:
+    post:
+      summary: Submit contact-us form (website proxy path)
+      description: Same as `POST /v1/contact-us` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+          TurnstileToken: []
+      parameters:
+        - $ref: "#/components/parameters/TurnstileTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactUsSubmissionRequest"
+      responses:
+        "202":
+          description: Contact submission accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/reservations:
     post:
@@ -432,10 +444,14 @@ paths:
       description: >
         Submit a public reservation from `public_www` (execute-api origin).
 
-        On success (HTTP 202), best-effort plain-text **sales recap** via SES to
-        every verified email on users in the Cognito group named by
-        `ADMIN_GROUP` (failures are logged; HTTP 202 is still returned). Requires
-        Turnstile and payment confirmation per server rules.
+        Persists the attendee as a CRM contact and creates a program-enrollment
+        sales lead, then returns **202** on success. Best-effort SES booking
+        confirmation to the attendee, optional Mailchimp subscribe, and plain-text
+        **sales recap** to `ADMIN_GROUP` verified emails run after commit (hook
+        failures are logged; HTTP **202** is still returned). Returns **500** when
+        Aurora persistence fails. Requires Turnstile, `agreedToTermsAndConditions:
+        true`, and Stripe PaymentIntent verification when the payment method implies
+        Stripe.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -458,6 +474,12 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/reservations:
     post:
@@ -485,6 +507,12 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/reservations/payment-intent:
     post:
@@ -516,51 +544,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /www/v1/legacy/contact-us:
-    post:
-      summary: Submit contact-us form
-      description: >
-        Submit a contact-us message from `public_www`.
-
-        On successful upstream acceptance (HTTP 200/202), the API may send a
-        transactional confirmation email via SES when configured, except for
-        `signup_intent` values `community_newsletter` and `event_notification`
-        (those flows skip the contact confirmation email). A plain-text **sales
-        recap** is emailed to every verified email on users in the Cognito group
-        named by `ADMIN_GROUP` (today the admin group) for all contact-us
-        intents. When `signup_intent` is `contact_inquiry` (or omitted, which
-        defaults to `contact_inquiry`), an additional internal email is sent to
-        `SUPPORT_EMAIL` with the inquiry details. Optional marketing opt-in may
-        enqueue a Mailchimp audience update; marketing failures do not change the
-        HTTP response. Locale for the confirmation email is derived from the
-        `Accept-Language` header when possible (or the JSON `locale` field when
-        valid).
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ContactUsSubmissionRequest"
-      responses:
-        "200":
-          description: Contact request accepted.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReservationSubmissionAccepted"
-        "202":
-          description: Contact request accepted.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReservationSubmissionAccepted"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
   /v1/assets/free/request:
     post:
       summary: Submit media request (direct API path)
@@ -570,9 +553,8 @@ paths:
 
         The download link is delivered by SES (templated email). After async
         processing, a plain-text **sales recap** is emailed to every verified
-        email on users in the Cognito group named by `ADMIN_GROUP`. During a
-        transition period, Mailchimp may still mirror legacy journey delivery
-        unless consent gating is enabled in deployment configuration.
+        email on users in the Cognito group named by `ADMIN_GROUP`. Optional
+        Mailchimp subscribe + journey triggers respect `MAILCHIMP_REQUIRE_MARKETING_CONSENT`.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -1131,11 +1113,10 @@ components:
         - attendeeEmail
         - attendeePhone
         - childAgeGroup
-        - packageLabel
-        - monthLabel
         - paymentMethod
         - totalAmount
         - courseLabel
+        - agreedToTermsAndConditions
       properties:
         attendeeName:
           type: string
@@ -1165,7 +1146,7 @@ components:
         courseLabel:
           type: string
           maxLength: 200
-        stripe_payment_intent_id:
+        stripePaymentIntentId:
           type: string
           maxLength: 200
           description: Required when payment method implies Stripe; PaymentIntent id.
@@ -1195,6 +1176,66 @@ components:
           maxLength: 200
           description: >
             Consultation booking: level title for confirmation and sales recap.
+        cohortDate:
+          type: string
+          maxLength: 100
+          description: Optional cohort or session date label (YYYY-MM-DD or display string).
+        discountCode:
+          type: string
+          maxLength: 100
+        marketingOptIn:
+          type: boolean
+          default: false
+        locale:
+          type: string
+          enum:
+            - en
+            - zh-CN
+            - zh-HK
+        serviceKey:
+          type: string
+          maxLength: 100
+        courseSlug:
+          type: string
+          maxLength: 100
+        locationName:
+          type: string
+          maxLength: 200
+        locationAddress:
+          type: string
+          maxLength: 300
+        locationUrl:
+          type: string
+          maxLength: 500
+          format: uri
+        primarySessionStartIso:
+          type: string
+          maxLength: 50
+        primarySessionEndIso:
+          type: string
+          maxLength: 50
+        courseSessions:
+          type: array
+          items:
+            type: object
+            required:
+              - startIso
+            properties:
+              startIso:
+                type: string
+                maxLength: 50
+              endIso:
+                type: string
+                maxLength: 50
+        fpsQrImageDataUrl:
+          type: string
+          maxLength: 120000
+          description: >
+            Optional PNG data URL for FPS QR when payment is pending (fps_qr).
+        reservationPendingUntilPaymentConfirmed:
+          type: boolean
+        agreedToTermsAndConditions:
+          type: boolean
     ReservationPaymentIntentRequest:
       type: object
       required:
@@ -1230,11 +1271,11 @@ components:
       required:
         - first_name
         - email_address
-        - message
+        - signup_intent
       properties:
         first_name:
           type: string
-          maxLength: 200
+          maxLength: 100
         email_address:
           type: string
           format: email
@@ -1244,7 +1285,7 @@ components:
           maxLength: 40
         message:
           type: string
-          maxLength: 5000
+          maxLength: 2000
         marketing_opt_in:
           type: boolean
           default: false
@@ -1252,11 +1293,11 @@ components:
         signup_intent:
           type: string
           description: >
-            Distinguishes contact-us submissions for Mailchimp tagging. For community_newsletter and
-            event_notification, the matching public-www-* tag is used when marketing_opt_in is true;
-            contact_inquiry uses marketing_opt_in with public-www-contact-inquiry. Omitted value is
-            treated as contact_inquiry. Intents community_newsletter and event_notification do not
-            trigger the SES contact confirmation email (only contact_inquiry does, when first_name is present).
+            Distinguishes contact-us submissions for Mailchimp tagging and Aurora `source_detail`.
+            For community_newsletter and event_notification, the matching public-www-* tag is used when
+            marketing_opt_in is true. Intents community_newsletter and event_notification skip the SES
+            contact confirmation email. contact_inquiry creates a sales lead and triggers SUPPORT_EMAIL
+            notification when configured.
           enum:
             - contact_inquiry
             - community_newsletter
