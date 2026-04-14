@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from typing import Any, Mapping
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.services.aws_proxy import AwsProxyError, invoke
 from app.services.email import send_email
@@ -14,7 +14,9 @@ from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
 
-_HKT = ZoneInfo("Asia/Hong_Kong")
+# IANA tz database id (e.g. Asia/Hong_Kong). Default matches Evolve Sprouts' primary market.
+_DEFAULT_ADMIN_RECAP_DISPLAY_TIMEZONE = "Asia/Hong_Kong"
+_ENV_ADMIN_RECAP_DISPLAY_TIMEZONE = "ADMIN_FORM_RECAP_DISPLAY_TIMEZONE"
 
 _SIGNUP_INTENT_CONTACT_INQUIRY = "contact_inquiry"
 _SIGNUP_INTENT_COMMUNITY_NEWSLETTER = "community_newsletter"
@@ -123,8 +125,26 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
         )
 
 
-def _format_submitted_at_hkt(raw: str) -> str:
-    """Format an ISO-like timestamp for admin recap copy (Hong Kong time)."""
+def _admin_recap_display_timezone() -> ZoneInfo:
+    """Resolve IANA timezone for formatting recap timestamps (from env or default)."""
+    raw = os.getenv(_ENV_ADMIN_RECAP_DISPLAY_TIMEZONE, "").strip()
+    zone_id = raw or _DEFAULT_ADMIN_RECAP_DISPLAY_TIMEZONE
+    try:
+        return ZoneInfo(zone_id)
+    except ZoneInfoNotFoundError:
+        logger.warning(
+            "Invalid admin recap display timezone, using default",
+            extra={
+                "env": _ENV_ADMIN_RECAP_DISPLAY_TIMEZONE,
+                "zone_id": zone_id,
+                "fallback": _DEFAULT_ADMIN_RECAP_DISPLAY_TIMEZONE,
+            },
+        )
+        return ZoneInfo(_DEFAULT_ADMIN_RECAP_DISPLAY_TIMEZONE)
+
+
+def _format_submitted_at_for_recap_display(raw: str) -> str:
+    """Format an ISO-like timestamp in the configured display timezone."""
     text = raw.strip()
     if not text:
         return "(not set)"
@@ -135,8 +155,11 @@ def _format_submitted_at_hkt(raw: str) -> str:
         return text
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
-    local = dt.astimezone(_HKT)
-    return f"{local.strftime('%Y-%m-%d %H:%M:%S')} HKT"
+    tz = _admin_recap_display_timezone()
+    local = dt.astimezone(tz)
+    abbrev = local.tzname()
+    suffix = f" {abbrev}" if abbrev else ""
+    return f"{local.strftime('%Y-%m-%d %H:%M:%S')}{suffix}"
 
 
 def signup_intent_summary(signup_intent: str) -> str:
@@ -254,7 +277,7 @@ def build_media_lead_recap_lines(
         f"Email: {email}",
         f"Media: {media_name}",
         f"Resource key: {resource_key}",
-        f"Submitted at: {_format_submitted_at_hkt(submitted_at)}",
+        f"Submitted at: {_format_submitted_at_for_recap_display(submitted_at)}",
         f"Marketing opt-in: {marketing_opt_in}",
         f"Locale: {locale}",
     ]

@@ -79,6 +79,7 @@ their primary responsibilities.
   align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL` (contact-us
   **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,
   `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (admin form recap recipient resolution),
+  `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; default `Asia/Hong_Kong`),
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
@@ -254,7 +255,8 @@ their primary responsibilities.
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`, `COGNITO_USER_POOL_ID`,
-    `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN`
+    `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN`, `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE`
+    (IANA timezone for media-lead recap **Submitted at**; CDK `Asia/Hong_Kong`)
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
   - `MEDIA_DEFAULT_RESOURCE_KEY`

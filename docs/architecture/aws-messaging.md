@@ -313,6 +313,7 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
 | `SES_SENDER_EMAIL` | Verified SES sender for internal recap emails |
+| `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in admin recap bodies (CDK sets `Asia/Hong_Kong`; app falls back to the same if unset or invalid) |
 | `SUPPORT_EMAIL` | Inbox for full **contact_inquiry** contact-us notifications only |
 | `COGNITO_USER_POOL_ID` | User pool used to resolve admin-group emails for form recaps |
 | `ADMIN_GROUP` | Cognito group name whose members receive public-form recap emails (default `admin`) |
@@ -325,6 +326,7 @@ SQS retries or mailbox forwarding duplicates.
 | `DATABASE_SECRET_ARN` | Database credentials secret |
 | `DATABASE_PROXY_ENDPOINT` | RDS Proxy endpoint |
 | `SES_SENDER_EMAIL` | Verified SES sender address (admin recap + download emails) |
+| `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in media-lead admin recaps (CDK sets `Asia/Hong_Kong`; override in Lambda env if needed) |
 | `COGNITO_USER_POOL_ID` | User pool for resolving admin-group emails (media lead recaps) |
 | `ADMIN_GROUP` | Cognito group whose verified `email` attributes receive media lead recaps |
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
