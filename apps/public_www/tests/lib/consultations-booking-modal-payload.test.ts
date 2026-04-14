@@ -17,7 +17,7 @@ describe('buildConsultationsBookingModalPayload', () => {
     expect(payload.title).toBe(reservation.modalTitle);
     expect(payload.originalAmount).toBe(reservation.essentials.priceHkd);
     expect(payload.dateParts).toHaveLength(reservation.essentials.dateParts.length);
-    expect(payload.topicsFieldConfig?.required).toBe(true);
+    expect(payload.topicsFieldConfig?.required).toBe(false);
     expect(payload.directionHref).toBeUndefined();
     expect(payload.topicsPrefill).toBeUndefined();
   });

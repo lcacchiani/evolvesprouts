@@ -1274,7 +1274,7 @@
         "topicsField": {
           "label": "其他需要说明的信息",
           "placeholder": "例如：孩子3岁、阿姨已工作2年，或上门前希望我们知道的背景",
-          "required": true
+          "required": false
         },
         "essentials": {
           "priceHkd": 2800,
