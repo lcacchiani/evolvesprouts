@@ -23,8 +23,6 @@ logger = get_logger(__name__)
 # IANA tz database id (e.g. Asia/Hong_Kong). Default matches Evolve Sprouts' primary market.
 _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE = "Asia/Hong_Kong"
 _ENV_SALES_RECAP_DISPLAY_TIMEZONE = "SALES_RECAP_DISPLAY_TIMEZONE"
-# Deprecated: use SALES_RECAP_DISPLAY_TIMEZONE. Still read if the new name is unset.
-_ENV_LEGACY_SALES_RECAP_DISPLAY_TIMEZONE = "ADMIN_FORM_RECAP_DISPLAY_TIMEZONE"
 
 _SIGNUP_INTENT_CONTACT_INQUIRY = "contact_inquiry"
 _SIGNUP_INTENT_COMMUNITY_NEWSLETTER = "community_newsletter"
@@ -139,10 +137,7 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
 
 def _sales_recap_display_timezone() -> ZoneInfo:
     """Resolve IANA timezone for formatting **Submitted at** in sales recap bodies."""
-    raw = (
-        os.getenv(_ENV_SALES_RECAP_DISPLAY_TIMEZONE, "").strip()
-        or os.getenv(_ENV_LEGACY_SALES_RECAP_DISPLAY_TIMEZONE, "").strip()
-    )
+    raw = os.getenv(_ENV_SALES_RECAP_DISPLAY_TIMEZONE, "").strip()
     zone_id = raw or _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE
     try:
         return ZoneInfo(zone_id)
@@ -150,10 +145,7 @@ def _sales_recap_display_timezone() -> ZoneInfo:
         logger.warning(
             "Invalid sales recap display timezone, using default",
             extra={
-                "env_keys": (
-                    _ENV_SALES_RECAP_DISPLAY_TIMEZONE,
-                    _ENV_LEGACY_SALES_RECAP_DISPLAY_TIMEZONE,
-                ),
+                "env": _ENV_SALES_RECAP_DISPLAY_TIMEZONE,
                 "zone_id": zone_id,
                 "fallback": _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE,
             },

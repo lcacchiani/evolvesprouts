@@ -79,7 +79,7 @@ their primary responsibilities.
   align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL` (contact-us
   **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,
   `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (sales recap recipient resolution via Cognito group),
-  `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; default `Asia/Hong_Kong`; deprecated alias `ADMIN_FORM_RECAP_DISPLAY_TIMEZONE`),
+  `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; default `Asia/Hong_Kong`),
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested

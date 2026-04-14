@@ -226,38 +226,6 @@ def test_sales_recap_display_timezone_invalid_env_falls_back(
     assert "Submitted at: 2026-03-03 11:14:00 HKT" in "\n".join(lines)
 
 
-def test_sales_recap_display_timezone_legacy_env_used_when_new_unset(
-    monkeypatch: Any,
-) -> None:
-    monkeypatch.delenv("SALES_RECAP_DISPLAY_TIMEZONE", raising=False)
-    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "America/New_York")
-    lines = n.build_media_lead_recap_lines(
-        first_name="A",
-        email="a@example.com",
-        media_name="G",
-        resource_key="k",
-        submitted_at="2026-03-03T03:14:00+00:00",
-        marketing_opt_in=False,
-        locale="en",
-    )
-    assert "Submitted at: 2026-03-02 22:14:00 EST" in "\n".join(lines)
-
-
-def test_sales_recap_display_timezone_new_env_overrides_legacy(monkeypatch: Any) -> None:
-    monkeypatch.setenv("SALES_RECAP_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
-    monkeypatch.setenv("ADMIN_FORM_RECAP_DISPLAY_TIMEZONE", "America/New_York")
-    lines = n.build_media_lead_recap_lines(
-        first_name="A",
-        email="a@example.com",
-        media_name="G",
-        resource_key="k",
-        submitted_at="2026-03-03T03:14:00+00:00",
-        marketing_opt_in=False,
-        locale="en",
-    )
-    assert "Submitted at: 2026-03-03 11:14:00 HKT" in "\n".join(lines)
-
-
 def test_build_reservation_recap_lines_optional_fields() -> None:
     lines = n.build_reservation_recap_lines(
         payload={
