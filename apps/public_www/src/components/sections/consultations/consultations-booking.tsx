@@ -167,6 +167,8 @@ export function ConsultationsBooking({
   );
   const [hasUserChangedLevelSelection, setHasUserChangedLevelSelection] =
     useState(false);
+  const [consultationModalLevelFeaturesAnimNonce, setConsultationModalLevelFeaturesAnimNonce] =
+    useState(0);
 
   useEffect(() => {
     if (!isThankYouOpen || !thankYouSummary) {
@@ -224,6 +226,7 @@ export function ConsultationsBooking({
     }, [content.focusAreas, content.levels, content.reservation, selectedFocusId, selectedLevelId]);
 
   function handleUpgradeToDeepDive() {
+    setConsultationModalLevelFeaturesAnimNonce((n) => n + 1);
     setSelectedLevelId('deep-dive');
   }
 
@@ -537,12 +540,14 @@ export function ConsultationsBooking({
           calendarAvailability={calendarAvailability}
           pickerContent={consultationPickerContent}
           selectionInfo={modalSelectionInfo}
+          levelFeaturesEnterAnimationNonce={consultationModalLevelFeaturesAnimNonce}
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
           thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsBookingModalOpen(false);
+            setConsultationModalLevelFeaturesAnimNonce(0);
           }}
           onSubmitReservation={(summary) => {
             setIsBookingModalOpen(false);

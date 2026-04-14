@@ -1126,6 +1126,24 @@
     }
   }
 
+  .es-consultation-booking-modal-subtitle-slot .es-consultations-booking-level-features {
+    list-style-type: disc;
+  }
+
+  .es-consultation-booking-modal-subtitle-slot .es-consultations-booking-level-features li::marker {
+    color: var(--es-color-brand-orange);
+  }
+
+  .es-consultation-booking-modal-subtitle-slot .es-consultations-booking-level-description-enter {
+    animation: es-consultations-booking-fade-in 300ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .es-consultation-booking-modal-subtitle-slot .es-consultations-booking-level-description-enter {
+      animation: none;
+    }
+  }
+
   .es-landing-page-cta-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
