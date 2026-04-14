@@ -1014,7 +1014,7 @@ export function BookingReservationForm({
       if (!start) {
         return undefined;
       }
-      return end ? `${start} – ${end}` : start;
+      return end ? `${start} - ${end}` : start;
     })();
 
     const reservationPayload: ReservationSubmissionPayload = {

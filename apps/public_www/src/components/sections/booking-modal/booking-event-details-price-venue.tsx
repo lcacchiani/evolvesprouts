@@ -17,7 +17,7 @@ interface BookingEventDetailsPriceVenueProps {
   isEventSpacing?: boolean;
   /**
    * When true, omit the outer `section` and top margin (parent already provides
-   * `border-t` / spacing — e.g. event column with schedule or consultation picker above).
+   * `border-t` / spacing - e.g. event column with schedule or consultation picker above).
    */
   embedded?: boolean;
 }

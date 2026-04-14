@@ -78,7 +78,7 @@ export interface ConsultationBookingPickerContent {
   monthJoiner: string;
   weekdayShortLabels: [string, string, string, string, string];
   datePickerLegend: string;
-  /** Interpolate `{day}` with the calendar day of month (1–31). */
+  /** Interpolate `{day}` with the calendar day of month (1-31). */
   datePickerDayTemplate: string;
   /** Interpolate `{day}`; use when the day is unavailable (past or fully blocked). */
   datePickerUnavailableDayTemplate: string;

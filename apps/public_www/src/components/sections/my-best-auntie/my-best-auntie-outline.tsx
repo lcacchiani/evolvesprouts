@@ -315,7 +315,7 @@ export function MyBestAuntieOutline({
               </li>
             ))}
           </ul>
-          {/* Wave connector — desktop (static overlay on the grid) */}
+          {/* Wave connector - desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
             className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10 hidden md:block'
@@ -353,7 +353,7 @@ export function MyBestAuntieOutline({
                     />
                   </li>
                 ))}
-                {/* Wave connector — mobile (scrolls with the cards) */}
+                {/* Wave connector - mobile (scrolls with the cards) */}
                 <li
                   aria-hidden='true'
                   className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10'

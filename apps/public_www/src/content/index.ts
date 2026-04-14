@@ -17,7 +17,7 @@ export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'en';
 
 /**
- * Site content type — derived from the English JSON (source of truth).
+ * Site content type - derived from the English JSON (source of truth).
  * All locale files must conform to this shape.
  */
 type BaseSiteContent = typeof enContent;

@@ -239,7 +239,7 @@ function buildTestimonialsSection(content: SiteContent): string {
     .slice(0, 8)
     .map(
       (t) =>
-        `- "${t.quote.length > 300 ? `${t.quote.slice(0, 297)}...` : t.quote}" — ${t.author}, ${t.role}`,
+        `- "${t.quote.length > 300 ? `${t.quote.slice(0, 297)}...` : t.quote}" - ${t.author}, ${t.role}`,
     )
     .join('\n\n');
 }
@@ -252,7 +252,8 @@ function buildSitePagesSection(): string {
     '/contact-us': 'Contact Us',
     '/privacy': 'Privacy Policy',
     '/terms': 'Terms and Conditions',
-    '/services/my-best-auntie-training-course': 'My Best Auntie — 9 Weeks That Change How Your Child Is Raised Every Day',
+    '/services/my-best-auntie-training-course':
+      'My Best Auntie - 9 Weeks That Change How Your Child Is Raised Every Day',
   };
 
   return INDEXED_ROUTE_PATHS.map(
@@ -279,7 +280,7 @@ export function buildLlmsFullTxt(content: SiteContent): string {
   const siteOrigin = getSiteOrigin();
 
   return lines(
-    `# ${brand} — Full AI Context`,
+    `# ${brand} - Full AI Context`,
     '',
     `> ${orgDescription}`,
     '',

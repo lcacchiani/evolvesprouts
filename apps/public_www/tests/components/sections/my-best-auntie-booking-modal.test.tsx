@@ -251,7 +251,7 @@ if (!selectedCohortDate) {
 const primarySessionPart = selectedCohort.dates[0];
 const expectedMbaScheduleTimeLabel =
   primarySessionPart !== undefined && primarySessionPart.end_datetime
-    ? `${primarySessionPart.start_datetime} – ${primarySessionPart.end_datetime}`
+    ? `${primarySessionPart.start_datetime} - ${primarySessionPart.end_datetime}`
     : primarySessionPart?.start_datetime;
 
 const expectedMbaMarketingFields = {
