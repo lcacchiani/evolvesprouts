@@ -160,10 +160,10 @@ class StructuredLogFormatter(logging.Formatter):
                 continue
             log_data[key] = value
 
-        # Legacy: some code may attach a dict as record.extra
-        legacy_extra = getattr(record, "extra", None)
-        if isinstance(legacy_extra, dict):
-            for key, value in legacy_extra.items():
+        # Some code may attach a dict as record.extra
+        record_extra = getattr(record, "extra", None)
+        if isinstance(record_extra, dict):
+            for key, value in record_extra.items():
                 if key not in log_data:
                     log_data[key] = value
 

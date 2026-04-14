@@ -493,7 +493,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(emailField).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('does not render legacy month/package selector controls in booking modal', () => {
+  it('does not render removed month/package selector controls in booking modal', () => {
     const { container } = renderBookingModal();
     expect(container.querySelectorAll('button[aria-pressed="true"]')).toHaveLength(0);
     expect(container.querySelectorAll('button[aria-pressed="false"]')).toHaveLength(0);

@@ -357,11 +357,11 @@ describe('events-data', () => {
     });
   });
 
-  it('does not use legacy CTA candidate keys without external_url', () => {
+  it('does not use alternate CTA candidate keys without external_url', () => {
     const payload = {
       data: [
         {
-          title: 'Legacy CTA fields event',
+          title: 'Alternate CTA fields event',
           ctaUrl: 'https://booking.example.com/from-cta-url',
           bookingUrl: 'https://booking.example.com/from-booking-url',
           href: 'https://booking.example.com/from-href',

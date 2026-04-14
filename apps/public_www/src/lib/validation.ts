@@ -8,7 +8,7 @@ export function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
 }
 
-/** First segment of the email local-part for legacy contact-us `first_name` when no name field exists. */
+/** First segment of the email local-part when synthesizing `first_name` from email only. */
 export function deriveFirstNameFromEmailLocalPart(email: string): string {
   const trimmed = email.trim();
   const atIndex = trimmed.indexOf('@');

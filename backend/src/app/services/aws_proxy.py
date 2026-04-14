@@ -6,7 +6,7 @@ inside the VPC.
 
 Two request types are supported:
 
-**AWS API calls** (``type: "aws"`` or legacy format without ``type``):
+**AWS API calls** (``type: "aws"`` or implicit format without ``type``):
     Executes a boto3 call.  Gated by ``ALLOWED_ACTIONS`` (comma-separated
     ``service:action`` pairs).
 

@@ -44,7 +44,7 @@ const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME = 'es-btn--control';
 const CLONE_SETTLE_DELAY_MS = 120;
 const AUTHOR_ANIM_DURATION_MS = 300;
 
-/** Legacy / CMS keys accepted alongside canonical locale JSON keys (`quote`, `author`, …). */
+/** Alternate CMS / import keys accepted alongside canonical locale JSON keys (`quote`, `author`, …). */
 const TESTIMONIAL_QUOTE_CANDIDATE_KEYS = [
   'quote',
   'testimonial',

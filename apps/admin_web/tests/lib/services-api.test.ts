@@ -123,7 +123,7 @@ describe('services-api', () => {
     );
   });
 
-  it('parses venue coordinates from number or legacy string response', async () => {
+  it('parses venue coordinates from number or string response', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
         items: [

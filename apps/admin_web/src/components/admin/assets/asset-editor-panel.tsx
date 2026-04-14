@@ -62,7 +62,7 @@ interface AssetFormState {
   description: string;
   resourceKey: string;
   visibility: AssetVisibility;
-  /** BCP 47 tag or empty when unset / unknown legacy value */
+  /** BCP 47 tag or empty when unset / unknown */
   contentLanguage: string;
   /** Select value: empty string = no client tag; client_document = Client */
   clientTag: '' | typeof CLIENT_DOCUMENT_ASSET_TAG;

@@ -19,7 +19,7 @@ export function asNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
-/** Parse optional lat/lng from API (number or legacy string-encoded decimal). */
+/** Parse optional lat/lng from API (number or string-encoded decimal). */
 export function asNullableFiniteNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;

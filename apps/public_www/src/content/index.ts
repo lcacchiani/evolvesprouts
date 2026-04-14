@@ -22,14 +22,14 @@ export const DEFAULT_LOCALE: Locale = 'en';
  */
 type BaseSiteContent = typeof enContent;
 type CourseCohort = typeof myBestAuntieTrainingCourseContent.data[number];
-type LegacyCompatibleTestimonials = Omit<BaseSiteContent['testimonials'], 'items'> & {
+type TestimonialsContentShape = Omit<BaseSiteContent['testimonials'], 'items'> & {
   items: Array<BaseSiteContent['testimonials']['items'][number] & { role?: string }>;
 };
 type SharedCourseBookingContent = BaseSiteContent['myBestAuntie']['booking'] & {
   cohorts: CourseCohort[];
 };
 export type SiteContent = Omit<BaseSiteContent, 'testimonials' | 'myBestAuntie'> & {
-  testimonials: LegacyCompatibleTestimonials;
+  testimonials: TestimonialsContentShape;
   myBestAuntie: Omit<BaseSiteContent['myBestAuntie'], 'booking'> & {
     booking: SharedCourseBookingContent;
   };

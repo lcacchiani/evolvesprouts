@@ -16,7 +16,7 @@ export const CRM_ENTITY_RELATIONSHIP_TYPES: readonly CrmEntityRelationshipType[]
 
 /**
  * Map a stored CRM relationship to a dropdown value. Vendor is not editable here
- * (Finance / vendor orgs); legacy rows map to `other` so the select stays valid.
+ * (Finance / vendor orgs); unknown values map to `other` so the select stays valid.
  */
 export function relationshipTypeForCrmEditor(
   stored: components['schemas']['CrmRelationshipType']
