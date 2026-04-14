@@ -749,54 +749,6 @@
     line-height: 26px;
   }
 
-  /* Booking thank-you modal detail tiles (mirrors landing details card look; separate selectors). */
-  .es-booking-thank-you-detail-card {
-    background-color: var(--es-color-surface-white, #FFFFFF);
-    border: 1px solid var(--es-color-brand-orange, #C84A16);
-  }
-
-  .es-booking-thank-you-detail-card-icon-wrap {
-    background-color: var(--es-color-surface-muted, #F8F8F8);
-  }
-
-  .es-booking-thank-you-detail-icon-mask {
-    display: block;
-    flex-shrink: 0;
-    height: 1.75rem;
-    width: 1.75rem;
-    background-color: var(--es-color-brand-orange, #C84A16);
-  }
-
-  .es-booking-thank-you-detail-icon-mask--training {
-    mask-image: url('/images/training.svg');
-    -webkit-mask-image: url('/images/training.svg');
-  }
-
-  .es-booking-thank-you-detail-icon-mask--calendar {
-    mask-image: url('/images/calendar.svg');
-    -webkit-mask-image: url('/images/calendar.svg');
-  }
-
-  .es-booking-thank-you-detail-icon-mask--location {
-    height: 2.1rem;
-    width: 2.1rem;
-    mask-image: url('/images/location.svg');
-    -webkit-mask-image: url('/images/location.svg');
-  }
-
-  .es-booking-thank-you-detail-icon-mask--dollar {
-    mask-image: url('/images/dollar-symbol.svg');
-    -webkit-mask-image: url('/images/dollar-symbol.svg');
-  }
-
-  .es-booking-thank-you-detail-card-description {
-    color: var(--site-primary-text);
-    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 26px;
-  }
-
   /* Thank-you modal panel: same logo wash + peach base as landing details section. */
   .es-booking-thank-you-modal-section-bg {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
@@ -808,16 +760,29 @@
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
 
-  .es-booking-thank-you-detail-card-title-row {
-    width: 100%;
+  .es-booking-thank-you-recap-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    border: 1px solid var(--es-color-brand-orange, #C84A16);
   }
 
-  .es-booking-thank-you-detail-card-title {
+  .es-booking-thank-you-recap-label {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
-    line-height: 26px;
+    line-height: 1.35;
+  }
+
+  .es-booking-thank-you-recap-value {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .es-booking-thank-you-recap-row-border {
+    border-bottom: 1px solid #eeeeee;
   }
 
   .es-ida-section {

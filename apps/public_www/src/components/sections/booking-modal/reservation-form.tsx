@@ -22,6 +22,7 @@ import {
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
 import type {
+  BookingThankYouRecapLabelTemplates,
   BookingTopicsFieldConfig,
   ReservationCourseSession,
   ReservationSummary,
@@ -52,6 +53,7 @@ import { trackMetaPixelEvent, type MetaPixelContentName } from '@/lib/meta-pixel
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   createPublicApiClient,
   createPublicCrmApiClient,
@@ -96,6 +98,8 @@ interface BookingReservationFormProps {
   /** Consultation flow: optional labels for confirmation email Details row. */
   consultationWritingFocusLabel?: string;
   consultationLevelLabel?: string;
+  /** Templates for thank-you recap detail lines (from `bookingModal.thankYouModal`). */
+  thankYouRecapLabels?: BookingThankYouRecapLabelTemplates;
   descriptionId: string;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
@@ -428,6 +432,7 @@ export function BookingReservationForm({
   topicsPrefill = '',
   consultationWritingFocusLabel = '',
   consultationLevelLabel = '',
+  thankYouRecapLabels,
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
@@ -907,6 +912,52 @@ export function BookingReservationForm({
     }
 
     const primarySession = resolvedCourseSessions[0];
+
+    const detailLines: string[] = [];
+    if (thankYouRecapLabels) {
+      const flowSlug = sanitizeSingleLineValue(courseSlug ?? '').toLowerCase();
+      if (flowSlug === 'my-best-auntie') {
+        const cohort = sanitizeSingleLineValue(selectedCohortDateLabel);
+        const age = sanitizeSingleLineValue(selectedAgeGroupLabel);
+        if (cohort) {
+          detailLines.push(
+            formatContentTemplate(thankYouRecapLabels.detailCohortLineTemplate, {
+              cohort,
+            }),
+          );
+        }
+        if (age) {
+          detailLines.push(
+            formatContentTemplate(thankYouRecapLabels.detailAgeGroupLineTemplate, {
+              ageGroup: age,
+            }),
+          );
+        }
+      } else if (flowSlug === 'consultation-booking') {
+        const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
+        const level = sanitizeSingleLineValue(consultationLevelLabel);
+        if (focus) {
+          detailLines.push(
+            formatContentTemplate(thankYouRecapLabels.detailWritingFocusLineTemplate, {
+              label: focus,
+            }),
+          );
+        }
+        if (level) {
+          detailLines.push(
+            formatContentTemplate(thankYouRecapLabels.detailLevelLineTemplate, {
+              label: level,
+            }),
+          );
+        }
+      } else {
+        const subtitleLine = sanitizeSingleLineValue(eventSubtitle);
+        if (subtitleLine) {
+          detailLines.push(subtitleLine);
+        }
+      }
+    }
+
     const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
@@ -933,6 +984,7 @@ export function BookingReservationForm({
 
         return href;
       })(),
+      ...(detailLines.length > 0 ? { detailLines } : {}),
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {

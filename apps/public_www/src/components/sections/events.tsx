@@ -189,6 +189,13 @@ export function Events({
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={activeBookingPayload}
+          thankYouRecapLabels={{
+            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
+            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
+            detailWritingFocusLineTemplate:
+              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
+            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
+          }}
           onClose={() => {
             setActiveBookingEventId('');
           }}
@@ -211,6 +218,13 @@ export function Events({
           analyticsSectionId='events-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.my_best_auntie}
           captchaWidgetAction='events_mba_reservation_submit'
+          thankYouRecapLabels={{
+            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
+            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
+            detailWritingFocusLineTemplate:
+              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
+            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
+          }}
           onClose={() => {
             setActiveBookingEventId('');
           }}

@@ -51,19 +51,6 @@ export interface BookingThankYouModalProps {
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
-type ThankYouCardIconId = 'training' | 'calendar' | 'location' | 'dollar';
-
-function ThankYouDetailCardIcon({ icon }: { icon: ThankYouCardIconId }) {
-  return (
-    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-booking-thank-you-detail-card-icon-wrap'>
-      <span
-        className={`es-booking-thank-you-detail-icon-mask es-booking-thank-you-detail-icon-mask--${icon}`}
-        aria-hidden='true'
-      />
-    </span>
-  );
-}
-
 function formatSummaryDatePart(dateStartTime: string | undefined, locale: Locale): string {
   const normalized = dateStartTime?.trim() ?? '';
   if (!normalized) {
@@ -131,6 +118,19 @@ function resolveThankYouCourseSessions(summary: ReservationSummary | null): Rese
   ];
 }
 
+function splitMessageTemplate(template: string): { before: string; after: string } {
+  const marker = '{email}';
+  const index = template.indexOf(marker);
+  if (index === -1) {
+    return { before: template, after: '' };
+  }
+
+  return {
+    before: template.slice(0, index),
+    after: template.slice(index + marker.length),
+  };
+}
+
 export function BookingThankYouModal({
   locale,
   content,
@@ -143,7 +143,6 @@ export function BookingThankYouModal({
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
-  const dialogSuccessId = useId();
   const dialogDescriptionId = useId();
 
   useModalLockBody({ onEscape: onClose });
@@ -154,11 +153,8 @@ export function BookingThankYouModal({
     restoreFocus: true,
   });
 
-  const subtitleText = content.subtitle?.trim() ?? '';
-  const hasSubtitleBlock = subtitleText.length > 0;
   const attendeeEmail = summary?.attendeeEmail ?? '';
   const eventTitle = summary?.eventTitle ?? content.courseLabel;
-  const eventSubtitle = summary?.eventSubtitle?.trim() ?? '';
   const thankYouSessions = useMemo(
     () => resolveThankYouCourseSessions(summary),
     [summary],
@@ -176,6 +172,7 @@ export function BookingThankYouModal({
   const amountLine = summary
     ? formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
+  const paymentMethodLine = summary?.paymentMethod?.trim() ?? content.summaryEmptyValue;
   const locationNameRaw = summary?.locationName?.trim() ?? '';
   const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
   const hasStructuredVenue =
@@ -184,9 +181,13 @@ export function BookingThankYouModal({
   const showDirectionsLink =
     hasStructuredVenue && getHrefKind(directionHref) === 'http';
 
-  const describedByIds = hasSubtitleBlock
-    ? `${dialogSuccessId} ${dialogDescriptionId}`
-    : dialogSuccessId;
+  const detailLines = summary?.detailLines?.filter((line) => line.trim().length > 0) ?? [];
+  const showDetailsRow = detailLines.length > 0;
+  const showDateTimeRow = dateTimeLines.length > 0;
+
+  const messageParts = useMemo(() => {
+    return splitMessageTemplate(content.messageTemplate);
+  }, [content.messageTemplate]);
 
   const normalizedWhatsappHref = whatsappHref?.trim() ?? '';
   const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
@@ -235,14 +236,6 @@ export function BookingThankYouModal({
     );
   }
 
-  const locationTitle = hasStructuredVenue
-    ? (locationNameRaw || locationAddressRaw)
-    : locationLine;
-  const showLocationAddressBelow =
-    hasStructuredVenue
-    && locationNameRaw.length > 0
-    && locationAddressRaw.length > 0;
-
   return (
     <ModalOverlay
       onClose={onClose}
@@ -251,7 +244,7 @@ export function BookingThankYouModal({
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}
-        ariaDescribedBy={describedByIds}
+        ariaDescribedBy={dialogDescriptionId}
         tabIndex={-1}
         className='es-booking-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
       >
@@ -265,108 +258,45 @@ export function BookingThankYouModal({
 
         <OverlayScrollableBody>
           <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
-            <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-success-soft'>
-              <Image
-                src='/images/green-tick-icon.png'
-                alt=''
-                width={124}
-                height={124}
-                className='h-[55px] w-[55px]'
-                aria-hidden='true'
-              />
-            </div>
-            <h3
-              id={dialogSuccessId}
-              className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'
-            >
-              {content.successLabel}
-            </h3>
             <h2
               id={dialogTitleId}
-              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-booking-thank-you-heading'
+              className='es-type-title max-w-[610px] leading-[1.1] es-booking-thank-you-heading'
             >
               {content.title}
             </h2>
-            {hasSubtitleBlock ? (
-              <p
-                id={dialogDescriptionId}
-                className='mt-3 text-lg leading-7 es-booking-thank-you-body'
-              >
-                {content.subtitle}
-                {' '}
-                <span className='font-semibold es-text-emphasis'>
-                  {attendeeEmail}
-                </span>
-              </p>
-            ) : null}
+            <p
+              id={dialogDescriptionId}
+              className='mt-3 text-lg leading-7 es-booking-thank-you-body'
+            >
+              {messageParts.before}
+              <span className='font-semibold es-text-emphasis'>
+                {attendeeEmail}
+              </span>
+              {messageParts.after}
+            </p>
           </div>
 
           <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5'>
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
+            <dl className='rounded-card-xl p-6 text-left sm:p-8 es-booking-thank-you-recap-card'>
+              <div className='es-booking-thank-you-recap-row-border pb-4'>
+                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                  <dt className='es-booking-thank-you-recap-label'>
+                    {content.serviceLabel}
+                  </dt>
+                  <dd className='es-booking-thank-you-recap-value m-0'>
                     {eventTitle}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='training' />
+                  </dd>
                 </div>
-                {eventSubtitle ? (
-                  <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
-                    {eventSubtitle}
-                  </p>
-                ) : null}
-              </article>
+              </div>
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {amountLine}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='dollar' />
-                </div>
-                <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
-                  {content.paymentConfirmationNote}
-                </p>
-              </article>
-
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {locationTitle}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='location' />
-                </div>
-                <div className='mt-3 flex w-full flex-col text-left'>
-                  {showLocationAddressBelow ? (
-                    <p className='es-booking-thank-you-detail-card-description'>
-                      {locationAddressRaw}
-                    </p>
-                  ) : null}
-                  {showDirectionsLink ? (
-                    <SmartLink
-                      href={directionHref}
-                      className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
-                    >
-                      {({ isExternalHttp }) => (
-                        <ExternalLinkInlineContent
-                          isExternalHttp={isExternalHttp}
-                          externalLabelClassName='es-link-external-label--direction'
-                        >
-                          {content.directionLabel}
-                        </ExternalLinkInlineContent>
-                      )}
-                    </SmartLink>
-                  ) : null}
-                </div>
-              </article>
-
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
-                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
-                    {dateTimeLines.length === 0 ? (
-                      content.summaryEmptyValue
-                    ) : (
-                      dateTimeLines.map((line, index) => {
+              {showDetailsRow ? (
+                <div className='es-booking-thank-you-recap-row-border py-4'>
+                  <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                    <dt className='es-booking-thank-you-recap-label'>
+                      {content.detailsLabel}
+                    </dt>
+                    <dd className='es-booking-thank-you-recap-value m-0'>
+                      {detailLines.map((line, index) => {
                         return (
                           <span
                             key={`${line}-${index}`}
@@ -379,23 +309,114 @@ export function BookingThankYouModal({
                             {line}
                           </span>
                         );
-                      })
+                      })}
+                    </dd>
+                  </div>
+                </div>
+              ) : null}
+
+              {showDateTimeRow ? (
+                <div className='es-booking-thank-you-recap-row-border py-4'>
+                  <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                    <dt className='es-booking-thank-you-recap-label'>
+                      {content.dateTimeLabel}
+                    </dt>
+                    <dd className='es-booking-thank-you-recap-value m-0'>
+                      {dateTimeLines.map((line, index) => {
+                        return (
+                          <span
+                            key={`${line}-${index}`}
+                            className={
+                              index > 0
+                                ? 'mt-1 block'
+                                : 'block'
+                            }
+                          >
+                            {line}
+                          </span>
+                        );
+                      })}
+                    </dd>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className='es-booking-thank-you-recap-row-border py-4'>
+                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                  <dt className='es-booking-thank-you-recap-label'>
+                    {content.locationLabel}
+                  </dt>
+                  <dd className='es-booking-thank-you-recap-value m-0'>
+                    {hasStructuredVenue ? (
+                      <>
+                        {locationNameRaw ? (
+                          <span className='block'>{locationNameRaw}</span>
+                        ) : null}
+                        {locationNameRaw && locationAddressRaw ? (
+                          <span className='mt-1 block'>{locationAddressRaw}</span>
+                        ) : null}
+                        {!locationNameRaw && locationAddressRaw ? (
+                          <span className='block'>{locationAddressRaw}</span>
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className='block'>{locationLine}</span>
                     )}
-                  </h3>
-                  <ThankYouDetailCardIcon icon='calendar' />
+                    {showDirectionsLink ? (
+                      <SmartLink
+                        href={directionHref}
+                        className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
+                      >
+                        {({ isExternalHttp }) => (
+                          <ExternalLinkInlineContent
+                            isExternalHttp={isExternalHttp}
+                            externalLabelClassName='es-link-external-label--direction'
+                          >
+                            {content.directionLabel}
+                          </ExternalLinkInlineContent>
+                        )}
+                      </SmartLink>
+                    ) : null}
+                  </dd>
                 </div>
-                <div className='mt-auto flex w-full pt-4 sm:pt-3'>
-                  <ButtonPrimitive
-                    variant='outline'
-                    type='button'
-                    disabled={!canDownloadIcs}
-                    onClick={handleDownloadIcs}
-                    className={THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME}
-                  >
-                    {content.downloadCalendarInviteLabel}
-                  </ButtonPrimitive>
+              </div>
+
+              <div className='es-booking-thank-you-recap-row-border py-4'>
+                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                  <dt className='es-booking-thank-you-recap-label'>
+                    {content.paymentMethodLabel}
+                  </dt>
+                  <dd className='es-booking-thank-you-recap-value m-0'>
+                    <span className='block'>{paymentMethodLine}</span>
+                    <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                      {content.paymentConfirmationNote}
+                    </span>
+                  </dd>
                 </div>
-              </article>
+              </div>
+
+              <div className='pt-4'>
+                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                  <dt className='es-booking-thank-you-recap-label'>
+                    {content.totalLabel}
+                  </dt>
+                  <dd className='es-booking-thank-you-recap-value m-0'>
+                    {amountLine}
+                  </dd>
+                </div>
+              </div>
+            </dl>
+
+            <div className='mt-6'>
+              <ButtonPrimitive
+                variant='outline'
+                type='button'
+                disabled={!canDownloadIcs}
+                onClick={handleDownloadIcs}
+                className={THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME}
+              >
+                {content.downloadCalendarInviteLabel}
+              </ButtonPrimitive>
             </div>
           </section>
 

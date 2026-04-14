@@ -625,6 +625,13 @@ export function MyBestAuntieBooking({
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
+          thankYouRecapLabels={{
+            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
+            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
+            detailWritingFocusLineTemplate:
+              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
+            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
+          }}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}

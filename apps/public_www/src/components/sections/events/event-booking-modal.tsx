@@ -15,6 +15,7 @@ import { BookingReservationForm } from '@/components/sections/booking-modal/rese
 import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type {
+  BookingThankYouRecapLabelTemplates,
   BookingTopicsFieldConfig,
   ReservationSummary,
 } from '@/components/sections/booking-modal/types';
@@ -35,6 +36,7 @@ interface EventBookingModalProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
+  thankYouRecapLabels?: BookingThankYouRecapLabelTemplates;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -47,6 +49,7 @@ export function EventBookingModal({
   analyticsSectionId = 'events-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.event_booking,
   captchaWidgetAction = 'event_reservation_submit',
+  thankYouRecapLabels,
   onClose,
   onSubmitReservation,
 }: EventBookingModalProps) {
@@ -122,6 +125,7 @@ export function EventBookingModal({
         analyticsSectionId={analyticsSectionId}
         metaPixelContentName={metaPixelContentName}
         captchaWidgetAction={captchaWidgetAction}
+        thankYouRecapLabels={thankYouRecapLabels}
         onSubmitReservation={onSubmitReservation}
       />
     </BookingFlowModalShell>

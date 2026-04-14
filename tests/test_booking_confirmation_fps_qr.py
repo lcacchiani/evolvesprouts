@@ -44,7 +44,7 @@ def test_send_booking_confirmation_uses_mime_with_valid_fps_qr(
         templated,
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_mime_email_with_inline_png",
+        "app.api.public_legacy_confirmation.send_mime_email_with_optional_attachments",
         mime,
     )
 
@@ -54,6 +54,7 @@ def test_send_booking_confirmation_uses_mime_with_valid_fps_qr(
         course_label="Course",
         schedule_date_label=None,
         schedule_time_label=None,
+        primary_session_iso="2026-04-10T14:00:00+08:00",
         payment_method="fps_qr",
         total_amount="HK$1.00",
         is_pending_payment=True,
@@ -66,6 +67,11 @@ def test_send_booking_confirmation_uses_mime_with_valid_fps_qr(
     assert kwargs["inline_image_cid"] == "fps_qr"
     assert kwargs["png_bytes"] == base64.b64decode(_TINY_PNG_B64)
     assert "cid:fps_qr" in kwargs["body_html"]
+    atts = kwargs.get("attachments")
+    assert atts is not None
+    assert len(atts) == 1
+    assert atts[0][0] == "evolvesprouts-booking.ics"
+    assert b"BEGIN:VCALENDAR" in atts[0][2]
     templated.assert_not_called()
 
 
@@ -80,7 +86,7 @@ def test_send_booking_confirmation_ignores_fps_qr_when_not_pending(
         templated,
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_mime_email_with_inline_png",
+        "app.api.public_legacy_confirmation.send_mime_email_with_optional_attachments",
         mime,
     )
 
@@ -90,6 +96,7 @@ def test_send_booking_confirmation_ignores_fps_qr_when_not_pending(
         course_label="Course",
         schedule_date_label=None,
         schedule_time_label=None,
+        primary_session_iso="2026-04-10T14:00:00+08:00",
         payment_method="fps_qr",
         total_amount="HK$1.00",
         is_pending_payment=False,
@@ -97,10 +104,15 @@ def test_send_booking_confirmation_ignores_fps_qr_when_not_pending(
         fps_qr_image_data_url=_TINY_PNG_DATA_URL,
     )
 
-    templated.assert_called_once()
-    mime.assert_not_called()
-    merged = templated.call_args.kwargs["template_data"]
-    assert merged.get("include_fps_instructions") is False
+    mime.assert_called_once()
+    kwargs = mime.call_args.kwargs
+    assert kwargs["png_bytes"] is None
+    assert kwargs["inline_image_cid"] is None
+    atts = kwargs.get("attachments")
+    assert atts is not None and len(atts) == 1
+    assert b"BEGIN:VCALENDAR" in atts[0][2]
+    assert "cid:fps_qr" not in kwargs["body_html"]
+    templated.assert_not_called()
 
 
 def test_send_booking_confirmation_falls_back_when_fps_qr_invalid(
@@ -114,7 +126,7 @@ def test_send_booking_confirmation_falls_back_when_fps_qr_invalid(
         templated,
     )
     monkeypatch.setattr(
-        "app.api.public_legacy_confirmation.send_mime_email_with_inline_png",
+        "app.api.public_legacy_confirmation.send_mime_email_with_optional_attachments",
         mime,
     )
 

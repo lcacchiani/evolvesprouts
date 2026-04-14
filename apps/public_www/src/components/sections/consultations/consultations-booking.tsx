@@ -519,6 +519,13 @@ export function ConsultationsBooking({
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
+          thankYouRecapLabels={{
+            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
+            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
+            detailWritingFocusLineTemplate:
+              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
+            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
+          }}
           onClose={() => {
             setIsBookingModalOpen(false);
           }}

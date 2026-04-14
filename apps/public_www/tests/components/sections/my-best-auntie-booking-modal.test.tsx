@@ -42,6 +42,7 @@ import { MyBestAuntieBookingModal } from '@/components/sections/my-best-auntie/m
 import { MyBestAuntieThankYouModal } from '@/components/sections/my-best-auntie/my-best-auntie-thank-you-modal';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -230,6 +231,14 @@ const reservationSummary: ReservationSummary = {
   locationName: selectedCohort.location_name,
   locationAddress: selectedCohort.location_address,
   locationDirectionHref: selectedCohort.location_url,
+  detailLines: [
+    formatContentTemplate(thankYouModalContent.detailCohortLineTemplate, {
+      cohort: 'Apr, 2026',
+    }),
+    formatContentTemplate(thankYouModalContent.detailAgeGroupLineTemplate, {
+      ageGroup: '1-3',
+    }),
+  ],
 };
 
 const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
@@ -270,6 +279,12 @@ function renderBookingModal(
       modalContent={myBestAuntieModalContent}
       paymentModalContent={bookingModalContent}
       selectedCohort={selectedCohort}
+      thankYouRecapLabels={{
+        detailCohortLineTemplate: thankYouModalContent.detailCohortLineTemplate,
+        detailAgeGroupLineTemplate: thankYouModalContent.detailAgeGroupLineTemplate,
+        detailWritingFocusLineTemplate: thankYouModalContent.detailWritingFocusLineTemplate,
+        detailLevelLineTemplate: thankYouModalContent.detailLevelLineTemplate,
+      }}
       onClose={() => {}}
       onSubmitReservation={() => {}}
       {...props}
@@ -375,9 +390,13 @@ describe('my-best-auntie booking modals footer content', () => {
     const thankYouDescriptionId = thankYouDialog.getAttribute('aria-describedby');
     expect(thankYouDialog).toHaveAttribute('aria-labelledby');
     expect(thankYouDescriptionId).toBeTruthy();
-    expect(
-      document.getElementById(thankYouDescriptionId ?? '')?.textContent ?? '',
-    ).toContain(thankYouModalContent.successLabel);
+    const thankYouDescription = document.getElementById(
+      thankYouDescriptionId ?? '',
+    )?.textContent ?? '';
+    expect(thankYouDescription).toContain(reservationSummary.attendeeEmail);
+    expect(thankYouDescription).toContain(
+      thankYouModalContent.messageTemplate.split('{email}')[0]?.trim() ?? '',
+    );
   });
 
   it('hides child age group and renders icon-based payment option radios in booking modal', () => {
@@ -1647,8 +1666,8 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
-  it('renders thank-you detail cards and directions link', () => {
-    const { container } = renderWithPortalContainer(
+  it('renders thank-you recap, payment note, calendar download, and directions link', () => {
+    renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
@@ -1657,21 +1676,17 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(container.querySelectorAll('.es-booking-thank-you-detail-card')).toHaveLength(4);
-    expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--training'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--calendar'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--location'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('.es-booking-thank-you-detail-icon-mask--dollar'),
-    ).not.toBeNull();
+    expect(screen.getByText(thankYouModalContent.serviceLabel)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.detailsLabel)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.dateTimeLabel)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.locationLabel)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.paymentMethodLabel)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.totalLabel)).toBeInTheDocument();
+
     expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
-    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
+    for (const line of reservationSummary.detailLines ?? []) {
+      expect(screen.getByText(line)).toBeInTheDocument();
+    }
     const sessionLines =
       reservationSummary.courseSessions?.map((session) => {
         const datePart = formatSiteCompactDate(session.dateStartTime, 'en');
@@ -1682,6 +1697,8 @@ describe('my-best-auntie booking modals footer content', () => {
     for (const line of sessionLines) {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
+    expect(screen.getByText(reservationSummary.paymentMethod)).toBeInTheDocument();
+    expect(screen.getByText(/HK\$9,?000(\.00)?/u)).toBeInTheDocument();
     expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
     expect(
       screen.getByRole('button', {

@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from app.templates.booking_confirmation_content import (
+    BOOKING_CALENDAR_SES_FALLBACK_HINT,
+    BOOKING_ICS_ATTACHED_NOTE,
+    BOOKING_ICS_ATTACHMENT_FILENAME,
+    BOOKING_ICS_PRODID,
     CLOSING_NOTE,
     DETAILS_AGE_GROUP_PREFIX,
     DETAILS_COHORT_PREFIX,
@@ -71,6 +76,124 @@ _HK_LOCATION_MARKERS = (
 )
 
 _EMAIL_HKT_TZ = ZoneInfo("Asia/Hong_Kong")
+_ICS_LINE_MAX = 75
+_UID_HASH_SUFFIX = "@evolvesprouts.com"
+
+
+def _escape_ical_text(value: str) -> str:
+    return (
+        value.replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\r\n", "\\n")
+        .replace("\n", "\\n")
+        .replace("\r", "\\n")
+    )
+
+
+def _fold_ical_line(line: str, max_len: int = _ICS_LINE_MAX) -> str:
+    if len(line) <= max_len:
+        return line
+    parts: list[str] = []
+    rest = line
+    while len(rest) > max_len:
+        parts.append(rest[:max_len])
+        rest = " " + rest[max_len:]
+    if rest:
+        parts.append(rest)
+    return "\r\n".join(parts)
+
+
+def _push_ical_property(lines: list[str], name: str, value: str) -> None:
+    escaped = _escape_ical_text(value)
+    folded = _fold_ical_line(f"{name}:{escaped}")
+    lines.extend(folded.split("\r\n"))
+
+
+def _parse_iso_to_utc_datetime(value: str | None) -> datetime | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=_EMAIL_HKT_TZ)
+    return dt.astimezone(timezone.utc)
+
+
+def _format_ics_utc(dt: datetime) -> str:
+    utc = dt.astimezone(timezone.utc)
+    return utc.strftime("%Y%m%dT%H%M%SZ")
+
+
+def _parse_end_iso_from_schedule_time_label(
+    schedule_time_label: str | None,
+) -> str | None:
+    s = (schedule_time_label or "").strip()
+    if " – " not in s:
+        return None
+    second = s.split(" – ", 1)[1].strip()
+    if not second:
+        return None
+    if "T" in second or second.endswith("Z"):
+        return second
+    return None
+
+
+def build_booking_confirmation_ics(
+    *,
+    course_label: str,
+    primary_session_iso: str | None,
+    schedule_time_label: str | None = None,
+    location_line: str | None = None,
+) -> bytes | None:
+    """Build a single-event UTF-8 .ics for the primary session, or None if no start ISO."""
+    start_dt = _parse_iso_to_utc_datetime(primary_session_iso)
+    if start_dt is None:
+        return None
+
+    end_iso = _parse_end_iso_from_schedule_time_label(schedule_time_label)
+    end_dt = _parse_iso_to_utc_datetime(end_iso) if end_iso else None
+    if end_dt is None or end_dt <= start_dt:
+        end_dt = start_dt + timedelta(hours=1)
+
+    summary = (course_label or "").strip() or "Booking"
+    location = (location_line or "").strip()
+
+    uid_seed = "|".join(
+        [
+            summary,
+            (primary_session_iso or "").strip(),
+            location,
+        ]
+    )
+    uid_body = hashlib.sha256(uid_seed.encode("utf-8")).hexdigest()
+    uid = f"{uid_body}{_UID_HASH_SUFFIX}"
+
+    stamp = _format_ics_utc(datetime.now(timezone.utc))
+    lines: list[str] = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        f"PRODID:{BOOKING_ICS_PRODID}",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        "BEGIN:VEVENT",
+        f"UID:{uid}",
+        f"DTSTAMP:{stamp}",
+        f"DTSTART:{_format_ics_utc(start_dt)}",
+        f"DTEND:{_format_ics_utc(end_dt)}",
+    ]
+    _push_ical_property(lines, "SUMMARY", summary)
+    if location:
+        _push_ical_property(lines, "LOCATION", location)
+    lines.extend(["END:VEVENT", "END:VCALENDAR"])
+    return ("\r\n".join(lines) + "\r\n").encode("utf-8")
+
+
 _MONTH_NAMES_EN = (
     "",
     "January",
@@ -424,6 +547,8 @@ def booking_confirmation_template_merge_data(
         data["schedule_datetime_label"] = schedule_line
     if loc_line:
         data["location_name"] = loc_line
+    iso_set = bool((primary_session_iso or "").strip())
+    data["include_calendar_fallback_hint"] = bool(schedule_line) and not iso_set
     return data
 
 
@@ -465,6 +590,7 @@ def render_booking_confirmation_email(
     include_fps_qr_image: bool,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
+    attach_calendar_invite_ics: bool = False,
 ) -> tuple[str, str, str]:
     """Return (subject, full_html, plain_text)."""
     loc = normalize_booking_locale(locale)
@@ -537,6 +663,14 @@ def render_booking_confirmation_email(
         + "</table>"
     )
 
+    ics_note_html = ""
+    if attach_calendar_invite_ics:
+        ics_note_html = (
+            '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">'
+            f"{html.escape(BOOKING_ICS_ATTACHED_NOTE[loc])}"
+            "</p>"
+        )
+
     pending_block = ""
     if is_pending_payment:
         pending_block = (
@@ -563,7 +697,7 @@ def render_booking_confirmation_email(
     questions_html = _questions_line_html(loc, esc_wa, esc_faq) if esc_faq else ""
     inner_html = (
         f"{greeting}{THANK_YOU_HTML[loc]}"
-        f"{table_html}{pending_block}{fps_block}"
+        f"{table_html}{ics_note_html}{pending_block}{fps_block}"
         '<hr style="border:0;border-top:1px solid #eeeeee;margin:0 0 16px;"/>'
         f'<p style="margin:0 0 16px;">{closing_note}</p>'
         f"{questions_html}"
@@ -596,6 +730,7 @@ def render_booking_confirmation_email(
         include_fps_qr_image=include_fps_qr_image,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
+        attach_calendar_invite_ics=attach_calendar_invite_ics,
     )
     plain_text = "\n".join(text_lines)
 
@@ -638,6 +773,7 @@ def _build_plain_text(
     include_fps_qr_image: bool,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
+    attach_calendar_invite_ics: bool,
 ) -> list[str]:
     label_sep = ": " if loc == "en" else "："
     lines: list[str] = []
@@ -681,6 +817,8 @@ def _build_plain_text(
 
     lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
     lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
+    if attach_calendar_invite_ics:
+        lines.append(f"{BOOKING_ICS_ATTACHED_NOTE[loc]}\n\n")
     if is_pending_payment:
         lines.append(f"{PENDING_PAYMENT_NOTE[loc]}\n\n")
     if include_fps_qr_image:
