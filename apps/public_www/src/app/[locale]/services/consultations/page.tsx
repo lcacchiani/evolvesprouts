@@ -8,6 +8,7 @@ import {
 } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
+import { FAQ_PAGE_AUDIENCES } from '@/lib/faq-audiences';
 import { buildBreadcrumbSchema, buildFaqPageSchema } from '@/lib/structured-data';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
@@ -66,7 +67,10 @@ export default async function ConsultationsRoutePage({
       />
       <StructuredDataScript
         id={`consultations-faq-jsonld-${locale}`}
-        data={buildFaqPageSchema(content.faq)}
+        data={buildFaqPageSchema(
+          content.faq,
+          FAQ_PAGE_AUDIENCES.familyConsultations,
+        )}
       />
     </>
   );

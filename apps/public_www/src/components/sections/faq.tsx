@@ -10,6 +10,11 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { FaqContent } from '@/content';
 import {
+  filterFaqQuestionsForAudience,
+  getFaqPageAudienceFromPathname,
+  type FaqQuestionEntry,
+} from '@/lib/faq-audiences';
+import {
   getLocaleFromPath,
   localizePath,
 } from '@/lib/locale-routing';
@@ -19,21 +24,15 @@ interface FaqProps {
   content: FaqContent;
 }
 
-interface FaqQuestion {
-  question: string;
-  answer: string;
-  labelIds: string[];
-}
-
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
 
 function getVisibleQuestions(
-  questions: FaqQuestion[],
+  questions: FaqQuestionEntry[],
   activeLabelId: string,
   normalizedQuery: string,
-): FaqQuestion[] {
+): FaqQuestionEntry[] {
   return questions.filter((entry) => {
     const queryMatch =
       normalizedQuery === '' ||
@@ -66,7 +65,7 @@ function FaqLensIcon() {
 }
 
 function isContactUsPromptQuestion(
-  question: FaqQuestion,
+  question: FaqQuestionEntry,
   allLabelIds: Set<string>,
 ): boolean {
   if (allLabelIds.size === 0 || question.labelIds.length < allLabelIds.size) {
@@ -89,7 +88,7 @@ function FaqItems({
   contactCardCtaHref,
   contactCardCtaLabel,
 }: {
-  items: FaqQuestion[];
+  items: FaqQuestionEntry[];
   allLabelIds: Set<string>;
   contactCardCtaHref: string;
   contactCardCtaLabel: string;
@@ -140,17 +139,48 @@ function FaqItems({
 export function Faq({ content }: FaqProps) {
   const pathname = usePathname();
   const labels = content.labels;
-  const questions = content.questions;
   const locale = getLocaleFromPath(pathname ?? '/');
+  const pageAudience = useMemo(
+    () => getFaqPageAudienceFromPathname(pathname ?? '/'),
+    [pathname],
+  );
+  const questions = useMemo(
+    () => filterFaqQuestionsForAudience(content.questions, pageAudience),
+    [content.questions, pageAudience],
+  );
+  const visibleLabelEntries = useMemo(() => {
+    if (!pageAudience) {
+      return labels;
+    }
+    const labelIdsWithMatches = new Set<string>();
+    for (const q of questions) {
+      for (const id of q.labelIds) {
+        labelIdsWithMatches.add(id);
+      }
+    }
+    return labels.filter((entry) => labelIdsWithMatches.has(entry.id));
+  }, [labels, questions, pageAudience]);
   const contactCardCtaHref = localizePath(ROUTES.contact, locale);
   const contactCardCtaLabel = content.contactCardCtaLabel.trim();
   const allLabelIds = useMemo(
     () => new Set(labels.map((entry) => entry.id)),
     [labels],
   );
-  const firstLabelId = labels[0]?.id ?? '';
-  const [activeLabelId, setActiveLabelId] = useState(firstLabelId);
+  const firstVisibleLabelId = visibleLabelEntries[0]?.id ?? '';
+  const [pickedLabelId, setPickedLabelId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState('');
+
+  const visibleLabelIdSet = useMemo(
+    () => new Set(visibleLabelEntries.map((entry) => entry.id)),
+    [visibleLabelEntries],
+  );
+
+  const activeLabelId = useMemo(() => {
+    if (pickedLabelId && visibleLabelIdSet.has(pickedLabelId)) {
+      return pickedLabelId;
+    }
+    return firstVisibleLabelId;
+  }, [pickedLabelId, visibleLabelIdSet, firstVisibleLabelId]);
 
   const normalizedQuery = normalizeQuery(searchValue);
 
@@ -189,7 +219,7 @@ export function Faq({ content }: FaqProps) {
 
         <div className='mt-6 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
           <div className='flex min-w-max snap-x snap-mandatory gap-2'>
-            {labels.map((entry) => {
+            {visibleLabelEntries.map((entry) => {
               const isActive = activeLabelId === entry.id;
 
               return (
@@ -199,7 +229,7 @@ export function Faq({ content }: FaqProps) {
                   state={isActive ? 'active' : 'inactive'}
                   onClick={() => {
                     setSearchValue('');
-                    setActiveLabelId(entry.id);
+                    setPickedLabelId(entry.id);
                   }}
                   className='snap-start rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
                 >

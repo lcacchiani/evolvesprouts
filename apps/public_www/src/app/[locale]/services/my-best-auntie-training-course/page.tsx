@@ -8,6 +8,7 @@ import {
 } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
+import { FAQ_PAGE_AUDIENCES } from '@/lib/faq-audiences';
 import {
   buildBreadcrumbSchema,
   buildCourseSchema,
@@ -77,7 +78,10 @@ export default async function MyBestAuntieRoutePage({
       />
       <StructuredDataScript
         id={`training-course-faq-jsonld-${locale}`}
-        data={buildFaqPageSchema(content.faq)}
+        data={buildFaqPageSchema(
+          content.faq,
+          FAQ_PAGE_AUDIENCES.myBestAuntieTrainingCourse,
+        )}
       />
     </>
   );

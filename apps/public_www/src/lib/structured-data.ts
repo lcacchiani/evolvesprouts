@@ -3,6 +3,10 @@ import type {
   SiteContent,
 } from '@/content';
 import {
+  filterFaqQuestionsForAudience,
+  type FaqPageAudience,
+} from '@/lib/faq-audiences';
+import {
   getLandingPageStructuredDataContent,
   type EventCardData,
 } from '@/lib/events-data';
@@ -221,8 +225,10 @@ export function buildFaqJsonLd(
 
 export function buildFaqPageSchema(
   faq: SiteContent['faq'],
+  pageAudience?: FaqPageAudience,
 ): JsonLdObject {
-  return buildFaqJsonLd(faq.questions);
+  const questions = filterFaqQuestionsForAudience(faq.questions, pageAudience);
+  return buildFaqJsonLd(questions);
 }
 
 export function buildCourseSchema({
