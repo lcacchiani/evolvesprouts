@@ -12,6 +12,7 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
@@ -625,13 +626,7 @@ export function MyBestAuntieBooking({
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
-          thankYouRecapLabels={{
-            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
-            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
-            detailWritingFocusLineTemplate:
-              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
-            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
-          }}
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}

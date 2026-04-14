@@ -165,6 +165,7 @@ def send_booking_confirmation_email(
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
+    primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
     age_group_label: str | None = None,
     payment_method: str,
@@ -210,7 +211,7 @@ def send_booking_confirmation_email(
     ics_bytes = build_booking_confirmation_ics(
         course_label=course_label,
         primary_session_iso=primary_session_iso,
-        schedule_time_label=schedule_time_label,
+        primary_session_end_iso=primary_session_end_iso,
         location_line=loc_line_for_ics,
     )
 
@@ -442,6 +443,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
     location_name = _optional_str(payload.get("location_name"))
     location_address = _optional_str(payload.get("location_address"))
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
+    primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
     course_slug = _optional_str(payload.get("course_slug"))
     age_group_label = _optional_str(payload.get("cohort_age"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
@@ -466,6 +468,7 @@ def run_reservation_post_success(*, payload: Mapping[str, Any]) -> None:
                 location_name=location_name,
                 location_address=location_address,
                 primary_session_iso=primary_session_iso,
+                primary_session_end_iso=primary_session_end_iso,
                 course_slug=course_slug,
                 age_group_label=age_group_label,
                 payment_method=payment_method,

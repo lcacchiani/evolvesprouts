@@ -5,6 +5,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -519,13 +520,7 @@ export function ConsultationsBooking({
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
-          thankYouRecapLabels={{
-            detailCohortLineTemplate: bookingModalContent.thankYouModal.detailCohortLineTemplate,
-            detailAgeGroupLineTemplate: bookingModalContent.thankYouModal.detailAgeGroupLineTemplate,
-            detailWritingFocusLineTemplate:
-              bookingModalContent.thankYouModal.detailWritingFocusLineTemplate,
-            detailLevelLineTemplate: bookingModalContent.thankYouModal.detailLevelLineTemplate,
-          }}
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsBookingModalOpen(false);
           }}

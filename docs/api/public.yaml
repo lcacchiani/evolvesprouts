@@ -1109,6 +1109,13 @@ components:
             Optional ISO 8601 start datetime of the primary booked session. When the
             venue appears to be in Hong Kong, the confirmation email formats date and
             time in HKT from this value.
+        primary_session_end_iso:
+          type: string
+          maxLength: 100
+          description: >
+            Optional ISO 8601 end datetime of the primary booked session. When present
+            with primary_session_start_iso, the booking confirmation email may set the
+            calendar attachment (ICS) event end time to this value.
         fps_qr_image_data_url:
           type: string
           maxLength: 50000

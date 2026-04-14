@@ -147,7 +147,6 @@ def test_build_booking_confirmation_ics_primary_session_and_location() -> None:
     ics = build_booking_confirmation_ics(
         course_label="Workshop A",
         primary_session_iso="2026-04-16T10:00:00Z",
-        schedule_time_label=None,
         location_line="Venue, Hong Kong",
     )
     assert ics is not None
@@ -158,18 +157,34 @@ def test_build_booking_confirmation_ics_primary_session_and_location() -> None:
     assert "LOCATION:Venue\\, Hong Kong" in text
     assert "DTSTART:20260416T100000Z" in text
     assert "DTEND:20260416T110000Z" in text
-    assert "UID:" in text and "@evolvesprouts.com" in text
+    assert "UID:" in text
+    # RFC 5545 folding inserts CRLF + space; unfold for stable substring checks.
+    assert "@evolvesprouts.com" in text.replace("\r\n ", "")
 
 
-def test_build_booking_confirmation_ics_uses_schedule_time_end_segment() -> None:
+def test_build_booking_confirmation_ics_uses_primary_session_end_iso() -> None:
     ics = build_booking_confirmation_ics(
         course_label="X",
         primary_session_iso="2026-04-16T10:00:00Z",
-        schedule_time_label="2026-04-16T10:00:00Z – 2026-04-16T11:30:00Z",
+        primary_session_end_iso="2026-04-16T11:30:00Z",
         location_line=None,
     )
     assert ics is not None
     assert "DTEND:20260416T113000Z" in ics.decode("utf-8")
+
+
+def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_limit() -> None:
+    course = "课" * 40
+    ics = build_booking_confirmation_ics(
+        course_label=course,
+        primary_session_iso="2026-04-16T10:00:00Z",
+        location_line=None,
+    )
+    assert ics is not None
+    for raw_line in ics.decode("utf-8").split("\r\n"):
+        if not raw_line:
+            continue
+        assert len(raw_line.encode("utf-8")) <= 75
 
 
 def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
@@ -177,7 +192,6 @@ def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
         build_booking_confirmation_ics(
             course_label="Y",
             primary_session_iso=None,
-            schedule_time_label=None,
             location_line=None,
         )
         is None

@@ -89,14 +89,34 @@ def _escape_ical_text(value: str) -> str:
     )
 
 
-def _fold_ical_line(line: str, max_len: int = _ICS_LINE_MAX) -> str:
-    if len(line) <= max_len:
+def _utf8_prefix_end_index(text: str, max_octets: int) -> int:
+    """Largest end index such that text[:end].encode('utf-8') fits in max_octets."""
+    if max_octets <= 0:
+        return 0
+    lo, hi = 0, len(text)
+    best = 0
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if len(text[:mid].encode("utf-8")) <= max_octets:
+            best = mid
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return best
+
+
+def _fold_ical_line(line: str, max_octets: int = _ICS_LINE_MAX) -> str:
+    """Fold at UTF-8 octet boundaries (RFC 5545 section 3.1: 75 octets per physical line)."""
+    if len(line.encode("utf-8")) <= max_octets:
         return line
     parts: list[str] = []
     rest = line
-    while len(rest) > max_len:
-        parts.append(rest[:max_len])
-        rest = " " + rest[max_len:]
+    while len(rest.encode("utf-8")) > max_octets:
+        cut = _utf8_prefix_end_index(rest, max_octets)
+        if cut == 0:
+            cut = 1
+        parts.append(rest[:cut])
+        rest = " " + rest[cut:]
     if rest:
         parts.append(rest)
     return "\r\n".join(parts)
@@ -128,25 +148,11 @@ def _format_ics_utc(dt: datetime) -> str:
     return utc.strftime("%Y%m%dT%H%M%SZ")
 
 
-def _parse_end_iso_from_schedule_time_label(
-    schedule_time_label: str | None,
-) -> str | None:
-    s = (schedule_time_label or "").strip()
-    if " – " not in s:
-        return None
-    second = s.split(" – ", 1)[1].strip()
-    if not second:
-        return None
-    if "T" in second or second.endswith("Z"):
-        return second
-    return None
-
-
 def build_booking_confirmation_ics(
     *,
     course_label: str,
     primary_session_iso: str | None,
-    schedule_time_label: str | None = None,
+    primary_session_end_iso: str | None = None,
     location_line: str | None = None,
 ) -> bytes | None:
     """Build a single-event UTF-8 .ics for the primary session, or None if no start ISO."""
@@ -154,8 +160,7 @@ def build_booking_confirmation_ics(
     if start_dt is None:
         return None
 
-    end_iso = _parse_end_iso_from_schedule_time_label(schedule_time_label)
-    end_dt = _parse_iso_to_utc_datetime(end_iso) if end_iso else None
+    end_dt = _parse_iso_to_utc_datetime(primary_session_end_iso)
     if end_dt is None or end_dt <= start_dt:
         end_dt = start_dt + timedelta(hours=1)
 
@@ -180,11 +185,15 @@ def build_booking_confirmation_ics(
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         "BEGIN:VEVENT",
-        f"UID:{uid}",
-        f"DTSTAMP:{stamp}",
-        f"DTSTART:{_format_ics_utc(start_dt)}",
-        f"DTEND:{_format_ics_utc(end_dt)}",
     ]
+    _push_ical_property(lines, "UID", uid)
+    lines.extend(
+        [
+            f"DTSTAMP:{stamp}",
+            f"DTSTART:{_format_ics_utc(start_dt)}",
+            f"DTEND:{_format_ics_utc(end_dt)}",
+        ]
+    )
     _push_ical_property(lines, "SUMMARY", summary)
     if location:
         _push_ical_property(lines, "LOCATION", location)
@@ -546,6 +555,7 @@ def booking_confirmation_template_merge_data(
     if loc_line:
         data["location_name"] = loc_line
     iso_set = bool((primary_session_iso or "").strip())
+    # SES path cannot attach .ics; nudge recipients to copy the human-readable schedule.
     data["include_calendar_fallback_hint"] = bool(schedule_line) and not iso_set
     return data
 

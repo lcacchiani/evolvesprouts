@@ -43,6 +43,8 @@ export interface ReservationSubmissionPayload {
    * Used for HKT date/time in the confirmation email when the venue is in Hong Kong.
    */
   primary_session_start_iso?: string;
+  /** Primary session end as ISO 8601 when known (e.g. multi-hour session). Used for email .ics DTEND. */
+  primary_session_end_iso?: string;
   /**
    * PNG data URL from the same FPS QR as the booking modal; backend inlines it
    * in the confirmation email when payment is pending (fps_qr).

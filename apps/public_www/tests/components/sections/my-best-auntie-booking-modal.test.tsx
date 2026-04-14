@@ -38,6 +38,7 @@ const {
 const mockedStripeElementsProps = vi.hoisted(() => vi.fn());
 const mockedStripePaymentElementProps = vi.hoisted(() => vi.fn());
 
+import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import { MyBestAuntieBookingModal } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { MyBestAuntieThankYouModal } from '@/components/sections/my-best-auntie/my-best-auntie-thank-you-modal';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
@@ -279,12 +280,7 @@ function renderBookingModal(
       modalContent={myBestAuntieModalContent}
       paymentModalContent={bookingModalContent}
       selectedCohort={selectedCohort}
-      thankYouRecapLabels={{
-        detailCohortLineTemplate: thankYouModalContent.detailCohortLineTemplate,
-        detailAgeGroupLineTemplate: thankYouModalContent.detailAgeGroupLineTemplate,
-        detailWritingFocusLineTemplate: thankYouModalContent.detailWritingFocusLineTemplate,
-        detailLevelLineTemplate: thankYouModalContent.detailLevelLineTemplate,
-      }}
+      thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
       onClose={() => {}}
       onSubmitReservation={() => {}}
       {...props}

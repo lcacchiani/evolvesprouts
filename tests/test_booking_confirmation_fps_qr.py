@@ -75,7 +75,7 @@ def test_send_booking_confirmation_uses_mime_with_valid_fps_qr(
     templated.assert_not_called()
 
 
-def test_send_booking_confirmation_ignores_fps_qr_when_not_pending(
+def test_send_booking_confirmation_mime_ics_without_inline_fps_when_not_pending(
     monkeypatch: Any,
 ) -> None:
     templated = MagicMock()

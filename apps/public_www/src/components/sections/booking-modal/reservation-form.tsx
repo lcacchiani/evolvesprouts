@@ -957,6 +957,14 @@ export function BookingReservationForm({
         }
       }
     }
+    const subtitleForRecap = sanitizeSingleLineValue(eventSubtitle);
+    if (
+      thankYouRecapLabels
+      && subtitleForRecap
+      && !detailLines.includes(subtitleForRecap)
+    ) {
+      detailLines.push(subtitleForRecap);
+    }
 
     const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
@@ -1046,6 +1054,8 @@ export function BookingReservationForm({
       location_name: sanitizeSingleLineValue(venueName) || undefined,
       location_address: sanitizeSingleLineValue(venueAddress) || undefined,
       primary_session_start_iso: sanitizeSingleLineValue(primarySession?.dateStartTime)
+        || undefined,
+      primary_session_end_iso: sanitizeSingleLineValue(primarySession?.dateEndTime)
         || undefined,
       ...(() => {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);

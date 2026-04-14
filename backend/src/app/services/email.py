@@ -111,6 +111,7 @@ def send_mime_email_with_optional_attachments(
 
     file_parts = list(attachments or [])
 
+    body_root: Message
     if png_bytes:
         related = MIMEMultipart("related")
         related.attach(alt)
@@ -119,10 +120,11 @@ def send_mime_email_with_optional_attachments(
         image.add_header("Content-ID", f"<{cid}>")
         image.add_header("Content-Disposition", "inline", filename=inline_filename)
         related.attach(image)
-        body_root: MIMEMultipart = related
+        body_root = related
     else:
         body_root = alt
 
+    root: Message
     if file_parts:
         root = MIMEMultipart("mixed", policy=policy.SMTP)
         root["Subject"] = subject

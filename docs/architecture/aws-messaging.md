@@ -61,7 +61,10 @@ template names.
   consultation: focus + level; omitted for generic event bookings), a single
   **Date & time** line (when the venue looks like Hong Kong and
   `primary_session_start_iso` is present, formatted as `16 April @ 18:00 HKT` in
-  `Asia/Hong_Kong`; otherwise the submitted schedule labels are used), **Location**
+  `Asia/Hong_Kong`; otherwise the submitted schedule labels are used). When the
+  legacy reservation payload includes `primary_session_end_iso` alongside the start,
+  MIME booking confirmations may use it for the calendar attachment end time.
+  **Location**
   as `venue, address` when both are provided, customer-facing **Payment method**
   (FPS / Credit Card / Bank Transfer), HKD totals with thousands separators, a
   horizontal rule before the closing note, a single **WhatsApp** + **FAQ** sentence

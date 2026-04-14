@@ -188,6 +188,10 @@ export function BookingThankYouModal({
   const messageParts = useMemo(() => {
     return splitMessageTemplate(content.messageTemplate);
   }, [content.messageTemplate]);
+  const messageExpectsEmail = content.messageTemplate.includes('{email}');
+  const hasAttendeeEmail = attendeeEmail.trim().length > 0;
+  const showMessageParagraph =
+    !messageExpectsEmail || hasAttendeeEmail;
 
   const normalizedWhatsappHref = whatsappHref?.trim() ?? '';
   const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
@@ -244,7 +248,7 @@ export function BookingThankYouModal({
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}
-        ariaDescribedBy={dialogDescriptionId}
+        ariaDescribedBy={showMessageParagraph ? dialogDescriptionId : undefined}
         tabIndex={-1}
         className='es-booking-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
       >
@@ -264,16 +268,18 @@ export function BookingThankYouModal({
             >
               {content.title}
             </h2>
-            <p
-              id={dialogDescriptionId}
-              className='mt-3 text-lg leading-7 es-booking-thank-you-body'
-            >
-              {messageParts.before}
-              <span className='font-semibold es-text-emphasis'>
-                {attendeeEmail}
-              </span>
-              {messageParts.after}
-            </p>
+            {showMessageParagraph ? (
+              <p
+                id={dialogDescriptionId}
+                className='mt-3 text-lg leading-7 es-booking-thank-you-body'
+              >
+                {messageParts.before}
+                <span className='font-semibold es-text-emphasis'>
+                  {attendeeEmail}
+                </span>
+                {messageParts.after}
+              </p>
+            ) : null}
           </div>
 
           <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
