@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from typing import Any, Mapping
+from zoneinfo import ZoneInfo
 
 from app.services.aws_proxy import AwsProxyError, invoke
 from app.services.email import send_email
@@ -11,6 +13,8 @@ from app.utils.logging import get_logger, mask_email
 from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
+
+_HKT = ZoneInfo("Asia/Hong_Kong")
 
 _SIGNUP_INTENT_CONTACT_INQUIRY = "contact_inquiry"
 _SIGNUP_INTENT_COMMUNITY_NEWSLETTER = "community_newsletter"
@@ -117,6 +121,22 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
             "Contact inquiry support email failed",
             extra={"lead_email": mask_email(email)},
         )
+
+
+def _format_submitted_at_hkt(raw: str) -> str:
+    """Format an ISO-like timestamp for admin recap copy (Hong Kong time)."""
+    text = raw.strip()
+    if not text:
+        return "(not set)"
+    normalized = text.replace("Z", "+00:00") if text.endswith("Z") else text
+    try:
+        dt = datetime.fromisoformat(normalized)
+    except ValueError:
+        return text
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    local = dt.astimezone(_HKT)
+    return f"{local.strftime('%Y-%m-%d %H:%M:%S')} HKT"
 
 
 def signup_intent_summary(signup_intent: str) -> str:
@@ -234,7 +254,7 @@ def build_media_lead_recap_lines(
         f"Email: {email}",
         f"Media: {media_name}",
         f"Resource key: {resource_key}",
-        f"Submitted at: {submitted_at}",
+        f"Submitted at: {_format_submitted_at_hkt(submitted_at)}",
         f"Marketing opt-in: {marketing_opt_in}",
         f"Locale: {locale}",
     ]

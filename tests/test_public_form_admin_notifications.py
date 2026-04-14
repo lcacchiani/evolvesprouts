@@ -171,12 +171,26 @@ def test_build_media_lead_recap_lines() -> None:
         email="a@example.com",
         media_name="Guide",
         resource_key="rk",
-        submitted_at="2026-01-01",
+        submitted_at="2026-03-03T03:14:00+00:00",
         marketing_opt_in=True,
         locale="en",
     )
     body = "\n".join(lines)
     assert "Guide" in body and "rk" in body and "True" in body
+    assert "Submitted at: 2026-03-03 11:14:00 HKT" in body
+
+
+def test_format_submitted_at_hkt_unparseable_returns_original() -> None:
+    lines = n.build_media_lead_recap_lines(
+        first_name="A",
+        email="a@example.com",
+        media_name="G",
+        resource_key="k",
+        submitted_at="not-a-date",
+        marketing_opt_in=False,
+        locale="en",
+    )
+    assert "Submitted at: not-a-date" in "\n".join(lines)
 
 
 def test_build_reservation_recap_lines_optional_fields() -> None:
