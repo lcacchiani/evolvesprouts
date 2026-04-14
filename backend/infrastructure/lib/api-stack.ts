@@ -593,6 +593,17 @@ export class ApiStack extends cdk.Stack {
         "SES-verified sender email address for access request notifications. " +
         "Can be the same as SupportEmail.",
     });
+    const salesRecapDisplayTimezone = new cdk.CfnParameter(
+      this,
+      "SalesRecapDisplayTimezone",
+      {
+        type: "String",
+        default: "",
+        description:
+          "IANA timezone id for formatting **Submitted at** in sales recap emails " +
+          "(SALES_RECAP_DISPLAY_TIMEZONE on Lambdas). Empty uses application default.",
+      }
+    );
     const inboundEmailDomainName = new cdk.CfnParameter(
       this,
       "InboundEmailDomainName",
@@ -1553,7 +1564,7 @@ export class ApiStack extends cdk.Stack {
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
         SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
-        SALES_RECAP_DISPLAY_TIMEZONE: "Asia/Hong_Kong",
+        SALES_RECAP_DISPLAY_TIMEZONE: salesRecapDisplayTimezone.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1724,6 +1735,7 @@ export class ApiStack extends cdk.Stack {
       openrouterChatCompletionsUrl: openrouterChatCompletionsUrl.valueAsString,
       openrouterModel: openrouterModel.valueAsString,
       openrouterMaxFileBytes: openrouterMaxFileBytes.valueAsString,
+      salesRecapDisplayTimezone: salesRecapDisplayTimezone.valueAsString,
     });
     awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any, Mapping
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -135,12 +136,18 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
         )
 
 
+@lru_cache(maxsize=16)
+def _zoneinfo_for_sales_recap(zone_id: str) -> ZoneInfo:
+    """Return ZoneInfo for a valid IANA id (cached; invalid ids must not reach here)."""
+    return ZoneInfo(zone_id)
+
+
 def _sales_recap_display_timezone() -> ZoneInfo:
     """Resolve IANA timezone for formatting **Submitted at** in sales recap bodies."""
     raw = os.getenv(_ENV_SALES_RECAP_DISPLAY_TIMEZONE, "").strip()
     zone_id = raw or _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE
     try:
-        return ZoneInfo(zone_id)
+        return _zoneinfo_for_sales_recap(zone_id)
     except ZoneInfoNotFoundError:
         logger.warning(
             "Invalid sales recap display timezone, using default",
@@ -150,7 +157,7 @@ def _sales_recap_display_timezone() -> ZoneInfo:
                 "fallback": _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE,
             },
         )
-        return ZoneInfo(_DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE)
+        return _zoneinfo_for_sales_recap(_DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE)
 
 
 def _format_submitted_at_for_recap_display(raw: str) -> str:

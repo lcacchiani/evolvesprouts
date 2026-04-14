@@ -84,6 +84,7 @@ For the OIDC provider itself, add the same tags:
 - `CDK_PARAM_MAILCHIMP_LIST_ID`
 - `CDK_PARAM_MAILCHIMP_SERVER_PREFIX`
 - `CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY`
+- `CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id, e.g. `Asia/Hong_Kong`, for sales recap **Submitted at**; empty uses app default)
 - `CDK_PARAM_MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional; set to e.g. `MMDLURL` after creating a matching Text merge field in Mailchimp)
 - `CDK_PARAM_MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` (optional; Mailchimp Customer Journey ID for free-resource form journey trigger)
 - `CDK_PARAM_MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` (optional; journey step ID for the trigger API)

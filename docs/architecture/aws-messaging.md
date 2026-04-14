@@ -314,7 +314,7 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
 | `SES_SENDER_EMAIL` | Verified SES sender for internal sales recap emails |
-| `SALES_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in sales recap bodies (CDK sets `Asia/Hong_Kong`; app falls back to the same if unset or invalid). |
+| `SALES_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in sales recap bodies. CDK passes the stack parameter `SalesRecapDisplayTimezone` (deploy maps GitHub var `CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE` via `production.json`). Empty string uses the app built-in default. Invalid values log a warning and fall back to the same default. |
 | `SUPPORT_EMAIL` | Inbox for full **contact_inquiry** contact-us notifications only |
 | `COGNITO_USER_POOL_ID` | User pool used with `ADMIN_GROUP` to resolve sales recap recipient emails |
 | `ADMIN_GROUP` | Cognito group whose verified emails receive public-form **sales** recaps (default `admin`; today this is the admin group) |
@@ -327,7 +327,7 @@ SQS retries or mailbox forwarding duplicates.
 | `DATABASE_SECRET_ARN` | Database credentials secret |
 | `DATABASE_PROXY_ENDPOINT` | RDS Proxy endpoint |
 | `SES_SENDER_EMAIL` | Verified SES sender address (sales recap + download emails) |
-| `SALES_RECAP_DISPLAY_TIMEZONE` | IANA timezone id for **Submitted at** in media-lead sales recaps (CDK sets `Asia/Hong_Kong`). |
+| `SALES_RECAP_DISPLAY_TIMEZONE` | Same as API Lambda: from `SalesRecapDisplayTimezone` / `CDK_PARAM_SALES_RECAP_DISPLAY_TIMEZONE`; empty uses app default. |
 | `COGNITO_USER_POOL_ID` | User pool for resolving `ADMIN_GROUP` emails (media lead sales recaps) |
 | `ADMIN_GROUP` | Cognito group whose verified `email` attributes receive media lead sales recaps |
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |

@@ -434,10 +434,10 @@ def test_send_media_lead_sales_recap_delegates_to_send_sales_form_recap(
     handler = _load_handler_module()
     calls: list[dict[str, Any]] = []
 
-    def _fake_send_admin(**kwargs: Any) -> None:
+    def _fake_send_sales_recap(**kwargs: Any) -> None:
         calls.append(dict(kwargs))
 
-    monkeypatch.setattr(handler, "send_sales_form_recap_email", _fake_send_admin)
+    monkeypatch.setattr(handler, "send_sales_form_recap_email", _fake_send_sales_recap)
     handler._send_media_lead_sales_recap(
         first_name="A",
         email="a@example.com",
