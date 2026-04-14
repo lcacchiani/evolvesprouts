@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 
@@ -28,10 +28,6 @@ vi.mock('next/link', () => ({
     </a>
   ),
 }));
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-});
 
 describe('ButtonPrimitive', () => {
   it('renders a native button by default', () => {
@@ -72,7 +68,6 @@ describe('ButtonPrimitive', () => {
   });
 
   it('opens external links in a new tab by default', () => {
-    vi.stubEnv('NEXT_PUBLIC_SITE_ORIGIN', 'https://acme.test');
     render(
       <ButtonPrimitive variant='primary' href='https://example.com'>
         External

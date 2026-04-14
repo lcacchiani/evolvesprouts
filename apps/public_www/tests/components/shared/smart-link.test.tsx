@@ -36,7 +36,6 @@ afterEach(() => {
 
 describe('SmartLink', () => {
   it('opens HTTP links in a new tab with secure rel', () => {
-    vi.stubEnv('NEXT_PUBLIC_SITE_ORIGIN', 'https://acme.test');
     render(<SmartLink href='https://example.com'>External</SmartLink>);
 
     const link = screen.getByRole('link', { name: 'External' });
