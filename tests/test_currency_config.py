@@ -8,10 +8,11 @@ def test_currency_symbol_for_iso_code_uses_shared_config() -> None:
     assert currency_symbol_for_iso_code("hkd") == "HK$"
     assert currency_symbol_for_iso_code("USD") == "$"
     assert currency_symbol_for_iso_code("  EUR ") == "€"
+    assert currency_symbol_for_iso_code("GBP") == "£"
 
 
 def test_currency_symbol_for_iso_code_unknown_returns_none() -> None:
-    assert currency_symbol_for_iso_code("GBP") is None
+    assert currency_symbol_for_iso_code("AUD") is None
     assert currency_symbol_for_iso_code("") is None
     assert currency_symbol_for_iso_code(None) is None
 
