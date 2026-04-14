@@ -90,6 +90,39 @@ function getPartDateFormatter(locale: Locale): Intl.DateTimeFormat {
   return next;
 }
 
+/** Part date only (e.g. "16 May") in {@link PUBLIC_SITE_IANA_TIMEZONE}. */
+export function formatSitePartDate(isoDateTime: string, locale: Locale): string {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return getPartDateFormatter(locale).format(date);
+}
+
+/**
+ * "AM" or "PM" from the HKT wall-clock hour of the instant (12:00–12:59 → PM).
+ */
+export function formatSiteAmPmIndicator(isoDateTime: string): 'AM' | 'PM' | '' {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const hour = Number(
+    new Intl.DateTimeFormat('en-GB', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    }).formatToParts(date).find((p) => p.type === 'hour')?.value,
+  );
+  if (!Number.isFinite(hour)) {
+    return '';
+  }
+
+  return hour < 12 ? 'AM' : 'PM';
+}
+
 export function formatSiteCompactDate(isoDateTime: string, locale: Locale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {

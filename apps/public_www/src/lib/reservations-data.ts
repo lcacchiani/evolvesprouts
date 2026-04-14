@@ -45,6 +45,10 @@ export interface ReservationSubmissionPayload {
   primary_session_start_iso?: string;
   /** Primary session end as ISO 8601 when known (e.g. multi-hour session). Used for email .ics DTEND. */
   primary_session_end_iso?: string;
+  /** All session parts for multi-line schedule in confirmation email (MBA, etc.). */
+  course_sessions?: Array<{ start_iso: string; end_iso?: string }>;
+  /** Maps URL for optional "Get directions" link in confirmation email. */
+  location_url?: string;
   /**
    * PNG data URL from the same FPS QR as the booking modal; backend inlines it
    * in the confirmation email when payment is pending (fps_qr).

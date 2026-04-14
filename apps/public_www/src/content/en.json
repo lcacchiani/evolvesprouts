@@ -1502,7 +1502,20 @@
       "detailLevelLineTemplate": "Level: {label}",
       "summaryLocationVirtualFallback": "Virtual Zoom call",
       "summaryEmptyValue": "—",
-      "downloadCalendarInviteLabel": "Download the invite to your personal calendar",
+      "groupSessionLabelTemplate": "{ordinal} group session: {dateTime}",
+      "groupSessionOrdinals": [
+        "First",
+        "Second",
+        "Third",
+        "Fourth",
+        "Fifth"
+      ],
+      "downloadCalendarInviteLabel": "Download calendar invite",
+      "fpsPaymentLabel": "FPS",
+      "fpsReservationPendingNote": "Your reservation is pending until payment is confirmed.",
+      "fpsQrInstruction": "Use this FPS QR code below with your banking app to pay.",
+      "fpsPaymentDisclaimer": "If you have already completed payment, you can ignore the QR code below.",
+      "fpsQrCodeAltLabel": "FPS payment QR code",
       "paymentConfirmationNote": "Your spot is confirmed once payment is received.",
       "directionLabel": "Get Directions",
       "followUpPrompt": "Any immediate questions?"

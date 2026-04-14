@@ -43,7 +43,8 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     assert "WhatsApp" in html_doc
     assert "常见问题" in html_doc
     assert "付款确认前" in plain
-    assert "地点：学习中心" in plain
+    assert "地点：" in plain
+    assert "学习中心" in plain
     assert "期待与您见面" in plain
 
 
@@ -93,7 +94,11 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     assert "Apr, 2026" in html_doc
     assert "Age group" in html_doc
     assert "18-24 months" in html_doc
+    assert "First group session:" in html_doc
+    assert "10 April @ 14:00 HKT" in html_doc
     assert "Cohort" in plain
+    assert "First group session:" in plain
+    assert "10 April @ 14:00 HKT" in plain
 
     _s2, html2, _p2 = render_booking_confirmation_email(
         locale="en",
@@ -249,6 +254,82 @@ def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
     assert "calendar invite" in html_doc.lower()
     assert "ics" in html_doc.lower()
     assert "calendar invite" in plain.lower()
+
+
+def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="A",
+        course_label="MBA",
+        schedule_date_label="Apr, 2026",
+        schedule_time_label="ignored",
+        location_name="Venue",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="my-best-auntie",
+        age_group_label="18-24 months",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+        course_sessions=[
+            {"start_iso": "2026-04-10T14:00:00+08:00"},
+            {"start_iso": "2026-05-01T14:00:00+08:00"},
+        ],
+    )
+    assert "First group session:" in html_doc
+    assert "Second group session:" in html_doc
+    assert "10 April @ 14:00 HKT" in html_doc
+    assert "1 May @ 14:00 HKT" in html_doc
+    assert "Second group session:" in plain
+
+
+def test_render_booking_confirmation_consultation_am_pm_from_iso() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        course_label="Consultation",
+        schedule_date_label="Apr 2026",
+        schedule_time_label="ignored",
+        location_name="HK",
+        location_address="Hong Kong",
+        primary_session_iso="2026-04-12T14:30:00+08:00",
+        course_slug="consultation-booking",
+        payment_method_code="stripe",
+        total_amount="HK$100.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+    )
+    assert "12 April PM" in html_doc
+    assert "12 April PM" in plain
+
+
+def test_render_booking_confirmation_location_includes_directions_link() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        course_label="Workshop",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        location_name="Venue",
+        location_address="Sheung Wan, Hong Kong",
+        primary_session_iso="2026-04-16T18:00:00+08:00",
+        course_slug="event-booking",
+        payment_method_code="stripe",
+        total_amount="HK$50.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+        location_url="https://maps.example/dir",
+    )
+    assert "Get Directions" in html_doc
+    assert 'href="https://maps.example/dir"' in html_doc
+    assert "Get Directions: https://maps.example/dir" in plain
 
 
 def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:
