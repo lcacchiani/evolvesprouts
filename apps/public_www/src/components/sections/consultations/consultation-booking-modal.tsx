@@ -270,22 +270,25 @@ function ConsultationDatePickerGrid({
       </div>
 
       {selectedSlotSummary ? (
-        <div className='flex flex-col gap-4' data-testid='consultation-modal-selected-slot'>
-          <div className='flex items-center gap-4'>
-            <span className='es-icon-circle-lg shrink-0'>
-              <span
-                data-testid='consultation-modal-selected-slot-calendar-icon'
-                className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
-                aria-hidden='true'
-              />
-            </span>
-            <p className='min-w-0 flex-1 text-[17px] font-semibold leading-6 es-text-heading'>
+        <div
+          className='flex items-start gap-4'
+          data-testid='consultation-modal-selected-slot'
+        >
+          <span className='es-icon-circle-lg shrink-0'>
+            <span
+              data-testid='consultation-modal-selected-slot-calendar-icon'
+              className='es-mask-calendar-danger h-[46px] w-[46px] shrink-0'
+              aria-hidden='true'
+            />
+          </span>
+          <div className='min-w-0 flex-1'>
+            <p className='text-[17px] font-semibold leading-6 es-text-heading'>
               {selectedSlotSummary}
             </p>
+            <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
+              {content.dateConfirmationNote}
+            </p>
           </div>
-          <p className='text-base font-semibold leading-6 es-text-heading'>
-            {content.dateConfirmationNote}
-          </p>
         </div>
       ) : null}
     </div>
