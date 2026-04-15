@@ -169,7 +169,7 @@ export function ServiceCard({
       >
         <span
           aria-hidden
-          className={`es-service-arrow-ring-target pointer-events-none absolute inset-0 rounded-full border border-white/40 bg-white/10 transition-opacity duration-300 ${arrowRingActive}`}
+          className={`es-service-arrow-ring-target es-service-arrow-ring-target--brand pointer-events-none absolute inset-0 rounded-full border transition-opacity duration-300 ${arrowRingActive}`}
         />
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <span

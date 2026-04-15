@@ -39,6 +39,14 @@ describe('Services', () => {
       screen.getByRole('link', { name: 'Go to Free Guides & Resources' }),
     ).toHaveAttribute('href', '/services/free-guides-and-resources');
 
+    const cardsGrid = screen
+      .getByRole('link', { name: 'Go to My Best Auntie Programme' })
+      .closest('ul');
+    expect(cardsGrid).not.toBeNull();
+    expect(cardsGrid?.parentElement?.className).toContain('mt-12');
+    expect(cardsGrid?.parentElement?.className).toContain('sm:mt-14');
+    expect(cardsGrid?.parentElement?.className).toContain('xl:mt-16');
+
     const cards = screen.getAllByRole('button');
     expect(cards).toHaveLength(3);
     expect(document.querySelectorAll('.es-service-card--green').length).toBeGreaterThan(

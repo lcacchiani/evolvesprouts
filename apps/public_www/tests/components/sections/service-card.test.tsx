@@ -82,10 +82,15 @@ describe('ServiceCard description visibility transition', () => {
     const serviceLink = screen.getByRole('link', {
       name: 'Go to Age Specific Strategies',
     });
+    const pulseRing = document.querySelector('.es-service-arrow-ring-target');
 
     expect(card).not.toBeNull();
     expect(card?.className).toContain('group');
     expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
+    expect(pulseRing).not.toBeNull();
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring-target--brand'),
+    ).toBe(true);
     expect(description.className).toContain('group-hover:opacity-100');
     expect(description.className).not.toContain('lg:group-hover:opacity-100');
     expect(serviceLink.className).toContain('group-hover:h-[70px]');
