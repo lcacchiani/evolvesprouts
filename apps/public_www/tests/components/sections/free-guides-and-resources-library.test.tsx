@@ -118,7 +118,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       'es-free-guides-and-resources-library-section',
     );
     expect(
-      container.querySelector('.es-course-highlights-overlay'),
+      container.querySelector('.es-section-brand-overlay'),
     ).not.toBeNull();
 
     expect(

@@ -17,9 +17,9 @@ import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
-export type CourseHighlightCardTone = 'gold' | 'green' | 'blue';
+export type ServiceCardTone = 'gold' | 'green' | 'blue';
 
-export interface CourseHighlightCardProps {
+export interface ServiceCardProps {
   id: string;
   title: string;
   imageSrc: string;
@@ -27,7 +27,7 @@ export interface CourseHighlightCardProps {
   imageHeight: number;
   imageClassName: string;
   description?: string;
-  tone: CourseHighlightCardTone;
+  tone: ServiceCardTone;
   showDetailsLabelTemplate?: string;
 }
 
@@ -42,7 +42,7 @@ function isDesktopHoverMode(): boolean {
   return window.matchMedia(DESKTOP_HOVER_QUERY).matches;
 }
 
-export function CourseHighlightCard({
+export function ServiceCard({
   title,
   imageSrc,
   imageWidth,
@@ -50,14 +50,14 @@ export function CourseHighlightCard({
   imageClassName,
   description,
   tone,
-  showDetailsLabelTemplate = enContent.courseHighlights.showDetailsAriaLabelTemplate,
-}: CourseHighlightCardProps) {
+  showDetailsLabelTemplate = enContent.services.showDetailsAriaLabelTemplate,
+}: ServiceCardProps) {
   const [isActive, setIsActive] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const toneClassMap: Record<CourseHighlightCardTone, string> = {
-    gold: 'es-course-highlight-card--gold',
-    green: 'es-course-highlight-card--green',
-    blue: 'es-course-highlight-card--blue',
+  const toneClassMap: Record<ServiceCardTone, string> = {
+    gold: 'es-service-card--gold',
+    green: 'es-service-card--green',
+    blue: 'es-service-card--blue',
   };
   const toneClassName = toneClassMap[tone];
 
@@ -174,13 +174,13 @@ export function CourseHighlightCard({
       {/* Card text content */}
       <div className='relative z-10 flex h-full w-full flex-col'>
         <div className='mt-auto space-y-4'>
-          <h3 className='max-w-[12ch] text-balance es-course-highlight-title'>
+          <h3 className='max-w-[12ch] text-balance es-service-card-title'>
             {title}
           </h3>
 
           {description && (
             <p
-              className={`max-w-[34ch] es-course-highlight-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
+              className={`max-w-[34ch] es-service-card-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
             >
               {renderQuotedDescriptionText(description)}
             </p>

@@ -37,8 +37,8 @@ const freeIntroSessionPropsSpy = vi.fn<
   [{ content: { title: string; ctaHref: string } }],
   void
 >();
-const myBestAuntieOutlinePropsSpy = vi.fn<
-  [{ content: { title: string }; ctaHref?: string }],
+const servicesPropsSpy = vi.fn<
+  [{ content: { title: string }; commonAccessibility?: { carouselRoleDescription?: string } }],
   void
 >();
 
@@ -79,16 +79,16 @@ vi.mock('@/components/sections/about-us-intro', () => ({
     </section>
   ),
 }));
-vi.mock('@/components/sections/my-best-auntie/my-best-auntie-outline', () => ({
-  MyBestAuntieOutline: ({
+vi.mock('@/components/sections/services', () => ({
+  Services: ({
     content,
-    ctaHref,
+    commonAccessibility,
   }: {
     content: { title: string };
-    ctaHref?: string;
+    commonAccessibility?: { carouselRoleDescription?: string };
   }) => {
-    myBestAuntieOutlinePropsSpy({ content, ctaHref });
-    return <section data-testid='my-best-auntie-outline'>{content.title}</section>;
+    servicesPropsSpy({ content, commonAccessibility });
+    return <section data-testid='services'>{content.title}</section>;
   },
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
@@ -110,22 +110,22 @@ describe('HomePage', () => {
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
-    myBestAuntieOutlinePropsSpy.mockClear();
+    servicesPropsSpy.mockClear();
     render(<HomePage locale='en' content={getContent('en')} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
     expect(screen.getByTestId('real-talk')).toBeInTheDocument();
     expect(screen.getByTestId('about-us-intro')).toBeInTheDocument();
-    expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
+    expect(screen.getByTestId('services')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
     expect(screen.getByText(enContent.aboutUs.intro.title)).toBeInTheDocument();
     expect(screen.getByText(enContent.aboutUs.intro.description)).toBeInTheDocument();
     expect(
-      screen.getByTestId('my-best-auntie-outline'),
-    ).toHaveTextContent(enContent.myBestAuntie.outline.title);
+      screen.getByTestId('services'),
+    ).toHaveTextContent(enContent.services.title);
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         ctaHref: '/en/services/my-best-auntie-training-course/',
@@ -134,12 +134,11 @@ describe('HomePage', () => {
     expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
-    expect(myBestAuntieOutlinePropsSpy).toHaveBeenCalledTimes(1);
+    expect(servicesPropsSpy).toHaveBeenCalledTimes(1);
 
     const heroProps = heroBannerPropsSpy.mock.calls[0][0];
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
-    const outlineProps = myBestAuntieOutlinePropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
@@ -149,9 +148,6 @@ describe('HomePage', () => {
     );
     expect(freeIntroProps.content.ctaHref).toBe(
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
-    );
-    expect(outlineProps.ctaHref).toBe(
-      '/en/services/my-best-auntie-training-course/#my-best-auntie-booking',
     );
 
     const heroElement = screen.getByTestId('hero-banner');
@@ -171,14 +167,14 @@ describe('HomePage', () => {
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
-    myBestAuntieOutlinePropsSpy.mockClear();
+    servicesPropsSpy.mockClear();
 
     const localizedContent = getContent('zh-HK');
     render(<HomePage locale='zh-HK' content={localizedContent} />);
 
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
-    expect(myBestAuntieOutlinePropsSpy).toHaveBeenCalledTimes(1);
+    expect(servicesPropsSpy).toHaveBeenCalledTimes(1);
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
@@ -194,9 +190,6 @@ describe('HomePage', () => {
     expect(parsedFreeIntroHref.pathname).toBe('/15550001234');
     expect(parsedFreeIntroHref.searchParams.get('text')).toBe(
       localizedContent.freeIntroSession.prefillMessage,
-    );
-    expect(myBestAuntieOutlinePropsSpy.mock.calls[0][0].ctaHref).toBe(
-      '/zh-HK/services/my-best-auntie-training-course/#my-best-auntie-booking',
     );
   });
 });

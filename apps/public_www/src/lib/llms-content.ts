@@ -196,8 +196,8 @@ function buildCourseInclusionsSection(content: SiteContent): string {
     .join('\n');
 }
 
-function buildCourseHighlightsSection(content: SiteContent): string {
-  return content.courseHighlights.items
+function buildServicesHighlightsSection(content: SiteContent): string {
+  return content.services.items
     .map((item) => `- **${item.title}**: ${item.description}`)
     .join('\n');
 }
@@ -316,9 +316,9 @@ export function buildLlmsFullTxt(content: SiteContent): string {
     '',
     buildCourseInclusionsSection(content),
     '',
-    '### Course Highlights: Why Families Choose This Course',
+    '### Services Highlights: Why Families Choose This Course',
     '',
-    buildCourseHighlightsSection(content),
+    buildServicesHighlightsSection(content),
     '',
     '---',
     '',

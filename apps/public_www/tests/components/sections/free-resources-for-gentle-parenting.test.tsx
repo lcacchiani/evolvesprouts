@@ -43,7 +43,7 @@ describe('Free resources for gentle parenting section', () => {
     expect(section?.className).toContain('es-section-bg-overlay');
     expect(section?.className).toContain('es-free-resources-section');
     expect(
-      container.querySelector('.es-course-highlights-overlay'),
+      container.querySelector('.es-section-brand-overlay'),
     ).not.toBeNull();
 
     const header = screen.getByTestId('free-resource-header');

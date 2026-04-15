@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { CourseHighlights } from '@/components/sections/course-highlights';
+import { Services } from '@/components/sections/services';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({
@@ -14,10 +14,10 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
-describe('CourseHighlights', () => {
+describe('Services', () => {
   it('falls back to default copy and metadata when section content is sparse, uses green card tones, and keeps mobile carousel swipe-only', () => {
     const sparseContent = {
-      ...enContent.courseHighlights,
+      ...enContent.services,
       eyebrow: '',
       title: '',
       description: '',
@@ -26,33 +26,33 @@ describe('CourseHighlights', () => {
       items: [],
     };
 
-    render(<CourseHighlights content={sparseContent} />);
+    render(<Services content={sparseContent} />);
 
     expect(
-      screen.getByRole('heading', { name: enContent.courseHighlights.title }),
+      screen.getByRole('heading', { name: enContent.services.title }),
     ).toBeInTheDocument();
-    expect(screen.getByText(enContent.courseHighlights.eyebrow)).toBeInTheDocument();
+    expect(screen.getByText(enContent.services.eyebrow)).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: enContent.courseHighlights.ctaLabel }),
-    ).toHaveAttribute('href', enContent.courseHighlights.ctaHref);
+      screen.getByRole('link', { name: enContent.services.ctaLabel }),
+    ).toHaveAttribute('href', enContent.services.ctaHref);
 
     const cards = screen.getAllByRole('button', { name: /show details for/i });
     expect(cards).toHaveLength(6);
-    expect(document.querySelectorAll('.es-course-highlight-card--green').length).toBeGreaterThan(
+    expect(document.querySelectorAll('.es-service-card--green').length).toBeGreaterThan(
       0,
     );
-    expect(document.querySelectorAll('.es-course-highlight-card--gold')).toHaveLength(0);
+    expect(document.querySelectorAll('.es-service-card--gold')).toHaveLength(0);
 
-    const carouselTrack = screen.getByTestId('course-highlights-mobile-carousel');
+    const carouselTrack = screen.getByTestId('services-mobile-carousel');
     expect(carouselTrack.className).toContain('snap-mandatory');
     expect(carouselTrack.className).toContain('overflow-x-auto');
     expect(carouselTrack.getAttribute('role')).toBe('region');
     expect(carouselTrack.getAttribute('aria-roledescription')).toBe('carousel');
     expect(
-      screen.queryByRole('button', { name: 'Scroll course highlights left' }),
+      screen.queryByRole('button', { name: 'Scroll services left' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Scroll course highlights right' }),
+      screen.queryByRole('button', { name: 'Scroll services right' }),
     ).not.toBeInTheDocument();
   });
 });
