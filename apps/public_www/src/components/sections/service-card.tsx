@@ -22,13 +22,14 @@ export type ServiceCardTone = 'gold' | 'green' | 'blue';
 export interface ServiceCardProps {
   id: string;
   title: string;
+  href: string;
   imageSrc: string;
   imageWidth: number;
   imageHeight: number;
   imageClassName: string;
   description?: string;
   tone: ServiceCardTone;
-  showDetailsLabelTemplate?: string;
+  goToServiceAriaLabelTemplate?: string;
 }
 
 const INTERACTIVE_ELEMENT_SELECTOR =
@@ -44,13 +45,14 @@ function isDesktopHoverMode(): boolean {
 
 export function ServiceCard({
   title,
+  href,
   imageSrc,
   imageWidth,
   imageHeight,
   imageClassName,
   description,
   tone,
-  showDetailsLabelTemplate = enContent.services.showDetailsAriaLabelTemplate,
+  goToServiceAriaLabelTemplate = enContent.services.goToServiceAriaLabelTemplate,
 }: ServiceCardProps) {
   const [isActive, setIsActive] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -70,10 +72,6 @@ export function ServiceCard({
     onOutsideClick: handleDismiss,
     isActive,
   });
-
-  const handleArrowClick = useCallback(() => {
-    setIsActive((prev) => !prev);
-  }, []);
 
   const handleCardSurfaceClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
@@ -120,6 +118,9 @@ export function ServiceCard({
   const arrowActive = isActive
     ? 'h-[70px] w-[70px]'
     : '';
+  const arrowRingActive = isActive
+    ? 'opacity-100 es-service-arrow-ring'
+    : 'opacity-0';
   const descriptionVisibilityClassName = isActive
     ? 'opacity-100 transition-opacity duration-300'
     : 'opacity-0 transition-none';
@@ -155,14 +156,17 @@ export function ServiceCard({
         />
       </div>
 
-      {/* Arrow button - triggers reveal on tap */}
+      {/* Arrow link - navigates to the service page */}
       <ButtonPrimitive
         variant='icon'
-        aria-label={formatContentTemplate(showDetailsLabelTemplate, { title })}
-        aria-expanded={isActive}
-        onClick={handleArrowClick}
+        href={href}
+        aria-label={formatContentTemplate(goToServiceAriaLabelTemplate, { title })}
         className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}
       >
+        <span
+          aria-hidden
+          className={`es-service-arrow-ring-target pointer-events-none absolute inset-0 rounded-full border border-white/40 bg-white/10 transition-opacity duration-300 group-hover:opacity-100 ${arrowRingActive}`}
+        />
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <span
             aria-hidden

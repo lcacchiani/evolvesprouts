@@ -209,47 +209,30 @@
     ]
   },
   "services": {
-    "eyebrow": "Course Highlights",
-    "title": "What Your Child Gains",
-    "description": "A 9-week programme that transforms how your child is cared for every day - through the person who's there the most",
-    "ctaLabel": "See How the Programme Works",
-    "ctaHref": "/services/my-best-auntie-training-course",
+    "eyebrow": "Our Services",
+    "title": "How We Support Your Family",
     "supportChipLabel": "Connect Now",
     "items": [
       {
-        "id": "age-specific",
-        "title": "From Managed to Growing: Your Child Learns to Lead",
-        "description": "Your child stops being watched and starts being guided. We give your helper the skills to foster curiosity, independence, and a genuine love for learning - so your child develops, not just passes time."
+        "id": "my-best-auntie",
+        "title": "My Best Auntie Programme",
+        "description": "A 9-week Montessori helper training programme - practical routines, home visits, and real strategies that transform how your child is cared for every day.",
+        "href": "/services/my-best-auntie-training-course"
       },
       {
-        "id": "small-group-learning",
-        "title": "Build a Calmer, Happier Home",
-        "description": "End the daily battles over routines. Your helper learns to create predictable, positive rhythms for meals, play, and rest - leading to less resistance, fewer tantrums, and more peaceful days for everyone."
+        "id": "family-consultations",
+        "title": "Family Consultations",
+        "description": "Personalised Montessori guidance and positive discipline support. Pick your focus, pick your level, and see what changes at home.",
+        "href": "/services/consultations"
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "See Tangible Changes, Week-by-Week",
-        "description": "This isn't just theory. With our structured 9-week journey, weekly challenges, and home visits, you'll see clear, measurable progress in your child's independence and your helper's confidence."
-      },
-      {
-        "id": "ongoing-support",
-        "title": "Trust What's Happening When You're Not There",
-        "description": "Reduce the mental load of micromanaging childcare. Know that your helper is aligned with your parenting values and equipped with proven techniques, so your child gets consistent, quality care every hour of the day."
-      },
-      {
-        "id": "ready-to-use-tools",
-        "title": "A Trained Caregiver Means a More Capable Child",
-        "description": "When your helper grows in skill and confidence, your child gets higher quality care and more stability. Investing in her development is investing directly in your child's."
-      },
-      {
-        "id": "guaranteed-confidence",
-        "title": "A Home Designed for Independence",
-        "description": "We show your helper how to transform your living space into an environment that encourages self-sufficiency - so your child practises doing things for themselves, and feels proud when they do."
+        "id": "free-guides",
+        "title": "Free Guides & Resources",
+        "description": "Practical tools for parents and helpers - building independence, patience, and emotional growth in children aged 0-6.",
+        "href": "/services/free-guides-and-resources"
       }
     ],
-    "scrollLeftAriaLabel": "Scroll course highlights left",
-    "scrollRightAriaLabel": "Scroll course highlights right",
-    "showDetailsAriaLabelTemplate": "Show details for {title}"
+    "goToServiceAriaLabelTemplate": "Go to {title}"
   },
   "realTalk": {
     "eyebrow": "Real Talk",

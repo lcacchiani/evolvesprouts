@@ -209,47 +209,30 @@
     ]
   },
   "services": {
-    "eyebrow": "课程亮点",
-    "title": "你的孩子能收获什么",
-    "description": "一个为期 9 周的课程，通过孩子身边最重要的人，改变孩子每天的成长方式",
-    "ctaLabel": "了解课程如何运作",
-    "ctaHref": "/services/my-best-auntie-training-course",
+    "eyebrow": "我们的服务",
+    "title": "我们如何支持您的家庭",
     "supportChipLabel": "立即联系",
     "items": [
       {
-        "id": "age-specific",
-        "title": "从被管到成长：你的孩子学会自己主导",
-        "description": "你的孩子不再被「看着」，而是被「引导」。我们教会你的阿姨激发好奇心、独立性和真正的学习热爱-让你的孩子真正发展，而不只是打发时间。"
+        "id": "my-best-auntie",
+        "title": "My Best Auntie 课程",
+        "description": "为期 9 周的蒙台梭利阿姨培训课程-实用日常流程、入户家访和真实策略，改变您孩子每天的照护方式。",
+        "href": "/services/my-best-auntie-training-course"
       },
       {
-        "id": "small-group-learning",
-        "title": "打造更平静、更快乐的家庭",
-        "description": "结束每天围绕作息的拉锯战。你的阿姨学会为用餐、玩耍和休息建立可预期且积极的节奏-带来更少抗拒、更少情绪爆发，全家更从容的每一天。"
+        "id": "family-consultations",
+        "title": "家庭咨询",
+        "description": "个性化蒙台梭利指导和正面管教支持。选择您的焦点，选择您的深度，看看家中会有什么改变。",
+        "href": "/services/consultations"
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "每周看见实实在在的改变",
-        "description": "这不只是理论。通过我们结构化的 9 周成长旅程、每周挑战和入户家访，你将清晰看到孩子独立性与阿姨自信心的可衡量进步。"
-      },
-      {
-        "id": "ongoing-support",
-        "title": "你不在的时候，也能安心",
-        "description": "减轻事无巨细管理育儿的心理负担。确信阿姨已与你的育儿理念一致，并掌握经过验证的方法-让孩子每时每刻都能获得稳定、高质量的照护。"
-      },
-      {
-        "id": "ready-to-use-tools",
-        "title": "专业的照护者 = 更有能力的孩子",
-        "description": "当阿姨的专业能力与信心同步提升，你的孩子将获得更高质量的照护和更多稳定感。投资她的成长，就是直接投资孩子的未来。"
-      },
-      {
-        "id": "guaranteed-confidence",
-        "title": "一个为独立成长而设计的家",
-        "description": "我们教你的阿姨如何把家变成鼓励孩子自己动手的环境-让孩子自己去做、去尝试，并为自己感到骄傲。"
+        "id": "free-guides",
+        "title": "免费指南与资源",
+        "description": "为家长和照护者提供的实用工具-培养 0-6 岁儿童的独立性、耐心和情感成长。",
+        "href": "/services/free-guides-and-resources"
       }
     ],
-    "scrollLeftAriaLabel": "向左滚动课程亮点",
-    "scrollRightAriaLabel": "向右滚动课程亮点",
-    "showDetailsAriaLabelTemplate": "显示{title}详情"
+    "goToServiceAriaLabelTemplate": "前往{title}"
   },
   "realTalk": {
     "eyebrow": "真实对话",

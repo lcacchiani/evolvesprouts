@@ -209,47 +209,30 @@
     ]
   },
   "services": {
-    "eyebrow": "課程亮點",
-    "title": "你的孩子能收穫什麼",
-    "description": "一個為期 9 週的課程，透過孩子身邊最重要的人，改變孩子每天的成長方式",
-    "ctaLabel": "了解課程如何運作",
-    "ctaHref": "/services/my-best-auntie-training-course",
+    "eyebrow": "我們的服務",
+    "title": "我們如何支持您的家庭",
     "supportChipLabel": "立即聯絡",
     "items": [
       {
-        "id": "age-specific",
-        "title": "從被管到成長：你的孩子學會自己主導",
-        "description": "你的孩子不再被「看着」，而是被「引導」。我們教會你的姨姨激發好奇心、獨立性和真正的學習熱愛-讓你的孩子真正發展，而不只是打發時間。"
+        "id": "my-best-auntie",
+        "title": "My Best Auntie 課程",
+        "description": "為期 9 週的蒙特梭利姨姨培訓課程-實用日常流程、到府家訪和真實策略，改變您孩子每天的照護方式。",
+        "href": "/services/my-best-auntie-training-course"
       },
       {
-        "id": "small-group-learning",
-        "title": "打造更平靜、更快樂的家",
-        "description": "結束每天圍繞作息的拉鋸戰。你的姨姨學會為用餐、玩耍和休息建立可預期且積極的節奏-帶來更少抗拒、更少情緒爆發，全家更從容的每一天。"
+        "id": "family-consultations",
+        "title": "家庭諮詢",
+        "description": "個性化蒙特梭利指導和正面管教支持。選擇您的焦點，選擇您的深度，看看家中會有什麼改變。",
+        "href": "/services/consultations"
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "每週看見實質改變",
-        "description": "這不只是理論。透過我們有結構的 9 週旅程、每週挑戰與到府家訪，你會清楚看到孩子獨立性與姨姨自信心的可衡量進步。"
-      },
-      {
-        "id": "ongoing-support",
-        "title": "你不在的時候，也能安心",
-        "description": "減輕事無巨細管理育兒的心理負擔。確信姨姨已與你的育兒理念一致，並掌握經過驗證的方法-讓孩子每時每刻都能獲得穩定、高質量的照護。"
-      },
-      {
-        "id": "ready-to-use-tools",
-        "title": "專業的照護者 = 更有能力的孩子",
-        "description": "當姨姨的專業能力與信心同步提升，你的孩子將獲得更高質量的照護和更多穩定感。投資她的成長，就是直接投資孩子的未來。"
-      },
-      {
-        "id": "guaranteed-confidence",
-        "title": "一個為獨立成長而設計的家",
-        "description": "我們教你的姨姨如何把家變成鼓勵孩子自己動手的環境-讓孩子自己去做、去嘗試，並為自己感到驕傲。"
+        "id": "free-guides",
+        "title": "免費指南與資源",
+        "description": "為家長和照護者提供的實用工具-培養 0-6 歲兒童的獨立性、耐心和情感成長。",
+        "href": "/services/free-guides-and-resources"
       }
     ],
-    "scrollLeftAriaLabel": "向左捲動課程亮點",
-    "scrollRightAriaLabel": "向右捲動課程亮點",
-    "showDetailsAriaLabelTemplate": "顯示{title}詳情"
+    "goToServiceAriaLabelTemplate": "前往{title}"
   },
   "realTalk": {
     "eyebrow": "真實對話",
