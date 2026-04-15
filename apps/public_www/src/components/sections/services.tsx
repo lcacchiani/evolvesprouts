@@ -1,27 +1,20 @@
 'use client';
 
 import { ServiceCard } from '@/components/sections/service-card';
-import { CarouselTrack } from '@/components/sections/shared/carousel-track';
-import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type {
-  CommonAccessibilityContent,
-  ServicesContent,
-} from '@/content';
+import type { ServicesContent } from '@/content';
 import enContent from '@/content/en.json';
-import { formatContentTemplate } from '@/content/content-field-utils';
-import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface ServicesProps {
   content: ServicesContent;
-  commonAccessibility?: CommonAccessibilityContent;
 }
 
 interface ServiceCardData {
   id: string;
   title: string;
+  href: string;
   imageSrc: string;
   imageWidth: number;
   imageHeight: number;
@@ -31,6 +24,7 @@ interface ServiceCardData {
 
 interface ServiceCardMeta {
   id: string;
+  href: string;
   imageSrc: string;
   imageWidth: number;
   imageHeight: number;
@@ -43,46 +37,28 @@ const fallbackServicesCopy = enContent.services;
 
 const serviceCardMeta: ServiceCardMeta[] = [
   {
-    id: 'age-specific',
+    id: 'my-best-auntie',
+    href: '/services/my-best-auntie-training-course',
     imageSrc: '/images/services/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
   },
   {
-    id: 'small-group-learning',
+    id: 'family-consultations',
+    href: '/services/consultations',
     imageSrc: '/images/services/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
   },
   {
-    id: 'montessori-positive-discipline',
+    id: 'free-guides',
+    href: '/services/free-guides-and-resources',
     imageSrc: '/images/services/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
-  },
-  {
-    id: 'ongoing-support',
-    imageSrc: '/images/services/course-card-4.webp',
-    imageWidth: 308,
-    imageHeight: 323,
-    imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
-  },
-  {
-    id: 'ready-to-use-tools',
-    imageSrc: '/images/services/course-card-5.webp',
-    imageWidth: 472,
-    imageHeight: 457,
-    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
-  },
-  {
-    id: 'guaranteed-confidence',
-    imageSrc: '/images/services/course-card-6.webp',
-    imageWidth: 433,
-    imageHeight: 443,
-    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
 ];
 
@@ -109,12 +85,14 @@ function getServiceCards(content: ServicesContent): ServiceCardData[] {
       cards.push({
         ...meta,
         title: cardCopy.title,
+        href: cardCopy.href || meta.href,
         description: descriptionText,
       });
     } else {
       cards.push({
         ...meta,
         title: cardCopy.title,
+        href: cardCopy.href || meta.href,
       });
     }
   }
@@ -124,21 +102,11 @@ function getServiceCards(content: ServicesContent): ServiceCardData[] {
 
 export function Services({
   content,
-  commonAccessibility = enContent.common.accessibility,
 }: ServicesProps) {
   const sectionTitle = content.title || fallbackServicesCopy.title;
-  const sectionDescription =
-    content.description || fallbackServicesCopy.description;
   const sectionEyebrow =
     content.eyebrow || fallbackServicesCopy.eyebrow;
-  const ctaLabel = content.ctaLabel || fallbackServicesCopy.ctaLabel;
-  const ctaHref = content.ctaHref || fallbackServicesCopy.ctaHref;
   const serviceCards = getServiceCards(content);
-  const {
-    carouselRef,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: serviceCards.length,
-  });
 
   return (
     <SectionShell
@@ -159,58 +127,28 @@ export function Services({
         />
 
         <div className='relative'>
-          <CarouselTrack
-            carouselRef={carouselRef}
-            testId='services-mobile-carousel'
-            ariaLabel={formatContentTemplate(
-              commonAccessibility.carouselLabelTemplate,
-              { title: sectionTitle },
-            )}
-            ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-            className='pb-2 md:snap-none md:overflow-visible md:pb-0'
-          >
-            <ul className='flex min-w-0 gap-5 sm:gap-6 md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-3'>
-              {serviceCards.map((card, index) => {
-                const tone = CARD_TONES[index % CARD_TONES.length];
+          <ul className='grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3'>
+            {serviceCards.map((card, index) => {
+              const tone = CARD_TONES[index % CARD_TONES.length];
 
-                return (
-                  <li
-                    key={card.id}
-                    className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
-                  >
-                    <ServiceCard
-                      id={card.id}
-                      title={card.title}
-                      imageSrc={card.imageSrc}
-                      imageWidth={card.imageWidth}
-                      imageHeight={card.imageHeight}
-                      imageClassName={card.imageClassName}
-                      description={card.description}
-                      tone={tone}
-                      showDetailsLabelTemplate={content.showDetailsAriaLabelTemplate}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </CarouselTrack>
-        </div>
-
-        {sectionDescription && (
-          <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
-            <p className='es-type-body-italic mx-auto max-w-[780px] text-balance'>
-              {sectionDescription}
-            </p>
-          </div>
-        )}
-
-        <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
-          <SectionCtaAnchor
-            href={ctaHref}
-            className='w-full max-w-[488px]'
-          >
-            {ctaLabel}
-          </SectionCtaAnchor>
+              return (
+                <li key={card.id}>
+                  <ServiceCard
+                    id={card.id}
+                    title={card.title}
+                    href={card.href}
+                    imageSrc={card.imageSrc}
+                    imageWidth={card.imageWidth}
+                    imageHeight={card.imageHeight}
+                    imageClassName={card.imageClassName}
+                    description={card.description}
+                    tone={tone}
+                    goToServiceAriaLabelTemplate={content.goToServiceAriaLabelTemplate}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </SectionContainer>
     </SectionShell>

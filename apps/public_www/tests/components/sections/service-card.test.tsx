@@ -17,6 +17,18 @@ function hasClassToken(className: string, token: string): boolean {
   return className.split(/\s+/).includes(token);
 }
 
+const BASE_PROPS = {
+  id: 'age-specific',
+  title: 'Age Specific Strategies',
+  href: '/services/my-best-auntie-training-course',
+  imageSrc: '/images/services/course-card-1.webp',
+  imageWidth: 344,
+  imageHeight: 309,
+  imageClassName: 'h-[235px]',
+  description: 'Practical scripts and examples',
+  tone: 'green' as const,
+};
+
 const originalMatchMedia = window.matchMedia;
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
@@ -59,72 +71,70 @@ afterEach(() => {
 });
 
 describe('ServiceCard description visibility transition', () => {
-  it('applies hover reveal classes at every breakpoint', () => {
-    render(
-      <ServiceCard
-        id='age-specific'
-        title='Age Specific Strategies'
-        imageSrc='/images/services/course-card-1.webp'
-        imageWidth={344}
-        imageHeight={309}
-        imageClassName='h-[235px]'
-        description='Practical scripts and examples'
-        tone='gold'
-      />,
-    );
+  it('renders arrow as a link CTA with go-to aria label', () => {
+    render(<ServiceCard {...BASE_PROPS} />);
 
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
     const description = screen.getByText('Practical scripts and examples');
-    const toggleButton = screen.getByRole('button', {
-      name: 'Show details for Age Specific Strategies',
+    const serviceLink = screen.getByRole('link', {
+      name: 'Go to Age Specific Strategies',
     });
 
     expect(card).not.toBeNull();
     expect(card?.className).toContain('group');
+    expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
     expect(description.className).toContain('group-hover:opacity-100');
     expect(description.className).not.toContain('lg:group-hover:opacity-100');
-    expect(toggleButton.className).toContain('group-hover:h-[70px]');
-    expect(toggleButton.className).not.toContain('lg:group-hover:h-[70px]');
+    expect(serviceLink.className).toContain('group-hover:h-[70px]');
+    expect(serviceLink.className).not.toContain('lg:group-hover:h-[70px]');
   });
 
-  it('uses immediate hide classes when toggled inactive', () => {
-    render(
-      <ServiceCard
-        id='age-specific'
-        title='Age Specific Strategies'
-        imageSrc='/images/services/course-card-1.webp'
-        imageWidth={344}
-        imageHeight={309}
-        imageClassName='h-[235px]'
-        description='Practical scripts and examples'
-        tone='gold'
-      />,
-    );
+  it('uses immediate hide classes when toggled inactive and animates pulse ring when active', () => {
+    render(<ServiceCard {...BASE_PROPS} />);
 
-    const toggleButton = screen.getByRole('button', {
-      name: 'Show details for Age Specific Strategies',
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
     });
+    const card = heading.closest('[role="button"]');
     const description = screen.getByText('Practical scripts and examples');
+    const pulseRing = document.querySelector('.es-service-arrow-ring-target');
 
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).not.toBeNull();
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+    expect(pulseRing).not.toBeNull();
     expect(hasClassToken(description.className, 'opacity-0')).toBe(true);
     expect(hasClassToken(description.className, 'transition-none')).toBe(true);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
+    ).toBe(false);
 
-    fireEvent.click(toggleButton);
+    fireEvent.click(card as HTMLElement);
 
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+    expect(card).toHaveAttribute('aria-expanded', 'true');
     expect(hasClassToken(description.className, 'opacity-100')).toBe(true);
     expect(hasClassToken(description.className, 'transition-opacity')).toBe(true);
     expect(hasClassToken(description.className, 'duration-300')).toBe(true);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
+    ).toBe(true);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'opacity-100'),
+    ).toBe(true);
 
-    fireEvent.click(toggleButton);
+    fireEvent.click(card as HTMLElement);
 
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
     expect(hasClassToken(description.className, 'opacity-0')).toBe(true);
     expect(hasClassToken(description.className, 'transition-none')).toBe(true);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
+    ).toBe(false);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'opacity-0'),
+    ).toBe(true);
   });
 
   it('toggles when tapping the card surface below desktop breakpoint', () => {
@@ -133,35 +143,21 @@ describe('ServiceCard description visibility transition', () => {
       canHover: true,
     });
 
-    render(
-      <ServiceCard
-        id='age-specific'
-        title='Age Specific Strategies'
-        imageSrc='/images/services/course-card-1.webp'
-        imageWidth={344}
-        imageHeight={309}
-        imageClassName='h-[235px]'
-        description='Practical scripts and examples'
-        tone='gold'
-      />,
-    );
+    render(<ServiceCard {...BASE_PROPS} />);
 
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
-    const toggleButton = screen.getByRole('button', {
-      name: 'Show details for Age Specific Strategies',
-    });
 
     expect(card).not.toBeNull();
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(card as HTMLElement);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+    expect(card).toHaveAttribute('aria-expanded', 'true');
 
     fireEvent.click(card as HTMLElement);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('toggles when tapping the card surface without hover support', () => {
@@ -170,32 +166,18 @@ describe('ServiceCard description visibility transition', () => {
       canHover: false,
     });
 
-    render(
-      <ServiceCard
-        id='age-specific'
-        title='Age Specific Strategies'
-        imageSrc='/images/services/course-card-1.webp'
-        imageWidth={344}
-        imageHeight={309}
-        imageClassName='h-[235px]'
-        description='Practical scripts and examples'
-        tone='gold'
-      />,
-    );
+    render(<ServiceCard {...BASE_PROPS} />);
 
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
-    const toggleButton = screen.getByRole('button', {
-      name: 'Show details for Age Specific Strategies',
-    });
 
     expect(card).not.toBeNull();
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(card as HTMLElement);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+    expect(card).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('keeps desktop card-surface clicks inert when hover is available', () => {
@@ -204,34 +186,24 @@ describe('ServiceCard description visibility transition', () => {
       canHover: true,
     });
 
-    render(
-      <ServiceCard
-        id='age-specific'
-        title='Age Specific Strategies'
-        imageSrc='/images/services/course-card-1.webp'
-        imageWidth={344}
-        imageHeight={309}
-        imageClassName='h-[235px]'
-        description='Practical scripts and examples'
-        tone='gold'
-      />,
-    );
+    render(<ServiceCard {...BASE_PROPS} />);
 
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
-    const toggleButton = screen.getByRole('button', {
-      name: 'Show details for Age Specific Strategies',
+    const serviceLink = screen.getByRole('link', {
+      name: 'Go to Age Specific Strategies',
     });
 
     expect(card).not.toBeNull();
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(card as HTMLElement);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
 
-    fireEvent.click(toggleButton);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(serviceLink);
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+    expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
   });
 });

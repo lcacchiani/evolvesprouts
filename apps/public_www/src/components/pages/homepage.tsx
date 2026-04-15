@@ -55,7 +55,6 @@ export function HomePage({ locale, content }: HomePageProps) {
       <AboutUsIntro content={content.aboutUs.intro} />
       <Services
         content={content.services}
-        commonAccessibility={content.common.accessibility}
       />
       <DeferredTestimonials
         content={content.testimonials}

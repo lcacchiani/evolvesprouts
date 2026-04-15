@@ -15,14 +15,11 @@ vi.mock('next/image', () => ({
 }));
 
 describe('Services', () => {
-  it('falls back to default copy and metadata when section content is sparse, uses green card tones, and keeps mobile carousel swipe-only', () => {
+  it('falls back to default copy and metadata when section content is sparse and renders three service link cards', () => {
     const sparseContent = {
       ...enContent.services,
       eyebrow: '',
       title: '',
-      description: '',
-      ctaLabel: '',
-      ctaHref: '',
       items: [],
     };
 
@@ -33,26 +30,20 @@ describe('Services', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(enContent.services.eyebrow)).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: enContent.services.ctaLabel }),
-    ).toHaveAttribute('href', enContent.services.ctaHref);
+      screen.getByRole('link', { name: 'Go to My Best Auntie Programme' }),
+    ).toHaveAttribute('href', '/services/my-best-auntie-training-course');
+    expect(
+      screen.getByRole('link', { name: 'Go to Family Consultations' }),
+    ).toHaveAttribute('href', '/services/consultations');
+    expect(
+      screen.getByRole('link', { name: 'Go to Free Guides & Resources' }),
+    ).toHaveAttribute('href', '/services/free-guides-and-resources');
 
-    const cards = screen.getAllByRole('button', { name: /show details for/i });
-    expect(cards).toHaveLength(6);
+    const cards = screen.getAllByRole('button');
+    expect(cards).toHaveLength(3);
     expect(document.querySelectorAll('.es-service-card--green').length).toBeGreaterThan(
       0,
     );
     expect(document.querySelectorAll('.es-service-card--gold')).toHaveLength(0);
-
-    const carouselTrack = screen.getByTestId('services-mobile-carousel');
-    expect(carouselTrack.className).toContain('snap-mandatory');
-    expect(carouselTrack.className).toContain('overflow-x-auto');
-    expect(carouselTrack.getAttribute('role')).toBe('region');
-    expect(carouselTrack.getAttribute('aria-roledescription')).toBe('carousel');
-    expect(
-      screen.queryByRole('button', { name: 'Scroll services left' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Scroll services right' }),
-    ).not.toBeInTheDocument();
   });
 });
