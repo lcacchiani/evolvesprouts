@@ -20,7 +20,7 @@ describe('AboutUsWhyUs section', () => {
     expect(container.querySelector('.es-why-us-glow-green')).toBeNull();
   });
 
-  it('renders pillar cards and a section-level localized workshops cta', () => {
+  it('renders pillar cards and a section-level localized services cta', () => {
     const { container } = render(<AboutUsWhyUs locale='en' content={enContent.aboutUs.whyUs} />);
 
     const description = screen.getByText(enContent.aboutUs.whyUs.description);
@@ -32,11 +32,11 @@ describe('AboutUsWhyUs section', () => {
     });
     expect(firstPillarTitle.className).toContain('es-type-subtitle');
 
-    const workshopsLink = screen.getByRole('link', {
+    const servicesLink = screen.getByRole('link', {
       name: enContent.aboutUs.whyUs.ctaLabel,
     });
-    expect(workshopsLink).toHaveAttribute('href', '/en/services/workshops');
-    expect(container.querySelector('ul')?.contains(workshopsLink)).toBe(false);
+    expect(servicesLink).toHaveAttribute('href', '/en#services');
+    expect(container.querySelector('ul')?.contains(servicesLink)).toBe(false);
 
     const firstPillarCard = container.querySelector('ul > li:first-child article');
     expect(firstPillarCard).not.toBeNull();
