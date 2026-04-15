@@ -45,7 +45,7 @@ _SOCIAL_LABELS = {
     "zh-HK": ("WhatsApp", "Instagram", "LinkedIn", "網站"),
 }
 
-_LINK_STYLE = "color:#C84A16;font-weight:600;text-decoration:none;"
+_LINK_STYLE = "color:#C84A16;font-weight:600;text-decoration:underline;"
 _SEP = '<span style="color:#EECAB0;"> · </span>'
 
 
@@ -267,7 +267,7 @@ def build_transactional_template_shell_data(*, locale: str) -> dict[str, str]:
     loc = locale if locale in _ALLOWED_LOCALES else "en"
     base = resolve_public_www_base_url()
     logo_url = f"{base}{_DEFAULT_OG_IMAGE_PATH}" if base else ""
-    site_home_url = f"{base}/{loc}/" if base else ""
+    site_home_url = base if base else ""
 
     return {
         "logo_url": logo_url,

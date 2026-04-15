@@ -116,7 +116,7 @@ def test_build_transactional_template_shell_data_footer(
     assert data["logo_url"] == (
         "https://www.example.com/images/seo/evolvesprouts-og-default.png"
     )
-    assert data["site_home_url"] == f"https://www.example.com/{locale}/"
+    assert data["site_home_url"] == "https://www.example.com"
     assert data["my_best_auntie_url"] == (
         f"https://www.example.com/{locale}/services/my-best-auntie-training-course"
     )
@@ -124,6 +124,7 @@ def test_build_transactional_template_shell_data_footer(
     assert expect_fragment in data["footer_block_html"]
     assert "Instagram" in data["footer_block_html"]
     assert "https://www.instagram.com/evolvesprouts" in data["footer_block_html"]
+    assert "text-decoration:underline" in data["footer_block_html"]
     assert "© 2030 Evolve Sprouts. All rights reserved." in data["footer_block_html"]
     assert "margin:16px 0 0 0;text-align:center" in data["footer_block_html"]
 
