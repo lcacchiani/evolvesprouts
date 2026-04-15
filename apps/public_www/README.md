@@ -98,7 +98,7 @@ Read it from locale content instead.
   - `common.placeholder.*` for generic placeholder-page copy
 - Keep section-specific copy under the section key when it belongs to only one
   area, for example:
-  - `courseHighlights.showDetailsAriaLabelTemplate`
+  - `services.showDetailsAriaLabelTemplate`
   - `myBestAuntieBooking.paymentModal.fpsQrCodeLabel`
   - `testimonials.a11y.*`
 - Use a `*Template` suffix for strings that interpolate runtime values, such as:
@@ -117,7 +117,7 @@ Read it from locale content instead.
   - `common.accessibility.carouselLabelTemplate`
 - Section-specific accessibility copy:
   - `testimonials.a11y.imageAltTemplate`
-  - `courseHighlights.showDetailsAriaLabelTemplate`
+  - `services.showDetailsAriaLabelTemplate`
 
 When a new key is added:
 

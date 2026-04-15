@@ -2,7 +2,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
+import { ServiceCard } from '@/components/sections/service-card';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -58,13 +58,13 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia');
 });
 
-describe('CourseHighlightCard description visibility transition', () => {
+describe('ServiceCard description visibility transition', () => {
   it('applies hover reveal classes at every breakpoint', () => {
     render(
-      <CourseHighlightCard
+      <ServiceCard
         id='age-specific'
         title='Age Specific Strategies'
-        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageSrc='/images/services/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
         imageClassName='h-[235px]'
@@ -92,10 +92,10 @@ describe('CourseHighlightCard description visibility transition', () => {
 
   it('uses immediate hide classes when toggled inactive', () => {
     render(
-      <CourseHighlightCard
+      <ServiceCard
         id='age-specific'
         title='Age Specific Strategies'
-        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageSrc='/images/services/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
         imageClassName='h-[235px]'
@@ -134,10 +134,10 @@ describe('CourseHighlightCard description visibility transition', () => {
     });
 
     render(
-      <CourseHighlightCard
+      <ServiceCard
         id='age-specific'
         title='Age Specific Strategies'
-        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageSrc='/images/services/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
         imageClassName='h-[235px]'
@@ -171,10 +171,10 @@ describe('CourseHighlightCard description visibility transition', () => {
     });
 
     render(
-      <CourseHighlightCard
+      <ServiceCard
         id='age-specific'
         title='Age Specific Strategies'
-        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageSrc='/images/services/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
         imageClassName='h-[235px]'
@@ -205,10 +205,10 @@ describe('CourseHighlightCard description visibility transition', () => {
     });
 
     render(
-      <CourseHighlightCard
+      <ServiceCard
         id='age-specific'
         title='Age Specific Strategies'
-        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageSrc='/images/services/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
         imageClassName='h-[235px]'

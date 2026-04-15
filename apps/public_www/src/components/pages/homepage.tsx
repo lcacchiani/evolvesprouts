@@ -4,7 +4,7 @@ import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { RealTalk } from '@/components/sections/real-talk';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { AboutUsIntro } from '@/components/sections/about-us-intro';
-import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
+import { Services } from '@/components/sections/services';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
@@ -31,10 +31,6 @@ export function HomePage({ locale, content }: HomePageProps) {
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,
   );
-  const myBestAuntieOutlineCtaHref = localizeHref(
-    `${ROUTES.servicesMyBestAuntieTrainingCourse}#my-best-auntie-booking`,
-    locale,
-  );
   const navbarCtaHref = resolveNavbarBookNowHref(content.navbar.bookNow)
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
@@ -57,9 +53,8 @@ export function HomePage({ locale, content }: HomePageProps) {
         commonAccessibility={content.common.accessibility}
       />
       <AboutUsIntro content={content.aboutUs.intro} />
-      <MyBestAuntieOutline
-        content={content.myBestAuntie.outline}
-        ctaHref={myBestAuntieOutlineCtaHref}
+      <Services
+        content={content.services}
         commonAccessibility={content.common.accessibility}
       />
       <DeferredTestimonials

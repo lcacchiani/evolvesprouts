@@ -367,7 +367,7 @@
   }
 
   .es-why-us-section,
-  .es-course-highlights-section,
+  .es-services-section,
   .es-free-guides-and-resources-library-section,
   .es-my-best-auntie-description-section,
   .es-consultations-focus-details-section,
@@ -382,7 +382,7 @@
   }
 
   .es-why-us-section,
-  .es-course-highlights-section,
+  .es-services-section,
   .es-free-guides-and-resources-library-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
@@ -458,7 +458,7 @@
     font-weight: 700;
   }
 
-  .es-course-highlight-title {
+  .es-service-card-title {
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-size: clamp(1.2rem, 2.5vw, 24px);
@@ -471,7 +471,7 @@
     letter-spacing: calc(var(--figma-letterspacing-age-specific-strategies, 0.37) * 1px);
   }
 
-  .es-course-highlight-description {
+  .es-service-card-description {
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: clamp(0.95rem, 1.5vw, 15px);
@@ -489,19 +489,19 @@
     );
   }
 
-  .es-course-highlight-card--gold {
+  .es-service-card--gold {
     background-color: var(--es-color-accent-gold, #9E6D12);
   }
 
-  .es-course-highlight-card--green {
+  .es-service-card--green {
     background-color: var(--es-color-accent-green, #5D9D49);
   }
 
-  .es-course-highlight-card--blue {
+  .es-service-card--blue {
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }
 
-  .es-course-highlights-overlay {
+  .es-section-brand-overlay {
     background: radial-gradient(
         circle at 16% 22%,
         rgba(23, 72, 121, 0.1) 0%,
@@ -1727,7 +1727,7 @@
     .es-ida-intro-section,
     .es-my-best-auntie-hero-section,
     .es-my-best-auntie-outline-section,
-    .es-course-highlights-section,
+    .es-services-section,
     .es-free-guides-and-resources-library-section,
     .es-real-talk-section,
     .es-free-resources-section,

@@ -16,7 +16,7 @@ const pageSectionFiles = [
   'real-talk.tsx',
   'about-us-intro.tsx',
   'my-best-auntie/my-best-auntie-outline.tsx',
-  'course-highlights.tsx',
+  'services.tsx',
   'free-resources-for-gentle-parenting.tsx',
   'testimonials.tsx',
   'about-us-hero.tsx',

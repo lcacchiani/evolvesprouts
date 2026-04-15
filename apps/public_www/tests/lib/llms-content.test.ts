@@ -101,8 +101,8 @@ describe('buildLlmsFullTxt', () => {
     }
   });
 
-  it('includes all course highlight items from content', () => {
-    for (const item of enContent.courseHighlights.items) {
+  it('includes all services items from content', () => {
+    for (const item of enContent.services.items) {
       expect(output).toContain(item.title);
       expect(output).toContain(item.description);
     }

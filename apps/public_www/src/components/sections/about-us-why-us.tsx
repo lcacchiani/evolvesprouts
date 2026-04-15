@@ -30,7 +30,7 @@ export function AboutUsWhyUs({ locale, content }: AboutUsWhyUsProps) {
     >
       <div
         aria-hidden='true'
-        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
+        className='es-section-brand-overlay pointer-events-none absolute inset-0'
       />
 
       <SectionContainer>

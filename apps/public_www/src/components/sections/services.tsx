@@ -1,6 +1,6 @@
 'use client';
 
-import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
+import { ServiceCard } from '@/components/sections/service-card';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -8,18 +8,18 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
   CommonAccessibilityContent,
-  CourseHighlightsContent,
+  ServicesContent,
 } from '@/content';
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
-interface CourseHighlightsProps {
-  content: CourseHighlightsContent;
+interface ServicesProps {
+  content: ServicesContent;
   commonAccessibility?: CommonAccessibilityContent;
 }
 
-interface BenefitCard {
+interface ServiceCardData {
   id: string;
   title: string;
   imageSrc: string;
@@ -29,7 +29,7 @@ interface BenefitCard {
   description?: string;
 }
 
-interface BenefitCardMeta {
+interface ServiceCardMeta {
   id: string;
   imageSrc: string;
   imageWidth: number;
@@ -39,62 +39,62 @@ interface BenefitCardMeta {
 
 const CARD_TONES = ['green', 'blue'] as const;
 
-const fallbackCourseHighlightsCopy = enContent.courseHighlights;
+const fallbackServicesCopy = enContent.services;
 
-const benefitCardMeta: BenefitCardMeta[] = [
+const serviceCardMeta: ServiceCardMeta[] = [
   {
     id: 'age-specific',
-    imageSrc: '/images/course-highlights/course-card-1.webp',
+    imageSrc: '/images/services/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'small-group-learning',
-    imageSrc: '/images/course-highlights/course-card-2.webp',
+    imageSrc: '/images/services/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
   },
   {
     id: 'montessori-positive-discipline',
-    imageSrc: '/images/course-highlights/course-card-3.webp',
+    imageSrc: '/images/services/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'ongoing-support',
-    imageSrc: '/images/course-highlights/course-card-4.webp',
+    imageSrc: '/images/services/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
   },
   {
     id: 'ready-to-use-tools',
-    imageSrc: '/images/course-highlights/course-card-5.webp',
+    imageSrc: '/images/services/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
   {
     id: 'guaranteed-confidence',
-    imageSrc: '/images/course-highlights/course-card-6.webp',
+    imageSrc: '/images/services/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
 ];
 
-function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
+function getServiceCards(content: ServicesContent): ServiceCardData[] {
   const activeItems =
     content.items.length > 0
       ? content.items
-      : fallbackCourseHighlightsCopy.items;
+      : fallbackServicesCopy.items;
   const itemById = new Map(activeItems.map((item) => [item.id, item]));
-  const cards: BenefitCard[] = [];
+  const cards: ServiceCardData[] = [];
 
-  for (const meta of benefitCardMeta) {
+  for (const meta of serviceCardMeta) {
     const cardCopy = itemById.get(meta.id);
     if (!cardCopy) {
       continue;
@@ -122,34 +122,34 @@ function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   return cards;
 }
 
-export function CourseHighlights({
+export function Services({
   content,
   commonAccessibility = enContent.common.accessibility,
-}: CourseHighlightsProps) {
-  const sectionTitle = content.title || fallbackCourseHighlightsCopy.title;
+}: ServicesProps) {
+  const sectionTitle = content.title || fallbackServicesCopy.title;
   const sectionDescription =
-    content.description || fallbackCourseHighlightsCopy.description;
+    content.description || fallbackServicesCopy.description;
   const sectionEyebrow =
-    content.eyebrow || fallbackCourseHighlightsCopy.eyebrow;
-  const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
-  const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
-  const benefitCards = getBenefitCards(content);
+    content.eyebrow || fallbackServicesCopy.eyebrow;
+  const ctaLabel = content.ctaLabel || fallbackServicesCopy.ctaLabel;
+  const ctaHref = content.ctaHref || fallbackServicesCopy.ctaHref;
+  const serviceCards = getServiceCards(content);
   const {
     carouselRef,
   } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: benefitCards.length,
+    itemCount: serviceCards.length,
   });
 
   return (
     <SectionShell
-      id='course-highlights'
+      id='services'
       ariaLabel={sectionTitle}
-      dataFigmaNode='course-highlights'
-      className='es-section-bg-overlay es-course-highlights-section'
+      dataFigmaNode='services'
+      className='es-section-bg-overlay es-services-section'
     >
       <div
         aria-hidden='true'
-        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
+        className='es-section-brand-overlay pointer-events-none absolute inset-0'
       />
 
       <SectionContainer>
@@ -161,7 +161,7 @@ export function CourseHighlights({
         <div className='relative'>
           <CarouselTrack
             carouselRef={carouselRef}
-            testId='course-highlights-mobile-carousel'
+            testId='services-mobile-carousel'
             ariaLabel={formatContentTemplate(
               commonAccessibility.carouselLabelTemplate,
               { title: sectionTitle },
@@ -170,7 +170,7 @@ export function CourseHighlights({
             className='pb-2 md:snap-none md:overflow-visible md:pb-0'
           >
             <ul className='flex min-w-0 gap-5 sm:gap-6 md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-3'>
-              {benefitCards.map((card, index) => {
+              {serviceCards.map((card, index) => {
                 const tone = CARD_TONES[index % CARD_TONES.length];
 
                 return (
@@ -178,7 +178,7 @@ export function CourseHighlights({
                     key={card.id}
                     className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
                   >
-                    <CourseHighlightCard
+                    <ServiceCard
                       id={card.id}
                       title={card.title}
                       imageSrc={card.imageSrc}
