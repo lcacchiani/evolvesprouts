@@ -4,15 +4,11 @@ import { ServiceCard } from '@/components/sections/service-card';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type {
-  CommonAccessibilityContent,
-  ServicesContent,
-} from '@/content';
+import type { ServicesContent } from '@/content';
 import enContent from '@/content/en.json';
 
 interface ServicesProps {
   content: ServicesContent;
-  commonAccessibility?: CommonAccessibilityContent;
 }
 
 interface ServiceCardData {
@@ -106,7 +102,6 @@ function getServiceCards(content: ServicesContent): ServiceCardData[] {
 
 export function Services({
   content,
-  commonAccessibility: _commonAccessibility = enContent.common.accessibility,
 }: ServicesProps) {
   const sectionTitle = content.title || fallbackServicesCopy.title;
   const sectionEyebrow =

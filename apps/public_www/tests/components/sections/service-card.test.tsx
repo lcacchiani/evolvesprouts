@@ -120,6 +120,9 @@ describe('ServiceCard description visibility transition', () => {
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
     ).toBe(true);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'opacity-100'),
+    ).toBe(true);
 
     fireEvent.click(card as HTMLElement);
 
@@ -129,6 +132,9 @@ describe('ServiceCard description visibility transition', () => {
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
     ).toBe(false);
+    expect(
+      hasClassToken((pulseRing as HTMLElement).className, 'opacity-0'),
+    ).toBe(true);
   });
 
   it('toggles when tapping the card surface below desktop breakpoint', () => {

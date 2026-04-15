@@ -211,7 +211,6 @@
   "services": {
     "eyebrow": "我們的服務",
     "title": "我們如何支持您的家庭",
-    "supportChipLabel": "立即聯絡",
     "items": [
       {
         "id": "my-best-auntie",

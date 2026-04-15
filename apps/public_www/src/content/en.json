@@ -211,7 +211,6 @@
   "services": {
     "eyebrow": "Our Services",
     "title": "How We Support Your Family",
-    "supportChipLabel": "Connect Now",
     "items": [
       {
         "id": "my-best-auntie",

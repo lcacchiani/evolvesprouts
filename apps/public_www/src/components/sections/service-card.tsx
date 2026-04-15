@@ -44,6 +44,7 @@ function isDesktopHoverMode(): boolean {
 }
 
 export function ServiceCard({
+  id,
   title,
   href,
   imageSrc,
@@ -118,7 +119,9 @@ export function ServiceCard({
   const arrowActive = isActive
     ? 'h-[70px] w-[70px]'
     : '';
-  const arrowRingActive = isActive
+  const shouldAnimateFromActiveState =
+    isActive && !isDesktopHoverMode();
+  const arrowRingActive = shouldAnimateFromActiveState
     ? 'opacity-100 es-service-arrow-ring'
     : 'opacity-0';
   const descriptionVisibilityClassName = isActive
@@ -128,6 +131,7 @@ export function ServiceCard({
   return (
     <div
       ref={cardRef}
+      data-service-card-id={id}
       role='button'
       tabIndex={0}
       aria-expanded={isActive}
@@ -165,7 +169,7 @@ export function ServiceCard({
       >
         <span
           aria-hidden
-          className={`es-service-arrow-ring-target pointer-events-none absolute inset-0 rounded-full border border-white/40 bg-white/10 transition-opacity duration-300 group-hover:opacity-100 ${arrowRingActive}`}
+          className={`es-service-arrow-ring-target pointer-events-none absolute inset-0 rounded-full border border-white/40 bg-white/10 transition-opacity duration-300 ${arrowRingActive}`}
         />
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <span
