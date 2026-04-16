@@ -36,7 +36,7 @@ const CARD_TONES = ['green', 'blue'] as const;
 /** Grid-position nudges for card illustrations (index matches rendered order). */
 const SERVICE_CARD_ILLUSTRATION_WRAPPER_CLASSES: (string | undefined)[] = [
   'translate-x-[30px]',
-  'translate-y-[30px]',
+  'translate-x-[50px] translate-y-[30px]',
 ];
 
 const fallbackServicesCopy = enContent.services;
