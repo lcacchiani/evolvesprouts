@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  clearFormPrefill,
   FORM_PREFILL_STORAGE_KEY,
   readFormPrefill,
   writeFormPrefill,
@@ -59,6 +60,18 @@ describe('form-prefill', () => {
   it('readFormPrefill returns empty strings for non-string shape fields', () => {
     sessionStorage.setItem(FORM_PREFILL_STORAGE_KEY, JSON.stringify({ firstName: 1, email: null }));
     expect(readFormPrefill()).toEqual({ firstName: '', email: '' });
+  });
+
+  it('readFormPrefill returns defaults when stored value is a JSON array', () => {
+    sessionStorage.setItem(FORM_PREFILL_STORAGE_KEY, JSON.stringify(['a', 'b']));
+    expect(readFormPrefill()).toEqual({ firstName: '', email: '' });
+  });
+
+  it('clearFormPrefill removes the storage key', () => {
+    writeFormPrefill({ firstName: 'A', email: 'a@b.co' });
+    expect(sessionStorage.getItem(FORM_PREFILL_STORAGE_KEY)).not.toBeNull();
+    clearFormPrefill();
+    expect(sessionStorage.getItem(FORM_PREFILL_STORAGE_KEY)).toBeNull();
   });
 
   it('gracefully handles sessionStorage read throwing', () => {

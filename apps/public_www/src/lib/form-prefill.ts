@@ -12,7 +12,7 @@ const EMPTY_PREFILL: FormPrefillData = {
 
 function parseStoredPrefill(raw: string): FormPrefillData {
   const parsed: unknown = JSON.parse(raw);
-  if (!parsed || typeof parsed !== 'object') {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     return { ...EMPTY_PREFILL };
   }
   const record = parsed as Record<string, unknown>;
@@ -36,6 +36,11 @@ export function readFormPrefill(): FormPrefillData {
   }
 }
 
+/**
+ * Merges non-empty trimmed `firstName` / `email` into stored prefill.
+ * Empty strings are ignored so partial callers (e.g. email-only) never erase
+ * other fields; use {@link clearFormPrefill} to remove stored data.
+ */
 export function writeFormPrefill(data: Partial<FormPrefillData>): void {
   try {
     if (typeof sessionStorage === 'undefined') {
@@ -57,5 +62,16 @@ export function writeFormPrefill(data: Partial<FormPrefillData>): void {
     sessionStorage.setItem(FORM_PREFILL_STORAGE_KEY, JSON.stringify(merged));
   } catch {
     // Ignore environments where sessionStorage throws (e.g. some private browsing modes).
+  }
+}
+
+export function clearFormPrefill(): void {
+  try {
+    if (typeof sessionStorage === 'undefined') {
+      return;
+    }
+    sessionStorage.removeItem(FORM_PREFILL_STORAGE_KEY);
+  } catch {
+    // Same tolerance as read/write for restricted storage environments.
   }
 }

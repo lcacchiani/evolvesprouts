@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import enContent from '@/content/en.json';
+import { FORM_PREFILL_STORAGE_KEY } from '@/lib/form-prefill';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -68,6 +69,7 @@ const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 describe('SproutsSquadCommunity section', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -78,6 +80,7 @@ describe('SproutsSquadCommunity section', () => {
     } else {
       process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
     }
+    sessionStorage.clear();
   });
 
   it('uses migrated section/overlay/logo classes and renders CTA-first state', () => {
@@ -174,6 +177,138 @@ describe('SproutsSquadCommunity section', () => {
         name: enContent.sproutsSquadCommunity.formSubmitLabel,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('opens with empty email when sessionStorage has no prefill data', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    expect(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+    ).toHaveValue('');
+  });
+
+  it('pre-fills email from sessionStorage when CTA is clicked', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    sessionStorage.setItem(
+      FORM_PREFILL_STORAGE_KEY,
+      JSON.stringify({ firstName: 'Alice', email: 'alice@example.com' }),
+    );
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    expect(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+    ).toHaveValue('alice@example.com');
+  });
+
+  it('writes lowercased email to sessionStorage after successful submit', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+      { target: { value: 'Community@Example.com' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.sproutsSquadCommunity.successMessage),
+      ).toBeInTheDocument();
+    });
+
+    expect(sessionStorage.getItem(FORM_PREFILL_STORAGE_KEY)).toBe(
+      JSON.stringify({ firstName: '', email: 'community@example.com' }),
+    );
+  });
+
+  it('preserves stored firstName when sprouts squad writes email only', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+    sessionStorage.setItem(
+      FORM_PREFILL_STORAGE_KEY,
+      JSON.stringify({ firstName: 'Alice', email: 'old@example.com' }),
+    );
+
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+      { target: { value: 'newuser@example.com' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.sproutsSquadCommunity.successMessage),
+      ).toBeInTheDocument();
+    });
+
+    expect(sessionStorage.getItem(FORM_PREFILL_STORAGE_KEY)).toBe(
+      JSON.stringify({ firstName: 'Alice', email: 'newuser@example.com' }),
+    );
   });
 
   it('fades in revealed fields after the initial CTA click', async () => {
