@@ -53,5 +53,19 @@ describe('Services', () => {
       0,
     );
     expect(document.querySelectorAll('.es-service-card--gold')).toHaveLength(0);
+
+    const firstCard = document.querySelector(
+      '[data-service-card-id="my-best-auntie"]',
+    );
+    expect(firstCard).not.toBeNull();
+    const firstIllustration = firstCard?.querySelector('div.z-0');
+    expect(firstIllustration?.className).toContain('translate-x-[30px]');
+
+    const secondCard = document.querySelector(
+      '[data-service-card-id="family-consultations"]',
+    );
+    expect(secondCard?.querySelector('div.z-0')?.className).not.toContain(
+      'translate-x-[30px]',
+    );
   });
 });
