@@ -68,6 +68,6 @@ describe('Services', () => {
     expect(secondIllustration?.className).not.toContain(
       'translate-x-[30px]',
     );
-    expect(secondIllustration?.className).toContain('translate-y-[15px]');
+    expect(secondIllustration?.className).toContain('translate-y-[30px]');
   });
 });
