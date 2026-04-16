@@ -137,7 +137,11 @@ export function Services({
                     imageHeight={card.imageHeight}
                     imageClassName={card.imageClassName}
                     imageWrapperClassName={
-                      index === 0 ? 'translate-x-[30px]' : undefined
+                      index === 0
+                        ? 'translate-x-[30px]'
+                        : index === 1
+                          ? 'translate-y-[15px]'
+                          : undefined
                     }
                     description={card.description}
                     tone={tone}
