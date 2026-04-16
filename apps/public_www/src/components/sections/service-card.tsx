@@ -27,6 +27,8 @@ export interface ServiceCardProps {
   imageWidth: number;
   imageHeight: number;
   imageClassName: string;
+  /** Optional classes for the illustration wrapper (e.g. positional nudge). */
+  imageWrapperClassName?: string;
   description?: string;
   tone: ServiceCardTone;
   goToServiceAriaLabelTemplate?: string;
@@ -51,6 +53,7 @@ export function ServiceCard({
   imageWidth,
   imageHeight,
   imageClassName,
+  imageWrapperClassName = '',
   description,
   tone,
   goToServiceAriaLabelTemplate = enContent.services.goToServiceAriaLabelTemplate,
@@ -151,7 +154,7 @@ export function ServiceCard({
       {/* Card illustration */}
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute bottom-0 right-0 z-0'
+        className={`pointer-events-none absolute bottom-0 right-0 z-0 ${imageWrapperClassName}`}
       >
         <Image
           src={imageSrc}

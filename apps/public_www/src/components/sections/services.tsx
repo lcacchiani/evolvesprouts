@@ -136,6 +136,9 @@ export function Services({
                     imageWidth={card.imageWidth}
                     imageHeight={card.imageHeight}
                     imageClassName={card.imageClassName}
+                    imageWrapperClassName={
+                      index === 0 ? 'translate-x-[30px]' : undefined
+                    }
                     description={card.description}
                     tone={tone}
                     goToServiceAriaLabelTemplate={content.goToServiceAriaLabelTemplate}
