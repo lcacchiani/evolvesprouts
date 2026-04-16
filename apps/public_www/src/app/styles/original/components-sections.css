@@ -544,6 +544,12 @@
     animation: es-service-arrow-pulse 1.4s ease-out infinite;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .es-service-arrow-ring {
+      animation: none;
+    }
+  }
+
   /* Pulse ring on card hover (desktop); tap path uses .es-service-arrow-ring from TSX */
   @media (min-width: 1024px) and (hover: hover) {
     .group:hover .es-service-arrow-ring-target--brand {

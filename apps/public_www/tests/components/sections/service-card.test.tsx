@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ServiceCard } from '@/components/sections/service-card';
@@ -58,6 +58,8 @@ function mockInteractionCapabilities({
 }
 
 afterEach(() => {
+  vi.useRealTimers();
+
   if (originalMatchMedia) {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -76,6 +78,38 @@ function getCardDescriptionParagraph(card: HTMLElement | null): HTMLElement | nu
 
 function getCardDescriptionPreview(card: HTMLElement | null): HTMLElement | null {
   return card?.querySelector('.es-service-card-description-preview') ?? null;
+}
+
+function getCardOverlay(card: HTMLElement | null): HTMLElement | null {
+  if (!card || card.children.length === 0) {
+    return null;
+  }
+
+  return card.children[0] as HTMLElement;
+}
+
+function overlayShowsExpanded(overlay: HTMLElement): boolean {
+  return (
+    hasClassToken(overlay.className, 'bg-black/70') &&
+    !hasClassToken(overlay.className, 'bg-black/0')
+  );
+}
+
+function mockReducedMotion(): void {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 }
 
 describe('ServiceCard description visibility transition', () => {
@@ -256,5 +290,134 @@ describe('ServiceCard description visibility transition', () => {
     fireEvent.click(serviceLink);
     expect(card).toHaveAttribute('aria-expanded', 'false');
     expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
+  });
+});
+
+describe('ServiceCard auto-reveal demo', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockInteractionCapabilities({
+      isDesktopViewport: false,
+      canHover: true,
+    });
+  });
+
+  it('expands visually after delay and collapses after hold while aria-expanded stays false', () => {
+    render(<ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+    const serviceLink = screen.getByRole('link', {
+      name: 'Go to Age Specific Strategies',
+    });
+
+    expect(card).not.toBeNull();
+    expect(overlay).not.toBeNull();
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+    expect(hasClassToken(serviceLink.className, 'h-[54px]')).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(399);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(overlayShowsExpanded(overlay!)).toBe(true);
+    expect(hasClassToken(serviceLink.className, 'h-[70px]')).toBe(true);
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+
+    act(() => {
+      vi.advanceTimersByTime(1800);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+    expect(hasClassToken(serviceLink.className, 'h-[54px]')).toBe(true);
+  });
+
+  it('does not run a second reveal after the prop changes following the first cycle', () => {
+    const { rerender } = render(
+      <ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />,
+    );
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+
+    act(() => {
+      vi.advanceTimersByTime(2200);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+
+    rerender(<ServiceCard {...BASE_PROPS} autoRevealDelayMs={800} />);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+  });
+
+  it('cancels reveal when the user activates the card and keeps expanded visuals from isActive', () => {
+    render(<ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+    const serviceLink = screen.getByRole('link', {
+      name: 'Go to Age Specific Strategies',
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(overlayShowsExpanded(overlay!)).toBe(true);
+
+    fireEvent.click(card as HTMLElement);
+
+    expect(card).toHaveAttribute('aria-expanded', 'true');
+    expect(overlayShowsExpanded(overlay!)).toBe(true);
+    expect(hasClassToken(serviceLink.className, 'h-[70px]')).toBe(true);
+  });
+
+  it('skips the reveal when prefers-reduced-motion is reduce', () => {
+    mockReducedMotion();
+
+    render(<ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('does not auto-expand when autoRevealDelayMs is undefined', () => {
+    render(<ServiceCard {...BASE_PROPS} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+
+    act(() => {
+      vi.advanceTimersByTime(10000);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+    expect(card).toHaveAttribute('aria-expanded', 'false');
   });
 });

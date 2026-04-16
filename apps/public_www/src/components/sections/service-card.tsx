@@ -4,6 +4,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -16,6 +17,8 @@ import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+const AUTO_REVEAL_HOLD_MS = 1800;
 
 export type ServiceCardTone = 'gold' | 'green' | 'blue';
 
@@ -30,6 +33,7 @@ export interface ServiceCardProps {
   description?: string;
   tone: ServiceCardTone;
   goToServiceAriaLabelTemplate?: string;
+  autoRevealDelayMs?: number;
 }
 
 const INTERACTIVE_ELEMENT_SELECTOR =
@@ -43,6 +47,14 @@ function isDesktopHoverMode(): boolean {
   return window.matchMedia(DESKTOP_HOVER_QUERY).matches;
 }
 
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
 export function ServiceCard({
   id,
   title,
@@ -54,8 +66,11 @@ export function ServiceCard({
   description,
   tone,
   goToServiceAriaLabelTemplate = enContent.services.goToServiceAriaLabelTemplate,
+  autoRevealDelayMs,
 }: ServiceCardProps) {
   const [isActive, setIsActive] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const hasRevealedRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const toneClassMap: Record<ServiceCardTone, string> = {
     gold: 'es-service-card--gold',
@@ -85,7 +100,12 @@ export function ServiceCard({
         return;
       }
 
-      setIsActive((prev) => !prev);
+      setIsActive((wasActive) => {
+        if (!wasActive) {
+          setIsRevealing(false);
+        }
+        return !wasActive;
+      });
     },
     [],
   );
@@ -106,28 +126,65 @@ export function ServiceCard({
       }
 
       event.preventDefault();
-      setIsActive((prev) => !prev);
+      setIsActive((wasActive) => {
+        if (!wasActive) {
+          setIsRevealing(false);
+        }
+        return !wasActive;
+      });
     },
     [],
   );
 
+  useEffect(() => {
+    if (autoRevealDelayMs === undefined) {
+      return;
+    }
+
+    if (hasRevealedRef.current) {
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      hasRevealedRef.current = true;
+      return;
+    }
+
+    hasRevealedRef.current = true;
+
+    const revealTimeoutId = window.setTimeout(() => {
+      setIsRevealing(true);
+    }, autoRevealDelayMs);
+
+    const collapseTimeoutId = window.setTimeout(() => {
+      setIsRevealing(false);
+    }, autoRevealDelayMs + AUTO_REVEAL_HOLD_MS);
+
+    return () => {
+      window.clearTimeout(revealTimeoutId);
+      window.clearTimeout(collapseTimeoutId);
+    };
+  }, [autoRevealDelayMs]);
+
+  const showExpanded = isActive || isRevealing;
+
   // Build conditional class fragments for the active (tapped) state.
   // Pointer hover continues to work independently via group-hover:*.
-  const overlayActive = isActive
+  const overlayActive = showExpanded
     ? 'bg-black/70 backdrop-blur-[4px]'
     : '';
-  const arrowActive = isActive
+  const arrowActive = showExpanded
     ? 'h-[70px] w-[70px]'
     : '';
-  const shouldAnimateFromActiveState =
-    isActive && !isDesktopHoverMode();
-  const arrowRingActive = shouldAnimateFromActiveState
+  const shouldAnimatePulseRing =
+    isRevealing || (isActive && !isDesktopHoverMode());
+  const arrowRingActive = shouldAnimatePulseRing
     ? 'opacity-100 es-service-arrow-ring'
     : 'opacity-0';
-  const descriptionVisibilityClassName = isActive
+  const descriptionVisibilityClassName = showExpanded
     ? 'opacity-100 transition-opacity duration-300'
     : 'opacity-0 transition-none';
-  const previewVisibilityClassName = isActive
+  const previewVisibilityClassName = showExpanded
     ? 'opacity-0'
     : 'opacity-70';
 
@@ -138,6 +195,7 @@ export function ServiceCard({
       role='button'
       tabIndex={0}
       aria-expanded={isActive}
+      data-auto-reveal-delay={autoRevealDelayMs}
       onClick={handleCardSurfaceClick}
       onKeyDown={handleCardSurfaceKeyDown}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[343px] lg:p-8 ${toneClassName}`}
@@ -145,7 +203,7 @@ export function ServiceCard({
       {/* Dark overlay - activated by pointer hover or tap */}
       <div
         aria-hidden='true'
-        className={`pointer-events-none absolute inset-0 z-[1] transition-all duration-300 ${isActive ? '' : 'bg-black/0'} group-hover:bg-black/70 group-hover:backdrop-blur-[4px] ${overlayActive}`}
+        className={`pointer-events-none absolute inset-0 z-[1] transition-all duration-300 ${showExpanded ? '' : 'bg-black/0'} group-hover:bg-black/70 group-hover:backdrop-blur-[4px] ${overlayActive}`}
       />
 
       {/* Card illustration */}
@@ -168,7 +226,7 @@ export function ServiceCard({
         variant='icon'
         href={href}
         aria-label={formatContentTemplate(goToServiceAriaLabelTemplate, { title })}
-        className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}
+        className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${showExpanded ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}
       >
         <span
           aria-hidden

@@ -1,11 +1,14 @@
 'use client';
 
+import { useRef } from 'react';
+
 import { ServiceCard } from '@/components/sections/service-card';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ServicesContent } from '@/content';
 import enContent from '@/content/en.json';
+import { useViewportEntered } from '@/lib/hooks/use-viewport-entered';
 
 interface ServicesProps {
   content: ServicesContent;
@@ -103,6 +106,8 @@ function getServiceCards(content: ServicesContent): ServiceCardData[] {
 export function Services({
   content,
 }: ServicesProps) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const hasEnteredViewport = useViewportEntered(gridRef, { threshold: 0.3 });
   const sectionTitle = content.title || fallbackServicesCopy.title;
   const sectionEyebrow =
     content.eyebrow || fallbackServicesCopy.eyebrow;
@@ -126,10 +131,16 @@ export function Services({
           title={sectionTitle}
         />
 
-        <div className='relative mt-12 sm:mt-14 xl:mt-16'>
+        <div
+          ref={gridRef}
+          className='relative mt-12 sm:mt-14 xl:mt-16'
+        >
           <ul className='grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3'>
             {serviceCards.map((card, index) => {
               const tone = CARD_TONES[index % CARD_TONES.length];
+              const autoRevealDelayMs = hasEnteredViewport
+                ? 400 + index * 150
+                : undefined;
 
               return (
                 <li key={card.id}>
@@ -144,6 +155,7 @@ export function Services({
                     description={card.description}
                     tone={tone}
                     goToServiceAriaLabelTemplate={content.goToServiceAriaLabelTemplate}
+                    autoRevealDelayMs={autoRevealDelayMs}
                   />
                 </li>
               );
