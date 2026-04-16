@@ -201,7 +201,7 @@ export function ServiceCard({
                 {renderQuotedDescriptionText(description)}
               </span>
               <p
-                className={`relative z-[1] max-w-[calc(34ch-50px)] es-service-card-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
+                className={`relative z-[1] max-w-[34ch] es-service-card-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
               >
                 {renderQuotedDescriptionText(description)}
               </p>
