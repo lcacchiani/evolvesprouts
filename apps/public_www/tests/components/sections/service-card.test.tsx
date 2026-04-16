@@ -24,7 +24,7 @@ const BASE_PROPS = {
   imageSrc: '/images/hero/my-best-auntie-hero.webp',
   imageWidth: 1200,
   imageHeight: 900,
-  imageClassName: 'h-[176px]',
+  imageClassName: 'h-[235px]',
   description: 'Practical scripts and examples',
   tone: 'green' as const,
 };

@@ -42,7 +42,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/hero/my-best-auntie-hero.webp',
     imageWidth: 1200,
     imageHeight: 900,
-    imageClassName: 'h-[176px] sm:h-[199px] lg:h-[229px]',
+    imageClassName: 'h-[235px] sm:h-[265px] lg:h-[229px]',
   },
   {
     id: 'family-consultations',
@@ -50,7 +50,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/hero/consultations-hero.webp',
     imageWidth: 1200,
     imageHeight: 800,
-    imageClassName: 'h-[188px] sm:h-[214px] lg:h-[246px]',
+    imageClassName: 'h-[250px] sm:h-[285px] lg:h-[246px]',
   },
   {
     id: 'free-guides',
@@ -58,7 +58,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/hero/free-guides-and-resources-hero.webp',
     imageWidth: 433,
     imageHeight: 424,
-    imageClassName: 'h-[188px] sm:h-[214px] lg:h-[246px]',
+    imageClassName: 'h-[230px] sm:h-[265px] lg:h-[246px]',
   },
 ];
 
