@@ -64,8 +64,8 @@ describe('Services', () => {
     const secondCard = document.querySelector(
       '[data-service-card-id="family-consultations"]',
     );
-    expect(secondCard?.querySelector('div.z-0')?.className).not.toContain(
-      'translate-x-[30px]',
-    );
+    const secondIllustration = secondCard?.querySelector('div.z-0');
+    expect(secondIllustration?.className).toContain('translate-y-[15px]');
+    expect(secondIllustration?.className).not.toContain('translate-x-[30px]');
   });
 });
