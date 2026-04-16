@@ -36,6 +36,11 @@ interface ServiceCardMeta {
 
 const CARD_TONES = ['green', 'blue'] as const;
 
+/** First card reveal starts this many ms after the grid enters the viewport. */
+const REVEAL_INITIAL_DELAY_MS = 400;
+/** Extra delay per card index for left-to-right stagger. */
+const REVEAL_STAGGER_MS = 150;
+
 const fallbackServicesCopy = enContent.services;
 
 const serviceCardMeta: ServiceCardMeta[] = [
@@ -139,7 +144,7 @@ export function Services({
             {serviceCards.map((card, index) => {
               const tone = CARD_TONES[index % CARD_TONES.length];
               const autoRevealDelayMs = hasEnteredViewport
-                ? 400 + index * 150
+                ? REVEAL_INITIAL_DELAY_MS + index * REVEAL_STAGGER_MS
                 : undefined;
 
               return (

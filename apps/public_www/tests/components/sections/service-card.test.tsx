@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServiceCard } from '@/components/sections/service-card';
 
@@ -293,13 +293,20 @@ describe('ServiceCard description visibility transition', () => {
   });
 });
 
+const AUTO_REVEAL_SESSION_KEY = `es-service-card-auto-reveal:${BASE_PROPS.id}`;
+
 describe('ServiceCard auto-reveal demo', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    sessionStorage.removeItem(AUTO_REVEAL_SESSION_KEY);
     mockInteractionCapabilities({
       isDesktopViewport: false,
       canHover: true,
     });
+  });
+
+  afterEach(() => {
+    sessionStorage.removeItem(AUTO_REVEAL_SESSION_KEY);
   });
 
   it('expands visually after delay and collapses after hold while aria-expanded stays false', () => {
@@ -416,6 +423,34 @@ describe('ServiceCard auto-reveal demo', () => {
 
     act(() => {
       vi.advanceTimersByTime(10000);
+    });
+    expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('does not replay auto-reveal after unmount and remount in the same session', () => {
+    const { unmount } = render(
+      <ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(2200);
+    });
+
+    expect(sessionStorage.getItem(AUTO_REVEAL_SESSION_KEY)).toBe('1');
+
+    unmount();
+
+    render(<ServiceCard {...BASE_PROPS} autoRevealDelayMs={400} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const overlay = getCardOverlay(card);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
     });
     expect(hasClassToken(overlay!.className, 'bg-black/0')).toBe(true);
     expect(card).toHaveAttribute('aria-expanded', 'false');

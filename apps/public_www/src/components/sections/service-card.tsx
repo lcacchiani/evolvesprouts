@@ -19,6 +19,30 @@ import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 const AUTO_REVEAL_HOLD_MS = 1800;
+const AUTO_REVEAL_SESSION_STORAGE_KEY_PREFIX = 'es-service-card-auto-reveal:';
+
+function markServiceCardAutoRevealConsumedInSession(cardId: string): void {
+  try {
+    window.sessionStorage.setItem(
+      `${AUTO_REVEAL_SESSION_STORAGE_KEY_PREFIX}${cardId}`,
+      '1',
+    );
+  } catch {
+    /* sessionStorage may be unavailable */
+  }
+}
+
+function hasServiceCardAutoRevealBeenConsumedInSession(cardId: string): boolean {
+  try {
+    return (
+      window.sessionStorage.getItem(
+        `${AUTO_REVEAL_SESSION_STORAGE_KEY_PREFIX}${cardId}`,
+      ) !== null
+    );
+  } catch {
+    return false;
+  }
+}
 
 export type ServiceCardTone = 'gold' | 'green' | 'blue';
 
@@ -71,7 +95,20 @@ export function ServiceCard({
   const [isActive, setIsActive] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const hasRevealedRef = useRef(false);
+  const autoRevealRevealTimerRef = useRef<number | undefined>(undefined);
+  const autoRevealCollapseTimerRef = useRef<number | undefined>(undefined);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const clearAutoRevealTimers = useCallback(() => {
+    if (autoRevealRevealTimerRef.current !== undefined) {
+      window.clearTimeout(autoRevealRevealTimerRef.current);
+      autoRevealRevealTimerRef.current = undefined;
+    }
+    if (autoRevealCollapseTimerRef.current !== undefined) {
+      window.clearTimeout(autoRevealCollapseTimerRef.current);
+      autoRevealCollapseTimerRef.current = undefined;
+    }
+  }, []);
   const toneClassMap: Record<ServiceCardTone, string> = {
     gold: 'es-service-card--gold',
     green: 'es-service-card--green',
@@ -102,12 +139,14 @@ export function ServiceCard({
 
       setIsActive((wasActive) => {
         if (!wasActive) {
+          clearAutoRevealTimers();
           setIsRevealing(false);
+          markServiceCardAutoRevealConsumedInSession(id);
         }
         return !wasActive;
       });
     },
-    [],
+    [clearAutoRevealTimers, id],
   );
 
   const handleCardSurfaceKeyDown = useCallback(
@@ -128,16 +167,22 @@ export function ServiceCard({
       event.preventDefault();
       setIsActive((wasActive) => {
         if (!wasActive) {
+          clearAutoRevealTimers();
           setIsRevealing(false);
+          markServiceCardAutoRevealConsumedInSession(id);
         }
         return !wasActive;
       });
     },
-    [],
+    [clearAutoRevealTimers, id],
   );
 
   useEffect(() => {
     if (autoRevealDelayMs === undefined) {
+      return;
+    }
+
+    if (hasServiceCardAutoRevealBeenConsumedInSession(id)) {
       return;
     }
 
@@ -147,24 +192,27 @@ export function ServiceCard({
 
     if (prefersReducedMotion()) {
       hasRevealedRef.current = true;
+      markServiceCardAutoRevealConsumedInSession(id);
       return;
     }
 
     hasRevealedRef.current = true;
 
-    const revealTimeoutId = window.setTimeout(() => {
+    autoRevealRevealTimerRef.current = window.setTimeout(() => {
+      autoRevealRevealTimerRef.current = undefined;
       setIsRevealing(true);
     }, autoRevealDelayMs);
 
-    const collapseTimeoutId = window.setTimeout(() => {
+    autoRevealCollapseTimerRef.current = window.setTimeout(() => {
+      autoRevealCollapseTimerRef.current = undefined;
       setIsRevealing(false);
+      markServiceCardAutoRevealConsumedInSession(id);
     }, autoRevealDelayMs + AUTO_REVEAL_HOLD_MS);
 
     return () => {
-      window.clearTimeout(revealTimeoutId);
-      window.clearTimeout(collapseTimeoutId);
+      clearAutoRevealTimers();
     };
-  }, [autoRevealDelayMs]);
+  }, [autoRevealDelayMs, clearAutoRevealTimers, id]);
 
   const showExpanded = isActive || isRevealing;
 
@@ -195,7 +243,6 @@ export function ServiceCard({
       role='button'
       tabIndex={0}
       aria-expanded={isActive}
-      data-auto-reveal-delay={autoRevealDelayMs}
       onClick={handleCardSurfaceClick}
       onKeyDown={handleCardSurfaceKeyDown}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[343px] lg:p-8 ${toneClassName}`}

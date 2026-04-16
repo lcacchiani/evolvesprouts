@@ -1,9 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
+import type { ComponentProps } from 'react';
+import { createElement } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Services } from '@/components/sections/services';
 import enContent from '@/content/en.json';
+
+const { serviceCardSpy } = vi.hoisted(() => ({
+  serviceCardSpy: vi.fn(),
+}));
 
 vi.mock('next/image', () => ({
   default: ({
@@ -14,15 +20,46 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
+vi.mock('@/components/sections/service-card', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/sections/service-card')
+  >('@/components/sections/service-card');
+
+  return {
+    ...actual,
+    ServiceCard: (props: ComponentProps<typeof actual.ServiceCard>) => {
+      serviceCardSpy(props);
+      return createElement(actual.ServiceCard, props);
+    },
+  };
+});
+
 const originalIntersectionObserver = globalThis.IntersectionObserver;
 
 afterEach(() => {
   globalThis.IntersectionObserver = originalIntersectionObserver;
+  serviceCardSpy.mockClear();
 });
 
-function getCardRevealDelay(id: string): string | null {
-  const el = document.querySelector(`[data-service-card-id="${id}"]`);
-  return el?.getAttribute('data-auto-reveal-delay') ?? null;
+function getLastServiceCardPropsForId(
+  id: string,
+): ComponentProps<
+  typeof import('@/components/sections/service-card').ServiceCard
+> | undefined {
+  let last:
+    | ComponentProps<
+        typeof import('@/components/sections/service-card').ServiceCard
+      >
+    | undefined;
+
+  for (const call of serviceCardSpy.mock.calls) {
+    const props = call[0];
+    if (props.id === id) {
+      last = props;
+    }
+  }
+
+  return last;
 }
 
 describe('Services', () => {
@@ -106,9 +143,11 @@ describe('Services', () => {
 
     const observedTarget = captured!.observe.mock.calls[0][0] as Element;
 
-    expect(getCardRevealDelay('my-best-auntie')).toBeNull();
-    expect(getCardRevealDelay('family-consultations')).toBeNull();
-    expect(getCardRevealDelay('free-guides')).toBeNull();
+    expect(getLastServiceCardPropsForId('my-best-auntie')?.autoRevealDelayMs).toBeUndefined();
+    expect(
+      getLastServiceCardPropsForId('family-consultations')?.autoRevealDelayMs,
+    ).toBeUndefined();
+    expect(getLastServiceCardPropsForId('free-guides')?.autoRevealDelayMs).toBeUndefined();
 
     captured!.callback(
       [
@@ -121,11 +160,13 @@ describe('Services', () => {
     );
 
     await waitFor(() => {
-      expect(getCardRevealDelay('my-best-auntie')).toBe('400');
+      expect(getLastServiceCardPropsForId('my-best-auntie')?.autoRevealDelayMs).toBe(400);
     });
 
-    expect(getCardRevealDelay('family-consultations')).toBe('550');
-    expect(getCardRevealDelay('free-guides')).toBe('700');
+    expect(getLastServiceCardPropsForId('family-consultations')?.autoRevealDelayMs).toBe(
+      550,
+    );
+    expect(getLastServiceCardPropsForId('free-guides')?.autoRevealDelayMs).toBe(700);
     expect(captured!.disconnect).toHaveBeenCalled();
   });
 });
