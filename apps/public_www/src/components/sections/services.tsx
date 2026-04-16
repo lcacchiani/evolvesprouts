@@ -115,12 +115,7 @@ export function Services({
       dataFigmaNode='services'
       className='es-section-bg-overlay es-services-section'
     >
-      <div
-        aria-hidden='true'
-        className='es-section-brand-overlay pointer-events-none absolute inset-0'
-      />
-
-      <SectionContainer>
+      <SectionContainer className='relative z-10'>
         <SectionHeader
           eyebrow={sectionEyebrow}
           title={sectionTitle}

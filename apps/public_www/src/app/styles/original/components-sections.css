@@ -28,6 +28,7 @@
   .es-free-guides-and-resources-hero-section,
   .es-free-resources-section,
   .es-my-best-auntie-outline-section,
+  .es-services-section,
   .es-consultations-comparison-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -150px;
@@ -52,6 +53,7 @@
 
   .es-free-resources-section,
   .es-my-best-auntie-outline-section,
+  .es-services-section,
   .es-consultations-comparison-section {
     background-color: var(--figma-colors-desktop, #FFFFFF);
   }
@@ -367,7 +369,6 @@
   }
 
   .es-why-us-section,
-  .es-services-section,
   .es-free-guides-and-resources-library-section,
   .es-my-best-auntie-description-section,
   .es-consultations-focus-details-section,
@@ -382,7 +383,6 @@
   }
 
   .es-why-us-section,
-  .es-services-section,
   .es-free-guides-and-resources-library-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
