@@ -1,14 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
-
 import { ServiceCard } from '@/components/sections/service-card';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ServicesContent } from '@/content';
 import enContent from '@/content/en.json';
-import { useViewportEntered } from '@/lib/hooks/use-viewport-entered';
 
 interface ServicesProps {
   content: ServicesContent;
@@ -35,11 +32,6 @@ interface ServiceCardMeta {
 }
 
 const CARD_TONES = ['green', 'blue'] as const;
-
-/** First card reveal starts this many ms after the grid enters the viewport. */
-const REVEAL_INITIAL_DELAY_MS = 400;
-/** Extra delay per card index for left-to-right stagger. */
-const REVEAL_STAGGER_MS = 150;
 
 const fallbackServicesCopy = enContent.services;
 
@@ -111,8 +103,6 @@ function getServiceCards(content: ServicesContent): ServiceCardData[] {
 export function Services({
   content,
 }: ServicesProps) {
-  const gridRef = useRef<HTMLDivElement>(null);
-  const hasEnteredViewport = useViewportEntered(gridRef, { threshold: 0.3 });
   const sectionTitle = content.title || fallbackServicesCopy.title;
   const sectionEyebrow =
     content.eyebrow || fallbackServicesCopy.eyebrow;
@@ -136,16 +126,10 @@ export function Services({
           title={sectionTitle}
         />
 
-        <div
-          ref={gridRef}
-          className='relative mt-12 sm:mt-14 xl:mt-16'
-        >
+        <div className='relative mt-12 sm:mt-14 xl:mt-16'>
           <ul className='grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3'>
             {serviceCards.map((card, index) => {
               const tone = CARD_TONES[index % CARD_TONES.length];
-              const autoRevealDelayMs = hasEnteredViewport
-                ? REVEAL_INITIAL_DELAY_MS + index * REVEAL_STAGGER_MS
-                : undefined;
 
               return (
                 <li key={card.id}>
@@ -160,7 +144,6 @@ export function Services({
                     description={card.description}
                     tone={tone}
                     goToServiceAriaLabelTemplate={content.goToServiceAriaLabelTemplate}
-                    autoRevealDelayMs={autoRevealDelayMs}
                   />
                 </li>
               );
