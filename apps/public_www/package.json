@@ -33,7 +33,7 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^9.1.0",
-    "next": "^16.2.3",
+    "next": "16.2.2",
     "qrcode": "^1.5.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
@@ -52,7 +52,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.3",
+    "eslint-config-next": "16.2.2",
     "jsdom": "^29.0.2",
     "postcss": "^8.5.9",
     "sharp": "^0.34.5",
