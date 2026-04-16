@@ -42,7 +42,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/services/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
-    imageClassName: 'h-[176px] sm:h-[199px] lg:h-[229px]',
+    imageClassName: 'h-[235px] sm:h-[265px] lg:h-[229px]',
   },
   {
     id: 'family-consultations',
@@ -50,7 +50,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/services/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
-    imageClassName: 'h-[188px] sm:h-[214px] lg:h-[246px]',
+    imageClassName: 'h-[250px] sm:h-[285px] lg:h-[246px]',
   },
   {
     id: 'free-guides',
@@ -58,7 +58,7 @@ const serviceCardMeta: ServiceCardMeta[] = [
     imageSrc: '/images/services/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
-    imageClassName: 'h-[173px] sm:h-[199px] lg:h-[229px]',
+    imageClassName: 'h-[230px] sm:h-[265px] lg:h-[229px]',
   },
 ];
 

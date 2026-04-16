@@ -24,7 +24,7 @@ const BASE_PROPS = {
   imageSrc: '/images/services/course-card-1.webp',
   imageWidth: 344,
   imageHeight: 309,
-  imageClassName: 'h-[176px]',
+  imageClassName: 'h-[235px]',
   description: 'Practical scripts and examples',
   tone: 'green' as const,
 };
