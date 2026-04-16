@@ -29,6 +29,7 @@ import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { readFormPrefill, writeFormPrefill } from '@/lib/form-prefill';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail, resolveEmailSignupFirstName } from '@/lib/validation';
 
@@ -212,6 +213,7 @@ export function SproutsSquadCommunity({
         });
         trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.community_signup });
         markSubmissionSuccess();
+        writeFormPrefill({ email: normalizedEmail });
         return;
       }
 
@@ -286,6 +288,8 @@ export function SproutsSquadCommunity({
                       variant='primary'
                       type='button'
                       onClick={() => {
+                        const prefill = readFormPrefill();
+                        setEmail(prefill.email);
                         setIsFormFadingIn(false);
                         setIsFormVisible(true);
                       }}
