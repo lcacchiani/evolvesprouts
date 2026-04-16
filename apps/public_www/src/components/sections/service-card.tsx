@@ -196,7 +196,7 @@ export function ServiceCard({
             <div className='relative'>
               <span
                 aria-hidden='true'
-                className={`pointer-events-none absolute inset-x-0 top-0 z-[2] max-w-[34ch] es-service-card-description es-service-card-description-preview transition-opacity duration-150 group-hover:opacity-0 ${previewVisibilityClassName}`}
+                className={`pointer-events-none absolute inset-x-0 top-0 z-[2] max-w-[calc(34ch-50px)] es-service-card-description es-service-card-description-preview transition-opacity duration-150 group-hover:opacity-0 ${previewVisibilityClassName}`}
               >
                 {renderQuotedDescriptionText(description)}
               </span>
