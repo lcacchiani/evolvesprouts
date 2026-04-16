@@ -127,6 +127,9 @@ export function ServiceCard({
   const descriptionVisibilityClassName = isActive
     ? 'opacity-100 transition-opacity duration-300'
     : 'opacity-0 transition-none';
+  const previewVisibilityClassName = isActive
+    ? 'opacity-0'
+    : 'opacity-70';
 
   return (
     <div
@@ -187,11 +190,19 @@ export function ServiceCard({
           </h3>
 
           {description && (
-            <p
-              className={`max-w-[34ch] es-service-card-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
-            >
-              {renderQuotedDescriptionText(description)}
-            </p>
+            <div className='relative'>
+              <span
+                aria-hidden='true'
+                className={`pointer-events-none absolute inset-x-0 top-0 z-[2] max-w-[34ch] es-service-card-description es-service-card-description-preview transition-opacity duration-150 group-hover:opacity-0 ${previewVisibilityClassName}`}
+              >
+                {renderQuotedDescriptionText(description)}
+              </span>
+              <p
+                className={`relative z-[1] max-w-[34ch] es-service-card-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
+              >
+                {renderQuotedDescriptionText(description)}
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -70,6 +70,14 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia');
 });
 
+function getCardDescriptionParagraph(card: HTMLElement | null): HTMLElement | null {
+  return card?.querySelector('p.es-service-card-description') ?? null;
+}
+
+function getCardDescriptionPreview(card: HTMLElement | null): HTMLElement | null {
+  return card?.querySelector('.es-service-card-description-preview') ?? null;
+}
+
 describe('ServiceCard description visibility transition', () => {
   it('renders arrow as a link CTA with go-to aria label', () => {
     render(<ServiceCard {...BASE_PROPS} />);
@@ -78,21 +86,22 @@ describe('ServiceCard description visibility transition', () => {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
-    const description = screen.getByText('Practical scripts and examples');
+    const description = getCardDescriptionParagraph(card);
     const serviceLink = screen.getByRole('link', {
       name: 'Go to Age Specific Strategies',
     });
     const pulseRing = document.querySelector('.es-service-arrow-ring-target');
 
     expect(card).not.toBeNull();
+    expect(description).not.toBeNull();
     expect(card?.className).toContain('group');
     expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
     expect(pulseRing).not.toBeNull();
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring-target--brand'),
     ).toBe(true);
-    expect(description.className).toContain('group-hover:opacity-100');
-    expect(description.className).not.toContain('lg:group-hover:opacity-100');
+    expect(description!.className).toContain('group-hover:opacity-100');
+    expect(description!.className).not.toContain('lg:group-hover:opacity-100');
     expect(serviceLink.className).toContain('group-hover:h-[70px]');
     expect(serviceLink.className).not.toContain('lg:group-hover:h-[70px]');
   });
@@ -104,14 +113,15 @@ describe('ServiceCard description visibility transition', () => {
       name: 'Age Specific Strategies',
     });
     const card = heading.closest('[role="button"]');
-    const description = screen.getByText('Practical scripts and examples');
+    const description = getCardDescriptionParagraph(card);
     const pulseRing = document.querySelector('.es-service-arrow-ring-target');
 
     expect(card).not.toBeNull();
+    expect(description).not.toBeNull();
     expect(card).toHaveAttribute('aria-expanded', 'false');
     expect(pulseRing).not.toBeNull();
-    expect(hasClassToken(description.className, 'opacity-0')).toBe(true);
-    expect(hasClassToken(description.className, 'transition-none')).toBe(true);
+    expect(hasClassToken(description!.className, 'opacity-0')).toBe(true);
+    expect(hasClassToken(description!.className, 'transition-none')).toBe(true);
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
     ).toBe(false);
@@ -119,9 +129,9 @@ describe('ServiceCard description visibility transition', () => {
     fireEvent.click(card as HTMLElement);
 
     expect(card).toHaveAttribute('aria-expanded', 'true');
-    expect(hasClassToken(description.className, 'opacity-100')).toBe(true);
-    expect(hasClassToken(description.className, 'transition-opacity')).toBe(true);
-    expect(hasClassToken(description.className, 'duration-300')).toBe(true);
+    expect(hasClassToken(description!.className, 'opacity-100')).toBe(true);
+    expect(hasClassToken(description!.className, 'transition-opacity')).toBe(true);
+    expect(hasClassToken(description!.className, 'duration-300')).toBe(true);
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
     ).toBe(true);
@@ -132,14 +142,50 @@ describe('ServiceCard description visibility transition', () => {
     fireEvent.click(card as HTMLElement);
 
     expect(card).toHaveAttribute('aria-expanded', 'false');
-    expect(hasClassToken(description.className, 'opacity-0')).toBe(true);
-    expect(hasClassToken(description.className, 'transition-none')).toBe(true);
+    expect(hasClassToken(description!.className, 'opacity-0')).toBe(true);
+    expect(hasClassToken(description!.className, 'transition-none')).toBe(true);
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring'),
     ).toBe(false);
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'opacity-0'),
     ).toBe(true);
+  });
+
+  it('renders a description preview teaser with expected visibility classes', () => {
+    render(<ServiceCard {...BASE_PROPS} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const preview = getCardDescriptionPreview(card);
+
+    expect(preview).not.toBeNull();
+    expect(preview).toHaveAttribute('aria-hidden', 'true');
+    expect(preview!.className).toContain('es-service-card-description-preview');
+    expect(hasClassToken(preview!.className, 'opacity-70')).toBe(true);
+    expect(preview!.className).toContain('group-hover:opacity-0');
+    expect(preview!.className).toContain('duration-150');
+    expect(hasClassToken(preview!.className, 'opacity-0')).toBe(false);
+  });
+
+  it('hides the description preview when the card is active', () => {
+    render(<ServiceCard {...BASE_PROPS} />);
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('[role="button"]');
+    const preview = getCardDescriptionPreview(card);
+
+    expect(preview).not.toBeNull();
+    expect(hasClassToken(preview!.className, 'opacity-70')).toBe(true);
+
+    fireEvent.click(card as HTMLElement);
+
+    expect(hasClassToken(preview!.className, 'opacity-0')).toBe(true);
+    expect(hasClassToken(preview!.className, 'opacity-70')).toBe(false);
   });
 
   it('toggles when tapping the card surface below desktop breakpoint', () => {

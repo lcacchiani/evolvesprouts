@@ -489,6 +489,15 @@
     );
   }
 
+  .es-service-card-description-preview {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
+    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
+  }
+
   .es-service-card--gold {
     background-color: var(--es-color-accent-gold, #9E6D12);
   }
