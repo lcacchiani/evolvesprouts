@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaForm } from '@/components/sections/media-form';
 import enContent from '@/content/en.json';
+import { FORM_PREFILL_STORAGE_KEY } from '@/lib/form-prefill';
 import { trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
@@ -86,6 +87,7 @@ function renderMediaForm() {
 describe('MediaForm', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -97,6 +99,7 @@ describe('MediaForm', () => {
     } else {
       process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
     }
+    sessionStorage.clear();
   });
 
   it('tracks validation_error when submit runs with invalid fields', () => {
@@ -176,6 +179,77 @@ describe('MediaForm', () => {
     expect(
       screen.queryByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens the form with empty fields when sessionStorage has no prefill data', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    expect(screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel))).toHaveValue(
+      '',
+    );
+    expect(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel))).toHaveValue('');
+  });
+
+  it('pre-fills first name and email from sessionStorage when CTA is clicked', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    sessionStorage.setItem(
+      FORM_PREFILL_STORAGE_KEY,
+      JSON.stringify({ firstName: 'Alice', email: 'alice@example.com' }),
+    );
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    expect(screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel))).toHaveValue(
+      'Alice',
+    );
+    expect(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel))).toHaveValue(
+      'alice@example.com',
+    );
+  });
+
+  it('does not pre-fill marketing opt-in from sessionStorage', () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn() });
+    sessionStorage.setItem(
+      FORM_PREFILL_STORAGE_KEY,
+      JSON.stringify({ firstName: 'Alice', email: 'alice@example.com' }),
+    );
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    const optIn = screen.getByRole('checkbox');
+    expect(optIn).not.toBeChecked();
+  });
+
+  it('writes normalized prefill to sessionStorage after successful submit', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
+      { target: { value: ' Ida ' } },
+    );
+    fireEvent.change(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)), {
+      target: { value: 'IDA@Example.com' },
+    });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(enContent.resources.formSuccessMessage)).toBeInTheDocument();
+    });
+
+    expect(sessionStorage.getItem(FORM_PREFILL_STORAGE_KEY)).toBe(
+      JSON.stringify({ firstName: 'Ida', email: 'ida@example.com' }),
+    );
   });
 
   it('opens the form when CTA is clicked', () => {

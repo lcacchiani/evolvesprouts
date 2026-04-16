@@ -19,6 +19,7 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { readFormPrefill, writeFormPrefill } from '@/lib/form-prefill';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 import type { Locale } from '@/content';
@@ -168,6 +169,9 @@ export function MediaForm({
   const mediaFormAnalyticsId = `media-form__${analyticsSectionId}`;
 
   function handleOpenForm() {
+    const prefill = readFormPrefill();
+    setFirstName(prefill.firstName);
+    setEmail(prefill.email);
     setIsFormFadingIn(false);
     setIsFormVisible(true);
     trackPublicFormOutcome('media_form_open', {
@@ -264,6 +268,7 @@ export function MediaForm({
         });
         trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.media_download });
         markSubmissionSuccess();
+        writeFormPrefill({ firstName: normalizedFirstName, email: normalizedEmail });
         return;
       }
 
