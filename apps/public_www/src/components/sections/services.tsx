@@ -33,6 +33,12 @@ interface ServiceCardMeta {
 
 const CARD_TONES = ['green', 'blue'] as const;
 
+/** Grid-position nudges for card illustrations (index matches rendered order). */
+const SERVICE_CARD_ILLUSTRATION_WRAPPER_CLASSES: (string | undefined)[] = [
+  'translate-x-[30px]',
+  'translate-y-[15px]',
+];
+
 const fallbackServicesCopy = enContent.services;
 
 const serviceCardMeta: ServiceCardMeta[] = [
@@ -137,11 +143,7 @@ export function Services({
                     imageHeight={card.imageHeight}
                     imageClassName={card.imageClassName}
                     imageWrapperClassName={
-                      index === 0
-                        ? 'translate-x-[30px]'
-                        : index === 1
-                          ? 'translate-y-[15px]'
-                          : undefined
+                      SERVICE_CARD_ILLUSTRATION_WRAPPER_CLASSES[index]
                     }
                     description={card.description}
                     tone={tone}
