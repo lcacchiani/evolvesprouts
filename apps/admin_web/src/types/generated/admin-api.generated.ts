@@ -2016,6 +2016,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Discount code value conflict (duplicate code, case-insensitive). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         delete?: never;
