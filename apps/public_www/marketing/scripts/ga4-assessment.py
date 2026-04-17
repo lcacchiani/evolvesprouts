@@ -8,9 +8,15 @@ Required environment variables:
     EVOLVESPROUTS_GOOGLE_SERVICE_ACCOUNT_JSON    Service account credentials JSON
 
 Usage:
-    python3 ga4-assessment.py
+    python3 ga4-assessment.py [--out PATH]
+
+`--out` mirrors stdout to the given file (raw plaintext). Intended to be
+committed into `marketing/generated-reports/` (git-ignored) for later
+reference when authoring the narrative markdown assessment.
 """
 
+import argparse
+import contextlib
 import os
 import sys
 import tempfile
@@ -23,6 +29,22 @@ from google.analytics.data_v1beta.types import (
     RunReportRequest,
 )
 from google.oauth2 import service_account
+
+
+class _Tee:
+    """Minimal tee: write to every underlying stream."""
+
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for stream in self._streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
 
 
 def _client():
@@ -84,6 +106,8 @@ def main():
                 "engagedSessions",
                 "averageSessionDuration",
                 "bounceRate",
+                "engagementRate",
+                "userEngagementDuration",
                 "screenPageViews",
                 "conversions",
             ],
@@ -93,10 +117,12 @@ def main():
             print(
                 f"  Sessions: {v[0].value} | Users: {v[1].value} "
                 f"(New: {v[2].value})\n"
-                f"  Engaged: {v[3].value} | Avg Duration: "
+                f"  Engaged: {v[3].value} | Avg Session Duration: "
                 f"{float(v[4].value):.0f}s | "
                 f"Bounce: {float(v[5].value) * 100:.1f}%\n"
-                f"  Pageviews: {v[6].value} | Conversions: {v[7].value}"
+                f"  Engagement Rate: {float(v[6].value) * 100:.1f}% | "
+                f"Avg Engagement Time: {float(v[7].value) / max(int(v[1].value or 1), 1):.1f}s/user\n"
+                f"  Pageviews: {v[8].value} | Conversions: {v[9].value}"
             )
     except Exception as exc:
         print(f"  Error: {exc}")
@@ -321,9 +347,109 @@ def main():
             )
     except Exception as exc:
         print(f"  Error: {exc}")
+    print()
+
+    # Google CPC landing page performance (paid-quality deep dive)
+    print("--- GOOGLE CPC LANDING PAGES (Last 30 Days) ---")
+    try:
+        r = _run(
+            client,
+            prop,
+            ["landingPage"],
+            ["sessions", "engagedSessions", "conversions", "bounceRate"],
+            dim_filter={
+                "filter": {
+                    "field_name": "sessionMedium",
+                    "string_filter": {"value": "cpc"},
+                }
+            },
+            order_bys=[{"metric": {"metric_name": "sessions"}, "desc": True}],
+            limit=15,
+        )
+        if not r.rows:
+            print("  No CPC landing data.")
+        for row in r.rows:
+            page = row.dimension_values[0].value
+            v = row.metric_values
+            bounce = float(v[3].value) * 100
+            print(
+                f"  {page} | Sessions: {v[0].value} | "
+                f"Engaged: {v[1].value} | Conv: {v[2].value} | "
+                f"Bounce: {bounce:.0f}%"
+            )
+    except Exception as exc:
+        print(f"  Error: {exc}")
+    print()
+
+    # (direct)/(none) landing page breakdown (dark-social visibility)
+    print("--- (DIRECT)/(NONE) LANDING PAGES (Last 30 Days) ---")
+    try:
+        r = _run(
+            client,
+            prop,
+            ["landingPage"],
+            ["sessions", "engagedSessions", "conversions", "bounceRate"],
+            dim_filter={
+                "and_group": {
+                    "expressions": [
+                        {
+                            "filter": {
+                                "field_name": "sessionSource",
+                                "string_filter": {"value": "(direct)"},
+                            }
+                        },
+                        {
+                            "filter": {
+                                "field_name": "sessionMedium",
+                                "string_filter": {"value": "(none)"},
+                            }
+                        },
+                    ]
+                }
+            },
+            order_bys=[{"metric": {"metric_name": "sessions"}, "desc": True}],
+            limit=15,
+        )
+        if not r.rows:
+            print("  No direct traffic.")
+        for row in r.rows:
+            page = row.dimension_values[0].value
+            v = row.metric_values
+            bounce = float(v[3].value) * 100
+            print(
+                f"  {page} | Sessions: {v[0].value} | "
+                f"Engaged: {v[1].value} | Conv: {v[2].value} | "
+                f"Bounce: {bounce:.0f}%"
+            )
+    except Exception as exc:
+        print(f"  Error: {exc}")
 
     print("\n--- GA4 ASSESSMENT COMPLETE ---")
 
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description=__doc__ or "")
+    parser.add_argument(
+        "--out",
+        help="Optional path to tee stdout into (plaintext). Useful for "
+        "auto-capturing raw output into marketing/generated-reports/.",
+    )
+    return parser.parse_args()
+
+
+def _run_main():
+    args = _parse_args()
+    if args.out:
+        out_dir = os.path.dirname(os.path.abspath(args.out))
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        with open(args.out, "w", encoding="utf-8") as fh:
+            tee = _Tee(sys.stdout, fh)
+            with contextlib.redirect_stdout(tee):
+                main()
+    else:
+        main()
+
+
 if __name__ == "__main__":
-    main()
+    _run_main()

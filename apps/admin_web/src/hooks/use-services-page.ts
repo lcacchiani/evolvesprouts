@@ -9,14 +9,26 @@ import { useEnrollmentMutations } from './use-enrollment-mutations';
 import { useInstanceList } from './use-instance-list';
 import { useInstanceMutations } from './use-instance-mutations';
 import { useLocationList } from './use-location-list';
+import { useQueryTabState } from './use-query-tab-state';
 import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
 export type ServicesView = 'catalog' | 'instances' | 'discount-codes' | 'venues';
 
+export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
+  'catalog',
+  'instances',
+  'discount-codes',
+  'venues',
+];
+export const DEFAULT_SERVICES_VIEW: ServicesView = 'catalog';
+
 export function useServicesPage() {
-  const [activeView, setActiveView] = useState<ServicesView>('catalog');
+  const [activeView, setActiveView] = useQueryTabState<ServicesView>(
+    SERVICES_VIEW_KEYS,
+    DEFAULT_SERVICES_VIEW
+  );
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [instanceOptionsCacheVersion, setInstanceOptionsCacheVersion] = useState(0);

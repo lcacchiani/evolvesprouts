@@ -166,6 +166,9 @@ export function ExpensesEditorPanel({
   const isTerminal = selectedExpense
     ? selectedExpense.status === 'paid' || selectedExpense.status === 'voided' || selectedExpense.status === 'amended'
     : false;
+  const trimmedVendorId = vendorId.trim();
+  const vendorRequired = !isEditMode && trimmedVendorId.length === 0;
+  const isSubmitDisabled = isSaving || isUploadingFiles || vendorRequired;
 
   const selectedAttachmentAssetIds = useMemo(
     () => selectedExpense?.attachments.map((attachment) => attachment.assetId) ?? [],
@@ -173,6 +176,9 @@ export function ExpensesEditorPanel({
   );
 
   async function handleSave() {
+    if (vendorRequired) {
+      return;
+    }
     let parsedLineItems: ExpenseLineItem[] = [];
     try {
       parsedLineItems = parseLineItemsJson(lineItemsJson);
@@ -249,7 +255,7 @@ export function ExpensesEditorPanel({
               Cancel
             </Button>
           ) : null}
-          <Button type='button' onClick={() => void handleSave()} disabled={isSaving || isUploadingFiles}>
+          <Button type='button' onClick={() => void handleSave()} disabled={isSubmitDisabled}>
             {primaryLabel}
           </Button>
         </>
@@ -278,8 +284,21 @@ export function ExpensesEditorPanel({
           </Select>
         </div>
         <div>
-          <Label htmlFor='expense-vendor'>Vendor</Label>
-          <Select id='expense-vendor' value={vendorId} onChange={(event) => setVendorId(event.target.value)}>
+          <Label htmlFor='expense-vendor'>
+            Vendor
+            {!isEditMode ? (
+              <span aria-hidden='true' className='ml-0.5 text-red-600'>
+                *
+              </span>
+            ) : null}
+          </Label>
+          <Select
+            id='expense-vendor'
+            value={vendorId}
+            onChange={(event) => setVendorId(event.target.value)}
+            required={!isEditMode}
+            aria-required={!isEditMode ? true : undefined}
+          >
             <option value=''>{isLoadingVendors ? 'Loading vendors...' : 'Select vendor'}</option>
             {vendorOptions.map((vendor) => (
               <option key={vendor.id} value={vendor.id}>

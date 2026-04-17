@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContactsPage } from '@/components/admin/contacts/contacts-page';
 
@@ -91,6 +91,14 @@ vi.mock('@/hooks/use-admin-crm-organizations', () => ({
 }));
 
 describe('ContactsPage', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/contacts');
+  });
+
+  afterEach(() => {
+    window.history.replaceState(null, '', '/contacts');
+  });
+
   it('loads tags and locations on mount', async () => {
     listCrmTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
@@ -119,8 +127,28 @@ describe('ContactsPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Families' }));
     expect(screen.getByRole('heading', { name: 'Families' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?tab=families');
 
     await user.click(screen.getByRole('button', { name: 'Organisations' }));
     expect(screen.getByRole('heading', { name: 'Organisations' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?tab=organizations');
+
+    await user.click(screen.getByRole('button', { name: 'Contacts' }));
+    expect(window.location.search).toBe('');
+  });
+
+  it('seeds the active sub-view from the URL query parameter on mount', async () => {
+    listCrmTags.mockResolvedValue([]);
+    listAllLocations.mockResolvedValue([]);
+    listGeographicAreas.mockResolvedValue([]);
+
+    window.history.replaceState(null, '', '/contacts?tab=organizations');
+    render(<ContactsPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Organisations' })
+      ).toBeInTheDocument();
+    });
   });
 });

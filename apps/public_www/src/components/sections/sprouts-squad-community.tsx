@@ -216,6 +216,9 @@ export function SproutsSquadCommunity({
           },
         });
         trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.community_signup });
+        trackMetaPixelEvent('CompleteRegistration', {
+          content_name: PIXEL_CONTENT_NAME.community_signup,
+        });
         markSubmissionSuccess();
         writeFormPrefill({ email: normalizedEmail });
         return;

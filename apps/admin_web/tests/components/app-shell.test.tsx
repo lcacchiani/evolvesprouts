@@ -2,24 +2,37 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
 import { AppShell } from '@/components/app-shell';
 
 const navItems = [
-  { key: 'a', label: 'Section A' },
-  { key: 'b', label: 'Section B' },
+  { key: 'a', label: 'Section A', href: '/a' },
+  { key: 'b', label: 'Section B', href: '/b' },
 ];
 
 describe('AppShell', () => {
-  it('renders navigation and calls onSelect when a nav item is clicked', async () => {
-    const user = userEvent.setup();
-    const onSelect = vi.fn();
+  it('renders navigation links for each section', () => {
     const onLogout = vi.fn();
 
     render(
       <AppShell
         navItems={navItems}
         activeKey='a'
-        onSelect={onSelect}
         onLogout={onLogout}
         userEmail='admin@example.com'
         lastAuthTime='2025-01-15T12:00:00.000Z'
@@ -29,12 +42,10 @@ describe('AppShell', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Section A' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Section B' })).toBeInTheDocument();
+    const sectionBLink = screen.getByRole('link', { name: 'Section B' });
+    expect(sectionBLink).toHaveAttribute('href', '/b');
     expect(screen.getAllByText('admin@example.com').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Last login:/).length).toBeGreaterThanOrEqual(1);
-
-    await user.click(screen.getByRole('button', { name: 'Section B' }));
-    expect(onSelect).toHaveBeenCalledWith('b');
   });
 
   it('calls onLogout from desktop header sign out', async () => {
@@ -45,7 +56,6 @@ describe('AppShell', () => {
       <AppShell
         navItems={navItems}
         activeKey='a'
-        onSelect={vi.fn()}
         onLogout={onLogout}
         userEmail='admin@example.com'
       >

@@ -11,6 +11,7 @@ export interface AdminInlineErrorProps {
   className?: string;
   size?: keyof typeof sizeStyles;
   role?: 'alert' | 'status';
+  id?: string;
 }
 
 export function AdminInlineError({
@@ -18,9 +19,10 @@ export function AdminInlineError({
   className,
   size = 'sm',
   role = 'alert',
+  id,
 }: AdminInlineErrorProps) {
   return (
-    <p role={role} className={clsx(sizeStyles[size], 'text-red-600', className)}>
+    <p id={id} role={role} className={clsx(sizeStyles[size], 'text-red-600', className)}>
       {children}
     </p>
   );

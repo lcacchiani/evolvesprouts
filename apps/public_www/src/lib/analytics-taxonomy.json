@@ -200,7 +200,7 @@
         "cohort_date",
         "total_amount"
       ],
-      "ga4KeyEvent": false
+      "ga4KeyEvent": true
     },
     "booking_payment_method_selected": {
       "requiredCustomParams": [

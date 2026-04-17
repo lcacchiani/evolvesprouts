@@ -13,6 +13,7 @@ import { toErrorMessage } from '@/hooks/hook-errors';
 import { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 import { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 import { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import { useQueryTabState } from '@/hooks/use-query-tab-state';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 
 const TAB_ITEMS = [
@@ -23,8 +24,16 @@ const TAB_ITEMS = [
 
 type ContactsView = (typeof TAB_ITEMS)[number]['key'];
 
+const CONTACTS_TAB_KEYS: readonly ContactsView[] = TAB_ITEMS.map(
+  (item) => item.key
+);
+const DEFAULT_CONTACTS_VIEW: ContactsView = 'contacts';
+
 export function ContactsPage() {
-  const [activeView, setActiveView] = useState<ContactsView>('contacts');
+  const [activeView, setActiveView] = useQueryTabState<ContactsView>(
+    CONTACTS_TAB_KEYS,
+    DEFAULT_CONTACTS_VIEW
+  );
   const [tags, setTags] = useState<CrmTagRef[]>([]);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
   const [geographicAreas, setGeographicAreas] = useState<GeographicAreaSummary[]>([]);

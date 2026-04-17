@@ -78,7 +78,7 @@ describe('LoginScreen', () => {
 
     await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
 
-    expect(authContext.login).toHaveBeenCalledWith({ provider: 'Google', returnTo: '/' });
+    expect(authContext.login).toHaveBeenCalledWith({ provider: 'Google', returnTo: '/finance' });
     expect(screen.queryByText('Enter your work email.')).not.toBeInTheDocument();
   });
 
@@ -92,7 +92,7 @@ describe('LoginScreen', () => {
     expect(googleButton).toBeEnabled();
 
     await user.click(googleButton);
-    expect(enabledAuthContext.login).toHaveBeenCalledWith({ provider: 'Google', returnTo: '/' });
+    expect(enabledAuthContext.login).toHaveBeenCalledWith({ provider: 'Google', returnTo: '/finance' });
 
     const disabledAuthContext = createAuthContext({
       configErrors: ['NEXT_PUBLIC_COGNITO_DOMAIN is missing.'],
