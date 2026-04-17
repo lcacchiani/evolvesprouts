@@ -100,10 +100,6 @@ function pushAdminDataLayerPayload(
     layer.push(payload);
     return;
   }
-  if (layer && typeof layer === 'object' && typeof layer.push === 'function') {
-    (layer as { push: (item: AdminDataLayerEventPayload) => void }).push(payload);
-    return;
-  }
   try {
     window.dataLayer = [payload];
   } catch {
