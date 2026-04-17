@@ -41,8 +41,9 @@ class DiscountCode(Base):
         Index("discount_codes_service_idx", "service_id"),
         Index("discount_codes_instance_idx", "instance_id"),
         CheckConstraint(
-            "discount_value > 0",
-            name="discount_codes_positive_value",
+            "(discount_type = 'referral' AND discount_value >= 0) "
+            "OR (discount_type <> 'referral' AND discount_value > 0)",
+            name="discount_codes_value_by_type",
         ),
     )
 
