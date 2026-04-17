@@ -202,3 +202,134 @@ If the GA4 tag uses explicit event triggers:
    - Check "Send Ecommerce data" in the tag configuration
 
 3. **Publish** the GTM container
+
+---
+
+## 6. Mark `booking_confirm_pay_click` as a Key Event
+
+**Why**: the 2026-04-17 assessment showed only 2
+`booking_submit_success` events in 30 days — too sparse to train paid
+bidding. Mid-funnel `booking_confirm_pay_click` fires far more often
+(13 events, 5 users) and is a strong intent signal. Once it is a key
+event it can be imported as a secondary conversion in Google Ads (see
+`google-ads-manual-setup-steps.md` §2).
+
+1. **GA4 Admin → Events**. Locate `booking_confirm_pay_click`.
+2. Toggle the **Mark as key event** switch.
+3. This matches the taxonomy contract already updated in
+   `apps/public_www/src/lib/analytics-taxonomy.json`
+   (`booking_confirm_pay_click.ga4KeyEvent = true`). The JSON is a
+   source-of-truth contract that does NOT push config to GA4 — the
+   toggle above is still required.
+
+## 7. Enable `Purchase`, `AddPaymentInfo`, and `CompleteRegistration` on the Meta Pixel
+
+**Why**: this PR landed the code change that fires these three Pixel
+events. Verify receipt on the Meta side:
+
+1. **Meta Events Manager → Data Sources → Pixel → Overview**. Wait 24
+   hours after deploy.
+2. Confirm `Purchase`, `AddPaymentInfo`, `CompleteRegistration` appear
+   under **Received events**. The booking flow sends
+   `Purchase` (currency HKD, value = booking total) on
+   `booking_submit_success`, `AddPaymentInfo` on
+   `booking_confirm_pay_click`, and `CompleteRegistration` on
+   `community_signup_submit_success`.
+3. See `meta-ads-manual-setup-steps.md` §3 for the full Meta-side
+   checklist.
+
+## 8. Enable Consent Mode v2 + Enhanced Measurement
+
+**Why**: overall bounce rate of 87.4% is inflated by consent-denied
+users firing page_view and never firing interaction events.
+
+### 8a. Enhanced Measurement
+
+1. **Admin → Data Streams → Evolve Sprouts Production → Enhanced
+   measurement** (the gear icon next to the slider).
+2. Enable **Scrolls**, **Outbound clicks**, **Video engagement**.
+   Leave the rest as default.
+3. Save.
+
+### 8b. Consent Mode v2
+
+1. Implement a **cookie-consent banner** that calls
+   `gtag('consent','update', { ad_storage, ad_user_data,
+   ad_personalization, analytics_storage })` before any GA4/Pixel
+   events fire. (Scope note: this is a second code PR — NOT landed in
+   this branch.)
+2. **Admin → Data Streams → Evolve Sprouts Production → Configure Tag
+   Settings → Show all → Consent settings**. Turn on
+   **Conversion modelling for consent mode**.
+
+## 9. Create and link GA4 Audiences
+
+**Why**: no audiences = no first-party remarketing = every campaign
+starts cold.
+
+1. Run the existing script (requires temporary Editor access — see
+   `apps/public_www/marketing/README.md`):
+   ```bash
+   python3 scripts/ga4-create-audiences.py
+   ```
+   Creates: `Course Page Visitors`, `Booking Intent — Did Not
+   Complete`, `High-Engagement Visitors`.
+2. **Admin → Product Links → Google Ads links** — verify the link to
+   the Google Ads account (MCC `544-581-2170` / CID `499-114-4901`)
+   is active.
+3. **Admin → Product Links → Search Ads 360** — leave disabled.
+4. **GA4 Admin → Audiences**: confirm all three appear with
+   "Active users — Last 7 days" > 0 within 24 h.
+
+## 10. Fix the no-locale / tokenised landing pages
+
+**Why**: the Apr 17 assessment shows 22 sessions on landing page
+`(not set)`, 7 on `/ZWFzdGVyLT` (truncated base64), 10 on
+`/easter-2026-...` without `/en`, 7 on
+`/my-best-auntie-training-course` without `/en`. All 100%-bounce,
+confusing the paid-traffic reports.
+
+This needs an infra-level redirect layer. The public site is a static
+export served from S3 through CloudFront, so Next.js `redirects` in
+`next.config.ts` will not run. Two options:
+
+### 10a. CloudFront Function (preferred, IaC)
+
+Open a separate infra PR that extends
+`backend/infrastructure/lib/public-www-stack.ts`
+`PathRewriteFunction` (viewer-request) to issue 308 redirects for:
+
+| From | To |
+|---|---|
+| `/easter-2026-montessori-play-coaching-workshop` | `/en/easter-2026-montessori-play-coaching-workshop/` |
+| `/my-best-auntie-training-course` | `/en/services/my-best-auntie-training-course/` |
+| `/ZWFzdGVyLT*` (prefix) | `/en/easter-2026-montessori-play-coaching-workshop/` |
+
+Return 308 (permanent) with `Location` header. Do NOT touch the
+existing allowlist functions.
+
+### 10b. Interim: add redirects in the Next.js app
+
+Since the current app is `output: 'export'`, the static HTML can
+include a `<meta http-equiv="refresh">` page at the old paths. This
+is a code PR, not part of the current branch.
+
+## 11. Tag dark-social sources with UTMs
+
+**Why**: `(direct)/(none)` = 284 sessions, 2 conversions untagged.
+
+- [ ] Instagram bio link → append
+      `?utm_source=instagram&utm_medium=bio&utm_campaign=evergreen`.
+- [ ] Mailchimp campaigns → default UTM template at
+      **Account → Settings → Details** (Mailchimp adds them to every
+      outbound link automatically).
+- [ ] WhatsApp broadcast links → append
+      `?utm_source=whatsapp&utm_medium=chat&utm_campaign=<purpose>`.
+- [ ] `/links` and `/en/links` outbound buttons → each gets a unique
+      `utm_content` matching the button label (kebab-case).
+- [ ] Any blog / LinkedIn / guest-post links we share → UTM before
+      posting.
+
+Follow the convention documented in
+`apps/public_www/marketing/README.md`.
+
