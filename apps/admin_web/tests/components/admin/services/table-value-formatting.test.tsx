@@ -89,6 +89,14 @@ const DISCOUNT_CODE_FIXTURE: DiscountCode = {
   updatedAt: '2026-03-01T10:00:00Z',
 };
 
+const DISCOUNT_REFERRAL_FIXTURE: DiscountCode = {
+  ...DISCOUNT_CODE_FIXTURE,
+  id: 'discount-ref',
+  code: 'TRACK',
+  discountType: 'referral',
+  discountValue: '0',
+};
+
 describe('services tables value formatting', () => {
   it('formats enum and date values in service list table rows', () => {
     render(
@@ -131,7 +139,7 @@ describe('services tables value formatting', () => {
           onDeleteInstance={vi.fn()}
         />
         <DiscountCodesPanel
-          codes={[DISCOUNT_CODE_FIXTURE]}
+          codes={[DISCOUNT_CODE_FIXTURE, DISCOUNT_REFERRAL_FIXTURE]}
           filters={{ active: '', search: '', scope: '' }}
           isLoading={false}
           isLoadingMore={false}
@@ -152,6 +160,7 @@ describe('services tables value formatting', () => {
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('Referral')).toBeInTheDocument();
     const currencySelect = screen.getByLabelText('Currency');
     expect(currencySelect.tagName).toBe('SELECT');
     expect(currencySelect).toBeDisabled();

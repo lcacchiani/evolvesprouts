@@ -53,8 +53,11 @@ export const INSTANCE_STATUSES = defineEnumValues<InstanceStatus>()(
 
 export type DiscountType = ApiSchemas['DiscountType'];
 export const DISCOUNT_TYPES = defineEnumValues<DiscountType>()(
-  ['percentage', 'absolute'] as const satisfies readonly DiscountType[]
+  ['percentage', 'absolute', 'referral'] as const satisfies readonly DiscountType[]
 );
+
+export const REFERRAL_DEFAULT_DISCOUNT_VALUE = '0';
+export const REFERRAL_DEFAULT_CURRENCY = 'HKD';
 
 export type EnrollmentStatus = ApiSchemas['EnrollmentStatus'];
 export const ENROLLMENT_STATUSES = defineEnumValues<EnrollmentStatus>()(
