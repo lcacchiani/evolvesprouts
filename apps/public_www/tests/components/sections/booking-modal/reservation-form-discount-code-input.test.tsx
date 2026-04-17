@@ -85,4 +85,23 @@ describe('ReservationFormDiscountCodeInput', () => {
       }),
     ).toBeNull();
   });
+
+  it('disables apply button when discount is applied (prefill success path)', () => {
+    render(
+      <ReservationFormDiscountCodeInput
+        content={enContent.bookingModal.paymentModal}
+        discountCode='SAVE10'
+        discountError=''
+        hasDiscountRule
+        isDiscountValidationSubmitting={false}
+        onDiscountCodeChange={vi.fn()}
+        onApplyDiscount={vi.fn()}
+      />,
+    );
+
+    const applyButton = screen.getByRole('button', {
+      name: enContent.bookingModal.paymentModal.applyDiscountLabel,
+    });
+    expect(applyButton).toBeDisabled();
+  });
 });

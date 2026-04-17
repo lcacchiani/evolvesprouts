@@ -1349,6 +1349,20 @@ paths:
       summary: List discount codes
       security:
         - AdminBearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - unscoped
+              - service
+              - instance
+          description: >
+            Optional scope facet: `unscoped` (no service/instance), `service` (service only),
+            `instance` (instance-scoped). Omit or `all` for no scope facet filter.
       responses:
         "200":
           description: Discount code list response.

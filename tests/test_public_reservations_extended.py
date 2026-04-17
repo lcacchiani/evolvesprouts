@@ -9,7 +9,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.api.public_reservations import _handle_public_reservation
+from app.api.public_reservations import (
+    _handle_public_reservation,
+    _validate_discount_code_redemption_scope,
+)
 
 
 def _reservation_body(**overrides: object) -> dict[str, Any]:
@@ -128,3 +131,108 @@ def test_handle_public_reservation_validation_rejects_missing_terms(
     event = _post_event(api_gateway_event, body)
     resp = _handle_public_reservation(event, "POST")
     assert resp["statusCode"] == 400
+
+
+def test_discount_redemption_rejects_service_scope_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.exceptions import ValidationError
+
+    svc = uuid4()
+    other = uuid4()
+
+    class _FakeRow:
+        service_id = svc
+        instance_id = None
+        active = True
+        valid_from = None
+        valid_until = None
+        max_uses = None
+        current_uses = 0
+
+    class _FakeRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> object:
+            return _FakeRow()
+
+    class _FakeSession:
+        pass
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.DiscountCodeRepository",
+        _FakeRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr("app.api.public_reservations.get_engine", lambda: object())
+    monkeypatch.setenv(
+        "PUBLIC_SERVICE_KEY_MAP_JSON",
+        __import__("json").dumps({"my-best-auntie": str(other)}),
+    )
+
+    payload = {
+        "discount_code": "SAVE",
+        "service_key": "my-best-auntie",
+        "course_slug": "my-best-auntie",
+    }
+    with pytest.raises(ValidationError):
+        _validate_discount_code_redemption_scope(payload)
+
+
+def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.exceptions import ValidationError
+
+    inst = uuid4()
+
+    class _FakeRow:
+        service_id = uuid4()
+        instance_id = inst
+        active = True
+        valid_from = None
+        valid_until = None
+        max_uses = None
+        current_uses = 0
+
+    class _FakeRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> object:
+            return _FakeRow()
+
+    class _FakeSession:
+        pass
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.DiscountCodeRepository",
+        _FakeRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr("app.api.public_reservations.get_engine", lambda: object())
+
+    payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
+    with pytest.raises(ValidationError):
+        _validate_discount_code_redemption_scope(payload)

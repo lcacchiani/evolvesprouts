@@ -263,12 +263,16 @@ export const DEFAULT_ENROLLMENT_LIST_FILTERS: EnrollmentListFilters = {
   status: '',
 };
 
+export type DiscountCodeScopeFilter = '' | 'unscoped' | 'service' | 'instance';
+
 export interface DiscountCodeFilters {
   active: '' | 'true' | 'false';
   search: string;
+  scope: DiscountCodeScopeFilter;
 }
 
 export const DEFAULT_DISCOUNT_CODE_FILTERS: DiscountCodeFilters = {
   active: '',
   search: '',
+  scope: '',
 };

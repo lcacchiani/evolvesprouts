@@ -128,18 +128,25 @@ export async function validateDiscountCode(
   crmApiClient: CrmApiClient,
   code: string,
   signal?: AbortSignal,
+  serviceKey?: string,
 ): Promise<DiscountRule | null> {
   const normalizedCode = readRequiredText(code);
   if (!normalizedCode) {
     return null;
   }
 
+  const body: Record<string, string> = {
+    code: normalizedCode,
+  };
+  const scopedKey = readRequiredText(serviceKey ?? '');
+  if (scopedKey) {
+    body.service_key = scopedKey;
+  }
+
   const payload = await crmApiClient.request({
     endpointPath: DISCOUNT_VALIDATE_API_PATH,
     method: 'POST',
-    body: {
-      code: normalizedCode,
-    },
+    body,
     signal,
     expectedSuccessStatuses: [200, 202],
   });

@@ -117,6 +117,49 @@ describe('discounts-data', () => {
     });
   });
 
+  it('includes service_key in the POST body when supplied', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            code: 'SAVE',
+            name: null,
+            amount: 5,
+            is_percentage: true,
+            currency_code: null,
+            currency_symbol: null,
+          },
+        }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchSpy);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'secret-api-key',
+    });
+    if (!crmApiClient) {
+      throw new Error('Expected CRM API client configuration to be valid');
+    }
+
+    await validateDiscountCode(crmApiClient, 'SAVE', undefined, 'my-best-auntie');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          code: 'SAVE',
+          service_key: 'my-best-auntie',
+        }),
+      }),
+    );
+  });
+
   it('rejects invalid CRM API client configuration', () => {
     expect(
       createCrmApiClient({

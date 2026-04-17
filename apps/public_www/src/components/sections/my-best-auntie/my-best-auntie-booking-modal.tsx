@@ -47,6 +47,9 @@ interface MyBestAuntieBookingModalProps {
   selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
+  prefilledDiscountCode?: string;
+  referralAppliedNote?: string;
+  referralAppliedAnnouncement?: string;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
@@ -62,6 +65,9 @@ export function MyBestAuntieBookingModal({
   selectedCohort,
   selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
+  prefilledDiscountCode = '',
+  referralAppliedNote = '',
+  referralAppliedAnnouncement = '',
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
@@ -169,6 +175,11 @@ export function MyBestAuntieBookingModal({
               eventTitle={modalContent.title}
               serviceKey={selectedCohort?.id ?? ''}
               courseSlug='my-best-auntie'
+              discountValidationServiceKey='my-best-auntie'
+              serviceInstanceUuid={selectedCohort?.service_instance_uuid ?? null}
+              prefilledDiscountCode={prefilledDiscountCode}
+              referralAppliedNote={referralAppliedNote}
+              referralAppliedAnnouncement={referralAppliedAnnouncement}
               eventSubtitle={modalContent.subtitle}
               courseSessions={(selectedCohort?.dates ?? []).map((part) => {
                 return {

@@ -702,6 +702,7 @@ export async function listDiscountCodes(
   if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
   if (params.active) query.set('active', params.active);
   if (params.search?.trim()) query.set('search', params.search.trim());
+  if (params.scope) query.set('scope', params.scope);
   const queryString = query.toString();
   const payload = await adminApiRequest<ApiDiscountCodeListResponse>({
     endpointPath: `/v1/admin/discount-codes${queryString ? `?${queryString}` : ''}`,

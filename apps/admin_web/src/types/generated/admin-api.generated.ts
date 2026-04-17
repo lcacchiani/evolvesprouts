@@ -1890,7 +1890,10 @@ export interface paths {
         /** List discount codes */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Optional scope facet: `unscoped` (no service/instance), `service` (service only), `instance` (instance-scoped). Omit or `all` for no scope facet filter. */
+                    scope?: "all" | "unscoped" | "service" | "instance";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;

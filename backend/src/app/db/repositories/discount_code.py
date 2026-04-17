@@ -30,6 +30,7 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         active: bool | None = None,
         service_id: UUID | None = None,
         instance_id: UUID | None = None,
+        scope: str | None = None,
         search: str | None = None,
         cursor_created_at: datetime | None = None,
         cursor_id: UUID | None = None,
@@ -42,6 +43,16 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
             statement = statement.where(DiscountCode.service_id == service_id)
         if instance_id is not None:
             statement = statement.where(DiscountCode.instance_id == instance_id)
+        if scope == "unscoped":
+            statement = statement.where(DiscountCode.service_id.is_(None)).where(
+                DiscountCode.instance_id.is_(None)
+            )
+        elif scope == "service":
+            statement = statement.where(DiscountCode.service_id.is_not(None)).where(
+                DiscountCode.instance_id.is_(None)
+            )
+        elif scope == "instance":
+            statement = statement.where(DiscountCode.instance_id.is_not(None))
         if search:
             escaped = _escape_like_pattern(search.strip())
             pattern = f"%{escaped}%"
@@ -73,6 +84,7 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         active: bool | None = None,
         service_id: UUID | None = None,
         instance_id: UUID | None = None,
+        scope: str | None = None,
         search: str | None = None,
     ) -> int:
         """Count discount codes with the same filters used by list."""
@@ -83,6 +95,16 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
             statement = statement.where(DiscountCode.service_id == service_id)
         if instance_id is not None:
             statement = statement.where(DiscountCode.instance_id == instance_id)
+        if scope == "unscoped":
+            statement = statement.where(DiscountCode.service_id.is_(None)).where(
+                DiscountCode.instance_id.is_(None)
+            )
+        elif scope == "service":
+            statement = statement.where(DiscountCode.service_id.is_not(None)).where(
+                DiscountCode.instance_id.is_(None)
+            )
+        elif scope == "instance":
+            statement = statement.where(DiscountCode.instance_id.is_not(None))
         if search:
             escaped = _escape_like_pattern(search.strip())
             pattern = f"%{escaped}%"

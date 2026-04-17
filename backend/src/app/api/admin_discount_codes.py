@@ -18,6 +18,7 @@ from app.api.admin_services_common import (
     serialize_discount_code,
 )
 from app.api.admin_services_payloads import ensure_discount_validity_window
+from app.api.discount_scope_validation import ensure_discount_code_scope
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -91,6 +92,7 @@ def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
             active=filters["active"],
             service_id=filters["service_id"],
             instance_id=filters["instance_id"],
+            scope=filters["scope"],
             search=filters["search"],
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
@@ -99,6 +101,7 @@ def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
             active=filters["active"],
             service_id=filters["service_id"],
             instance_id=filters["instance_id"],
+            scope=filters["scope"],
             search=filters["search"],
         )
         has_more = len(rows) > limit
@@ -135,6 +138,11 @@ def _create_discount_code(
         },
     )
     with Session(get_engine()) as session:
+        ensure_discount_code_scope(
+            session,
+            service_id=payload["service_id"],
+            instance_id=payload["instance_id"],
+        )
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = DiscountCodeRepository(session)
         entity = DiscountCode(
@@ -207,6 +215,18 @@ def _update_discount_code(
             code.max_uses = payload["max_uses"]
         if "active" in payload:
             code.active = payload["active"]
+
+        merged_service = (
+            payload["service_id"] if "service_id" in payload else code.service_id
+        )
+        merged_instance = (
+            payload["instance_id"] if "instance_id" in payload else code.instance_id
+        )
+        ensure_discount_code_scope(
+            session,
+            service_id=merged_service,
+            instance_id=merged_instance,
+        )
 
         updated = repository.update(code)
         session.commit()

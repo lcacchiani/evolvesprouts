@@ -18,6 +18,8 @@ export interface ConfirmDialogProps {
   children?: ReactNode;
   /** When true, the confirm action is non-interactive (for example during an in-flight mutation). */
   confirmDisabled?: boolean;
+  /** When true, only the cancel/secondary control is shown (use for preview dialogs). */
+  hideConfirm?: boolean;
 }
 
 export function ConfirmDialog({
@@ -31,6 +33,7 @@ export function ConfirmDialog({
   onCancel,
   children,
   confirmDisabled = false,
+  hideConfirm = false,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,17 +117,23 @@ export function ConfirmDialog({
           </div>
           {children}
           <div className='flex justify-end gap-2'>
-            <Button type='button' variant='secondary' onClick={onCancel}>
-              {cancelLabel}
-            </Button>
             <Button
               type='button'
-              variant={variant === 'danger' ? 'danger' : 'primary'}
-              disabled={confirmDisabled}
-              onClick={onConfirm}
+              variant={hideConfirm ? 'primary' : 'secondary'}
+              onClick={onCancel}
             >
-              {confirmLabel}
+              {cancelLabel}
             </Button>
+            {hideConfirm ? null : (
+              <Button
+                type='button'
+                variant={variant === 'danger' ? 'danger' : 'primary'}
+                disabled={confirmDisabled}
+                onClick={onConfirm}
+              >
+                {confirmLabel}
+              </Button>
+            )}
           </div>
         </Card>
       </div>

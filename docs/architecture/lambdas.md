@@ -69,6 +69,9 @@ their primary responsibilities.
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
   secret when marketing hooks run on public form routes
 - Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
+  `PUBLIC_SERVICE_KEY_MAP_JSON` (optional JSON map of public `service_key` slugs to Aurora
+  `services.id` UUIDs; used by `POST /v1/discounts/validate` and reservation discount
+  redemption scope checks when the public site sends `service_key` / `course_slug`),
   `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
   `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
   align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are

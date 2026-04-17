@@ -137,6 +137,19 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     logger.debug("Parsing discount code list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    scope_raw = parse_optional_text(query_param(event, "scope"), max_length=20)
+    scope = (scope_raw or "").strip().lower()
+    if scope not in {"", "all", "unscoped", "service", "instance"}:
+        raise ValidationError(
+            "scope must be one of: all, unscoped, service, instance",
+            field="scope",
+        )
+    if scope in {"", "all"}:
+        scope_norm: str | None = None
+    elif scope == "unscoped":
+        scope_norm = "unscoped"
+    else:
+        scope_norm = scope
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -149,6 +162,7 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
             query_param(event, "instance_id"), "instance_id"
         ),
         "search": parse_optional_text(query_param(event, "search")),
+        "scope": scope_norm,
     }
 
 

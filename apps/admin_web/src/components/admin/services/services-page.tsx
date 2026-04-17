@@ -229,6 +229,7 @@ export function ServicesPage() {
           isSaving={state.discountCodes.isSaving}
           hasMore={state.discountCodes.hasMore}
           error={state.discountCodes.error}
+          serviceOptions={state.serviceList.services.filter((svc) => svc.status === 'published')}
           onFilterChange={state.discountCodes.setFilter}
           onLoadMore={state.discountCodes.loadMore}
           onCreate={state.discountCodes.createCode}

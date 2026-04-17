@@ -1134,7 +1134,8 @@
     "accessibility": {
       "carouselRoleDescription": "carousel",
       "carouselLabelTemplate": "{title} carousel",
-      "sliderLabelTemplate": "{title} slider"
+      "sliderLabelTemplate": "{title} slider",
+      "referralAppliedAnnouncement": "Referral discount code applied from your link."
     },
     "captcha": {
       "captchaLabel": "Verification",
@@ -1240,7 +1241,8 @@
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
       "scrollDatesLeftAriaLabel": "Scroll dates left",
-      "scrollDatesRightAriaLabel": "Scroll dates right"
+      "scrollDatesRightAriaLabel": "Scroll dates right",
+      "referralAppliedNote": "Applied from your referral link."
     },
     "modal": {
       "title": "My Best Auntie Training Course",
@@ -1565,6 +1567,7 @@
       "applyDiscountLabel": "Apply",
       "applyDiscountLoadingLabel": "Applying discount code",
       "invalidDiscountLabel": "Invalid discount code",
+      "referralAppliedNote": "Applied from your referral link.",
       "discountAppliedLabel": "Discount applied",
       "priceBreakdownPriceLabel": "Price",
       "priceBreakdownDiscountLabel": "Discount",

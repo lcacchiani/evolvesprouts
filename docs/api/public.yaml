@@ -295,6 +295,14 @@ paths:
         Validity window: when `valid_from` / `valid_until` are set on the code, validation
         succeeds only while the server UTC instant is **on or after** `valid_from` and
         **on or before** `valid_until` (both ends inclusive).
+
+        **Service scoping:** codes may be limited to a service and/or instance in Aurora.
+        Unscoped codes (no `service_id` / `instance_id`) validate like today. When the
+        code is scoped to a **service only**, the request must include a matching
+        `service_key` (resolved via `PUBLIC_SERVICE_KEY_MAP_JSON` on the Lambda) or a
+        matching `service_id` UUID; if both are supplied, `service_key` wins. When the
+        code is scoped to an **instance**, this endpoint returns **404** (instance context
+        is enforced at reservation redemption).
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -922,6 +930,19 @@ components:
         code:
           type: string
           maxLength: 100
+        service_key:
+          type: string
+          maxLength: 120
+          description: >
+            Public slug for the booked offering (e.g. `my-best-auntie`). Resolved to a
+            service UUID using `PUBLIC_SERVICE_KEY_MAP_JSON` on the handler. When both
+            `service_key` and `service_id` are provided, `service_key` takes precedence.
+        service_id:
+          type: string
+          format: uuid
+          description: >
+            Alternative to `service_key`: explicit Aurora `services.id` for scope checks.
+            Ignored when `service_key` is present and non-empty.
     DiscountRule:
       type: object
       additionalProperties: false
@@ -1183,6 +1204,12 @@ components:
         discountCode:
           type: string
           maxLength: 100
+        serviceInstanceId:
+          type: string
+          format: uuid
+          description: >
+            Aurora `service_instances.id` for the booked cohort/instance. Required when
+            redeeming an instance-scoped discount code; used only for redemption checks.
         marketingOptIn:
           type: boolean
           default: false
@@ -1252,6 +1279,12 @@ components:
         discount_code:
           type: string
           maxLength: 100
+        service_key:
+          type: string
+          maxLength: 100
+          description: >
+            Optional stable id for Stripe PaymentIntent metadata (same semantics as
+            reservation `serviceKey`); not used for discount scope validation.
         price:
           type: number
           minimum: 0

@@ -1134,7 +1134,8 @@
     "accessibility": {
       "carouselRoleDescription": "轮播",
       "carouselLabelTemplate": "{title}轮播",
-      "sliderLabelTemplate": "{title}滑动内容"
+      "sliderLabelTemplate": "{title}滑动内容",
+      "referralAppliedAnnouncement": "已通过你的链接自动应用推荐优惠码。"
     },
     "captcha": {
       "captchaLabel": "验证",
@@ -1240,7 +1241,8 @@
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}岁组）",
       "scrollDatesLeftAriaLabel": "向左滚动日期",
-      "scrollDatesRightAriaLabel": "向右滚动日期"
+      "scrollDatesRightAriaLabel": "向右滚动日期",
+      "referralAppliedNote": "已通过你的推荐链接应用。"
     },
     "modal": {
       "title": "我的最佳阿姨培训课程",
@@ -1565,6 +1567,7 @@
       "applyDiscountLabel": "应用",
       "applyDiscountLoadingLabel": "正在应用优惠码",
       "invalidDiscountLabel": "优惠码无效",
+      "referralAppliedNote": "已通过你的推荐链接应用。",
       "discountAppliedLabel": "优惠已应用",
       "priceBreakdownPriceLabel": "原价",
       "priceBreakdownDiscountLabel": "优惠",

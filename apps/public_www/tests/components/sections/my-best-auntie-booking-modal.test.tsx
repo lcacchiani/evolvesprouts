@@ -1823,4 +1823,70 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(applyButton).toBeDisabled();
     expect(discountInput.value).toBe('SAVE10');
   });
+
+  it('auto-applies prefilled referral code once and shows referral note on success', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'REFSAVE',
+      type: 'percent',
+      value: 5,
+    });
+
+    renderBookingModal({
+      prefilledDiscountCode: 'refsave',
+      referralAppliedNote: enContent.bookingModal.paymentModal.referralAppliedNote,
+      referralAppliedAnnouncement: enContent.common.accessibility.referralAppliedAnnouncement,
+    });
+
+    await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalledTimes(1);
+    });
+    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
+      expect.anything(),
+      'REFSAVE',
+      undefined,
+      'my-best-auntie',
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.bookingModal.paymentModal.referralAppliedNote),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      mockedTrackAnalyticsEvent.mock.calls.filter(
+        (call) => call[0] === 'booking_discount_autoapply_success',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('records auto-apply error when prefilled referral code is invalid', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue(null);
+
+    renderBookingModal({
+      prefilledDiscountCode: 'BAD',
+    });
+
+    await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalled();
+    });
+
+    expect(
+      mockedTrackAnalyticsEvent.mock.calls.filter(
+        (call) => call[0] === 'booking_discount_autoapply_error',
+      ),
+    ).toHaveLength(1);
+  });
 });
