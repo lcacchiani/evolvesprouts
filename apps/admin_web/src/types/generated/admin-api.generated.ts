@@ -276,7 +276,7 @@ export interface paths {
         put?: never;
         /**
          * Begin admin asset file replacement
-         * @description Step 1 of 2 for replacing the binary stored for an asset while keeping the same asset id. Returns a presigned upload URL for a new S3 key under `assets/{id}/...`. Call `POST /v1/admin/assets/{id}/content/complete` after the client uploads to that URL. Not allowed when the asset has the `expense_attachment` tag (400).
+         * @description Step 1 of 2 for replacing the binary stored for an asset while keeping the same asset id. Returns a presigned upload URL for a new S3 key under `assets/{id}/...`. Call `POST /v1/admin/assets/{id}/content/complete` after the client uploads to that URL. Not allowed when the asset has the `expense_attachment` tag (400). The presigned PUT binds `Content-Type: application/pdf` regardless of optional `content_type` in the body.
          */
         post: {
             parameters: {
@@ -328,7 +328,7 @@ export interface paths {
         put?: never;
         /**
          * Complete admin asset file replacement
-         * @description Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it, deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be the value returned by `POST .../content/init` for this asset id. Not allowed when the asset has the `expense_attachment` tag (400). `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization (same rules as init). This call is not idempotent across different `pending_s3_key` values: repeating complete with a stale key after a successful replace returns 400. When `content_type` is null or omitted, the stored content type is taken from the uploaded object's S3 `Content-Type` metadata when present.
+         * @description Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it, deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be the value returned by `POST .../content/init` for this asset id. Not allowed when the asset has the `expense_attachment` tag (400). `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization (same rules as init). The object name segment must begin with a standard UUID prefix (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-`) from init. Stored `content_type` is always `application/pdf`; the uploaded object's S3 Content-Type and size are validated on complete (max 50 MiB). This call is not idempotent across different `pending_s3_key` values: repeating complete with a stale key after a successful replace returns 400. Concurrent replaces for the same asset are last-writer-wins; earlier pending keys may become orphans if never completed. BadRequest responses may include `field` values such as `pending_s3_key`, `file_name`, `content_type`, or `asset` depending on the failure.
          */
         post: {
             parameters: {
@@ -4342,13 +4342,13 @@ export interface components {
         CreateAssetResponse: {
             asset: components["schemas"]["Asset"];
             /** Format: uri */
-            upload_url?: string | null;
-            upload_method?: string;
-            upload_headers?: {
+            upload_url: string;
+            upload_method: string;
+            upload_headers: {
                 [key: string]: string;
             };
             /** Format: date-time */
-            expires_at?: string | null;
+            expires_at: string;
         };
         InitAssetContentReplaceRequest: {
             file_name: string;
@@ -4357,13 +4357,13 @@ export interface components {
         InitAssetContentReplaceResponse: {
             pending_s3_key: string;
             /** Format: uri */
-            upload_url?: string | null;
+            upload_url?: string;
             upload_method: string;
             upload_headers: {
                 [key: string]: string;
             };
             /** Format: date-time */
-            expires_at: string | null;
+            expires_at: string;
         };
         CompleteAssetContentReplaceRequest: {
             pending_s3_key: string;

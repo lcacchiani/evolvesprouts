@@ -1,4 +1,4 @@
-"""Tests for admin asset content replace (init/complete) handlers."""
+"""Tests for admin asset file replacement (init/complete)."""
 
 from __future__ import annotations
 
@@ -9,18 +9,9 @@ from uuid import UUID, uuid4
 import pytest
 from botocore.exceptions import ClientError
 
-from app.api.assets import admin_assets
-from app.api.assets.assets_common import RequestIdentity
+from app.api.assets import admin_assets_content_replace as content_replace
 from app.db.models import Asset, AssetType, AssetVisibility
 from app.exceptions import ValidationError
-
-
-def _identity() -> RequestIdentity:
-    return RequestIdentity(
-        user_sub="admin-sub",
-        groups={"admin"},
-        organization_ids=set(),
-    )
 
 
 def _make_asset(
@@ -43,34 +34,26 @@ def _make_asset(
     )
 
 
-def test_complete_rejects_file_name_mismatch_with_key_derived_name(
+def _good_head(*, content_length: int = 12) -> dict[str, Any]:
+    return {
+        "ContentType": "application/pdf",
+        "ContentLength": content_length,
+    }
+
+
+def test_complete_rejects_file_name_mismatch(
     monkeypatch: pytest.MonkeyPatch,
     api_gateway_event: Any,
 ) -> None:
     asset_id = uuid4()
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-guide.pdf"
-
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "wrong.pdf",
-            "content_type": "application/pdf",
-        },
-    )
-
-    def _head_ok(**_kwargs: Any) -> dict[str, Any]:
-        return {"ContentType": "application/pdf"}
-
-    monkeypatch.setattr(admin_assets, "head_s3_object", _head_ok)
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
 
     with pytest.raises(ValidationError, match="file_name"):
-        admin_assets._complete_asset_content_replace(  # noqa: SLF001
+        content_replace.complete_asset_content_replace(
             api_gateway_event(
                 method="POST",
-                path=f"/v1/admin/assets/{asset_id}/content/complete",
+                path="/x",
                 body=json.dumps(
                     {
                         "pending_s3_key": pending,
@@ -80,6 +63,8 @@ def test_complete_rejects_file_name_mismatch_with_key_derived_name(
                 ),
             ),
             asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
 
 
@@ -90,29 +75,30 @@ def test_complete_raises_when_head_no_such_key(
     asset_id = uuid4()
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-missing.pdf"
 
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "missing.pdf",
-            "content_type": None,
-        },
-    )
-
     def _head_fail(**_kwargs: Any) -> dict[str, Any]:
         raise ClientError(
             {"Error": {"Code": "NoSuchKey"}, "ResponseMetadata": {"HTTPStatusCode": 404}},
             "HeadObject",
         )
 
-    monkeypatch.setattr(admin_assets, "head_s3_object", _head_fail)
+    monkeypatch.setattr(content_replace, "head_s3_object", _head_fail)
 
     with pytest.raises(ValidationError, match="not found"):
-        admin_assets._complete_asset_content_replace(  # noqa: SLF001
-            api_gateway_event(method="POST", path="/x", body="{}"),
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "missing.pdf",
+                        "content_type": None,
+                    }
+                ),
+            ),
             asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
 
 
@@ -122,19 +108,8 @@ def test_complete_blocks_expense_tagged_asset(
 ) -> None:
     asset_id = uuid4()
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-x.pdf"
-
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "x.pdf",
-            "content_type": None,
-        },
-    )
-    monkeypatch.setattr(admin_assets, "head_s3_object", lambda **_k: {"ContentType": "application/pdf"})
-    monkeypatch.setattr(admin_assets, "asset_links_expense_attachment", lambda _a: True)
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: True)
 
     class _Repo:
         def get_with_asset_tags(self, _id: UUID) -> Asset:
@@ -147,34 +122,200 @@ def test_complete_blocks_expense_tagged_asset(
         def __exit__(self, *args: object) -> None:
             return None
 
-    monkeypatch.setattr(admin_assets, "Session", lambda _e: _Sess())
-    monkeypatch.setattr(admin_assets, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_assets, "set_audit_context", lambda *a, **k: None)
-    monkeypatch.setattr(admin_assets, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
 
     with pytest.raises(ValidationError, match="expense"):
-        admin_assets._complete_asset_content_replace(  # noqa: SLF001
-            api_gateway_event(method="POST", path="/x", body="{}"),
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "x.pdf",
+                        "content_type": None,
+                    }
+                ),
+            ),
             asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
 
 
-def test_validate_pending_key_rejects_traversal_and_prefix(
+def test_init_returns_404_when_asset_missing(
     monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
 ) -> None:
-    from app.api.assets.assets_common import validate_pending_asset_content_s3_key
+    from app.exceptions import NotFoundError
 
-    aid = uuid4()
-    with pytest.raises(ValidationError):
-        validate_pending_asset_content_s3_key(
-            asset_id=aid, pending_key=f"assets/{aid}/../other/x.pdf"
+    asset_id = uuid4()
+
+    class _Repo:
+        def get_with_asset_tags(self, _id: UUID) -> None:
+            return None
+
+    class _Sess:
+        def __enter__(self) -> _Sess:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+
+    with pytest.raises(NotFoundError):
+        content_replace.init_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps({"file_name": "a.pdf", "content_type": "application/pdf"}),
+            ),
+            asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
-    with pytest.raises(ValidationError):
-        validate_pending_asset_content_s3_key(
-            asset_id=aid, pending_key=f"  assets/{aid}/x.pdf"
+
+
+def test_init_blocks_expense_linked_asset(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    asset_id = uuid4()
+
+    class _Repo:
+        def get_with_asset_tags(self, _id: UUID) -> Asset:
+            return _make_asset(asset_id=asset_id)
+
+    class _Sess:
+        def __enter__(self) -> _Sess:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: True)
+
+    with pytest.raises(ValidationError, match="expense"):
+        content_replace.init_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps({"file_name": "a.pdf"}),
+            ),
+            asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
-    with pytest.raises(ValidationError):
-        validate_pending_asset_content_s3_key(asset_id=aid, pending_key="assets/other/x.pdf")
+
+
+def test_complete_rejects_oversized_object(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    asset_id = uuid4()
+    pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-huge.pdf"
+    monkeypatch.setattr(
+        content_replace,
+        "head_s3_object",
+        lambda **_k: _good_head(content_length=99_000_000),
+    )
+
+    class _Repo:
+        def get_with_asset_tags(self, _id: UUID) -> Asset:
+            return _make_asset(asset_id=asset_id)
+
+    class _Sess:
+        def __enter__(self) -> _Sess:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+
+    with pytest.raises(ValidationError, match="between 1 and"):
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "huge.pdf",
+                        "content_type": "application/pdf",
+                    }
+                ),
+            ),
+            asset_id,
+            identity_user_sub="u",
+            request_id=None,
+        )
+
+
+def test_complete_rejects_non_pdf_head_content_type(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    asset_id = uuid4()
+    pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-bad.pdf"
+    monkeypatch.setattr(
+        content_replace,
+        "head_s3_object",
+        lambda **_k: {
+            "ContentType": "application/octet-stream",
+            "ContentLength": 100,
+        },
+    )
+
+    class _Repo:
+        def get_with_asset_tags(self, _id: UUID) -> Asset:
+            return _make_asset(asset_id=asset_id)
+
+    class _Sess:
+        def __enter__(self) -> _Sess:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+
+    with pytest.raises(ValidationError, match="Content-Type"):
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "bad.pdf",
+                        "content_type": None,
+                    }
+                ),
+            ),
+            asset_id,
+            identity_user_sub="u",
+            request_id=None,
+        )
 
 
 def test_complete_success_updates_and_deletes_previous(
@@ -186,28 +327,14 @@ def test_complete_success_updates_and_deletes_previous(
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-newdoc.pdf"
     asset = _make_asset(asset_id=asset_id, s3_key=old_key)
 
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "newdoc.pdf",
-            "content_type": None,
-        },
-    )
-    monkeypatch.setattr(
-        admin_assets,
-        "head_s3_object",
-        lambda **_k: {"ContentType": "application/pdf"},
-    )
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
 
     deleted: list[str] = []
 
     def _delete_s3(*, s3_key: str) -> None:
         deleted.append(s3_key)
 
-    monkeypatch.setattr(admin_assets, "delete_s3_object", _delete_s3)
+    monkeypatch.setattr(content_replace, "delete_s3_object", _delete_s3)
 
     class _Repo:
         def __init__(self) -> None:
@@ -240,15 +367,31 @@ def test_complete_success_updates_and_deletes_previous(
         def flush(self) -> None:
             return None
 
-    sess = _Sess()
-    monkeypatch.setattr(admin_assets, "Session", lambda _e: sess)
-    monkeypatch.setattr(admin_assets, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_assets, "set_audit_context", lambda *a, **k: None)
-    monkeypatch.setattr(admin_assets, "AssetRepository", lambda _s: repo)
+        def rollback(self) -> None:
+            return None
 
-    resp = admin_assets._complete_asset_content_replace(  # noqa: SLF001
-        api_gateway_event(method="POST", path="/x", body="{}"),
+    sess = _Sess()
+    monkeypatch.setattr(content_replace, "Session", lambda _e: sess)
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: repo)
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+
+    resp = content_replace.complete_asset_content_replace(
+        api_gateway_event(
+            method="POST",
+            path="/x",
+            body=json.dumps(
+                {
+                    "pending_s3_key": pending,
+                    "file_name": "newdoc.pdf",
+                    "content_type": None,
+                }
+            ),
+        ),
         asset_id,
+        identity_user_sub="u",
+        request_id=None,
     )
     assert resp["statusCode"] == 200
     assert repo.updated is True
@@ -260,30 +403,83 @@ def test_complete_success_updates_and_deletes_previous(
     assert body["asset"]["content_type"] == "application/pdf"
 
 
+def test_complete_does_not_delete_when_update_raises(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    asset_id = uuid4()
+    old_key = f"assets/{asset_id}/old.pdf"
+    pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-new.pdf"
+    asset = _make_asset(asset_id=asset_id, s3_key=old_key)
+
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
+    deleted: list[str] = []
+    monkeypatch.setattr(
+        content_replace, "delete_s3_object", lambda *, s3_key: deleted.append(s3_key)
+    )
+
+    class _Repo:
+        def get_with_asset_tags(self, _id: UUID) -> Asset:
+            return asset
+
+        def update_asset(self, a: Asset, **kwargs: Any) -> Asset:
+            raise RuntimeError("simulated db failure")
+
+    class _Sess:
+        rolled_back = False
+
+        def __enter__(self) -> _Sess:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def commit(self) -> None:
+            return None
+
+        def flush(self) -> None:
+            return None
+
+        def rollback(self) -> None:
+            self.rolled_back = True
+
+    sess = _Sess()
+    monkeypatch.setattr(content_replace, "Session", lambda _e: sess)
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+
+    with pytest.raises(RuntimeError, match="simulated"):
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "new.pdf",
+                        "content_type": "application/pdf",
+                    }
+                ),
+            ),
+            asset_id,
+            identity_user_sub="u",
+            request_id=None,
+        )
+    assert deleted == []
+    assert sess.rolled_back is True
+
+
 def test_second_complete_same_pending_after_success_raises(
     monkeypatch: pytest.MonkeyPatch,
     api_gateway_event: Any,
 ) -> None:
-    """After DB points at pending key, second complete with same key hits 'nothing to replace'."""
     asset_id = uuid4()
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-doc.pdf"
 
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "doc.pdf",
-            "content_type": "application/pdf",
-        },
-    )
-    monkeypatch.setattr(
-        admin_assets,
-        "head_s3_object",
-        lambda **_k: {"ContentType": "application/pdf"},
-    )
-    monkeypatch.setattr(admin_assets, "delete_s3_object", lambda **_k: None)
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
+    monkeypatch.setattr(content_replace, "delete_s3_object", lambda **_k: None)
 
     asset = _make_asset(asset_id=asset_id, s3_key=pending)
 
@@ -307,15 +503,31 @@ def test_second_complete_same_pending_after_success_raises(
         def flush(self) -> None:
             return None
 
-    monkeypatch.setattr(admin_assets, "Session", lambda _e: _Sess())
-    monkeypatch.setattr(admin_assets, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_assets, "set_audit_context", lambda *a, **k: None)
-    monkeypatch.setattr(admin_assets, "AssetRepository", lambda _s: _Repo())
+        def rollback(self) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
 
     with pytest.raises(ValidationError, match="nothing to replace"):
-        admin_assets._complete_asset_content_replace(  # noqa: SLF001
-            api_gateway_event(method="POST", path="/x", body="{}"),
+        content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "doc.pdf",
+                        "content_type": "application/pdf",
+                    }
+                ),
+            ),
             asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
 
 
@@ -331,21 +543,7 @@ def test_delete_previous_logs_warning_on_failure(
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-new.pdf"
     asset = _make_asset(asset_id=asset_id, s3_key=old_key)
 
-    monkeypatch.setattr(admin_assets, "extract_identity", lambda _e: _identity())
-    monkeypatch.setattr(
-        admin_assets,
-        "parse_complete_asset_content_replace_payload",
-        lambda _e: {
-            "pending_s3_key": pending,
-            "file_name": "new.pdf",
-            "content_type": "application/pdf",
-        },
-    )
-    monkeypatch.setattr(
-        admin_assets,
-        "head_s3_object",
-        lambda **_k: {"ContentType": "application/pdf"},
-    )
+    monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
 
     def _delete_fail(**_kwargs: Any) -> None:
         raise ClientError(
@@ -353,7 +551,7 @@ def test_delete_previous_logs_warning_on_failure(
             "DeleteObject",
         )
 
-    monkeypatch.setattr(admin_assets, "delete_s3_object", _delete_fail)
+    monkeypatch.setattr(content_replace, "delete_s3_object", _delete_fail)
 
     class _Repo:
         def get_with_asset_tags(self, _id: UUID) -> Asset:
@@ -375,15 +573,31 @@ def test_delete_previous_logs_warning_on_failure(
         def flush(self) -> None:
             return None
 
-    monkeypatch.setattr(admin_assets, "Session", lambda _e: _Sess())
-    monkeypatch.setattr(admin_assets, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_assets, "set_audit_context", lambda *a, **k: None)
-    monkeypatch.setattr(admin_assets, "AssetRepository", lambda _s: _Repo())
+        def rollback(self) -> None:
+            return None
+
+    monkeypatch.setattr(content_replace, "Session", lambda _e: _Sess())
+    monkeypatch.setattr(content_replace, "get_engine", lambda: object())
+    monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
+    monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
+    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
 
     with caplog.at_level(logging.WARNING):
-        resp = admin_assets._complete_asset_content_replace(  # noqa: SLF001
-            api_gateway_event(method="POST", path="/x", body="{}"),
+        resp = content_replace.complete_asset_content_replace(
+            api_gateway_event(
+                method="POST",
+                path="/x",
+                body=json.dumps(
+                    {
+                        "pending_s3_key": pending,
+                        "file_name": "new.pdf",
+                        "content_type": "application/pdf",
+                    }
+                ),
+            ),
             asset_id,
+            identity_user_sub="u",
+            request_id=None,
         )
     assert resp["statusCode"] == 200
     assert any("replace_delete_failed" in r.message for r in caplog.records)

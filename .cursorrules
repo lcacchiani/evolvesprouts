@@ -301,6 +301,10 @@ should extend the shared primitives rather than reintroducing one-off layouts.
   appropriate), not in the editor footer. `ConfirmDialog` may render optional
   `children` between the description and the action buttons when extra input
   is required (for example a void reason).
+- **Asset file replacement** (upload new binary for the selected asset) lives in
+  the **inline editor** field area, not the list **Operations** column, because
+  it depends on editor context (metadata, PDF validation, and the two-step
+  presigned flow) rather than being a row-only table action.
 
 ### Public WWW XSS policy (MANDATORY for `apps/public_www/**`)
 

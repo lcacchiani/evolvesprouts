@@ -142,6 +142,14 @@ const deviceAttestationFailClosed = new cdk.CfnParameter(
 
 ## API Security
 
+### Admin asset file replacement
+
+`POST /v1/admin/assets/{id}/content/init` and `.../complete` are **admin-authenticated**
+writes. The replace presign binds **`Content-Type: application/pdf`**, and **complete**
+rejects non-PDF S3 metadata, enforces a **maximum object size** on head, and validates the
+pending key’s **`UUID-` filename prefix** so arbitrary key suffixes cannot be smuggled in.
+Expense-linked assets cannot use replace.
+
 ### CORS Configuration
 
 **Never use `Cors.ALL_ORIGINS` in production.** Always restrict to specific allowed origins.

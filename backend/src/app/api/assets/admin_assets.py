@@ -2,54 +2,47 @@
 
 from __future__ import annotations
 
-import base64
-import json
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID, uuid4
 
-from botocore.exceptions import ClientError
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_uuid
+from app.api.assets.admin_assets_content_replace import (
+    complete_asset_content_replace,
+    init_asset_content_replace,
+)
+from app.api.assets.admin_share_links import (
+    get_or_create_share_link,
+    get_share_link,
+    revoke_share_link,
+    rotate_share_link,
+)
 from app.api.assets.assets_common import (
     asset_links_expense_attachment,
     build_s3_key,
     delete_s3_object,
     extract_identity,
-    file_name_from_pending_asset_content_key,
     generate_upload_url,
-    head_s3_object,
     paginate_response,
     parse_admin_asset_list_filters,
-    parse_complete_asset_content_replace_payload,
     parse_create_asset_payload,
     parse_cursor,
     parse_grant_payload,
-    parse_init_asset_content_replace_payload,
     parse_limit,
     parse_partial_update_asset_payload,
     parse_update_asset_payload,
     serialize_asset,
-    sanitize_file_name,
     serialize_grant,
     split_route_parts,
-    validate_pending_asset_content_s3_key,
-)
-from app.api.assets.share_links import (
-    build_share_link_url,
-    generate_share_token,
-    normalize_allowed_domains,
-    resolve_default_allowed_domains,
 )
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.asset_expense_tagging import CLIENT_DOCUMENT_TAG_NAME
-from app.utils import get_logger, json_response
-
-logger = get_logger(__name__)
+from app.utils import json_response
 
 
 def handle_admin_assets_request(
@@ -98,23 +91,48 @@ def handle_admin_assets_request(
 
     if len(parts) == 5 and parts[3] == "content":
         if parts[4] == "init" and method == "POST":
-            return _init_asset_content_replace(event, asset_id)
+            return init_asset_content_replace(
+                event,
+                asset_id,
+                identity_user_sub=identity.user_sub,
+                request_id=_request_id(event),
+            )
         if parts[4] == "complete" and method == "POST":
-            return _complete_asset_content_replace(event, asset_id)
+            return complete_asset_content_replace(
+                event,
+                asset_id,
+                identity_user_sub=identity.user_sub,
+                request_id=_request_id(event),
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 4 and parts[3] == "share-link":
         if method == "GET":
-            return _get_share_link(event, asset_id)
+            return get_share_link(event, asset_id)
         if method == "POST":
-            return _get_or_create_share_link(event, asset_id, identity.user_sub)
+            return get_or_create_share_link(
+                event,
+                asset_id,
+                identity.user_sub,
+                request_id=_request_id(event),
+            )
         if method == "DELETE":
-            return _revoke_share_link(event, asset_id, identity.user_sub)
+            return revoke_share_link(
+                event,
+                asset_id,
+                identity.user_sub,
+                request_id=_request_id(event),
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 5 and parts[3] == "share-link" and parts[4] == "rotate":
         if method == "POST":
-            return _rotate_share_link(event, asset_id, identity.user_sub)
+            return rotate_share_link(
+                event,
+                asset_id,
+                identity.user_sub,
+                request_id=_request_id(event),
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
@@ -276,142 +294,6 @@ def _delete_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
         return json_response(204, {}, event=event)
 
 
-def _init_asset_content_replace(
-    event: Mapping[str, Any],
-    asset_id: UUID,
-) -> dict[str, Any]:
-    payload = parse_init_asset_content_replace_payload(event)
-    identity = extract_identity(event)
-    request_id = _request_id(event)
-
-    with Session(get_engine()) as session:
-        set_audit_context(
-            session, user_id=identity.user_sub or "", request_id=request_id
-        )
-        repository = AssetRepository(session)
-        asset = repository.get_with_asset_tags(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-        if asset_links_expense_attachment(asset):
-            raise ValidationError(
-                "File replacement is not allowed for expense-linked assets",
-                field="asset",
-            )
-
-        pending_key = build_s3_key(asset_id, payload["file_name"])
-        upload = generate_upload_url(
-            s3_key=pending_key, content_type=payload["content_type"]
-        )
-        return json_response(
-            200,
-            {
-                "pending_s3_key": pending_key,
-                **upload,
-            },
-            event=event,
-        )
-
-
-def _complete_asset_content_replace(
-    event: Mapping[str, Any],
-    asset_id: UUID,
-) -> dict[str, Any]:
-    payload = parse_complete_asset_content_replace_payload(event)
-    validate_pending_asset_content_s3_key(
-        asset_id=asset_id, pending_key=payload["pending_s3_key"]
-    )
-    identity = extract_identity(event)
-    request_id = _request_id(event)
-
-    try:
-        head_meta = head_s3_object(s3_key=payload["pending_s3_key"])
-    except ClientError as exc:
-        error_code = str(exc.response.get("Error", {}).get("Code", ""))
-        http_status = int(
-            exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
-        )
-        if http_status == 404 or error_code in {"404", "NoSuchKey", "NotFound"}:
-            raise ValidationError(
-                "Uploaded object was not found; complete the presigned upload first",
-                field="pending_s3_key",
-            ) from exc
-        logger.exception(
-            "S3 head_object failed for asset content replace",
-            extra={"asset_id": str(asset_id), "error_code": error_code},
-        )
-        raise ValidationError(
-            "Could not verify the uploaded object",
-            field="pending_s3_key",
-        ) from exc
-
-    key_derived_name = file_name_from_pending_asset_content_key(
-        payload["pending_s3_key"]
-    )
-    client_file_name = sanitize_file_name(payload["file_name"])
-    if client_file_name != key_derived_name:
-        raise ValidationError(
-            "file_name does not match the pending upload key",
-            field="file_name",
-        )
-
-    resolved_content_type = payload["content_type"]
-    if not resolved_content_type:
-        head_ct = head_meta.get("ContentType")
-        if isinstance(head_ct, str) and head_ct.strip():
-            resolved_content_type = head_ct.strip()
-
-    with Session(get_engine()) as session:
-        set_audit_context(
-            session, user_id=identity.user_sub or "", request_id=request_id
-        )
-        repository = AssetRepository(session)
-        asset = repository.get_with_asset_tags(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-        if asset_links_expense_attachment(asset):
-            raise ValidationError(
-                "File replacement is not allowed for expense-linked assets",
-                field="asset",
-            )
-
-        previous_key = asset.s3_key
-        if previous_key == payload["pending_s3_key"]:
-            raise ValidationError(
-                "pending_s3_key matches the current object; nothing to replace",
-                field="pending_s3_key",
-            )
-
-        repository.update_asset(
-            asset,
-            s3_key=payload["pending_s3_key"],
-            file_name=payload["file_name"],
-            content_type=resolved_content_type,
-        )
-        session.flush()
-        refreshed = repository.get_with_asset_tags(asset_id)
-        serialized = serialize_asset(refreshed or asset)
-        session.commit()
-
-        if previous_key and previous_key != payload["pending_s3_key"]:
-            try:
-                delete_s3_object(s3_key=previous_key)
-            except ClientError:
-                logger.warning(
-                    "replace_delete_failed: previous S3 object delete failed after successful replace",
-                    extra={
-                        "asset_id": str(asset_id),
-                        "s3_key": previous_key,
-                        "outcome": "replace_delete_failed",
-                    },
-                )
-
-        return json_response(
-            200,
-            {"asset": serialized},
-            event=event,
-        )
-
-
 def _list_grants(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
@@ -479,201 +361,6 @@ def _delete_grant(
         repository.delete_grant(grant)
         session.commit()
         return json_response(204, {}, event=event)
-
-
-def _get_or_create_share_link(
-    event: Mapping[str, Any],
-    asset_id: UUID,
-    actor_sub: str,
-) -> dict[str, Any]:
-    request_id = _request_id(event)
-    requested_allowed_domains = _parse_share_link_allowed_domains(event)
-
-    with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
-        repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-
-        share_link = repository.get_share_link(asset_id=asset_id)
-        status_code = 200
-        if share_link is None:
-            allowed_domains = (
-                requested_allowed_domains or resolve_default_allowed_domains()
-            )
-            share_link = repository.create_share_link(
-                asset_id=asset_id,
-                share_token=generate_share_token(),
-                allowed_domains=allowed_domains,
-                created_by=actor_sub,
-            )
-            status_code = 201
-        elif requested_allowed_domains is not None:
-            share_link = repository.update_share_link_allowed_domains(
-                share_link,
-                allowed_domains=requested_allowed_domains,
-            )
-        session.commit()
-
-        return json_response(
-            status_code,
-            _serialize_share_link_response(
-                event=event,
-                asset_id=asset_id,
-                token=share_link.share_token,
-                allowed_domains=share_link.allowed_domains,
-            ),
-            event=event,
-        )
-
-
-def _get_share_link(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
-    with Session(get_engine()) as session:
-        repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-
-        share_link = repository.get_share_link(asset_id=asset_id)
-        if share_link is None:
-            raise NotFoundError("Share link", str(asset_id))
-
-        return json_response(
-            200,
-            _serialize_share_link_response(
-                event=event,
-                asset_id=asset_id,
-                token=share_link.share_token,
-                allowed_domains=share_link.allowed_domains,
-            ),
-            event=event,
-        )
-
-
-def _rotate_share_link(
-    event: Mapping[str, Any],
-    asset_id: UUID,
-    actor_sub: str,
-) -> dict[str, Any]:
-    request_id = _request_id(event)
-    requested_allowed_domains = _parse_share_link_allowed_domains(event)
-
-    with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
-        repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-
-        share_link = repository.get_share_link(asset_id=asset_id)
-        next_token = generate_share_token()
-        if share_link is None:
-            allowed_domains = (
-                requested_allowed_domains or resolve_default_allowed_domains()
-            )
-            share_link = repository.create_share_link(
-                asset_id=asset_id,
-                share_token=next_token,
-                allowed_domains=allowed_domains,
-                created_by=actor_sub,
-            )
-        else:
-            share_link = repository.rotate_share_link(
-                share_link,
-                share_token=next_token,
-                allowed_domains=requested_allowed_domains,
-            )
-        session.commit()
-
-        return json_response(
-            200,
-            _serialize_share_link_response(
-                event=event,
-                asset_id=asset_id,
-                token=share_link.share_token,
-                allowed_domains=share_link.allowed_domains,
-            ),
-            event=event,
-        )
-
-
-def _revoke_share_link(
-    event: Mapping[str, Any],
-    asset_id: UUID,
-    actor_sub: str,
-) -> dict[str, Any]:
-    request_id = _request_id(event)
-
-    with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
-        repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
-        if asset is None:
-            raise NotFoundError("Asset", str(asset_id))
-
-        share_link = repository.get_share_link(asset_id=asset_id)
-        if share_link is not None:
-            repository.revoke_share_link(share_link)
-        session.commit()
-        return json_response(204, {}, event=event)
-
-
-def _serialize_share_link_response(
-    *,
-    event: Mapping[str, Any],
-    asset_id: UUID,
-    token: str,
-    allowed_domains: list[str],
-) -> dict[str, Any]:
-    return {
-        "asset_id": str(asset_id),
-        "share_url": build_share_link_url(event, token),
-        "allowed_domains": list(allowed_domains),
-    }
-
-
-def _parse_share_link_allowed_domains(event: Mapping[str, Any]) -> list[str] | None:
-    body = _parse_optional_json_body(event)
-    if body is None:
-        return None
-
-    raw_allowed_domains = body.get("allowed_domains")
-    if raw_allowed_domains is None:
-        raw_allowed_domains = body.get("allowedDomains")
-    if raw_allowed_domains is None:
-        return None
-    if not isinstance(raw_allowed_domains, list):
-        raise ValidationError(
-            "allowed_domains must be an array of domains",
-            field="allowed_domains",
-        )
-    return normalize_allowed_domains(raw_allowed_domains)
-
-
-def _parse_optional_json_body(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    raw_body = event.get("body")
-    if raw_body is None:
-        return None
-    if not isinstance(raw_body, str):
-        raise ValidationError("Request body must be a JSON object", field="body")
-    if not raw_body.strip():
-        return None
-
-    decoded_body = raw_body
-    if event.get("isBase64Encoded"):
-        try:
-            decoded_body = base64.b64decode(raw_body).decode("utf-8")
-        except (ValueError, UnicodeDecodeError) as exc:
-            raise ValidationError("Request body is not valid base64 JSON") from exc
-
-    try:
-        parsed_body = json.loads(decoded_body)
-    except json.JSONDecodeError as exc:
-        raise ValidationError("Request body must be valid JSON", field="body") from exc
-    if not isinstance(parsed_body, Mapping):
-        raise ValidationError("Request body must be a JSON object", field="body")
-    return parsed_body
 
 
 def _request_id(event: Mapping[str, Any]) -> str | None:

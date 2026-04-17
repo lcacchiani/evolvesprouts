@@ -104,7 +104,7 @@ def test_handle_admin_assets_dispatches_content_init_route(
         "extract_identity",
         lambda _: _build_admin_identity(admin_identity),
     )
-    monkeypatch.setattr(admin_assets, "_init_asset_content_replace", lambda *_: marker)
+    monkeypatch.setattr(admin_assets, "init_asset_content_replace", lambda *_a, **_k: marker)
     asset_id = str(uuid4())
 
     response = admin_assets.handle_admin_assets_request(
@@ -126,7 +126,9 @@ def test_handle_admin_assets_dispatches_content_complete_route(
         "extract_identity",
         lambda _: _build_admin_identity(admin_identity),
     )
-    monkeypatch.setattr(admin_assets, "_complete_asset_content_replace", lambda *_: marker)
+    monkeypatch.setattr(
+        admin_assets, "complete_asset_content_replace", lambda *_a, **_k: marker
+    )
     asset_id = str(uuid4())
 
     response = admin_assets.handle_admin_assets_request(

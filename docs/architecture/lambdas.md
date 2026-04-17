@@ -42,9 +42,15 @@ their primary responsibilities.
   Nominatim-backed address geocoding via `AwsApiProxyFunction`),
   `/v1/admin/assets/*` (including `POST /v1/admin/assets/{id}/content/init` and
   `POST /v1/admin/assets/{id}/content/complete` for two-step S3 file replacement
-  while preserving the asset id; complete validates `file_name` against the pending
-  key, fills `content_type` from S3 metadata when omitted, and logs a warning with
-  `outcome=replace_delete_failed` if deleting the previous object fails after commit),
+  while preserving the asset id; complete validates the pending key segment
+  (`UUID-` prefix + filename), enforces PDF `Content-Type` and max upload size on
+  S3 head, and logs a warning with `outcome=replace_delete_failed` if deleting the
+  previous object fails after commit). **Operational caveats:** concurrent replaces
+  are last-writer-wins; abandoned `complete` calls can leave orphan objects under
+  `assets/{id}/`; failed old-key deletes are log-only until a follow-up lifecycle or
+  reconciliation job exists. **Caching:** share-link tokens stay stable on replace;
+  CDN or browser caching keyed only by URL (not `s3_key`) may show stale bytes until TTL—
+  downloads keyed by changing `s3_key` generally avoid that.
   `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers and
   `GET /v1/admin/contacts/search` for contact picker search),
   `/v1/admin/families/picker`, `/v1/admin/families/*`,

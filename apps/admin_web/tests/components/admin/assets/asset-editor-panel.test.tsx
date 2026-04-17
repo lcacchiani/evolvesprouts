@@ -45,7 +45,7 @@ function renderEditor(overrides: Partial<ComponentProps<typeof AssetEditorPanel>
       isDeletingCurrentAsset={false}
       assetMutationError=''
       uploadState='idle'
-      uploadPhase='idle'
+      uploadPhase={null}
       uploadError=''
       hasPendingUpload={false}
       onRetryUpload={onRetryUpload}
@@ -212,7 +212,7 @@ describe('AssetEditorPanel', () => {
     const replaceInput = screen.getByLabelText('Replace PDF file');
     const pdf = new File(['%PDF-1.4'], 'new-guide.pdf', { type: 'application/pdf' });
     await user.upload(replaceInput, pdf);
-    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await user.click(screen.getByRole('button', { name: 'Save and replace' }));
 
     await waitFor(() => {
       expect(onReplaceFile).toHaveBeenCalledWith(pdf);
@@ -238,7 +238,7 @@ describe('AssetEditorPanel', () => {
     const replaceInput = screen.getByLabelText('Replace PDF file');
     const pdf = new File(['%PDF-1.4'], 'new-guide.pdf', { type: 'application/pdf' });
     await user.upload(replaceInput, pdf);
-    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await user.click(screen.getByRole('button', { name: 'Save and replace' }));
 
     await waitFor(() => {
       expect(onReplaceFile).toHaveBeenCalled();
