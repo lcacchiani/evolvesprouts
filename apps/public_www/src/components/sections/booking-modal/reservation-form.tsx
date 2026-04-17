@@ -82,10 +82,10 @@ interface BookingReservationFormProps {
   content: BookingPaymentModalContent;
   eventTitle: string;
   /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
-  serviceKey?: string;
+  reservationServiceKey?: string;
   /** Optional cohort identifier for Stripe metadata (e.g. MBA cohort id). */
   cohortId?: string;
-  /** Stable slug when serviceKey is not set (e.g. my-best-auntie, consultation tier). */
+  /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
@@ -427,7 +427,7 @@ export function BookingReservationForm({
   locale,
   content,
   eventTitle,
-  serviceKey,
+  reservationServiceKey,
   cohortId = '',
   courseSlug,
   eventSubtitle = '',
@@ -1182,7 +1182,7 @@ export function BookingReservationForm({
       locale,
       courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
-        const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
+        const sanitizedServiceKey = sanitizeSingleLineValue(reservationServiceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
         const instanceUuid = sanitizeSingleLineValue(serviceInstanceId ?? '');
         return {
