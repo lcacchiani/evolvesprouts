@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -39,6 +39,8 @@ export function ConfirmDialog({
   dialogRole = 'alertdialog',
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     if (!open) {
@@ -105,16 +107,16 @@ export function ConfirmDialog({
         ref={dialogRef}
         role={dialogRole}
         aria-modal='true'
-        aria-labelledby='confirm-dialog-title'
-        aria-describedby='confirm-dialog-description'
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         className='w-full max-w-md'
       >
         <Card className='space-y-4'>
           <div className='space-y-2'>
-            <h2 id='confirm-dialog-title' className='text-base font-semibold text-slate-900'>
+            <h2 id={titleId} className='text-base font-semibold text-slate-900'>
               {title}
             </h2>
-            <p id='confirm-dialog-description' className='text-sm text-slate-600'>
+            <p id={descriptionId} className='text-sm text-slate-600'>
               {description}
             </p>
           </div>
