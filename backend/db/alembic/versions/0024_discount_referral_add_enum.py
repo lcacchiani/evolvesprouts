@@ -35,7 +35,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE discount_type ADD VALUE IF NOT EXISTS 'referral'")
+    # PostgreSQL requires enum additions to be committed before subsequent
+    # statements in the migration chain can reference the new label.
+    with op.get_context().autocommit_block():
+        op.execute("ALTER TYPE discount_type ADD VALUE IF NOT EXISTS 'referral'")
 
 
 def downgrade() -> None:
