@@ -1166,6 +1166,11 @@ export function BookingReservationForm({
           value: totalAmount,
           currency: 'HKD',
         });
+        trackMetaPixelEvent('Purchase', {
+          content_name: metaPixelContentName,
+          value: totalAmount,
+          currency: 'HKD',
+        });
         trackEcommerceEvent('purchase', {
           value: totalAmount,
           paymentType: selectedPaymentMethod,

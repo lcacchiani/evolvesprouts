@@ -6,6 +6,9 @@ export type MetaPixelStandardEvent =
   | 'Schedule'
   | 'Contact'
   | 'InitiateCheckout'
+  | 'AddPaymentInfo'
+  | 'Purchase'
+  | 'CompleteRegistration'
   | 'ViewContent';
 
 export type MetaPixelContentName = MetaPixelStaticContentName | LandingPageSlug;
