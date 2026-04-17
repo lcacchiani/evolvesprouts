@@ -56,6 +56,21 @@ export const DISCOUNT_TYPES = defineEnumValues<DiscountType>()(
   ['percentage', 'absolute', 'referral'] as const satisfies readonly DiscountType[]
 );
 
+const DISCOUNT_TYPE_SET = new Set<string>(DISCOUNT_TYPES);
+
+/**
+ * Map API `discount_type` to a value that matches `<option value>` entries.
+ * Non-string or unknown values fall back to `percentage` so native `<select>`
+ * controlled values always match an option (avoids a "stuck" first option).
+ */
+export function normalizeDiscountTypeFromApi(raw: unknown): DiscountType {
+  if (typeof raw !== 'string') {
+    return 'percentage';
+  }
+  const normalized = raw.trim().toLowerCase();
+  return DISCOUNT_TYPE_SET.has(normalized) ? (normalized as DiscountType) : 'percentage';
+}
+
 // Sibling defaults: backend `REFERRAL_DEFAULT_*` in `admin_services_payloads.py`.
 export const REFERRAL_DEFAULT_DISCOUNT_VALUE = '0';
 export const REFERRAL_DEFAULT_CURRENCY = 'HKD';

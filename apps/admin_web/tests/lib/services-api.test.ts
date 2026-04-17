@@ -14,7 +14,12 @@ vi.mock('@/lib/api-admin-client', async () => {
   };
 });
 
-import { createServiceCoverImageUpload, listLocations, listServices } from '@/lib/services-api';
+import {
+  createServiceCoverImageUpload,
+  listDiscountCodes,
+  listLocations,
+  listServices,
+} from '@/lib/services-api';
 
 describe('services-api', () => {
   beforeEach(() => {
@@ -121,6 +126,58 @@ describe('services-api', () => {
         },
       })
     );
+  });
+
+  it('normalizes discount_type from listDiscountCodes (string casing and non-string)', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'dc-1',
+            code: 'A',
+            description: null,
+            discount_type: 'REFERRAL',
+            discount_value: '0',
+            currency: 'HKD',
+            valid_from: null,
+            valid_until: null,
+            service_id: null,
+            instance_id: null,
+            max_uses: null,
+            current_uses: 0,
+            active: true,
+            created_by: 'u',
+            created_at: null,
+            updated_at: null,
+          },
+          {
+            id: 'dc-2',
+            code: 'B',
+            description: null,
+            discount_type: 'unknown_kind',
+            discount_value: '10',
+            currency: 'HKD',
+            valid_from: null,
+            valid_until: null,
+            service_id: null,
+            instance_id: null,
+            max_uses: null,
+            current_uses: 0,
+            active: true,
+            created_by: 'u',
+            created_at: null,
+            updated_at: null,
+          },
+        ],
+        next_cursor: null,
+        total_count: 2,
+      },
+    });
+
+    const result = await listDiscountCodes({ limit: 50 });
+
+    expect(result.items[0].discountType).toBe('referral');
+    expect(result.items[1].discountType).toBe('percentage');
   });
 
   it('parses venue coordinates from number or string response', async () => {

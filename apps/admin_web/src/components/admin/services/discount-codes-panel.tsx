@@ -37,6 +37,7 @@ import {
 import type { components } from '@/types/generated/admin-api.generated';
 import {
   DISCOUNT_TYPES,
+  normalizeDiscountTypeFromApi,
   REFERRAL_DEFAULT_CURRENCY,
   REFERRAL_DEFAULT_DISCOUNT_VALUE,
 } from '@/types/services';
@@ -148,7 +149,8 @@ export function DiscountCodesPanel({
   const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions(instanceOptionsRefreshKey);
   const currencyOptions = getCurrencyOptions();
-  const isReferral = discountType === 'referral';
+  const discountTypeSelectValue = normalizeDiscountTypeFromApi(discountType);
+  const isReferral = discountTypeSelectValue === 'referral';
 
   const serviceById = useMemo(() => {
     const map = new Map<string, ServiceSummary>();
@@ -214,7 +216,7 @@ export function DiscountCodesPanel({
     const createPayload: ApiSchemas['CreateDiscountCodeRequest'] = {
       code: code.trim().toUpperCase(),
       description: description.trim() || null,
-      discount_type: discountType as DiscountType,
+      discount_type: discountTypeSelectValue,
       discount_value: isReferral ? REFERRAL_DEFAULT_DISCOUNT_VALUE : discountValue.trim(),
       currency: isReferral ? REFERRAL_DEFAULT_CURRENCY : currency.trim() || null,
       valid_from: validFromIso,
@@ -285,7 +287,7 @@ export function DiscountCodesPanel({
       }
       await onUpdate(selectedCode.id, {
         description: description.trim() || null,
-        discount_type: discountType as DiscountType,
+        discount_type: discountTypeSelectValue,
         discount_value: isReferral ? REFERRAL_DEFAULT_DISCOUNT_VALUE : discountValue.trim(),
         currency: isReferral ? REFERRAL_DEFAULT_CURRENCY : currency.trim() || null,
         valid_from: validFromIso,
@@ -307,7 +309,7 @@ export function DiscountCodesPanel({
     setEditorMode('edit');
     setCode(entry.code);
     setDescription(entry.description ?? '');
-    setDiscountType(entry.discountType);
+    setDiscountType(normalizeDiscountTypeFromApi(entry.discountType));
     setDiscountValue(entry.discountValue);
     setCurrency(entry.currency ?? 'HKD');
     setMaxUses(entry.maxUses?.toString() ?? '');
@@ -398,10 +400,10 @@ export function DiscountCodesPanel({
             <Label htmlFor='discount-type'>Type</Label>
             <Select
               id='discount-type'
-              value={discountType}
+              value={discountTypeSelectValue}
               onChange={(event) => {
                 const next = event.target.value as ApiSchemas['DiscountType'];
-                const prev = discountType;
+                const prev = discountTypeSelectValue;
                 setDiscountType(next);
                 if (next === 'referral') {
                   setDiscountValue(REFERRAL_DEFAULT_DISCOUNT_VALUE);
@@ -499,7 +501,7 @@ export function DiscountCodesPanel({
               id='discount-currency'
               value={currency}
               onChange={(event) => setCurrency(event.target.value)}
-              disabled={discountType === 'percentage' || isReferral}
+              disabled={discountTypeSelectValue === 'percentage' || isReferral}
             >
               {currencyOptions.map((option) => (
                 <option key={option.value} value={option.value}>
