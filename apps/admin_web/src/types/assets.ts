@@ -128,6 +128,17 @@ export interface CreatedAssetUpload {
   expiresAt: OptionalToNullable<ApiCreateAssetResponse['expires_at']>;
 }
 
+type ApiInitAssetContentReplaceResponse = ApiSchemas['InitAssetContentReplaceResponse'];
+
+/** Presigned upload for replacing an existing asset file (step 1). */
+export interface InitAdminAssetContentReplaceUpload {
+  pendingS3Key: ApiInitAssetContentReplaceResponse['pending_s3_key'];
+  uploadUrl: OptionalToNullable<ApiInitAssetContentReplaceResponse['upload_url']>;
+  uploadMethod: string;
+  uploadHeaders: NonNullable<ApiInitAssetContentReplaceResponse['upload_headers']>;
+  expiresAt: OptionalToNullable<ApiInitAssetContentReplaceResponse['expires_at']>;
+}
+
 export interface CreateAssetGrantInput {
   grantType: ApiCreateAssetGrantRequest['grant_type'];
   granteeId?: OptionalToNullable<ApiCreateAssetGrantRequest['grantee_id']>;

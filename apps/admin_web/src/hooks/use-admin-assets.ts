@@ -37,10 +37,12 @@ export function useAdminAssets() {
     uploadError,
     hasPendingUpload,
     createAssetEntry,
+    replaceAssetFileEntry,
     updateAssetEntry,
     deleteAssetEntry,
     retryPendingUpload,
     resetMutationState,
+    replaceSuccessNonce,
   } = useAssetMutations({
     applyCreatedAsset,
     applyUpdatedAsset,
@@ -105,11 +107,13 @@ export function useAdminAssets() {
     selectAsset,
     clearSelectedAsset,
     createAssetEntry,
+    replaceAssetFileEntry,
     updateAssetEntry,
     deleteAssetEntry,
     refreshGrants,
     createGrantEntry,
     deleteGrantEntry,
     retryPendingUpload,
+    replaceSuccessNonce,
   };
 }

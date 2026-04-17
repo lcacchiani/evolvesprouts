@@ -526,6 +526,53 @@ def delete_s3_object(*, s3_key: str) -> None:
     s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
 
 
+def head_s3_object(*, s3_key: str) -> dict[str, Any]:
+    """Return S3 head_object response metadata for the given key."""
+    bucket_name = _require_assets_bucket_name()
+    s3_client = get_s3_client()
+    return s3_client.head_object(Bucket=bucket_name, Key=s3_key)
+
+
+def parse_init_asset_content_replace_payload(
+    event: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Parse body for POST .../assets/{id}/content/init (replace file, step 1)."""
+    body = parse_body(event)
+    file_name = _required_text(
+        body, "file_name", "fileName", max_length=_MAX_FILE_NAME_LENGTH
+    )
+    content_type = _optional_text(
+        body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
+    )
+    return {"file_name": file_name, "content_type": content_type}
+
+
+def parse_complete_asset_content_replace_payload(
+    event: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Parse body for POST .../assets/{id}/content/complete (replace file, step 2)."""
+    body = parse_body(event)
+    pending_key = _required_text(
+        body,
+        "pending_s3_key",
+        "pendingS3Key",
+        max_length=1024,
+    ).strip()
+    if not pending_key:
+        raise ValidationError("pending_s3_key is required", field="pending_s3_key")
+    file_name = _required_text(
+        body, "file_name", "fileName", max_length=_MAX_FILE_NAME_LENGTH
+    )
+    content_type = _optional_text(
+        body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
+    )
+    return {
+        "pending_s3_key": pending_key,
+        "file_name": file_name,
+        "content_type": content_type,
+    }
+
+
 def _serialize_asset_tags_if_loaded(asset: Asset) -> list[dict[str, Any]]:
     """Include tags only when the relationship is preloaded (avoids N+1 queries)."""
     state = inspect(asset)

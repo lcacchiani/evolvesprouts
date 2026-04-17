@@ -53,6 +53,8 @@ info:
     - `GET /v1/admin/leads/export`
     - `GET|POST /v1/admin/assets`
     - `GET|PUT|PATCH|DELETE /v1/admin/assets/{id}`
+    - `POST /v1/admin/assets/{id}/content/init`
+    - `POST /v1/admin/assets/{id}/content/complete`
     - `GET|POST /v1/admin/assets/{id}/grants`
     - `DELETE /v1/admin/assets/{id}/grants/{grantId}`
     - `GET|POST|DELETE /v1/admin/assets/{id}/share-link`
@@ -249,6 +251,70 @@ paths:
       responses:
         "204":
           description: Asset deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/assets/{id}/content/init:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+    post:
+      summary: Begin admin asset file replacement
+      description: >
+        Step 1 of 2 for replacing the binary stored for an asset while keeping the same asset id.
+        Returns a presigned upload URL for a new S3 key under `assets/{id}/...`. Call
+        `POST /v1/admin/assets/{id}/content/complete` after the client uploads to that URL.
+        Not allowed when the asset has the `expense_attachment` tag (400).
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitAssetContentReplaceRequest"
+      responses:
+        "200":
+          description: Presigned upload details and pending object key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitAssetContentReplaceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/assets/{id}/content/complete:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+    post:
+      summary: Complete admin asset file replacement
+      description: >
+        Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it,
+        deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be
+        the value returned by `POST .../content/init` for this asset id. Not allowed when the asset
+        has the `expense_attachment` tag (400).
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteAssetContentReplaceRequest"
+      responses:
+        "200":
+          description: Updated asset after successful replacement.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -4278,6 +4344,56 @@ components:
         expires_at:
           type: string
           format: date-time
+          nullable: true
+    InitAssetContentReplaceRequest:
+      type: object
+      required:
+        - file_name
+      properties:
+        file_name:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 127
+          nullable: true
+    InitAssetContentReplaceResponse:
+      type: object
+      required:
+        - pending_s3_key
+      properties:
+        pending_s3_key:
+          type: string
+          maxLength: 1024
+        upload_url:
+          type: string
+          format: uri
+          nullable: true
+        upload_method:
+          type: string
+        upload_headers:
+          type: object
+          additionalProperties:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    CompleteAssetContentReplaceRequest:
+      type: object
+      required:
+        - pending_s3_key
+        - file_name
+      properties:
+        pending_s3_key:
+          type: string
+          maxLength: 1024
+        file_name:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 127
           nullable: true
     CreateAssetGrantRequest:
       type: object

@@ -2464,6 +2464,12 @@ export class ApiStack extends cdk.Stack {
           "/v1/user/assets/{id}/download/GET": {
             cachingEnabled: false,
           },
+          "/v1/admin/assets/{id}/content/init/POST": {
+            cachingEnabled: false,
+          },
+          "/v1/admin/assets/{id}/content/complete/POST": {
+            cachingEnabled: false,
+          },
         },
       },
     });
@@ -2708,6 +2714,18 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminAssetById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    const adminAssetContent = adminAssetById.addResource("content");
+    const adminAssetContentInit = adminAssetContent.addResource("init");
+    adminAssetContentInit.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminAssetContentComplete = adminAssetContent.addResource("complete");
+    adminAssetContentComplete.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

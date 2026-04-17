@@ -3,14 +3,17 @@
 import { useCallback, useState } from 'react';
 
 import {
+  completeAdminAssetContentReplace,
   createAdminAsset,
   deleteAdminAsset,
+  initAdminAssetContentReplace,
   updateAdminAsset,
   uploadFileToPresignedUrl,
 } from '@/lib/assets-api';
 import type {
   AdminAsset,
   CreatedAssetUpload,
+  InitAdminAssetContentReplaceUpload,
   UpdateAdminAssetPatchInput,
   UpsertAdminAssetInput,
 } from '@/types/assets';
@@ -18,6 +21,31 @@ import type {
 import { toErrorMessage } from './hook-errors';
 
 type UploadState = 'idle' | 'uploading' | 'failed' | 'succeeded';
+
+type PendingAssetFileMutation =
+  | {
+      kind: 'create';
+      stage: 'upload';
+      upload: CreatedAssetUpload;
+      file: File;
+    }
+  | {
+      kind: 'replace';
+      stage: 'upload';
+      assetId: string;
+      fileName: string;
+      contentType: string | null;
+      upload: InitAdminAssetContentReplaceUpload;
+      file: File;
+    }
+  | {
+      kind: 'replace';
+      stage: 'complete';
+      assetId: string;
+      pendingS3Key: string;
+      fileName: string;
+      contentType: string | null;
+    };
 
 interface UseAssetMutationsOptions {
   applyCreatedAsset: (createdAsset: AdminAsset | null) => Promise<void>;
@@ -33,10 +61,17 @@ export interface UseAssetMutationsReturn {
   uploadError: string;
   hasPendingUpload: boolean;
   createAssetEntry: (input: UpsertAdminAssetInput, file: File) => Promise<void>;
+  replaceAssetFileEntry: (
+    assetId: string,
+    file: File,
+    contentType: string | null
+  ) => Promise<void>;
   updateAssetEntry: (assetId: string, input: UpdateAdminAssetPatchInput) => Promise<void>;
   deleteAssetEntry: (assetId: string) => Promise<void>;
   retryPendingUpload: () => Promise<void>;
   resetMutationState: () => void;
+  /** Increments when a file replace (init + upload + complete) succeeds; use to remount editors. */
+  replaceSuccessNonce: number;
 }
 
 export function useAssetMutations({
@@ -49,10 +84,8 @@ export function useAssetMutations({
   const [isDeletingAssetId, setIsDeletingAssetId] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [uploadError, setUploadError] = useState('');
-  const [pendingUpload, setPendingUpload] = useState<{
-    upload: CreatedAssetUpload;
-    file: File;
-  } | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingAssetFileMutation | null>(null);
+  const [replaceSuccessNonce, setReplaceSuccessNonce] = useState(0);
 
   const resetMutationState = useCallback(() => {
     setAssetMutationError('');
@@ -82,7 +115,7 @@ export function useAssetMutations({
         }
 
         setUploadState('uploading');
-        setPendingUpload({ upload, file });
+        setPendingUpload({ kind: 'create', stage: 'upload', upload, file });
         try {
           await uploadFileToPresignedUrl({
             uploadUrl: upload.uploadUrl,
@@ -105,6 +138,81 @@ export function useAssetMutations({
       }
     },
     [applyCreatedAsset]
+  );
+
+  const replaceAssetFileEntry = useCallback(
+    async (assetId: string, file: File, contentType: string | null) => {
+      setIsSavingAsset(true);
+      setAssetMutationError('');
+      setUploadState('idle');
+      setUploadError('');
+      setPendingUpload(null);
+
+      try {
+        const initUpload = await initAdminAssetContentReplace(assetId, {
+          fileName: file.name,
+          contentType: contentType ?? undefined,
+        });
+        if (!initUpload.uploadUrl) {
+          setUploadState('failed');
+          setUploadError('Upload URL was not returned by the API.');
+          return;
+        }
+
+        setUploadState('uploading');
+        setPendingUpload({
+          kind: 'replace',
+          stage: 'upload',
+          assetId,
+          fileName: file.name,
+          contentType,
+          upload: initUpload,
+          file,
+        });
+        try {
+          await uploadFileToPresignedUrl({
+            uploadUrl: initUpload.uploadUrl,
+            uploadMethod: initUpload.uploadMethod,
+            uploadHeaders: initUpload.uploadHeaders,
+            file,
+          });
+        } catch (uploadFailure) {
+          setUploadState('failed');
+          setUploadError(toErrorMessage(uploadFailure, 'File upload failed.'));
+          return;
+        }
+
+        try {
+          const updatedAsset = await completeAdminAssetContentReplace(assetId, {
+            pendingS3Key: initUpload.pendingS3Key,
+            fileName: file.name,
+            contentType,
+          });
+          await applyUpdatedAsset(assetId, updatedAsset);
+          setUploadState('succeeded');
+          setUploadError('');
+          setPendingUpload(null);
+          setReplaceSuccessNonce((n) => n + 1);
+        } catch (completeFailure) {
+          setUploadState('failed');
+          setUploadError(toErrorMessage(completeFailure, 'Failed to finalize file replacement.'));
+          setPendingUpload({
+            kind: 'replace',
+            stage: 'complete',
+            assetId,
+            pendingS3Key: initUpload.pendingS3Key,
+            fileName: file.name,
+            contentType,
+          });
+        }
+      } catch (error) {
+        setAssetMutationError(toErrorMessage(error, 'Failed to replace asset file.'));
+        throw error;
+      } finally {
+        setIsSavingAsset(false);
+      }
+    },
+    [applyUpdatedAsset]
   );
 
   const updateAssetEntry = useCallback(
@@ -150,7 +258,58 @@ export function useAssetMutations({
   );
 
   const retryPendingUpload = useCallback(async () => {
-    if (!pendingUpload?.upload.uploadUrl) {
+    if (!pendingUpload) {
+      return;
+    }
+
+    if (pendingUpload.kind === 'replace' && pendingUpload.stage === 'complete') {
+      setUploadState('uploading');
+      setUploadError('');
+      try {
+        const updatedAsset = await completeAdminAssetContentReplace(pendingUpload.assetId, {
+          pendingS3Key: pendingUpload.pendingS3Key,
+          fileName: pendingUpload.fileName,
+          contentType: pendingUpload.contentType,
+        });
+        await applyUpdatedAsset(pendingUpload.assetId, updatedAsset);
+        setUploadState('succeeded');
+        setUploadError('');
+        setPendingUpload(null);
+        setReplaceSuccessNonce((n) => n + 1);
+      } catch (error) {
+        setUploadState('failed');
+        setUploadError(toErrorMessage(error, 'Failed to finalize file replacement.'));
+      }
+      return;
+    }
+
+    if (pendingUpload.kind === 'create') {
+      const { upload, file } = pendingUpload;
+      if (!upload.uploadUrl) {
+        return;
+      }
+
+      setUploadState('uploading');
+      setUploadError('');
+      try {
+        await uploadFileToPresignedUrl({
+          uploadUrl: upload.uploadUrl,
+          uploadMethod: upload.uploadMethod,
+          uploadHeaders: upload.uploadHeaders,
+          file,
+        });
+        setUploadState('succeeded');
+        setUploadError('');
+        setPendingUpload(null);
+      } catch (error) {
+        setUploadState('failed');
+        setUploadError(toErrorMessage(error, 'File upload failed.'));
+      }
+      return;
+    }
+
+    const { upload, file } = pendingUpload;
+    if (!upload.uploadUrl) {
       return;
     }
 
@@ -158,19 +317,41 @@ export function useAssetMutations({
     setUploadError('');
     try {
       await uploadFileToPresignedUrl({
-        uploadUrl: pendingUpload.upload.uploadUrl,
-        uploadMethod: pendingUpload.upload.uploadMethod,
-        uploadHeaders: pendingUpload.upload.uploadHeaders,
-        file: pendingUpload.file,
+        uploadUrl: upload.uploadUrl,
+        uploadMethod: upload.uploadMethod,
+        uploadHeaders: upload.uploadHeaders,
+        file,
       });
-      setUploadState('succeeded');
-      setUploadError('');
-      setPendingUpload(null);
+      try {
+        const updatedAsset = await completeAdminAssetContentReplace(pendingUpload.assetId, {
+          pendingS3Key: upload.pendingS3Key,
+          fileName: pendingUpload.fileName,
+          contentType: pendingUpload.contentType,
+        });
+        await applyUpdatedAsset(pendingUpload.assetId, updatedAsset);
+        setUploadState('succeeded');
+        setUploadError('');
+        setPendingUpload(null);
+        setReplaceSuccessNonce((n) => n + 1);
+      } catch (completeFailure) {
+        setUploadState('failed');
+        setUploadError(
+          toErrorMessage(completeFailure, 'Failed to finalize file replacement.')
+        );
+        setPendingUpload({
+          kind: 'replace',
+          stage: 'complete',
+          assetId: pendingUpload.assetId,
+          pendingS3Key: upload.pendingS3Key,
+          fileName: pendingUpload.fileName,
+          contentType: pendingUpload.contentType,
+        });
+      }
     } catch (error) {
       setUploadState('failed');
       setUploadError(toErrorMessage(error, 'File upload failed.'));
     }
-  }, [pendingUpload]);
+  }, [applyUpdatedAsset, pendingUpload]);
 
   return {
     assetMutationError,
@@ -178,11 +359,18 @@ export function useAssetMutations({
     isDeletingAssetId,
     uploadState,
     uploadError,
-    hasPendingUpload: Boolean(pendingUpload?.upload.uploadUrl),
+    hasPendingUpload: Boolean(
+      pendingUpload &&
+        (pendingUpload.kind === 'replace' && pendingUpload.stage === 'complete'
+          ? true
+          : pendingUpload.upload.uploadUrl)
+    ),
     createAssetEntry,
+    replaceAssetFileEntry,
     updateAssetEntry,
     deleteAssetEntry,
     retryPendingUpload,
     resetMutationState,
+    replaceSuccessNonce,
   };
 }

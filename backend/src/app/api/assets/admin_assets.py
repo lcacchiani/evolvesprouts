@@ -8,6 +8,7 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID, uuid4
 
+from botocore.exceptions import ClientError
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_uuid
@@ -17,11 +18,14 @@ from app.api.assets.assets_common import (
     delete_s3_object,
     extract_identity,
     generate_upload_url,
+    head_s3_object,
     paginate_response,
     parse_admin_asset_list_filters,
+    parse_complete_asset_content_replace_payload,
     parse_create_asset_payload,
     parse_cursor,
     parse_grant_payload,
+    parse_init_asset_content_replace_payload,
     parse_limit,
     parse_partial_update_asset_payload,
     parse_update_asset_payload,
@@ -88,6 +92,13 @@ def handle_admin_assets_request(
     if len(parts) == 5 and parts[3] == "grants" and method == "DELETE":
         grant_id = parse_uuid(parts[4])
         return _delete_grant(event, asset_id, grant_id)
+
+    if len(parts) == 5 and parts[3] == "content":
+        if parts[4] == "init" and method == "POST":
+            return _init_asset_content_replace(event, asset_id)
+        if parts[4] == "complete" and method == "POST":
+            return _complete_asset_content_replace(event, asset_id)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 4 and parts[3] == "share-link":
         if method == "GET":
@@ -260,6 +271,134 @@ def _delete_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
         repository.delete(asset)
         session.commit()
         return json_response(204, {}, event=event)
+
+
+def _validate_pending_s3_key_for_asset(*, asset_id: UUID, pending_key: str) -> None:
+    """Ensure pending upload key is under this asset's prefix (defense in depth)."""
+    if ".." in pending_key or pending_key.strip() != pending_key:
+        raise ValidationError("pending_s3_key is invalid", field="pending_s3_key")
+    expected_prefix = f"assets/{asset_id}/"
+    if not pending_key.startswith(expected_prefix):
+        raise ValidationError(
+            "pending_s3_key does not match this asset",
+            field="pending_s3_key",
+        )
+
+
+def _init_asset_content_replace(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+) -> dict[str, Any]:
+    payload = parse_init_asset_content_replace_payload(event)
+    identity = extract_identity(event)
+    request_id = _request_id(event)
+
+    with Session(get_engine()) as session:
+        set_audit_context(
+            session, user_id=identity.user_sub or "", request_id=request_id
+        )
+        repository = AssetRepository(session)
+        asset = repository.get_with_asset_tags(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+        if asset_links_expense_attachment(asset):
+            raise ValidationError(
+                "File replacement is not allowed for expense-linked assets",
+                field="asset",
+            )
+
+        pending_key = build_s3_key(asset_id, payload["file_name"])
+        upload = generate_upload_url(
+            s3_key=pending_key, content_type=payload["content_type"]
+        )
+        return json_response(
+            200,
+            {
+                "pending_s3_key": pending_key,
+                **upload,
+            },
+            event=event,
+        )
+
+
+def _complete_asset_content_replace(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+) -> dict[str, Any]:
+    payload = parse_complete_asset_content_replace_payload(event)
+    _validate_pending_s3_key_for_asset(
+        asset_id=asset_id, pending_key=payload["pending_s3_key"]
+    )
+    identity = extract_identity(event)
+    request_id = _request_id(event)
+
+    try:
+        head_s3_object(s3_key=payload["pending_s3_key"])
+    except ClientError as exc:
+        error_code = str(exc.response.get("Error", {}).get("Code", ""))
+        http_status = int(
+            exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
+        )
+        if http_status == 404 or error_code in {"404", "NoSuchKey", "NotFound"}:
+            raise ValidationError(
+                "Uploaded object was not found; complete the presigned upload first",
+                field="pending_s3_key",
+            ) from exc
+        logger.exception(
+            "S3 head_object failed for asset content replace",
+            extra={"asset_id": str(asset_id), "error_code": error_code},
+        )
+        raise ValidationError(
+            "Could not verify the uploaded object",
+            field="pending_s3_key",
+        ) from exc
+
+    with Session(get_engine()) as session:
+        set_audit_context(
+            session, user_id=identity.user_sub or "", request_id=request_id
+        )
+        repository = AssetRepository(session)
+        asset = repository.get_with_asset_tags(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+        if asset_links_expense_attachment(asset):
+            raise ValidationError(
+                "File replacement is not allowed for expense-linked assets",
+                field="asset",
+            )
+
+        previous_key = asset.s3_key
+        if previous_key == payload["pending_s3_key"]:
+            raise ValidationError(
+                "pending_s3_key matches the current object; nothing to replace",
+                field="pending_s3_key",
+            )
+
+        repository.update_asset(
+            asset,
+            s3_key=payload["pending_s3_key"],
+            file_name=payload["file_name"],
+            content_type=payload["content_type"],
+        )
+        session.flush()
+        refreshed = repository.get_with_asset_tags(asset_id)
+        serialized = serialize_asset(refreshed or asset)
+        session.commit()
+
+        if previous_key and previous_key != payload["pending_s3_key"]:
+            try:
+                delete_s3_object(s3_key=previous_key)
+            except ClientError:
+                logger.exception(
+                    "Failed to delete previous S3 object after asset replace",
+                    extra={"asset_id": str(asset_id), "s3_key": previous_key},
+                )
+
+        return json_response(
+            200,
+            {"asset": serialized},
+            event=event,
+        )
 
 
 def _list_grants(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
