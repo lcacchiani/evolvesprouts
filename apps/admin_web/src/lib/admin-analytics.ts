@@ -20,13 +20,18 @@ interface AdminDataLayerEventPayload {
   [key: string]: unknown;
 }
 
+/** GTM may use a stub object with `push` before `dataLayer` becomes a real array. */
+type AdminWindowDataLayer =
+  | AdminDataLayerEventPayload[]
+  | { push: (item: AdminDataLayerEventPayload) => void };
+
 const DEFAULT_SECTION_ID = 'admin';
 const DEFAULT_CTA_LOCATION = 'n/a';
 const DEFAULT_LOCALE = 'en';
 
 declare global {
   interface Window {
-    dataLayer?: AdminDataLayerEventPayload[];
+    dataLayer?: AdminWindowDataLayer;
   }
 }
 
@@ -100,8 +105,8 @@ function pushAdminDataLayerPayload(
     layer.push(payload);
     return;
   }
-  if (layer && typeof layer === 'object' && typeof layer.push === 'function') {
-    (layer as { push: (item: AdminDataLayerEventPayload) => void }).push(payload);
+  if (layer && typeof layer.push === 'function') {
+    layer.push(payload);
     return;
   }
   try {
