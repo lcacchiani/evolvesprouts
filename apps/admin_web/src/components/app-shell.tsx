@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { NAVBAR_LOCAL_DATETIME_OPTIONS } from '@/lib/format';
 
@@ -12,12 +13,12 @@ import { Button } from './ui/button';
 export interface AppShellNavItem {
   key: string;
   label: string;
+  href: string;
 }
 
 export interface AppShellProps {
   navItems: AppShellNavItem[];
   activeKey: string;
-  onSelect: (key: string) => void;
   onLogout: () => void;
   userEmail?: string;
   lastAuthTime?: string;
@@ -53,7 +54,6 @@ function formatTimestamp(value?: string): string | null {
 export function AppShell({
   navItems,
   activeKey,
-  onSelect,
   onLogout,
   userEmail,
   lastAuthTime,
@@ -137,21 +137,21 @@ export function AppShell({
             {navItems.map((item) => {
               const isActive = item.key === activeKey;
               return (
-                <button
+                <Link
                   key={item.key}
-                  type='button'
+                  href={item.href}
                   onClick={() => {
-                    onSelect(item.key);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
                     isActive
                       ? 'bg-slate-900 text-white'
                       : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   {item.label}
-                </button>
+                </Link>
               );
             })}
           </nav>
