@@ -9,9 +9,12 @@ import { formatEnumLabel } from '@/lib/format';
 import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES } from '@/types/services';
 import type { ServiceDeliveryMode, ServiceStatus } from '@/types/services';
 
+const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export interface ServiceFormState {
   title: string;
   description: string;
+  slug: string;
   deliveryMode: ServiceDeliveryMode;
   status: ServiceStatus;
 }
@@ -45,6 +48,26 @@ export function ServiceFormFields({ value, onChange, hideTitle = false }: Servic
           rows={3}
           placeholder='Optional description'
         />
+      </div>
+      <div>
+        <Label htmlFor='service-slug'>Referral slug</Label>
+        <Input
+          id='service-slug'
+          value={value.slug}
+          onChange={(event) => onChange({ ...value, slug: event.target.value })}
+          onBlur={() => onChange({ ...value, slug: value.slug.trim().toLowerCase() })}
+          placeholder='e.g. my-best-auntie'
+          autoComplete='off'
+        />
+        <p className='mt-1 text-xs text-slate-500'>
+          Used in referral URLs. Lowercase letters, numbers, and hyphens.
+        </p>
+        {value.slug.trim() && !SLUG_PATTERN.test(value.slug.trim()) ? (
+          <p className='mt-1 text-xs text-red-600'>
+            Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+            hyphen).
+          </p>
+        ) : null}
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

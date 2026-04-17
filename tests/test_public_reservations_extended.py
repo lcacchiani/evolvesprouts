@@ -150,35 +150,29 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         max_uses = None
         current_uses = 0
 
-    class _FakeRepo:
+    class _FakeDiscountRepo:
         def __init__(self, _session: object) -> None:
             pass
 
         def get_by_code(self, _code: str) -> object:
             return _FakeRow()
 
-    class _FakeSession:
-        pass
+    class _FakeServiceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
 
-    class _FakeSessionCM:
-        def __enter__(self) -> _FakeSession:
-            return _FakeSession()
-
-        def __exit__(self, *_a: object) -> bool:
-            return False
+        def get_by_slug(self, slug: str) -> object | None:
+            if slug.strip().lower() == "my-best-auntie":
+                return type("S", (), {"id": other})()
+            return None
 
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
-        _FakeRepo,
+        _FakeDiscountRepo,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.Session",
-        lambda _e: _FakeSessionCM(),
-    )
-    monkeypatch.setattr("app.api.public_reservations.get_engine", lambda: object())
-    monkeypatch.setenv(
-        "PUBLIC_SERVICE_KEY_MAP_JSON",
-        __import__("json").dumps({"my-best-auntie": str(other)}),
+        "app.api.public_reservations.ServiceRepository",
+        _FakeServiceRepo,
     )
 
     payload = {
@@ -187,7 +181,7 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         "course_slug": "my-best-auntie",
     }
     with pytest.raises(ValidationError):
-        _validate_discount_code_redemption_scope(payload)
+        _validate_discount_code_redemption_scope(object(), payload)
 
 
 def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
@@ -206,33 +200,29 @@ def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
         max_uses = None
         current_uses = 0
 
-    class _FakeRepo:
+    class _FakeDiscountRepo:
         def __init__(self, _session: object) -> None:
             pass
 
         def get_by_code(self, _code: str) -> object:
             return _FakeRow()
 
-    class _FakeSession:
-        pass
+    class _FakeServiceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
 
-    class _FakeSessionCM:
-        def __enter__(self) -> _FakeSession:
-            return _FakeSession()
-
-        def __exit__(self, *_a: object) -> bool:
-            return False
+        def get_by_slug(self, slug: str) -> object | None:
+            return None
 
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
-        _FakeRepo,
+        _FakeDiscountRepo,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.Session",
-        lambda _e: _FakeSessionCM(),
+        "app.api.public_reservations.ServiceRepository",
+        _FakeServiceRepo,
     )
-    monkeypatch.setattr("app.api.public_reservations.get_engine", lambda: object())
 
     payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
     with pytest.raises(ValidationError):
-        _validate_discount_code_redemption_scope(payload)
+        _validate_discount_code_redemption_scope(object(), payload)

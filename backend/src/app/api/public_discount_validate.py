@@ -16,9 +16,8 @@ from app.currency_config import currency_symbol_for_iso_code
 from app.db.engine import get_engine
 from app.db.models import DiscountCode
 from app.db.models.enums import DiscountType
-from app.db.repositories import DiscountCodeRepository
+from app.db.repositories import DiscountCodeRepository, ServiceRepository
 from app.exceptions import ValidationError
-from app.services.public_service_key_map import resolve_service_id_for_public_key
 from app.utils import json_response
 from app.utils.logging import get_logger, mask_pii
 
@@ -60,17 +59,12 @@ def handle_public_discount_validate(
         service_id_body = parse_optional_uuid(body.get("service_id"), "service_id")
     except ValidationError as exc:
         return json_response(400, exc.to_dict(), event=event)
-    resolved_service_id = resolve_service_id_for_public_key(
-        service_key,
-        service_id_override=service_id_body,
-    )
-    if (service_key and service_key.strip()) or service_id_body is not None:
-        if resolved_service_id is None:
-            return json_response(
-                404,
-                {"error": "Discount code not found or inactive"},
-                event=event,
-            )
+    try:
+        service_instance_id_body = parse_optional_uuid(
+            body.get("service_instance_id"), "service_instance_id"
+        )
+    except ValidationError as exc:
+        return json_response(400, exc.to_dict(), event=event)
 
     logger.info(
         "Validating discount code",
@@ -78,6 +72,19 @@ def handle_public_discount_validate(
     )
 
     with Session(get_engine()) as session:
+        resolved_service_id: UUID | None = None
+        if service_key and service_key.strip():
+            svc = ServiceRepository(session).get_by_slug(service_key)
+            if svc is None:
+                return json_response(
+                    404,
+                    {"error": "Discount code not found or inactive"},
+                    event=event,
+                )
+            resolved_service_id = svc.id
+        elif service_id_body is not None:
+            resolved_service_id = service_id_body
+
         repository = DiscountCodeRepository(session)
         row = repository.get_by_code(code)
         if row is None or not _is_usable_now(row):
@@ -90,6 +97,7 @@ def handle_public_discount_validate(
         if not _discount_scope_allows_validate(
             row,
             resolved_request_service_id=resolved_service_id,
+            request_instance_id=service_instance_id_body,
         ):
             return json_response(
                 404,
@@ -114,12 +122,15 @@ def _discount_scope_allows_validate(
     row: DiscountCode,
     *,
     resolved_request_service_id: UUID | None,
+    request_instance_id: UUID | None,
 ) -> bool:
-    """Return False when the code cannot be validated without instance context."""
+    """Return False when scope does not match the request context."""
     instance_id = getattr(row, "instance_id", None)
     service_id = getattr(row, "service_id", None)
     if instance_id is not None:
-        return False
+        if request_instance_id is None:
+            return False
+        return request_instance_id == instance_id
     if service_id is None:
         return True
     if resolved_request_service_id is None:

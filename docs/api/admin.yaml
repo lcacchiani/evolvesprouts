@@ -16,6 +16,7 @@ info:
     - `GET|POST /v1/admin/services`
     - `GET /v1/admin/services/instances`
     - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}`
+    - `GET /v1/admin/services/{id}/discount-code-usage-summary`
     - `POST /v1/admin/services/{id}/cover-image`
     - `GET|POST /v1/admin/services/{id}/instances`
     - `GET|PUT|DELETE /v1/admin/services/{id}/instances/{instanceId}`
@@ -993,6 +994,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Referral slug conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/services/instances:
     get:
@@ -1048,6 +1055,31 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/services/{id}/discount-code-usage-summary:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    get:
+      summary: Discount code usage summary for a service
+      description: >
+        Returns aggregate `current_uses` across discount codes scoped to this service
+        (`service_id` set) and how many such codes exist. Used by the admin UI before
+        changing a service referral slug.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Usage summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountCodeUsageSummaryResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/admin/services/{id}:
     parameters:
       - $ref: "#/components/parameters/ServiceId"
@@ -1091,6 +1123,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Referral slug conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       summary: Partially update service
       security:
@@ -1114,6 +1152,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Referral slug conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       summary: Delete service
       security:
@@ -3062,6 +3106,18 @@ components:
         calendly_url:
           type: string
           nullable: true
+    DiscountCodeUsageSummaryResponse:
+      type: object
+      required:
+        - total_current_uses
+        - referencing_code_count
+      properties:
+        total_current_uses:
+          type: integer
+          minimum: 0
+        referencing_code_count:
+          type: integer
+          minimum: 0
     ServiceSummary:
       type: object
       required:
@@ -3078,6 +3134,14 @@ components:
           $ref: "#/components/schemas/ServiceType"
         title:
           type: string
+        slug:
+          type: string
+          nullable: true
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`).
+            Uniqueness is enforced case-insensitively in Aurora.
         description:
           type: string
           nullable: true
@@ -3153,6 +3217,12 @@ components:
           $ref: "#/components/schemas/ServiceType"
         title:
           type: string
+        slug:
+          type: string
+          nullable: true
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: Optional referral slug (lowercase letters, numbers, hyphens).
         description:
           type: string
           nullable: true
@@ -3188,6 +3258,11 @@ components:
       properties:
         title:
           type: string
+        slug:
+          type: string
+          nullable: true
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
         description:
           type: string
           nullable: true

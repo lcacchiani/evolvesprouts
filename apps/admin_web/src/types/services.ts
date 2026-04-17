@@ -65,6 +65,8 @@ export interface ServiceSummary {
   id: string;
   serviceType: ServiceType;
   title: string;
+  /** Lowercase referral slug from Aurora; null when unset. */
+  slug: string | null;
   description: string | null;
   coverImageS3Key: string | null;
   deliveryMode: ServiceDeliveryMode;

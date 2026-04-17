@@ -33,41 +33,20 @@ import type { DiscountCode, DiscountCodeFilters, DiscountType, ServiceSummary } 
 
 type ApiSchemas = components['schemas'];
 
-function parseReferralSlugMap(): Record<string, string> {
-  const raw = process.env.NEXT_PUBLIC_REFERRAL_SERVICE_SLUG_MAP_JSON?.trim() ?? '';
-  if (!raw) {
-    return {};
-  }
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      return {};
-    }
-    const out: Record<string, string> = {};
-    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (typeof key === 'string' && key.trim() && typeof value === 'string' && value.trim()) {
-        out[key.trim()] = value.trim();
-      }
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-function formatScopeSummary(
-  row: DiscountCode,
-  serviceTitleById: Map<string, string>,
-): string {
+function formatScopeSummary(row: DiscountCode, serviceById: Map<string, ServiceSummary>): string {
   if (!row.serviceId && !row.instanceId) {
     return 'All services';
   }
-  const title = row.serviceId ? serviceTitleById.get(row.serviceId) ?? 'Service' : 'Service';
+  const title = row.serviceId ? serviceById.get(row.serviceId)?.title ?? 'Service' : 'Service';
   if (row.instanceId) {
     const short = row.instanceId.replace(/-/g, '').slice(0, 8);
     return `${title} · instance ${short}`;
   }
   return title;
+}
+
+function serviceOptionLabel(svc: ServiceSummary): string {
+  return `${svc.title} · ${formatEnumLabel(svc.status)}`;
 }
 
 export interface DiscountCodesPanelProps {
@@ -78,8 +57,10 @@ export interface DiscountCodesPanelProps {
   isSaving: boolean;
   hasMore: boolean;
   error: string;
-  /** Published services for scope pickers; defaults to [] when omitted (e.g. tests). */
+  /** Services for scope pickers; defaults to [] when omitted (e.g. tests). */
   serviceOptions?: ServiceSummary[];
+  showArchivedServices?: boolean;
+  onShowArchivedChange?: (value: boolean) => void;
   onFilterChange: <TKey extends keyof DiscountCodeFilters>(
     key: TKey,
     value: DiscountCodeFilters[TKey]
@@ -102,6 +83,8 @@ export function DiscountCodesPanel({
   hasMore,
   error,
   serviceOptions = [],
+  showArchivedServices = false,
+  onShowArchivedChange,
   onFilterChange,
   onLoadMore,
   onCreate,
@@ -109,6 +92,7 @@ export function DiscountCodesPanel({
   onDelete,
 }: DiscountCodesPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [scopeConfirmProps, requestScopeConfirm] = useConfirmDialog();
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedCodeId, setSelectedCodeId] = useState<string | null>(null);
   const [code, setCode] = useState('');
@@ -125,15 +109,14 @@ export function DiscountCodesPanel({
   const [instanceId, setInstanceId] = useState('');
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
-  const referralSlugByServiceId = useMemo(() => parseReferralSlugMap(), []);
   const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions();
   const currencyOptions = getCurrencyOptions();
 
-  const serviceTitleById = useMemo(() => {
-    const map = new Map<string, string>();
+  const serviceById = useMemo(() => {
+    const map = new Map<string, ServiceSummary>();
     for (const svc of serviceOptions) {
-      map.set(svc.id, svc.title);
+      map.set(svc.id, svc);
     }
     return map;
   }, [serviceOptions]);
@@ -195,6 +178,23 @@ export function DiscountCodesPanel({
       }
       if (!selectedCode) {
         return;
+      }
+      const prevService = selectedCode.serviceId ?? null;
+      const prevInstance = selectedCode.instanceId ?? null;
+      const scopeChanged =
+        (serviceUuid ?? null) !== (prevService ?? null) ||
+        (instanceUuid ?? null) !== (prevInstance ?? null);
+      if (selectedCode.currentUses > 0 && scopeChanged) {
+        const ok = await requestScopeConfirm({
+          title: 'Change discount scope?',
+          description: `This code has been used ${selectedCode.currentUses} times. Changing scope won't retroactively affect past bookings, but future validations and redemptions will follow the new scope. Continue?`,
+          confirmLabel: 'Continue',
+          cancelLabel: 'Cancel',
+          variant: 'default',
+        });
+        if (!ok) {
+          return;
+        }
       }
       await onUpdate(selectedCode.id, {
         description: description.trim() || null,
@@ -263,7 +263,8 @@ export function DiscountCodesPanel({
     if (!entry.serviceId) {
       return false;
     }
-    return referralSlugByServiceId[entry.serviceId] === 'my-best-auntie';
+    const slug = serviceById.get(entry.serviceId)?.slug?.trim().toLowerCase() ?? '';
+    return slug === 'my-best-auntie';
   }
 
   return (
@@ -357,7 +358,7 @@ export function DiscountCodesPanel({
               <option value=''>All services</option>
               {serviceOptions.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.title}
+                  {serviceOptionLabel(svc)}
                 </option>
               ))}
             </Select>
@@ -474,6 +475,20 @@ export function DiscountCodesPanel({
                 placeholder='Code'
               />
             </div>
+            {onShowArchivedChange ? (
+              <div className='flex min-w-[140px] items-center gap-2 pt-6'>
+                <input
+                  id='discount-filter-archived'
+                  type='checkbox'
+                  className='h-4 w-4 rounded border-slate-300 text-slate-900'
+                  checked={showArchivedServices}
+                  onChange={(event) => onShowArchivedChange(event.target.checked)}
+                />
+                <Label htmlFor='discount-filter-archived' className='cursor-pointer font-normal'>
+                  Show archived
+                </Label>
+              </div>
+            ) : null}
           </div>
         }
       >
@@ -500,7 +515,7 @@ export function DiscountCodesPanel({
                 onClick={() => applyCodeSelection(row)}
               >
                 <td className='px-4 py-3'>{row.code}</td>
-                <td className='px-4 py-3 text-sm text-slate-700'>{formatScopeSummary(row, serviceTitleById)}</td>
+                <td className='px-4 py-3 text-sm text-slate-700'>{formatScopeSummary(row, serviceById)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
                 <td className='px-4 py-3'>
@@ -557,6 +572,7 @@ export function DiscountCodesPanel({
         </AdminDataTable>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...scopeConfirmProps} />
       <ReferralLinkQrDialog
         open={referralOpen}
         discountCode={referralCode}

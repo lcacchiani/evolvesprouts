@@ -47,9 +47,11 @@ class ValidationError(AppError):
     or constraint violations in user input.
     """
 
-    def __init__(self, message: str, field: str | None = None):
+    def __init__(
+        self, message: str, field: str | None = None, *, status_code: int = 400
+    ):
         detail = f"Field: {field}" if field else None
-        super().__init__(message, status_code=400, detail=detail)
+        super().__init__(message, status_code=status_code, detail=detail)
         self.field = field
 
 

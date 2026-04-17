@@ -51,6 +51,10 @@ Migration `0022_remove_crm_tickets` drops the CRM `tickets` table and PostgreSQL
 enums `ticket_type` and `ticket_status` (legacy manager access / place-suggestion
 workflow). Event service `event_ticket_tiers` and related fields are unchanged.
 
+Migration `0023_services_add_slug` adds nullable `services.slug` (varchar(80)) with
+unique partial index `services_slug_unique_idx` on `lower(slug)` where `slug` is not
+null (case-insensitive uniqueness for public referral URLs).
+
 ## Table: assets
 
 Purpose: Stores asset metadata for files in S3.
@@ -363,7 +367,7 @@ Indexes:
 ### `services` + type-detail tables
 
 - `services` stores reusable templates (title/description/cover image, type,
-  delivery mode, status).
+  delivery mode, status, optional `slug` for public referral URLs).
 - Type-specific one-to-one extension tables:
   - `training_course_details`
   - `event_details`

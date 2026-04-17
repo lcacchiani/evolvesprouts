@@ -10,6 +10,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     id: 'service-1',
     serviceType: 'training_course',
     title: 'Alpha service',
+    slug: null,
     description: null,
     coverImageS3Key: null,
     deliveryMode: 'online',

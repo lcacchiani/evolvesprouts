@@ -12,6 +12,7 @@ const SERVICE_FIXTURE: ServiceSummary = {
   id: 'service-1',
   serviceType: 'training_course',
   title: 'Service title',
+  slug: null,
   description: null,
   coverImageS3Key: null,
   deliveryMode: 'in_person',

@@ -6,14 +6,17 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
 import { getPublicSiteBaseUrl } from '@/lib/config';
 import { generateReferralQrPngDataUrl } from '@/lib/qr-code-image';
 import {
   buildMyBestAuntieReferralUrl,
+  MY_BEST_AUNTIE_REFERRAL_LOCALES,
+  type MyBestAuntieReferralLocale,
   type ReferralParamName,
 } from '@/lib/referral-links';
 
-const LOCALES = ['en', 'zh-CN', 'zh-HK'] as const;
+const REFERRAL_SLUG = 'my-best-auntie';
 
 export interface ReferralLinkQrDialogProps {
   open: boolean;
@@ -23,7 +26,7 @@ export interface ReferralLinkQrDialogProps {
 
 export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLinkQrDialogProps) {
   const headingId = useId();
-  const [locale, setLocale] = useState<(typeof LOCALES)[number]>('en');
+  const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [paramName, setParamName] = useState<ReferralParamName>('ref');
   const [previewDataUrl, setPreviewDataUrl] = useState('');
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
@@ -41,6 +44,12 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
       paramName,
     });
   }, [baseUrl, discountCode, locale, paramName]);
+
+  useEffect(() => {
+    if (open) {
+      trackAdminAnalyticsEvent('admin_referral_qr_opened', { service_slug: REFERRAL_SLUG });
+    }
+  }, [open]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +94,7 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
       return;
     }
     await navigator.clipboard.writeText(builtUrl);
+    trackAdminAnalyticsEvent('admin_referral_qr_copied', { service_slug: REFERRAL_SLUG });
   }
 
   async function downloadPng(size: number) {
@@ -104,11 +114,17 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
     anchor.download = `referral-${discountCode.trim().toUpperCase()}-${size}.png`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
+    trackAdminAnalyticsEvent('admin_referral_qr_downloaded', {
+      service_slug: REFERRAL_SLUG,
+      png_size_px: size,
+    });
   }
 
   const configError = !baseUrl.trim()
     ? 'Set NEXT_PUBLIC_PUBLIC_SITE_BASE_URL to generate referral links.'
     : '';
+
+  const previewAriaLabel = `QR code preview for referral link to ${REFERRAL_SLUG}`;
 
   return (
     <ConfirmDialog
@@ -118,6 +134,7 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
       cancelLabel='Close'
       confirmLabel='Close'
       hideConfirm
+      dialogRole='dialog'
       onCancel={onClose}
       onConfirm={onClose}
     >
@@ -129,10 +146,10 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
             <Select
               id='referral-locale'
               value={locale}
-              onChange={(event) => setLocale(event.target.value as (typeof LOCALES)[number])}
+              onChange={(event) => setLocale(event.target.value as MyBestAuntieReferralLocale)}
               disabled={Boolean(configError)}
             >
-              {LOCALES.map((entry) => (
+              {MY_BEST_AUNTIE_REFERRAL_LOCALES.map((entry) => (
                 <option key={entry} value={entry}>
                   {entry}
                 </option>
@@ -171,7 +188,10 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
         </div>
         <div className='space-y-2'>
           <Label>QR preview</Label>
-          <div className='flex justify-center rounded border border-slate-200 bg-white p-4'>
+          <div
+            className='flex justify-center rounded border border-slate-200 bg-white p-4'
+            aria-label={previewAriaLabel}
+          >
             {isRenderingPreview ? (
               <p className='text-sm text-slate-500'>Rendering…</p>
             ) : previewDataUrl ? (

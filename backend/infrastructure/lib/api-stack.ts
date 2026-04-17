@@ -929,12 +929,6 @@ export class ApiStack extends cdk.Stack {
           "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
-    const publicServiceKeyMapJson = new cdk.CfnParameter(this, "PublicServiceKeyMapJson", {
-      type: "String",
-      default: "",
-      description:
-        "JSON object mapping public website service_key slugs to Aurora services.id UUIDs for public discount validation (e.g. {\"my-best-auntie\":\"<uuid>\"}).",
-    });
     const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
       type: "String",
       description: "Admin website domain used for backend CORS allowlisting.",
@@ -2649,10 +2643,6 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
       publicWwwBusinessPhoneNumber.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_SERVICE_KEY_MAP_JSON",
-      publicServiceKeyMapJson.valueAsString
     );
 
     const calendar = v1.addResource("calendar");

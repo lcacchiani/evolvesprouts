@@ -117,6 +117,17 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
 
+    def discount_code_usage_summary_for_service(
+        self, service_id: UUID
+    ) -> tuple[int, int]:
+        """Return (sum of current_uses, count of codes) for codes scoped to service."""
+        statement = select(
+            func.coalesce(func.sum(DiscountCode.current_uses), 0),
+            func.count(DiscountCode.id),
+        ).where(DiscountCode.service_id == service_id)
+        row = self._session.execute(statement).one()
+        return int(row[0] or 0), int(row[1] or 0)
+
     def get_by_code(self, code: str) -> DiscountCode | None:
         """Return one code by case-insensitive key."""
         normalized = code.strip().lower()

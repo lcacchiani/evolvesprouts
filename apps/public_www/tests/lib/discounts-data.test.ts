@@ -91,11 +91,10 @@ describe('discounts-data', () => {
       throw new Error('Expected CRM API client configuration to be valid');
     }
 
-    const rule = await validateDiscountCode(
-      crmApiClient,
-      ' FEIER10 ',
-      new AbortController().signal,
-    );
+    const rule = await validateDiscountCode(crmApiClient, {
+      code: ' FEIER10 ',
+      signal: new AbortController().signal,
+    });
 
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://api.evolvesprouts.com/www/v1/discounts/validate',
@@ -121,7 +120,7 @@ describe('discounts-data', () => {
     });
   });
 
-  it('includes service_key in the POST body when supplied', async () => {
+  it('includes service_key and service_instance_id in the POST body when supplied', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -150,7 +149,11 @@ describe('discounts-data', () => {
       throw new Error('Expected CRM API client configuration to be valid');
     }
 
-    await validateDiscountCode(crmApiClient, 'SAVE', undefined, 'my-best-auntie');
+    await validateDiscountCode(crmApiClient, {
+      code: 'SAVE',
+      serviceKey: 'my-best-auntie',
+      serviceInstanceId: '11111111-1111-4111-8111-111111111111',
+    });
 
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://api.evolvesprouts.com/www/v1/discounts/validate',
@@ -159,6 +162,7 @@ describe('discounts-data', () => {
         body: JSON.stringify({
           code: 'SAVE',
           service_key: 'my-best-auntie',
+          service_instance_id: '11111111-1111-4111-8111-111111111111',
         }),
       }),
     );

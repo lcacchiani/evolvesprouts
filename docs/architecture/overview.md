@@ -37,6 +37,9 @@ Flutter Mobile / Next.js Admin
 
 ### Public website (Next.js static export)
 - Public marketing site in `apps/public_www`.
+- Referral links for scoped discounts use query parameters (`ref` / `discount`)
+  on locale-prefixed course URLs; the backend matches `service_key` to
+  `services.slug` in Aurora for validate/redeem scope checks.
 - Hosted on S3 + CloudFront in one stack with separate staging and
   production assets.
 - Deploys to staging first, then promotes immutable release artifacts to

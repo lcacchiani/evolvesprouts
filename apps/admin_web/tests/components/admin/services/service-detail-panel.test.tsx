@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServiceDetailPanel } from '@/components/admin/services/service-detail-panel';
+import * as servicesApi from '@/lib/services-api';
 import type { ServiceDetail } from '@/types/services';
 
 function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
@@ -9,6 +11,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     id: 'service-1',
     serviceType: 'training_course',
     title: 'Alpha service',
+    slug: null,
     description: 'Alpha description',
     coverImageS3Key: null,
     deliveryMode: 'online',
@@ -31,6 +34,17 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 }
 
 describe('ServiceDetailPanel', () => {
+  beforeEach(() => {
+    vi.spyOn(servicesApi, 'getServiceDiscountCodeUsageSummary').mockResolvedValue({
+      totalCurrentUses: 0,
+      referencingCodeCount: 0,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('initializes form values from service props per mount', () => {
     const onUpdate = vi.fn();
     const onCreate = vi.fn();

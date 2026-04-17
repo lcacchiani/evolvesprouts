@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
+import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { SERVICE_TYPES } from '@/types/services';
@@ -26,6 +29,8 @@ import { ServiceFormFields, type ServiceFormState } from './service-form-fields'
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 type ApiSchemas = components['schemas'];
+
+const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
@@ -47,12 +52,14 @@ export function ServiceDetailPanel({
   onUploadCover,
 }: ServiceDetailPanelProps) {
   const isEditMode = Boolean(service);
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [serviceType, setServiceType] = useState<ServiceType>(service?.serviceType ?? 'training_course');
   const [serviceForm, setServiceForm] = useState<ServiceFormState>(
     service
       ? {
           title: service.title,
           description: service.description ?? '',
+          slug: service.slug ?? '',
           deliveryMode: service.deliveryMode,
           status: service.status,
         }
@@ -90,6 +97,78 @@ export function ServiceDetailPanel({
       : DEFAULT_CONSULTATION_FORM
   );
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
+  const [discountUsageTotal, setDiscountUsageTotal] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!service?.id) {
+        setDiscountUsageTotal(0);
+        return;
+      }
+      setDiscountUsageTotal(0);
+      void getServiceDiscountCodeUsageSummary(service.id).then((summary) => {
+        if (!cancelled && summary) {
+          setDiscountUsageTotal(summary.totalCurrentUses);
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [service?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) {
+        return;
+      }
+      if (!service) {
+        setServiceType('training_course');
+        setServiceForm(DEFAULT_SERVICE_FORM);
+        setTrainingForm(DEFAULT_TRAINING_FORM);
+        setEventForm(DEFAULT_EVENT_FORM);
+        setConsultationForm(DEFAULT_CONSULTATION_FORM);
+        return;
+      }
+      setServiceType(service.serviceType);
+      setServiceForm({
+        title: service.title,
+        description: service.description ?? '',
+        slug: service.slug ?? '',
+        deliveryMode: service.deliveryMode,
+        status: service.status,
+      });
+      setTrainingForm({
+        pricingUnit: service.trainingDetails?.pricingUnit ?? 'per_person',
+        defaultPrice: service.trainingDetails?.defaultPrice ?? '',
+        defaultCurrency: service.trainingDetails?.defaultCurrency ?? 'HKD',
+      });
+      setEventForm({
+        eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+      });
+      setConsultationForm({
+        consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
+        maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
+        durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '60',
+        pricingModel: service.consultationDetails?.pricingModel ?? 'free',
+        defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
+        defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
+        defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
+        defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
+        calendlyUrl: service.consultationDetails?.calendlyUrl ?? '',
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [service]);
+
+  const slugPayloadValue = useMemo(() => {
+    const t = serviceForm.slug.trim().toLowerCase();
+    return t.length ? t : null;
+  }, [serviceForm.slug]);
 
   const buildTypeSpecificPayload = (
     currentServiceType: ServiceType
@@ -132,114 +211,147 @@ export function ServiceDetailPanel({
     };
   };
 
+  async function submitUpdate() {
+    if (!service) {
+      return;
+    }
+    const slugTrimmed = serviceForm.slug.trim();
+    if (slugTrimmed && !SLUG_PATTERN.test(slugTrimmed.toLowerCase())) {
+      return;
+    }
+    const newSlug = slugTrimmed.toLowerCase() || null;
+    const oldSlug = (service.slug ?? '').trim().toLowerCase() || null;
+    if (newSlug !== oldSlug && discountUsageTotal > 0) {
+      const confirmed = await requestConfirm({
+        title: 'Change referral slug?',
+        description: `This service has active discount code usage (${discountUsageTotal} past redemptions). Changing the slug will break any existing printed QR codes and links. Continue?`,
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+        variant: 'default',
+      });
+      if (!confirmed) {
+        return;
+      }
+    }
+    await onUpdate({
+      title: serviceForm.title.trim(),
+      description: serviceForm.description.trim() || null,
+      slug: newSlug,
+      delivery_mode: serviceForm.deliveryMode,
+      status: serviceForm.status,
+      ...buildTypeSpecificPayload(service.serviceType),
+    });
+  }
+
   return (
-    <AdminEditorCard
-      title='Service'
-      description='Add or update a service using the same fields below.'
-      actions={
-        <>
-          {isEditMode ? (
-            <>
-              <Button type='button' variant='secondary' onClick={onCancelSelection} disabled={isLoading}>
-                Cancel
-              </Button>
+    <>
+      <AdminEditorCard
+        title='Service'
+        description='Add or update a service using the same fields below.'
+        actions={
+          <>
+            {isEditMode ? (
+              <>
+                <Button type='button' variant='secondary' onClick={onCancelSelection} disabled={isLoading}>
+                  Cancel
+                </Button>
+                <Button
+                  type='button'
+                  disabled={
+                    isLoading ||
+                    !service ||
+                    Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
+                  }
+                  onClick={() => void submitUpdate()}
+                >
+                  {isLoading ? 'Updating...' : 'Update service'}
+                </Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  disabled={isLoading || !coverFileName.trim() || !service}
+                  onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
+                >
+                  Generate cover upload URL
+                </Button>
+              </>
+            ) : (
               <Button
                 type='button'
-                disabled={isLoading || !service}
-                onClick={() => {
-                  if (!service) {
-                    return;
-                  }
-                  void onUpdate({
+                disabled={
+                  isLoading ||
+                  !serviceForm.title.trim() ||
+                  Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
+                }
+                onClick={() =>
+                  void onCreate({
+                    service_type: serviceType,
                     title: serviceForm.title.trim(),
                     description: serviceForm.description.trim() || null,
+                    slug: slugPayloadValue,
                     delivery_mode: serviceForm.deliveryMode,
                     status: serviceForm.status,
-                    ...buildTypeSpecificPayload(service.serviceType),
-                  });
-                }}
+                    ...buildTypeSpecificPayload(serviceType),
+                  })
+                }
               >
-                {isLoading ? 'Updating...' : 'Update service'}
+                {isLoading ? 'Adding...' : 'Add service'}
               </Button>
-              <Button
-                type='button'
-                variant='outline'
-                disabled={isLoading || !coverFileName.trim() || !service}
-                onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
-              >
-                Generate cover upload URL
-              </Button>
-            </>
-          ) : (
-            <Button
-              type='button'
-              disabled={isLoading || !serviceForm.title.trim()}
-              onClick={() =>
-                void onCreate({
-                  service_type: serviceType,
-                  title: serviceForm.title.trim(),
-                  description: serviceForm.description.trim() || null,
-                  delivery_mode: serviceForm.deliveryMode,
-                  status: serviceForm.status,
-                  ...buildTypeSpecificPayload(serviceType),
-                })
-              }
+            )}
+          </>
+        }
+      >
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <div>
+            <Label htmlFor='service-type'>Service type</Label>
+            <Select
+              id='service-type'
+              value={serviceType}
+              onChange={(event) => setServiceType(event.target.value as ServiceType)}
+              disabled={isEditMode}
             >
-              {isLoading ? 'Adding...' : 'Add service'}
-            </Button>
-          )}
-        </>
-      }
-    >
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-        <div>
-          <Label htmlFor='service-type'>Service type</Label>
-          <Select
-            id='service-type'
-            value={serviceType}
-            onChange={(event) => setServiceType(event.target.value as ServiceType)}
-            disabled={isEditMode}
-          >
-            {SERVICE_TYPES.map((entry) => (
-              <option key={entry} value={entry}>
-                {formatEnumLabel(entry)}
-              </option>
-            ))}
-          </Select>
+              {SERVICE_TYPES.map((entry) => (
+                <option key={entry} value={entry}>
+                  {formatEnumLabel(entry)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor='service-title'>Title</Label>
+            <Input
+              id='service-title'
+              value={serviceForm.title}
+              onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
+              placeholder='Service title'
+            />
+          </div>
         </div>
-        <div>
-          <Label htmlFor='service-title'>Title</Label>
-          <Input
-            id='service-title'
-            value={serviceForm.title}
-            onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
-            placeholder='Service title'
-          />
-        </div>
-      </div>
 
-      <ServiceFormFields value={serviceForm} onChange={setServiceForm} hideTitle />
+        <ServiceFormFields value={serviceForm} onChange={setServiceForm} hideTitle />
 
-      {serviceType === 'training_course' ? (
-        <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
-      ) : null}
-      {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
-      {serviceType === 'consultation' ? (
-        <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
-      ) : null}
+        {serviceType === 'training_course' ? (
+          <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
+        ) : null}
+        {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
+        {serviceType === 'consultation' ? (
+          <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
+        ) : null}
 
-      {isEditMode ? (
-        <div>
-          <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-          <Input
-            id='service-detail-cover-file-name'
-            value={coverFileName}
-            onChange={(event) => setCoverFileName(event.target.value)}
-          />
-        </div>
-      ) : null}
+        {isEditMode ? (
+          <div>
+            <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+            <Input
+              id='service-detail-cover-file-name'
+              value={coverFileName}
+              onChange={(event) => setCoverFileName(event.target.value)}
+            />
+          </div>
+        ) : null}
 
-      {error ? <AdminInlineError>{error}</AdminInlineError> : null}
-    </AdminEditorCard>
+        {error ? <AdminInlineError>{error}</AdminInlineError> : null}
+      </AdminEditorCard>
+      <ConfirmDialog {...confirmDialogProps} />
+    </>
   );
 }

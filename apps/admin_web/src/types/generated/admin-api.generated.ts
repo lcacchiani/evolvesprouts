@@ -1295,6 +1295,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Referral slug conflict. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1339,6 +1348,54 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["InstanceListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/discount-code-usage-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Discount code usage summary for a service
+         * @description Returns aggregate `current_uses` across discount codes scoped to this service (`service_id` set) and how many such codes exist. Used by the admin UI before changing a service referral slug.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Usage summary. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DiscountCodeUsageSummaryResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -1420,6 +1477,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Referral slug conflict. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         post?: never;
@@ -1479,6 +1545,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Referral slug conflict. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         trace?: never;
@@ -3655,11 +3730,17 @@ export interface components {
             default_currency?: string | null;
             calendly_url?: string | null;
         };
+        DiscountCodeUsageSummaryResponse: {
+            total_current_uses: number;
+            referencing_code_count: number;
+        };
         ServiceSummary: {
             /** Format: uuid */
             id: string;
             service_type: components["schemas"]["ServiceType"];
             title: string;
+            /** @description Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`). Uniqueness is enforced case-insensitively in Aurora. */
+            slug?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode: components["schemas"]["ServiceDeliveryMode"];
@@ -3691,6 +3772,8 @@ export interface components {
         CreateServiceRequest: {
             service_type: components["schemas"]["ServiceType"];
             title: string;
+            /** @description Optional referral slug (lowercase letters, numbers, hyphens). */
+            slug?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode: components["schemas"]["ServiceDeliveryMode"];
@@ -3704,6 +3787,7 @@ export interface components {
         UpdateServiceRequest: components["schemas"]["CreateServiceRequest"];
         PartialUpdateServiceRequest: {
             title?: string;
+            slug?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode?: components["schemas"]["ServiceDeliveryMode"];

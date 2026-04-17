@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+
 import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage } from '@/hooks/use-services-page';
@@ -15,6 +17,13 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
+  const [showArchivedDiscountServices, setShowArchivedDiscountServices] = useState(false);
+  const discountServiceOptions = useMemo(() => {
+    if (showArchivedDiscountServices) {
+      return state.serviceList.services;
+    }
+    return state.serviceList.services.filter((svc) => svc.status !== 'archived');
+  }, [showArchivedDiscountServices, state.serviceList.services]);
   const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
   const filteredInstances =
     state.activeView === 'instances' && normalizedInstanceSearch
@@ -229,7 +238,9 @@ export function ServicesPage() {
           isSaving={state.discountCodes.isSaving}
           hasMore={state.discountCodes.hasMore}
           error={state.discountCodes.error}
-          serviceOptions={state.serviceList.services.filter((svc) => svc.status === 'published')}
+          serviceOptions={discountServiceOptions}
+          showArchivedServices={showArchivedDiscountServices}
+          onShowArchivedChange={setShowArchivedDiscountServices}
           onFilterChange={state.discountCodes.setFilter}
           onLoadMore={state.discountCodes.loadMore}
           onCreate={state.discountCodes.createCode}

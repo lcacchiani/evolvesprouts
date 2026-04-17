@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from datetime import datetime
 from typing import Any
@@ -47,7 +48,31 @@ from app.utils.logging import get_logger
 _LIST_DEFAULT_LIMIT = 50
 _LIST_MAX_LIMIT = 100
 _MAX_CODE_LENGTH = 50
+_SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_MAX_SERVICE_SLUG_LENGTH = 80
 logger = get_logger(__name__)
+
+
+def parse_optional_service_slug(value: Any, field: str) -> str | None:
+    """Parse optional referral slug: strip, lower, validate pattern; empty -> None."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(f"{field} must be a string", field=field)
+    trimmed = value.strip().lower()
+    if not trimmed:
+        return None
+    if len(trimmed) > _MAX_SERVICE_SLUG_LENGTH:
+        raise ValidationError(
+            f"{field} must be at most {_MAX_SERVICE_SLUG_LENGTH} characters",
+            field=field,
+        )
+    if not _SERVICE_SLUG_PATTERN.fullmatch(trimmed):
+        raise ValidationError(
+            f"{field} must use lowercase letters, numbers, and single hyphens between segments",
+            field=field,
+        )
+    return trimmed
 
 
 def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -174,6 +199,7 @@ def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "service_type": service_type,
         "title": parse_required_text(body.get("title"), "title", max_length=255),
+        "slug": parse_optional_service_slug(body.get("slug"), "slug"),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -207,6 +233,8 @@ def parse_update_service_payload(
         payload["title"] = parse_required_text(
             body.get("title"), "title", max_length=255
         )
+    if has_field(body, "slug"):
+        payload["slug"] = parse_optional_service_slug(body.get("slug"), "slug")
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH

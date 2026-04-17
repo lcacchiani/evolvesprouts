@@ -26,7 +26,7 @@ from app.api.public_form_hooks import (
     send_booking_confirmation_email,
 )
 from app.db.engine import get_engine
-from app.db.repositories import DiscountCodeRepository
+from app.db.repositories import DiscountCodeRepository, ServiceRepository
 from app.db.models.enums import (
     ContactSource,
     ContactType,
@@ -39,10 +39,6 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
-from app.services.public_service_key_map import (
-    load_public_service_key_map,
-    resolve_service_id_for_public_key,
-)
 from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
     send_sales_form_recap_email,
@@ -115,11 +111,6 @@ def _handle_public_reservation(
         return json_response(exc.status_code, exc.to_dict(), event=event)
 
     try:
-        _validate_discount_code_redemption_scope(reservation_payload)
-    except ValidationError as exc:
-        return json_response(exc.status_code, exc.to_dict(), event=event)
-
-    try:
         _validate_payment_confirmation(event, reservation_payload)
     except ValidationError as exc:
         return json_response(
@@ -130,6 +121,7 @@ def _handle_public_reservation(
 
     try:
         with Session(get_engine()) as session:
+            _validate_discount_code_redemption_scope(session, reservation_payload)
             contact_repo = ContactRepository(session)
             lead_repo = SalesLeadRepository(session)
             contact, _created = contact_repo.upsert_by_email(
@@ -161,6 +153,8 @@ def _handle_public_reservation(
                 metadata=lead_metadata,
             )
             session.commit()
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
     except Exception:
         logger.exception("Reservation Aurora persistence failed")
         return json_response(
@@ -473,61 +467,68 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _validate_discount_code_redemption_scope(payload: Mapping[str, Any]) -> None:
+def _resolve_service_id_for_discount_scope(
+    session: Session, payload: Mapping[str, Any]
+) -> UUID | None:
+    service_repo = ServiceRepository(session)
+    service_key = payload.get("service_key")
+    course_slug = payload.get("course_slug")
+    service_key_str = (
+        str(service_key).strip() if service_key not in (None, "") else None
+    )
+    if service_key_str:
+        svc = service_repo.get_by_slug(service_key_str)
+        return svc.id if svc is not None else None
+    slug = str(course_slug).strip().lower() if course_slug not in (None, "") else ""
+    if slug:
+        svc = service_repo.get_by_slug(slug)
+        return svc.id if svc is not None else None
+    return None
+
+
+def _validate_discount_code_redemption_scope(
+    session: Session, payload: Mapping[str, Any]
+) -> None:
     """Ensure discount code scope matches the reservation context."""
     code = payload.get("discount_code")
     if not code:
         return
 
-    with Session(get_engine()) as session:
-        repository = DiscountCodeRepository(session)
-        row = repository.get_by_code(str(code))
-        if row is None or not discount_code_is_usable_now(row):
-            raise ValidationError("Invalid discount code", field="discountCode")
+    repository = DiscountCodeRepository(session)
+    row = repository.get_by_code(str(code))
+    if row is None or not discount_code_is_usable_now(row):
+        raise ValidationError("Invalid discount code", field="discountCode")
 
-        if row.instance_id is not None:
-            raw_instance = payload.get("service_instance_id")
-            if not raw_instance:
-                raise ValidationError(
-                    "serviceInstanceId is required for this discount code",
-                    field="serviceInstanceId",
-                )
-            try:
-                request_instance_id = UUID(str(raw_instance).strip())
-            except ValueError as exc:
-                raise ValidationError(
-                    "serviceInstanceId must be a UUID",
-                    field="serviceInstanceId",
-                ) from exc
-            if request_instance_id != row.instance_id:
-                raise ValidationError(
-                    "Discount code is not valid for this booking",
-                    field="discountCode",
-                )
-            return
-
-        if row.service_id is None:
-            return
-
-        service_key = payload.get("service_key")
-        course_slug = payload.get("course_slug")
-        service_key_str = (
-            str(service_key).strip() if service_key not in (None, "") else None
-        )
-        resolved = resolve_service_id_for_public_key(
-            service_key_str,
-            service_id_override=None,
-        )
-        if resolved is None and course_slug:
-            slug = str(course_slug).strip().lower()
-            if slug:
-                mapping = load_public_service_key_map()
-                resolved = mapping.get(slug)
-        if resolved is None or resolved != row.service_id:
+    if row.instance_id is not None:
+        raw_instance = payload.get("service_instance_id")
+        if not raw_instance:
+            raise ValidationError(
+                "serviceInstanceId is required for this discount code",
+                field="serviceInstanceId",
+            )
+        try:
+            request_instance_id = UUID(str(raw_instance).strip())
+        except ValueError as exc:
+            raise ValidationError(
+                "serviceInstanceId must be a UUID",
+                field="serviceInstanceId",
+            ) from exc
+        if request_instance_id != row.instance_id:
             raise ValidationError(
                 "Discount code is not valid for this booking",
                 field="discountCode",
             )
+        return
+
+    if row.service_id is None:
+        return
+
+    resolved = _resolve_service_id_for_discount_scope(session, payload)
+    if resolved is None or resolved != row.service_id:
+        raise ValidationError(
+            "Discount code is not valid for this booking",
+            field="discountCode",
+        )
 
 
 def _stripe_payment_intent_id_from_body(body: Mapping[str, Any]) -> str | None:

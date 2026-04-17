@@ -83,6 +83,8 @@ interface BookingReservationFormProps {
   eventTitle: string;
   /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
   serviceKey?: string;
+  /** Optional cohort identifier for Stripe metadata (e.g. MBA cohort id). */
+  cohortId?: string;
   /** Stable slug when serviceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;
   eventSubtitle?: string;
@@ -109,7 +111,7 @@ interface BookingReservationFormProps {
   /** When set, included in discount validate API as `service_key` (public slug). */
   discountValidationServiceKey?: string;
   /** Optional Aurora instance UUID for instance-scoped discount redemption. */
-  serviceInstanceUuid?: string | null;
+  serviceInstanceId?: string | null;
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
@@ -426,6 +428,7 @@ export function BookingReservationForm({
   content,
   eventTitle,
   serviceKey,
+  cohortId = '',
   courseSlug,
   eventSubtitle = '',
   courseSessions,
@@ -447,7 +450,7 @@ export function BookingReservationForm({
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   discountValidationServiceKey,
-  serviceInstanceUuid,
+  serviceInstanceId,
   prefilledDiscountCode = '',
   referralAppliedNote = '',
   referralAppliedAnnouncement = '',
@@ -559,11 +562,16 @@ export function BookingReservationForm({
   const normalizedCohortDate =
     (normalizedStartDateTime.split('T')[0] ?? '') ||
     sanitizeSingleLineValue(selectedCohortDateLabel);
+  const paymentIntentServiceKey =
+    sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
+    sanitizeSingleLineValue(courseSlug ?? '');
   const stripePaymentIntentRequestKey = [
     sanitizeSingleLineValue(selectedAgeGroupLabel),
     normalizedCohortDate,
     String(totalAmount),
     discountRule?.code ?? '',
+    paymentIntentServiceKey,
+    sanitizeSingleLineValue(cohortId ?? ''),
   ].join('|');
   const stripeElementsOptions = useMemo<StripeElementsOptions | null>(() => {
     if (!stripePaymentIntent) {
@@ -653,7 +661,8 @@ export function BookingReservationForm({
         cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
         discount_code: discountRule?.code || undefined,
-        service_key: sanitizeSingleLineValue(serviceKey ?? '') || undefined,
+        service_key: paymentIntentServiceKey || undefined,
+        cohort_id: sanitizeSingleLineValue(cohortId) || undefined,
         price: totalAmount,
       },
       turnstileToken: captchaToken,
@@ -692,7 +701,9 @@ export function BookingReservationForm({
     clearSubmissionError,
     content.submitErrorMessage,
     discountRule?.code,
-    serviceKey,
+    cohortId,
+    courseSlug,
+    discountValidationServiceKey,
     captchaToken,
     paymentMethodFlags.stripeCards,
     isStripePaymentMethodSelected,
@@ -776,12 +787,12 @@ export function BookingReservationForm({
         setDiscountError('');
       }
       try {
-        const validatedRule = await validateDiscountCode(
-          crmApiClient,
-          normalizedCode,
-          undefined,
-          scopeKey || undefined,
-        );
+        const instanceForValidate = sanitizeSingleLineValue(serviceInstanceId ?? '');
+        const validatedRule = await validateDiscountCode(crmApiClient, {
+          code: normalizedCode,
+          serviceKey: scopeKey || undefined,
+          serviceInstanceId: instanceForValidate || undefined,
+        });
         if (!validatedRule) {
           if (options.autoApply) {
             trackAnalyticsEvent('booking_discount_autoapply_error', {
@@ -872,6 +883,7 @@ export function BookingReservationForm({
       courseSlug,
       discountRule,
       discountValidationServiceKey,
+      serviceInstanceId,
       originalAmount,
       referralAppliedAnnouncement,
     ],
@@ -1171,7 +1183,7 @@ export function BookingReservationForm({
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
-        const instanceUuid = sanitizeSingleLineValue(serviceInstanceUuid ?? '');
+        const instanceUuid = sanitizeSingleLineValue(serviceInstanceId ?? '');
         return {
           ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
           ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),

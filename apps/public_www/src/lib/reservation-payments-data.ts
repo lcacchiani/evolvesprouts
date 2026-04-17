@@ -7,6 +7,7 @@ export interface ReservationPaymentIntentPayload {
   cohort_date: string;
   discount_code?: string;
   service_key?: string;
+  cohort_id?: string;
   price: number;
 }
 

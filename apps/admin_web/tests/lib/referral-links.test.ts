@@ -42,4 +42,15 @@ describe('buildMyBestAuntieReferralUrl', () => {
     expect(url).toContain('ref=');
     expect(url).not.toContain(' ');
   });
+
+  it('returns empty string for unknown locale', () => {
+    expect(
+      buildMyBestAuntieReferralUrl({
+        baseUrl: 'https://www.example.com',
+        locale: 'fr',
+        code: 'SAVE',
+        paramName: 'ref',
+      }),
+    ).toBe('');
+  });
 });

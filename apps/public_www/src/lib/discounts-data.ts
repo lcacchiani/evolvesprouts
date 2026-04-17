@@ -124,13 +124,18 @@ export function buildDiscountValidationApiUrl(crmApiBaseUrl: string): string {
   return buildCrmApiUrl(crmApiBaseUrl, DISCOUNT_VALIDATE_API_PATH);
 }
 
+export interface ValidateDiscountCodeOptions {
+  code: string;
+  serviceKey?: string;
+  serviceInstanceId?: string;
+  signal?: AbortSignal;
+}
+
 export async function validateDiscountCode(
   crmApiClient: CrmApiClient,
-  code: string,
-  signal?: AbortSignal,
-  serviceKey?: string,
+  options: ValidateDiscountCodeOptions,
 ): Promise<DiscountRule | null> {
-  const normalizedCode = readRequiredText(code);
+  const normalizedCode = readRequiredText(options.code);
   if (!normalizedCode) {
     return null;
   }
@@ -138,16 +143,20 @@ export async function validateDiscountCode(
   const body: Record<string, string> = {
     code: normalizedCode,
   };
-  const scopedKey = readRequiredText(serviceKey ?? '');
+  const scopedKey = readRequiredText(options.serviceKey ?? '');
   if (scopedKey) {
     body.service_key = scopedKey;
+  }
+  const instanceId = readRequiredText(options.serviceInstanceId ?? '');
+  if (instanceId) {
+    body.service_instance_id = instanceId;
   }
 
   const payload = await crmApiClient.request({
     endpointPath: DISCOUNT_VALIDATE_API_PATH,
     method: 'POST',
     body,
-    signal,
+    signal: options.signal,
     expectedSuccessStatuses: [200, 202],
   });
 

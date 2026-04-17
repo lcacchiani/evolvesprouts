@@ -38,7 +38,6 @@ export async function generateReferralQrPngDataUrl(
 
   await new Promise<void>((resolve, reject) => {
     const image = new Image();
-    image.crossOrigin = 'anonymous';
     image.onload = () => {
       try {
         ctx.drawImage(image, centerX, centerY, logoSize, logoSize);

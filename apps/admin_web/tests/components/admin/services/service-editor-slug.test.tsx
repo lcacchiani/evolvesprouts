@@ -1,0 +1,113 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ServiceDetailPanel } from '@/components/admin/services/service-detail-panel';
+import * as servicesApi from '@/lib/services-api';
+import type { ServiceDetail } from '@/types/services';
+
+function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
+  return {
+    id: 'service-1',
+    serviceType: 'training_course',
+    title: 'Alpha service',
+    slug: 'old-slug',
+    description: null,
+    coverImageS3Key: null,
+    deliveryMode: 'online',
+    status: 'draft',
+    createdBy: 'admin',
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-02T00:00:00Z',
+    tagIds: [],
+    assetIds: [],
+    instancesCount: 0,
+    trainingDetails: {
+      pricingUnit: 'per_person',
+      defaultPrice: null,
+      defaultCurrency: null,
+    },
+    eventDetails: null,
+    consultationDetails: null,
+    ...overrides,
+  };
+}
+
+describe('ServiceDetailPanel referral slug', () => {
+  beforeEach(() => {
+    vi.spyOn(servicesApi, 'getServiceDiscountCodeUsageSummary').mockResolvedValue({
+      totalCurrentUses: 0,
+      referencingCodeCount: 0,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('lowercases slug on blur and blocks invalid patterns', () => {
+
+    render(
+      <ServiceDetailPanel
+        service={buildService()}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    const slugInput = screen.getByLabelText('Referral slug');
+    fireEvent.change(slugInput, { target: { value: 'My-Slug' } });
+    fireEvent.blur(slugInput);
+
+    expect(slugInput).toHaveValue('my-slug');
+
+    fireEvent.change(slugInput, { target: { value: 'Bad_' } });
+    fireEvent.blur(slugInput);
+
+    expect(screen.getByText(/Use lowercase letters and numbers/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
+  });
+
+  it('confirms slug change when discount usage exists', async () => {
+    const user = userEvent.setup();
+    vi.mocked(servicesApi.getServiceDiscountCodeUsageSummary).mockResolvedValue({
+      totalCurrentUses: 2,
+      referencingCodeCount: 1,
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ServiceDetailPanel
+        service={buildService()}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(servicesApi.getServiceDiscountCodeUsageSummary).toHaveBeenCalledWith('service-1');
+    });
+
+    const slugInput = screen.getByLabelText('Referral slug');
+    fireEvent.change(slugInput, { target: { value: 'new-slug' } });
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+
+    expect(
+      await screen.findByText(/Changing the slug will break any existing printed QR codes/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    await vi.waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+    });
+    expect(onUpdate.mock.calls[0][0]).toMatchObject({ slug: 'new-slug' });
+  });
+});

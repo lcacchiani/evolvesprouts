@@ -71,6 +71,7 @@ class Service(Base):
         nullable=False,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str | None] = mapped_column(String(80), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     cover_image_s3_key: Mapped[str | None] = mapped_column(String(), nullable=True)
     delivery_mode: Mapped[ServiceDeliveryMode] = mapped_column(

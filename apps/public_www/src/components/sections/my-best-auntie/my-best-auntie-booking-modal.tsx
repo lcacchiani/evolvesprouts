@@ -174,9 +174,10 @@ export function MyBestAuntieBookingModal({
               content={paymentModalContent}
               eventTitle={modalContent.title}
               serviceKey={selectedCohort?.id ?? ''}
+              cohortId={selectedCohort?.id ?? ''}
               courseSlug='my-best-auntie'
               discountValidationServiceKey='my-best-auntie'
-              serviceInstanceUuid={selectedCohort?.service_instance_uuid ?? null}
+              serviceInstanceId={selectedCohort?.service_instance_id ?? null}
               prefilledDiscountCode={prefilledDiscountCode}
               referralAppliedNote={referralAppliedNote}
               referralAppliedAnnouncement={referralAppliedAnnouncement}

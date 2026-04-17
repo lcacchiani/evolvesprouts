@@ -20,6 +20,8 @@ export interface ConfirmDialogProps {
   confirmDisabled?: boolean;
   /** When true, only the cancel/secondary control is shown (use for preview dialogs). */
   hideConfirm?: boolean;
+  /** ARIA role for the modal surface; use `dialog` for informational previews. */
+  dialogRole?: 'dialog' | 'alertdialog';
 }
 
 export function ConfirmDialog({
@@ -34,6 +36,7 @@ export function ConfirmDialog({
   children,
   confirmDisabled = false,
   hideConfirm = false,
+  dialogRole = 'alertdialog',
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -100,7 +103,7 @@ export function ConfirmDialog({
     >
       <div
         ref={dialogRef}
-        role='alertdialog'
+        role={dialogRole}
         aria-modal='true'
         aria-labelledby='confirm-dialog-title'
         aria-describedby='confirm-dialog-description'

@@ -48,7 +48,8 @@ their primary responsibilities.
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
   and `GET /v1/assets/free`,
   plus public website proxy routes including
-  `/www/v1/discounts/validate` (native Aurora-backed discount validation),
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
+  `service_key` is resolved case-insensitively against `services.slug` in Aurora),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
@@ -69,9 +70,6 @@ their primary responsibilities.
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
   secret when marketing hooks run on public form routes
 - Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
-  `PUBLIC_SERVICE_KEY_MAP_JSON` (optional JSON map of public `service_key` slugs to Aurora
-  `services.id` UUIDs; used by `POST /v1/discounts/validate` and reservation discount
-  redemption scope checks when the public site sends `service_key` / `course_slug`),
   `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
   `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
   align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are

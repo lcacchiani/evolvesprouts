@@ -46,6 +46,7 @@ type ApiCreateLocationRequest = ApiSchemas['CreateLocationRequest'];
 type ApiUpdateLocationRequest = ApiSchemas['UpdateLocationRequest'];
 type ApiGeocodeLocationRequest = ApiSchemas['GeocodeLocationRequest'];
 type ApiGeocodeLocationResponse = ApiSchemas['GeocodeLocationResponse'];
+type ApiDiscountCodeUsageSummaryResponse = ApiSchemas['DiscountCodeUsageSummaryResponse'];
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};
@@ -108,6 +109,7 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     id: asNullableString(item.id) ?? '',
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
     title: asNullableString(item.title) ?? '',
+    slug: asNullableString(item.slug),
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     deliveryMode: (asNullableString(item.delivery_mode) ?? 'online') as ServiceSummary['deliveryMode'],
@@ -430,6 +432,32 @@ export async function listServices(
     nextCursor: asNullableString(root.next_cursor),
     totalCount: asNumber(root.total_count, 0),
   };
+}
+
+export interface ServiceDiscountCodeUsageSummary {
+  totalCurrentUses: number;
+  referencingCodeCount: number;
+}
+
+function parseDiscountCodeUsageSummary(value: unknown): ServiceDiscountCodeUsageSummary | null {
+  const item = isRecord(value) ? value : {};
+  return {
+    totalCurrentUses: asNumber(item.total_current_uses, 0),
+    referencingCodeCount: asNumber(item.referencing_code_count, 0),
+  };
+}
+
+export async function getServiceDiscountCodeUsageSummary(
+  serviceId: string,
+  signal?: AbortSignal,
+): Promise<ServiceDiscountCodeUsageSummary | null> {
+  const payload = await adminApiRequest<ApiDiscountCodeUsageSummaryResponse>({
+    endpointPath: `/v1/admin/services/${serviceId}/discount-code-usage-summary`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return parseDiscountCodeUsageSummary(root);
 }
 
 export async function getService(id: string, signal?: AbortSignal): Promise<ServiceDetail | null> {
