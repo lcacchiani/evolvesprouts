@@ -431,7 +431,14 @@ def _is_services_slug_unique_violation(exc: IntegrityError) -> bool:
     if constraint == "services_slug_unique_idx":
         return True
     message = str(exc).lower()
-    return "services_slug_unique_idx" in message
+    # Prefer diag.constraint_name (above). Some drivers omit it; keep a narrow
+    # substring fallback so unrelated unique violations (e.g. instance slug) do
+    # not map to a services.slug 409.
+    if "services_slug_unique_idx" not in message:
+        return False
+    if "svc_instances_slug" in message:
+        return False
+    return True
 
 
 def _apply_service_type_details(*, service: Service, details: Any) -> None:
