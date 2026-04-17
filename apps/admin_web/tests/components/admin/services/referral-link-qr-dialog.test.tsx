@@ -41,7 +41,9 @@ describe('ReferralLinkQrDialog', () => {
 
     await vi.waitFor(() => {
       expect(
-        screen.getByText('https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10'),
+        screen.getByRole('link', {
+          name: 'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
+        }),
       ).toBeInTheDocument();
     });
 
@@ -72,6 +74,10 @@ describe('ReferralLinkQrDialog', () => {
       expect(generateSpy).toHaveBeenCalled();
     });
 
+    expect(generateSpy.mock.calls[0]?.[0]).toMatchObject({
+      logoSrc: expect.stringMatching(/\/evolvesprouts-logo\.svg$/),
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Download PNG (512)' }));
 
     await vi.waitFor(() => {
@@ -80,6 +86,27 @@ describe('ReferralLinkQrDialog', () => {
 
     createObjectUrlSpy.mockRestore();
     revokeSpy.mockRestore();
+  });
+
+  it('omits logo from QR generation when include-logo is unchecked', async () => {
+    render(
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} />,
+    );
+
+    await vi.waitFor(() => {
+      expect(generateSpy).toHaveBeenCalled();
+    });
+
+    generateSpy.mockClear();
+    fireEvent.click(screen.getByRole('checkbox', { name: /include logo in qr code/i }));
+
+    await vi.waitFor(() => {
+      expect(generateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          logoSrc: '',
+        }),
+      );
+    });
   });
 
   it('labels inner content for screen readers', async () => {

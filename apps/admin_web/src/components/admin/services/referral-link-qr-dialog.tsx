@@ -12,6 +12,8 @@ import { generateReferralQrPngDataUrl } from '@/lib/qr-code-image';
 import {
   buildPublicReferralUrlWithSlug,
   MY_BEST_AUNTIE_REFERRAL_LOCALES,
+  REFERRAL_LOCALE_DISPLAY_LABELS,
+  REFERRAL_PARAM_DISPLAY_LABELS,
   type MyBestAuntieReferralLocale,
   type ReferralParamName,
 } from '@/lib/referral-links';
@@ -32,6 +34,7 @@ export function ReferralLinkQrDialog({
 }: ReferralLinkQrDialogProps) {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [paramName, setParamName] = useState<ReferralParamName>('ref');
+  const [includeLogoInQr, setIncludeLogoInQr] = useState(true);
   const [previewDataUrl, setPreviewDataUrl] = useState('');
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [renderError, setRenderError] = useState('');
@@ -69,10 +72,11 @@ export function ReferralLinkQrDialog({
       }
       setIsRenderingPreview(true);
       setRenderError('');
+      const logoSrc = includeLogoInQr ? `${window.location.origin}/evolvesprouts-logo.svg` : '';
       void generateReferralQrPngDataUrl({
         url: builtUrl,
         size: 220,
-        logoSrc: `${typeof window !== 'undefined' ? window.location.origin : ''}/evolvesprouts-logo.svg`,
+        logoSrc,
       })
         .then((dataUrl) => {
           if (!cancelled) {
@@ -94,16 +98,17 @@ export function ReferralLinkQrDialog({
     return () => {
       cancelled = true;
     };
-  }, [builtUrl, open]);
+  }, [builtUrl, includeLogoInQr, open]);
 
   async function downloadPng(size: number) {
     if (!builtUrl) {
       return;
     }
+    const logoSrc = includeLogoInQr ? `${window.location.origin}/evolvesprouts-logo.svg` : '';
     const dataUrl = await generateReferralQrPngDataUrl({
       url: builtUrl,
       size,
-      logoSrc: `${window.location.origin}/evolvesprouts-logo.svg`,
+      logoSrc,
     });
     const response = await fetch(dataUrl);
     const blob = await response.blob();
@@ -154,7 +159,7 @@ export function ReferralLinkQrDialog({
             >
               {MY_BEST_AUNTIE_REFERRAL_LOCALES.map((entry) => (
                 <option key={entry} value={entry}>
-                  {entry}
+                  {REFERRAL_LOCALE_DISPLAY_LABELS[entry]}
                 </option>
               ))}
             </Select>
@@ -167,16 +172,47 @@ export function ReferralLinkQrDialog({
               onChange={(event) => setParamName(event.target.value as ReferralParamName)}
               disabled={Boolean(configError)}
             >
-              <option value='ref'>ref</option>
-              <option value='discount'>discount</option>
+              {(['ref', 'discount'] as const satisfies readonly ReferralParamName[]).map((name) => (
+                <option key={name} value={name}>
+                  {REFERRAL_PARAM_DISPLAY_LABELS[name]}
+                </option>
+              ))}
             </Select>
           </div>
         </div>
+        <div className='flex items-center gap-2'>
+          <input
+            id='referral-qr-include-logo'
+            type='checkbox'
+            className='h-4 w-4 rounded border-slate-300 text-slate-900'
+            checked={includeLogoInQr}
+            onChange={(event) => setIncludeLogoInQr(event.target.checked)}
+            disabled={Boolean(configError)}
+          />
+          <Label htmlFor='referral-qr-include-logo' className='cursor-pointer font-normal'>
+            Include logo in QR code
+          </Label>
+        </div>
         <div className='space-y-2'>
-          <Label>Preview URL</Label>
-          <code className='block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800'>
-            {builtUrl || '—'}
-          </code>
+          <Label htmlFor='referral-preview-url'>Preview URL</Label>
+          {builtUrl ? (
+            <a
+              id='referral-preview-url'
+              href={builtUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 hover:text-slate-950'
+            >
+              {builtUrl}
+            </a>
+          ) : (
+            <p
+              id='referral-preview-url'
+              className='block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-500'
+            >
+              —
+            </p>
+          )}
         </div>
         <div className='space-y-2'>
           <Label>QR preview</Label>

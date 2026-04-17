@@ -3,11 +3,12 @@ import QRCode from 'qrcode';
 export interface GenerateReferralQrPngDataUrlInput {
   url: string;
   size: number;
-  logoSrc: string;
+  /** When omitted or empty, the QR is generated without a centered logo. */
+  logoSrc?: string;
 }
 
 /**
- * Draw a QR code with centered logo overlay (error correction H).
+ * Draw a QR code, optionally with a centered logo overlay (error correction H).
  * Returns a PNG data URL suitable for download.
  */
 export async function generateReferralQrPngDataUrl(
@@ -22,6 +23,11 @@ export async function generateReferralQrPngDataUrl(
     margin: 2,
     width: input.size,
   });
+
+  const logoSrc = input.logoSrc?.trim() ?? '';
+  if (!logoSrc) {
+    return canvas.toDataURL('image/png');
+  }
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
@@ -51,7 +57,7 @@ export async function generateReferralQrPngDataUrl(
     image.onerror = () => {
       reject(new Error('Failed to load logo image'));
     };
-    image.src = input.logoSrc;
+    image.src = logoSrc;
   });
 
   return canvas.toDataURL('image/png');
