@@ -4,7 +4,6 @@ type AnalyticsPrimitive = string | number | boolean;
 
 export type AdminAnalyticsEventName =
   | 'admin_referral_qr_opened'
-  | 'admin_referral_qr_copied'
   | 'admin_referral_qr_downloaded'
   | 'admin_instance_uuid_copied';
 
