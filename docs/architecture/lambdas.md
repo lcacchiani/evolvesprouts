@@ -49,8 +49,10 @@ their primary responsibilities.
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
-  filters), `/v1/admin/discount-codes/*` (`POST` returns `409` with `field: code` when
-  the code collides with the case-insensitive unique index),
+  filters and `GET /v1/admin/services/{id}/discount-code-usage-summary` for
+  aggregate discount usage before service slug changes), `/v1/admin/discount-codes/*`
+  (`POST` returns `409` with `field: code` when the code collides with the
+  case-insensitive unique index),
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
