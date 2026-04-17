@@ -29,16 +29,21 @@ describe('ReferralLinkQrDialog', () => {
     });
 
     vi.stubEnv('NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID', 'GTM-TEST');
-    const dataLayerArray: Record<string, unknown>[] = [];
-    const pushSpy = vi.spyOn(dataLayerArray, 'push');
+    const pushSpy = vi.fn();
+    const dataLayerStub: { push: typeof pushSpy } = { push: pushSpy };
     Object.defineProperty(window, 'dataLayer', {
       configurable: true,
       writable: true,
-      value: dataLayerArray,
+      value: dataLayerStub,
     });
 
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='SAVE10'
+        serviceSlug='my-best-auntie-training-course'
+      />,
     );
 
     await vi.waitFor(() => {
@@ -51,7 +56,7 @@ describe('ReferralLinkQrDialog', () => {
       expect.objectContaining({
         event: 'admin_referral_qr_opened',
         app_surface: 'admin',
-        service_slug: 'my-best-auntie',
+        service_slug: 'my-best-auntie-training-course',
       }),
     );
 
@@ -63,7 +68,7 @@ describe('ReferralLinkQrDialog', () => {
       expect(pushSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           event: 'admin_referral_qr_copied',
-          service_slug: 'my-best-auntie',
+          service_slug: 'my-best-auntie-training-course',
         }),
       );
     });
@@ -84,7 +89,7 @@ describe('ReferralLinkQrDialog', () => {
     }) as typeof fetch;
 
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} />,
     );
 
     await vi.waitFor(() => {
@@ -103,7 +108,7 @@ describe('ReferralLinkQrDialog', () => {
 
   it('labels inner content for screen readers', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' serviceSlug={null} />,
     );
     await vi.waitFor(() => {
       expect(

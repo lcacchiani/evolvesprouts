@@ -242,9 +242,6 @@ export function ServicesPage() {
           serviceOptions={pickerServiceOptions}
           serviceDirectoryForDisplay={allServiceOptionsIncludingArchived}
           instanceOptionsRefreshKey={state.instanceOptionsCacheVersion}
-          onInstanceOptionsInvalidate={() =>
-            state.setInstanceOptionsCacheVersion((v) => v + 1)
-          }
           showArchivedServices={showArchivedDiscountServices}
           onShowArchivedChange={setShowArchivedDiscountServices}
           onFilterChange={state.discountCodes.setFilter}

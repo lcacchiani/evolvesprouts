@@ -10,7 +10,6 @@ vi.mock('@/hooks/use-service-instance-options', () => ({
     isLoading: false,
     error: '',
     loadForService: vi.fn(),
-    invalidate: vi.fn(),
   }),
 }));
 
@@ -72,7 +71,7 @@ describe('DiscountCodesPanel', () => {
     expect(payload.instance_id).toBeNull();
   });
 
-  it('shows referral QR action when the scoped service slug is my-best-auntie', () => {
+  it('shows referral QR action for every discount row', () => {
     const row = {
       id: 'dc-1',
       code: 'SAVE10',
@@ -85,7 +84,7 @@ describe('DiscountCodesPanel', () => {
       maxUses: null,
       currentUses: 0,
       active: true,
-      serviceId: 'svc-1',
+      serviceId: null,
       instanceId: null,
       createdAt: null,
       updatedAt: null,
@@ -100,7 +99,7 @@ describe('DiscountCodesPanel', () => {
         isSaving={false}
         hasMore={false}
         error=''
-        serviceOptions={[{ ...baseService, slug: 'my-best-auntie' }]}
+        serviceOptions={[{ ...baseService }]}
         onFilterChange={vi.fn()}
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}

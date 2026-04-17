@@ -10,21 +10,26 @@ import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
 import { getPublicSiteBaseUrl } from '@/lib/config';
 import { generateReferralQrPngDataUrl } from '@/lib/qr-code-image';
 import {
-  buildMyBestAuntieReferralUrl,
+  buildPublicReferralUrlWithSlug,
   MY_BEST_AUNTIE_REFERRAL_LOCALES,
   type MyBestAuntieReferralLocale,
   type ReferralParamName,
 } from '@/lib/referral-links';
 
-const REFERRAL_SLUG = 'my-best-auntie';
-
 export interface ReferralLinkQrDialogProps {
   open: boolean;
   onClose: () => void;
   discountCode: string;
+  /** Public `services.slug` for deep link, or null for locale home. */
+  serviceSlug: string | null;
 }
 
-export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLinkQrDialogProps) {
+export function ReferralLinkQrDialog({
+  open,
+  onClose,
+  discountCode,
+  serviceSlug,
+}: ReferralLinkQrDialogProps) {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [paramName, setParamName] = useState<ReferralParamName>('ref');
   const [previewDataUrl, setPreviewDataUrl] = useState('');
@@ -36,19 +41,22 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
     if (!baseUrl) {
       return '';
     }
-    return buildMyBestAuntieReferralUrl({
+    return buildPublicReferralUrlWithSlug({
       baseUrl,
       locale,
+      serviceSlug,
       code: discountCode,
       paramName,
     });
-  }, [baseUrl, discountCode, locale, paramName]);
+  }, [baseUrl, discountCode, locale, paramName, serviceSlug]);
+
+  const analyticsSlugTag = serviceSlug?.trim().toLowerCase() || 'home';
 
   useEffect(() => {
     if (open) {
-      trackAdminAnalyticsEvent('admin_referral_qr_opened', { service_slug: REFERRAL_SLUG });
+      trackAdminAnalyticsEvent('admin_referral_qr_opened', { service_slug: analyticsSlugTag });
     }
-  }, [open]);
+  }, [analyticsSlugTag, open]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +101,7 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
       return;
     }
     await navigator.clipboard.writeText(builtUrl);
-    trackAdminAnalyticsEvent('admin_referral_qr_copied', { service_slug: REFERRAL_SLUG });
+    trackAdminAnalyticsEvent('admin_referral_qr_copied', { service_slug: analyticsSlugTag });
   }
 
   async function downloadPng(size: number) {
@@ -114,7 +122,7 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
     anchor.click();
     URL.revokeObjectURL(objectUrl);
     trackAdminAnalyticsEvent('admin_referral_qr_downloaded', {
-      service_slug: REFERRAL_SLUG,
+      service_slug: analyticsSlugTag,
       png_size_px: size,
     });
   }
@@ -123,13 +131,17 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
     ? 'Set NEXT_PUBLIC_PUBLIC_SITE_BASE_URL to generate referral links.'
     : '';
 
-  const previewAriaLabel = `QR code preview for referral link to ${REFERRAL_SLUG}`;
+  const previewAriaLabel = `QR code preview for referral link (${analyticsSlugTag})`;
+
+  const destinationHint = serviceSlug?.trim()
+    ? `Opens the public service page for “${serviceSlug.trim()}”.`
+    : 'Opens the public site home for the selected locale.';
 
   return (
     <ConfirmDialog
       open={open}
       title='Referral link and QR'
-      description='Share this link or QR for the My Best Auntie course page. Locale is included in the URL for consistent scanning.'
+      description={`Share this link or QR. ${destinationHint} Locale is included in the URL for consistent scanning.`}
       cancelLabel='Close'
       confirmLabel='Close'
       hideConfirm
