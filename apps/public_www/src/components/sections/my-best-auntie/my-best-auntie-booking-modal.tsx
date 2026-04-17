@@ -31,6 +31,7 @@ import type {
   MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   formatCohortValue,
@@ -44,7 +45,10 @@ interface MyBestAuntieBookingModalProps {
   locale?: Locale;
   modalContent: MyBestAuntieModalContent;
   paymentModalContent: BookingPaymentModalContent;
-  selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
+  selectedCohort:
+    | MyBestAuntieBookingContent['cohorts'][number]
+    | MyBestAuntieEventCohort
+    | null;
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
   prefilledDiscountCode?: string;
