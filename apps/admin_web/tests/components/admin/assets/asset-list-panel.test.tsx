@@ -90,6 +90,7 @@ describe('AssetListPanel', () => {
       assets: [createAdminAssetFixture({ ...FIXTURE_ASSET, contentLanguage: 'zh-HK' })],
     });
 
+    expect(screen.getByRole('option', { name: 'Client default' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Language' })).toBeInTheDocument();
     expect(screen.getByText('Cantonese (Hong Kong)')).toBeInTheDocument();
     expect(screen.getByText('Infant Nutrition Guide')).toBeInTheDocument();

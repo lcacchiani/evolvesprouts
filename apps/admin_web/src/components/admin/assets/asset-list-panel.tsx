@@ -153,7 +153,7 @@ export function AssetListPanel({
                     onTagNameChange(event.target.value === '' ? '' : event.target.value)
                   }
                 >
-                  <option value=''>All tags</option>
+                  <option value=''>Client default</option>
                   {tagFilterOptions.map((name) => (
                     <option key={name} value={name}>
                       {formatAssetTagDisplayName(name)}
