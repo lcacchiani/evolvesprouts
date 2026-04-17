@@ -13,8 +13,12 @@ marketing/
 │   ├── ga4-assessment.py          # GA4 Data API (traffic, funnel, events)
 │   ├── ga4-create-audiences.py    # GA4 Admin API (create remarketing audiences)
 │   └── requirements.txt           # Python dependencies
-└── reports/
-    └── ads-performance-assessment-YYYY-MM-DD.md
+├── reports/
+│   ├── ads-performance-assessment-YYYY-MM-DD.md   # narrative snapshots
+│   ├── ga4-manual-setup-steps.md                  # GA4 UI checklist
+│   ├── google-ads-manual-setup-steps.md           # Google Ads UI checklist
+│   └── meta-ads-manual-setup-steps.md             # Meta UI checklist
+└── generated-reports/              # git-ignored, raw script output (--out)
 ```
 
 ## Prerequisites
@@ -41,13 +45,67 @@ All scripts use Cursor Cloud Agent secrets (injected as env vars):
 
 ## Usage
 
-Run from the `marketing/scripts/` directory or provide the full path:
+Run from the `marketing/` directory:
 
 ```bash
 python3 scripts/google-ads-assessment.py
 python3 scripts/meta-ads-assessment.py
 python3 scripts/ga4-assessment.py
 ```
+
+### Capturing raw output (`--out`)
+
+Each assessment script accepts an optional `--out <path>` flag that tees
+stdout into a plaintext file. The recommended location is
+`marketing/generated-reports/` (git-ignored), dated to match the narrative
+markdown report you will author alongside it:
+
+```bash
+DATE=$(date -u +%F)
+python3 scripts/google-ads-assessment.py --out "generated-reports/$DATE-google-ads.txt"
+python3 scripts/meta-ads-assessment.py   --out "generated-reports/$DATE-meta-ads.txt"
+python3 scripts/ga4-assessment.py        --out "generated-reports/$DATE-ga4.txt"
+```
+
+## Weekly cadence
+
+Run the three assessments every **Monday morning (HKT)**:
+
+| Day | Focus |
+|---|---|
+| Mon | Pull data (`--out`). Author the week's narrative report under `reports/`. |
+| Tue | Ship **one** Google Ads change from `reports/google-ads-manual-setup-steps.md`. |
+| Wed | Ship **one** GA4 change from `reports/ga4-manual-setup-steps.md`. |
+| Thu | Ship **one** Meta change from `reports/meta-ads-manual-setup-steps.md`. |
+| Fri | Observe + screenshot impact; note it in next Monday's report. |
+
+## Unified UTM convention (mandatory for all paid / tagged links)
+
+All outbound paid or tagged links should follow a single convention so GA4
+traffic source reports and per-platform campaign reports stay aligned:
+
+```
+?utm_source={platform}
+ &utm_medium={channel}
+ &utm_campaign={campaign}
+ &utm_content={ad_or_asset}
+ &utm_term={keyword_or_audience}
+```
+
+Concrete values we use:
+
+| Field | Examples |
+|---|---|
+| `utm_source` | `google`, `meta`, `instagram`, `mailchimp`, `whatsapp` |
+| `utm_medium` | `cpc`, `paid_social`, `email`, `chat`, `bio`, `referral` |
+| `utm_campaign` | `my-best-auntie-search-hk`, `easter-workshop-2026`, `free-guide-apr-2026` |
+| `utm_content` | `rsa-helper-training`, `family-consultations`, `reel-easter-v1`, `carousel-guide-v1` |
+| `utm_term` | `helper-training-hong-kong`, `montessori-consultation`, `lookalike-1pct-hk` |
+
+Kebab-case only; no spaces, no URL-encoded commas. Google Ads auto-tagging
+(`gclid`) stays on; the UTM layer is additive and makes `sessionCampaignName`
+populated even for platforms Google Ads doesn't auto-tag (Meta, Mailchimp,
+WhatsApp, Instagram bio).
 
 ### GA4 audience creation (requires temporary Editor access)
 
