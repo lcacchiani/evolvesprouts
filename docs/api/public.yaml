@@ -295,6 +295,15 @@ paths:
         Validity window: when `valid_from` / `valid_until` are set on the code, validation
         succeeds only while the server UTC instant is **on or after** `valid_from` and
         **on or before** `valid_until` (both ends inclusive).
+
+        **Service scoping:** codes may be limited to a service and/or instance in Aurora.
+        Unscoped codes (no `service_id` / `instance_id`) validate like today. When the
+        code is scoped to a **service only**, the request must include a matching
+        `service_key` (matched case-insensitively against `services.slug`) or a matching
+        `service_id` UUID; if both are supplied, `service_key` wins. When the code is
+        scoped to an **instance**, the request must include `service_instance_id` equal
+        to the code's instance; otherwise this endpoint returns **404** (same generic
+        message as inactive codes).
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -327,6 +336,7 @@ paths:
       description: |
         Same as `POST /v1/discounts/validate` for same-origin calls from `public_www`.
         Validity window boundaries are inclusive on both `valid_from` and `valid_until` (UTC).
+        Service and instance scoping rules match the `/v1/discounts/validate` description.
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -922,6 +932,25 @@ components:
         code:
           type: string
           maxLength: 100
+        service_key:
+          type: string
+          maxLength: 120
+          description: >
+            Public slug for the booked offering (e.g. `my-best-auntie`). Matched
+            case-insensitively against `services.slug` in Aurora. When both `service_key`
+            and `service_id` are provided, `service_key` takes precedence.
+        service_id:
+          type: string
+          format: uuid
+          description: >
+            Alternative to `service_key`: explicit Aurora `services.id` for scope checks.
+            Ignored when `service_key` is present and non-empty.
+        service_instance_id:
+          type: string
+          format: uuid
+          description: >
+            Aurora `service_instances.id`. Required for validating instance-scoped discount
+            codes; must match the code's `instance_id`.
     DiscountRule:
       type: object
       additionalProperties: false
@@ -1183,6 +1212,12 @@ components:
         discountCode:
           type: string
           maxLength: 100
+        serviceInstanceId:
+          type: string
+          format: uuid
+          description: >
+            Aurora `service_instances.id` for the booked cohort/instance. Required when
+            redeeming an instance-scoped discount code; used only for redemption checks.
         marketingOptIn:
           type: boolean
           default: false
@@ -1252,6 +1287,18 @@ components:
         discount_code:
           type: string
           maxLength: 100
+        service_key:
+          type: string
+          maxLength: 100
+          description: >
+            Optional public service slug for Stripe `metadata.service_key` (e.g.
+            `my-best-auntie`); not used for discount scope validation on this endpoint.
+        cohort_id:
+          type: string
+          maxLength: 120
+          description: >
+            Optional cohort identifier for Stripe `metadata.cohort_id` (e.g. content
+            cohort key).
         price:
           type: number
           minimum: 0

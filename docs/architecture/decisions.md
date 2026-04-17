@@ -423,6 +423,16 @@ SNS media publishes in non-production environments (see `deployment.py` and CDK
 defaults this to `production`; override with **`CDK_DEPLOYMENT_STAGE=staging`**
 at synth time for explicit non-prod stacks.
 
+## Replace service-key env map with `services.slug`
+
+**Decision:** Store optional lowercase referral slugs on `services.slug` with a
+case-insensitive unique index, and resolve public `service_key` / booking
+`course_slug` values against Aurora instead of a Lambda JSON env map.
+
+**Why:** The database already owns service identity; slug is a first-class admin
+field and avoids deploy-time JSON drift. Public discount validate/redeem paths
+query `ServiceRepository.get_by_slug` in-session.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

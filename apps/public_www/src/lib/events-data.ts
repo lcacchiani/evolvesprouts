@@ -116,6 +116,8 @@ export interface MyBestAuntieEventCohort {
   location_name: string;
   location_address: string;
   location_url: string;
+  /** Aurora `service_instances.id` when present on the source record; otherwise null. */
+  service_instance_id: string | null;
   dates: MyBestAuntieEventCohortDate[];
 }
 
@@ -477,6 +479,8 @@ function buildMyBestAuntieBookingModalPayload(
   const locationUrl = sanitizeGoogleMapsHref(
     readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
   );
+  const serviceInstanceId =
+    readCandidateText(record, ['service_instance_id', 'service_instance_uuid']) ?? null;
   const dates = resolveBookingDateParts(record, '')
     .map((part) => {
       return {
@@ -507,6 +511,7 @@ function buildMyBestAuntieBookingModalPayload(
     location_name: locationName,
     location_address: locationAddress,
     location_url: locationUrl,
+    service_instance_id: serviceInstanceId,
     dates,
   };
 

@@ -26,6 +26,7 @@ describe('reservations-data', () => {
         agreedToTermsAndConditions: true,
         paymentMethod: 'stripe',
         stripePaymentIntentId: 'pi_test_123',
+        serviceKey: 'cohort-or-event-id',
       },
       turnstileToken: 'mock-turnstile-token',
     });
@@ -37,6 +38,7 @@ describe('reservations-data', () => {
         attendeeName: 'Test User',
         attendeeEmail: 'test@example.com',
         stripePaymentIntentId: 'pi_test_123',
+        serviceKey: 'cohort-or-event-id',
       }),
       turnstileToken: 'mock-turnstile-token',
       expectedSuccessStatuses: [200, 202],

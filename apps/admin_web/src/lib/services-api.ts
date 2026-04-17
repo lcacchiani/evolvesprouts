@@ -1,4 +1,4 @@
-import { adminApiRequest } from './api-admin-client';
+import { adminApiRequest, isAbortRequestError } from './api-admin-client';
 import { asBoolean, asNullableFiniteNumber, asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
@@ -46,6 +46,7 @@ type ApiCreateLocationRequest = ApiSchemas['CreateLocationRequest'];
 type ApiUpdateLocationRequest = ApiSchemas['UpdateLocationRequest'];
 type ApiGeocodeLocationRequest = ApiSchemas['GeocodeLocationRequest'];
 type ApiGeocodeLocationResponse = ApiSchemas['GeocodeLocationResponse'];
+type ApiDiscountCodeUsageSummaryResponse = ApiSchemas['DiscountCodeUsageSummaryResponse'];
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};
@@ -108,6 +109,7 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     id: asNullableString(item.id) ?? '',
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
     title: asNullableString(item.title) ?? '',
+    slug: asNullableString(item.slug),
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     deliveryMode: (asNullableString(item.delivery_mode) ?? 'online') as ServiceSummary['deliveryMode'],
@@ -432,6 +434,45 @@ export async function listServices(
   };
 }
 
+export interface ServiceDiscountCodeUsageSummary {
+  totalCurrentUses: number;
+  referencingCodeCount: number;
+}
+
+function parseDiscountCodeUsageSummary(value: unknown): ServiceDiscountCodeUsageSummary | null {
+  const item = isRecord(value) ? value : {};
+  return {
+    totalCurrentUses: asNumber(item.total_current_uses, 0),
+    referencingCodeCount: asNumber(item.referencing_code_count, 0),
+  };
+}
+
+export interface DiscountCodeUsageSummaryResult {
+  summary: ServiceDiscountCodeUsageSummary | null;
+  error: Error | null;
+}
+
+export async function getServiceDiscountCodeUsageSummary(
+  serviceId: string,
+  signal?: AbortSignal,
+): Promise<DiscountCodeUsageSummaryResult> {
+  try {
+    const payload = await adminApiRequest<ApiDiscountCodeUsageSummaryResponse>({
+      endpointPath: `/v1/admin/services/${serviceId}/discount-code-usage-summary`,
+      method: 'GET',
+      signal,
+    });
+    const root = unwrapPayload(payload);
+    return { summary: parseDiscountCodeUsageSummary(root), error: null };
+  } catch (caught) {
+    if (isAbortRequestError(caught)) {
+      throw caught;
+    }
+    const error = caught instanceof Error ? caught : new Error(String(caught));
+    return { summary: null, error };
+  }
+}
+
 export async function getService(id: string, signal?: AbortSignal): Promise<ServiceDetail | null> {
   const payload = await adminApiRequest<ApiServiceResponse>({
     endpointPath: `/v1/admin/services/${id}`,
@@ -702,6 +743,7 @@ export async function listDiscountCodes(
   if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
   if (params.active) query.set('active', params.active);
   if (params.search?.trim()) query.set('search', params.search.trim());
+  if (params.scope) query.set('scope', params.scope);
   const queryString = query.toString();
   const payload = await adminApiRequest<ApiDiscountCodeListResponse>({
     endpointPath: `/v1/admin/discount-codes${queryString ? `?${queryString}` : ''}`,

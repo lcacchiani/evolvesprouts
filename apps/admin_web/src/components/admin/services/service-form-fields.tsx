@@ -9,9 +9,12 @@ import { formatEnumLabel } from '@/lib/format';
 import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES } from '@/types/services';
 import type { ServiceDeliveryMode, ServiceStatus } from '@/types/services';
 
+const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export interface ServiceFormState {
   title: string;
   description: string;
+  slug: string;
   deliveryMode: ServiceDeliveryMode;
   status: ServiceStatus;
 }
@@ -20,9 +23,17 @@ export interface ServiceFormFieldsProps {
   value: ServiceFormState;
   onChange: (value: ServiceFormState) => void;
   hideTitle?: boolean;
+  slugUsageLoadError?: string;
+  slugConflictError?: string;
 }
 
-export function ServiceFormFields({ value, onChange, hideTitle = false }: ServiceFormFieldsProps) {
+export function ServiceFormFields({
+  value,
+  onChange,
+  hideTitle = false,
+  slugUsageLoadError,
+  slugConflictError,
+}: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
       {!hideTitle ? (
@@ -45,6 +56,28 @@ export function ServiceFormFields({ value, onChange, hideTitle = false }: Servic
           rows={3}
           placeholder='Optional description'
         />
+      </div>
+      <div>
+        <Label htmlFor='service-slug'>Referral slug</Label>
+        <Input
+          id='service-slug'
+          value={value.slug}
+          onChange={(event) => onChange({ ...value, slug: event.target.value })}
+          onBlur={() => onChange({ ...value, slug: value.slug.trim().toLowerCase() })}
+          placeholder='e.g. my-best-auntie'
+          autoComplete='off'
+        />
+        <p className='mt-1 text-xs text-slate-500'>
+          Used in referral URLs. Lowercase letters, numbers, and hyphens.
+        </p>
+        {value.slug.trim() && !SLUG_PATTERN.test(value.slug.trim()) ? (
+          <p className='mt-1 text-xs text-red-600'>
+            Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+            hyphen).
+          </p>
+        ) : null}
+        {slugUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{slugUsageLoadError}</p> : null}
+        {slugConflictError ? <p className='mt-1 text-xs text-red-600'>{slugConflictError}</p> : null}
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

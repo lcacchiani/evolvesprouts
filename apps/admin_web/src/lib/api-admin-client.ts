@@ -141,3 +141,16 @@ export async function adminApiRequest<TPayload = unknown>({
 export function isAbortRequestError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
 }
+
+/** When the admin API returns a structured validation body with `field`. */
+export function readAdminApiErrorField(error: unknown): string | null {
+  if (!(error instanceof AdminApiError)) {
+    return null;
+  }
+  const payload = error.payload;
+  if (!isRecord(payload)) {
+    return null;
+  }
+  const field = payload.field;
+  return typeof field === 'string' && field.trim() ? field.trim() : null;
+}

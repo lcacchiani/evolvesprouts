@@ -42,6 +42,7 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
         "service_type": service.service_type.value,
         "title": service.title,
         "description": service.description,
+        "slug": service.slug,
         "cover_image_s3_key": service.cover_image_s3_key,
         "delivery_mode": service.delivery_mode.value,
         "status": service.status.value,

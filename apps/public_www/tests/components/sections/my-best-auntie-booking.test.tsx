@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
@@ -111,6 +111,27 @@ function getBookingModalTitleForAgeGroup(ageGroupLabel: string): string {
 }
 
 describe('MyBestAuntieBooking section', () => {
+  it('does not auto-open the booking modal when only a referral query param is present', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/en/services/my-best-auntie-training-course?ref=SAVE10#my-best-auntie-booking',
+    );
+
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
   it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
     window.history.replaceState(
       {},

@@ -17,6 +17,14 @@ their primary responsibilities.
   cached dependency keys are pruned automatically by
   `backend/scripts/build_lambda_bundle.py`.
 
+### CDK deploy parameter hygiene
+
+- Discount validation and reservation flows resolve public `service_key` values from
+  `services.slug` in Aurora. The legacy `PUBLIC_SERVICE_KEY_MAP_JSON` Lambda environment
+  variable (and CDK `PublicServiceKeyMapJson` parameter) has been removed; production and
+  staging deploys must not pass it in pipeline parameter files or `cdk deploy --parameters`
+  invocations.
+
 ## API Gateway Lambdas
 
 ### Admin API
@@ -48,7 +56,8 @@ their primary responsibilities.
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
   and `GET /v1/assets/free`,
   plus public website proxy routes including
-  `/www/v1/discounts/validate` (native Aurora-backed discount validation),
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
+  `service_key` is resolved case-insensitively against `services.slug` in Aurora),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
