@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useExpenses } from '@/hooks/use-expenses';
+import { useQueryTabState } from '@/hooks/use-query-tab-state';
 import { useVendorSpendDefaultCurrency } from '@/hooks/use-vendor-spend-default-currency';
 import { useVendors } from '@/hooks/use-vendors';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
@@ -12,27 +13,38 @@ import type { Expense } from '@/types/expenses';
 
 import { ExpensesEditorPanel } from './expenses-editor-panel';
 import { ExpensesListPanel } from './expenses-list-panel';
-import { FinanceHeader, type FinanceView } from './finance-header';
+import {
+  DEFAULT_FINANCE_VIEW,
+  FINANCE_TAB_KEYS,
+  FinanceHeader,
+  type FinanceView,
+} from './finance-header';
 import { VendorsPanel } from './vendors-panel';
 
 export function FinancePage() {
-  const [activeView, setActiveView] = useState<FinanceView>('expenses');
+  const [activeView, setActiveView] = useQueryTabState<FinanceView>(
+    FINANCE_TAB_KEYS,
+    DEFAULT_FINANCE_VIEW
+  );
   const expenses = useExpenses();
   const vendors = useVendors();
   const [vendorSpendExpenses, setVendorSpendExpenses] = useState<Expense[] | null>(null);
   const [vendorSpendFetchError, setVendorSpendFetchError] = useState('');
   const vendorSpend = useVendorSpendDefaultCurrency(activeView === 'vendors' ? vendorSpendExpenses : null);
 
-  const setFinanceView = useCallback((view: FinanceView) => {
-    setActiveView(view);
-    if (view !== 'vendors') {
+  const setFinanceView = useCallback(
+    (view: FinanceView) => {
+      setActiveView(view);
+      if (view !== 'vendors') {
+        setVendorSpendExpenses(null);
+        setVendorSpendFetchError('');
+        return;
+      }
       setVendorSpendExpenses(null);
       setVendorSpendFetchError('');
-      return;
-    }
-    setVendorSpendExpenses(null);
-    setVendorSpendFetchError('');
-  }, []);
+    },
+    [setActiveView]
+  );
 
   useEffect(() => {
     if (activeView !== 'vendors') {

@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockUseExpenses, expensesState, mockUseVendors, vendorsState, mockListAllAdminExpenses } = vi.hoisted(() => {
   const state = {
@@ -74,6 +74,14 @@ vi.mock('@/lib/expenses-api', async () => {
 import { FinancePage } from '@/components/admin/finance/finance-page';
 
 describe('FinancePage', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/finance');
+  });
+
+  afterEach(() => {
+    window.history.replaceState(null, '', '/finance');
+  });
+
   it('renders finance tabs and switches to scaffold tab', async () => {
     const user = userEvent.setup();
     render(<FinancePage />);
@@ -86,9 +94,24 @@ describe('FinancePage', () => {
     await user.click(screen.getByRole('button', { name: 'Vendors' }));
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
     expect(mockListAllAdminExpenses).toHaveBeenCalled();
+    expect(window.location.search).toBe('?tab=vendors');
 
     await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
     expect(screen.getByRole('heading', { name: 'Client Invoices' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?tab=client-invoices');
+
+    await user.click(screen.getByRole('button', { name: 'Expenses' }));
+    expect(window.location.search).toBe('');
+  });
+
+  it('seeds the active tab from the URL query parameter on mount', async () => {
+    window.history.replaceState(null, '', '/finance?tab=client-invoices');
+    render(<FinancePage />);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Client Invoices' })
+      ).toBeInTheDocument();
+    });
   });
 
   it('renders expense editor before submitted expenses list', () => {

@@ -10,6 +10,12 @@ export const FINANCE_TAB_ITEMS: readonly AdminTabItem<FinanceView>[] = [
   { key: 'client-invoices', label: 'Client Invoices' },
 ] as const;
 
+export const FINANCE_TAB_KEYS: readonly FinanceView[] = FINANCE_TAB_ITEMS.map(
+  (item) => item.key
+);
+
+export const DEFAULT_FINANCE_VIEW: FinanceView = 'expenses';
+
 export interface FinanceHeaderProps {
   activeView: FinanceView;
   onSetView: (view: FinanceView) => void;
