@@ -6,17 +6,23 @@ from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import pytest
+from unittest.mock import MagicMock
 
 from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import (
     asset_links_expense_attachment,
+    file_name_from_pending_asset_content_key,
+    head_s3_object,
     paginate_response,
     parse_admin_asset_content_language,
     parse_admin_asset_list_filters,
+    parse_complete_asset_content_replace_payload,
     parse_create_asset_payload,
+    parse_init_asset_content_replace_payload,
     parse_optional_content_language,
     parse_partial_update_asset_payload,
     parse_update_asset_payload,
+    validate_pending_asset_content_s3_key,
 )
 from app.exceptions import ValidationError
 
@@ -282,3 +288,90 @@ def test_asset_links_expense_attachment_detects_tag() -> None:
 
     other = SimpleNamespace(asset_tags=[SimpleNamespace(tag=SimpleNamespace(name="client_document"))])
     assert asset_links_expense_attachment(other) is False
+
+
+def test_parse_init_asset_content_replace_payload_accepts_snake_and_camel() -> None:
+    event_snake = {
+        "body": json.dumps({"file_name": "a.pdf", "content_type": "application/pdf"}),
+        "isBase64Encoded": False,
+    }
+    assert parse_init_asset_content_replace_payload(event_snake) == {
+        "file_name": "a.pdf",
+        "content_type": "application/pdf",
+    }
+    event_camel = {
+        "body": json.dumps({"fileName": "b.pdf", "contentType": None}),
+        "isBase64Encoded": False,
+    }
+    assert parse_init_asset_content_replace_payload(event_camel) == {
+        "file_name": "b.pdf",
+        "content_type": None,
+    }
+
+
+def test_parse_init_asset_content_replace_payload_requires_file_name() -> None:
+    event = {"body": json.dumps({"content_type": "application/pdf"}), "isBase64Encoded": False}
+    with pytest.raises(ValidationError, match="file_name"):
+        parse_init_asset_content_replace_payload(event)
+
+
+def test_parse_complete_asset_content_replace_payload_accepts_camel_case_aliases() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "pendingS3Key": "assets/u1/k.pdf",
+                "fileName": "k.pdf",
+                "contentType": "application/pdf",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+    assert parse_complete_asset_content_replace_payload(event) == {
+        "pending_s3_key": "assets/u1/k.pdf",
+        "file_name": "k.pdf",
+        "content_type": "application/pdf",
+    }
+
+
+def test_parse_complete_asset_content_replace_payload_rejects_empty_pending_after_strip() -> None:
+    event = {
+        "body": json.dumps({"pending_s3_key": "   ", "file_name": "x.pdf"}),
+        "isBase64Encoded": False,
+    }
+    with pytest.raises(ValidationError, match="pending_s3_key"):
+        parse_complete_asset_content_replace_payload(event)
+
+
+def test_parse_complete_asset_content_replace_payload_requires_file_name() -> None:
+    event = {
+        "body": json.dumps({"pending_s3_key": "assets/u1/x.pdf"}),
+        "isBase64Encoded": False,
+    }
+    with pytest.raises(ValidationError, match="file_name"):
+        parse_complete_asset_content_replace_payload(event)
+
+
+def test_file_name_from_pending_asset_content_key_strips_uuid_prefix() -> None:
+    key = "assets/550e8400-e29b-41d4-a716-446655440000/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-my-file.pdf"
+    assert file_name_from_pending_asset_content_key(key) == "my-file.pdf"
+
+
+def test_validate_pending_asset_content_s3_key_rejects_wrong_prefix() -> None:
+    aid = uuid4()
+    with pytest.raises(ValidationError):
+        validate_pending_asset_content_s3_key(
+            asset_id=aid, pending_key=f"assets/{uuid4()}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-x.pdf"
+        )
+
+
+def test_head_s3_object_calls_s3_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.api.assets import assets_common
+
+    mock_client = MagicMock()
+    mock_client.head_object.return_value = {"ContentType": "application/pdf"}
+    monkeypatch.setattr(assets_common, "get_s3_client", lambda: mock_client)
+    monkeypatch.setattr(assets_common, "require_env", lambda _k: "bucket-1")
+
+    result = head_s3_object(s3_key="assets/a/b.pdf")
+    assert result["ContentType"] == "application/pdf"
+    mock_client.head_object.assert_called_once_with(Bucket="bucket-1", Key="assets/a/b.pdf")

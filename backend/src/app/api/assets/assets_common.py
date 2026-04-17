@@ -462,6 +462,27 @@ def build_s3_key(asset_id: UUID, file_name: str) -> str:
     return f"assets/{asset_id}/{uuid4()}-{sanitized}"
 
 
+def file_name_from_pending_asset_content_key(s3_key: str) -> str:
+    """Return the filename segment after the random UUID prefix in a pending replace key."""
+    segment = s3_key.rsplit("/", maxsplit=1)[-1]
+    # Keys from build_s3_key: "{uuid4}-{sanitized_name}" (UUID is 36 chars).
+    if len(segment) >= 38 and segment[36] == "-":
+        return segment[37:] or segment
+    return segment
+
+
+def validate_pending_asset_content_s3_key(*, asset_id: UUID, pending_key: str) -> None:
+    """Ensure pending upload key is under this asset's prefix (defense in depth)."""
+    if ".." in pending_key or pending_key.strip() != pending_key:
+        raise ValidationError("pending_s3_key is invalid", field="pending_s3_key")
+    expected_prefix = f"assets/{asset_id}/"
+    if not pending_key.startswith(expected_prefix):
+        raise ValidationError(
+            "pending_s3_key does not match this asset",
+            field="pending_s3_key",
+        )
+
+
 def sanitize_file_name(file_name: str) -> str:
     """Sanitize filename to safe object-key segment."""
     normalized = file_name.strip()

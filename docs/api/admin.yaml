@@ -300,6 +300,11 @@ paths:
         deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be
         the value returned by `POST .../content/init` for this asset id. Not allowed when the asset
         has the `expense_attachment` tag (400).
+        `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization
+        (same rules as init). This call is not idempotent across different `pending_s3_key` values:
+        repeating complete with a stale key after a successful replace returns 400.
+        When `content_type` is null or omitted, the stored content type is taken from the uploaded
+        object's S3 `Content-Type` metadata when present.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -4361,6 +4366,9 @@ components:
       type: object
       required:
         - pending_s3_key
+        - upload_method
+        - upload_headers
+        - expires_at
       properties:
         pending_s3_key:
           type: string
@@ -4391,10 +4399,13 @@ components:
         file_name:
           type: string
           maxLength: 255
+          description: >
+            Must match the sanitized filename segment in `pending_s3_key` (same value as sent to init).
         content_type:
           type: string
           maxLength: 127
           nullable: true
+          description: Optional; when null the server may use the object's S3 Content-Type after upload.
     CreateAssetGrantRequest:
       type: object
       required:

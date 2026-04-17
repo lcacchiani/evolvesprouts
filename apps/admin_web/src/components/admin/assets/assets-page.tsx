@@ -25,6 +25,7 @@ export function AssetsPage() {
     isSavingAsset,
     isDeletingAssetId,
     uploadState,
+    uploadPhase,
     uploadError,
     hasPendingUpload,
     selectedAssetId,
@@ -67,18 +68,15 @@ export function AssetsPage() {
           isDeletingCurrentAsset={Boolean(selectedAssetId) && isDeletingAssetId === selectedAssetId}
           assetMutationError={assetMutationError}
           uploadState={uploadState}
+          uploadPhase={uploadPhase}
           uploadError={uploadError}
           hasPendingUpload={hasPendingUpload}
           onRetryUpload={retryPendingUpload}
           onReplaceFile={async (file) => {
             if (!selectedAssetId) {
-              return;
+              return false;
             }
-            try {
-              await replaceAssetFileEntry(selectedAssetId, file, DEFAULT_CONTENT_TYPE);
-            } catch {
-              // The hook stores the actionable error state for UI display.
-            }
+            return replaceAssetFileEntry(selectedAssetId, file, DEFAULT_CONTENT_TYPE);
           }}
           onCreate={async (payload, file) => {
             try {
@@ -97,8 +95,9 @@ export function AssetsPage() {
           onUpdate={async (assetId, payload) => {
             try {
               await updateAssetEntry(assetId, payload);
+              return true;
             } catch {
-              // The hook stores the actionable error state for UI display.
+              return false;
             }
           }}
           onStartCreate={clearSelectedAsset}

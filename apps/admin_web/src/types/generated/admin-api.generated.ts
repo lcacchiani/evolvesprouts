@@ -328,7 +328,7 @@ export interface paths {
         put?: never;
         /**
          * Complete admin asset file replacement
-         * @description Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it, deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be the value returned by `POST .../content/init` for this asset id. Not allowed when the asset has the `expense_attachment` tag (400).
+         * @description Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it, deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be the value returned by `POST .../content/init` for this asset id. Not allowed when the asset has the `expense_attachment` tag (400). `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization (same rules as init). This call is not idempotent across different `pending_s3_key` values: repeating complete with a stale key after a successful replace returns 400. When `content_type` is null or omitted, the stored content type is taken from the uploaded object's S3 `Content-Type` metadata when present.
          */
         post: {
             parameters: {
@@ -4358,16 +4358,18 @@ export interface components {
             pending_s3_key: string;
             /** Format: uri */
             upload_url?: string | null;
-            upload_method?: string;
-            upload_headers?: {
+            upload_method: string;
+            upload_headers: {
                 [key: string]: string;
             };
             /** Format: date-time */
-            expires_at?: string | null;
+            expires_at: string | null;
         };
         CompleteAssetContentReplaceRequest: {
             pending_s3_key: string;
+            /** @description Must match the sanitized filename segment in `pending_s3_key` (same value as sent to init). */
             file_name: string;
+            /** @description Optional; when null the server may use the object's S3 Content-Type after upload. */
             content_type?: string | null;
         };
         CreateAssetGrantRequest: {

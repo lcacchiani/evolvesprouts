@@ -19,6 +19,8 @@ import {
   EXPENSE_ATTACHMENT_ASSET_TAG,
 } from '@/types/assets';
 
+import type { AssetUploadPhase } from '@/hooks/use-asset-mutations';
+
 import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-link-section';
 import { StatusBanner } from '@/components/status-banner';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -38,11 +40,12 @@ interface AssetEditorPanelProps {
   isDeletingCurrentAsset: boolean;
   assetMutationError: string;
   uploadState: 'idle' | 'uploading' | 'failed' | 'succeeded';
+  uploadPhase: AssetUploadPhase;
   uploadError: string;
   hasPendingUpload: boolean;
   onRetryUpload: () => Promise<void>;
   /** When set in edit mode (non–expense-linked assets), user may pick a new PDF and save to replace file content. */
-  onReplaceFile?: (file: File) => Promise<void>;
+  onReplaceFile?: (file: File) => Promise<boolean>;
   onCreate: (
     payload: {
       title: string;
@@ -55,7 +58,7 @@ interface AssetEditorPanelProps {
     },
     file: File
   ) => Promise<void>;
-  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<void>;
+  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<boolean>;
   onStartCreate: () => void;
 }
 
@@ -124,6 +127,7 @@ export function AssetEditorPanel({
   isDeletingCurrentAsset,
   assetMutationError,
   uploadState,
+  uploadPhase,
   uploadError,
   hasPendingUpload,
   onRetryUpload,
@@ -250,11 +254,26 @@ export function AssetEditorPanel({
           patch.clientTag = clientTagValue;
         }
       }
-      if (Object.keys(patch).length > 0) {
-        await onUpdate(selectedAsset.id, patch);
-      }
       if (replacementFile && onReplaceFile) {
-        await onReplaceFile(replacementFile);
+        const replaceOk = await onReplaceFile(replacementFile);
+        if (!replaceOk) {
+          if (Object.keys(patch).length > 0) {
+            setFormError(
+              'File replacement did not finish, so metadata was not saved. Fix the error in the Asset banner or retry, then save again.'
+            );
+          }
+          return;
+        }
+      }
+      if (Object.keys(patch).length > 0) {
+        try {
+          await onUpdate(selectedAsset.id, patch);
+        } catch {
+          setFormError(
+            'Metadata may not have saved. The new file may already be live. Refresh the list or fix the error in the Asset banner and save again.'
+          );
+          return;
+        }
       }
       if (Object.keys(patch).length === 0 && !replacementFile) {
         setFormError('No changes to save.');
@@ -326,7 +345,11 @@ export function AssetEditorPanel({
 
       {uploadState === 'uploading' ? (
         <StatusBanner variant='info' title='Uploading'>
-          {isEditMode ? 'Uploading PDF...' : 'Uploading PDF content to S3...'}
+          {uploadPhase === 'complete'
+            ? 'Finalizing file replacement...'
+            : isEditMode
+              ? 'Uploading PDF...'
+              : 'Uploading PDF content to S3...'}
         </StatusBanner>
       ) : null}
 

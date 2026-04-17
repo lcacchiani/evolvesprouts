@@ -17,6 +17,7 @@ from app.api.assets.assets_common import (
     build_s3_key,
     delete_s3_object,
     extract_identity,
+    file_name_from_pending_asset_content_key,
     generate_upload_url,
     head_s3_object,
     paginate_response,
@@ -30,8 +31,10 @@ from app.api.assets.assets_common import (
     parse_partial_update_asset_payload,
     parse_update_asset_payload,
     serialize_asset,
+    sanitize_file_name,
     serialize_grant,
     split_route_parts,
+    validate_pending_asset_content_s3_key,
 )
 from app.api.assets.share_links import (
     build_share_link_url,
@@ -273,18 +276,6 @@ def _delete_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
         return json_response(204, {}, event=event)
 
 
-def _validate_pending_s3_key_for_asset(*, asset_id: UUID, pending_key: str) -> None:
-    """Ensure pending upload key is under this asset's prefix (defense in depth)."""
-    if ".." in pending_key or pending_key.strip() != pending_key:
-        raise ValidationError("pending_s3_key is invalid", field="pending_s3_key")
-    expected_prefix = f"assets/{asset_id}/"
-    if not pending_key.startswith(expected_prefix):
-        raise ValidationError(
-            "pending_s3_key does not match this asset",
-            field="pending_s3_key",
-        )
-
-
 def _init_asset_content_replace(
     event: Mapping[str, Any],
     asset_id: UUID,
@@ -326,14 +317,14 @@ def _complete_asset_content_replace(
     asset_id: UUID,
 ) -> dict[str, Any]:
     payload = parse_complete_asset_content_replace_payload(event)
-    _validate_pending_s3_key_for_asset(
+    validate_pending_asset_content_s3_key(
         asset_id=asset_id, pending_key=payload["pending_s3_key"]
     )
     identity = extract_identity(event)
     request_id = _request_id(event)
 
     try:
-        head_s3_object(s3_key=payload["pending_s3_key"])
+        head_meta = head_s3_object(s3_key=payload["pending_s3_key"])
     except ClientError as exc:
         error_code = str(exc.response.get("Error", {}).get("Code", ""))
         http_status = int(
@@ -352,6 +343,22 @@ def _complete_asset_content_replace(
             "Could not verify the uploaded object",
             field="pending_s3_key",
         ) from exc
+
+    key_derived_name = file_name_from_pending_asset_content_key(
+        payload["pending_s3_key"]
+    )
+    client_file_name = sanitize_file_name(payload["file_name"])
+    if client_file_name != key_derived_name:
+        raise ValidationError(
+            "file_name does not match the pending upload key",
+            field="file_name",
+        )
+
+    resolved_content_type = payload["content_type"]
+    if not resolved_content_type:
+        head_ct = head_meta.get("ContentType")
+        if isinstance(head_ct, str) and head_ct.strip():
+            resolved_content_type = head_ct.strip()
 
     with Session(get_engine()) as session:
         set_audit_context(
@@ -378,7 +385,7 @@ def _complete_asset_content_replace(
             asset,
             s3_key=payload["pending_s3_key"],
             file_name=payload["file_name"],
-            content_type=payload["content_type"],
+            content_type=resolved_content_type,
         )
         session.flush()
         refreshed = repository.get_with_asset_tags(asset_id)
@@ -389,9 +396,13 @@ def _complete_asset_content_replace(
             try:
                 delete_s3_object(s3_key=previous_key)
             except ClientError:
-                logger.exception(
-                    "Failed to delete previous S3 object after asset replace",
-                    extra={"asset_id": str(asset_id), "s3_key": previous_key},
+                logger.warning(
+                    "replace_delete_failed: previous S3 object delete failed after successful replace",
+                    extra={
+                        "asset_id": str(asset_id),
+                        "s3_key": previous_key,
+                        "outcome": "replace_delete_failed",
+                    },
                 )
 
         return json_response(
