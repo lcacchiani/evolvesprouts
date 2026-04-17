@@ -505,6 +505,389 @@ in the parenting/helper-training niche.
 
 ---
 
+## Improvement Plan — Google Ads
+
+Grounded in the data above (2,516 imp, 136 clicks, HK$1,277 spend, 0
+Google-attributed conversions, 26 dormant broad keywords, new Family
+Consultations ad group, single-campaign Search-only setup).
+
+### 1. Close the conversion-attribution gap (highest priority)
+
+- **Problem**: 136 clicks, 0 conversions in Google Ads' own ledger even
+  though GA4 shows 9 conversions in the same window and `google/cpc`
+  delivered 0 of them. The two GA4-imported conversion actions
+  (`booking_submit_success`, `contact_form_submit_success`) are fine —
+  the issue is that CPC visitors are clicking but not booking through
+  the website flow.
+- **Actions**:
+  1. **Enable Enhanced Conversions for Web** on the GA4 imports (Google
+     Ads → Goals → Conversions → each import → Enhanced conversions →
+     Turn on with "Google tag"). Our booking form already collects email
+     — enhanced conversions will recover 10–30% of currently unattributed
+     conversions by hash-matching user emails.
+  2. **Import `whatsapp_click` as a secondary conversion** (Google Ads →
+     Goals → Summary → New conversion action → Import from GA4). Count
+     as "Secondary" (not primary) so it informs bidding without polluting
+     ROAS. Rationale: 6 users clicked WhatsApp in the last 30 days and
+     none are in the Google ledger.
+  3. **Import `contact_form_submit_success`, `media_form_submit_success`,
+     and `community_signup_submit_success`** as secondary conversions.
+     They already fire in GA4 and are leading indicators that search
+     traffic produced when the booking flow feels "too committing".
+  4. **Add a phone / WhatsApp call extension (Asset)** at the campaign
+     level so "call asset clicks" becomes trackable through the built-in
+     `Phone call` conversion action.
+
+### 2. Fix the Family Consultations dead-end
+
+- **Problem**: 15 clicks at HK$6.68 CPC landed on
+  `/en/services/consultations`, which has **0 conversions over 30 days**
+  and a 76% bounce. This is the lowest-CPC traffic in the account going
+  to the worst-converting page.
+- **Actions**:
+  1. **Add a GA4 event `consultation_whatsapp_click`** (or reuse
+     `whatsapp_click` with a `page_location CONTAINS "consultations"`
+     segment) and import it as a secondary conversion.
+  2. **Change the ad final URL** to append a query param
+     (`?utm_source=google&utm_medium=cpc&utm_campaign=my-best-auntie-search-hk&utm_content=family-consultations`)
+     so the existing `sessionCampaignName` report in GA4 breaks out
+     consultations vs course traffic cleanly.
+  3. **Audit the page above the fold**: the course page cut its bounce
+     from 88% → 66% after hero improvements; the consultations page has
+     not had the same treatment and is still at 76%. Add a single, clear
+     CTA (WhatsApp or "Book a free 15-min call") above the fold before
+     pushing more paid traffic to it.
+
+### 3. Reclaim the 26 dormant broad keywords
+
+- **Problem**: Only 4 of 30 keywords are spending. "child development",
+  "child care", "montessori childcare", "childcare level 3 course",
+  "preschools near me", etc. have 0 impressions across ~4 weeks.
+- **Actions**:
+  1. **Pull the Search Terms report** (add to the assessment script, or
+     UI: Campaigns → Insights and reports → Search terms) and add the
+     obvious junk as negative keywords (likely: "jobs", "vacancy",
+     "salary", "philippines", "indonesia", "apply", etc. from helper
+     searches; "uk", "usa", "singapore" for location bleed).
+  2. **Re-tier the dormant keywords into a separate ad group** called
+     `Discovery — Broad` with a lower bid ceiling (HK$5 CPC max) so
+     TARGET_SPEND can allocate there without competing with the proven
+     HK$10 CPC winners. Google currently treats the dormant keywords as
+     duplicates of the active ones and ignores them under a single ad
+     group.
+  3. **Add phrase-match variants for the three winners** ("helper
+     training hong kong", "childcare helper training", "domestic helper
+     course hong kong") to capture the exact searches at a lower CPC —
+     right now every click is routed through broad match.
+
+### 4. Add a remarketing layer
+
+- **Problem**: 2,516 impressions have reached HK parents searching for
+  helper training, but we re-engage none of them.
+- **Actions**:
+  1. Run `ga4-create-audiences.py` (already in `marketing/scripts/`) to
+     create **Course Page Visitors**, **Booking Intent — Did Not
+     Complete**, and **High-Engagement Visitors**. Link GA4 property to
+     Google Ads so the audiences appear in Audience Manager
+     automatically.
+  2. **Launch a Display remarketing campaign** (HK$30/day cap, 90-day
+     membership, frequency cap 3/day) using "Course Page Visitors" and
+     "Booking Intent — Did Not Complete" as observation → target
+     audiences. Creative: the same Easter Reel repurposed as a 1:1 MP4.
+  3. **Layer "Course Page Visitors" as an Observation bid modifier
+     (+25%)** on the Search campaign so returning searchers win the
+     auction more often.
+
+### 5. Try Performance Max — but gated
+
+- **Problem**: Search alone caps reach. PMax would open YouTube / Gmail
+  / Discover inventory, but blindly turning it on will cannibalize the
+  Search campaign.
+- **Actions**:
+  1. **Wait until step 1 (Enhanced Conversions + lead imports) is
+     live** so PMax has multiple signals to optimize against.
+  2. Then launch a PMax campaign at HK$50/day with `booking_submit_success`
+     as primary goal, excluding the Search campaign's converted-customer
+     list. Use the Easter Reel + course page images as asset group.
+  3. Re-assess after 14 days; kill if CPA > HK$200.
+
+### 6. Weekly data-integrity ritual
+
+- Add a 5-minute Monday check: open the Google Ads "Overview" tab,
+  screenshot Campaigns, Search Terms (previous 7 days), and paste into
+  the next weekly assessment. The Search-Terms report is the biggest
+  gap in the current script.
+- Extend `google-ads-assessment.py` to pull `search_term_view` (top 50,
+  last 7 days) so future reports flag wasted spend automatically.
+
+---
+
+## Improvement Plan — GA4
+
+Grounded in: 87.4% overall bounce, 9 conversions from 1,625 sessions,
+`/en/services/consultations` at 0 conv, dark-social "(direct)/(none)"
+producing 2 conversions untagged, 36 modal opens → 2 bookings, several
+tokenised / no-locale landing pages ("(not set)", `/ZWFzdGVyLT`,
+`/my-best-auntie-training-course`) appearing in the top 15.
+
+### 1. Stop losing attribution on "(direct)/(none)"
+
+- **Problem**: 284 direct sessions (17% of all traffic), 2 of the 9
+  conversions — but "(direct)/(none)" in HK usually means WhatsApp
+  forwards, Instagram bio link, and dark-social shares we could
+  attribute.
+- **Actions**:
+  1. **Audit every outbound link** in the linktree, Instagram bio,
+     WhatsApp broadcasts, and email footer. Tag each with UTM params,
+     e.g. `?utm_source=instagram&utm_medium=bio&utm_campaign=my-best-auntie`.
+  2. **Add UTM-safe redirects** on `/links` and `/en/links` (already the
+     lowest-bounce pages in the account at 8–17%) so clicks from those
+     pages carry UTMs into the destination.
+  3. **Create a GA4 exploration** with `sessionSource = "(direct)"` and
+     `landingPage` breakdown — this will show which pages are
+     absorbing the dark-social traffic and where to add tagged referrals.
+
+### 2. Fix the tokenised / no-locale landing pages
+
+- **Problem**: 22 sessions on `landingPage = (not set)`, 7 on
+  `/ZWFzdGVyLT` (truncated-base64 Easter URL), 7 on
+  `/my-best-auntie-training-course` (no `/en` prefix), 10 on
+  `/easter-2026-...` (no locale). All 100%-bounce.
+- **Actions**:
+  1. **Investigate the `/ZWFzdGVyLT...` URLs** — these look like ad
+     preview tokens leaking into real traffic. Check Meta ads preview
+     URLs and GA4 referral exclusion list.
+  2. **Add Next.js redirects** in `apps/public_www/next.config.mjs` for
+     `/easter-2026-montessori-play-coaching-workshop` →
+     `/en/easter-2026-...`, and for `/my-best-auntie-training-course` →
+     `/en/services/my-best-auntie-training-course` (permanent, 308).
+  3. **Enable "(not set)" diagnosis** — the `(not set)` rows for
+     landingPage usually come from sessions that started with a
+     page_view event missing page_location. Check the measurement ID
+     on preview/staging and ensure `send_page_view` is explicitly true.
+
+### 3. Replace the single-event booking conversion with a funnel metric
+
+- **Problem**: 36 modal opens, 10 users picked a date, only 2 submits.
+  That's a 5.5% date-to-booking conversion — worth optimising, but GA4's
+  "Conversions" metric hides the drop-off.
+- **Actions**:
+  1. **Create the Funnel Exploration** documented in
+     `ga4-manual-setup-steps.md` (age → date → confirm_pay →
+     payment_method → submit_success) — save it as "Booking Funnel" and
+     review weekly.
+  2. **Mark `booking_confirm_pay_click` as a Key Event** (GA4 Admin →
+     Events → toggle "Mark as key event") so it shows up as a conversion
+     and can be imported into Google / Meta as a mid-funnel signal. This
+     matters because `booking_submit_success` alone is too sparse (2
+     events) to train bidding algorithms.
+  3. **Add a `booking_form_field_interaction` event** on first focus of
+     any booking-form input. This is usually the cleanest leading
+     indicator and fires 5–10x more often than the submit event.
+
+### 4. Get Enhanced Measurement + Consent Mode right
+
+- **Problem**: 87.4% overall bounce is unusual for a HK mobile-parenting
+  audience and likely inflated by consent-denied users firing pageview
+  then closing before interaction events are recorded.
+- **Actions**:
+  1. **Enable Consent Mode v2 with basic consent signals** and turn on
+     modelled conversions. Evolve Sprouts serves HK so PDPO applies —
+     use an in-house banner that emits `gtag('consent','update',...)`.
+  2. **Turn on Enhanced Measurement for scroll, outbound click, and
+     video engagement** (Admin → Data Streams → Enhanced measurement).
+     Scroll-90% events on the course page will give bidding a much
+     richer "interested" signal.
+  3. **Add a `view_course_pricing` event** (scroll-depth trigger at the
+     pricing section). Course page has 126 sessions and 3 conversions;
+     seeing how many of the other 123 reach the price table will tell
+     us whether pricing is the blocker.
+
+### 5. Activate the audience layer
+
+- **Problem**: No audiences, no first-party remarketing, no lookalike
+  seeds.
+- **Actions**:
+  1. **Temporarily grant Editor** to
+     `ga4-reader@evolve-sprouts.iam.gserviceaccount.com`, run
+     `python3 scripts/ga4-create-audiences.py`, revoke back to Viewer
+     (process already documented in `marketing/README.md`).
+  2. **Link GA4 → Google Ads** and **GA4 → Meta** (GA4 Admin → Product
+     Links). Audiences become usable in both platforms within 24h.
+  3. **Create two more audiences**:
+     - `Blog / guide readers` (page_view on `/en/blog*` in 90d) — seed
+       for a top-of-funnel Meta Lookalike.
+     - `Contact-form starters` (users who fired `contact_form_submit_attempt`
+       without `_success`) — re-engage in email / WhatsApp.
+
+### 6. Make the assessment scripts reflect what matters
+
+- **Actions**:
+  1. Add `engagementRate` and `averageEngagementTime` to the "Site
+     overview" report (currently only bounce + duration).
+  2. Add a "Page bounce / engagement" report filtered to
+     `sessionMedium = cpc` so we can see what Google-paid users
+     specifically are doing.
+  3. Surface `(direct)/(none) by landingPage` — right now the report
+     shows direct as a single blob.
+
+---
+
+## Improvement Plan — Meta
+
+Grounded in: `account_status = 9` (non-standard), balance HK$30, Free
+Guide campaign paused without delivery, 0 Meta delivery in 12 days,
+only one conversion-capable pixel flow, no Lookalikes, no retargeting,
+`Instagram Boost — Organic Top Performers` running at 0.11% CTR /
+HK$25 CPC.
+
+### 1. Unblock the account
+
+- **Problem**: `account_status = 9` is outside the documented enum
+  (1 ACTIVE / 2 DISABLED / 3 UNSETTLED). In practice, this value
+  signals "pending_settlement" or "billing issue / under review". With
+  HK$30 balance and no delivery, we physically can't run.
+- **Actions**:
+  1. Log into Meta Business Manager → Business Settings → Ad Accounts
+     → Evolve Sprouts → Payment Settings. Resolve any outstanding
+     invoice and **add a backup payment method**.
+  2. Go to Account Overview — check for any verification / policy
+     banner at the top of Ads Manager.
+  3. If Business Verification was lost, **re-submit**: Business Settings
+     → Security Center → Business Verification.
+  4. **Do not un-pause the Free Guide campaign until status = 1
+     (ACTIVE)** to avoid burning learning-phase budget on nothing.
+
+### 2. Instrument the Pixel properly
+
+- **Problem**: The Meta Pixel currently fires `PageView` and maybe
+  `Lead`, but the 4 Easter conversions came through GA4 → Meta via
+  CAPI? unclear. `cost_per_action_type` shows `link_click` and
+  `landing_page_view` only — no `Purchase`, `Lead`, `Schedule`, or
+  `CompleteRegistration` events in the insights.
+- **Actions**:
+  1. **Map each GA4 booking event to a standard Meta Pixel event**:
+     - `booking_modal_open` → `InitiateCheckout`
+     - `booking_confirm_pay_click` → `AddPaymentInfo`
+     - `booking_submit_success` → `Purchase` (with `value` and
+       `currency = HKD`)
+     - `contact_form_submit_success` / `media_form_submit_success` →
+       `Lead`
+     - `whatsapp_click` → `Contact`
+     - `community_signup_submit_success` → `CompleteRegistration`
+  2. **Fire events via both Pixel (browser) and Conversions API
+     (server)** — deduplicate with `event_id`. We already have the
+     Meta system user token available; wire CAPI from a Next.js API
+     route so iOS/ATT losses don't tank attribution.
+  3. **Add `advanced_matching`** so Meta can hash-match email / phone
+     from the booking form to user profiles, exactly like Google
+     Enhanced Conversions.
+
+### 3. Build the audience layer
+
+- **Problem**: No custom audiences. Every new campaign starts cold and
+  the Easter reach (13,515 HK mothers) is effectively forgotten.
+- **Actions**:
+  1. **Custom audiences from Pixel / CAPI**:
+     - All website visitors (180d)
+     - Course page viewers (90d)
+     - InitiateCheckout (30d) not Purchase
+     - Video viewers ≥50% of Easter Reel (90d) — 8,457 views in hand.
+  2. **Custom audiences from engagement**:
+     - Instagram account engagers (365d)
+     - Facebook page engagers (365d)
+     - IG Reel viewers ≥25% (180d)
+  3. **Lookalike audiences** (HK, 1–3%):
+     - LAL of `booking_submit_success` purchasers (seed may be too
+       small — use a 180d Purchase + InitiateCheckout seed instead).
+     - LAL of `All Website Visitors — high-engagement` (30-day sessions
+       > 30s).
+     - LAL of Instagram engagers.
+
+### 4. Fix the "Instagram Boost — Organic Top Performers" campaign
+
+- **Problem**: HK$300 spent, 12 clicks, CTR 0.11%, CPC HK$25. For an
+  OUTCOME_ENGAGEMENT campaign the CPC is misleading (engagements are
+  the product, not clicks), but HK$2.11 / engagement on only 142
+  engagements is not a strong organic-amplifier ROI either. Campaign
+  ended Mar 24 but `status = ACTIVE` at the object level.
+- **Actions**:
+  1. **Stop "ACTIVE but ended" objects**: either archive or set a new
+     flight. Leaving them ACTIVE makes reporting noisier and obscures
+     genuinely-live campaigns.
+  2. **If we run another engagement boost**, target Saved / IG
+     engagers who have *not* yet visited the website — that's the
+     valuable gap this ad type can fill.
+
+### 5. Launch the Free Guide campaign correctly (once status = ACTIVE)
+
+- **Problem**: Campaign was created, budgeted HK$50/day, then paused.
+  Easter formula (Reel → LPV → HK women 25-45) produced 4.3x ROAS.
+  The Free Guide ad set has the right scaffold (HK women 25-50, LPV
+  opt, HK$50/day) but no creative or landing page confirmed.
+- **Actions**:
+  1. **Change the objective from OUTCOME_TRAFFIC to OUTCOME_LEADS** and
+     use **Instant Forms** with pre-filled email/name. Landing a free
+     guide works better as a lead form than a website redirect in HK
+     Instagram.
+  2. **A/B two creatives**:
+     - Variant A: Short vertical Reel (15-30s) with the guide cover.
+     - Variant B: Static carousel of 3–4 pages from the guide.
+     Let Advantage+ Creative pick within the ad set.
+  3. **Targeting**: start with HK women 25-45 (same as Easter), then
+     clone with a "Lookalike 1% of website visitors" variant.
+  4. **Post-submit**: welcome email automation (Mailchimp audience
+     exists — `EVOLVESPROUTS_MAILCHIMP_AUDIENCE_ID`) and add the lead
+     to a `My Best Auntie` follow-up flow.
+
+### 6. Plan the next paid Reel cohort
+
+- **Actions**:
+  1. Reuse the Easter Reel creative format (8s hook, 15s value, 7s CTA)
+     for the **next My Best Auntie cohort open date** — budget HK$50/day
+     for 7 days = HK$350, same as Easter.
+  2. Optimize for `Purchase` once the Pixel is wired (step 2). If
+     volume is too thin, optimize for `InitiateCheckout` with a
+     conversion value rule that credits HK$350.
+  3. Run a parallel Advantage+ Shopping-style campaign using the
+     course page as a catalog of one SKU; Meta is unusually good at
+     single-SKU service targeting in HK.
+
+### 7. Creative rotation + retirement policy
+
+- **Actions**:
+  1. Set a simple rule: any ad whose CTR falls below 0.8% for 3 days
+     **or** whose frequency exceeds 2.5 gets rotated.
+  2. Keep one "evergreen brand" ad set always running at HK$20/day to
+     keep the pixel warm between campaigns — this avoids the 7–14 day
+     re-learning penalty every time we turn a new flight on.
+
+---
+
+## Improvement Plan — Cross-Platform
+
+1. **Connect the data lake**: GA4 → BigQuery export (free tier, 1GB/d
+   enough for us). Once in BQ, the same assessment reports can be
+   run with SQL and do not depend on three different Python SDKs.
+2. **Unified UTM convention**: every paid link uses
+   `utm_source={platform}&utm_medium={channel}&utm_campaign={campaign}&utm_content={ad}&utm_term={keyword}`.
+   Document in `apps/public_www/marketing/README.md`.
+3. **Single conversion definitions file**: define
+   `booking_submit_success` and `whatsapp_click` semantics in one place
+   and have Google Ads, Meta, and Mailchimp all reference them. Drift
+   today is the root cause of "4 vs 9" attribution mismatches.
+4. **Add a `generated-reports/` git-ignored folder** inside
+   `marketing/` and redirect the three assessment scripts' output into
+   dated `.txt` files automatically (via argparse `--out` flag). The
+   markdown report then becomes a handmade narrative layer on top of
+   machine-captured raw data.
+5. **Set a weekly cadence**: run all three assessments every Monday
+   morning. Target assessment cycle: Mon = data pull, Tue = ship 1
+   Google Ads change, Wed = ship 1 GA4 change, Thu = ship 1 Meta
+   change, Fri = measure.
+
+---
+
 ## Data Integrity Notes
 
 - Google Ads API queried via service account through MCC (Manager
