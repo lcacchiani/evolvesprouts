@@ -2874,6 +2874,14 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    const adminServiceDiscountCodeUsageSummary = adminServiceById.addResource(
+      "discount-code-usage-summary",
+    );
+    adminServiceDiscountCodeUsageSummary.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     const adminServiceInstances = adminServiceById.addResource("instances");
     adminServiceInstances.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
