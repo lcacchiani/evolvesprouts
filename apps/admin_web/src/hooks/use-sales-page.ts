@@ -7,11 +7,18 @@ import { useLeadAnalytics } from './use-lead-analytics';
 import { useLeadDetail } from './use-lead-detail';
 import { useLeadList } from './use-lead-list';
 import { useLeadMutations } from './use-lead-mutations';
+import { useQueryTabState } from './use-query-tab-state';
 
 export type SalesView = 'pipeline' | 'analytics';
 
+export const SALES_VIEW_KEYS: readonly SalesView[] = ['pipeline', 'analytics'];
+export const DEFAULT_SALES_VIEW: SalesView = 'pipeline';
+
 export function useSalesPage() {
-  const [activeView, setActiveView] = useState<SalesView>('pipeline');
+  const [activeView, setActiveView] = useQueryTabState<SalesView>(
+    SALES_VIEW_KEYS,
+    DEFAULT_SALES_VIEW
+  );
   const [selectedLeadIdState, setSelectedLeadIdState] = useState<string | null | undefined>(
     undefined
   );
