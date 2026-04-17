@@ -95,25 +95,13 @@ function pushAdminDataLayerPayload(
     app_surface: 'admin',
     ...removeUndefinedParams(params),
   };
-  const layer = window.dataLayer;
-  if (Array.isArray(layer)) {
-    layer.push(payload);
+  const existingLayer = window.dataLayer;
+  if (Array.isArray(existingLayer)) {
+    existingLayer.push(payload);
     return;
   }
-  if (layer && typeof layer === 'object' && typeof layer.push === 'function') {
-    (layer as { push: (item: AdminDataLayerEventPayload) => void }).push(payload);
-    return;
-  }
-  try {
-    window.dataLayer = [payload];
-  } catch {
-    Object.defineProperty(window, 'dataLayer', {
-      configurable: true,
-      enumerable: true,
-      writable: true,
-      value: [payload],
-    });
-  }
+
+  window.dataLayer = [payload];
 }
 
 /**

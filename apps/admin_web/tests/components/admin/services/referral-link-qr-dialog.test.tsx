@@ -29,12 +29,12 @@ describe('ReferralLinkQrDialog', () => {
     });
 
     vi.stubEnv('NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID', 'GTM-TEST');
-    const pushSpy = vi.fn();
-    const dataLayerStub: { push: typeof pushSpy } = { push: pushSpy };
+    const dataLayerArray: Record<string, unknown>[] = [];
+    const pushSpy = vi.spyOn(dataLayerArray, 'push');
     Object.defineProperty(window, 'dataLayer', {
       configurable: true,
       writable: true,
-      value: dataLayerStub,
+      value: dataLayerArray,
     });
 
     render(
