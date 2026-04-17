@@ -115,6 +115,38 @@ export class AdminWebStack extends cdk.Stack {
       originAccessIdentity,
     });
 
+    const pathRewriteFunction = new cloudfront.Function(
+      this,
+      "AdminWebPathRewriteFunction",
+      {
+        comment:
+          "Rewrite extensionless and trailing-slash paths to index.html for Next.js static export.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  // Never rewrite Next.js static asset requests.
+  if (uri.startsWith('/_next/')) {
+    return request;
+  }
+
+  if (uri.endsWith('/')) {
+    request.uri = uri + 'index.html';
+    return request;
+  }
+
+  if (uri.indexOf('.') === -1) {
+    request.uri = uri + '/index.html';
+  }
+
+  return request;
+}
+`),
+      },
+    );
+
     this.distribution = new cloudfront.Distribution(this, "AdminWebDistribution", {
       defaultRootObject: "index.html",
       domainNames: [domainName.valueAsString],
@@ -128,19 +160,25 @@ export class AdminWebStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        functionAssociations: [
+          {
+            function: pathRewriteFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       errorResponses: [
         {
           httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html",
-          ttl: cdk.Duration.minutes(5),
+          responseHttpStatus: 404,
+          responsePagePath: "/404.html",
+          ttl: cdk.Duration.minutes(1),
         },
         {
           httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html",
-          ttl: cdk.Duration.minutes(5),
+          responseHttpStatus: 404,
+          responsePagePath: "/404.html",
+          ttl: cdk.Duration.minutes(1),
         },
       ],
     });

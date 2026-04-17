@@ -10,6 +10,7 @@
     "synth": "cdk synth",
     "deploy": "cdk deploy",
     "test:infra": "ts-node scripts/assert-existing-db.ts",
+    "test:admin-web-stack": "ts-node --prefer-ts-exts test/admin-web-stack.test.ts",
     "postinstall": "node scripts/patch-bundled-aws-cdk-lib-deps.js"
   },
   "keywords": [],
