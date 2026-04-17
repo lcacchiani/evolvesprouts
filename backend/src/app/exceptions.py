@@ -54,6 +54,12 @@ class ValidationError(AppError):
         super().__init__(message, status_code=status_code, detail=detail)
         self.field = field
 
+    def to_dict(self) -> dict[str, Any]:
+        result = super().to_dict()
+        if self.field:
+            result["field"] = self.field
+        return result
+
 
 class NotFoundError(AppError):
     """Raised when a requested resource is not found.

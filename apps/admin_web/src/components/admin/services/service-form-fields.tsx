@@ -24,6 +24,7 @@ export interface ServiceFormFieldsProps {
   onChange: (value: ServiceFormState) => void;
   hideTitle?: boolean;
   slugUsageLoadError?: string;
+  slugConflictError?: string;
 }
 
 export function ServiceFormFields({
@@ -31,6 +32,7 @@ export function ServiceFormFields({
   onChange,
   hideTitle = false,
   slugUsageLoadError,
+  slugConflictError,
 }: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
@@ -75,6 +77,7 @@ export function ServiceFormFields({
           </p>
         ) : null}
         {slugUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{slugUsageLoadError}</p> : null}
+        {slugConflictError ? <p className='mt-1 text-xs text-red-600'>{slugConflictError}</p> : null}
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

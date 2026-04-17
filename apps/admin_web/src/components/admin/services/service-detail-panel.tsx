@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
+import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -104,6 +105,8 @@ export function ServiceDetailPanel({
     referencingCodeCount: number;
   } | null>(null);
   const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
+  const [slugConflictError, setSlugConflictError] = useState('');
+  const [conflictingSlugNormalized, setConflictingSlugNormalized] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,6 +148,8 @@ export function ServiceDetailPanel({
         setTrainingForm(DEFAULT_TRAINING_FORM);
         setEventForm(DEFAULT_EVENT_FORM);
         setConsultationForm(DEFAULT_CONSULTATION_FORM);
+        setSlugConflictError('');
+        setConflictingSlugNormalized(null);
         return;
       }
       setServiceType(service.serviceType);
@@ -174,6 +179,8 @@ export function ServiceDetailPanel({
         defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
         calendlyUrl: service.consultationDetails?.calendlyUrl ?? '',
       });
+      setSlugConflictError('');
+      setConflictingSlugNormalized(null);
     });
     return () => {
       cancelled = true;
@@ -184,6 +191,12 @@ export function ServiceDetailPanel({
     const t = serviceForm.slug.trim().toLowerCase();
     return t.length ? t : null;
   }, [serviceForm.slug]);
+
+  const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
+  const saveBlockedBySlugConflict =
+    Boolean(slugConflictError) &&
+    conflictingSlugNormalized !== null &&
+    normalizedSlugInput === conflictingSlugNormalized;
 
   const buildTypeSpecificPayload = (
     currentServiceType: ServiceType
@@ -269,14 +282,56 @@ export function ServiceDetailPanel({
     if (!ok) {
       return;
     }
-    await onUpdate({
-      title: serviceForm.title.trim(),
-      description: serviceForm.description.trim() || null,
-      slug: newSlug,
-      delivery_mode: serviceForm.deliveryMode,
-      status: serviceForm.status,
-      ...buildTypeSpecificPayload(service.serviceType),
-    });
+    try {
+      await onUpdate({
+        title: serviceForm.title.trim(),
+        description: serviceForm.description.trim() || null,
+        slug: newSlug,
+        delivery_mode: serviceForm.deliveryMode,
+        status: serviceForm.status,
+        ...buildTypeSpecificPayload(service.serviceType),
+      });
+      setSlugConflictError('');
+      setConflictingSlugNormalized(null);
+    } catch (caught) {
+      if (
+        caught instanceof AdminApiError &&
+        caught.statusCode === 409 &&
+        readAdminApiErrorField(caught) === 'slug'
+      ) {
+        setSlugConflictError('Referral slug already in use. Choose another.');
+        setConflictingSlugNormalized(newSlug ?? '');
+        return;
+      }
+      throw caught;
+    }
+  }
+
+  async function submitCreate() {
+    try {
+      await onCreate({
+        service_type: serviceType,
+        title: serviceForm.title.trim(),
+        description: serviceForm.description.trim() || null,
+        slug: slugPayloadValue,
+        delivery_mode: serviceForm.deliveryMode,
+        status: serviceForm.status,
+        ...buildTypeSpecificPayload(serviceType),
+      });
+      setSlugConflictError('');
+      setConflictingSlugNormalized(null);
+    } catch (caught) {
+      if (
+        caught instanceof AdminApiError &&
+        caught.statusCode === 409 &&
+        readAdminApiErrorField(caught) === 'slug'
+      ) {
+        setSlugConflictError('Referral slug already in use. Choose another.');
+        setConflictingSlugNormalized(slugPayloadValue ?? '');
+        return;
+      }
+      throw caught;
+    }
   }
 
   return (
@@ -296,6 +351,7 @@ export function ServiceDetailPanel({
                   disabled={
                     isLoading ||
                     !service ||
+                    saveBlockedBySlugConflict ||
                     Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                   }
                   onClick={() => void submitUpdate()}
@@ -316,20 +372,11 @@ export function ServiceDetailPanel({
                 type='button'
                 disabled={
                   isLoading ||
+                  saveBlockedBySlugConflict ||
                   !serviceForm.title.trim() ||
                   Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                 }
-                onClick={() =>
-                  void onCreate({
-                    service_type: serviceType,
-                    title: serviceForm.title.trim(),
-                    description: serviceForm.description.trim() || null,
-                    slug: slugPayloadValue,
-                    delivery_mode: serviceForm.deliveryMode,
-                    status: serviceForm.status,
-                    ...buildTypeSpecificPayload(serviceType),
-                  })
-                }
+                onClick={() => void submitCreate()}
               >
                 {isLoading ? 'Adding...' : 'Add service'}
               </Button>
@@ -366,13 +413,20 @@ export function ServiceDetailPanel({
 
         <ServiceFormFields
           value={serviceForm}
-          onChange={setServiceForm}
+          onChange={(next) => {
+            if (next.slug !== serviceForm.slug) {
+              setSlugConflictError('');
+              setConflictingSlugNormalized(null);
+            }
+            setServiceForm(next);
+          }}
           hideTitle
           slugUsageLoadError={
             discountUsageLoadState === 'error'
               ? 'Could not load discount code usage. Try again later.'
               : undefined
           }
+          slugConflictError={slugConflictError || undefined}
         />
 
         {serviceType === 'training_course' ? (

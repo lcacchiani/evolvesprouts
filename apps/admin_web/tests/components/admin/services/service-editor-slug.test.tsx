@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServiceDetailPanel } from '@/components/admin/services/service-detail-panel';
+import { AdminApiError } from '@/lib/api-admin-client';
 import * as servicesApi from '@/lib/services-api';
 import type { ServiceDetail } from '@/types/services';
 
@@ -150,6 +151,49 @@ describe('ServiceDetailPanel referral slug', () => {
 
     await vi.waitFor(() => {
       expect(onUpdate).toHaveBeenCalled();
+    });
+  });
+
+  it('shows inline slug conflict error and blocks save until slug changes after 409', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new AdminApiError({
+          statusCode: 409,
+          payload: { error: 'Referral slug already in use', field: 'slug' },
+          message: 'Referral slug already in use',
+        }),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    render(
+      <ServiceDetailPanel
+        service={buildService({ slug: 'old-slug' })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    const slugInput = screen.getByLabelText('Referral slug');
+    fireEvent.change(slugInput, { target: { value: 'taken-slug' } });
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+
+    expect(
+      await screen.findByText('Referral slug already in use. Choose another.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
+
+    fireEvent.change(slugInput, { target: { value: 'taken-slug-x' } });
+    expect(screen.getByRole('button', { name: 'Update service' })).not.toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+    await vi.waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(2);
     });
   });
 });
