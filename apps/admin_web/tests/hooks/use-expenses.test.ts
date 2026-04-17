@@ -9,6 +9,7 @@ const {
   mockMarkAdminExpensePaid,
   mockReparseAdminExpense,
   mockCreateAdminAsset,
+  mockDeleteAdminAsset,
   mockUploadFileToPresignedUrl,
   mockRefetch,
   paginatedState,
@@ -36,6 +37,7 @@ const {
     mockMarkAdminExpensePaid: vi.fn(),
     mockReparseAdminExpense: vi.fn(),
     mockCreateAdminAsset: vi.fn(),
+    mockDeleteAdminAsset: vi.fn(),
     mockUploadFileToPresignedUrl: vi.fn(),
     mockRefetch,
     paginatedState,
@@ -58,6 +60,7 @@ vi.mock('@/lib/expenses-api', () => ({
 
 vi.mock('@/lib/assets-api', () => ({
   createAdminAsset: mockCreateAdminAsset,
+  deleteAdminAsset: mockDeleteAdminAsset,
   uploadFileToPresignedUrl: mockUploadFileToPresignedUrl,
 }));
 
@@ -343,6 +346,163 @@ describe('useExpenses', () => {
       }
     });
 
+    expect(result.current.mutationError).toBe('Server error');
+  });
+
+  it('cleans up uploaded assets when create fails after upload', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-orphan' },
+      upload: { uploadUrl: 'https://s3.example.com/put', uploadMethod: 'PUT', uploadHeaders: {} },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockCreateAdminExpense.mockRejectedValue(new Error('vendor_id is required'));
+    mockDeleteAdminAsset.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useExpenses());
+    const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
+
+    await act(async () => {
+      try {
+        await result.current.createExpenseEntry({
+          input: {
+            status: 'submitted',
+            vendorId: null,
+            invoiceNumber: null,
+            invoiceDate: null,
+            dueDate: null,
+            currency: null,
+            subtotal: null,
+            tax: null,
+            total: null,
+            notes: null,
+            lineItems: [],
+            parseRequested: false,
+          },
+          files: [file],
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockDeleteAdminAsset).toHaveBeenCalledWith('asset-orphan');
+    expect(result.current.mutationError).toBe('vendor_id is required');
+  });
+
+  it('cleans up newly uploaded assets when update fails without touching existing ones', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-new' },
+      upload: { uploadUrl: 'https://s3.example.com/put', uploadMethod: 'PUT', uploadHeaders: {} },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockUpdateAdminExpense.mockRejectedValue(new Error('Server error'));
+    mockDeleteAdminAsset.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useExpenses());
+    const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
+
+    await act(async () => {
+      try {
+        await result.current.updateExpenseEntry({
+          expenseId: 'exp-1',
+          input: {
+            status: 'submitted',
+            vendorId: 'vendor-1',
+            invoiceNumber: null,
+            invoiceDate: null,
+            dueDate: null,
+            currency: 'HKD',
+            subtotal: null,
+            tax: null,
+            total: null,
+            notes: null,
+            lineItems: [],
+            parseRequested: false,
+          },
+          newFiles: [file],
+          existingAttachmentAssetIds: ['asset-existing'],
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockDeleteAdminAsset).toHaveBeenCalledTimes(1);
+    expect(mockDeleteAdminAsset).toHaveBeenCalledWith('asset-new');
+    expect(mockDeleteAdminAsset).not.toHaveBeenCalledWith('asset-existing');
+  });
+
+  it('does not call delete when create succeeds', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-1' },
+      upload: { uploadUrl: 'https://s3.example.com/put', uploadMethod: 'PUT', uploadHeaders: {} },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockCreateAdminExpense.mockResolvedValue({ id: 'exp-new' });
+
+    const { result } = renderHook(() => useExpenses());
+    const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
+
+    await act(async () => {
+      await result.current.createExpenseEntry({
+        input: {
+          status: 'submitted',
+          vendorId: 'vendor-1',
+          invoiceNumber: null,
+          invoiceDate: null,
+          dueDate: null,
+          currency: 'HKD',
+          subtotal: null,
+          tax: null,
+          total: null,
+          notes: null,
+          lineItems: [],
+          parseRequested: false,
+        },
+        files: [file],
+      });
+    });
+
+    expect(mockDeleteAdminAsset).not.toHaveBeenCalled();
+  });
+
+  it('swallows delete cleanup errors and preserves mutation error', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-orphan' },
+      upload: { uploadUrl: 'https://s3.example.com/put', uploadMethod: 'PUT', uploadHeaders: {} },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockCreateAdminExpense.mockRejectedValue(new Error('Server error'));
+    mockDeleteAdminAsset.mockRejectedValue(new Error('cleanup failed'));
+
+    const { result } = renderHook(() => useExpenses());
+    const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
+
+    await act(async () => {
+      try {
+        await result.current.createExpenseEntry({
+          input: {
+            status: 'submitted',
+            vendorId: null,
+            invoiceNumber: null,
+            invoiceDate: null,
+            dueDate: null,
+            currency: null,
+            subtotal: null,
+            tax: null,
+            total: null,
+            notes: null,
+            lineItems: [],
+            parseRequested: false,
+          },
+          files: [file],
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockDeleteAdminAsset).toHaveBeenCalledWith('asset-orphan');
     expect(result.current.mutationError).toBe('Server error');
   });
 
