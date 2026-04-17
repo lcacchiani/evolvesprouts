@@ -94,6 +94,8 @@ data bug.
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
+| `booking_discount_autoapply_success` | Referral / URL-prefilled discount applied successfully (same semantics as manual apply; distinct event for funnel analysis) | `section_id`, `discount_type`, `discount_amount` | No |
+| `booking_discount_autoapply_error` | Referral / URL-prefilled discount failed (invalid code, API, or unavailable client) | `section_id`, `error_type` | No |
 | `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies | No |
 | `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
 | `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` | No |
@@ -199,6 +201,11 @@ CI enforcement:
 - `npm run validate:analytics-governance`
 
 Both checks run through Public WWW lint/verification workflows.
+
+## Admin console (optional / not in public taxonomy)
+
+The admin web app may emit **`admin_referral_qr_opened`**, **`admin_referral_qr_copied`**, and **`admin_referral_qr_downloaded`** from the discount referral QR utility (`trackAdminAnalyticsEvent`). These are **not** part of `apps/public_www/src/lib/analytics-taxonomy.json` and are currently **no-ops outside development** unless product wires them to `dataLayer`/GTM on the admin host. If they are enabled later, add GA4/GTM mappings separately from the public-site container.
+
 ## Programmatic setup prerequisites (for service-account automation)
 
 To automate GA4/GTM setup from a script, ensure the service account has:
