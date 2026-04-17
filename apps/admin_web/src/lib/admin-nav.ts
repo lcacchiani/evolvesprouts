@@ -10,7 +10,31 @@ export type AdminSectionKey = (typeof ADMIN_NAV_ITEMS)[number]['key'];
 
 export const DEFAULT_ADMIN_SECTION_PATH = '/finance' as const;
 
-export function adminSectionKeyFromPathname(pathname: string): AdminSectionKey {
-  const match = ADMIN_NAV_ITEMS.find((item) => item.href === pathname);
-  return match?.key ?? 'finance';
+export const DEFAULT_ADMIN_SECTION_KEY: AdminSectionKey = 'finance';
+
+function normalizePathname(pathname: string | null | undefined): string {
+  if (!pathname) {
+    return '/';
+  }
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
+
+export function adminSectionKeyFromPathname(
+  pathname: string | null | undefined
+): AdminSectionKey {
+  const normalized = normalizePathname(pathname);
+  const exact = ADMIN_NAV_ITEMS.find((item) => item.href === normalized);
+  if (exact) {
+    return exact.key;
+  }
+  const prefix = ADMIN_NAV_ITEMS.find((item) =>
+    normalized.startsWith(`${item.href}/`)
+  );
+  if (prefix) {
+    return prefix.key;
+  }
+  return DEFAULT_ADMIN_SECTION_KEY;
 }
