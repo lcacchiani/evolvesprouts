@@ -478,6 +478,8 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
     )
     valid_from = parse_optional_datetime(body.get("valid_from"), "valid_from")
     valid_until = parse_optional_datetime(body.get("valid_until"), "valid_until")
+    discount_value: Decimal
+    currency: str | None
     if discount_type == DiscountType.REFERRAL:
         raw_dv = body.get("discount_value")
         if raw_dv is not None and str(raw_dv).strip() != "":
