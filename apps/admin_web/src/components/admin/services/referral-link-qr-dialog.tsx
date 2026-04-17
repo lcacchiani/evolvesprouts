@@ -166,8 +166,11 @@ export function ReferralLinkQrDialog({
               ))}
             </Select>
           </div>
-          <div className='flex items-end'>
-            <div className='flex items-center gap-2 pb-1'>
+          <div>
+            <Label aria-hidden='true' className='invisible mb-1 block select-none'>
+              {' '}
+            </Label>
+            <div className='flex items-center gap-2'>
               <input
                 id='referral-qr-include-logo'
                 type='checkbox'
@@ -176,7 +179,7 @@ export function ReferralLinkQrDialog({
                 onChange={(event) => setIncludeLogoInQr(event.target.checked)}
                 disabled={Boolean(configError)}
               />
-              <Label htmlFor='referral-qr-include-logo' className='cursor-pointer font-normal'>
+              <Label htmlFor='referral-qr-include-logo' className='mb-0 cursor-pointer font-normal'>
                 Include logo in QR code
               </Label>
             </div>

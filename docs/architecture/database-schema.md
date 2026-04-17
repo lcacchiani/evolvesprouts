@@ -400,6 +400,9 @@ Indexes:
   limits and optional validity windows.
 - Check constraint `discount_codes_value_by_type`: referral rows require
   `discount_value >= 0`; non-referral rows require `discount_value > 0`.
+- Migrations `0024_discount_referral_add_enum` (add enum label only) and
+  `0025_discount_codes_value_check` (replace CHECK) are split because PostgreSQL
+  does not allow referencing a newly added enum value in the same transaction.
 
 ### `enrollments`
 

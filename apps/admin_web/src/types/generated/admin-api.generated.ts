@@ -4038,9 +4038,9 @@ export interface components {
             code: string;
             description?: string | null;
             discount_type: components["schemas"]["DiscountType"];
-            /** @description For `referral` type this value is ignored; the server coerces it to "0". */
+            /** @description For `referral` type the server coerces this to "0"; client-supplied values are ignored (including malformed strings). */
             discount_value: string;
-            /** @description For `referral` type this is ignored; the server coerces it to "HKD". */
+            /** @description For `referral` type the server coerces this to "HKD"; client-supplied values are ignored. */
             currency?: string | null;
             /** Format: date-time */
             valid_from?: string | null;
@@ -4056,9 +4056,9 @@ export interface components {
         UpdateDiscountCodeRequest: {
             description?: string | null;
             discount_type?: components["schemas"]["DiscountType"];
-            /** @description For `referral` type this value is ignored; the server coerces it to "0". */
+            /** @description When the resulting type is `referral`, the server coerces this to "0"; client-supplied values are ignored. */
             discount_value?: string;
-            /** @description For `referral` type this is ignored; the server coerces it to "HKD". */
+            /** @description When the resulting type is `referral`, the server coerces this to "HKD"; client-supplied values are ignored. */
             currency?: string | null;
             /** Format: date-time */
             valid_from?: string | null;

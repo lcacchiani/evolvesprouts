@@ -3805,12 +3805,14 @@ components:
         discount_value:
           type: string
           description: >
-            For `referral` type this value is ignored; the server coerces it to "0".
+            For `referral` type the server coerces this to "0"; client-supplied
+            values are ignored (including malformed strings).
         currency:
           type: string
           nullable: true
           description: >
-            For `referral` type this is ignored; the server coerces it to "HKD".
+            For `referral` type the server coerces this to "HKD"; client-supplied
+            values are ignored.
         valid_from:
           type: string
           format: date-time
@@ -3845,12 +3847,14 @@ components:
         discount_value:
           type: string
           description: >
-            For `referral` type this value is ignored; the server coerces it to "0".
+            When the resulting type is `referral`, the server coerces this to "0";
+            client-supplied values are ignored.
         currency:
           type: string
           nullable: true
           description: >
-            For `referral` type this is ignored; the server coerces it to "HKD".
+            When the resulting type is `referral`, the server coerces this to "HKD";
+            client-supplied values are ignored.
         valid_from:
           type: string
           format: date-time

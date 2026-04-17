@@ -53,6 +53,7 @@ _SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _MAX_SERVICE_SLUG_LENGTH = 80
 logger = get_logger(__name__)
 
+# Sibling defaults: admin_web `REFERRAL_DEFAULT_*` in `apps/admin_web/src/types/services.ts`.
 REFERRAL_DEFAULT_DISCOUNT_VALUE = Decimal("0")
 REFERRAL_DEFAULT_CURRENCY = "HKD"
 
@@ -481,9 +482,6 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
     discount_value: Decimal
     currency: str | None
     if discount_type == DiscountType.REFERRAL:
-        raw_dv = body.get("discount_value")
-        if raw_dv is not None and str(raw_dv).strip() != "":
-            parse_optional_decimal(raw_dv, "discount_value")
         discount_value = REFERRAL_DEFAULT_DISCOUNT_VALUE
         currency = REFERRAL_DEFAULT_CURRENCY
     else:
