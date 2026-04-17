@@ -24,4 +24,8 @@ describe('bumpDuplicateDiscountCode', () => {
     expect(`${root}COPY`.length).toBe(MAX_DISCOUNT_CODE_LENGTH);
     expect(bumpDuplicateDiscountCode(`${root}COPY`)).toBe(`${root.slice(0, -1)}COPY2`);
   });
+
+  it('returns COPY for blank input', () => {
+    expect(bumpDuplicateDiscountCode('   ')).toBe('COPY');
+  });
 });

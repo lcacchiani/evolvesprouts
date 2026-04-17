@@ -96,14 +96,6 @@ export function ReferralLinkQrDialog({
     };
   }, [builtUrl, open]);
 
-  async function copyUrl() {
-    if (!builtUrl || typeof navigator === 'undefined' || !navigator.clipboard) {
-      return;
-    }
-    await navigator.clipboard.writeText(builtUrl);
-    trackAdminAnalyticsEvent('admin_referral_qr_copied', { service_slug: analyticsSlugTag });
-  }
-
   async function downloadPng(size: number) {
     if (!builtUrl) {
       return;
@@ -182,20 +174,9 @@ export function ReferralLinkQrDialog({
         </div>
         <div className='space-y-2'>
           <Label>Preview URL</Label>
-          <div className='flex flex-wrap items-center gap-2'>
-            <code className='max-w-full flex-1 break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800'>
-              {builtUrl || '—'}
-            </code>
-            <Button
-              type='button'
-              size='sm'
-              variant='secondary'
-              disabled={!builtUrl}
-              onClick={() => void copyUrl()}
-            >
-              Copy
-            </Button>
-          </div>
+          <code className='block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800'>
+            {builtUrl || '—'}
+          </code>
         </div>
         <div className='space-y-2'>
           <Label>QR preview</Label>
