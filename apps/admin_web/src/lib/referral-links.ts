@@ -13,12 +13,6 @@ export const REFERRAL_LOCALE_DISPLAY_LABELS: Record<MyBestAuntieReferralLocale, 
 
 export type ReferralParamName = 'ref' | 'discount';
 
-/** Select labels for query param style; URL still uses `ref` or `discount`. */
-export const REFERRAL_PARAM_DISPLAY_LABELS: Record<ReferralParamName, string> = {
-  ref: 'Referral',
-  discount: 'Discount',
-};
-
 export interface BuildMyBestAuntieReferralUrlInput {
   baseUrl: string;
   locale: string;

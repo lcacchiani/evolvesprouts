@@ -36,13 +36,14 @@ describe('ReferralLinkQrDialog', () => {
         onClose={() => {}}
         discountCode='SAVE10'
         serviceSlug='my-best-auntie-training-course'
+        discountType='percentage'
       />,
     );
 
     await vi.waitFor(() => {
       expect(
         screen.getByRole('link', {
-          name: 'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
+          name: 'https://www.example.com/en/services/my-best-auntie-training-course?discount=SAVE10',
         }),
       ).toBeInTheDocument();
     });
@@ -58,6 +59,46 @@ describe('ReferralLinkQrDialog', () => {
     expect(screen.queryByRole('button', { name: 'Copy' })).not.toBeInTheDocument();
   });
 
+  it('uses ref query param when discountType is referral', async () => {
+    render(
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='SAVE10'
+        serviceSlug='my-best-auntie-training-course'
+        discountType='referral'
+      />,
+    );
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', {
+          name: 'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('uses discount query param when discountType is absolute', async () => {
+    render(
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='SAVE10'
+        serviceSlug='my-best-auntie-training-course'
+        discountType='absolute'
+      />,
+    );
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', {
+          name: 'https://www.example.com/en/services/my-best-auntie-training-course?discount=SAVE10',
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('download uses createObjectURL', async () => {
     const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
     const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
@@ -67,7 +108,13 @@ describe('ReferralLinkQrDialog', () => {
     }) as typeof fetch;
 
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} />,
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='ABC'
+        serviceSlug={null}
+        discountType='percentage'
+      />,
     );
 
     await vi.waitFor(() => {
@@ -90,7 +137,7 @@ describe('ReferralLinkQrDialog', () => {
 
   it('omits logo from QR generation when include-logo is unchecked', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} discountType='percentage' />,
     );
 
     await vi.waitFor(() => {
@@ -111,12 +158,37 @@ describe('ReferralLinkQrDialog', () => {
 
   it('labels inner content for screen readers', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' serviceSlug={null} />,
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='SAVE10'
+        serviceSlug={null}
+        discountType='percentage'
+      />,
     );
     await vi.waitFor(() => {
       expect(
         screen.getByLabelText('Referral link configuration and preview'),
       ).toBeInTheDocument();
     });
+  });
+
+  it('does not render URL parameter selector', () => {
+    render(
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
+    );
+    expect(screen.queryByLabelText('URL parameter')).toBeNull();
+  });
+
+  it('places include-logo checkbox in the same two-column grid as locale', () => {
+    const { container } = render(
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: /include logo in qr code/i });
+    const localeSelect = screen.getByLabelText('Locale');
+    const grid = container.querySelector('.sm\\:grid-cols-2');
+    expect(grid).toBeTruthy();
+    expect(grid?.contains(checkbox)).toBe(true);
+    expect(grid?.contains(localeSelect)).toBe(true);
   });
 });

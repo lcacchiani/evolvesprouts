@@ -13,10 +13,10 @@ import {
   buildPublicReferralUrlWithSlug,
   MY_BEST_AUNTIE_REFERRAL_LOCALES,
   REFERRAL_LOCALE_DISPLAY_LABELS,
-  REFERRAL_PARAM_DISPLAY_LABELS,
   type MyBestAuntieReferralLocale,
   type ReferralParamName,
 } from '@/lib/referral-links';
+import type { DiscountType } from '@/types/services';
 
 export interface ReferralLinkQrDialogProps {
   open: boolean;
@@ -24,6 +24,7 @@ export interface ReferralLinkQrDialogProps {
   discountCode: string;
   /** Public `services.slug` for deep link, or null for locale home. */
   serviceSlug: string | null;
+  discountType: DiscountType;
 }
 
 export function ReferralLinkQrDialog({
@@ -31,9 +32,10 @@ export function ReferralLinkQrDialog({
   onClose,
   discountCode,
   serviceSlug,
+  discountType,
 }: ReferralLinkQrDialogProps) {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
-  const [paramName, setParamName] = useState<ReferralParamName>('ref');
+  const paramName: ReferralParamName = discountType === 'referral' ? 'ref' : 'discount';
   const [includeLogoInQr, setIncludeLogoInQr] = useState(true);
   const [previewDataUrl, setPreviewDataUrl] = useState('');
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
@@ -164,34 +166,21 @@ export function ReferralLinkQrDialog({
               ))}
             </Select>
           </div>
-          <div>
-            <Label htmlFor='referral-param'>URL parameter</Label>
-            <Select
-              id='referral-param'
-              value={paramName}
-              onChange={(event) => setParamName(event.target.value as ReferralParamName)}
-              disabled={Boolean(configError)}
-            >
-              {(['ref', 'discount'] as const satisfies readonly ReferralParamName[]).map((name) => (
-                <option key={name} value={name}>
-                  {REFERRAL_PARAM_DISPLAY_LABELS[name]}
-                </option>
-              ))}
-            </Select>
+          <div className='flex items-end'>
+            <div className='flex items-center gap-2 pb-1'>
+              <input
+                id='referral-qr-include-logo'
+                type='checkbox'
+                className='h-4 w-4 rounded border-slate-300 text-slate-900'
+                checked={includeLogoInQr}
+                onChange={(event) => setIncludeLogoInQr(event.target.checked)}
+                disabled={Boolean(configError)}
+              />
+              <Label htmlFor='referral-qr-include-logo' className='cursor-pointer font-normal'>
+                Include logo in QR code
+              </Label>
+            </div>
           </div>
-        </div>
-        <div className='flex items-center gap-2'>
-          <input
-            id='referral-qr-include-logo'
-            type='checkbox'
-            className='h-4 w-4 rounded border-slate-300 text-slate-900'
-            checked={includeLogoInQr}
-            onChange={(event) => setIncludeLogoInQr(event.target.checked)}
-            disabled={Boolean(configError)}
-          />
-          <Label htmlFor='referral-qr-include-logo' className='cursor-pointer font-normal'>
-            Include logo in QR code
-          </Label>
         </div>
         <div className='space-y-2'>
           <Label htmlFor='referral-preview-url'>Preview URL</Label>
