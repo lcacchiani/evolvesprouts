@@ -1,20 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildDuplicateDiscountCodeName, MAX_DISCOUNT_CODE_LENGTH } from '@/lib/discount-code-duplicate';
+import { bumpDuplicateDiscountCode, MAX_DISCOUNT_CODE_LENGTH } from '@/lib/discount-code-duplicate';
 
-describe('buildDuplicateDiscountCodeName', () => {
-  it('appends COPY when within max length', () => {
-    expect(buildDuplicateDiscountCodeName('SAVE10')).toBe('SAVE10COPY');
+describe('bumpDuplicateDiscountCode', () => {
+  it('appends COPY on first bump', () => {
+    expect(bumpDuplicateDiscountCode('SAVE10')).toBe('SAVE10COPY');
   });
 
-  it('trims base so base plus COPY fits max length', () => {
+  it('increments COPY suffix', () => {
+    expect(bumpDuplicateDiscountCode('SAVE10COPY')).toBe('SAVE10COPY2');
+    expect(bumpDuplicateDiscountCode('SAVE10COPY2')).toBe('SAVE10COPY3');
+  });
+
+  it('trims base to respect max length', () => {
     const base = 'A'.repeat(MAX_DISCOUNT_CODE_LENGTH);
-    const out = buildDuplicateDiscountCodeName(base);
+    const out = bumpDuplicateDiscountCode(base);
     expect(out.length).toBe(MAX_DISCOUNT_CODE_LENGTH);
     expect(out.endsWith('COPY')).toBe(true);
   });
 
+  it('bumps COPY to COPY2 at max length (trims one char of root for longer suffix)', () => {
+    const root = 'B'.repeat(MAX_DISCOUNT_CODE_LENGTH - 4);
+    expect(`${root}COPY`.length).toBe(MAX_DISCOUNT_CODE_LENGTH);
+    expect(bumpDuplicateDiscountCode(`${root}COPY`)).toBe(`${root.slice(0, -1)}COPY2`);
+  });
+
   it('returns COPY for blank input', () => {
-    expect(buildDuplicateDiscountCodeName('   ')).toBe('COPY');
+    expect(bumpDuplicateDiscountCode('   ')).toBe('COPY');
   });
 });

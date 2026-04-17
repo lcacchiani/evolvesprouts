@@ -186,9 +186,7 @@ def _is_discount_code_unique_violation(exc: IntegrityError) -> bool:
     if constraint == "discount_codes_code_unique_idx":
         return True
     message = str(exc).lower()
-    if "discount_codes_code_unique_idx" not in message:
-        return False
-    return True
+    return "discount_codes_code_unique_idx" in message
 
 
 def _update_discount_code(

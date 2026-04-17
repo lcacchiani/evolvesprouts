@@ -16,7 +16,7 @@ import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
-import { buildDuplicateDiscountCodeName } from '@/lib/discount-code-duplicate';
+import { bumpDuplicateDiscountCode } from '@/lib/discount-code-duplicate';
 import {
   DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
   isDiscountValidityRangeInverted,
@@ -205,23 +205,33 @@ export function DiscountCodesPanel({
       service_id: serviceUuid,
       instance_id: instanceUuid,
     };
+    const isDuplicateCodeError = (err: unknown) =>
+      err instanceof AdminApiError &&
+      err.statusCode === 409 &&
+      readAdminApiErrorField(err) === 'code';
+
     try {
       if (editorMode === 'create') {
-        try {
-          await onCreate(createPayload);
-        } catch (firstErr) {
-          const isDuplicateCode =
-            firstErr instanceof AdminApiError &&
-            firstErr.statusCode === 409 &&
-            readAdminApiErrorField(firstErr) === 'code';
-          if (!isDuplicateCode) {
-            throw firstErr;
+        let attemptCode = createPayload.code;
+        const maxDuplicateRetries = 64;
+        for (let round = 0; round < maxDuplicateRetries; round += 1) {
+          try {
+            await onCreate({ ...createPayload, code: attemptCode });
+            resetCreateForm();
+            return;
+          } catch (err) {
+            if (!isDuplicateCodeError(err)) {
+              throw err;
+            }
+            const nextCode = bumpDuplicateDiscountCode(attemptCode);
+            if (nextCode === attemptCode) {
+              throw err;
+            }
+            attemptCode = nextCode;
+            setCode(nextCode);
           }
-          const retryCode = buildDuplicateDiscountCodeName(code);
-          setCode(retryCode);
-          await onCreate({ ...createPayload, code: retryCode });
         }
-        resetCreateForm();
+        setSaveError('Could not allocate a unique discount code. Try a shorter base code.');
         return;
       }
       if (!selectedCode) {

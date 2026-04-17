@@ -7,6 +7,7 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.exc import IntegrityError
 

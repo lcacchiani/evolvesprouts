@@ -224,16 +224,16 @@ describe('DiscountCodesPanel', () => {
     expect(onUpdate.mock.calls[0][1]).toMatchObject({ service_id: 'svc-2' });
   });
 
-  it('retries create with COPY suffix when API returns duplicate code conflict', async () => {
+  it('retries create with COPY, COPY2, … until duplicate 409 stops', async () => {
+    const duplicateErr = new AdminApiError({
+      statusCode: 409,
+      payload: { error: 'duplicate', field: 'code' },
+      message: 'A discount code with this value already exists',
+    });
     const onCreate = vi
       .fn()
-      .mockRejectedValueOnce(
-        new AdminApiError({
-          statusCode: 409,
-          payload: { error: 'duplicate', field: 'code' },
-          message: 'A discount code with this value already exists',
-        }),
-      )
+      .mockRejectedValueOnce(duplicateErr)
+      .mockRejectedValueOnce(duplicateErr)
       .mockResolvedValueOnce(undefined);
 
     render(
@@ -259,9 +259,10 @@ describe('DiscountCodesPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create code' }));
 
     await vi.waitFor(() => {
-      expect(onCreate).toHaveBeenCalledTimes(2);
+      expect(onCreate).toHaveBeenCalledTimes(3);
     });
     expect(onCreate.mock.calls[0][0]).toMatchObject({ code: 'DUP' });
     expect(onCreate.mock.calls[1][0]).toMatchObject({ code: 'DUPCOPY' });
+    expect(onCreate.mock.calls[2][0]).toMatchObject({ code: 'DUPCOPY2' });
   });
 });
