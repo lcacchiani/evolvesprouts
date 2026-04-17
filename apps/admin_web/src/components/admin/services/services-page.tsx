@@ -246,9 +246,15 @@ export function ServicesPage() {
           onShowArchivedChange={setShowArchivedDiscountServices}
           onFilterChange={state.discountCodes.setFilter}
           onLoadMore={state.discountCodes.loadMore}
-          onCreate={state.discountCodes.createCode}
+          onCreate={(payload, options) =>
+            state.discountCodes.createCode(payload, {
+              suppressSaving: options?.batchSaving,
+              suppressRefetch: options?.batchSaving,
+            })
+          }
           onUpdate={state.discountCodes.updateCode}
           onDelete={state.discountCodes.deleteCode}
+          onDiscountCodesRefresh={state.discountCodes.refetch}
         />
       ) : (
         <VenuesPanel
