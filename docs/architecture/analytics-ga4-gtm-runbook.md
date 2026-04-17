@@ -90,7 +90,7 @@ data bug.
 | `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `age_group`, `cohort_label` | No |
 | `booking_age_selected` | Age option selected | `section_id`, `age_group` | No |
 | `booking_date_selected` | Date/cohort selected | `section_id`, `cohort_label`, `is_fully_booked` | No |
-| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `age_group`, `cohort_label`, `total_amount` | No |
+| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `age_group`, `cohort_label`, `total_amount` | Yes |
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
@@ -136,6 +136,10 @@ setup below).
    - `media_form_submit_success`
    - `community_signup_submit_success`
    - `booking_submit_success`
+   - `booking_confirm_pay_click`
+     (mid-funnel intent signal; also imported into Google Ads as a
+     **Secondary** conversion — see
+     `apps/public_www/marketing/reports/google-ads-manual-setup-steps.md`)
 6. Configure internal traffic filters for team IP ranges.
 7. Configure unwanted referral exclusions and cross-domain linking if needed.
 8. Enable BigQuery export for long-term event analysis.
