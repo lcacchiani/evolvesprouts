@@ -1,7 +1,13 @@
 /** Matches admin API `parse_create_discount_code_payload` max_length for `code`. */
 export const MAX_DISCOUNT_CODE_LENGTH = 50;
 
-const TRAILING_COPY_RE = /^(.+)(COPY(\d+)?)$/;
+/** Bounded create retries when the server returns duplicate `code` (409). */
+export const MAX_DISCOUNT_CODE_DUPLICATE_CREATE_RETRIES = 16;
+
+export const DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE =
+  'Could not allocate a unique discount code. Try a shorter base code.';
+
+const TRAILING_COPY_RE = /^(.*?)(COPY(\d+)?)$/;
 
 /**
  * After a duplicate-code (409) response, derive the next candidate: append `COPY`,
@@ -20,6 +26,15 @@ export function bumpDuplicateDiscountCode(current: string): string {
   }
   const root = match[1];
   const digitPart = match[3];
+  if (!root) {
+    if (!digitPart) {
+      return 'COPY2';
+    }
+    const n = Number.parseInt(digitPart, 10);
+    const nextN = n + 1;
+    const suffix = `COPY${nextN}`;
+    return suffix.slice(0, MAX_DISCOUNT_CODE_LENGTH);
+  }
   const n = digitPart ? Number.parseInt(digitPart, 10) : 1;
   const nextN = n + 1;
   const suffix = `COPY${nextN}`;

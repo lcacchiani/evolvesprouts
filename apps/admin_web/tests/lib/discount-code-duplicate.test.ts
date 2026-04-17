@@ -28,4 +28,14 @@ describe('bumpDuplicateDiscountCode', () => {
   it('returns COPY for blank input', () => {
     expect(bumpDuplicateDiscountCode('   ')).toBe('COPY');
   });
+
+  it('bumps bare COPY and COPY<n> as sequence roots', () => {
+    expect(bumpDuplicateDiscountCode('COPY')).toBe('COPY2');
+    expect(bumpDuplicateDiscountCode('COPY2')).toBe('COPY3');
+  });
+
+  it('treats trailing COPY as suffix even when glued to letters (collision bump)', () => {
+    expect(bumpDuplicateDiscountCode('SCALLOPCOPY')).toBe('SCALLOPCOPY2');
+    expect(bumpDuplicateDiscountCode('JOYCOPY9')).toBe('JOYCOPY10');
+  });
 });

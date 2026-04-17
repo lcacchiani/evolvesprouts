@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from app.api import public_discount_validate
 from app.db.models.enums import DiscountType
