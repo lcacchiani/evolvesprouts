@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from app.api.admin_request import query_param
@@ -51,6 +52,10 @@ _MAX_CODE_LENGTH = 50
 _SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _MAX_SERVICE_SLUG_LENGTH = 80
 logger = get_logger(__name__)
+
+# Sibling defaults: admin_web `REFERRAL_DEFAULT_*` in `apps/admin_web/src/types/services.ts`.
+REFERRAL_DEFAULT_DISCOUNT_VALUE = Decimal("0")
+REFERRAL_DEFAULT_CURRENCY = "HKD"
 
 
 def parse_optional_service_slug(value: Any, field: str) -> str | None:
@@ -474,6 +479,16 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
     )
     valid_from = parse_optional_datetime(body.get("valid_from"), "valid_from")
     valid_until = parse_optional_datetime(body.get("valid_until"), "valid_until")
+    discount_value: Decimal
+    currency: str | None
+    if discount_type == DiscountType.REFERRAL:
+        discount_value = REFERRAL_DEFAULT_DISCOUNT_VALUE
+        currency = REFERRAL_DEFAULT_CURRENCY
+    else:
+        discount_value = parse_required_decimal(
+            body.get("discount_value"), "discount_value"
+        )
+        currency = parse_optional_currency(body.get("currency"), "currency")
     payload = {
         "code": parse_required_text(
             body.get("code"), "code", max_length=_MAX_CODE_LENGTH
@@ -482,10 +497,8 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
         "discount_type": discount_type,
-        "discount_value": parse_required_decimal(
-            body.get("discount_value"), "discount_value"
-        ),
-        "currency": parse_optional_currency(body.get("currency"), "currency"),
+        "discount_value": discount_value,
+        "currency": currency,
         "valid_from": valid_from,
         "valid_until": valid_until,
         "service_id": parse_optional_uuid(body.get("service_id"), "service_id"),
@@ -544,6 +557,9 @@ def parse_update_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         payload["active"] = parse_required_bool(body.get("active"), "active")
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")
+    if payload.get("discount_type") == DiscountType.REFERRAL:
+        payload["discount_value"] = REFERRAL_DEFAULT_DISCOUNT_VALUE
+        payload["currency"] = REFERRAL_DEFAULT_CURRENCY
     return payload
 
 

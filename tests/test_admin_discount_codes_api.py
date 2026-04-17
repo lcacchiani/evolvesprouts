@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
@@ -10,7 +11,14 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.api import admin_discount_codes
-from app.api.admin_services_payloads import ensure_discount_validity_window
+from app.api.admin_services_payloads import (
+    REFERRAL_DEFAULT_CURRENCY,
+    REFERRAL_DEFAULT_DISCOUNT_VALUE,
+    ensure_discount_validity_window,
+    parse_create_discount_code_payload,
+    parse_update_discount_code_payload,
+)
+from app.db.models.enums import DiscountType
 from app.exceptions import ValidationError
 
 
@@ -119,3 +127,107 @@ def test_is_discount_code_unique_violation_false_for_other_constraint() -> None:
 
     exc = IntegrityError("stmt", {}, _FakeOrig())
     assert admin_discount_codes._is_discount_code_unique_violation(exc) is False
+
+
+def test_parse_create_discount_code_referral_coerces_value_and_currency() -> None:
+    payload = parse_create_discount_code_payload(
+        {
+            "code": "REF1",
+            "discount_type": "referral",
+            "discount_value": "99",
+            "currency": "USD",
+        }
+    )
+    assert payload["discount_type"] == DiscountType.REFERRAL
+    assert payload["discount_value"] == REFERRAL_DEFAULT_DISCOUNT_VALUE
+    assert payload["currency"] == REFERRAL_DEFAULT_CURRENCY
+
+
+def test_parse_create_discount_code_referral_accepts_missing_currency() -> None:
+    payload = parse_create_discount_code_payload(
+        {
+            "code": "REF2",
+            "discount_type": "referral",
+            "discount_value": "0",
+        }
+    )
+    assert payload["currency"] == REFERRAL_DEFAULT_CURRENCY
+
+
+def test_parse_update_discount_code_referral_type_coerces() -> None:
+    payload = parse_update_discount_code_payload(
+        {"discount_type": "referral", "discount_value": "50"}
+    )
+    assert payload["discount_type"] == DiscountType.REFERRAL
+    assert payload["discount_value"] == REFERRAL_DEFAULT_DISCOUNT_VALUE
+    assert payload["currency"] == REFERRAL_DEFAULT_CURRENCY
+
+
+def test_update_discount_code_clamps_partial_payload_for_existing_referral(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    code_id = uuid4()
+    row = SimpleNamespace(
+        id=code_id,
+        description=None,
+        discount_type=DiscountType.REFERRAL,
+        discount_value=Decimal("0"),
+        currency="HKD",
+        valid_from=None,
+        valid_until=None,
+        service_id=None,
+        instance_id=None,
+        max_uses=None,
+        active=True,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id(self, _id: Any) -> Any:
+            return row
+
+        def update(self, entity: Any) -> Any:
+            return entity
+
+    monkeypatch.setattr(admin_discount_codes, "Session", _SessionCtx)
+    monkeypatch.setattr(admin_discount_codes, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_discount_codes, "parse_body", lambda _e: {})
+    monkeypatch.setattr(
+        admin_discount_codes,
+        "parse_update_discount_code_payload",
+        lambda _body: {"discount_value": Decimal("25")},
+    )
+    monkeypatch.setattr(admin_discount_codes, "set_audit_context", lambda *_a, **_k: None)
+    monkeypatch.setattr(admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None)
+    monkeypatch.setattr(admin_discount_codes, "DiscountCodeRepository", _FakeRepo)
+    monkeypatch.setattr(
+        admin_discount_codes,
+        "serialize_discount_code",
+        lambda _c: {"id": str(code_id)},
+    )
+
+    admin_discount_codes._update_discount_code(
+        api_gateway_event(method="PUT", path=f"/v1/admin/discount-codes/{code_id}"),
+        code_id=code_id,
+        actor_sub="sub-1",
+    )
+
+    assert row.discount_value == REFERRAL_DEFAULT_DISCOUNT_VALUE
+    assert row.currency == REFERRAL_DEFAULT_CURRENCY

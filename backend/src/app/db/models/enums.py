@@ -232,6 +232,7 @@ class DiscountType(str, enum.Enum):
 
     PERCENTAGE = "percentage"
     ABSOLUTE = "absolute"
+    REFERRAL = "referral"
 
 
 class EnrollmentStatus(str, enum.Enum):

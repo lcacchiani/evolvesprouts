@@ -87,7 +87,21 @@ def handle_public_discount_validate(
 
         repository = DiscountCodeRepository(session)
         row = repository.get_by_code(code)
-        if row is None or not _is_usable_now(row):
+        if row is None:
+            return json_response(
+                404,
+                {"error": "Discount code not found or inactive"},
+                event=event,
+            )
+
+        if row.discount_type == DiscountType.REFERRAL:
+            return json_response(
+                404,
+                {"error": "Discount code not found or inactive"},
+                event=event,
+            )
+
+        if not _is_usable_now(row):
             return json_response(
                 404,
                 {"error": "Discount code not found or inactive"},

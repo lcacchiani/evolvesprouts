@@ -3716,8 +3716,13 @@ export interface components {
         ConsultationPricingModel: "free" | "hourly" | "package";
         /** @enum {string} */
         InstanceStatus: "scheduled" | "open" | "full" | "in_progress" | "completed" | "cancelled";
-        /** @enum {string} */
-        DiscountType: "percentage" | "absolute";
+        /**
+         * @description Discount type. `referral` codes are tracking-only: the server always
+         *     coerces `discount_value` to "0" and `currency` to "HKD", and the public
+         *     discount-validate endpoint rejects referral codes.
+         * @enum {string}
+         */
+        DiscountType: "percentage" | "absolute" | "referral";
         /** @enum {string} */
         EnrollmentStatus: "registered" | "waitlisted" | "confirmed" | "cancelled" | "completed";
         ServiceTrainingDetails: {
@@ -4033,7 +4038,9 @@ export interface components {
             code: string;
             description?: string | null;
             discount_type: components["schemas"]["DiscountType"];
+            /** @description For `referral` type the server coerces this to "0"; client-supplied values are ignored (including malformed strings). */
             discount_value: string;
+            /** @description For `referral` type the server coerces this to "HKD"; client-supplied values are ignored. */
             currency?: string | null;
             /** Format: date-time */
             valid_from?: string | null;
@@ -4049,7 +4056,9 @@ export interface components {
         UpdateDiscountCodeRequest: {
             description?: string | null;
             discount_type?: components["schemas"]["DiscountType"];
+            /** @description When the resulting type is `referral`, the server coerces this to "0"; client-supplied values are ignored. */
             discount_value?: string;
+            /** @description When the resulting type is `referral`, the server coerces this to "HKD"; client-supplied values are ignored. */
             currency?: string | null;
             /** Format: date-time */
             valid_from?: string | null;

@@ -25,6 +25,7 @@ import {
   DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
   isDiscountValidityRangeInverted,
 } from '@/lib/discount-validity';
+import { formatDiscountRowValue } from '@/lib/discount-row-format';
 import {
   formatDate,
   formatEnumLabel,
@@ -34,7 +35,11 @@ import {
 } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import { DISCOUNT_TYPES } from '@/types/services';
+import {
+  DISCOUNT_TYPES,
+  REFERRAL_DEFAULT_CURRENCY,
+  REFERRAL_DEFAULT_DISCOUNT_VALUE,
+} from '@/types/services';
 import type { DiscountCode, DiscountCodeFilters, DiscountType, ServiceSummary } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
@@ -137,11 +142,13 @@ export function DiscountCodesPanel({
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [referralServiceSlug, setReferralServiceSlug] = useState<string | null>(null);
+  const [referralDiscountType, setReferralDiscountType] = useState<DiscountType>('percentage');
   const [isBatchCreating, setIsBatchCreating] = useState(false);
   const directoryList = serviceDirectoryForDisplay ?? serviceOptions;
   const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions(instanceOptionsRefreshKey);
   const currencyOptions = getCurrencyOptions();
+  const isReferral = discountType === 'referral';
 
   const serviceById = useMemo(() => {
     const map = new Map<string, ServiceSummary>();
@@ -208,8 +215,8 @@ export function DiscountCodesPanel({
       code: code.trim().toUpperCase(),
       description: description.trim() || null,
       discount_type: discountType as DiscountType,
-      discount_value: discountValue.trim(),
-      currency: currency.trim() || null,
+      discount_value: isReferral ? REFERRAL_DEFAULT_DISCOUNT_VALUE : discountValue.trim(),
+      currency: isReferral ? REFERRAL_DEFAULT_CURRENCY : currency.trim() || null,
       valid_from: validFromIso,
       valid_until: validUntilIso,
       max_uses: maxUses ? Number(maxUses) : null,
@@ -279,8 +286,8 @@ export function DiscountCodesPanel({
       await onUpdate(selectedCode.id, {
         description: description.trim() || null,
         discount_type: discountType as DiscountType,
-        discount_value: discountValue.trim(),
-        currency: currency.trim() || null,
+        discount_value: isReferral ? REFERRAL_DEFAULT_DISCOUNT_VALUE : discountValue.trim(),
+        currency: isReferral ? REFERRAL_DEFAULT_CURRENCY : currency.trim() || null,
         valid_from: validFromIso,
         valid_until: validUntilIso,
         max_uses: maxUses ? Number(maxUses) : null,
@@ -339,6 +346,7 @@ export function DiscountCodesPanel({
 
   function openReferralDialog(entry: DiscountCode) {
     setReferralCode(entry.code);
+    setReferralDiscountType(entry.discountType);
     const slug = entry.serviceId ? serviceById.get(entry.serviceId)?.slug?.trim() ?? null : null;
     setReferralServiceSlug(slug && slug.length ? slug : null);
     setReferralOpen(true);
@@ -363,7 +371,7 @@ export function DiscountCodesPanel({
               disabled={
                 editorIsBusy ||
                 !code.trim() ||
-                !discountValue.trim() ||
+                (!isReferral && !discountValue.trim()) ||
                 isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)
               }
               onClick={() => void handleSubmit()}
@@ -391,7 +399,17 @@ export function DiscountCodesPanel({
             <Select
               id='discount-type'
               value={discountType}
-              onChange={(event) => setDiscountType(event.target.value as ApiSchemas['DiscountType'])}
+              onChange={(event) => {
+                const next = event.target.value as ApiSchemas['DiscountType'];
+                const prev = discountType;
+                setDiscountType(next);
+                if (next === 'referral') {
+                  setDiscountValue(REFERRAL_DEFAULT_DISCOUNT_VALUE);
+                  setCurrency(REFERRAL_DEFAULT_CURRENCY);
+                } else if (prev === 'referral') {
+                  setDiscountValue('');
+                }
+              }}
             >
               {DISCOUNT_TYPES.map((entry) => (
                 <option key={entry} value={entry}>
@@ -468,7 +486,12 @@ export function DiscountCodesPanel({
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
           <div>
             <Label htmlFor='discount-value'>Value</Label>
-            <Input id='discount-value' value={discountValue} onChange={(event) => setDiscountValue(event.target.value)} />
+            <Input
+              id='discount-value'
+              value={discountValue}
+              onChange={(event) => setDiscountValue(event.target.value)}
+              disabled={isReferral}
+            />
           </div>
           <div>
             <Label htmlFor='discount-currency'>Currency</Label>
@@ -476,7 +499,7 @@ export function DiscountCodesPanel({
               id='discount-currency'
               value={currency}
               onChange={(event) => setCurrency(event.target.value)}
-              disabled={discountType === 'percentage'}
+              disabled={discountType === 'percentage' || isReferral}
             >
               {currencyOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -601,11 +624,7 @@ export function DiscountCodesPanel({
                 <td className='px-4 py-3 text-sm text-slate-700'>{formatScopeSummary(row, serviceById)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
-                <td className='px-4 py-3'>
-                  {row.discountType === 'percentage'
-                    ? `${row.discountValue}%`
-                    : `${row.discountValue} ${row.currency ?? ''}`.trim()}
-                </td>
+                <td className='px-4 py-3'>{formatDiscountRowValue(row)}</td>
                 <td className='px-4 py-3'>
                   {row.currentUses}/{row.maxUses ?? '∞'}
                 </td>
@@ -616,7 +635,7 @@ export function DiscountCodesPanel({
                       type='button'
                       size='sm'
                       variant='secondary'
-                      disabled={isSaving}
+                      disabled={editorIsBusy}
                       onClick={(event) => {
                         event.stopPropagation();
                         openReferralDialog(row);
@@ -630,7 +649,7 @@ export function DiscountCodesPanel({
                       type='button'
                       size='sm'
                       variant='secondary'
-                      disabled={isSaving}
+                      disabled={editorIsBusy}
                       onClick={() => void handleCopyCode(row.code)}
                       aria-label='Copy discount code'
                       title='Copy code'
@@ -641,7 +660,7 @@ export function DiscountCodesPanel({
                       type='button'
                       size='sm'
                       variant='danger'
-                      disabled={isSaving}
+                      disabled={editorIsBusy}
                       onClick={() => void handleDeleteCode(row)}
                       aria-label='Delete discount code'
                       title='Delete discount code'
@@ -661,6 +680,7 @@ export function DiscountCodesPanel({
         open={referralOpen}
         discountCode={referralCode}
         serviceSlug={referralServiceSlug}
+        discountType={referralDiscountType}
         onClose={() => setReferralOpen(false)}
       />
     </div>

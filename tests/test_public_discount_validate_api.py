@@ -212,6 +212,123 @@ def test_public_discount_validate_returns_rule_for_absolute_discount(
     assert body["data"]["currency_symbol"] == "HK$"
 
 
+def test_public_discount_validate_returns_404_for_referral_type_when_active(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = SimpleNamespace(
+        id=uuid4(),
+        code="REFTRACK",
+        description=None,
+        discount_type=DiscountType.REFERRAL,
+        discount_value=Decimal("0.00"),
+        currency="HKD",
+        active=True,
+        valid_from=None,
+        valid_until=None,
+        max_uses=None,
+        current_uses=0,
+        service_id=None,
+        instance_id=None,
+    )
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, code: str) -> Any:
+            assert code.strip().lower() == "reftrack"
+            return row
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeRepository,
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "REFTRACK"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+    body = json.loads(response["body"])
+    assert body["error"] == "Discount code not found or inactive"
+
+
+def test_public_discount_validate_returns_404_for_referral_type_when_inactive(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = SimpleNamespace(
+        id=uuid4(),
+        code="REFOFF",
+        description=None,
+        discount_type=DiscountType.REFERRAL,
+        discount_value=Decimal("0.00"),
+        currency="HKD",
+        active=False,
+        valid_from=None,
+        valid_until=None,
+        max_uses=None,
+        current_uses=0,
+        service_id=None,
+        instance_id=None,
+    )
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> Any:
+            return row
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeRepository,
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "REFOFF"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
 def test_public_discount_validate_returns_404_when_inactive(
     monkeypatch: Any,
     api_gateway_event: Any,

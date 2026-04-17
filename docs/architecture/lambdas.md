@@ -60,7 +60,9 @@ their primary responsibilities.
   and `GET /v1/assets/free`,
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
-  `service_key` is resolved case-insensitively against `services.slug` in Aurora),
+  `service_key` is resolved case-insensitively against `services.slug` in Aurora;
+  codes with `discount_type` `referral` are rejected with the same 404 envelope as
+  unknown/inactive codes),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`

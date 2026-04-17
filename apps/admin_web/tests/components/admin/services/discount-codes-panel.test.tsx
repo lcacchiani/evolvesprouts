@@ -14,6 +14,14 @@ vi.mock('@/hooks/use-service-instance-options', () => ({
   }),
 }));
 
+vi.mock('@/lib/config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/config')>();
+  return {
+    ...actual,
+    getPublicSiteBaseUrl: () => 'https://www.example.com',
+  };
+});
+
 describe('DiscountCodesPanel', () => {
   const baseService = {
     id: 'svc-1',
@@ -222,6 +230,170 @@ describe('DiscountCodesPanel', () => {
       expect(onUpdate).toHaveBeenCalled();
     });
     expect(onUpdate.mock.calls[0][1]).toMatchObject({ service_id: 'svc-2' });
+  });
+
+  it('referral type sets value and currency, disables inputs, and submits defaults', async () => {
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <DiscountCodesPanel
+        codes={[]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'REFNEW' } });
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'referral' } });
+
+    const valueInput = screen.getByLabelText('Value') as HTMLInputElement;
+    expect(valueInput).toBeDisabled();
+    expect(valueInput.value).toBe('0');
+    const currencySelect = screen.getByLabelText('Currency') as HTMLSelectElement;
+    expect(currencySelect.value).toBe('HKD');
+    expect(currencySelect).toBeDisabled();
+
+    const createBtn = screen.getByRole('button', { name: 'Create code' });
+    expect(createBtn).not.toBeDisabled();
+
+    fireEvent.click(createBtn);
+
+    await vi.waitFor(() => {
+      expect(onCreate).toHaveBeenCalled();
+    });
+    expect(onCreate.mock.calls[0][0]).toMatchObject({
+      discount_type: 'referral',
+      discount_value: '0',
+      currency: 'HKD',
+    });
+  });
+
+  it('switching away from referral clears value and re-enables value input', () => {
+    render(
+      <DiscountCodesPanel
+        codes={[]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'referral' } });
+    expect((screen.getByLabelText('Value') as HTMLInputElement).value).toBe('0');
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'percentage' } });
+    expect((screen.getByLabelText('Value') as HTMLInputElement).value).toBe('');
+    expect(screen.getByLabelText('Value')).not.toBeDisabled();
+  });
+
+  it('renders Referral in the value column for referral rows', () => {
+    const row = {
+      id: 'dc-ref',
+      code: 'TRACK',
+      description: null,
+      discountType: 'referral' as const,
+      discountValue: '0',
+      currency: 'HKD',
+      validFrom: null,
+      validUntil: null,
+      maxUses: null,
+      currentUses: 0,
+      active: true,
+      serviceId: null,
+      instanceId: null,
+      createdAt: null,
+      updatedAt: null,
+    };
+
+    render(
+      <DiscountCodesPanel
+        codes={[row]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const table = screen.getByRole('table');
+    const dataRow = screen.getByText('TRACK').closest('tr');
+    expect(dataRow).toBeTruthy();
+    expect(table.contains(dataRow)).toBe(true);
+    expect(dataRow?.textContent).toContain('Referral');
+  });
+
+  it('opens referral QR dialog with row discount type for ref param', async () => {
+    const row = {
+      id: 'dc-ref',
+      code: 'SAVE10',
+      description: null,
+      discountType: 'referral' as const,
+      discountValue: '0',
+      currency: 'HKD',
+      validFrom: null,
+      validUntil: null,
+      maxUses: null,
+      currentUses: 0,
+      active: true,
+      serviceId: 'svc-1',
+      instanceId: null,
+      createdAt: null,
+      updatedAt: null,
+    };
+
+    render(
+      <DiscountCodesPanel
+        codes={[row]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Referral link and QR' }));
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', {
+          name: 'https://www.example.com/en/services/my-best-auntie?ref=SAVE10',
+        }),
+      ).toBeInTheDocument();
+    });
   });
 
   it('retries create with COPY, COPY2, … until duplicate 409 stops', async () => {
