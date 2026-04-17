@@ -18,12 +18,17 @@ from app.api.admin_services_common import (
     request_id,
     serialize_discount_code,
 )
-from app.api.admin_services_payloads import ensure_discount_validity_window
+from app.api.admin_services_payloads import (
+    REFERRAL_DEFAULT_CURRENCY,
+    REFERRAL_DEFAULT_DISCOUNT_VALUE,
+    ensure_discount_validity_window,
+)
 from app.api.discount_scope_validation import ensure_discount_code_scope
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import DiscountCode
+from app.db.models.enums import DiscountType
 from app.db.repositories import DiscountCodeRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
@@ -215,6 +220,15 @@ def _update_discount_code(
             payload["valid_until"] if "valid_until" in payload else code.valid_until
         )
         ensure_discount_validity_window(merged_from, merged_until)
+
+        effective_type = (
+            payload["discount_type"]
+            if "discount_type" in payload
+            else code.discount_type
+        )
+        if effective_type == DiscountType.REFERRAL:
+            payload["discount_value"] = REFERRAL_DEFAULT_DISCOUNT_VALUE
+            payload["currency"] = REFERRAL_DEFAULT_CURRENCY
 
         if "description" in payload:
             code.description = payload["description"]
