@@ -53,6 +53,7 @@ def test_list_discount_codes_returns_repository_total_count(
             "active": None,
             "service_id": None,
             "instance_id": None,
+            "scope": None,
             "search": None,
             "cursor_created_at": None,
             "cursor_id": None,
@@ -83,7 +84,9 @@ def test_list_discount_codes_returns_repository_total_count(
     body = json.loads(response["body"])
     assert body["total_count"] == 17
     assert captured["list_kwargs"]["limit"] == 2
+    assert captured["list_kwargs"]["scope"] is None
     assert captured["count_kwargs"]["search"] is None
+    assert captured["count_kwargs"]["scope"] is None
 
 
 def test_ensure_discount_validity_window_rejects_inverted_range() -> None:
