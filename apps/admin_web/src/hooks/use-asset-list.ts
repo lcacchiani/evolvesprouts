@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listAdminAssets } from '@/lib/assets-api';
-import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
+import {
+  CLIENT_DOCUMENT_ASSET_TAG,
+  type AdminAsset,
+  type AssetVisibility,
+  type ListAdminAssetsInput,
+} from '@/types/assets';
 
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
@@ -13,7 +18,7 @@ type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility' | 'tagName'>;
 const DEFAULT_FILTERS: Filters = {
   query: '',
   visibility: '',
-  tagName: '',
+  tagName: CLIENT_DOCUMENT_ASSET_TAG,
 };
 
 const ASSET_LIST_TYPE_FILTER = 'document' as const;
