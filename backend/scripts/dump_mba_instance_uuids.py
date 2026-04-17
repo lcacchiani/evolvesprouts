@@ -26,7 +26,6 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Any
-from uuid import UUID
 
 # Import after path setup
 _BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
