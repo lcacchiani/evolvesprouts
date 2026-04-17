@@ -25,6 +25,7 @@ export function AssetsPage() {
     isSavingAsset,
     isDeletingAssetId,
     uploadState,
+    uploadPhase,
     uploadError,
     hasPendingUpload,
     selectedAssetId,
@@ -42,11 +43,13 @@ export function AssetsPage() {
     selectAsset,
     clearSelectedAsset,
     createAssetEntry,
+    replaceAssetFileEntry,
     updateAssetEntry,
     deleteAssetEntry,
     createGrantEntry,
     deleteGrantEntry,
     retryPendingUpload,
+    replaceSuccessNonce,
   } = useAdminAssets();
 
   return (
@@ -59,15 +62,22 @@ export function AssetsPage() {
 
       <div className='grid grid-cols-1 gap-6 xl:grid-cols-2'>
         <AssetEditorPanel
-          key={selectedAsset?.id ?? 'new-asset'}
+          key={`${selectedAsset?.id ?? 'new-asset'}-${replaceSuccessNonce}`}
           selectedAsset={selectedAsset}
           isSavingAsset={isSavingAsset}
           isDeletingCurrentAsset={Boolean(selectedAssetId) && isDeletingAssetId === selectedAssetId}
           assetMutationError={assetMutationError}
           uploadState={uploadState}
+          uploadPhase={uploadPhase}
           uploadError={uploadError}
           hasPendingUpload={hasPendingUpload}
           onRetryUpload={retryPendingUpload}
+          onReplaceFile={async (file) => {
+            if (!selectedAssetId) {
+              return false;
+            }
+            return replaceAssetFileEntry(selectedAssetId, file, DEFAULT_CONTENT_TYPE);
+          }}
           onCreate={async (payload, file) => {
             try {
               await createAssetEntry(
@@ -85,8 +95,9 @@ export function AssetsPage() {
           onUpdate={async (assetId, payload) => {
             try {
               await updateAssetEntry(assetId, payload);
+              return true;
             } catch {
-              // The hook stores the actionable error state for UI display.
+              return false;
             }
           }}
           onStartCreate={clearSelectedAsset}

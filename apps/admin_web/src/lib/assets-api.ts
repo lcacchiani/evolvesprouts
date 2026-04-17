@@ -11,6 +11,7 @@ import type {
   AssetVisibility,
   CreateAssetGrantInput,
   CreatedAssetUpload,
+  InitAdminAssetContentReplaceUpload,
   ListAdminAssetsInput,
   PaginatedList,
   UpdateAdminAssetPatchInput,
@@ -47,6 +48,10 @@ type ApiAssetGrantPayload =
   | ApiAssetGrant
   | ApiDataWrapper<ApiAssetGrantResponse | ApiAssetGrant>;
 type ApiCreateAssetPayload = ApiCreateAssetResponse | ApiDataWrapper<ApiCreateAssetResponse>;
+type ApiInitAssetContentReplaceResponse = ApiSchemas['InitAssetContentReplaceResponse'];
+type ApiInitAssetContentReplacePayload =
+  | ApiInitAssetContentReplaceResponse
+  | ApiDataWrapper<ApiInitAssetContentReplaceResponse>;
 type ApiAssetShareLinkPayload =
   | ApiAssetShareLinkResponse
   | ApiDataWrapper<ApiAssetShareLinkResponse>;
@@ -99,6 +104,12 @@ function isApiAssetShareLinkResponse(value: unknown): value is ApiAssetShareLink
 
 function isApiAssetDownloadResponse(value: unknown): value is ApiAssetDownloadResponse {
   return isRecord(value) && typeof value.download_url === 'string';
+}
+
+function isApiInitAssetContentReplaceResponse(
+  value: unknown
+): value is ApiInitAssetContentReplaceResponse {
+  return isRecord(value) && typeof value.pending_s3_key === 'string';
 }
 
 function parseAssetType(value: unknown): AssetType {
@@ -364,6 +375,26 @@ export async function getAdminAsset(assetId: string): Promise<AdminAsset | null>
   return extractAsset(payload);
 }
 
+function extractInitContentReplaceUpload(
+  payload: ApiInitAssetContentReplacePayload
+): InitAdminAssetContentReplaceUpload {
+  const root = unwrapPayload(payload);
+  if (!isApiInitAssetContentReplaceResponse(root)) {
+    throw new Error('Replace upload init response was missing pending_s3_key.');
+  }
+  const pendingS3Key = asTrimmedString(root.pending_s3_key) ?? '';
+  if (!pendingS3Key) {
+    throw new Error('Replace upload init response was missing pending_s3_key.');
+  }
+  return {
+    pendingS3Key,
+    uploadUrl: asTrimmedString(root.upload_url) ?? null,
+    uploadMethod: asTrimmedString(root.upload_method) ?? 'PUT',
+    uploadHeaders: extractHeaders(root.upload_headers),
+    expiresAt: asNullableString(root.expires_at ?? null),
+  };
+}
+
 export async function createAdminAsset(
   input: UpsertAdminAssetInput
 ): Promise<CreateAdminAssetResult> {
@@ -386,6 +417,52 @@ export async function createAdminAsset(
     asset: isApiAsset(root.asset) ? parseAsset(root.asset) : null,
     upload,
   };
+}
+
+export interface InitAdminAssetContentReplaceInput {
+  fileName: string;
+  contentType?: string | null;
+}
+
+export async function initAdminAssetContentReplace(
+  assetId: string,
+  input: InitAdminAssetContentReplaceInput
+): Promise<InitAdminAssetContentReplaceUpload> {
+  const trimmedFileName = input.fileName.trim();
+  const trimmedContentType = input.contentType?.trim() ?? '';
+  const body: Record<string, string | null> = {
+    file_name: trimmedFileName,
+    content_type: trimmedContentType || null,
+  };
+  const payload = await adminApiRequest<ApiInitAssetContentReplacePayload>({
+    endpointPath: `/v1/admin/assets/${assetId}/content/init`,
+    method: 'POST',
+    body,
+  });
+  return extractInitContentReplaceUpload(payload);
+}
+
+export interface CompleteAdminAssetContentReplaceInput {
+  pendingS3Key: string;
+  fileName: string;
+  contentType?: string | null;
+}
+
+export async function completeAdminAssetContentReplace(
+  assetId: string,
+  input: CompleteAdminAssetContentReplaceInput
+): Promise<AdminAsset | null> {
+  const trimmedContentType = input.contentType?.trim() ?? '';
+  const payload = await adminApiRequest<ApiAssetPayload>({
+    endpointPath: `/v1/admin/assets/${assetId}/content/complete`,
+    method: 'POST',
+    body: {
+      pending_s3_key: input.pendingS3Key.trim(),
+      file_name: input.fileName.trim(),
+      content_type: trimmedContentType || null,
+    },
+  });
+  return extractAsset(payload);
 }
 
 export async function updateAdminAsset(

@@ -33,7 +33,8 @@ const SELECTED_ASSET = createAdminAssetFixture({
 
 function renderEditor(overrides: Partial<ComponentProps<typeof AssetEditorPanel>> = {}) {
   const onCreate = vi.fn().mockResolvedValue(undefined);
-  const onUpdate = vi.fn().mockResolvedValue(undefined);
+  const onUpdate = vi.fn().mockResolvedValue(true);
+  const onReplaceFile = vi.fn().mockResolvedValue(true);
   const onStartCreate = vi.fn();
   const onRetryUpload = vi.fn().mockResolvedValue(undefined);
 
@@ -44,9 +45,11 @@ function renderEditor(overrides: Partial<ComponentProps<typeof AssetEditorPanel>
       isDeletingCurrentAsset={false}
       assetMutationError=''
       uploadState='idle'
+      uploadPhase='idle'
       uploadError=''
       hasPendingUpload={false}
       onRetryUpload={onRetryUpload}
+      onReplaceFile={onReplaceFile}
       onCreate={onCreate}
       onUpdate={onUpdate}
       onStartCreate={onStartCreate}
@@ -54,7 +57,7 @@ function renderEditor(overrides: Partial<ComponentProps<typeof AssetEditorPanel>
     />
   );
 
-  return { onCreate, onUpdate, onStartCreate, onRetryUpload };
+  return { onCreate, onUpdate, onReplaceFile, onStartCreate, onRetryUpload };
 }
 
 describe('AssetEditorPanel', () => {
@@ -141,6 +144,19 @@ describe('AssetEditorPanel', () => {
     });
   });
 
+  it('shows validation when save is clicked with no changes in edit mode', async () => {
+    const user = userEvent.setup();
+    renderEditor({ selectedAsset: SELECTED_ASSET });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    expect(await screen.findByText('No changes to save.')).toBeInTheDocument();
+  });
+
   it('submits update payload in edit mode', async () => {
     const user = userEvent.setup();
     const { onUpdate } = renderEditor({ selectedAsset: SELECTED_ASSET });
@@ -170,6 +186,90 @@ describe('AssetEditorPanel', () => {
         clientTag: CLIENT_DOCUMENT_ASSET_TAG,
       });
     });
+  });
+
+  it('calls onReplaceFile before onUpdate when both metadata and replacement file change', async () => {
+    const user = userEvent.setup();
+    const callOrder: string[] = [];
+    const onReplaceFile = vi.fn(async () => {
+      callOrder.push('replace');
+      return true;
+    });
+    const onUpdate = vi.fn(async () => {
+      callOrder.push('update');
+      return true;
+    });
+    renderEditor({ selectedAsset: SELECTED_ASSET, onReplaceFile, onUpdate });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    const titleInput = screen.getByLabelText('Title *');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Updated title');
+
+    const replaceInput = screen.getByLabelText('Replace PDF file');
+    const pdf = new File(['%PDF-1.4'], 'new-guide.pdf', { type: 'application/pdf' });
+    await user.upload(replaceInput, pdf);
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(onReplaceFile).toHaveBeenCalledWith(pdf);
+      expect(onUpdate).toHaveBeenCalled();
+    });
+    expect(callOrder).toEqual(['replace', 'update']);
+  });
+
+  it('skips metadata update when replace fails', async () => {
+    const user = userEvent.setup();
+    const onReplaceFile = vi.fn().mockResolvedValue(false);
+    const onUpdate = vi.fn().mockResolvedValue(true);
+    renderEditor({ selectedAsset: SELECTED_ASSET, onReplaceFile, onUpdate });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    const titleInput = screen.getByLabelText('Title *');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Updated title');
+
+    const replaceInput = screen.getByLabelText('Replace PDF file');
+    const pdf = new File(['%PDF-1.4'], 'new-guide.pdf', { type: 'application/pdf' });
+    await user.upload(replaceInput, pdf);
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(onReplaceFile).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/File replacement did not finish, so metadata was not saved/)
+    ).toBeInTheDocument();
+  });
+
+  it('shows finalize copy when uploadPhase is complete', () => {
+    renderEditor({
+      selectedAsset: SELECTED_ASSET,
+      uploadState: 'uploading',
+      uploadPhase: 'complete',
+    });
+
+    expect(screen.getByText('Finalizing file replacement...')).toBeInTheDocument();
+  });
+
+  it('does not show replace PDF control for expense-linked assets', async () => {
+    const expenseAsset = createAdminAssetFixture({
+      tags: [{ id: 't1', name: 'expense_attachment', color: null }],
+    });
+    renderEditor({ selectedAsset: expenseAsset });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    expect(screen.queryByLabelText('Replace PDF file')).not.toBeInTheDocument();
   });
 
   it('disables tag select and omits client_tag when asset is expense-linked', async () => {

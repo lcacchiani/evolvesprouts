@@ -45,13 +45,16 @@ const {
     isSavingAsset: false,
     isDeletingAssetId: null,
     uploadState: 'idle',
+    uploadPhase: 'idle',
     uploadError: '',
     hasPendingUpload: false,
     createAssetEntry: vi.fn(),
+    replaceAssetFileEntry: vi.fn(),
     updateAssetEntry: vi.fn(),
     deleteAssetEntry: vi.fn(),
     retryPendingUpload: vi.fn(),
     resetMutationState: mockResetMutationState,
+    replaceSuccessNonce: 0,
   };
 
   const grantsState = {

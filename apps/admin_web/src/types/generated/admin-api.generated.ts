@@ -262,6 +262,110 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/admin/assets/{id}/content/init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Asset identifier. */
+                id: components["parameters"]["AssetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin admin asset file replacement
+         * @description Step 1 of 2 for replacing the binary stored for an asset while keeping the same asset id. Returns a presigned upload URL for a new S3 key under `assets/{id}/...`. Call `POST /v1/admin/assets/{id}/content/complete` after the client uploads to that URL. Not allowed when the asset has the `expense_attachment` tag (400).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InitAssetContentReplaceRequest"];
+                };
+            };
+            responses: {
+                /** @description Presigned upload details and pending object key. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InitAssetContentReplaceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/assets/{id}/content/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Asset identifier. */
+                id: components["parameters"]["AssetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete admin asset file replacement
+         * @description Step 2 of 2: verifies the object exists at `pending_s3_key`, updates the asset to point at it, deletes the previous S3 object, and returns the updated asset. The `pending_s3_key` must be the value returned by `POST .../content/init` for this asset id. Not allowed when the asset has the `expense_attachment` tag (400). `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization (same rules as init). This call is not idempotent across different `pending_s3_key` values: repeating complete with a stale key after a successful replace returns 400. When `content_type` is null or omitted, the stored content type is taken from the uploaded object's S3 `Content-Type` metadata when present.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CompleteAssetContentReplaceRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated asset after successful replacement. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/assets/{id}/grants": {
         parameters: {
             query?: never;
@@ -4245,6 +4349,28 @@ export interface components {
             };
             /** Format: date-time */
             expires_at?: string | null;
+        };
+        InitAssetContentReplaceRequest: {
+            file_name: string;
+            content_type?: string | null;
+        };
+        InitAssetContentReplaceResponse: {
+            pending_s3_key: string;
+            /** Format: uri */
+            upload_url?: string | null;
+            upload_method: string;
+            upload_headers: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            expires_at: string | null;
+        };
+        CompleteAssetContentReplaceRequest: {
+            pending_s3_key: string;
+            /** @description Must match the sanitized filename segment in `pending_s3_key` (same value as sent to init). */
+            file_name: string;
+            /** @description Optional; when null the server may use the object's S3 Content-Type after upload. */
+            content_type?: string | null;
         };
         CreateAssetGrantRequest: {
             /** @enum {string} */

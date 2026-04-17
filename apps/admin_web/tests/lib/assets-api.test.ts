@@ -15,8 +15,10 @@ vi.mock('@/lib/api-admin-client', async () => {
 });
 
 import {
+  completeAdminAssetContentReplace,
   createAdminAsset,
   getUserAssetDownloadUrl,
+  initAdminAssetContentReplace,
   listAdminAssetGrants,
   listAdminAssets,
   updateAdminAsset,
@@ -375,5 +377,81 @@ describe('assets-api', () => {
         file,
       })
     ).rejects.toThrow('Upload failed with status 500.');
+  });
+
+  it('initiates content replace with file_name and content_type', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        pending_s3_key: 'assets/asset-1/u1-new.pdf',
+        upload_url: 'https://uploads.example.com/replace',
+        upload_method: 'PUT',
+        upload_headers: { 'Content-Type': 'application/pdf' },
+        expires_at: '2026-02-28T00:00:00.000Z',
+      },
+    });
+
+    const result = await initAdminAssetContentReplace('asset-1', {
+      fileName: ' new.pdf ',
+      contentType: ' application/pdf ',
+    });
+
+    expect(result).toEqual({
+      pendingS3Key: 'assets/asset-1/u1-new.pdf',
+      uploadUrl: 'https://uploads.example.com/replace',
+      uploadMethod: 'PUT',
+      uploadHeaders: { 'Content-Type': 'application/pdf' },
+      expiresAt: '2026-02-28T00:00:00.000Z',
+    });
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        endpointPath: '/v1/admin/assets/asset-1/content/init',
+        body: {
+          file_name: 'new.pdf',
+          content_type: 'application/pdf',
+        },
+      })
+    );
+  });
+
+  it('completes content replace with pending_s3_key', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        asset: {
+          id: 'asset-1',
+          title: 'Guide',
+          description: null,
+          asset_type: 'document',
+          s3_key: 'assets/asset-1/u1-new.pdf',
+          file_name: 'new.pdf',
+          content_type: 'application/pdf',
+          content_language: null,
+          visibility: 'restricted',
+          created_by: null,
+          created_at: null,
+          updated_at: null,
+          tags: [],
+        },
+      },
+    });
+
+    const asset = await completeAdminAssetContentReplace('asset-1', {
+      pendingS3Key: 'assets/asset-1/u1-new.pdf',
+      fileName: 'new.pdf',
+      contentType: 'application/pdf',
+    });
+
+    expect(asset?.s3Key).toBe('assets/asset-1/u1-new.pdf');
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        endpointPath: '/v1/admin/assets/asset-1/content/complete',
+        body: {
+          pending_s3_key: 'assets/asset-1/u1-new.pdf',
+          file_name: 'new.pdf',
+          content_type: 'application/pdf',
+        },
+      })
+    );
   });
 });

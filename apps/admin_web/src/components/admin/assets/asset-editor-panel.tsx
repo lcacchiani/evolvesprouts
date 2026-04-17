@@ -19,6 +19,8 @@ import {
   EXPENSE_ATTACHMENT_ASSET_TAG,
 } from '@/types/assets';
 
+import type { AssetUploadPhase } from '@/hooks/use-asset-mutations';
+
 import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-link-section';
 import { StatusBanner } from '@/components/status-banner';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -38,9 +40,12 @@ interface AssetEditorPanelProps {
   isDeletingCurrentAsset: boolean;
   assetMutationError: string;
   uploadState: 'idle' | 'uploading' | 'failed' | 'succeeded';
+  uploadPhase: AssetUploadPhase;
   uploadError: string;
   hasPendingUpload: boolean;
   onRetryUpload: () => Promise<void>;
+  /** When set in edit mode (non–expense-linked assets), user may pick a new PDF and save to replace file content. */
+  onReplaceFile?: (file: File) => Promise<boolean>;
   onCreate: (
     payload: {
       title: string;
@@ -53,7 +58,7 @@ interface AssetEditorPanelProps {
     },
     file: File
   ) => Promise<void>;
-  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<void>;
+  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<boolean>;
   onStartCreate: () => void;
 }
 
@@ -122,9 +127,11 @@ export function AssetEditorPanel({
   isDeletingCurrentAsset,
   assetMutationError,
   uploadState,
+  uploadPhase,
   uploadError,
   hasPendingUpload,
   onRetryUpload,
+  onReplaceFile,
   onCreate,
   onUpdate,
   onStartCreate,
@@ -134,23 +141,28 @@ export function AssetEditorPanel({
   );
   const [formError, setFormError] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
 
   const isEditMode = Boolean(selectedAsset);
   const isExpenseLinked = Boolean(
     selectedAsset?.tags.some((t) => t.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG)
   );
+  const canReplaceFile = isEditMode && Boolean(onReplaceFile) && !isExpenseLinked;
 
   const cardTitle = isEditMode ? 'Edit Asset' : 'Create Asset';
   const cardDescription = isEditMode
-    ? 'Update metadata and visibility for the selected asset.'
+    ? 'Update metadata and visibility, optionally replace the PDF file, and manage sharing.'
     : 'Create a new PDF asset and upload content automatically with a presigned URL.';
 
   const submitLabel = useMemo(() => {
     if (isSavingAsset) {
-      return isEditMode ? 'Saving...' : 'Creating...';
+      if (!isEditMode) {
+        return 'Creating...';
+      }
+      return replacementFile ? 'Saving and replacing...' : 'Saving...';
     }
     return isEditMode ? 'Save changes' : 'Create asset';
-  }, [isEditMode, isSavingAsset]);
+  }, [isEditMode, isSavingAsset, replacementFile]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -207,6 +219,15 @@ export function AssetEditorPanel({
         return;
       }
 
+      if (replacementFile) {
+        const isPdfMime = !replacementFile.type || replacementFile.type === 'application/pdf';
+        const isPdfExtension = replacementFile.name.toLowerCase().endsWith('.pdf');
+        if (!isPdfMime || !isPdfExtension) {
+          setFormError('Replacement file must be a PDF.');
+          return;
+        }
+      }
+
       const nextDescription = formState.description.trim() || null;
       const patch: UpdateAdminAssetPatchInput = {};
       if (title !== selectedAsset.title) {
@@ -233,8 +254,29 @@ export function AssetEditorPanel({
           patch.clientTag = clientTagValue;
         }
       }
+      if (replacementFile && onReplaceFile) {
+        const replaceOk = await onReplaceFile(replacementFile);
+        if (!replaceOk) {
+          if (Object.keys(patch).length > 0) {
+            setFormError(
+              'File replacement did not finish, so metadata was not saved. Fix the error in the Asset banner or retry, then save again.'
+            );
+          }
+          return;
+        }
+      }
       if (Object.keys(patch).length > 0) {
-        await onUpdate(selectedAsset.id, patch);
+        try {
+          await onUpdate(selectedAsset.id, patch);
+        } catch {
+          setFormError(
+            'Metadata may not have saved. The new file may already be live. Refresh the list or fix the error in the Asset banner and save again.'
+          );
+          return;
+        }
+      }
+      if (Object.keys(patch).length === 0 && !replacementFile) {
+        setFormError('No changes to save.');
       }
       return;
     }
@@ -259,6 +301,7 @@ export function AssetEditorPanel({
     onStartCreate();
     setFormState(EMPTY_ASSET_FORM);
     setSelectedFile(null);
+    setReplacementFile(null);
     setFormError('');
   };
 
@@ -302,13 +345,17 @@ export function AssetEditorPanel({
 
       {uploadState === 'uploading' ? (
         <StatusBanner variant='info' title='Uploading'>
-          Uploading PDF content to S3...
+          {uploadPhase === 'complete'
+            ? 'Finalizing file replacement...'
+            : isEditMode
+              ? 'Uploading PDF...'
+              : 'Uploading PDF content to S3...'}
         </StatusBanner>
       ) : null}
 
       {uploadState === 'succeeded' ? (
         <StatusBanner variant='success' title='Upload complete'>
-          PDF content uploaded successfully.
+          {isEditMode ? 'PDF updated successfully.' : 'PDF content uploaded successfully.'}
         </StatusBanner>
       ) : null}
 
@@ -395,9 +442,33 @@ export function AssetEditorPanel({
           ) : null}
           {isEditMode && selectedAsset ? (
             <div className='space-y-2 lg:col-span-2'>
-              <Label htmlFor='asset-file-name'>File</Label>
+              <Label htmlFor='asset-file-name'>Current file</Label>
               <Input id='asset-file-name' value={selectedAsset.fileName || '—'} disabled readOnly />
-              <p className='text-xs text-slate-600'>File replacement is not supported in edit mode.</p>
+              {isExpenseLinked ? (
+                <p className='text-xs text-slate-600'>
+                  File replacement is not available for assets linked to an expense.
+                </p>
+              ) : canReplaceFile ? (
+                <div className='space-y-2 pt-1'>
+                  <Label htmlFor='asset-replace-file-upload'>Replace PDF</Label>
+                  <FileUploadButton
+                    id='asset-replace-file-upload'
+                    accept='application/pdf,.pdf'
+                    selectedFileName={replacementFile?.name ?? null}
+                    emptyLabel='No replacement file chosen'
+                    inputAriaLabel='Replace PDF file'
+                    disabled={isSavingAsset}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      setReplacementFile(file);
+                    }}
+                  />
+                  <p className='text-xs text-slate-600'>
+                    Choose a new PDF and click Save changes to upload it. Grants and share links for
+                    this asset stay the same.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
