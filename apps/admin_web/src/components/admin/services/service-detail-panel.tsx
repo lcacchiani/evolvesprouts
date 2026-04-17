@@ -42,6 +42,8 @@ export interface ServiceDetailPanelProps {
   onUploadCover: (fileName: string, contentType: string) => Promise<void> | void;
 }
 
+type DiscountUsageLoadState = 'idle' | 'loading' | 'ok' | 'error';
+
 export function ServiceDetailPanel({
   service,
   isLoading,
@@ -97,20 +99,33 @@ export function ServiceDetailPanel({
       : DEFAULT_CONSULTATION_FORM
   );
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
-  const [discountUsageTotal, setDiscountUsageTotal] = useState(0);
+  const [discountUsageSummary, setDiscountUsageSummary] = useState<{
+    totalCurrentUses: number;
+    referencingCodeCount: number;
+  } | null>(null);
+  const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
 
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (!service?.id) {
-        setDiscountUsageTotal(0);
+        setDiscountUsageSummary(null);
+        setDiscountUsageLoadState('idle');
         return;
       }
-      setDiscountUsageTotal(0);
-      void getServiceDiscountCodeUsageSummary(service.id).then((summary) => {
-        if (!cancelled && summary) {
-          setDiscountUsageTotal(summary.totalCurrentUses);
+      setDiscountUsageLoadState('loading');
+      setDiscountUsageSummary(null);
+      void getServiceDiscountCodeUsageSummary(service.id).then(({ summary, error: loadError }) => {
+        if (cancelled) {
+          return;
         }
+        if (loadError) {
+          setDiscountUsageSummary(null);
+          setDiscountUsageLoadState('error');
+          return;
+        }
+        setDiscountUsageSummary(summary);
+        setDiscountUsageLoadState('ok');
       });
     });
     return () => {
@@ -211,6 +226,35 @@ export function ServiceDetailPanel({
     };
   };
 
+  async function confirmSlugChangeIfNeeded(newSlug: string | null, oldSlug: string | null): Promise<boolean> {
+    if (newSlug === oldSlug) {
+      return true;
+    }
+    const usageUnknown = discountUsageLoadState === 'error' || discountUsageSummary === null;
+    if (usageUnknown) {
+      const confirmed = await requestConfirm({
+        title: 'Change referral slug?',
+        description:
+          "We couldn't verify current discount code usage — if this slug is referenced by active codes, changing it may break printed QR codes and links. Continue?",
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+        variant: 'default',
+      });
+      return confirmed;
+    }
+    if (discountUsageSummary.totalCurrentUses > 0) {
+      const confirmed = await requestConfirm({
+        title: 'Change referral slug?',
+        description: `This service has active discount code usage (${discountUsageSummary.totalCurrentUses} past redemptions). Changing the slug will break any existing printed QR codes and links. Continue?`,
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+        variant: 'default',
+      });
+      return confirmed;
+    }
+    return true;
+  }
+
   async function submitUpdate() {
     if (!service) {
       return;
@@ -221,17 +265,9 @@ export function ServiceDetailPanel({
     }
     const newSlug = slugTrimmed.toLowerCase() || null;
     const oldSlug = (service.slug ?? '').trim().toLowerCase() || null;
-    if (newSlug !== oldSlug && discountUsageTotal > 0) {
-      const confirmed = await requestConfirm({
-        title: 'Change referral slug?',
-        description: `This service has active discount code usage (${discountUsageTotal} past redemptions). Changing the slug will break any existing printed QR codes and links. Continue?`,
-        confirmLabel: 'Continue',
-        cancelLabel: 'Cancel',
-        variant: 'default',
-      });
-      if (!confirmed) {
-        return;
-      }
+    const ok = await confirmSlugChangeIfNeeded(newSlug, oldSlug);
+    if (!ok) {
+      return;
     }
     await onUpdate({
       title: serviceForm.title.trim(),
@@ -328,7 +364,16 @@ export function ServiceDetailPanel({
           </div>
         </div>
 
-        <ServiceFormFields value={serviceForm} onChange={setServiceForm} hideTitle />
+        <ServiceFormFields
+          value={serviceForm}
+          onChange={setServiceForm}
+          hideTitle
+          slugUsageLoadError={
+            discountUsageLoadState === 'error'
+              ? 'Could not load discount code usage. Try again later.'
+              : undefined
+          }
+        />
 
         {serviceType === 'training_course' ? (
           <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />

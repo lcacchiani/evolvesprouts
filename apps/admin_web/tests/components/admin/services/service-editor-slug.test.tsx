@@ -36,8 +36,8 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 describe('ServiceDetailPanel referral slug', () => {
   beforeEach(() => {
     vi.spyOn(servicesApi, 'getServiceDiscountCodeUsageSummary').mockResolvedValue({
-      totalCurrentUses: 0,
-      referencingCodeCount: 0,
+      summary: { totalCurrentUses: 0, referencingCodeCount: 0 },
+      error: null,
     });
   });
 
@@ -75,8 +75,8 @@ describe('ServiceDetailPanel referral slug', () => {
   it('confirms slug change when discount usage exists', async () => {
     const user = userEvent.setup();
     vi.mocked(servicesApi.getServiceDiscountCodeUsageSummary).mockResolvedValue({
-      totalCurrentUses: 2,
-      referencingCodeCount: 1,
+      summary: { totalCurrentUses: 2, referencingCodeCount: 1 },
+      error: null,
     });
     const onUpdate = vi.fn().mockResolvedValue(undefined);
 
@@ -109,5 +109,47 @@ describe('ServiceDetailPanel referral slug', () => {
       expect(onUpdate).toHaveBeenCalled();
     });
     expect(onUpdate.mock.calls[0][0]).toMatchObject({ slug: 'new-slug' });
+  });
+
+  it('confirms slug change when discount usage summary fails to load', async () => {
+    const user = userEvent.setup();
+    vi.mocked(servicesApi.getServiceDiscountCodeUsageSummary).mockResolvedValue({
+      summary: null,
+      error: new Error('network'),
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ServiceDetailPanel
+        service={buildService()}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(servicesApi.getServiceDiscountCodeUsageSummary).toHaveBeenCalledWith('service-1');
+    });
+
+    expect(
+      await screen.findByText(/Could not load discount code usage/),
+    ).toBeInTheDocument();
+
+    const slugInput = screen.getByLabelText('Referral slug');
+    fireEvent.change(slugInput, { target: { value: 'new-slug' } });
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+
+    expect(
+      await screen.findByText(/We couldn't verify current discount code usage/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    await vi.waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+    });
   });
 });

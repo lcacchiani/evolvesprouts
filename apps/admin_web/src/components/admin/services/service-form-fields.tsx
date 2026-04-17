@@ -23,9 +23,15 @@ export interface ServiceFormFieldsProps {
   value: ServiceFormState;
   onChange: (value: ServiceFormState) => void;
   hideTitle?: boolean;
+  slugUsageLoadError?: string;
 }
 
-export function ServiceFormFields({ value, onChange, hideTitle = false }: ServiceFormFieldsProps) {
+export function ServiceFormFields({
+  value,
+  onChange,
+  hideTitle = false,
+  slugUsageLoadError,
+}: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
       {!hideTitle ? (
@@ -68,6 +74,7 @@ export function ServiceFormFields({ value, onChange, hideTitle = false }: Servic
             hyphen).
           </p>
         ) : null}
+        {slugUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{slugUsageLoadError}</p> : null}
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

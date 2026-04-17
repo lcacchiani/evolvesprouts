@@ -36,8 +36,8 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 describe('ServiceDetailPanel', () => {
   beforeEach(() => {
     vi.spyOn(servicesApi, 'getServiceDiscountCodeUsageSummary').mockResolvedValue({
-      totalCurrentUses: 0,
-      referencingCodeCount: 0,
+      summary: { totalCurrentUses: 0, referencingCodeCount: 0 },
+      error: null,
     });
   });
 

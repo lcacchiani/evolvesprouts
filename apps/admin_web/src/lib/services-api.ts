@@ -1,4 +1,4 @@
-import { adminApiRequest } from './api-admin-client';
+import { adminApiRequest, isAbortRequestError } from './api-admin-client';
 import { asBoolean, asNullableFiniteNumber, asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
@@ -447,17 +447,30 @@ function parseDiscountCodeUsageSummary(value: unknown): ServiceDiscountCodeUsage
   };
 }
 
+export interface DiscountCodeUsageSummaryResult {
+  summary: ServiceDiscountCodeUsageSummary | null;
+  error: Error | null;
+}
+
 export async function getServiceDiscountCodeUsageSummary(
   serviceId: string,
   signal?: AbortSignal,
-): Promise<ServiceDiscountCodeUsageSummary | null> {
-  const payload = await adminApiRequest<ApiDiscountCodeUsageSummaryResponse>({
-    endpointPath: `/v1/admin/services/${serviceId}/discount-code-usage-summary`,
-    method: 'GET',
-    signal,
-  });
-  const root = unwrapPayload(payload);
-  return parseDiscountCodeUsageSummary(root);
+): Promise<DiscountCodeUsageSummaryResult> {
+  try {
+    const payload = await adminApiRequest<ApiDiscountCodeUsageSummaryResponse>({
+      endpointPath: `/v1/admin/services/${serviceId}/discount-code-usage-summary`,
+      method: 'GET',
+      signal,
+    });
+    const root = unwrapPayload(payload);
+    return { summary: parseDiscountCodeUsageSummary(root), error: null };
+  } catch (caught) {
+    if (isAbortRequestError(caught)) {
+      throw caught;
+    }
+    const error = caught instanceof Error ? caught : new Error(String(caught));
+    return { summary: null, error };
+  }
 }
 
 export async function getService(id: string, signal?: AbortSignal): Promise<ServiceDetail | null> {
