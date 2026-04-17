@@ -64,7 +64,15 @@ describe('generateReferralQrPngDataUrl', () => {
 
     expect(toCanvasMock).toHaveBeenCalled();
     expect(fillRectSpy).toHaveBeenCalled();
+    const fillArgs = fillRectSpy.mock.calls[0] as [number, number, number, number];
+    for (const n of fillArgs) {
+      expect(Number.isInteger(n)).toBe(true);
+    }
     expect(drawImageSpy).toHaveBeenCalled();
+    const drawArgs = drawImageSpy.mock.calls[0] as [unknown, number, number, number, number];
+    for (const n of drawArgs.slice(1)) {
+      expect(Number.isInteger(n)).toBe(true);
+    }
     expect(toDataURLSpy).toHaveBeenCalledWith('image/png');
 
     createElementSpy.mockRestore();

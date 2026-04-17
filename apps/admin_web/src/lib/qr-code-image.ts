@@ -30,11 +30,13 @@ export async function generateReferralQrPngDataUrl(
 
   const logoSize = Math.round(input.size * 0.2);
   const pad = 7;
-  const centerX = (input.size - logoSize) / 2;
-  const centerY = (input.size - logoSize) / 2;
+  const centerX = Math.floor((input.size - logoSize) / 2);
+  const centerY = Math.floor((input.size - logoSize) / 2);
+  const padX = Math.round(pad);
+  const padY = Math.round(pad);
 
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(centerX - pad, centerY - pad, logoSize + pad * 2, logoSize + pad * 2);
+  ctx.fillRect(centerX - padX, centerY - padY, logoSize + padX * 2, logoSize + padY * 2);
 
   await new Promise<void>((resolve, reject) => {
     const image = new Image();
