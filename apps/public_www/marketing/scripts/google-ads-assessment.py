@@ -9,9 +9,13 @@ Required environment variables:
     EVOLVESPROUTS_GOOGLE_SERVICE_ACCOUNT_JSON  Service account credentials JSON
 
 Usage:
-    python3 google-ads-assessment.py
+    python3 google-ads-assessment.py [--out PATH]
+
+`--out` mirrors stdout to the given file (plaintext).
 """
 
+import argparse
+import contextlib
 import os
 import sys
 import tempfile
@@ -19,6 +23,22 @@ import tempfile
 from google.ads.googleads.client import GoogleAdsClient
 
 API_VERSION = "v20"
+
+
+class _Tee:
+    """Minimal tee: write to every underlying stream."""
+
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for stream in self._streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
 
 
 def _sa_path():
@@ -296,6 +316,41 @@ def main():
         except Exception as exc:
             print(f"Conversion actions error: {exc}")
 
+        # Search terms (last 14 days) — surface wasted spend + negatives candidates
+        try:
+            print("\n--- SEARCH TERMS (Last 14 Days, Top 50) ---")
+            st_count = 0
+            for r in svc.search(
+                customer_id=cid,
+                query="""
+                    SELECT search_term_view.search_term,
+                           search_term_view.status,
+                           segments.search_term_match_type,
+                           metrics.impressions, metrics.clicks, metrics.ctr,
+                           metrics.average_cpc, metrics.cost_micros,
+                           metrics.conversions
+                    FROM search_term_view
+                    WHERE segments.date DURING LAST_14_DAYS
+                    ORDER BY metrics.impressions DESC
+                    LIMIT 50
+                """,
+            ):
+                st_count += 1
+                m = r.metrics
+                st = r.search_term_view
+                mt = r.segments.search_term_match_type
+                print(
+                    f'  "{st.search_term}" ({mt.name}) | {st.status.name} | '
+                    f"Imp: {m.impressions:,} | Clicks: {m.clicks:,} | "
+                    f"CTR: {m.ctr:.2%} | CPC: HK${_micros(m.average_cpc):.2f} | "
+                    f"Cost: HK${_micros(m.cost_micros):.2f} | "
+                    f"Conv: {m.conversions:.1f}"
+                )
+            if st_count == 0:
+                print("  No search term data.")
+        except Exception as exc:
+            print(f"Search terms error: {exc}")
+
         # Daily performance (last 14 days)
         try:
             print("\n--- DAILY PERFORMANCE (Last 14 Days) ---")
@@ -329,5 +384,29 @@ def main():
     print(f"{'=' * 60}")
 
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description=__doc__ or "")
+    parser.add_argument(
+        "--out",
+        help="Optional path to tee stdout into (plaintext). Useful for "
+        "auto-capturing raw output into marketing/generated-reports/.",
+    )
+    return parser.parse_args()
+
+
+def _run_main():
+    args = _parse_args()
+    if args.out:
+        out_dir = os.path.dirname(os.path.abspath(args.out))
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        with open(args.out, "w", encoding="utf-8") as fh:
+            tee = _Tee(sys.stdout, fh)
+            with contextlib.redirect_stdout(tee):
+                main()
+    else:
+        main()
+
+
 if __name__ == "__main__":
-    main()
+    _run_main()
