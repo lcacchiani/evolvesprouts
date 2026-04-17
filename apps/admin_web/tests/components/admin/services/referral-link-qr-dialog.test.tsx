@@ -123,6 +123,7 @@ describe('ReferralLinkQrDialog', () => {
 
     expect(generateSpy.mock.calls[0]?.[0]).toMatchObject({
       logoSrc: expect.stringMatching(/\/evolvesprouts-logo\.svg$/),
+      applyBranding: true,
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Download PNG (512)' }));
@@ -133,6 +134,31 @@ describe('ReferralLinkQrDialog', () => {
 
     createObjectUrlSpy.mockRestore();
     revokeSpy.mockRestore();
+  });
+
+  it('passes applyBranding true by default and false when branding is unchecked', async () => {
+    render(
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} discountType='percentage' />,
+    );
+
+    await vi.waitFor(() => {
+      expect(generateSpy).toHaveBeenCalled();
+    });
+
+    expect(generateSpy.mock.calls[0]?.[0]).toMatchObject({
+      applyBranding: true,
+    });
+
+    generateSpy.mockClear();
+    fireEvent.click(screen.getByRole('checkbox', { name: /apply branding/i }));
+
+    await vi.waitFor(() => {
+      expect(generateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          applyBranding: false,
+        }),
+      );
+    });
   });
 
   it('omits logo from QR generation when include-logo is unchecked', async () => {
@@ -180,15 +206,17 @@ describe('ReferralLinkQrDialog', () => {
     expect(screen.queryByLabelText('URL parameter')).toBeNull();
   });
 
-  it('places include-logo checkbox in the same two-column grid as locale', () => {
+  it('places include-logo and apply-branding checkboxes in the same two-column grid as locale', () => {
     const { container } = render(
       <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
     );
-    const checkbox = screen.getByRole('checkbox', { name: /include logo in qr code/i });
+    const includeLogo = screen.getByRole('checkbox', { name: /include logo in qr code/i });
+    const applyBranding = screen.getByRole('checkbox', { name: /apply branding/i });
     const localeSelect = screen.getByLabelText('Locale');
     const grid = container.querySelector('.sm\\:grid-cols-2');
     expect(grid).toBeTruthy();
-    expect(grid?.contains(checkbox)).toBe(true);
+    expect(grid?.contains(includeLogo)).toBe(true);
+    expect(grid?.contains(applyBranding)).toBe(true);
     expect(grid?.contains(localeSelect)).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 import type { QRCode as QrModel } from 'qrcode';
 
-/** Matches public site primary CTA (`apps/public_www/src/app/styles/original/base.css`). */
+/** Matches public site `--es-color-brand-orange` (`apps/public_www/src/app/styles/original/base.css`). */
 export const PUBLIC_SITE_PRIMARY_ORANGE = '#C84A16';
 
 export interface GenerateReferralQrPngDataUrlInput {
@@ -140,8 +140,9 @@ function getAlignmentRowColCoords(version: number): number[] {
   return positions.reverse();
 }
 
+/** Each entry is `[row, col]` — indices for `qr.modules.get(row, col)` (row first). */
 function getAlignmentPatternCenters(version: number): [number, number][] {
-  const coords: [number, number][] = [];
+  const centers: [number, number][] = [];
   const pos = getAlignmentRowColCoords(version);
   const posLength = pos.length;
   for (let i = 0; i < posLength; i += 1) {
@@ -153,10 +154,10 @@ function getAlignmentPatternCenters(version: number): [number, number][] {
       ) {
         continue;
       }
-      coords.push([pos[i]!, pos[j]!]);
+      centers.push([pos[i]!, pos[j]!]);
     }
   }
-  return coords;
+  return centers;
 }
 
 function drawBrandedQrModules(
@@ -189,10 +190,10 @@ function drawBrandedQrModules(
   }
 
   const alignmentOrigin = new Set<string>();
-  for (const [cx, cy] of alignmentCenters) {
+  for (const [row, col] of alignmentCenters) {
     for (let dr = -2; dr <= 2; dr += 1) {
       for (let dc = -2; dc <= 2; dc += 1) {
-        alignmentOrigin.add(`${cy + dr},${cx + dc}`);
+        alignmentOrigin.add(`${row + dr},${col + dc}`);
       }
     }
   }
@@ -205,9 +206,9 @@ function drawBrandedQrModules(
     drawFinderBlock(ctx, px, py, modulePx, dark, light);
   }
 
-  for (const [cx, cy] of alignmentCenters) {
-    const px = (cx - 2 + margin) * modulePx;
-    const py = (cy - 2 + margin) * modulePx;
+  for (const [row, col] of alignmentCenters) {
+    const px = (col - 2 + margin) * modulePx;
+    const py = (row - 2 + margin) * modulePx;
     drawAlignmentBlock(ctx, px, py, modulePx, dark, light);
   }
 
@@ -228,9 +229,20 @@ function drawBrandedQrModules(
   }
 }
 
+function canvasToPngDataUrl(canvas: HTMLCanvasElement): string {
+  try {
+    return canvas.toDataURL('image/png');
+  } catch {
+    throw new Error(
+      'Could not export QR image. If the logo loads from another origin, enable CORS or use a same-origin asset.',
+    );
+  }
+}
+
 async function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = 'anonymous';
     image.onload = () => {
       resolve(image);
     };
@@ -375,7 +387,7 @@ export async function generateReferralQrPngDataUrl(
 
   const logoSrc = input.logoSrc?.trim() ?? '';
   if (!logoSrc) {
-    return canvas.toDataURL('image/png');
+    return canvasToPngDataUrl(canvas);
   }
 
   const logoSize = Math.round(input.size * 0.2);
@@ -395,5 +407,5 @@ export async function generateReferralQrPngDataUrl(
     'naturalHeight' in image && typeof image.naturalHeight === 'number' ? image.naturalHeight : image.height;
   drawLogoTrimmedToCanvas(ctx, image, naturalW, naturalH, centerX, centerY, logoSize);
 
-  return canvas.toDataURL('image/png');
+  return canvasToPngDataUrl(canvas);
 }
