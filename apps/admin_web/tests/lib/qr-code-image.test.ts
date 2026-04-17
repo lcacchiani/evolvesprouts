@@ -78,4 +78,43 @@ describe('generateReferralQrPngDataUrl', () => {
     createElementSpy.mockRestore();
     globalThis.Image = OriginalImage;
   });
+
+  it('skips logo pad and drawImage when logoSrc is omitted', async () => {
+    const drawImageSpy = vi.fn();
+    const fillRectSpy = vi.fn();
+    const toDataURLSpy = vi.fn().mockReturnValue('data:image/png;base64,BB');
+
+    const originalCreateElement = Document.prototype.createElement.bind(document);
+    const createElementSpy = vi.spyOn(Document.prototype, 'createElement').mockImplementation(
+      function patchedCreateElement(this: Document, tagName: string, options?: unknown) {
+        if (tagName !== 'canvas') {
+          return originalCreateElement(tagName, options as never);
+        }
+        const canvas = originalCreateElement('canvas', options as never);
+        canvas.getContext = vi.fn(() => {
+          return {
+            fillStyle: '',
+            fillRect: fillRectSpy,
+            drawImage: drawImageSpy,
+          } as unknown as CanvasRenderingContext2D;
+        });
+        canvas.toDataURL = toDataURLSpy;
+        return canvas;
+      },
+    );
+
+    const { generateReferralQrPngDataUrl } = await import('@/lib/qr-code-image');
+
+    await generateReferralQrPngDataUrl({
+      url: 'https://example.com',
+      size: 200,
+    });
+
+    expect(toCanvasMock).toHaveBeenCalled();
+    expect(fillRectSpy).not.toHaveBeenCalled();
+    expect(drawImageSpy).not.toHaveBeenCalled();
+    expect(toDataURLSpy).toHaveBeenCalledWith('image/png');
+
+    createElementSpy.mockRestore();
+  });
 });

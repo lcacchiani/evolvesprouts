@@ -4,7 +4,20 @@ const MBA_PATH = '/services/my-best-auntie-training-course';
 export const MY_BEST_AUNTIE_REFERRAL_LOCALES = ['en', 'zh-CN', 'zh-HK'] as const;
 export type MyBestAuntieReferralLocale = (typeof MY_BEST_AUNTIE_REFERRAL_LOCALES)[number];
 
+/** Human-readable labels for the referral QR locale selector (values stay `en` / `zh-CN` / `zh-HK`). */
+export const REFERRAL_LOCALE_DISPLAY_LABELS: Record<MyBestAuntieReferralLocale, string> = {
+  en: 'English',
+  'zh-CN': 'Chinese Simplified',
+  'zh-HK': 'Chinese Traditional',
+};
+
 export type ReferralParamName = 'ref' | 'discount';
+
+/** Select labels for query param style; URL still uses `ref` or `discount`. */
+export const REFERRAL_PARAM_DISPLAY_LABELS: Record<ReferralParamName, string> = {
+  ref: 'Referral',
+  discount: 'Discount',
+};
 
 export interface BuildMyBestAuntieReferralUrlInput {
   baseUrl: string;
