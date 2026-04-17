@@ -26,7 +26,7 @@ const DEFAULT_LOCALE = 'en';
 
 declare global {
   interface Window {
-    dataLayer?: AdminDataLayerEventPayload[];
+    dataLayer?: unknown;
   }
 }
 
@@ -70,6 +70,17 @@ function removeUndefinedParams(
   }, {});
 }
 
+function canPushAdminDataLayerPayload(
+  value: unknown,
+): value is { push: (item: AdminDataLayerEventPayload) => void } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'push' in value &&
+    typeof (value as { push?: unknown }).push === 'function'
+  );
+}
+
 function pushAdminDataLayerPayload(
   eventName: AdminAnalyticsEventName,
   params?: Record<string, AnalyticsPrimitive | null | undefined>,
@@ -100,8 +111,8 @@ function pushAdminDataLayerPayload(
     layer.push(payload);
     return;
   }
-  if (layer && typeof layer === 'object' && typeof layer.push === 'function') {
-    (layer as { push: (item: AdminDataLayerEventPayload) => void }).push(payload);
+  if (canPushAdminDataLayerPayload(layer)) {
+    layer.push(payload);
     return;
   }
   try {
