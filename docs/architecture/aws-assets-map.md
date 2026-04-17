@@ -62,6 +62,43 @@ Public WWW CloudFront includes:
       because browsers ignore it outside the response header.
 - Staging distribution adds `X-Robots-Tag: noindex, nofollow, noarchive`.
 
+### Admin Web CloudFront distribution
+
+| Stack Name | Domain Parameter | Certificate Parameter | Notes |
+|-----------|------------------|-----------------------|-------|
+| `evolvesprouts-admin-web` | `AdminWebDomainName` | `AdminWebCertificateArn` | Admin UI (Next.js static export from `apps/admin_web`) |
+
+The stack outputs:
+
+- `AdminWebBucketName`
+- `AdminWebDistributionId`
+- `AdminWebDistributionDomain`
+- `AdminWebLoggingBucketName`
+
+Admin Web CloudFront includes:
+
+- Default behavior: static site content from S3 with a viewer-request
+  CloudFront Function (`AdminWebPathRewriteFunction`, `cloudfront-js-2.0`)
+  that maps extensionless and trailing-slash paths to the matching
+  `index.html` for the Next.js static export (`output: 'export'`,
+  `trailingSlash: true`). This is required so direct navigation and
+  refreshes on `/assets`, `/contacts`, `/finance`, `/sales`, `/services`,
+  and `/auth/callback` resolve to the correct per-route HTML instead of
+  falling back to the root shell.
+  - `/` resolves via CloudFront `defaultRootObject` to `index.html`.
+  - `/foo` → `/foo/index.html`; `/foo/` → `/foo/index.html`.
+  - `/_next/*` and any path containing a `.` (static assets) are passed
+    through untouched.
+- `CustomErrorResponses` map 403 and 404 origin responses to `/404.html`
+  with a `404` status code and a 1-minute TTL. This aligns admin web
+  behavior with `public_www` and avoids the legacy "rewrite every miss to
+  `/index.html` (200)" pattern, which would otherwise replay the root
+  `page.tsx` redirect into `/finance` on every section refresh.
+
+Deploys that change distribution behavior should include a CloudFront
+invalidation (`/*`) so cached 403/404 rewrites produced before the
+function was attached are flushed from all edge POPs.
+
 ---
 
 ## CDK Bootstrap Stack (CDKToolkit)
