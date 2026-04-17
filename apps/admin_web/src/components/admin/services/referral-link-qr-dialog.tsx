@@ -37,6 +37,7 @@ export function ReferralLinkQrDialog({
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const paramName: ReferralParamName = discountType === 'referral' ? 'ref' : 'discount';
   const [includeLogoInQr, setIncludeLogoInQr] = useState(true);
+  const [applyBranding, setApplyBranding] = useState(true);
   const [previewDataUrl, setPreviewDataUrl] = useState('');
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [renderError, setRenderError] = useState('');
@@ -79,6 +80,7 @@ export function ReferralLinkQrDialog({
         url: builtUrl,
         size: 220,
         logoSrc,
+        applyBranding,
       })
         .then((dataUrl) => {
           if (!cancelled) {
@@ -100,7 +102,7 @@ export function ReferralLinkQrDialog({
     return () => {
       cancelled = true;
     };
-  }, [builtUrl, includeLogoInQr, open]);
+  }, [applyBranding, builtUrl, includeLogoInQr, open]);
 
   async function downloadPng(size: number) {
     if (!builtUrl) {
@@ -111,6 +113,7 @@ export function ReferralLinkQrDialog({
       url: builtUrl,
       size,
       logoSrc,
+      applyBranding,
     });
     const response = await fetch(dataUrl);
     const blob = await response.blob();
@@ -170,18 +173,33 @@ export function ReferralLinkQrDialog({
             <Label aria-hidden='true' className='invisible mb-1 block select-none'>
               {' '}
             </Label>
-            <div className='flex items-center gap-2'>
-              <input
-                id='referral-qr-include-logo'
-                type='checkbox'
-                className='h-4 w-4 rounded border-slate-300 text-slate-900'
-                checked={includeLogoInQr}
-                onChange={(event) => setIncludeLogoInQr(event.target.checked)}
-                disabled={Boolean(configError)}
-              />
-              <Label htmlFor='referral-qr-include-logo' className='mb-0 cursor-pointer font-normal'>
-                Include logo in QR code
-              </Label>
+            <div className='space-y-2'>
+              <div className='flex items-center gap-2'>
+                <input
+                  id='referral-qr-include-logo'
+                  type='checkbox'
+                  className='h-4 w-4 rounded border-slate-300 text-slate-900'
+                  checked={includeLogoInQr}
+                  onChange={(event) => setIncludeLogoInQr(event.target.checked)}
+                  disabled={Boolean(configError)}
+                />
+                <Label htmlFor='referral-qr-include-logo' className='mb-0 cursor-pointer font-normal'>
+                  Include logo in QR code
+                </Label>
+              </div>
+              <div className='flex items-center gap-2'>
+                <input
+                  id='referral-qr-apply-branding'
+                  type='checkbox'
+                  className='h-4 w-4 rounded border-slate-300 text-slate-900'
+                  checked={applyBranding}
+                  onChange={(event) => setApplyBranding(event.target.checked)}
+                  disabled={Boolean(configError)}
+                />
+                <Label htmlFor='referral-qr-apply-branding' className='mb-0 cursor-pointer font-normal'>
+                  Apply branding
+                </Label>
+              </div>
             </div>
           </div>
         </div>
