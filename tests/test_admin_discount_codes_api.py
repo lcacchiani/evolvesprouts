@@ -7,6 +7,7 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from app.api import admin_discount_codes
 from app.api.admin_services_payloads import ensure_discount_validity_window
@@ -96,3 +97,25 @@ def test_ensure_discount_validity_window_rejects_inverted_range() -> None:
             datetime(2026, 1, 1, tzinfo=UTC),
         )
     assert exc_info.value.field == "valid_until"
+
+
+def test_is_discount_code_unique_violation_matches_constraint_name() -> None:
+    class _FakeDiag:
+        constraint_name = "discount_codes_code_unique_idx"
+
+    class _FakeOrig:
+        diag = _FakeDiag()
+
+    exc = IntegrityError("stmt", {}, _FakeOrig())
+    assert admin_discount_codes._is_discount_code_unique_violation(exc) is True
+
+
+def test_is_discount_code_unique_violation_false_for_other_constraint() -> None:
+    class _FakeDiag:
+        constraint_name = "other_idx"
+
+    class _FakeOrig:
+        diag = _FakeDiag()
+
+    exc = IntegrityError("stmt", {}, _FakeOrig())
+    assert admin_discount_codes._is_discount_code_unique_violation(exc) is False

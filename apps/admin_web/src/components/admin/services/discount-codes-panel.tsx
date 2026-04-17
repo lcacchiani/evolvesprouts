@@ -15,6 +15,8 @@ import { CopyIcon, DeleteIcon, QrLinkIcon } from '@/components/icons/action-icon
 import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-qr-dialog';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
+import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { bumpDuplicateDiscountCode } from '@/lib/discount-code-duplicate';
 import {
   DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
   isDiscountValidityRangeInverted,
@@ -119,6 +121,7 @@ export function DiscountCodesPanel({
   const [validFromLocal, setValidFromLocal] = useState('');
   const [validUntilLocal, setValidUntilLocal] = useState('');
   const [validityRangeError, setValidityRangeError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [instanceId, setInstanceId] = useState('');
   const [referralOpen, setReferralOpen] = useState(false);
@@ -173,6 +176,7 @@ export function DiscountCodesPanel({
     setValidFromLocal('');
     setValidUntilLocal('');
     setValidityRangeError('');
+    setSaveError('');
     setServiceId('');
     setInstanceId('');
   };
@@ -183,6 +187,7 @@ export function DiscountCodesPanel({
       return;
     }
     setValidityRangeError('');
+    setSaveError('');
     const validFromIso = parseDatetimeLocalToIsoUtc(validFromLocal);
     const validUntilIso = parseDatetimeLocalToIsoUtc(validUntilLocal);
     const serviceUuid = serviceId.trim() || null;
@@ -200,10 +205,33 @@ export function DiscountCodesPanel({
       service_id: serviceUuid,
       instance_id: instanceUuid,
     };
+    const isDuplicateCodeError = (err: unknown) =>
+      err instanceof AdminApiError &&
+      err.statusCode === 409 &&
+      readAdminApiErrorField(err) === 'code';
+
     try {
       if (editorMode === 'create') {
-        await onCreate(createPayload);
-        resetCreateForm();
+        let attemptCode = createPayload.code;
+        const maxDuplicateRetries = 64;
+        for (let round = 0; round < maxDuplicateRetries; round += 1) {
+          try {
+            await onCreate({ ...createPayload, code: attemptCode });
+            resetCreateForm();
+            return;
+          } catch (err) {
+            if (!isDuplicateCodeError(err)) {
+              throw err;
+            }
+            const nextCode = bumpDuplicateDiscountCode(attemptCode);
+            if (nextCode === attemptCode) {
+              throw err;
+            }
+            attemptCode = nextCode;
+            setCode(nextCode);
+          }
+        }
+        setSaveError('Could not allocate a unique discount code. Try a shorter base code.');
         return;
       }
       if (!selectedCode) {
@@ -238,8 +266,10 @@ export function DiscountCodesPanel({
         service_id: serviceUuid,
         instance_id: instanceUuid,
       });
-    } catch {
-      // Keep inline form state visible to let users retry.
+    } catch (err) {
+      if (err instanceof AdminApiError) {
+        setSaveError(err.message);
+      }
     }
   };
 
@@ -256,6 +286,7 @@ export function DiscountCodesPanel({
     setValidFromLocal(formatIsoForDatetimeLocalInput(entry.validFrom));
     setValidUntilLocal(formatIsoForDatetimeLocalInput(entry.validUntil));
     setValidityRangeError('');
+    setSaveError('');
     setServiceId(entry.serviceId ?? '');
     setInstanceId(entry.instanceId ?? '');
   };
@@ -324,7 +355,10 @@ export function DiscountCodesPanel({
             <Input
               id='discount-code'
               value={code}
-              onChange={(event) => setCode(event.target.value.toUpperCase())}
+              onChange={(event) => {
+                setSaveError('');
+                setCode(event.target.value.toUpperCase());
+              }}
               disabled={editorMode === 'edit'}
             />
           </div>
@@ -368,6 +402,7 @@ export function DiscountCodesPanel({
           </div>
         </div>
         {validityRangeError ? <p className='text-sm text-red-600'>{validityRangeError}</p> : null}
+        {saveError ? <p className='text-sm text-red-600'>{saveError}</p> : null}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <div>
             <Label htmlFor='discount-service'>Applies to service</Label>

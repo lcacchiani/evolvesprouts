@@ -1443,6 +1443,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Discount code value conflict (duplicate code, case-insensitive).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/discount-codes/{id}:
     parameters:

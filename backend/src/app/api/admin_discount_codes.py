@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body, parse_uuid
@@ -160,12 +161,32 @@ def _create_discount_code(
             created_by=actor_sub,
         )
         created = repository.create(entity)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_discount_code_unique_violation(exc):
+                raise ValidationError(
+                    "A discount code with this value already exists",
+                    field="code",
+                    status_code=409,
+                ) from exc
+            raise
         return json_response(
             201,
             {"discount_code": serialize_discount_code(created)},
             event=event,
         )
+
+
+def _is_discount_code_unique_violation(exc: IntegrityError) -> bool:
+    orig = getattr(exc.orig, "__cause__", None) or exc.orig
+    diag = getattr(orig, "diag", None)
+    constraint = getattr(diag, "constraint_name", None) if diag else None
+    if constraint == "discount_codes_code_unique_idx":
+        return True
+    message = str(exc).lower()
+    return "discount_codes_code_unique_idx" in message
 
 
 def _update_discount_code(

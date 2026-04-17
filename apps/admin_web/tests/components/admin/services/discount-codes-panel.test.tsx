@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DiscountCodesPanel } from '@/components/admin/services/discount-codes-panel';
+import { AdminApiError } from '@/lib/api-admin-client';
 
 vi.mock('@/hooks/use-service-instance-options', () => ({
   useServiceInstanceOptions: () => ({
@@ -221,5 +222,47 @@ describe('DiscountCodesPanel', () => {
       expect(onUpdate).toHaveBeenCalled();
     });
     expect(onUpdate.mock.calls[0][1]).toMatchObject({ service_id: 'svc-2' });
+  });
+
+  it('retries create with COPY, COPY2, … until duplicate 409 stops', async () => {
+    const duplicateErr = new AdminApiError({
+      statusCode: 409,
+      payload: { error: 'duplicate', field: 'code' },
+      message: 'A discount code with this value already exists',
+    });
+    const onCreate = vi
+      .fn()
+      .mockRejectedValueOnce(duplicateErr)
+      .mockRejectedValueOnce(duplicateErr)
+      .mockResolvedValueOnce(undefined);
+
+    render(
+      <DiscountCodesPanel
+        codes={[]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'DUP' } });
+    fireEvent.change(screen.getByLabelText('Value'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create code' }));
+
+    await vi.waitFor(() => {
+      expect(onCreate).toHaveBeenCalledTimes(3);
+    });
+    expect(onCreate.mock.calls[0][0]).toMatchObject({ code: 'DUP' });
+    expect(onCreate.mock.calls[1][0]).toMatchObject({ code: 'DUPCOPY' });
+    expect(onCreate.mock.calls[2][0]).toMatchObject({ code: 'DUPCOPY2' });
   });
 });
