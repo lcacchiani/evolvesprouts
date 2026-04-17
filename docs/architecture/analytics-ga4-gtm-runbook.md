@@ -13,6 +13,23 @@ Applies to `apps/public_www` and current user journeys:
 - My Best Auntie booking flow (`POST /v1/reservations`)
 - WhatsApp CTAs (floating and section-level)
 
+### Admin console (optional)
+
+The Next.js admin app (`apps/admin_web`) can load a **separate** GTM container when
+`NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID` is set. `trackAdminAnalyticsEvent()` in
+`apps/admin_web/src/lib/admin-analytics.ts` pushes the same core `dataLayer` keys as
+public_www (`page_path`, `page_title`, `page_locale`, `section_id`, `cta_location`,
+`environment`) plus `app_surface: 'admin'` for downstream filtering.
+
+Stable **`admin_*` namespace** events used today:
+
+| Event | Trigger | Notes |
+|---|---|---|
+| `admin_referral_qr_opened` | Referral QR dialog opens | Optional `service_slug` |
+| `admin_referral_qr_copied` | Copy referral URL | Optional `service_slug` |
+| `admin_referral_qr_downloaded` | Download referral PNG | `service_slug`, `png_size_px` |
+| `admin_instance_uuid_copied` | Copy service instance UUID from Instances list | `service_id` |
+
 ## Tracking architecture
 
 - Delivery mechanism: **Google Tag Manager** (`NEXT_PUBLIC_GTM_ID`)
