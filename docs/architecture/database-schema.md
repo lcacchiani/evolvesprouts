@@ -40,7 +40,7 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
 - Enum `consultation_pricing_model`: `free`, `hourly`, `package`.
 - Enum `instance_status`: `scheduled`, `open`, `full`, `in_progress`,
   `completed`, `cancelled`.
-- Enum `discount_type`: `percentage`, `absolute`.
+- Enum `discount_type`: `percentage`, `absolute`, `referral`.
 - Enum `enrollment_status`: `registered`, `waitlisted`, `confirmed`,
   `cancelled`, `completed`.
 - Enum `expense_status`: `draft`, `submitted`, `paid`, `voided`, `amended`.
@@ -396,8 +396,10 @@ Indexes:
 ### `discount_codes`
 
 - Global, service-scoped, or instance-scoped promo codes.
-- Supports `percentage` and `absolute` discount types with usage limits and
-  optional validity windows.
+- Supports `percentage`, `absolute`, and `referral` discount types with usage
+  limits and optional validity windows.
+- Check constraint `discount_codes_value_by_type`: referral rows require
+  `discount_value >= 0`; non-referral rows require `discount_value > 0`.
 
 ### `enrollments`
 

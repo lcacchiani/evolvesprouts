@@ -3064,7 +3064,11 @@ components:
       enum: [scheduled, open, full, in_progress, completed, cancelled]
     DiscountType:
       type: string
-      enum: [percentage, absolute]
+      enum: [percentage, absolute, referral]
+      description: |
+        Discount type. `referral` codes are tracking-only: the server always
+        coerces `discount_value` to "0" and `currency` to "HKD", and the public
+        discount-validate endpoint rejects referral codes.
     EnrollmentStatus:
       type: string
       enum: [registered, waitlisted, confirmed, cancelled, completed]
@@ -3800,9 +3804,13 @@ components:
           $ref: "#/components/schemas/DiscountType"
         discount_value:
           type: string
+          description: >
+            For `referral` type this value is ignored; the server coerces it to "0".
         currency:
           type: string
           nullable: true
+          description: >
+            For `referral` type this is ignored; the server coerces it to "HKD".
         valid_from:
           type: string
           format: date-time
@@ -3836,9 +3844,13 @@ components:
           $ref: "#/components/schemas/DiscountType"
         discount_value:
           type: string
+          description: >
+            For `referral` type this value is ignored; the server coerces it to "0".
         currency:
           type: string
           nullable: true
+          description: >
+            For `referral` type this is ignored; the server coerces it to "HKD".
         valid_from:
           type: string
           format: date-time
