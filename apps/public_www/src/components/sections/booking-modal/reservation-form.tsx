@@ -704,6 +704,7 @@ export function BookingReservationForm({
     cohortId,
     courseSlug,
     discountValidationServiceKey,
+    paymentIntentServiceKey,
     captchaToken,
     paymentMethodFlags.stripeCards,
     isStripePaymentMethodSelected,
