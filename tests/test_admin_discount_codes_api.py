@@ -9,8 +9,6 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from sqlalchemy.exc import IntegrityError
-
 from app.api import admin_discount_codes
 from app.api.admin_services_payloads import ensure_discount_validity_window
 from app.exceptions import ValidationError

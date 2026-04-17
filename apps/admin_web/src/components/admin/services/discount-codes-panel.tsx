@@ -16,7 +16,11 @@ import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
-import { bumpDuplicateDiscountCode } from '@/lib/discount-code-duplicate';
+import {
+  bumpDuplicateDiscountCode,
+  DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE,
+  MAX_DISCOUNT_CODE_DUPLICATE_CREATE_RETRIES,
+} from '@/lib/discount-code-duplicate';
 import {
   DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
   isDiscountValidityRangeInverted,
@@ -80,12 +84,17 @@ export interface DiscountCodesPanelProps {
     value: DiscountCodeFilters[TKey]
   ) => void;
   onLoadMore: () => Promise<void> | void;
-  onCreate: (payload: ApiSchemas['CreateDiscountCodeRequest']) => Promise<unknown> | void;
+  onCreate: (
+    payload: ApiSchemas['CreateDiscountCodeRequest'],
+    options?: { batchSaving?: boolean },
+  ) => Promise<unknown> | void;
   onUpdate: (
     codeId: string,
     payload: ApiSchemas['UpdateDiscountCodeRequest']
   ) => Promise<unknown> | void;
   onDelete: (codeId: string) => Promise<void> | void;
+  /** Optional refresh after a failed duplicate-retry batch (intermediate attempts skip refetch). */
+  onDiscountCodesRefresh?: () => void | Promise<void>;
 }
 
 export function DiscountCodesPanel({
@@ -106,6 +115,7 @@ export function DiscountCodesPanel({
   onCreate,
   onUpdate,
   onDelete,
+  onDiscountCodesRefresh,
 }: DiscountCodesPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [scopeConfirmProps, requestScopeConfirm] = useConfirmDialog();
@@ -127,6 +137,7 @@ export function DiscountCodesPanel({
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [referralServiceSlug, setReferralServiceSlug] = useState<string | null>(null);
+  const [isBatchCreating, setIsBatchCreating] = useState(false);
   const directoryList = serviceDirectoryForDisplay ?? serviceOptions;
   const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions(instanceOptionsRefreshKey);
@@ -179,6 +190,7 @@ export function DiscountCodesPanel({
     setSaveError('');
     setServiceId('');
     setInstanceId('');
+    setIsBatchCreating(false);
   };
 
   const handleSubmit = async () => {
@@ -213,26 +225,36 @@ export function DiscountCodesPanel({
     try {
       if (editorMode === 'create') {
         let attemptCode = createPayload.code;
-        const maxDuplicateRetries = 64;
-        for (let round = 0; round < maxDuplicateRetries; round += 1) {
-          try {
-            await onCreate({ ...createPayload, code: attemptCode });
-            resetCreateForm();
-            return;
-          } catch (err) {
-            if (!isDuplicateCodeError(err)) {
-              throw err;
+        const maxDuplicateRetries = MAX_DISCOUNT_CODE_DUPLICATE_CREATE_RETRIES;
+        setIsBatchCreating(true);
+        try {
+          for (let round = 0; round < maxDuplicateRetries; round += 1) {
+            try {
+              const isLastAttempt = round === maxDuplicateRetries - 1;
+              await onCreate(
+                { ...createPayload, code: attemptCode },
+                { batchSaving: !isLastAttempt },
+              );
+              resetCreateForm();
+              return;
+            } catch (err) {
+              if (!isDuplicateCodeError(err)) {
+                throw err;
+              }
+              const nextCode = bumpDuplicateDiscountCode(attemptCode);
+              if (nextCode === attemptCode) {
+                throw err;
+              }
+              attemptCode = nextCode;
+              setCode(nextCode);
             }
-            const nextCode = bumpDuplicateDiscountCode(attemptCode);
-            if (nextCode === attemptCode) {
-              throw err;
-            }
-            attemptCode = nextCode;
-            setCode(nextCode);
           }
+          setSaveError(DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE);
+          void onDiscountCodesRefresh?.();
+          return;
+        } finally {
+          setIsBatchCreating(false);
         }
-        setSaveError('Could not allocate a unique discount code. Try a shorter base code.');
-        return;
       }
       if (!selectedCode) {
         return;
@@ -322,6 +344,8 @@ export function DiscountCodesPanel({
     setReferralOpen(true);
   }
 
+  const editorIsBusy = isSaving || isBatchCreating;
+
   return (
     <div className='space-y-6'>
       <AdminEditorCard
@@ -330,14 +354,14 @@ export function DiscountCodesPanel({
         actions={
           <>
             {editorMode === 'edit' ? (
-              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={editorIsBusy}>
                 Cancel
               </Button>
             ) : null}
             <Button
               type='button'
               disabled={
-                isSaving ||
+                editorIsBusy ||
                 !code.trim() ||
                 !discountValue.trim() ||
                 isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)

@@ -37,21 +37,43 @@ export function useDiscountCodes() {
   const { refetch } = list;
   const [isSaving, setIsSaving] = useState(false);
 
-  const mutate = useCallback(async <TResult>(work: () => Promise<TResult>): Promise<TResult> => {
-    setIsSaving(true);
-    try {
-      const result = await work();
-      await refetch();
-      return result;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [refetch]);
+  type MutateOptions = {
+    /** When true, skip toggling `isSaving` (caller manages a longer-lived saving state). */
+    suppressSaving?: boolean;
+    /** When true, skip the post-mutation list refetch (caller will refetch once). */
+    suppressRefetch?: boolean;
+  };
+
+  const mutate = useCallback(
+    async <TResult>(
+      work: () => Promise<TResult>,
+      options: MutateOptions = {},
+    ): Promise<TResult> => {
+      const { suppressSaving = false, suppressRefetch = false } = options;
+      if (!suppressSaving) {
+        setIsSaving(true);
+      }
+      try {
+        const result = await work();
+        if (!suppressRefetch) {
+          await refetch();
+        }
+        return result;
+      } finally {
+        if (!suppressSaving) {
+          setIsSaving(false);
+        }
+      }
+    },
+    [refetch],
+  );
 
   const createCode = useCallback(
-    async (payload: ApiSchemas['CreateDiscountCodeRequest']) =>
-      mutate(async () => createDiscountCode(payload)),
-    [mutate]
+    async (
+      payload: ApiSchemas['CreateDiscountCodeRequest'],
+      options: MutateOptions = {},
+    ) => mutate(async () => createDiscountCode(payload), options),
+    [mutate],
   );
 
   const updateCode = useCallback(

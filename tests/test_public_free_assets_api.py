@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 
 from app.api import public_free_assets
-from app.db.models import AssetType, AssetVisibility
+from app.db.models import AssetType
 from app.exceptions import ValidationError
 
 

@@ -8,9 +8,10 @@ repos:
     rev: v0.3.0
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-        files: ^backend/
+        args: [--fix, --exit-non-zero-on-fix, --config=backend/pyproject.toml]
+        files: ^(backend|tests)/
       - id: ruff-format
+        args: [--config=backend/pyproject.toml]
         files: ^backend/
 
   # Python type checking with mypy
