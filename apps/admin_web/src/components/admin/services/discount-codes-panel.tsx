@@ -78,7 +78,8 @@ export interface DiscountCodesPanelProps {
   isSaving: boolean;
   hasMore: boolean;
   error: string;
-  serviceOptions: ServiceSummary[];
+  /** Published services for scope pickers; defaults to [] when omitted (e.g. tests). */
+  serviceOptions?: ServiceSummary[];
   onFilterChange: <TKey extends keyof DiscountCodeFilters>(
     key: TKey,
     value: DiscountCodeFilters[TKey]
@@ -100,7 +101,7 @@ export function DiscountCodesPanel({
   isSaving,
   hasMore,
   error,
-  serviceOptions,
+  serviceOptions = [],
   onFilterChange,
   onLoadMore,
   onCreate,

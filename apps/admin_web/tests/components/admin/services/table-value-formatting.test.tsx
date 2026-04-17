@@ -131,12 +131,13 @@ describe('services tables value formatting', () => {
         />
         <DiscountCodesPanel
           codes={[DISCOUNT_CODE_FIXTURE]}
-          filters={{ active: '', search: '' }}
+          filters={{ active: '', search: '', scope: '' }}
           isLoading={false}
           isLoadingMore={false}
           isSaving={false}
           hasMore={false}
           error=''
+          serviceOptions={[SERVICE_FIXTURE]}
           onFilterChange={vi.fn()}
           onLoadMore={vi.fn()}
           onCreate={vi.fn()}
