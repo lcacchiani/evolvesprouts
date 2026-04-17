@@ -105,6 +105,13 @@ def handle_public_discount_validate(
                 event=event,
             )
 
+        if row.discount_type == DiscountType.REFERRAL:
+            return json_response(
+                404,
+                {"error": "Discount code not found or inactive"},
+                event=event,
+            )
+
         rule = _discount_rule_payload(row)
         return json_response(
             200,
