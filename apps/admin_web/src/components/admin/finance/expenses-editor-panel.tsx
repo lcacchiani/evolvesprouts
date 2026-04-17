@@ -284,13 +284,20 @@ export function ExpensesEditorPanel({
           </Select>
         </div>
         <div>
-          <Label htmlFor='expense-vendor'>Vendor</Label>
+          <Label htmlFor='expense-vendor'>
+            Vendor
+            {!isEditMode ? (
+              <span aria-hidden='true' className='ml-0.5 text-red-600'>
+                *
+              </span>
+            ) : null}
+          </Label>
           <Select
             id='expense-vendor'
             value={vendorId}
             onChange={(event) => setVendorId(event.target.value)}
-            aria-invalid={vendorRequired ? true : undefined}
-            aria-describedby={vendorRequired ? 'expense-vendor-error' : undefined}
+            required={!isEditMode}
+            aria-required={!isEditMode ? true : undefined}
           >
             <option value=''>{isLoadingVendors ? 'Loading vendors...' : 'Select vendor'}</option>
             {vendorOptions.map((vendor) => (
@@ -300,11 +307,6 @@ export function ExpensesEditorPanel({
               </option>
             ))}
           </Select>
-          {vendorRequired ? (
-            <AdminInlineError id='expense-vendor-error' className='mt-1'>
-              Select a vendor before submitting.
-            </AdminInlineError>
-          ) : null}
         </div>
         <div>
           <Label htmlFor='expense-invoice-number'>Invoice number</Label>
