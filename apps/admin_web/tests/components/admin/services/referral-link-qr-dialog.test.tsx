@@ -38,7 +38,12 @@ describe('ReferralLinkQrDialog', () => {
     });
 
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
+      <ReferralLinkQrDialog
+        open
+        onClose={() => {}}
+        discountCode='SAVE10'
+        serviceSlug='my-best-auntie-training-course'
+      />,
     );
 
     await vi.waitFor(() => {
@@ -51,7 +56,7 @@ describe('ReferralLinkQrDialog', () => {
       expect.objectContaining({
         event: 'admin_referral_qr_opened',
         app_surface: 'admin',
-        service_slug: 'my-best-auntie',
+        service_slug: 'my-best-auntie-training-course',
       }),
     );
 
@@ -63,7 +68,7 @@ describe('ReferralLinkQrDialog', () => {
       expect(pushSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           event: 'admin_referral_qr_copied',
-          service_slug: 'my-best-auntie',
+          service_slug: 'my-best-auntie-training-course',
         }),
       );
     });
@@ -84,7 +89,7 @@ describe('ReferralLinkQrDialog', () => {
     }) as typeof fetch;
 
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} />,
     );
 
     await vi.waitFor(() => {
@@ -103,7 +108,7 @@ describe('ReferralLinkQrDialog', () => {
 
   it('labels inner content for screen readers', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' serviceSlug={null} />,
     );
     await vi.waitFor(() => {
       expect(

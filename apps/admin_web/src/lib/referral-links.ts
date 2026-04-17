@@ -33,6 +33,45 @@ function normalizeLocaleSegment(locale: string): MyBestAuntieReferralLocale | ''
  * Always includes the locale prefix segment for deterministic QR payloads.
  * Returns empty string when locale is not in the allowed set or base URL is blank.
  */
+const SERVICE_SLUG_PATH = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export interface BuildPublicReferralUrlInput {
+  baseUrl: string;
+  locale: string;
+  /** Public `services.slug` segment, or null/empty for locale home (`/{locale}/`). */
+  serviceSlug: string | null | undefined;
+  code: string;
+  paramName: ReferralParamName;
+}
+
+/**
+ * Build a locale-prefixed public URL with `ref` or `discount` for referral QR.
+ * With a service slug: `/{locale}/services/{slug}?…`. Without: `/{locale}/?…` (site home for that locale).
+ */
+export function buildPublicReferralUrlWithSlug(input: BuildPublicReferralUrlInput): string {
+  const base = trimTrailingSlashes(input.baseUrl.trim());
+  if (!base) {
+    return '';
+  }
+  const locale = normalizeLocaleSegment(input.locale);
+  if (!locale) {
+    return '';
+  }
+  const code = input.code.trim().toUpperCase();
+  if (!code) {
+    return '';
+  }
+  const param = input.paramName === 'discount' ? 'discount' : 'ref';
+  const rawSlug = input.serviceSlug?.trim().toLowerCase() ?? '';
+  const path =
+    rawSlug && SERVICE_SLUG_PATH.test(rawSlug)
+      ? `/${locale}/services/${rawSlug}`
+      : `/${locale}/`;
+  const url = new URL(path, `${base}/`);
+  url.searchParams.set(param, code);
+  return url.toString();
+}
+
 export function buildMyBestAuntieReferralUrl(input: BuildMyBestAuntieReferralUrlInput): string {
   const base = trimTrailingSlashes(input.baseUrl.trim());
   if (!base) {

@@ -57,10 +57,6 @@ function formatScopeSummary(row: DiscountCode, serviceById: Map<string, ServiceS
   return title;
 }
 
-function serviceOptionLabel(svc: ServiceSummary): string {
-  return `${svc.title} · ${formatEnumLabel(svc.status)}`;
-}
-
 export interface DiscountCodesPanelProps {
   codes: DiscountCode[];
   filters: DiscountCodeFilters;
@@ -75,7 +71,6 @@ export interface DiscountCodesPanelProps {
   serviceDirectoryForDisplay?: ServiceSummary[];
   /** Bumps to clear cached instance options after mutations. */
   instanceOptionsRefreshKey?: unknown;
-  onInstanceOptionsInvalidate?: () => void;
   showArchivedServices?: boolean;
   onShowArchivedChange?: (value: boolean) => void;
   onFilterChange: <TKey extends keyof DiscountCodeFilters>(
@@ -102,7 +97,6 @@ export function DiscountCodesPanel({
   serviceOptions = [],
   serviceDirectoryForDisplay,
   instanceOptionsRefreshKey,
-  onInstanceOptionsInvalidate,
   showArchivedServices = false,
   onShowArchivedChange,
   onFilterChange,
@@ -129,8 +123,9 @@ export function DiscountCodesPanel({
   const [instanceId, setInstanceId] = useState('');
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
+  const [referralServiceSlug, setReferralServiceSlug] = useState<string | null>(null);
   const directoryList = serviceDirectoryForDisplay ?? serviceOptions;
-  const { instances, isLoading: instancesLoading, error: instancesError, loadForService, invalidate } =
+  const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions(instanceOptionsRefreshKey);
   const currencyOptions = getCurrencyOptions();
 
@@ -141,6 +136,20 @@ export function DiscountCodesPanel({
     }
     return map;
   }, [directoryList]);
+
+  /** “Applies to service” picker: published only, plus current selection if not published (edit legacy rows). */
+  const serviceSelectOptions = useMemo(() => {
+    const published = serviceOptions.filter((svc) => svc.status === 'published');
+    if (!serviceId.trim()) {
+      return published;
+    }
+    const selected = serviceById.get(serviceId.trim());
+    if (!selected || selected.status === 'published') {
+      return published;
+    }
+    const ids = new Set(published.map((s) => s.id));
+    return ids.has(selected.id) ? published : [...published, selected];
+  }, [serviceById, serviceId, serviceOptions]);
 
   const selectedCode = useMemo(
     () => codes.find((entry) => entry.id === selectedCodeId) ?? null,
@@ -277,15 +286,9 @@ export function DiscountCodesPanel({
 
   function openReferralDialog(entry: DiscountCode) {
     setReferralCode(entry.code);
+    const slug = entry.serviceId ? serviceById.get(entry.serviceId)?.slug?.trim() ?? null : null;
+    setReferralServiceSlug(slug && slug.length ? slug : null);
     setReferralOpen(true);
-  }
-
-  function canShowReferralQr(entry: DiscountCode): boolean {
-    if (!entry.serviceId) {
-      return false;
-    }
-    const slug = serviceById.get(entry.serviceId)?.slug?.trim().toLowerCase() ?? '';
-    return slug === 'my-best-auntie';
   }
 
   return (
@@ -377,9 +380,9 @@ export function DiscountCodesPanel({
               }}
             >
               <option value=''>All services</option>
-              {serviceOptions.map((svc) => (
+              {serviceSelectOptions.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {serviceOptionLabel(svc)}
+                  {svc.title}
                 </option>
               ))}
             </Select>
@@ -401,21 +404,6 @@ export function DiscountCodesPanel({
             </Select>
             {instancesLoading ? <p className='text-xs text-slate-500'>Loading instances…</p> : null}
             {instancesError ? <p className='text-xs text-red-600'>{instancesError}</p> : null}
-            <div className='pt-1'>
-              <Button
-                type='button'
-                size='sm'
-                variant='outline'
-                disabled={!serviceId.trim()}
-                onClick={() => {
-                  invalidate(serviceId.trim() || undefined);
-                  void loadForService(serviceId.trim() || null);
-                  onInstanceOptionsInvalidate?.();
-                }}
-              >
-                Refresh instances
-              </Button>
-            </div>
           </div>
         </div>
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
@@ -565,19 +553,20 @@ export function DiscountCodesPanel({
                 <td className='px-4 py-3'>{row.active ? 'Enabled' : 'Disabled'}</td>
                 <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                   <div className='flex justify-end gap-1'>
-                    {canShowReferralQr(row) ? (
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='secondary'
-                        disabled={isSaving}
-                        onClick={() => openReferralDialog(row)}
-                        aria-label='Referral link and QR'
-                        title='Referral link and QR'
-                      >
-                        <QrLinkIcon className='h-4 w-4' />
-                      </Button>
-                    ) : null}
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='secondary'
+                      disabled={isSaving}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openReferralDialog(row);
+                      }}
+                      aria-label='Referral link and QR'
+                      title='Referral link and QR'
+                    >
+                      <QrLinkIcon className='h-4 w-4' />
+                    </Button>
                     <Button
                       type='button'
                       size='sm'
@@ -612,6 +601,7 @@ export function DiscountCodesPanel({
       <ReferralLinkQrDialog
         open={referralOpen}
         discountCode={referralCode}
+        serviceSlug={referralServiceSlug}
         onClose={() => setReferralOpen(false)}
       />
     </div>
