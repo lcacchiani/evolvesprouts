@@ -18,12 +18,13 @@ import { ServicesHeader } from './services-header';
 export function ServicesPage() {
   const state = useServicesPage();
   const [showArchivedDiscountServices, setShowArchivedDiscountServices] = useState(false);
-  const discountServiceOptions = useMemo(() => {
+  const allServiceOptionsIncludingArchived = state.serviceList.services;
+  const pickerServiceOptions = useMemo(() => {
     if (showArchivedDiscountServices) {
-      return state.serviceList.services;
+      return allServiceOptionsIncludingArchived;
     }
-    return state.serviceList.services.filter((svc) => svc.status !== 'archived');
-  }, [showArchivedDiscountServices, state.serviceList.services]);
+    return allServiceOptionsIncludingArchived.filter((svc) => svc.status !== 'archived');
+  }, [showArchivedDiscountServices, allServiceOptionsIncludingArchived]);
   const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
   const filteredInstances =
     state.activeView === 'instances' && normalizedInstanceSearch
@@ -238,7 +239,12 @@ export function ServicesPage() {
           isSaving={state.discountCodes.isSaving}
           hasMore={state.discountCodes.hasMore}
           error={state.discountCodes.error}
-          serviceOptions={discountServiceOptions}
+          serviceOptions={pickerServiceOptions}
+          serviceDirectoryForDisplay={allServiceOptionsIncludingArchived}
+          instanceOptionsRefreshKey={state.instanceOptionsCacheVersion}
+          onInstanceOptionsInvalidate={() =>
+            state.setInstanceOptionsCacheVersion((v) => v + 1)
+          }
           showArchivedServices={showArchivedDiscountServices}
           onShowArchivedChange={setShowArchivedDiscountServices}
           onFilterChange={state.discountCodes.setFilter}

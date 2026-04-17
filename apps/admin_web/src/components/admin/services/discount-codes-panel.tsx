@@ -37,7 +37,19 @@ function formatScopeSummary(row: DiscountCode, serviceById: Map<string, ServiceS
   if (!row.serviceId && !row.instanceId) {
     return 'All services';
   }
-  const title = row.serviceId ? serviceById.get(row.serviceId)?.title ?? 'Service' : 'Service';
+  let title: string;
+  if (!row.serviceId) {
+    title = 'Service';
+  } else {
+    const svc = serviceById.get(row.serviceId);
+    if (!svc) {
+      title = 'Service (unknown)';
+    } else if (svc.status === 'archived') {
+      title = svc.title?.trim() ? `${svc.title.trim()} (archived)` : 'Service (archived)';
+    } else {
+      title = svc.title;
+    }
+  }
   if (row.instanceId) {
     const short = row.instanceId.replace(/-/g, '').slice(0, 8);
     return `${title} · instance ${short}`;
@@ -59,6 +71,11 @@ export interface DiscountCodesPanelProps {
   error: string;
   /** Services for scope pickers; defaults to [] when omitted (e.g. tests). */
   serviceOptions?: ServiceSummary[];
+  /** Full service list for scope column labels (e.g. includes archived). Defaults to serviceOptions. */
+  serviceDirectoryForDisplay?: ServiceSummary[];
+  /** Bumps to clear cached instance options after mutations. */
+  instanceOptionsRefreshKey?: unknown;
+  onInstanceOptionsInvalidate?: () => void;
   showArchivedServices?: boolean;
   onShowArchivedChange?: (value: boolean) => void;
   onFilterChange: <TKey extends keyof DiscountCodeFilters>(
@@ -83,6 +100,9 @@ export function DiscountCodesPanel({
   hasMore,
   error,
   serviceOptions = [],
+  serviceDirectoryForDisplay,
+  instanceOptionsRefreshKey,
+  onInstanceOptionsInvalidate,
   showArchivedServices = false,
   onShowArchivedChange,
   onFilterChange,
@@ -109,17 +129,18 @@ export function DiscountCodesPanel({
   const [instanceId, setInstanceId] = useState('');
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
-  const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
-    useServiceInstanceOptions();
+  const directoryList = serviceDirectoryForDisplay ?? serviceOptions;
+  const { instances, isLoading: instancesLoading, error: instancesError, loadForService, invalidate } =
+    useServiceInstanceOptions(instanceOptionsRefreshKey);
   const currencyOptions = getCurrencyOptions();
 
   const serviceById = useMemo(() => {
     const map = new Map<string, ServiceSummary>();
-    for (const svc of serviceOptions) {
+    for (const svc of directoryList) {
       map.set(svc.id, svc);
     }
     return map;
-  }, [serviceOptions]);
+  }, [directoryList]);
 
   const selectedCode = useMemo(
     () => codes.find((entry) => entry.id === selectedCodeId) ?? null,
@@ -380,6 +401,21 @@ export function DiscountCodesPanel({
             </Select>
             {instancesLoading ? <p className='text-xs text-slate-500'>Loading instances…</p> : null}
             {instancesError ? <p className='text-xs text-red-600'>{instancesError}</p> : null}
+            <div className='pt-1'>
+              <Button
+                type='button'
+                size='sm'
+                variant='outline'
+                disabled={!serviceId.trim()}
+                onClick={() => {
+                  invalidate(serviceId.trim() || undefined);
+                  void loadForService(serviceId.trim() || null);
+                  onInstanceOptionsInvalidate?.();
+                }}
+              >
+                Refresh instances
+              </Button>
+            </div>
           </div>
         </div>
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>

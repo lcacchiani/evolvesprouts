@@ -10,6 +10,7 @@ vi.mock('@/hooks/use-service-instance-options', () => ({
     isLoading: false,
     error: '',
     loadForService: vi.fn(),
+    invalidate: vi.fn(),
   }),
 }));
 
@@ -109,6 +110,58 @@ describe('DiscountCodesPanel', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Referral link and QR' })).toBeInTheDocument();
+  });
+
+  it('shows archived service title in Scope while picker omits archived services', () => {
+    const archived = {
+      ...baseService,
+      id: 'svc-archived',
+      title: 'MBA Archived',
+      status: 'archived' as const,
+      slug: 'other-slug',
+    };
+    const row = {
+      id: 'dc-arch',
+      code: 'ARCH',
+      description: null,
+      discountType: 'percentage' as const,
+      discountValue: '10',
+      currency: null,
+      validFrom: null,
+      validUntil: null,
+      maxUses: null,
+      currentUses: 0,
+      active: true,
+      serviceId: 'svc-archived',
+      instanceId: null,
+      createdAt: null,
+      updatedAt: null,
+    };
+
+    render(
+      <DiscountCodesPanel
+        codes={[row]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        serviceDirectoryForDisplay={[archived]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('MBA Archived (archived)')).toBeInTheDocument();
+    const serviceSelect = screen.getByLabelText('Applies to service') as HTMLSelectElement;
+    expect(
+      [...serviceSelect.options].some((opt) => opt.textContent?.includes('MBA Archived')),
+    ).toBe(false);
   });
 
   it('prompts before scope change when the code has current uses', async () => {
