@@ -3,20 +3,21 @@ import { asBoolean, asNullableFiniteNumber, asNullableString, asNumber, unwrapPa
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import type {
-  DiscountCode,
-  DiscountCodeFilters,
-  Enrollment,
-  EnrollmentListFilters,
-  EventTicketTier,
-  GeographicAreaSummary,
-  LocationSummary,
-  ServiceDetail,
-  ServiceInstance,
-  ServiceListFilters,
-  ServiceSummary,
-  SessionSlot,
-  VenueFilters,
+import {
+  normalizeDiscountTypeFromApi,
+  type DiscountCode,
+  type DiscountCodeFilters,
+  type Enrollment,
+  type EnrollmentListFilters,
+  type EventTicketTier,
+  type GeographicAreaSummary,
+  type LocationSummary,
+  type ServiceDetail,
+  type ServiceInstance,
+  type ServiceListFilters,
+  type ServiceSummary,
+  type SessionSlot,
+  type VenueFilters,
 } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
@@ -271,7 +272,7 @@ function parseDiscountCode(value: unknown): DiscountCode {
     id: asNullableString(item.id) ?? '',
     code: asNullableString(item.code) ?? '',
     description: asNullableString(item.description),
-    discountType: (asNullableString(item.discount_type) ?? 'percentage') as DiscountCode['discountType'],
+    discountType: normalizeDiscountTypeFromApi(item.discount_type),
     discountValue: asNullableString(item.discount_value) ?? '0',
     currency: asNullableString(item.currency),
     validFrom: asNullableString(item.valid_from),
