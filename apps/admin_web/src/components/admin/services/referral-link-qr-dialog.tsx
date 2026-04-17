@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -25,7 +25,6 @@ export interface ReferralLinkQrDialogProps {
 }
 
 export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLinkQrDialogProps) {
-  const headingId = useId();
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [paramName, setParamName] = useState<ReferralParamName>('ref');
   const [previewDataUrl, setPreviewDataUrl] = useState('');
@@ -138,7 +137,7 @@ export function ReferralLinkQrDialog({ open, onClose, discountCode }: ReferralLi
       onCancel={onClose}
       onConfirm={onClose}
     >
-      <div className='space-y-4' aria-labelledby={headingId}>
+      <div className='space-y-4' aria-label='Referral link configuration and preview'>
         {configError ? <p className='text-sm text-red-600'>{configError}</p> : null}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <div>

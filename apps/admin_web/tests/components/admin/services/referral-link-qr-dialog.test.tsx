@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-qr-dialog';
@@ -15,6 +15,7 @@ vi.mock('@/lib/qr-code-image', () => ({
 
 describe('ReferralLinkQrDialog', () => {
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
     generateSpy.mockClear();
   });
@@ -27,6 +28,15 @@ describe('ReferralLinkQrDialog', () => {
       value: { writeText },
     });
 
+    vi.stubEnv('NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID', 'GTM-TEST');
+    const pushSpy = vi.fn();
+    const dataLayerStub: { push: typeof pushSpy } = { push: pushSpy };
+    Object.defineProperty(window, 'dataLayer', {
+      configurable: true,
+      writable: true,
+      value: dataLayerStub,
+    });
+
     render(
       <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
     );
@@ -37,10 +47,26 @@ describe('ReferralLinkQrDialog', () => {
       ).toBeInTheDocument();
     });
 
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'admin_referral_qr_opened',
+        app_surface: 'admin',
+        service_slug: 'my-best-auntie',
+      }),
+    );
+
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
     expect(writeText).toHaveBeenCalledWith(
       'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
     );
+    await waitFor(() => {
+      expect(pushSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'admin_referral_qr_copied',
+          service_slug: 'my-best-auntie',
+        }),
+      );
+    });
 
     if (clipboardDescriptor) {
       Object.defineProperty(navigator, 'clipboard', clipboardDescriptor);
@@ -73,5 +99,16 @@ describe('ReferralLinkQrDialog', () => {
 
     createObjectUrlSpy.mockRestore();
     revokeSpy.mockRestore();
+  });
+
+  it('labels inner content for screen readers', async () => {
+    render(
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='SAVE10' />,
+    );
+    await vi.waitFor(() => {
+      expect(
+        screen.getByLabelText('Referral link configuration and preview'),
+      ).toBeInTheDocument();
+    });
   });
 });
