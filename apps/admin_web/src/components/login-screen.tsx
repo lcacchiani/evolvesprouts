@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from 'react';
 
+import { DEFAULT_ADMIN_SECTION_PATH } from '@/lib/admin-nav';
+
 import { useAuth } from './auth-provider';
 import { EmailIcon, GoogleIcon } from './icons/action-icons';
 import { StatusBanner } from './status-banner';
@@ -85,7 +87,7 @@ export function LoginScreen() {
   };
 
   const handleGoogleLogin = () => {
-    void login({ provider: 'Google', returnTo: '/' });
+    void login({ provider: 'Google', returnTo: DEFAULT_ADMIN_SECTION_PATH });
   };
 
   return (
