@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { createAdminAsset, uploadFileToPresignedUrl } from '@/lib/assets-api';
+import { createAdminAsset, deleteAdminAsset, uploadFileToPresignedUrl } from '@/lib/assets-api';
 import {
   amendAdminExpense,
   cancelAdminExpense,
@@ -92,6 +92,16 @@ export function useExpenses() {
     setMutationError('');
   }, []);
 
+  const cleanupUploadedAssets = useCallback(async (assetIds: string[]): Promise<void> => {
+    for (const assetId of assetIds) {
+      try {
+        await deleteAdminAsset(assetId);
+      } catch {
+        // Swallow cleanup errors so the original mutation error surfaces to the user.
+      }
+    }
+  }, []);
+
   const uploadExpenseFiles = useCallback(async (files: File[]): Promise<string[]> => {
     if (files.length === 0) {
       return [];
@@ -142,8 +152,9 @@ export function useExpenses() {
     }) => {
       setIsSaving(true);
       setMutationError('');
+      let uploadedAssetIds: string[] = [];
       try {
-        const uploadedAssetIds = await uploadExpenseFiles(files);
+        uploadedAssetIds = await uploadExpenseFiles(files);
         const created = await createAdminExpense({
           ...input,
           attachmentAssetIds: uploadedAssetIds,
@@ -151,13 +162,14 @@ export function useExpenses() {
         await list.refetch();
         setSelectedExpenseId(created?.id ?? null);
       } catch (error) {
+        await cleanupUploadedAssets(uploadedAssetIds);
         setMutationError(toErrorMessage(error, 'Failed to create expense.'));
         throw error;
       } finally {
         setIsSaving(false);
       }
     },
-    [list, uploadExpenseFiles]
+    [cleanupUploadedAssets, list, uploadExpenseFiles]
   );
 
   const updateExpenseEntry = useCallback(
@@ -174,8 +186,9 @@ export function useExpenses() {
     }) => {
       setIsSaving(true);
       setMutationError('');
+      let uploadedAssetIds: string[] = [];
       try {
-        const uploadedAssetIds = await uploadExpenseFiles(newFiles);
+        uploadedAssetIds = await uploadExpenseFiles(newFiles);
         const updated = await updateAdminExpense(expenseId, {
           ...input,
           attachmentAssetIds: [...existingAttachmentAssetIds, ...uploadedAssetIds],
@@ -183,13 +196,14 @@ export function useExpenses() {
         await list.refetch();
         setSelectedExpenseId(updated?.id ?? expenseId);
       } catch (error) {
+        await cleanupUploadedAssets(uploadedAssetIds);
         setMutationError(toErrorMessage(error, 'Failed to update expense.'));
         throw error;
       } finally {
         setIsSaving(false);
       }
     },
-    [list, uploadExpenseFiles]
+    [cleanupUploadedAssets, list, uploadExpenseFiles]
   );
 
   const amendExpenseEntry = useCallback(
@@ -206,8 +220,9 @@ export function useExpenses() {
     }) => {
       setIsSaving(true);
       setMutationError('');
+      let uploadedAssetIds: string[] = [];
       try {
-        const uploadedAssetIds = await uploadExpenseFiles(newFiles);
+        uploadedAssetIds = await uploadExpenseFiles(newFiles);
         const amended = await amendAdminExpense(expenseId, {
           ...input,
           attachmentAssetIds: [...existingAttachmentAssetIds, ...uploadedAssetIds],
@@ -215,13 +230,14 @@ export function useExpenses() {
         await list.refetch();
         setSelectedExpenseId(amended?.id ?? null);
       } catch (error) {
+        await cleanupUploadedAssets(uploadedAssetIds);
         setMutationError(toErrorMessage(error, 'Failed to create amendment.'));
         throw error;
       } finally {
         setIsSaving(false);
       }
     },
-    [list, uploadExpenseFiles]
+    [cleanupUploadedAssets, list, uploadExpenseFiles]
   );
 
   const cancelExpenseEntry = useCallback(

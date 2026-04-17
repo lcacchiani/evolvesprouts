@@ -7,6 +7,7 @@ import type { TrainingFormState } from './training-form-fields';
 export const DEFAULT_SERVICE_FORM: ServiceFormState = {
   title: '',
   description: '',
+  slug: '',
   deliveryMode: 'online',
   status: 'draft',
 };

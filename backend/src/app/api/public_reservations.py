@@ -9,11 +9,15 @@ from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
+from app.api.public_discount_validate import (
+    _is_usable_now as discount_code_is_usable_now,
+)
 from app.api.public_form_hooks import (
     first_name_from_full_name,
     mailchimp_booking_tag_from_payload,
@@ -22,6 +26,7 @@ from app.api.public_form_hooks import (
     send_booking_confirmation_email,
 )
 from app.db.engine import get_engine
+from app.db.repositories import DiscountCodeRepository, ServiceRepository
 from app.db.models.enums import (
     ContactSource,
     ContactType,
@@ -62,6 +67,7 @@ _MAX_LOCATION_URL = 500
 _MAX_ISO_FIELD = 50
 _MAX_COHORT_DATE = 100
 _MAX_DISCOUNT_CODE = 100
+_MAX_INSTANCE_ID_LENGTH = 36
 _MAX_FPS_DATA_URL_BYTES = 120_000
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
@@ -115,6 +121,7 @@ def _handle_public_reservation(
 
     try:
         with Session(get_engine()) as session:
+            _validate_discount_code_redemption_scope(session, reservation_payload)
             contact_repo = ContactRepository(session)
             lead_repo = SalesLeadRepository(session)
             contact, _created = contact_repo.upsert_by_email(
@@ -146,6 +153,8 @@ def _handle_public_reservation(
                 metadata=lead_metadata,
             )
             session.commit()
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
     except Exception:
         logger.exception("Reservation Aurora persistence failed")
         return json_response(
@@ -406,6 +415,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "discountCode",
         _MAX_DISCOUNT_CODE,
     )
+    service_instance_id = _optional_text(
+        body.get("serviceInstanceId"),
+        "serviceInstanceId",
+        _MAX_INSTANCE_ID_LENGTH,
+    )
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
@@ -447,9 +461,74 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "marketing_opt_in": marketing_opt_in,
         "locale": locale,
         "discount_code": discount_code,
+        "service_instance_id": service_instance_id,
         "agreed_to_terms_and_conditions": True,
         "reservation_pending_until_payment_confirmed": reservation_pending,
     }
+
+
+def _resolve_service_id_for_discount_scope(
+    session: Session, payload: Mapping[str, Any]
+) -> UUID | None:
+    service_repo = ServiceRepository(session)
+    service_key = payload.get("service_key")
+    course_slug = payload.get("course_slug")
+    service_key_str = (
+        str(service_key).strip() if service_key not in (None, "") else None
+    )
+    if service_key_str:
+        svc = service_repo.get_by_slug(service_key_str)
+        return svc.id if svc is not None else None
+    slug = str(course_slug).strip().lower() if course_slug not in (None, "") else ""
+    if slug:
+        svc = service_repo.get_by_slug(slug)
+        return svc.id if svc is not None else None
+    return None
+
+
+def _validate_discount_code_redemption_scope(
+    session: Session, payload: Mapping[str, Any]
+) -> None:
+    """Ensure discount code scope matches the reservation context."""
+    code = payload.get("discount_code")
+    if not code:
+        return
+
+    repository = DiscountCodeRepository(session)
+    row = repository.get_by_code(str(code))
+    if row is None or not discount_code_is_usable_now(row):
+        raise ValidationError("Invalid discount code", field="discountCode")
+
+    if row.instance_id is not None:
+        raw_instance = payload.get("service_instance_id")
+        if not raw_instance:
+            raise ValidationError(
+                "serviceInstanceId is required for this discount code",
+                field="serviceInstanceId",
+            )
+        try:
+            request_instance_id = UUID(str(raw_instance).strip())
+        except ValueError as exc:
+            raise ValidationError(
+                "serviceInstanceId must be a UUID",
+                field="serviceInstanceId",
+            ) from exc
+        if request_instance_id != row.instance_id:
+            raise ValidationError(
+                "Discount code is not valid for this booking",
+                field="discountCode",
+            )
+        return
+
+    if row.service_id is None:
+        return
+
+    resolved = _resolve_service_id_for_discount_scope(session, payload)
+    if resolved is None or resolved != row.service_id:
+        raise ValidationError(
+            "Discount code is not valid for this booking",
+            field="discountCode",
+        )
 
 
 def _stripe_payment_intent_id_from_body(body: Mapping[str, Any]) -> str | None:

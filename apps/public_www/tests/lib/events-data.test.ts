@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
@@ -26,6 +26,10 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+});
+
+beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
 });
 
 function resolveDateTimeLocale(locale: 'en' | 'zh-CN' | 'zh-HK'): string {
@@ -276,6 +280,9 @@ describe('events-data', () => {
       '/zh-HK/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
     );
     expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
+    if (events[0]?.bookingModalPayload?.variant === 'my-best-auntie') {
+      expect(events[0].bookingModalPayload.selectedCohort.service_instance_id).toBeNull();
+    }
   });
 
   it('normalizes event-booking records with in-page modal payload', () => {

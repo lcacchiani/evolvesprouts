@@ -232,6 +232,9 @@ repo root
   in package scripts). Vitest uses `vite-plugin-svgr` with `include: '**/*.svg'`.
 - Thin wrappers may merge `className` / `aria-*` / `data-*` onto the SVGR import
   only—no `<path>` / `<circle>` / `<g>` in TSX.
+- Canvas rasterization use-cases (for example QR code logo compositing) may
+  reference assets from `apps/admin_web/public/` since SVGR imports are not
+  trivially rasterizable.
 
 **`apps/public_www/**`**
 

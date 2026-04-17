@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from datetime import datetime
 from typing import Any
@@ -47,7 +48,31 @@ from app.utils.logging import get_logger
 _LIST_DEFAULT_LIMIT = 50
 _LIST_MAX_LIMIT = 100
 _MAX_CODE_LENGTH = 50
+_SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_MAX_SERVICE_SLUG_LENGTH = 80
 logger = get_logger(__name__)
+
+
+def parse_optional_service_slug(value: Any, field: str) -> str | None:
+    """Parse optional referral slug: strip, lower, validate pattern; empty -> None."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(f"{field} must be a string", field=field)
+    trimmed = value.strip().lower()
+    if not trimmed:
+        return None
+    if len(trimmed) > _MAX_SERVICE_SLUG_LENGTH:
+        raise ValidationError(
+            f"{field} must be at most {_MAX_SERVICE_SLUG_LENGTH} characters",
+            field=field,
+        )
+    if not _SERVICE_SLUG_PATTERN.fullmatch(trimmed):
+        raise ValidationError(
+            f"{field} must use lowercase letters, numbers, and single hyphens between segments",
+            field=field,
+        )
+    return trimmed
 
 
 def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -137,6 +162,19 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     logger.debug("Parsing discount code list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    scope_raw = parse_optional_text(query_param(event, "scope"), max_length=20)
+    scope = (scope_raw or "").strip().lower()
+    if scope not in {"", "all", "unscoped", "service", "instance"}:
+        raise ValidationError(
+            "scope must be one of: all, unscoped, service, instance",
+            field="scope",
+        )
+    if scope in {"", "all"}:
+        scope_norm: str | None = None
+    elif scope == "unscoped":
+        scope_norm = "unscoped"
+    else:
+        scope_norm = scope
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -149,6 +187,7 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
             query_param(event, "instance_id"), "instance_id"
         ),
         "search": parse_optional_text(query_param(event, "search")),
+        "scope": scope_norm,
     }
 
 
@@ -160,6 +199,7 @@ def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "service_type": service_type,
         "title": parse_required_text(body.get("title"), "title", max_length=255),
+        "slug": parse_optional_service_slug(body.get("slug"), "slug"),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -193,6 +233,8 @@ def parse_update_service_payload(
         payload["title"] = parse_required_text(
             body.get("title"), "title", max_length=255
         )
+    if has_field(body, "slug"):
+        payload["slug"] = parse_optional_service_slug(body.get("slug"), "slug")
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH

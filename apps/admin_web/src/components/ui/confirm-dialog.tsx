@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -18,6 +18,10 @@ export interface ConfirmDialogProps {
   children?: ReactNode;
   /** When true, the confirm action is non-interactive (for example during an in-flight mutation). */
   confirmDisabled?: boolean;
+  /** When true, only the cancel/secondary control is shown (use for preview dialogs). */
+  hideConfirm?: boolean;
+  /** ARIA role for the modal surface; use `dialog` for informational previews. */
+  dialogRole?: 'dialog' | 'alertdialog';
 }
 
 export function ConfirmDialog({
@@ -31,8 +35,12 @@ export function ConfirmDialog({
   onCancel,
   children,
   confirmDisabled = false,
+  hideConfirm = false,
+  dialogRole = 'alertdialog',
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     if (!open) {
@@ -97,34 +105,40 @@ export function ConfirmDialog({
     >
       <div
         ref={dialogRef}
-        role='alertdialog'
+        role={dialogRole}
         aria-modal='true'
-        aria-labelledby='confirm-dialog-title'
-        aria-describedby='confirm-dialog-description'
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         className='w-full max-w-md'
       >
         <Card className='space-y-4'>
           <div className='space-y-2'>
-            <h2 id='confirm-dialog-title' className='text-base font-semibold text-slate-900'>
+            <h2 id={titleId} className='text-base font-semibold text-slate-900'>
               {title}
             </h2>
-            <p id='confirm-dialog-description' className='text-sm text-slate-600'>
+            <p id={descriptionId} className='text-sm text-slate-600'>
               {description}
             </p>
           </div>
           {children}
           <div className='flex justify-end gap-2'>
-            <Button type='button' variant='secondary' onClick={onCancel}>
-              {cancelLabel}
-            </Button>
             <Button
               type='button'
-              variant={variant === 'danger' ? 'danger' : 'primary'}
-              disabled={confirmDisabled}
-              onClick={onConfirm}
+              variant={hideConfirm ? 'primary' : 'secondary'}
+              onClick={onCancel}
             >
-              {confirmLabel}
+              {cancelLabel}
             </Button>
+            {hideConfirm ? null : (
+              <Button
+                type='button'
+                variant={variant === 'danger' ? 'danger' : 'primary'}
+                disabled={confirmDisabled}
+                onClick={onConfirm}
+              >
+                {confirmLabel}
+              </Button>
+            )}
           </div>
         </Card>
       </div>

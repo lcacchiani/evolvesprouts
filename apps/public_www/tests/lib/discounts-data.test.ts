@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
@@ -10,6 +10,10 @@ import {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
 });
 
 describe('discounts-data', () => {
@@ -87,11 +91,10 @@ describe('discounts-data', () => {
       throw new Error('Expected CRM API client configuration to be valid');
     }
 
-    const rule = await validateDiscountCode(
-      crmApiClient,
-      ' FEIER10 ',
-      new AbortController().signal,
-    );
+    const rule = await validateDiscountCode(crmApiClient, {
+      code: ' FEIER10 ',
+      signal: new AbortController().signal,
+    });
 
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://api.evolvesprouts.com/www/v1/discounts/validate',
@@ -115,6 +118,54 @@ describe('discounts-data', () => {
       currencyCode: null,
       currencySymbol: null,
     });
+  });
+
+  it('includes service_key and service_instance_id in the POST body when supplied', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            code: 'SAVE',
+            name: null,
+            amount: 5,
+            is_percentage: true,
+            currency_code: null,
+            currency_symbol: null,
+          },
+        }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchSpy);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'secret-api-key',
+    });
+    if (!crmApiClient) {
+      throw new Error('Expected CRM API client configuration to be valid');
+    }
+
+    await validateDiscountCode(crmApiClient, {
+      code: 'SAVE',
+      serviceKey: 'my-best-auntie',
+      serviceInstanceId: '11111111-1111-4111-8111-111111111111',
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          code: 'SAVE',
+          service_key: 'my-best-auntie',
+          service_instance_id: '11111111-1111-4111-8111-111111111111',
+        }),
+      }),
+    );
   });
 
   it('rejects invalid CRM API client configuration', () => {

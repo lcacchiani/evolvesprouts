@@ -23,6 +23,8 @@ const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
 const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
+const UUID_V4_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
 const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
@@ -441,6 +443,39 @@ async function loadJson(filePath) {
   return JSON.parse(raw);
 }
 
+function validateMyBestAuntieTrainingCourses(filePath, data, errors) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    errors.push(`${filePath}: root must be an object`);
+    return;
+  }
+  if (data.status !== 'success') {
+    errors.push(`${filePath}: expected status "success"`);
+  }
+  if (!Array.isArray(data.data)) {
+    errors.push(`${filePath}: expected data array`);
+    return;
+  }
+  for (let index = 0; index < data.data.length; index += 1) {
+    const cohort = data.data[index];
+    const prefix = `${filePath}: data[${index}]`;
+    if (!cohort || typeof cohort !== 'object' || Array.isArray(cohort)) {
+      errors.push(`${prefix}: cohort must be an object`);
+      continue;
+    }
+    if (!('service_instance_id' in cohort)) {
+      errors.push(`${prefix}: missing service_instance_id`);
+      continue;
+    }
+    const raw = cohort.service_instance_id;
+    if (raw === null) {
+      continue;
+    }
+    if (typeof raw !== 'string' || !UUID_V4_REGEX.test(raw.trim())) {
+      errors.push(`${prefix}: service_instance_id must be null or a UUID v4 string`);
+    }
+  }
+}
+
 async function main() {
   const localeRoutePaths = await collectLocaleRoutePaths();
   const loadedEntries = await Promise.all(
@@ -457,6 +492,10 @@ async function main() {
 
   validateConfiguredContactEmail(errors);
   validateConfiguredStripePublishableKey(errors);
+
+  const mbaCoursesPath = path.join(CONTENT_DIR, 'my-best-auntie-training-courses.json');
+  const mbaCourses = await loadJson(mbaCoursesPath);
+  validateMyBestAuntieTrainingCourses('my-best-auntie-training-courses.json', mbaCourses, errors);
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];

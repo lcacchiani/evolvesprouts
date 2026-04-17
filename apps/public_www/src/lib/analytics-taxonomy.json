@@ -231,6 +231,26 @@
       ],
       "ga4KeyEvent": false
     },
+    "booking_discount_autoapply_success": {
+      "requiredCustomParams": [
+        "discount_type",
+        "discount_amount"
+      ],
+      "allowedCustomParams": [
+        "discount_type",
+        "discount_amount"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_discount_autoapply_error": {
+      "requiredCustomParams": [
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
     "booking_submit_success": {
       "requiredCustomParams": [
         "form_kind",

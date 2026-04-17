@@ -1,0 +1,43 @@
+'use client';
+
+import type { ReactNode } from 'react';
+
+import { usePathname } from 'next/navigation';
+
+import { AppShell } from '@/components/app-shell';
+import { useAuth } from '@/components/auth-provider';
+import { LoginScreen } from '@/components/login-screen';
+import { StatusBanner } from '@/components/status-banner';
+import { ADMIN_NAV_ITEMS, adminSectionKeyFromPathname } from '@/lib/admin-nav';
+
+export function AdminAuthenticatedShell({ children }: { children: ReactNode }) {
+  const { status, user, logout } = useAuth();
+  const pathname = usePathname();
+  const activeSectionKey = adminSectionKeyFromPathname(pathname);
+
+  if (status === 'loading') {
+    return (
+      <main className='mx-auto flex min-h-screen max-w-lg items-center px-6'>
+        <StatusBanner variant='info' title='Loading'>
+          Preparing your admin session.
+        </StatusBanner>
+      </main>
+    );
+  }
+
+  if (status === 'authenticated') {
+    return (
+      <AppShell
+        navItems={ADMIN_NAV_ITEMS.map((item) => ({ ...item }))}
+        activeKey={activeSectionKey}
+        onLogout={logout}
+        userEmail={user?.email}
+        lastAuthTime={user?.lastAuthTime}
+      >
+        {children}
+      </AppShell>
+    );
+  }
+
+  return <LoginScreen />;
+}

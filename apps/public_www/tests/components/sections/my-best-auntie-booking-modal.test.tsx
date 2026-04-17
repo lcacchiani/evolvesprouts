@@ -259,6 +259,7 @@ const expectedMbaMarketingFields = {
   locale: 'en' as const,
   courseLabel: myBestAuntieModalContent.title,
   courseSlug: 'my-best-auntie',
+  serviceKey: selectedCohort.id,
   scheduleDateLabel: 'Apr, 2026',
   scheduleTimeLabel: expectedMbaScheduleTimeLabel,
   locationName: selectedCohort.location_name,
@@ -743,7 +744,11 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(mockedCreateCrmApiClient).toHaveBeenCalledWith();
       expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
         expect.objectContaining({ request: expect.any(Function) }),
-        'SAVE10',
+        {
+          code: 'SAVE10',
+          serviceKey: 'my-best-auntie',
+          serviceInstanceId: selectedCohort.service_instance_id ?? undefined,
+        },
       );
       expect(
         screen.getByText(bookingModalContent.discountAppliedLabel),
@@ -1272,6 +1277,14 @@ describe('my-best-auntie booking modals footer content', () => {
     await waitFor(() => {
       expect(mockedCreateReservationPaymentIntent).toHaveBeenCalled();
     });
+    expect(mockedCreateReservationPaymentIntent.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          service_key: 'my-best-auntie',
+          cohort_id: selectedCohort.id,
+        }),
+      }),
+    );
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
       target: { value: 'Test User' },
@@ -1822,5 +1835,103 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(discountInput).toBeDisabled();
     expect(applyButton).toBeDisabled();
     expect(discountInput.value).toBe('SAVE10');
+  });
+
+  it('auto-applies prefilled referral code once and shows referral note on success', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'REFSAVE',
+      type: 'percent',
+      value: 5,
+    });
+
+    renderBookingModal({
+      prefilledDiscountCode: 'refsave',
+      referralAppliedNote: enContent.bookingModal.paymentModal.referralAppliedNote,
+      referralAppliedAnnouncement: enContent.common.accessibility.referralAppliedAnnouncement,
+    });
+
+    await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalledTimes(1);
+    });
+    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
+      code: 'REFSAVE',
+      serviceKey: 'my-best-auntie',
+      serviceInstanceId: selectedCohort.service_instance_id ?? undefined,
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.bookingModal.paymentModal.referralAppliedNote),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      mockedTrackAnalyticsEvent.mock.calls.filter(
+        (call) => call[0] === 'booking_discount_autoapply_success',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('forwards service_instance_id to discount validate when cohort provides one', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'REFSAVE',
+      type: 'percent',
+      value: 5,
+    });
+
+    const cohortWithInstance = {
+      ...selectedCohort,
+      service_instance_id: '22222222-2222-4222-8222-222222222222',
+    };
+
+    renderBookingModal({
+      selectedCohort: cohortWithInstance,
+      prefilledDiscountCode: 'refsave',
+    });
+
+    await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalled();
+    });
+    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
+      code: 'REFSAVE',
+      serviceKey: 'my-best-auntie',
+      serviceInstanceId: '22222222-2222-4222-8222-222222222222',
+    });
+  });
+
+  it('records auto-apply error when prefilled referral code is invalid', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue(null);
+
+    renderBookingModal({
+      prefilledDiscountCode: 'BAD',
+    });
+
+    await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalled();
+    });
+
+    expect(
+      mockedTrackAnalyticsEvent.mock.calls.filter(
+        (call) => call[0] === 'booking_discount_autoapply_error',
+      ),
+    ).toHaveLength(1);
   });
 });

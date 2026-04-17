@@ -469,7 +469,7 @@ export function ConsultationBookingModal({
         locale={locale}
         content={paymentModalContent}
         eventTitle={bookingPayload.title}
-        serviceKey={bookingPayload.serviceKey}
+        reservationServiceKey={bookingPayload.serviceKey}
         courseSlug='consultation-booking'
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={rebasedParts.map((part) => {

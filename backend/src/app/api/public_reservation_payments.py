@@ -31,6 +31,8 @@ _STRIPE_PAYMENT_INTENTS_URL = "https://api.stripe.com/v1/payment_intents"
 _MAX_COHORT_AGE_LENGTH = 200
 _MAX_COHORT_DATE_LENGTH = 100
 _MAX_DISCOUNT_CODE_LENGTH = 100
+_MAX_SERVICE_KEY_LENGTH = 100
+_MAX_COHORT_ID_LENGTH = 120
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _MIN_TOTAL_AMOUNT = Decimal("1")
 
@@ -83,6 +85,12 @@ def handle_public_reservation_payment_intent(
     discount_code = payment_payload.get("discount_code")
     if discount_code:
         request_fields["metadata[discount_code]"] = discount_code
+    service_key = payment_payload.get("service_key")
+    if service_key:
+        request_fields["metadata[service_key]"] = service_key
+    cohort_id = payment_payload.get("cohort_id")
+    if cohort_id:
+        request_fields["metadata[cohort_id]"] = cohort_id
     # Card-only PaymentIntent: no payment_method_configuration / automatic payment
     # methods, so the Payment Element stays card entry only (no Google Pay / Apple Pay tabs).
     request_fields["payment_method_types[0]"] = "card"
@@ -167,11 +175,23 @@ def _validate_payment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "discount_code",
         _MAX_DISCOUNT_CODE_LENGTH,
     )
+    service_key = _optional_text(
+        body.get("service_key"),
+        "service_key",
+        _MAX_SERVICE_KEY_LENGTH,
+    )
+    cohort_id = _optional_text(
+        body.get("cohort_id"),
+        "cohort_id",
+        _MAX_COHORT_ID_LENGTH,
+    )
     price = _parse_total_amount(body.get("price"))
     return {
         "cohort_age": cohort_age,
         "cohort_date": cohort_date,
         "discount_code": discount_code,
+        "service_key": service_key,
+        "cohort_id": cohort_id,
         "price": price,
     }
 

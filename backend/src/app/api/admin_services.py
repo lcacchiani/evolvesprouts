@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body, parse_uuid
@@ -39,7 +40,7 @@ from app.db.models import (
     ServiceType,
     TrainingCourseDetails,
 )
-from app.db.repositories import ServiceRepository
+from app.db.repositories import DiscountCodeRepository, ServiceRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.aws_clients import get_s3_client
 from app.utils import json_response, require_env
@@ -96,6 +97,11 @@ def handle_admin_services_request(
 
     if len(parts) >= 4 and parts[3] == "instances":
         return handle_admin_service_instances_request(event, method, path, service_id)
+
+    if len(parts) == 4 and parts[3] == "discount-code-usage-summary":
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _get_discount_code_usage_summary(event, service_id=service_id)
 
     if len(parts) == 4 and parts[3] == "cover-image":
         if method != "POST":
@@ -158,6 +164,7 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
         service = Service(
             service_type=payload["service_type"],
             title=payload["title"],
+            slug=payload["slug"],
             description=payload["description"],
             cover_image_s3_key=payload["cover_image_s3_key"],
             delivery_mode=payload["delivery_mode"],
@@ -176,7 +183,17 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             ServiceAsset(asset_id=asset_id) for asset_id in payload["asset_ids"]
         ]
         repository.update_service(created)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_services_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Referral slug already in use",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         with_details = repository.get_by_id_with_details(created.id)
         if with_details is None:
             raise NotFoundError("Service", str(created.id))
@@ -227,6 +244,8 @@ def _update_service(
 
         if "title" in payload:
             service.title = payload["title"]
+        if "slug" in payload:
+            service.slug = payload["slug"]
         if "description" in payload:
             service.description = payload["description"]
         if "cover_image_s3_key" in payload:
@@ -254,7 +273,17 @@ def _update_service(
             _apply_service_type_details(service=service, details=parsed_details)
 
         updated = repository.update_service(service)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_services_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Referral slug already in use",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         with_details = repository.get_by_id_with_details(updated.id)
         if with_details is None:
             raise NotFoundError("Service", str(updated.id))
@@ -371,6 +400,45 @@ def _build_service_type_details(
         default_currency=parsed_details["default_currency"],
         calendly_url=parsed_details["calendly_url"],
     )
+
+
+def _get_discount_code_usage_summary(
+    event: Mapping[str, Any], *, service_id: UUID
+) -> dict[str, Any]:
+    """Return aggregate discount code usage for codes scoped to this service."""
+    with Session(get_engine()) as session:
+        repository = ServiceRepository(session)
+        if repository.get_by_id(service_id) is None:
+            raise NotFoundError("Service", str(service_id))
+        discount_repo = DiscountCodeRepository(session)
+        total_uses, code_count = discount_repo.discount_code_usage_summary_for_service(
+            service_id
+        )
+        return json_response(
+            200,
+            {
+                "total_current_uses": total_uses,
+                "referencing_code_count": code_count,
+            },
+            event=event,
+        )
+
+
+def _is_services_slug_unique_violation(exc: IntegrityError) -> bool:
+    orig = getattr(exc.orig, "__cause__", None) or exc.orig
+    diag = getattr(orig, "diag", None)
+    constraint = getattr(diag, "constraint_name", None) if diag else None
+    if constraint == "services_slug_unique_idx":
+        return True
+    message = str(exc).lower()
+    # Prefer diag.constraint_name (above). Some drivers omit it; keep a narrow
+    # substring fallback so unrelated unique violations (e.g. instance slug) do
+    # not map to a services.slug 409.
+    if "services_slug_unique_idx" not in message:
+        return False
+    if "svc_instances_slug" in message:
+        return False
+    return True
 
 
 def _apply_service_type_details(*, service: Service, details: Any) -> None:

@@ -33,6 +33,7 @@ import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
+import { readReferralCodeFromSearch } from '@/lib/referral-link';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -225,6 +226,7 @@ export function MyBestAuntieBooking({
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
   const [reservationSummary, setReservationSummary] =
     useState<ReservationSummary | null>(null);
+  const [prefilledDiscountCode, setPrefilledDiscountCode] = useState('');
 
   const ageOptions = content.ageOptions ?? [];
   const sortedCohorts = [...(content.cohorts ?? [])].sort(
@@ -300,6 +302,12 @@ export function MyBestAuntieBooking({
 
     if (typeof window === 'undefined') {
       return;
+    }
+    const referral = readReferralCodeFromSearch(window.location.search);
+    if (referral) {
+      queueMicrotask(() => {
+        setPrefilledDiscountCode(referral);
+      });
     }
     if (!shouldAutoOpenMyBestAuntieBookingModal(window.location.search)) {
       return;
@@ -631,6 +639,9 @@ export function MyBestAuntieBooking({
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
+          prefilledDiscountCode={prefilledDiscountCode}
+          referralAppliedNote={content.referralAppliedNote}
+          referralAppliedAnnouncement={commonAccessibility.referralAppliedAnnouncement}
           thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsPaymentModalOpen(false);

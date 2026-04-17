@@ -1134,7 +1134,8 @@
     "accessibility": {
       "carouselRoleDescription": "輪播",
       "carouselLabelTemplate": "{title}輪播",
-      "sliderLabelTemplate": "{title}滑動內容"
+      "sliderLabelTemplate": "{title}滑動內容",
+      "referralAppliedAnnouncement": "已透過你的連結自動套用推薦優惠碼。"
     },
     "captcha": {
       "captchaLabel": "驗證",
@@ -1240,7 +1241,8 @@
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",
       "scrollDatesLeftAriaLabel": "向左捲動日期",
-      "scrollDatesRightAriaLabel": "向右捲動日期"
+      "scrollDatesRightAriaLabel": "向右捲動日期",
+      "referralAppliedNote": "已透過你的推薦連結套用。"
     },
     "modal": {
       "title": "我的最佳姨姨培訓課程",
@@ -1565,6 +1567,7 @@
       "applyDiscountLabel": "套用",
       "applyDiscountLoadingLabel": "正在套用優惠碼",
       "invalidDiscountLabel": "優惠碼無效",
+      "referralAppliedNote": "已透過你的推薦連結套用。",
       "discountAppliedLabel": "優惠已套用",
       "priceBreakdownPriceLabel": "原價",
       "priceBreakdownDiscountLabel": "優惠",

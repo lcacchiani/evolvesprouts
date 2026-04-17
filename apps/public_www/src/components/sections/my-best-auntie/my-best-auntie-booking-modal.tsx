@@ -31,6 +31,7 @@ import type {
   MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   formatCohortValue,
@@ -44,9 +45,15 @@ interface MyBestAuntieBookingModalProps {
   locale?: Locale;
   modalContent: MyBestAuntieModalContent;
   paymentModalContent: BookingPaymentModalContent;
-  selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
+  selectedCohort:
+    | MyBestAuntieBookingContent['cohorts'][number]
+    | MyBestAuntieEventCohort
+    | null;
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
+  prefilledDiscountCode?: string;
+  referralAppliedNote?: string;
+  referralAppliedAnnouncement?: string;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
@@ -62,6 +69,9 @@ export function MyBestAuntieBookingModal({
   selectedCohort,
   selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
+  prefilledDiscountCode = '',
+  referralAppliedNote = '',
+  referralAppliedAnnouncement = '',
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
@@ -167,8 +177,14 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
-              serviceKey={selectedCohort?.id ?? ''}
+              reservationServiceKey={selectedCohort?.id ?? ''}
+              cohortId={selectedCohort?.id ?? ''}
               courseSlug='my-best-auntie'
+              discountValidationServiceKey='my-best-auntie'
+              serviceInstanceId={selectedCohort?.service_instance_id ?? null}
+              prefilledDiscountCode={prefilledDiscountCode}
+              referralAppliedNote={referralAppliedNote}
+              referralAppliedAnnouncement={referralAppliedAnnouncement}
               eventSubtitle={modalContent.subtitle}
               courseSessions={(selectedCohort?.dates ?? []).map((part) => {
                 return {

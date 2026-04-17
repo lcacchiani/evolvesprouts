@@ -5,7 +5,8 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { DeleteIcon } from '@/components/icons/action-icons';
+import { CopyIcon, DeleteIcon } from '@/components/icons/action-icons';
+import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -98,6 +99,20 @@ export function InstanceListPanel({
       return;
     }
     await onDeleteInstance(instance.id, instance.serviceId);
+  };
+
+  const handleCopyInstanceId = async (
+    instance: ServiceInstance,
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    event.stopPropagation();
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      return;
+    }
+    await navigator.clipboard.writeText(instance.id);
+    trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
+      service_id: instance.serviceId,
+    });
   };
 
   return (
@@ -204,17 +219,29 @@ export function InstanceListPanel({
                 <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>
                 <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
                 <td className='px-4 py-3 text-right'>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    onClick={(event) => void handleDeleteInstance(instance, event)}
-                    disabled={isMutating}
-                    aria-label='Delete instance'
-                    title='Delete instance'
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
+                  <div className='flex justify-end gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      onClick={(event) => void handleCopyInstanceId(instance, event)}
+                      aria-label='Copy instance UUID'
+                      title='Copy instance UUID'
+                    >
+                      <CopyIcon className='h-4 w-4' />
+                    </Button>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      onClick={(event) => void handleDeleteInstance(instance, event)}
+                      disabled={isMutating}
+                      aria-label='Delete instance'
+                      title='Delete instance'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -65,6 +65,8 @@ export interface ServiceSummary {
   id: string;
   serviceType: ServiceType;
   title: string;
+  /** Lowercase referral slug from Aurora; null when unset. */
+  slug: string | null;
   description: string | null;
   coverImageS3Key: string | null;
   deliveryMode: ServiceDeliveryMode;
@@ -263,12 +265,16 @@ export const DEFAULT_ENROLLMENT_LIST_FILTERS: EnrollmentListFilters = {
   status: '',
 };
 
+export type DiscountCodeScopeFilter = '' | 'unscoped' | 'service' | 'instance';
+
 export interface DiscountCodeFilters {
   active: '' | 'true' | 'false';
   search: string;
+  scope: DiscountCodeScopeFilter;
 }
 
 export const DEFAULT_DISCOUNT_CODE_FILTERS: DiscountCodeFilters = {
   active: '',
   search: '',
+  scope: '',
 };

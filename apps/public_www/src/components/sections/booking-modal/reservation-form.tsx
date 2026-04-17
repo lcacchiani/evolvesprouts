@@ -4,6 +4,7 @@ import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js';
 import {
   type FormEvent,
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -81,8 +82,10 @@ interface BookingReservationFormProps {
   content: BookingPaymentModalContent;
   eventTitle: string;
   /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
-  serviceKey?: string;
-  /** Stable slug when serviceKey is not set (e.g. my-best-auntie, consultation tier). */
+  reservationServiceKey?: string;
+  /** Optional cohort identifier for Stripe metadata (e.g. MBA cohort id). */
+  cohortId?: string;
+  /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
@@ -105,6 +108,13 @@ interface BookingReservationFormProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
+  /** When set, included in discount validate API as `service_key` (public slug). */
+  discountValidationServiceKey?: string;
+  /** Optional Aurora instance UUID for instance-scoped discount redemption. */
+  serviceInstanceId?: string | null;
+  prefilledDiscountCode?: string;
+  referralAppliedNote?: string;
+  referralAppliedAnnouncement?: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
@@ -417,7 +427,8 @@ export function BookingReservationForm({
   locale,
   content,
   eventTitle,
-  serviceKey,
+  reservationServiceKey,
+  cohortId = '',
   courseSlug,
   eventSubtitle = '',
   courseSessions,
@@ -438,6 +449,11 @@ export function BookingReservationForm({
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
+  discountValidationServiceKey,
+  serviceInstanceId,
+  prefilledDiscountCode = '',
+  referralAppliedNote = '',
+  referralAppliedAnnouncement = '',
   onSubmitReservation,
 }: BookingReservationFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -454,8 +470,11 @@ export function BookingReservationForm({
   const [discountCode, setDiscountCode] = useState('');
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
+  const [autoAppliedFromReferral, setAutoAppliedFromReferral] = useState(false);
+  const [referralAnnouncement, setReferralAnnouncement] = useState('');
   const [isDiscountValidationSubmitting, setIsDiscountValidationSubmitting] =
     useState(false);
+  const autoApplyAttemptedRef = useRef(false);
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
@@ -543,11 +562,16 @@ export function BookingReservationForm({
   const normalizedCohortDate =
     (normalizedStartDateTime.split('T')[0] ?? '') ||
     sanitizeSingleLineValue(selectedCohortDateLabel);
+  const paymentIntentServiceKey =
+    sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
+    sanitizeSingleLineValue(courseSlug ?? '');
   const stripePaymentIntentRequestKey = [
     sanitizeSingleLineValue(selectedAgeGroupLabel),
     normalizedCohortDate,
     String(totalAmount),
     discountRule?.code ?? '',
+    paymentIntentServiceKey,
+    sanitizeSingleLineValue(cohortId ?? ''),
   ].join('|');
   const stripeElementsOptions = useMemo<StripeElementsOptions | null>(() => {
     if (!stripePaymentIntent) {
@@ -637,6 +661,8 @@ export function BookingReservationForm({
         cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
         discount_code: discountRule?.code || undefined,
+        service_key: paymentIntentServiceKey || undefined,
+        cohort_id: sanitizeSingleLineValue(cohortId) || undefined,
         price: totalAmount,
       },
       turnstileToken: captchaToken,
@@ -675,6 +701,10 @@ export function BookingReservationForm({
     clearSubmissionError,
     content.submitErrorMessage,
     discountRule?.code,
+    cohortId,
+    courseSlug,
+    discountValidationServiceKey,
+    paymentIntentServiceKey,
     captchaToken,
     paymentMethodFlags.stripeCards,
     isStripePaymentMethodSelected,
@@ -688,79 +718,196 @@ export function BookingReservationForm({
     totalAmount,
   ]);
 
-  async function handleApplyDiscount() {
-    if (discountRule) {
-      return;
-    }
-
-    const normalizedCode = discountCode.trim().toUpperCase();
-    if (!normalizedCode) {
-      trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: analyticsSectionId,
-        ctaLocation: 'discount_code',
-        params: {
-          error_type: 'invalid_code',
-        },
-      });
-      setDiscountRule(null);
-      setDiscountError(content.invalidDiscountLabel);
-      return;
-    }
-
-    const crmApiClient = createPublicCrmApiClient();
-    if (!crmApiClient) {
-      trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: analyticsSectionId,
-        ctaLocation: 'discount_code',
-        params: {
-          error_type: 'service_unavailable',
-        },
-      });
-      setDiscountRule(null);
-      setDiscountError(content.invalidDiscountLabel);
-      return;
-    }
-
-    setIsDiscountValidationSubmitting(true);
-    setDiscountError('');
-    try {
-      const validatedRule = await validateDiscountCode(crmApiClient, normalizedCode);
-      if (!validatedRule) {
-        trackAnalyticsEvent('booking_discount_apply_error', {
-          sectionId: analyticsSectionId,
-          ctaLocation: 'discount_code',
-          params: {
-            error_type: 'invalid_code',
-          },
-        });
-        setDiscountRule(null);
-        setDiscountError(content.invalidDiscountLabel);
+  const applyDiscountFromCode = useCallback(
+    async (
+      rawCode: string,
+      options: { ctaLocation: string; autoApply: boolean },
+    ): Promise<void> => {
+      if (discountRule) {
         return;
       }
 
-      setDiscountCode(normalizedCode);
-      setDiscountRule(validatedRule);
-      trackAnalyticsEvent('booking_discount_apply_success', {
-        sectionId: analyticsSectionId,
-        ctaLocation: 'discount_code',
-        params: {
-          discount_type: validatedRule.type,
-          discount_amount: Math.max(0, originalAmount - applyDiscount(originalAmount, validatedRule)),
-        },
-      });
-    } catch {
-      trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: analyticsSectionId,
-        ctaLocation: 'discount_code',
-        params: {
-          error_type: 'api_error',
-        },
-      });
-      setDiscountRule(null);
-      setDiscountError(content.invalidDiscountLabel);
-    } finally {
-      setIsDiscountValidationSubmitting(false);
+      const normalizedCode = rawCode.trim().toUpperCase();
+      if (!normalizedCode) {
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'invalid_code',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'invalid_code',
+            },
+          });
+        }
+        setDiscountRule(null);
+        if (!options.autoApply) {
+          setDiscountError(content.invalidDiscountLabel);
+        }
+        return;
+      }
+
+      const crmApiClient = createPublicCrmApiClient();
+      if (!crmApiClient) {
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'service_unavailable',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'service_unavailable',
+            },
+          });
+        }
+        setDiscountRule(null);
+        if (!options.autoApply) {
+          setDiscountError(content.invalidDiscountLabel);
+        }
+        return;
+      }
+
+      const scopeKey =
+        sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
+        sanitizeSingleLineValue(courseSlug ?? '');
+
+      setIsDiscountValidationSubmitting(true);
+      if (!options.autoApply) {
+        setDiscountError('');
+      }
+      try {
+        const instanceForValidate = sanitizeSingleLineValue(serviceInstanceId ?? '');
+        const validatedRule = await validateDiscountCode(crmApiClient, {
+          code: normalizedCode,
+          serviceKey: scopeKey || undefined,
+          serviceInstanceId: instanceForValidate || undefined,
+        });
+        if (!validatedRule) {
+          if (options.autoApply) {
+            trackAnalyticsEvent('booking_discount_autoapply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'invalid_code',
+              },
+            });
+          } else {
+            trackAnalyticsEvent('booking_discount_apply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'invalid_code',
+              },
+            });
+          }
+          setDiscountRule(null);
+          if (!options.autoApply) {
+            setDiscountError(content.invalidDiscountLabel);
+          }
+          return;
+        }
+
+        setDiscountCode(normalizedCode);
+        setDiscountRule(validatedRule);
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_success', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              discount_type: validatedRule.type,
+              discount_amount: Math.max(
+                0,
+                originalAmount - applyDiscount(originalAmount, validatedRule),
+              ),
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_success', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              discount_type: validatedRule.type,
+              discount_amount: Math.max(
+                0,
+                originalAmount - applyDiscount(originalAmount, validatedRule),
+              ),
+            },
+          });
+        }
+        if (options.autoApply) {
+          setAutoAppliedFromReferral(true);
+          if (referralAppliedAnnouncement.trim()) {
+            setReferralAnnouncement(referralAppliedAnnouncement.trim());
+          }
+        }
+      } catch {
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'api_error',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'api_error',
+            },
+          });
+        }
+        setDiscountRule(null);
+        if (!options.autoApply) {
+          setDiscountError(content.invalidDiscountLabel);
+        }
+      } finally {
+        setIsDiscountValidationSubmitting(false);
+      }
+    },
+    [
+      analyticsSectionId,
+      content.invalidDiscountLabel,
+      courseSlug,
+      discountRule,
+      discountValidationServiceKey,
+      serviceInstanceId,
+      originalAmount,
+      referralAppliedAnnouncement,
+    ],
+  );
+
+  useEffect(() => {
+    if (autoApplyAttemptedRef.current) {
+      return;
     }
+    const raw = prefilledDiscountCode?.trim() ?? '';
+    if (!raw) {
+      return;
+    }
+    if (discountRule) {
+      return;
+    }
+    autoApplyAttemptedRef.current = true;
+    void applyDiscountFromCode(raw, { ctaLocation: 'referral_auto', autoApply: true });
+  }, [applyDiscountFromCode, discountRule, prefilledDiscountCode]);
+
+  async function handleApplyDiscount() {
+    const normalizedCode = discountCode.trim().toUpperCase();
+    await applyDiscountFromCode(normalizedCode, { ctaLocation: 'discount_code', autoApply: false });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1035,11 +1182,13 @@ export function BookingReservationForm({
       locale,
       courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
-        const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey ?? '');
+        const sanitizedServiceKey = sanitizeSingleLineValue(reservationServiceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
+        const instanceUuid = sanitizeSingleLineValue(serviceInstanceId ?? '');
         return {
           ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
           ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
+          ...(instanceUuid ? { serviceInstanceId: instanceUuid } : {}),
         };
       })(),
       scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
@@ -1260,6 +1409,16 @@ export function BookingReservationForm({
             }}
             onApplyDiscount={handleApplyDiscount}
           />
+
+          {referralAnnouncement ? (
+            <p className='sr-only' role='status' aria-live='polite'>
+              {referralAnnouncement}
+            </p>
+          ) : null}
+
+          {autoAppliedFromReferral && referralAppliedNote.trim() ? (
+            <p className='text-sm es-text-neutral-strong'>{referralAppliedNote.trim()}</p>
+          ) : null}
 
           {discountRule ? <DiscountBadge label={content.discountAppliedLabel} /> : null}
 

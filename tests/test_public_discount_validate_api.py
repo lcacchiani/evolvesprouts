@@ -544,3 +544,281 @@ def test_public_discount_validate_returns_404_when_missing(
     )
     response = public_discount_validate.handle_public_discount_validate(event, "POST")
     assert response["statusCode"] == 404
+
+
+def _patch_discount_validate_repositories(
+    monkeypatch: Any,
+    *,
+    discount_row: SimpleNamespace,
+    slug_to_service_id: dict[str, UUID] | None = None,
+) -> None:
+    """Patch Session + repositories for public_discount_validate unit tests."""
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeDiscountRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, code: str) -> Any:
+            assert code.strip().lower() == discount_row.code.strip().lower()
+            return discount_row
+
+    class _FakeServiceRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_slug(self, slug: str) -> Any:
+            mapping = slug_to_service_id or {}
+            resolved = mapping.get(slug.strip().lower())
+            if resolved is None:
+                return None
+            return SimpleNamespace(id=resolved)
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeDiscountRepository,
+    )
+    monkeypatch.setattr(
+        public_discount_validate,
+        "ServiceRepository",
+        _FakeServiceRepository,
+    )
+
+
+def _usable_row(**overrides: object) -> SimpleNamespace:
+    base = dict(
+        id=uuid4(),
+        code="ANY",
+        description=None,
+        discount_type=DiscountType.PERCENTAGE,
+        discount_value=Decimal("5.00"),
+        currency=None,
+        active=True,
+        valid_from=None,
+        valid_until=None,
+        max_uses=None,
+        current_uses=0,
+        service_id=None,
+        instance_id=None,
+    )
+    base.update(overrides)
+    return SimpleNamespace(**base)
+
+
+def test_public_discount_validate_unscoped_code_ignores_service_key(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = _usable_row(code="ANY")
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": uuid4()},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "ANY", "service_key": "my-best-auntie"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_service_scoped_match(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    row = _usable_row(code="MBA", service_id=svc, instance_id=None)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "MBA", "service_key": "my-best-auntie"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_service_scoped_mismatch_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = _usable_row(code="MBA", service_id=uuid4(), instance_id=None)
+    other = uuid4()
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": other},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "MBA", "service_key": "my-best-auntie"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_unknown_service_key_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = _usable_row(code="MBA", service_id=uuid4(), instance_id=None)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "MBA", "service_key": "my-best-auntie"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_instance_scoped_missing_instance_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "INST", "service_key": "my-best-auntie"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_instance_scoped_match_returns_200(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps(
+            {
+                "code": "INST",
+                "service_key": "my-best-auntie",
+                "service_instance_id": str(inst),
+            }
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_instance_scoped_mismatch_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps(
+            {
+                "code": "INST",
+                "service_key": "my-best-auntie",
+                "service_instance_id": str(uuid4()),
+            }
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_service_id_body_path(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    row = _usable_row(code="BYID", service_id=svc, instance_id=None)
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> Any:
+            return row
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeRepository,
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "BYID", "service_id": str(svc)}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
