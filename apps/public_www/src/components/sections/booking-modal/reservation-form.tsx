@@ -717,16 +717,23 @@ export function BookingReservationForm({
 
       const normalizedCode = rawCode.trim().toUpperCase();
       if (!normalizedCode) {
-        const eventName = options.autoApply
-          ? 'booking_discount_autoapply_error'
-          : 'booking_discount_apply_error';
-        trackAnalyticsEvent(eventName, {
-          sectionId: analyticsSectionId,
-          ctaLocation: options.ctaLocation,
-          params: {
-            error_type: 'invalid_code',
-          },
-        });
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'invalid_code',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'invalid_code',
+            },
+          });
+        }
         setDiscountRule(null);
         if (!options.autoApply) {
           setDiscountError(content.invalidDiscountLabel);
@@ -736,16 +743,23 @@ export function BookingReservationForm({
 
       const crmApiClient = createPublicCrmApiClient();
       if (!crmApiClient) {
-        const eventName = options.autoApply
-          ? 'booking_discount_autoapply_error'
-          : 'booking_discount_apply_error';
-        trackAnalyticsEvent(eventName, {
-          sectionId: analyticsSectionId,
-          ctaLocation: options.ctaLocation,
-          params: {
-            error_type: 'service_unavailable',
-          },
-        });
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'service_unavailable',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'service_unavailable',
+            },
+          });
+        }
         setDiscountRule(null);
         if (!options.autoApply) {
           setDiscountError(content.invalidDiscountLabel);
@@ -769,16 +783,23 @@ export function BookingReservationForm({
           scopeKey || undefined,
         );
         if (!validatedRule) {
-          const eventName = options.autoApply
-            ? 'booking_discount_autoapply_error'
-            : 'booking_discount_apply_error';
-          trackAnalyticsEvent(eventName, {
-            sectionId: analyticsSectionId,
-            ctaLocation: options.ctaLocation,
-            params: {
-              error_type: 'invalid_code',
-            },
-          });
+          if (options.autoApply) {
+            trackAnalyticsEvent('booking_discount_autoapply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'invalid_code',
+              },
+            });
+          } else {
+            trackAnalyticsEvent('booking_discount_apply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'invalid_code',
+              },
+            });
+          }
           setDiscountRule(null);
           if (!options.autoApply) {
             setDiscountError(content.invalidDiscountLabel);
@@ -788,20 +809,31 @@ export function BookingReservationForm({
 
         setDiscountCode(normalizedCode);
         setDiscountRule(validatedRule);
-        const successEvent = options.autoApply
-          ? 'booking_discount_autoapply_success'
-          : 'booking_discount_apply_success';
-        trackAnalyticsEvent(successEvent, {
-          sectionId: analyticsSectionId,
-          ctaLocation: options.ctaLocation,
-          params: {
-            discount_type: validatedRule.type,
-            discount_amount: Math.max(
-              0,
-              originalAmount - applyDiscount(originalAmount, validatedRule),
-            ),
-          },
-        });
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_success', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              discount_type: validatedRule.type,
+              discount_amount: Math.max(
+                0,
+                originalAmount - applyDiscount(originalAmount, validatedRule),
+              ),
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_success', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              discount_type: validatedRule.type,
+              discount_amount: Math.max(
+                0,
+                originalAmount - applyDiscount(originalAmount, validatedRule),
+              ),
+            },
+          });
+        }
         if (options.autoApply) {
           setAutoAppliedFromReferral(true);
           if (referralAppliedAnnouncement.trim()) {
@@ -809,16 +841,23 @@ export function BookingReservationForm({
           }
         }
       } catch {
-        const eventName = options.autoApply
-          ? 'booking_discount_autoapply_error'
-          : 'booking_discount_apply_error';
-        trackAnalyticsEvent(eventName, {
-          sectionId: analyticsSectionId,
-          ctaLocation: options.ctaLocation,
-          params: {
-            error_type: 'api_error',
-          },
-        });
+        if (options.autoApply) {
+          trackAnalyticsEvent('booking_discount_autoapply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'api_error',
+            },
+          });
+        } else {
+          trackAnalyticsEvent('booking_discount_apply_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: options.ctaLocation,
+            params: {
+              error_type: 'api_error',
+            },
+          });
+        }
         setDiscountRule(null);
         if (!options.autoApply) {
           setDiscountError(content.invalidDiscountLabel);

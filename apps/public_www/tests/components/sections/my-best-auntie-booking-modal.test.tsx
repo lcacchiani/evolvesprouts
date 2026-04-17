@@ -744,6 +744,8 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
         expect.objectContaining({ request: expect.any(Function) }),
         'SAVE10',
+        undefined,
+        'my-best-auntie',
       );
       expect(
         screen.getByText(bookingModalContent.discountAppliedLabel),
