@@ -14,7 +14,7 @@ export const META_PIXEL_CONTENT_NAMES = {
   },
   community_signup: {
     label: 'Community / squad signup',
-    allowedEvents: ['Lead'] as const,
+    allowedEvents: ['Lead', 'CompleteRegistration'] as const,
   },
   event_notification: {
     label: 'Event notification signup',
@@ -26,15 +26,30 @@ export const META_PIXEL_CONTENT_NAMES = {
   },
   my_best_auntie: {
     label: 'My Best Auntie booking',
-    allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
+    allowedEvents: [
+      'InitiateCheckout',
+      'AddPaymentInfo',
+      'Schedule',
+      'Purchase',
+    ] as const,
   },
   event_booking: {
     label: 'Event booking',
-    allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
+    allowedEvents: [
+      'InitiateCheckout',
+      'AddPaymentInfo',
+      'Schedule',
+      'Purchase',
+    ] as const,
   },
   consultation_booking: {
     label: 'Consultation booking',
-    allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
+    allowedEvents: [
+      'InitiateCheckout',
+      'AddPaymentInfo',
+      'Schedule',
+      'Purchase',
+    ] as const,
   },
   my_best_auntie_course: {
     label: 'Links hub - course',

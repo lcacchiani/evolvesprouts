@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 
+import { AuthProvider } from '@/components/auth-provider';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -40,7 +42,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer',${adminGtmContainerIdJson});`}
           </Script>
         ) : null}
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

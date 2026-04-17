@@ -592,6 +592,11 @@ export function MyBestAuntieBooking({
                     },
                   });
                   trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
+                  trackMetaPixelEvent('AddPaymentInfo', {
+                    content_name: PIXEL_CONTENT_NAME.my_best_auntie,
+                    value: selectedCohort.price,
+                    currency: 'HKD',
+                  });
                   trackEcommerceEvent('begin_checkout', {
                     value: selectedCohort.price,
                     items: [{

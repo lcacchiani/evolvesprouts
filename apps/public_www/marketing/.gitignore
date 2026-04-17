@@ -1,0 +1,4 @@
+# Git-ignored raw output from marketing assessment scripts.
+# Populated via the `--out` flag on google-ads-assessment.py,
+# meta-ads-assessment.py, and ga4-assessment.py.
+generated-reports/
