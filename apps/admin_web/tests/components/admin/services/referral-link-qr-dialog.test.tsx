@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-qr-dialog';
@@ -20,14 +20,7 @@ describe('ReferralLinkQrDialog', () => {
     generateSpy.mockClear();
   });
 
-  it('shows URL preview and copy triggers clipboard', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    const clipboardDescriptor = Object.getOwnPropertyDescriptor(Navigator.prototype, 'clipboard');
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    });
-
+  it('shows URL preview and opened analytics when GTM is configured', async () => {
     vi.stubEnv('NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID', 'GTM-TEST');
     const pushSpy = vi.fn();
     const dataLayerStub: { push: typeof pushSpy } = { push: pushSpy };
@@ -60,24 +53,7 @@ describe('ReferralLinkQrDialog', () => {
       }),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
-    expect(writeText).toHaveBeenCalledWith(
-      'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
-    );
-    await waitFor(() => {
-      expect(pushSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          event: 'admin_referral_qr_copied',
-          service_slug: 'my-best-auntie-training-course',
-        }),
-      );
-    });
-
-    if (clipboardDescriptor) {
-      Object.defineProperty(navigator, 'clipboard', clipboardDescriptor);
-    } else {
-      Reflect.deleteProperty(navigator, 'clipboard');
-    }
+    expect(screen.queryByRole('button', { name: 'Copy' })).not.toBeInTheDocument();
   });
 
   it('download uses createObjectURL', async () => {
