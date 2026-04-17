@@ -43,12 +43,18 @@ Pre-requisite: sign into Meta Business Manager as an admin of
 
 ## 2. Archive the two "ACTIVE but ended" campaigns
 
-**Why**: cleaner reporting. Our extended assessment script now flags
-these explicitly.
+**Status: DONE via API on 2026-04-17** (see
+`scripts/apply/meta-archive-ended-campaigns.py`).
 
-1. **Ads Manager → Campaigns**. Filter: *Delivery = Not delivering*.
-2. `Easter Workshop — Traffic — HK` → **... → Archive**.
-3. `Instagram Boost — Organic Top Performers` → **... → Archive**.
+Both `Easter Workshop — Traffic — HK` (120243921880560439) and
+`Instagram Boost — Organic Top Performers` (120243276352220439) are
+now ARCHIVED. The script is reusable and idempotent — run it again
+after any future campaign to keep the account tidy:
+
+```bash
+python3 scripts/apply/meta-archive-ended-campaigns.py --dry-run
+python3 scripts/apply/meta-archive-ended-campaigns.py --apply
+```
 
 ---
 
@@ -101,6 +107,22 @@ Lambda (`backend/lambda/**`). Open issue recommended:
 ---
 
 ## 5. Build the audience layer
+
+**Status: script ready; BLOCKED on one-time Custom Audience ToS
+acceptance**. Attempted via API on 2026-04-17 — Meta returned error
+code 2663 "Terms of service has not been accepted". The ToS has to be
+accepted once per ad account by a human at:
+
+  https://www.facebook.com/customaudiences/app/tos/?act=1562589928493715
+
+Once accepted, run (idempotent, skips existing audiences by name):
+
+```bash
+python3 scripts/apply/meta-create-custom-audiences.py --dry-run
+python3 scripts/apply/meta-create-custom-audiences.py --apply
+```
+
+The script creates the full list below:
 
 ### Custom audiences (Ads Manager → Audiences → Create audience →
 Custom audience)

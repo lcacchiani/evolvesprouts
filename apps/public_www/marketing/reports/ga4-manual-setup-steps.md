@@ -205,22 +205,26 @@ If the GA4 tag uses explicit event triggers:
 
 ---
 
-## 6. Mark `booking_confirm_pay_click` as a Key Event
+## 6. Key events — `booking_confirm_pay_click` and `whatsapp_click`
 
-**Why**: the 2026-04-17 assessment showed only 2
-`booking_submit_success` events in 30 days — too sparse to train paid
-bidding. Mid-funnel `booking_confirm_pay_click` fires far more often
-(13 events, 5 users) and is a strong intent signal. Once it is a key
-event it can be imported as a secondary conversion in Google Ads (see
-`google-ads-manual-setup-steps.md` §2).
+**Status: DONE via API on 2026-04-17** (see
+`scripts/apply/ga4-mark-key-events.py`).
 
-1. **GA4 Admin → Events**. Locate `booking_confirm_pay_click`.
-2. Toggle the **Mark as key event** switch.
-3. This matches the taxonomy contract already updated in
-   `apps/public_www/src/lib/analytics-taxonomy.json`
-   (`booking_confirm_pay_click.ga4KeyEvent = true`). The JSON is a
-   source-of-truth contract that does NOT push config to GA4 — the
-   toggle above is still required.
+Both `booking_confirm_pay_click` and `whatsapp_click` are now registered
+as GA4 Key Events. The `analytics-taxonomy.json` contract flag
+(`booking_confirm_pay_click.ga4KeyEvent = true`) matches the live GA4
+property. Google Ads auto-synced both within seconds and they are now
+**ENABLED (Secondary)** conversion actions in the account.
+
+To re-verify or roll forward after adding more key events:
+
+```bash
+python3 scripts/apply/ga4-mark-key-events.py --dry-run
+python3 scripts/apply/ga4-mark-key-events.py --apply
+```
+
+The script is idempotent and requires temporary Editor access on the
+GA4 property.
 
 ## 7. Enable `Purchase`, `AddPaymentInfo`, and `CompleteRegistration` on the Meta Pixel
 
@@ -245,11 +249,16 @@ users firing page_view and never firing interaction events.
 
 ### 8a. Enhanced Measurement
 
-1. **Admin → Data Streams → Evolve Sprouts Production → Enhanced
-   measurement** (the gear icon next to the slider).
-2. Enable **Scrolls**, **Outbound clicks**, **Video engagement**.
-   Leave the rest as default.
-3. Save.
+**Status: already fully enabled on the live property** (verified
+2026-04-17 via the Admin API — `stream_enabled=True` and every sub-flag
+`scrolls_enabled`, `outbound_clicks_enabled`, `site_search_enabled`,
+`video_engagement_enabled`, `file_downloads_enabled`,
+`form_interactions_enabled`, `page_changes_enabled` is `True`). No
+action needed — the 87.4% bounce is not a measurement-coverage issue.
+
+If a future change disables one of these, flip them back via
+**Admin → Data Streams → Evolve Sprouts Production → Enhanced
+measurement** (gear icon next to the slider).
 
 ### 8b. Consent Mode v2
 
@@ -264,22 +273,22 @@ users firing page_view and never firing interaction events.
 
 ## 9. Create and link GA4 Audiences
 
-**Why**: no audiences = no first-party remarketing = every campaign
-starts cold.
+**Status: audiences already exist** (verified 2026-04-17): the
+property already has `Course Page Visitors`, `Booking Intent - Did
+Not Complete`, and `High-Engagement Visitors` (plus `All Users` and
+`Purchasers`). Re-running `python3 scripts/ga4-create-audiences.py`
+now prints "already exists, skipping" for all three.
 
-1. Run the existing script (requires temporary Editor access — see
-   `apps/public_www/marketing/README.md`):
-   ```bash
-   python3 scripts/ga4-create-audiences.py
-   ```
-   Creates: `Course Page Visitors`, `Booking Intent — Did Not
-   Complete`, `High-Engagement Visitors`.
-2. **Admin → Product Links → Google Ads links** — verify the link to
-   the Google Ads account (MCC `544-581-2170` / CID `499-114-4901`)
-   is active.
-3. **Admin → Product Links → Search Ads 360** — leave disabled.
-4. **GA4 Admin → Audiences**: confirm all three appear with
-   "Active users — Last 7 days" > 0 within 24 h.
+What still needs UI verification:
+
+1. **GA4 Admin → Product Links → Google Ads links** — verify the link
+   to the Google Ads account (MCC `544-581-2170` / CID `499-114-4901`)
+   shows **Status: Linked** and **Personalized advertising: Enabled**.
+   This is required for the audiences to populate in Google Ads
+   Audience Manager.
+2. **GA4 Admin → Audiences**: confirm each audience shows
+   "Active users — Last 7 days" > 0. Populations are updated daily; a
+   brand-new audience can take up to 48 h to first populate.
 
 ## 10. Fix the no-locale / tokenised landing pages
 

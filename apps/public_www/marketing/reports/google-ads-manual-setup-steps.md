@@ -21,11 +21,15 @@ Pre-requisite for every item: sign into Google Ads as an admin of
 
 ---
 
-## 1. Turn on Enhanced Conversions for Web
+## 1. Turn on Enhanced Conversions for Web (UI-only)
 
 **Why**: 136 paid clicks, 0 Google-attributed conversions. The booking
 form collects email; enhanced conversions hash-match that email back to
 Google users and typically recover 10–30% of otherwise-lost attribution.
+
+**Note**: Enhanced Conversions has **no Google Ads API surface** — the
+toggle must be flipped in the Google Ads UI by an admin. Everything
+else in this doc has been automated.
 
 1. **Goals → Conversions → Summary**.
 2. Open **GA4 - Booking Submit Success**.
@@ -42,109 +46,100 @@ Google users and typically recover 10–30% of otherwise-lost attribution.
 
 ## 2. Import additional GA4 events as secondary conversions
 
-**Why**: Today bidding only has 2 `booking_submit_success` in the last
-30 days. More signal = better bidding. Secondary means it does not
-count towards the campaign's reported conversions, so ROAS stays clean.
+**Status: DONE via API on 2026-04-17** (see
+`scripts/apply/google-ads-enable-secondary-conversions.py`).
 
-1. **Goals → Summary → + New conversion action → Import → Google
-   Analytics 4 properties → Web**.
-2. Pick the linked GA4 property `Evolve Sprouts Website (525520074)`.
-3. Tick these events (one by one creates them with sensible defaults):
-   - `whatsapp_click`
-   - `contact_form_submit_success`
-   - `media_form_submit_success`
-   - `community_signup_submit_success`
-   - `booking_confirm_pay_click` (mid-funnel; rich in signal once made a
-     GA4 key event — see `ga4-manual-setup-steps.md` §3).
-4. Click **Import and continue**.
-5. For each newly-imported action, open it and set **Conversion action
-   optimisation** = **Secondary**. This keeps the ROAS column honest.
+The account now has these Secondary conversion actions enabled (not
+counted in ROAS; training signal only):
+
+- `Evolve Sprouts Website (web) booking_confirm_pay_click`
+- `Evolve Sprouts Website (web) whatsapp_click`
+- `Evolve Sprouts Website (web) media_form_submit_success`
+- `Evolve Sprouts Website (web) community_signup_submit_success`
+
+`GA4 - Contact Form Submit Success` was already enabled. The primary
+goal remains `GA4 - Booking Submit Success`.
+
+To add future key events in one step:
+
+1. `python3 scripts/apply/ga4-mark-key-events.py --apply` (marks in GA4).
+2. Wait for the auto-sync to create the `(web) <event_name>` action in
+   Google Ads (typically seconds; occasionally up to 24 h).
+3. Add the new name to `TARGET_NAMES` in
+   `scripts/apply/google-ads-enable-secondary-conversions.py` and run
+   `--apply`.
 
 ---
 
 ## 3. Weekly search-terms review
 
-**Why**: the 2026-04-17 pull already shows `"helperchoice"` (a
-competitor site) eating 8 clicks for HK$64. A 5-minute weekly habit
-prevents slow budget bleed.
+**Status: initial seed batch applied 2026-04-17 via API** — 29
+campaign-level negatives added (see
+`scripts/apply/google-ads-apply-tuesday-changes.py --steps negatives`).
+Live account already had 10 broad-match negatives
+(`free`, `job`, `visa`, `immigration`, `cleaning`, `placement`,
+`agency`, `salary`, `maid`, `"FDH employment"`) before the script ran,
+so the total campaign-level negative list is now 39.
+
+The script is idempotent. To add more, edit the `CAMPAIGN_NEGATIVES`
+list in the file and re-run:
+
+```bash
+python3 scripts/apply/google-ads-apply-tuesday-changes.py --dry-run --steps negatives
+python3 scripts/apply/google-ads-apply-tuesday-changes.py --apply   --steps negatives
+```
+
+Weekly cadence check (UI):
 
 1. **Campaigns → My Best Auntie — Search — HK → Insights and reports →
    Search terms**. Set the range to **Last 7 days**.
 2. Sort by **Clicks ↓**.
-3. For each search term that is clearly off-topic (competitors, UK/US
-   locations, job-seeker intent, "salary", "apply", "vacancy",
-   "philippines", "indonesia", etc.): tick the checkbox → **Add as
-   negative keyword** → scope = **Campaign** → match type =
-   **Exact** for competitor brands, **Phrase** for topic bleed.
-4. Save. Copy the list of negatives you added into the upcoming Monday
-   assessment report.
-
-**Seed negatives to add today** (based on the Apr 17 search-terms pull):
-
-| Term | Match type | Reason |
-|---|---|---|
-| `helperchoice` | Exact | Competitor brand |
-| `helperplace` | Exact | Competitor brand |
-| `helper jobs` | Phrase | Job-seeker intent |
-| `helper salary` | Phrase | Job-seeker intent |
-| `helper visa` | Phrase | Job-seeker intent |
-| `helper agency` | Phrase | Agency shopper (not our ICP) |
-| `philippines` | Phrase | Country bleed |
-| `indonesia` | Phrase | Country bleed |
-| `apply helper` | Phrase | Job-seeker intent |
+3. For any new off-topic clusters, add entries to `CAMPAIGN_NEGATIVES`
+   in the apply script (so the list stays version-controlled) and run
+   `--apply --steps negatives`.
 
 ---
 
-## 4. Split the dormant broad keywords into a `Discovery — Broad` ad group
+## 4. (Withdrawn) Discovery — Broad ad group
 
-**Why**: 4 of 30 broad keywords are delivering; the other 26
-(`child development`, `child care`, `montessori childcare`,
-`childcare level 3 course`, etc.) are being starved because they
-share an ad group and bid strategy with winners that have higher
-expected CPCs.
-
-1. **Campaigns → My Best Auntie — Search — HK → Ad groups → + New ad
-   group**.
-2. Name: `Discovery — Broad`.
-3. Ad rotation: **Optimise**.
-4. CPC ceiling: **HK$5** (set under *Settings → Bidding → Advanced →
-   Maximum CPC bid limit*). The existing Helper Training group
-   averages HK$9.73 CPC; the ceiling here is intentionally lower.
-5. Add the 26 currently-zero-impression keywords from
-   `reports/ads-performance-assessment-2026-04-17.md` (Keyword
-   performance table). Keep broad match.
-6. Attach one responsive search ad (copy from `Helper Training Course`
-   ad group; final URL →
-   `/en/services/my-best-auntie-training-course/?utm_source=google&utm_medium=cpc&utm_campaign=my-best-auntie-search-hk&utm_content=discovery-broad`).
-7. Pause the same 26 keywords inside the original Helper Training Course
-   ad group so they don't compete.
+This step was in the original plan based on a narrative assumption that
+the ad group contained 26 zero-impression keywords. A live API probe on
+2026-04-17 showed the Helper Training Course ad group actually has 19
+keywords (mix of broad/phrase/exact) and the Family Consultations ad
+group has 6. The restructuring this step targeted is not the real
+problem. Skipped.
 
 ## 5. Add phrase-match variants for the three winners
 
-**Why**: today every click is routed through broad match. Phrase
-matches typically cost 15–25% less for the same intent.
+**Status: DONE via API on 2026-04-17** (see
+`scripts/apply/google-ads-apply-tuesday-changes.py --steps phrase`).
 
-1. In ad group **Helper Training Course**, **Keywords → + New
-   keywords**, add:
-   - `"helper training hong kong"` (phrase)
-   - `"childcare helper training"` (phrase)
-   - `"domestic helper course hong kong"` (phrase)
-2. Leave the broad versions enabled — Google will pick the best match.
+Added to the Helper Training Course ad group:
+
+- `"helper training hong kong"` (phrase)
+- `"childcare helper training"` (phrase)
+- `"domestic helper course hong kong"` (phrase)
+
+The broad versions remain enabled — Google will pick the best match
+per query.
 
 ---
 
 ## 6. Rescue the Family Consultations click-to-conversion gap
 
-**Why**: HK$100 spent, 15 clicks, 0 conversions on
-`/en/services/consultations` (76% bounce in GA4).
+**Status: UTM tagging DONE via API on 2026-04-17** (see
+`scripts/apply/google-ads-apply-tuesday-changes.py --steps utm`).
 
-1. In the Family Consultations ad, edit **Final URL** to:
-   ```
-   https://www.evolvesprouts.com/en/services/consultations/?utm_source=google&utm_medium=cpc&utm_campaign=my-best-auntie-search-hk&utm_content=family-consultations
-   ```
-2. Wait for the ga4-manual-setup-steps item that registers a
-   consultation-scoped conversion (`whatsapp_click` filtered by page),
-   then import it as a **Secondary** conversion for this campaign.
+All three enabled ads in the campaign now have final URLs tagged with
+`utm_source=google&utm_medium=cpc&utm_campaign=my-best-auntie-search-hk&utm_content=<slug>`.
+The script is idempotent — re-runs leave already-tagged URLs alone.
+
+Still valuable but not automated:
+
+- Track CTR / bounce-rate / GA4 conversions for the Family
+  Consultations ad weekly; consider building a consultation-scoped
+  event (e.g. `consultation_whatsapp_click`) if 15+ more clicks go
+  through with 0 conversions.
 
 ---
 
