@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { listInstances } from '@/lib/services-api';
 import type { ServiceInstance } from '@/types/services';
@@ -12,13 +12,27 @@ export interface UseServiceInstanceOptionsResult {
   isLoading: boolean;
   error: string;
   loadForService: (serviceId: string | null) => Promise<void>;
+  /** Clears cached instance lists; omit serviceId to clear all services. */
+  invalidate: (serviceId?: string | null) => void;
 }
 
-export function useServiceInstanceOptions(): UseServiceInstanceOptionsResult {
+export function useServiceInstanceOptions(refreshKey?: unknown): UseServiceInstanceOptionsResult {
   const cacheRef = useRef<Map<string, ServiceInstance[]>>(new Map());
   const [instances, setInstances] = useState<ServiceInstance[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    cacheRef.current.clear();
+  }, [refreshKey]);
+
+  const invalidate = useCallback((serviceId?: string | null) => {
+    if (serviceId?.trim()) {
+      cacheRef.current.delete(serviceId.trim());
+      return;
+    }
+    cacheRef.current.clear();
+  }, []);
 
   const loadForService = useCallback(async (serviceId: string | null) => {
     if (!serviceId?.trim()) {
@@ -47,5 +61,5 @@ export function useServiceInstanceOptions(): UseServiceInstanceOptionsResult {
     }
   }, []);
 
-  return { instances, isLoading, error, loadForService };
+  return { instances, isLoading, error, loadForService, invalidate };
 }

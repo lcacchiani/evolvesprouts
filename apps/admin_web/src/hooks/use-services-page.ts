@@ -19,6 +19,7 @@ export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [instanceOptionsCacheVersion, setInstanceOptionsCacheVersion] = useState(0);
   const [instancesServiceFilter, setInstancesServiceFilter] = useState<string>('');
   const [instancesServiceTypeFilter, setInstancesServiceTypeFilter] = useState<string>('');
   const [instancesSearchQuery, setInstancesSearchQuery] = useState<string>('');
@@ -76,6 +77,7 @@ export function useServicesPage() {
   });
   const instanceMutations = useInstanceMutations({
     onSuccess: async (instanceId) => {
+      setInstanceOptionsCacheVersion((v) => v + 1);
       await instanceList.refetch();
       if (instanceId) {
         setSelectedInstanceId((current) => (current ? instanceId : current));
@@ -97,6 +99,8 @@ export function useServicesPage() {
   return {
     activeView,
     setActiveView,
+    instanceOptionsCacheVersion,
+    setInstanceOptionsCacheVersion,
     selectedServiceId,
     setSelectedServiceId,
     selectedService,
