@@ -23,6 +23,8 @@ const DEFAULT_PUBLIC_SITE_QR_FIELD_IDS: PublicSiteQrFieldIds = {
   previewUrl: 'public-site-qr-preview-url',
 };
 
+export type PublicSiteQrPreviewUrlPresentation = 'default' | 'referral';
+
 export interface PublicSiteQrExportPanelProps {
   builtUrl: string;
   configError: string;
@@ -33,6 +35,11 @@ export interface PublicSiteQrExportPanelProps {
   analyticsParams?: AdminAnalyticsEventParams;
   /** Override default `public-site-qr-*` control ids (for example referral dialog). */
   fieldIds?: Partial<PublicSiteQrFieldIds>;
+  /**
+   * How the preview URL link is rendered. `referral` matches the monospace + hover styling
+   * from the referral QR dialog refresh on main.
+   */
+  previewUrlPresentation?: PublicSiteQrPreviewUrlPresentation;
 }
 
 export function PublicSiteQrExportPanel({
@@ -43,6 +50,7 @@ export function PublicSiteQrExportPanel({
   downloadEvent,
   analyticsParams,
   fieldIds: fieldIdsProp,
+  previewUrlPresentation = 'default',
 }: PublicSiteQrExportPanelProps) {
   const fieldIds = { ...DEFAULT_PUBLIC_SITE_QR_FIELD_IDS, ...fieldIdsProp };
   const [includeLogoInQr, setIncludeLogoInQr] = useState(true);
@@ -50,6 +58,11 @@ export function PublicSiteQrExportPanel({
   const [previewDataUrl, setPreviewDataUrl] = useState('');
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [renderError, setRenderError] = useState('');
+
+  const previewUrlLinkClassName =
+    previewUrlPresentation === 'referral'
+      ? 'block max-w-full rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 no-underline outline-offset-2 hover:text-slate-950 hover:underline hover:decoration-slate-400 hover:underline-offset-2'
+      : 'block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 hover:text-slate-950';
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +131,13 @@ export function PublicSiteQrExportPanel({
     }
   }
 
+  const previewUrlInner =
+    previewUrlPresentation === 'referral' ? (
+      <code className='block break-all font-mono text-[0.8125rem] text-inherit'>{builtUrl}</code>
+    ) : (
+      builtUrl
+    );
+
   return (
     <div className='space-y-4' aria-label='Public site QR configuration and preview'>
       {configError ? <p className='text-sm text-red-600'>{configError}</p> : null}
@@ -161,9 +181,9 @@ export function PublicSiteQrExportPanel({
             href={builtUrl}
             target='_blank'
             rel='noopener noreferrer'
-            className='block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 hover:text-slate-950'
+            className={previewUrlLinkClassName}
           >
-            {builtUrl}
+            {previewUrlInner}
           </a>
         ) : (
           <p

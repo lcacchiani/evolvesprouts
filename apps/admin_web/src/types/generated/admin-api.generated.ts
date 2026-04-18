@@ -4160,7 +4160,7 @@ export interface components {
         UpdateDiscountCodeRequest: {
             description?: string | null;
             discount_type?: components["schemas"]["DiscountType"];
-            /** @description When the resulting type is `referral`, the server coerces this to "0"; client-supplied values are ignored. */
+            /** @description Must be greater than 0 unless the effective discount type after this update is `referral` (tracking-only), in which case `0` is accepted and the server coerces the stored value to "0"; other client-supplied values are ignored for referral. */
             discount_value?: string;
             /** @description When the resulting type is `referral`, the server coerces this to "HKD"; client-supplied values are ignored. */
             currency?: string | null;

@@ -642,8 +642,8 @@ export function DiscountCodesPanel({
                         event.stopPropagation();
                         openReferralDialog(row);
                       }}
-                      aria-label='Referral link and QR'
-                      title='Referral link and QR'
+                      aria-label='Link and QR'
+                      title='Link and QR'
                     >
                       <QrLinkIcon className='h-4 w-4' />
                     </Button>

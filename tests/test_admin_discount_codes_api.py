@@ -163,6 +163,22 @@ def test_parse_update_discount_code_referral_type_coerces() -> None:
     assert payload["currency"] == REFERRAL_DEFAULT_CURRENCY
 
 
+def test_parse_update_discount_code_referral_accepts_zero_discount_value() -> None:
+    """Update payload may include 0 before referral coercion (admin UI sends 0)."""
+    payload = parse_update_discount_code_payload(
+        {"discount_type": "referral", "discount_value": "0"}
+    )
+    assert payload["discount_type"] == DiscountType.REFERRAL
+    assert payload["discount_value"] == REFERRAL_DEFAULT_DISCOUNT_VALUE
+    assert payload["currency"] == REFERRAL_DEFAULT_CURRENCY
+
+
+def test_parse_update_discount_code_rejects_negative_discount_value() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        parse_update_discount_code_payload({"discount_value": "-1"})
+    assert exc_info.value.field == "discount_value"
+
+
 def test_update_discount_code_clamps_partial_payload_for_existing_referral(
     monkeypatch: Any,
     api_gateway_event: Any,
@@ -231,3 +247,67 @@ def test_update_discount_code_clamps_partial_payload_for_existing_referral(
 
     assert row.discount_value == REFERRAL_DEFAULT_DISCOUNT_VALUE
     assert row.currency == REFERRAL_DEFAULT_CURRENCY
+
+
+def test_update_discount_code_rejects_zero_discount_value_for_percentage(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    code_id = uuid4()
+    row = SimpleNamespace(
+        id=code_id,
+        description=None,
+        discount_type=DiscountType.PERCENTAGE,
+        discount_value=Decimal("10"),
+        currency=None,
+        valid_from=None,
+        valid_until=None,
+        service_id=None,
+        instance_id=None,
+        max_uses=None,
+        active=True,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id(self, _id: Any) -> Any:
+            return row
+
+        def update(self, entity: Any) -> Any:
+            return entity
+
+    monkeypatch.setattr(admin_discount_codes, "Session", _SessionCtx)
+    monkeypatch.setattr(admin_discount_codes, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_discount_codes, "parse_body", lambda _e: {})
+    monkeypatch.setattr(
+        admin_discount_codes,
+        "parse_update_discount_code_payload",
+        lambda _body: {"discount_value": Decimal("0")},
+    )
+    monkeypatch.setattr(admin_discount_codes, "set_audit_context", lambda *_a, **_k: None)
+    monkeypatch.setattr(admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None)
+    monkeypatch.setattr(admin_discount_codes, "DiscountCodeRepository", _FakeRepo)
+
+    with pytest.raises(ValidationError) as exc_info:
+        admin_discount_codes._update_discount_code(
+            api_gateway_event(method="PUT", path=f"/v1/admin/discount-codes/{code_id}"),
+            code_id=code_id,
+            actor_sub="sub-1",
+        )
+    assert exc_info.value.field == "discount_value"

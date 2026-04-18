@@ -117,7 +117,7 @@ describe('DiscountCodesPanel', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Referral link and QR' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Link and QR' })).toBeInTheDocument();
   });
 
   it('shows archived service title in Scope while picker omits archived services', () => {
@@ -385,7 +385,7 @@ describe('DiscountCodesPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Referral link and QR' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Link and QR' }));
 
     await vi.waitFor(() => {
       expect(

@@ -28,6 +28,7 @@ from app.api.admin_services_payload_utils import (
     parse_optional_uuid,
     parse_required_bool,
     parse_required_decimal,
+    parse_required_non_negative_decimal,
     parse_required_enum,
     parse_required_text,
     parse_service_type_details,
@@ -528,7 +529,7 @@ def parse_update_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
             body.get("discount_type"), DiscountType, "discount_type"
         )
     if has_field(body, "discount_value"):
-        payload["discount_value"] = parse_required_decimal(
+        payload["discount_value"] = parse_required_non_negative_decimal(
             body.get("discount_value"), "discount_value"
         )
     if has_field(body, "currency"):

@@ -402,6 +402,16 @@ def parse_required_decimal(value: Any, field: str) -> Decimal:
     return parsed
 
 
+def parse_required_non_negative_decimal(value: Any, field: str) -> Decimal:
+    """Parse a required decimal that may be zero (used where referral allows 0)."""
+    parsed = parse_optional_decimal(value, field)
+    if parsed is None:
+        raise ValidationError(f"{field} is required", field=field)
+    if parsed < Decimal("0"):
+        raise ValidationError(f"{field} must be >= 0", field=field)
+    return parsed
+
+
 def parse_optional_currency(value: Any, field: str) -> str | None:
     parsed = parse_optional_text(value, max_length=_MAX_CURRENCY_LENGTH)
     if parsed is None:

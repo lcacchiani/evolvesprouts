@@ -71,7 +71,7 @@ export function ReferralLinkQrDialog({
   return (
     <ConfirmDialog
       open={open}
-      title='Referral link and QR'
+      title='Link and QR'
       description={`Share this link or QR. ${destinationHint} Locale is included in the URL for consistent scanning.`}
       cancelLabel='Close'
       confirmLabel='Close'
@@ -80,7 +80,7 @@ export function ReferralLinkQrDialog({
       onCancel={onClose}
       onConfirm={onClose}
     >
-      <div className='space-y-4'>
+      <div className='space-y-4' aria-label='Referral link configuration and preview'>
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <div>
             <Label htmlFor='referral-locale'>Locale</Label>
@@ -99,7 +99,7 @@ export function ReferralLinkQrDialog({
           </div>
         </div>
         <PublicSiteQrExportPanel
-          builtUrl={builtUrl}
+          builtUrl={open ? builtUrl : ''}
           configError={configError}
           previewAriaLabel={previewAriaLabel}
           downloadFilenameBase={`referral-${discountCode.trim().toUpperCase()}`}
@@ -112,6 +112,7 @@ export function ReferralLinkQrDialog({
             applyBranding: 'referral-qr-apply-branding',
             previewUrl: 'referral-preview-url',
           }}
+          previewUrlPresentation='referral'
         />
       </div>
     </ConfirmDialog>
