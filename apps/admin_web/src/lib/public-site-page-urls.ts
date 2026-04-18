@@ -4,7 +4,8 @@ function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '');
 }
 
-const PATH_SEGMENT = /^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$/;
+/** Segments are normalized to lowercase before validation. */
+const PATH_SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export interface NormalizePublicSitePathResult {
   /** Normalized path starting with `/`, ending with `/`, or `/` for site home. */

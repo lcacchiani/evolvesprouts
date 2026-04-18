@@ -10,7 +10,7 @@ vi.mock('@/lib/config', () => ({
 const generateSpy = vi.fn(async () => 'data:image/png;base64,AA');
 
 vi.mock('@/lib/qr-code-image', () => ({
-  generateReferralQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),
+  generatePublicSiteQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),
 }));
 
 describe('WebsiteQrPage', () => {

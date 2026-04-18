@@ -55,6 +55,10 @@ export interface BuildPublicReferralUrlInput {
 /**
  * Build a locale-prefixed public URL with `ref` or `discount` for referral QR.
  * With a service slug: `/{locale}/services/{slug}?…`. Without: `/{locale}/?…` (site home for that locale).
+ *
+ * Note: `URL` omits a trailing slash on non-root paths before the query string (for example
+ * `…/services/foo?ref=…`), while marketing page QR uses a trailing slash before any query
+ * (`buildLocalizedPublicPageUrl` / static export). Encoded payloads differ in shape by design.
  */
 export function buildPublicReferralUrlWithSlug(input: BuildPublicReferralUrlInput): string {
   const base = trimTrailingSlashes(input.baseUrl.trim());

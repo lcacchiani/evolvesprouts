@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { PublicSiteQrExportPanel } from '@/components/admin/public-site-qr-export-panel';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -35,7 +35,6 @@ export function WebsiteQrPage() {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [presetValue, setPresetValue] = useState<string>(PUBLIC_SITE_PAGE_PRESETS[0]?.pathInput ?? '/');
   const [customPathInput, setCustomPathInput] = useState('');
-  const openedLoggedKey = useRef<string | null>(null);
   const isCustom = presetValue === CUSTOM_PRESET_VALUE;
 
   const normalizedPathResult = useMemo(() => {
@@ -63,11 +62,6 @@ export function WebsiteQrPage() {
     if (!builtUrl) {
       return;
     }
-    const key = `${locale}|${pathForAnalytics}`;
-    if (openedLoggedKey.current === key) {
-      return;
-    }
-    openedLoggedKey.current = key;
     trackAdminAnalyticsEvent('admin_public_page_qr_opened', {
       public_site_path: pathForAnalytics,
       locale,

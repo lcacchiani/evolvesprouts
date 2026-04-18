@@ -14,7 +14,7 @@ vi.mock('qrcode', async () => {
   };
 });
 
-describe('generateReferralQrPngDataUrl', () => {
+describe('generatePublicSiteQrPngDataUrl', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -62,9 +62,9 @@ describe('generateReferralQrPngDataUrl', () => {
     // @ts-expect-error test shim
     globalThis.Image = MockImage;
 
-    const { generateReferralQrPngDataUrl } = await import('@/lib/qr-code-image');
+    const { generatePublicSiteQrPngDataUrl } = await import('@/lib/qr-code-image');
 
-    await generateReferralQrPngDataUrl({
+    await generatePublicSiteQrPngDataUrl({
       url: 'https://example.com',
       size: 200,
       logoSrc: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>',
@@ -112,9 +112,9 @@ describe('generateReferralQrPngDataUrl', () => {
       },
     );
 
-    const { generateReferralQrPngDataUrl } = await import('@/lib/qr-code-image');
+    const { generatePublicSiteQrPngDataUrl } = await import('@/lib/qr-code-image');
 
-    await generateReferralQrPngDataUrl({
+    await generatePublicSiteQrPngDataUrl({
       url: 'https://example.com',
       size: 200,
       applyBranding: false,
@@ -158,9 +158,9 @@ describe('generateReferralQrPngDataUrl', () => {
       },
     );
 
-    const { generateReferralQrPngDataUrl } = await import('@/lib/qr-code-image');
+    const { generatePublicSiteQrPngDataUrl } = await import('@/lib/qr-code-image');
 
-    await generateReferralQrPngDataUrl({
+    await generatePublicSiteQrPngDataUrl({
       url: 'https://example.com',
       size: 200,
     });

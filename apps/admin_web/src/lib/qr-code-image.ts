@@ -4,7 +4,8 @@ import type { QRCode as QrModel } from 'qrcode';
 /** Matches public site `--es-color-brand-orange` (`apps/public_www/src/app/styles/original/base.css`). */
 export const PUBLIC_SITE_PRIMARY_ORANGE = '#C84A16';
 
-export interface GenerateReferralQrPngDataUrlInput {
+/** Input for branded public-site QR PNG generation (referral links, marketing page URLs, etc.). */
+export interface GeneratePublicSiteQrPngDataUrlInput {
   url: string;
   size: number;
   /** When omitted or empty, the QR is generated without a centered logo. */
@@ -12,6 +13,9 @@ export interface GenerateReferralQrPngDataUrlInput {
   /** When true, modules use brand orange and rounded module corners. Default true. */
   applyBranding?: boolean;
 }
+
+/** @deprecated Use `GeneratePublicSiteQrPngDataUrlInput`. */
+export type GenerateReferralQrPngDataUrlInput = GeneratePublicSiteQrPngDataUrlInput;
 
 function parseHexRgb(hex: string): { r: number; g: number; b: number } {
   const normalized = hex.trim().replace(/^#/, '');
@@ -355,8 +359,8 @@ function drawLogoTrimmedToCanvas(
  * Draw a QR code, optionally with a centered logo overlay (error correction H).
  * Returns a PNG data URL suitable for download.
  */
-export async function generateReferralQrPngDataUrl(
-  input: GenerateReferralQrPngDataUrlInput,
+export async function generatePublicSiteQrPngDataUrl(
+  input: GeneratePublicSiteQrPngDataUrlInput,
 ): Promise<string> {
   const applyBranding = input.applyBranding !== false;
   const canvas = document.createElement('canvas');
@@ -408,4 +412,11 @@ export async function generateReferralQrPngDataUrl(
   drawLogoTrimmedToCanvas(ctx, image, naturalW, naturalH, centerX, centerY, logoSize);
 
   return canvasToPngDataUrl(canvas);
+}
+
+/** @deprecated Use `generatePublicSiteQrPngDataUrl`. */
+export async function generateReferralQrPngDataUrl(
+  input: GenerateReferralQrPngDataUrlInput,
+): Promise<string> {
+  return generatePublicSiteQrPngDataUrl(input);
 }

@@ -9,7 +9,7 @@ import {
   type AdminAnalyticsEventName,
   type AdminAnalyticsEventParams,
 } from '@/lib/admin-analytics';
-import { generateReferralQrPngDataUrl } from '@/lib/qr-code-image';
+import { generatePublicSiteQrPngDataUrl } from '@/lib/qr-code-image';
 
 export interface PublicSiteQrFieldIds {
   includeLogo: string;
@@ -63,7 +63,7 @@ export function PublicSiteQrExportPanel({
       setIsRenderingPreview(true);
       setRenderError('');
       const logoSrc = includeLogoInQr ? `${window.location.origin}/evolvesprouts-logo.svg` : '';
-      void generateReferralQrPngDataUrl({
+      void generatePublicSiteQrPngDataUrl({
         url: builtUrl,
         size: 220,
         logoSrc,
@@ -96,7 +96,7 @@ export function PublicSiteQrExportPanel({
       return;
     }
     const logoSrc = includeLogoInQr ? `${window.location.origin}/evolvesprouts-logo.svg` : '';
-    const dataUrl = await generateReferralQrPngDataUrl({
+    const dataUrl = await generatePublicSiteQrPngDataUrl({
       url: builtUrl,
       size,
       logoSrc,

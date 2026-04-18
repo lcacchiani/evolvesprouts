@@ -24,6 +24,9 @@
       ],
       "@shared-config/*": [
         "../../shared/config/*"
+      ],
+      "@shared-public-www/*": [
+        "../../shared/*"
       ]
     },
     "plugins": [
