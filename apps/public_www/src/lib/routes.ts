@@ -1,21 +1,9 @@
 import type { Locale } from '@/content';
 import { localizePath } from '@/lib/locale-routing';
 
-export const ROUTES = {
-  home: '/',
-  about: '/about-us',
-  freeGuidesAndResources: '/services/free-guides-and-resources',
-  contact: '/contact-us',
-  events: '/events',
-  mediaDownload: '/media/download',
-  privacy: '/privacy',
-  servicesIndex: '/services',
-  servicesConsultations: '/services/consultations',
-  servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
-  servicesWorkshops: '/services/workshops',
-  terms: '/terms',
-  links: '/links',
-} as const;
+import { PUBLIC_WWW_ROUTES } from '@/lib/public-www-routes';
+
+export const ROUTES = PUBLIC_WWW_ROUTES;
 
 export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
@@ -33,6 +21,8 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.home,
   ROUTES.about,
   ROUTES.events,
+  ROUTES.book,
+  ROUTES.resources,
   ROUTES.contact,
   ROUTES.privacy,
   ROUTES.terms,
@@ -56,7 +46,5 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
       .map((path) => path.replace(/^\/+|\/+$/g, '').split('/')[0] ?? '')
       .filter((segment) => segment.length > 0),
   ),
-  'resources',
-  'book',
   'free-guides-and-resources',
 ]);

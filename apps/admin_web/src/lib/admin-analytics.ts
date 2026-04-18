@@ -5,7 +5,14 @@ type AnalyticsPrimitive = string | number | boolean;
 export type AdminAnalyticsEventName =
   | 'admin_referral_qr_opened'
   | 'admin_referral_qr_downloaded'
+  | 'admin_public_page_qr_opened'
+  | 'admin_public_page_qr_downloaded'
   | 'admin_instance_uuid_copied';
+
+export type AdminAnalyticsEventParams = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
 interface AdminDataLayerEventPayload {
   event: string;
@@ -126,7 +133,7 @@ function pushAdminDataLayerPayload(
  */
 export function trackAdminAnalyticsEvent(
   event: AdminAnalyticsEventName,
-  params?: Record<string, AnalyticsPrimitive | null | undefined>,
+  params?: AdminAnalyticsEventParams,
 ): void {
   if (typeof window === 'undefined') {
     return;

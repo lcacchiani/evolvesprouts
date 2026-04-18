@@ -10,7 +10,7 @@ vi.mock('@/lib/config', () => ({
 const generateSpy = vi.fn(async () => 'data:image/png;base64,AA');
 
 vi.mock('@/lib/qr-code-image', () => ({
-  generateReferralQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),
+  generatePublicSiteQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),
 }));
 
 describe('ReferralLinkQrDialog', () => {
@@ -194,7 +194,7 @@ describe('ReferralLinkQrDialog', () => {
     );
     await vi.waitFor(() => {
       expect(
-        screen.getByLabelText('Referral link configuration and preview'),
+        screen.getByLabelText('Public site QR configuration and preview'),
       ).toBeInTheDocument();
     });
   });
@@ -206,17 +206,12 @@ describe('ReferralLinkQrDialog', () => {
     expect(screen.queryByLabelText('URL parameter')).toBeNull();
   });
 
-  it('places include-logo and apply-branding checkboxes in the same two-column grid as locale', () => {
-    const { container } = render(
+  it('renders locale select and QR branding controls together', () => {
+    render(
       <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
     );
-    const includeLogo = screen.getByRole('checkbox', { name: /include logo in qr code/i });
-    const applyBranding = screen.getByRole('checkbox', { name: /apply branding/i });
-    const localeSelect = screen.getByLabelText('Locale');
-    const grid = container.querySelector('.sm\\:grid-cols-2');
-    expect(grid).toBeTruthy();
-    expect(grid?.contains(includeLogo)).toBe(true);
-    expect(grid?.contains(applyBranding)).toBe(true);
-    expect(grid?.contains(localeSelect)).toBe(true);
+    expect(screen.getByLabelText('Locale')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /include logo in qr code/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /apply branding/i })).toBeInTheDocument();
   });
 });

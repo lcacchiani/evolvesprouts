@@ -22,6 +22,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@shared-config': path.resolve(__dirname, '../../shared/config'),
+      '@shared-public-www': path.resolve(__dirname, '../public_www/src/lib'),
     },
   },
   test: {
