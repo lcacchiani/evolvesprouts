@@ -1,9 +1,20 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DiscountCodesPanel } from '@/components/admin/services/discount-codes-panel';
 import { AdminApiError } from '@/lib/api-admin-client';
+import { tryCopyTextToClipboard } from '@/lib/clipboard';
+
+vi.mock('@/lib/clipboard', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/clipboard')>();
+  return {
+    ...actual,
+    tryCopyTextToClipboard: vi.fn(actual.tryCopyTextToClipboard),
+  };
+});
+
+const mockTryCopyTextToClipboard = vi.mocked(tryCopyTextToClipboard);
 
 vi.mock('@/hooks/use-service-instance-options', () => ({
   useServiceInstanceOptions: () => ({
@@ -23,6 +34,13 @@ vi.mock('@/lib/config', async (importOriginal) => {
 });
 
 describe('DiscountCodesPanel', () => {
+  beforeEach(() => {
+    mockTryCopyTextToClipboard.mockImplementation(async (text: string) => {
+      const mod = await vi.importActual<typeof import('@/lib/clipboard')>('@/lib/clipboard');
+      return mod.tryCopyTextToClipboard(text);
+    });
+  });
+
   const baseService = {
     id: 'svc-1',
     serviceType: 'training_course' as const,
@@ -394,6 +412,64 @@ describe('DiscountCodesPanel', () => {
         }),
       ).toBeInTheDocument();
     });
+  });
+
+  it('shows copy success state on the row copy button when clipboard succeeds', async () => {
+    vi.useFakeTimers();
+    mockTryCopyTextToClipboard.mockResolvedValue(true);
+    try {
+    const row = {
+      id: 'dc-copy',
+      code: 'SAVE10',
+      description: null,
+      discountType: 'percentage' as const,
+      discountValue: '10',
+      currency: 'HKD',
+      validFrom: null,
+      validUntil: null,
+      maxUses: null,
+      currentUses: 0,
+      active: true,
+      serviceId: null,
+      instanceId: null,
+      createdAt: null,
+      updatedAt: null,
+    };
+
+    render(
+      <DiscountCodesPanel
+        codes={[row]}
+        filters={{ active: '', search: '', scope: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        serviceOptions={[{ ...baseService }]}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy discount code' }));
+
+    await vi.waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Discount code copied' })).toBeInTheDocument();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    await vi.waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Copy discount code' })).toBeInTheDocument();
+    });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('retries create with COPY, COPY2, … until duplicate 409 stops', async () => {
