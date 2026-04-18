@@ -151,9 +151,7 @@ def complete_asset_content_replace(
     resolved_content_type = bound_ct
 
     with Session(get_engine()) as session:
-        set_audit_context(
-            session, user_id=identity_user_sub, request_id=request_id
-        )
+        set_audit_context(session, user_id=identity_user_sub, request_id=request_id)
         repository = AssetRepository(session)
         asset = repository.get_with_asset_tags(asset_id)
         if asset is None:
