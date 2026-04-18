@@ -401,9 +401,13 @@ export function useAssetMutations({
     setUploadPhase('put');
     setUploadState('uploading');
     setUploadError('');
+    const uploadUrlForPut = effectiveUpload.uploadUrl;
+    if (!uploadUrlForPut) {
+      return;
+    }
     try {
       await uploadFileToPresignedUrl({
-        uploadUrl: effectiveUpload.uploadUrl,
+        uploadUrl: uploadUrlForPut,
         uploadMethod: effectiveUpload.uploadMethod,
         uploadHeaders: effectiveUpload.uploadHeaders,
         file,
