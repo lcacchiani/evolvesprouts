@@ -35,6 +35,8 @@ export function WebsiteQrPage() {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
   const [presetValue, setPresetValue] = useState<string>(PUBLIC_SITE_PAGE_PRESETS[0]?.pathInput ?? '/');
   const [customPathInput, setCustomPathInput] = useState('');
+  const [appendSrcQuery, setAppendSrcQuery] = useState(false);
+  const [srcQueryValue, setSrcQueryValue] = useState('qr');
   const isCustom = presetValue === CUSTOM_PRESET_VALUE;
 
   const normalizedPathResult = useMemo(() => {
@@ -56,17 +58,37 @@ export function WebsiteQrPage() {
     });
   }, [baseUrl, locale, normalizedPathResult.error, normalizedPathResult.path]);
 
+  const builtUrlForQr = useMemo(() => {
+    if (!builtUrl) {
+      return '';
+    }
+    if (!appendSrcQuery) {
+      return builtUrl;
+    }
+    const trimmed = srcQueryValue.trim();
+    if (!trimmed) {
+      return builtUrl;
+    }
+    try {
+      const url = new URL(builtUrl);
+      url.searchParams.set('src', trimmed);
+      return url.toString();
+    } catch {
+      return builtUrl;
+    }
+  }, [appendSrcQuery, builtUrl, srcQueryValue]);
+
   const pathForAnalytics = normalizedPathResult.path || '';
 
   useEffect(() => {
-    if (!builtUrl) {
+    if (!builtUrlForQr) {
       return;
     }
     trackAdminAnalyticsEvent('admin_public_page_qr_opened', {
       public_site_path: pathForAnalytics,
       locale,
     });
-  }, [builtUrl, locale, pathForAnalytics]);
+  }, [builtUrlForQr, locale, pathForAnalytics]);
 
   const configError = !baseUrl.trim()
     ? 'Set NEXT_PUBLIC_PUBLIC_SITE_BASE_URL to generate public page links.'
@@ -136,8 +158,48 @@ export function WebsiteQrPage() {
           </div>
         ) : null}
         {pathError ? <p className='text-sm text-red-600'>{pathError}</p> : null}
+        <div className='space-y-2'>
+          <div className='flex items-center gap-2'>
+            <input
+              id='website-qr-append-src'
+              type='checkbox'
+              className='h-4 w-4 rounded border-slate-300 text-slate-900'
+              checked={appendSrcQuery}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setAppendSrcQuery(next);
+                if (next && !srcQueryValue.trim()) {
+                  setSrcQueryValue('qr');
+                }
+              }}
+              disabled={Boolean(configError) || Boolean(pathError) || !builtUrl}
+            />
+            <Label htmlFor='website-qr-append-src' className='mb-0 cursor-pointer font-normal'>
+              Append <code className='rounded bg-slate-100 px-1 py-0.5 text-xs'>src</code> query
+              parameter
+            </Label>
+          </div>
+          {appendSrcQuery ? (
+            <div>
+              <Label htmlFor='website-qr-src-value'>src value</Label>
+              <Input
+                id='website-qr-src-value'
+                value={srcQueryValue}
+                onChange={(event) => setSrcQueryValue(event.target.value)}
+                placeholder='e.g. qr'
+                disabled={Boolean(configError) || Boolean(pathError) || !builtUrl}
+                autoComplete='off'
+              />
+              <p className='mt-1 text-xs text-slate-500'>
+                Adds <code className='rounded bg-slate-100 px-1'>?src=…</code> (or{' '}
+                <code className='rounded bg-slate-100 px-1'>&amp;src=…</code>) for attribution. Leave
+                blank to omit.
+              </p>
+            </div>
+          ) : null}
+        </div>
         <PublicSiteQrExportPanel
-          builtUrl={builtUrl && !pathError ? builtUrl : ''}
+          builtUrl={builtUrl && !pathError ? builtUrlForQr : ''}
           configError={configError}
           previewAriaLabel={`QR code preview for public page ${pathForAnalytics || '/'}`}
           downloadFilenameBase={downloadBase}
@@ -146,6 +208,7 @@ export function WebsiteQrPage() {
             public_site_path: pathForAnalytics,
             locale,
           }}
+          previewUrlPresentation='referral'
         />
       </AdminEditorCard>
     </div>

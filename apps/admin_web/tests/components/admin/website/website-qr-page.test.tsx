@@ -58,4 +58,32 @@ describe('WebsiteQrPage', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('appends src query when enabled', async () => {
+    render(<WebsiteQrPage />);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Append .*src.* query parameter/i }));
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', { name: 'https://www.example.com/en/?src=qr' }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('updates src query value in preview URL', async () => {
+    render(<WebsiteQrPage />);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Append .*src.* query parameter/i }));
+
+    fireEvent.change(screen.getByLabelText('src value'), {
+      target: { value: 'poster' },
+    });
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', { name: 'https://www.example.com/en/?src=poster' }),
+      ).toBeInTheDocument();
+    });
+  });
 });
