@@ -122,10 +122,12 @@ export interface UpdateAdminAssetPatchInput {
 }
 
 export interface CreatedAssetUpload {
-  uploadUrl: OptionalToNullable<ApiCreateAssetResponse['upload_url']>;
+  /** Null when absent, blank after trim, or not returned (trimmed presigned URL). */
+  uploadUrl: OptionalToNullable<ApiCreateAssetResponse['upload_url']> | null;
   uploadMethod: string;
   uploadHeaders: NonNullable<ApiCreateAssetResponse['upload_headers']>;
-  expiresAt: OptionalToNullable<ApiCreateAssetResponse['expires_at']>;
+  /** Null when absent or not a string in the payload (ISO date-time when present). */
+  expiresAt: OptionalToNullable<ApiCreateAssetResponse['expires_at']> | null;
 }
 
 type ApiInitAssetContentReplaceResponse = ApiSchemas['InitAssetContentReplaceResponse'];
@@ -133,10 +135,12 @@ type ApiInitAssetContentReplaceResponse = ApiSchemas['InitAssetContentReplaceRes
 /** Presigned upload for replacing an existing asset file (step 1). */
 export interface InitAdminAssetContentReplaceUpload {
   pendingS3Key: ApiInitAssetContentReplaceResponse['pending_s3_key'];
-  uploadUrl: OptionalToNullable<ApiInitAssetContentReplaceResponse['upload_url']>;
+  /** Null when absent, blank after trim, or not returned (trimmed presigned URL). */
+  uploadUrl: OptionalToNullable<ApiInitAssetContentReplaceResponse['upload_url']> | null;
   uploadMethod: string;
   uploadHeaders: NonNullable<ApiInitAssetContentReplaceResponse['upload_headers']>;
-  expiresAt: OptionalToNullable<ApiInitAssetContentReplaceResponse['expires_at']>;
+  /** Null when absent or not a string in the payload (ISO date-time when present). */
+  expiresAt: OptionalToNullable<ApiInitAssetContentReplaceResponse['expires_at']> | null;
 }
 
 export interface CreateAssetGrantInput {
