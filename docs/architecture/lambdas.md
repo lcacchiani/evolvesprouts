@@ -62,7 +62,9 @@ their primary responsibilities.
   filters and `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service slug changes), `/v1/admin/discount-codes/*`
   (`POST` returns `409` with `field: code` when the code collides with the
-  case-insensitive unique index),
+  case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
+  effective discount type after the update is `referral`, otherwise `discount_value`
+  must be greater than `0`),
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,

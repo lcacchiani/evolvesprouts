@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -226,6 +227,15 @@ def _update_discount_code(
             if "discount_type" in payload
             else code.discount_type
         )
+        if (
+            effective_type != DiscountType.REFERRAL
+            and "discount_value" in payload
+            and payload["discount_value"] <= Decimal("0")
+        ):
+            raise ValidationError(
+                "discount_value must be greater than 0",
+                field="discount_value",
+            )
         if effective_type == DiscountType.REFERRAL:
             payload["discount_value"] = REFERRAL_DEFAULT_DISCOUNT_VALUE
             payload["currency"] = REFERRAL_DEFAULT_CURRENCY
