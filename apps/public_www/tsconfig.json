@@ -20,9 +20,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@shared-public-www/*": [
-        "../../shared/*"
       ]
     },
     "plugins": [

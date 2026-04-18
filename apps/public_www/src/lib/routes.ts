@@ -1,6 +1,7 @@
 import type { Locale } from '@/content';
-import { PUBLIC_WWW_ROUTES } from '@shared-public-www/public-www-routes';
 import { localizePath } from '@/lib/locale-routing';
+
+import { PUBLIC_WWW_ROUTES } from '@/lib/public-www-routes';
 
 export const ROUTES = PUBLIC_WWW_ROUTES;
 

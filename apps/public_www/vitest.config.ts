@@ -12,7 +12,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(rootDirectory, './src'),
-      '@shared-public-www': path.resolve(rootDirectory, '../../shared'),
     },
   },
   test: {

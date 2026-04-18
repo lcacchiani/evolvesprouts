@@ -2,7 +2,7 @@ import { PUBLIC_WWW_ROUTES } from '@shared-public-www/public-www-routes';
 
 /**
  * Curated public-site paths for QR presets (same paths as `PUBLIC_WWW_ROUTES` in
- * `shared/public-www-routes.ts`, re-exported from `apps/public_www/src/lib/routes.ts`).
+ * `apps/public_www/src/lib/public-www-routes.ts`, re-exported from `apps/public_www/src/lib/routes.ts`).
  */
 export interface PublicSitePagePreset {
   label: string;

@@ -1,6 +1,6 @@
 /**
- * Canonical first-party path strings for the static public website (`apps/public_www`).
- * Single source of truth for `apps/public_www/src/lib/routes.ts` and admin QR presets.
+ * Canonical first-party path strings for the static public website.
+ * Single source of truth for `routes.ts` here and admin Website QR presets (`apps/admin_web`).
  */
 export const PUBLIC_WWW_ROUTES = {
   home: '/',
