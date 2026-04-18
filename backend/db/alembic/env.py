@@ -67,6 +67,10 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True,
+        # Each revision commits separately so PostgreSQL can use a new enum
+        # label added in one migration (e.g. ALTER TYPE ... ADD VALUE) in a
+        # later migration (UnsafeNewEnumValueUsage if all run in one txn).
+        transaction_per_migration=True,
     )
 
     with context.begin_transaction():
@@ -87,6 +91,10 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            # Each revision commits separately so PostgreSQL can use a new enum
+            # label added in one migration (e.g. ALTER TYPE ... ADD VALUE) in a
+            # later migration (UnsafeNewEnumValueUsage if all run in one txn).
+            transaction_per_migration=True,
         )
 
         with context.begin_transaction():
