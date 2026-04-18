@@ -61,7 +61,7 @@ export function PublicSiteQrExportPanel({
 
   const previewUrlLinkClassName =
     previewUrlPresentation === 'referral'
-      ? 'block max-w-full rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 no-underline outline-offset-2 hover:text-slate-950 hover:underline hover:decoration-slate-400 hover:underline-offset-2'
+      ? 'block max-w-full rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 outline-offset-2 hover:text-slate-950'
       : 'block max-w-full break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 hover:text-slate-950';
 
   useEffect(() => {

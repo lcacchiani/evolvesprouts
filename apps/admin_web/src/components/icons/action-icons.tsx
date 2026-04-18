@@ -1,6 +1,7 @@
 export { default as GoogleIcon } from './svg/google-icon.svg';
 export { default as EmailIcon } from './svg/email-icon.svg';
 export { default as CopyIcon } from './svg/copy-icon.svg';
+export { default as CheckIcon } from './svg/check-icon.svg';
 export { default as RotateIcon } from './svg/rotate-icon.svg';
 export { default as DeleteIcon } from './svg/delete-icon.svg';
 export { default as MarkPaidIcon } from './svg/mark-paid-icon.svg';

@@ -5,13 +5,16 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { CopyIcon, DeleteIcon } from '@/components/icons/action-icons';
+import { DeleteIcon } from '@/components/icons/action-icons';
+import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
+import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { formatEnumLabel } from '@/lib/format';
 
 import type { ServiceInstance, ServiceType } from '@/types/services';
@@ -72,6 +75,7 @@ export function InstanceListPanel({
   showTypeColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const { copiedKey: copiedInstanceId, markCopied: markInstanceIdCopied } = useCopyFeedback(1000);
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, instanceId: string) => {
     if (event.target !== event.currentTarget) {
@@ -106,13 +110,13 @@ export function InstanceListPanel({
     event: MouseEvent<HTMLButtonElement>,
   ) => {
     event.stopPropagation();
-    if (typeof navigator === 'undefined' || !navigator.clipboard) {
-      return;
+    const copied = await tryCopyTextToClipboard(instance.id);
+    if (copied) {
+      markInstanceIdCopied(instance.id);
+      trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
+        service_id: instance.serviceId,
+      });
     }
-    await navigator.clipboard.writeText(instance.id);
-    trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
-      service_id: instance.serviceId,
-    });
   };
 
   return (
@@ -220,16 +224,15 @@ export function InstanceListPanel({
                 <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='outline'
+                    <CopyFeedbackIconButton
+                      copied={copiedInstanceId === instance.id}
+                      idleVariant='outline'
                       onClick={(event) => void handleCopyInstanceId(instance, event)}
-                      aria-label='Copy instance UUID'
-                      title='Copy instance UUID'
-                    >
-                      <CopyIcon className='h-4 w-4' />
-                    </Button>
+                      idleLabel='Copy instance UUID'
+                      copiedLabel='Instance UUID copied'
+                      idleTitle='Copy instance UUID'
+                      copiedTitle='Copied'
+                    />
                     <Button
                       type='button'
                       size='sm'

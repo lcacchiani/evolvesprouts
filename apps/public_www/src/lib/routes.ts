@@ -20,6 +20,8 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.home,
   ROUTES.about,
   ROUTES.events,
+  ROUTES.book,
+  ROUTES.resources,
   ROUTES.contact,
   ROUTES.privacy,
   ROUTES.terms,

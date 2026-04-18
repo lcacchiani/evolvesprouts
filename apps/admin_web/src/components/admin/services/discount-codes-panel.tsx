@@ -11,11 +11,14 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CopyIcon, DeleteIcon, QrLinkIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, QrLinkIcon } from '@/components/icons/action-icons';
+import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-qr-dialog';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import {
   bumpDuplicateDiscountCode,
   DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE,
@@ -145,6 +148,7 @@ export function DiscountCodesPanel({
   const [referralServiceSlug, setReferralServiceSlug] = useState<string | null>(null);
   const [referralDiscountType, setReferralDiscountType] = useState<DiscountType>('percentage');
   const [isBatchCreating, setIsBatchCreating] = useState(false);
+  const { copiedKey: copiedDiscountCodeId, markCopied: markDiscountCodeCopied } = useCopyFeedback(1000);
   const directoryList = serviceDirectoryForDisplay ?? serviceOptions;
   const { instances, isLoading: instancesLoading, error: instancesError, loadForService } =
     useServiceInstanceOptions(instanceOptionsRefreshKey);
@@ -339,11 +343,11 @@ export function DiscountCodesPanel({
     }
   };
 
-  async function handleCopyCode(value: string) {
-    if (typeof navigator === 'undefined' || !navigator.clipboard) {
-      return;
+  async function handleCopyDiscountCode(rowId: string, value: string) {
+    const ok = await tryCopyTextToClipboard(value.trim().toUpperCase());
+    if (ok) {
+      markDiscountCodeCopied(rowId);
     }
-    await navigator.clipboard.writeText(value.trim().toUpperCase());
   }
 
   function openReferralDialog(entry: DiscountCode) {
@@ -647,17 +651,19 @@ export function DiscountCodesPanel({
                     >
                       <QrLinkIcon className='h-4 w-4' />
                     </Button>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='secondary'
+                    <CopyFeedbackIconButton
+                      copied={copiedDiscountCodeId === row.id}
                       disabled={editorIsBusy}
-                      onClick={() => void handleCopyCode(row.code)}
-                      aria-label='Copy discount code'
-                      title='Copy code'
-                    >
-                      <CopyIcon className='h-4 w-4' />
-                    </Button>
+                      idleVariant='secondary'
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleCopyDiscountCode(row.id, row.code);
+                      }}
+                      idleLabel='Copy discount code'
+                      copiedLabel='Discount code copied'
+                      idleTitle='Copy code'
+                      copiedTitle='Copied'
+                    />
                     <Button
                       type='button'
                       size='sm'
