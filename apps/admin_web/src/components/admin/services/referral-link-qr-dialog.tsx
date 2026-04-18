@@ -211,7 +211,7 @@ export function ReferralLinkQrDialog({
               href={builtUrl}
               target='_blank'
               rel='noopener noreferrer'
-              className='block max-w-full rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 no-underline outline-offset-2 hover:text-slate-950 hover:underline hover:decoration-slate-400 hover:underline-offset-2'
+              className='block max-w-full rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 underline decoration-slate-400 underline-offset-2 outline-offset-2 hover:text-slate-950'
             >
               <code className='block break-all font-mono text-[0.8125rem] text-inherit'>{builtUrl}</code>
             </a>
