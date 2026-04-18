@@ -9,6 +9,7 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/contacts')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance')).toBe('finance');
     expect(adminSectionKeyFromPathname('/services')).toBe('services');
+    expect(adminSectionKeyFromPathname('/website')).toBe('website');
   });
 
   it('matches paths served with a trailing slash (next.config trailingSlash: true)', () => {
@@ -17,6 +18,7 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/contacts/')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance/')).toBe('finance');
     expect(adminSectionKeyFromPathname('/services/')).toBe('services');
+    expect(adminSectionKeyFromPathname('/website/')).toBe('website');
   });
 
   it('matches nested paths under a section as that section', () => {

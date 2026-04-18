@@ -224,7 +224,7 @@ Both checks run through Public WWW lint/verification workflows.
 
 ## Admin console (optional / not in public taxonomy)
 
-The admin web app may emit **`admin_referral_qr_opened`** and **`admin_referral_qr_downloaded`** from the discount referral QR utility (`trackAdminAnalyticsEvent`). These are **not** part of `apps/public_www/src/lib/analytics-taxonomy.json` and are currently **no-ops outside development** unless product wires them to `dataLayer`/GTM on the admin host. If they are enabled later, add GA4/GTM mappings separately from the public-site container.
+The admin web app may emit **`admin_referral_qr_opened`** and **`admin_referral_qr_downloaded`** from the discount referral QR utility, and **`admin_public_page_qr_opened`** / **`admin_public_page_qr_downloaded`** from the Website → public page QR screen (`trackAdminAnalyticsEvent`). These are **not** part of `apps/public_www/src/lib/analytics-taxonomy.json` and are currently **no-ops outside development** unless product wires them to `dataLayer`/GTM on the admin host. If they are enabled later, add GA4/GTM mappings separately from the public-site container.
 
 ## Programmatic setup prerequisites (for service-account automation)
 

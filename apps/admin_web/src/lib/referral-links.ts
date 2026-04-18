@@ -24,7 +24,8 @@ function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '');
 }
 
-function normalizeLocaleSegment(locale: string): MyBestAuntieReferralLocale | '' {
+/** Resolves a locale string to a supported public-site locale, or empty when unsupported. */
+export function normalizePublicSiteLocale(locale: string): MyBestAuntieReferralLocale | '' {
   const trimmed = locale.trim();
   if (!trimmed) {
     return 'en';
@@ -60,7 +61,7 @@ export function buildPublicReferralUrlWithSlug(input: BuildPublicReferralUrlInpu
   if (!base) {
     return '';
   }
-  const locale = normalizeLocaleSegment(input.locale);
+  const locale = normalizePublicSiteLocale(input.locale);
   if (!locale) {
     return '';
   }
@@ -84,7 +85,7 @@ export function buildMyBestAuntieReferralUrl(input: BuildMyBestAuntieReferralUrl
   if (!base) {
     return '';
   }
-  const locale = normalizeLocaleSegment(input.locale);
+  const locale = normalizePublicSiteLocale(input.locale);
   if (!locale) {
     return '';
   }
