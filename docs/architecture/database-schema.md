@@ -4,6 +4,11 @@ This document describes the PostgreSQL schema for the Evolve Sprouts
 backend. It is based on the Alembic migrations.
 
 Alembic migrations live in `backend/db/alembic/versions/`.
+The Alembic environment enables `transaction_per_migration` so each revision
+commits in its own transaction. That avoids PostgreSQL
+`UnsafeNewEnumValueUsage` when one revision adds an enum label and a later
+revision in the same upgrade run references that label (for example
+`0024_discount_referral_add_enum` then `0025_discount_codes_value_check`).
 Seed data lives in `backend/db/seed/seed_data.sql`.
 
 ## Extensions and enums
