@@ -3923,8 +3923,10 @@ components:
         discount_value:
           type: string
           description: >
-            When the resulting type is `referral`, the server coerces this to "0";
-            client-supplied values are ignored.
+            Must be greater than 0 unless the effective discount type after this update
+            is `referral` (tracking-only), in which case `0` is accepted and the server
+            coerces the stored value to "0"; other client-supplied values are ignored
+            for referral.
         currency:
           type: string
           nullable: true
