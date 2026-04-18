@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { AdminAsset } from '@/types/assets';
 
@@ -14,9 +14,11 @@ import {
 import { copyTextToClipboard } from '@/lib/clipboard';
 
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { CopyIcon, DeleteIcon, RotateIcon } from '@/components/icons/action-icons';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
+import { DeleteIcon, RotateIcon } from '@/components/icons/action-icons';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
+import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,20 +45,10 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
   const [isSavingLinkPolicy, setIsSavingLinkPolicy] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [linkNotice, setLinkNotice] = useState('');
-  const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [allowedDomainsInput, setAllowedDomainsInput] = useState<string>(
     DEFAULT_ALLOWED_SHARE_DOMAINS
   );
-  const copiedStateTimeoutRef = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (copiedStateTimeoutRef.current !== null) {
-        window.clearTimeout(copiedStateTimeoutRef.current);
-      }
-    },
-    []
-  );
+  const { copiedKey: copiedLinkFeedbackKey, markCopied: markShareLinkCopied } = useCopyFeedback(1000);
 
   useEffect(() => {
     let isCancelled = false;
@@ -90,22 +82,14 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     allowedDomains: parseAllowedDomainList(allowedDomainsInput),
   });
 
-  const applyShareLinkCopiedUi = async (link: AssetShareLink, successNotice: string) => {
+  const applyShareLinkCopiedUi = async (link: AssetShareLink) => {
     try {
       await copyTextToClipboard(link.shareUrl);
       if (link.allowedDomains.length > 0) {
         setAllowedDomainsInput(link.allowedDomains.join('\n'));
       }
       setLinkError('');
-      setLinkNotice(successNotice);
-      setIsLinkCopied(true);
-      if (copiedStateTimeoutRef.current !== null) {
-        window.clearTimeout(copiedStateTimeoutRef.current);
-      }
-      copiedStateTimeoutRef.current = window.setTimeout(() => {
-        setIsLinkCopied(false);
-        copiedStateTimeoutRef.current = null;
-      }, 2000);
+      markShareLinkCopied(selectedAsset.id);
     } catch (error) {
       setLinkError(
         error instanceof Error ? error.message : 'Unable to copy the link to clipboard.'
@@ -117,11 +101,10 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     setIsCopyingLink(true);
     setLinkError('');
     setLinkNotice('');
-    setIsLinkCopied(false);
     try {
       const policyInput = buildSharePolicyInput();
       const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
-      await applyShareLinkCopiedUi(link, 'Share link copied to clipboard.');
+      await applyShareLinkCopiedUi(link);
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : 'Unable to copy the link to clipboard.');
     } finally {
@@ -144,14 +127,10 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     setIsRotatingLink(true);
     setLinkError('');
     setLinkNotice('');
-    setIsLinkCopied(false);
     try {
       const policyInput = buildSharePolicyInput();
       const link = await rotateAdminAssetShareLink(selectedAsset.id, policyInput);
-      await applyShareLinkCopiedUi(
-        link,
-        'Share link rotated and copied. Previous links are revoked.'
-      );
+      await applyShareLinkCopiedUi(link);
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : 'Unable to rotate and copy the share link.');
     } finally {
@@ -163,7 +142,6 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     setIsSavingLinkPolicy(true);
     setLinkError('');
     setLinkNotice('');
-    setIsLinkCopied(false);
     try {
       const policyInput = buildSharePolicyInput();
       const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
@@ -193,13 +171,8 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     setIsRevokingLink(true);
     setLinkError('');
     setLinkNotice('');
-    setIsLinkCopied(false);
     try {
       await revokeAdminAssetShareLink(selectedAsset.id);
-      if (copiedStateTimeoutRef.current !== null) {
-        window.clearTimeout(copiedStateTimeoutRef.current);
-        copiedStateTimeoutRef.current = null;
-      }
       setLinkNotice('Share link revoked.');
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : 'Unable to revoke the share link.');
@@ -223,18 +196,17 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
 
         <Label>Links</Label>
         <div className='flex items-center gap-2'>
-          <Button
-            type='button'
-            size='sm'
-            variant='secondary'
-            className='h-9 w-9 p-0'
-            onClick={() => void handleCopyAssetLink()}
+          <CopyFeedbackIconButton
+            copied={copiedLinkFeedbackKey === selectedAsset.id}
             disabled={areLinkButtonsDisabled}
-            title={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
-            aria-label={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
-          >
-            <CopyIcon className='h-4 w-4' />
-          </Button>
+            idleVariant='secondary'
+            className='h-9 min-w-9 w-9 shrink-0 p-0'
+            onClick={() => void handleCopyAssetLink()}
+            idleLabel={isCopyingLink ? 'Copying link' : 'Copy link'}
+            copiedLabel='Link copied'
+            idleTitle={isCopyingLink ? 'Copying link' : 'Copy link'}
+            copiedTitle='Copied'
+          />
           <Button
             type='button'
             size='sm'
