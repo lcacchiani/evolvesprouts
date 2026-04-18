@@ -120,7 +120,7 @@ export function ReferralLinkQrDialog({
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = objectUrl;
-    anchor.download = `referral-${discountCode.trim().toUpperCase()}-${size}.png`;
+    anchor.download = `${discountCode.trim().toUpperCase()}-${size}.png`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
     trackAdminAnalyticsEvent('admin_referral_qr_downloaded', {
@@ -142,7 +142,7 @@ export function ReferralLinkQrDialog({
   return (
     <ConfirmDialog
       open={open}
-      title='Referral link and QR'
+      title='Link and QR'
       description={`Share this link or QR. ${destinationHint} Locale is included in the URL for consistent scanning.`}
       cancelLabel='Close'
       confirmLabel='Close'
