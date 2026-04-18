@@ -35,6 +35,13 @@ from app.utils import json_response, require_env
 from sqlalchemy import inspect
 
 _MAX_FILE_NAME_LENGTH = 255
+# Admin presigned PUT uploads (create + replace): reject completes larger than this (bytes).
+_MAX_ASSET_PRESIGNED_UPLOAD_BYTES = 52_428_800  # 50 MiB
+_ADMIN_ASSET_REPLACE_CONTENT_TYPE = "application/pdf"
+_UUID_OBJECT_NAME_PREFIX_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-",
+    re.IGNORECASE,
+)
 _MAX_MIME_TYPE_LENGTH = 127
 _MAX_RESOURCE_KEY_LENGTH = 64
 _MAX_CONTENT_LANGUAGE_LENGTH = 35
@@ -463,12 +470,31 @@ def build_s3_key(asset_id: UUID, file_name: str) -> str:
 
 
 def file_name_from_pending_asset_content_key(s3_key: str) -> str:
-    """Return the filename segment after the random UUID prefix in a pending replace key."""
+    """Return the filename segment after the UUID prefix in a key from ``build_s3_key``."""
     segment = s3_key.rsplit("/", maxsplit=1)[-1]
-    # Keys from build_s3_key: "{uuid4}-{sanitized_name}" (UUID is 36 chars).
-    if len(segment) >= 38 and segment[36] == "-":
-        return segment[37:] or segment
-    return segment
+    match = _UUID_OBJECT_NAME_PREFIX_RE.match(segment)
+    if match is None:
+        raise ValidationError(
+            "pending_s3_key has an unexpected object name format",
+            field="pending_s3_key",
+        )
+    suffix = segment[match.end() :]
+    if not suffix:
+        raise ValidationError(
+            "pending_s3_key has an unexpected object name format",
+            field="pending_s3_key",
+        )
+    return suffix
+
+
+def max_asset_presigned_upload_bytes() -> int:
+    """Maximum allowed S3 object size for admin asset uploads (create and replace complete)."""
+    return _MAX_ASSET_PRESIGNED_UPLOAD_BYTES
+
+
+def admin_asset_replace_content_type() -> str:
+    """Content-Type bound for admin PDF replace presigns and enforced on complete."""
+    return _ADMIN_ASSET_REPLACE_CONTENT_TYPE
 
 
 def validate_pending_asset_content_s3_key(*, asset_id: UUID, pending_key: str) -> None:

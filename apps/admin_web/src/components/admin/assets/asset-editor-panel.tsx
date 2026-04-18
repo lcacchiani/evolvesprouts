@@ -40,7 +40,7 @@ interface AssetEditorPanelProps {
   isDeletingCurrentAsset: boolean;
   assetMutationError: string;
   uploadState: 'idle' | 'uploading' | 'failed' | 'succeeded';
-  uploadPhase: AssetUploadPhase;
+  uploadPhase: AssetUploadPhase | null;
   uploadError: string;
   hasPendingUpload: boolean;
   onRetryUpload: () => Promise<void>;
@@ -121,6 +121,45 @@ function normalizeResourceKey(value: string): string {
     .replaceAll(/-+$/g, '');
 }
 
+function buildEditMetadataPatch(
+  asset: AdminAsset,
+  input: {
+    title: string;
+    description: string | null;
+    resourceKey: string | null;
+    visibility: AssetVisibility;
+    contentLanguage: AdminAssetWriteContentLanguage | null;
+    clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
+    isExpenseLinked: boolean;
+  }
+): UpdateAdminAssetPatchInput {
+  const patch: UpdateAdminAssetPatchInput = {};
+  if (input.title !== asset.title) {
+    patch.title = input.title;
+  }
+  if (input.description !== (asset.description ?? null)) {
+    patch.description = input.description;
+  }
+  if (input.resourceKey !== (asset.resourceKey ?? null)) {
+    patch.resourceKey = input.resourceKey;
+  }
+  if (input.visibility !== asset.visibility) {
+    patch.visibility = input.visibility;
+  }
+  const prevLangCanonical = canonicalContentLanguageFromApi(asset.contentLanguage);
+  if (input.contentLanguage !== prevLangCanonical) {
+    patch.contentLanguage = input.contentLanguage;
+  }
+  if (!input.isExpenseLinked) {
+    const hadClient = assetHasClientDocumentTag(asset);
+    const nextHasClient = input.clientTagValue === CLIENT_DOCUMENT_ASSET_TAG;
+    if (hadClient !== nextHasClient) {
+      patch.clientTag = input.clientTagValue;
+    }
+  }
+  return patch;
+}
+
 export function AssetEditorPanel({
   selectedAsset,
   isSavingAsset,
@@ -142,12 +181,43 @@ export function AssetEditorPanel({
   const [formError, setFormError] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [replacementFile, setReplacementFile] = useState<File | null>(null);
+  const [metadataSaveWarningAfterReplace, setMetadataSaveWarningAfterReplace] = useState(false);
 
   const isEditMode = Boolean(selectedAsset);
   const isExpenseLinked = Boolean(
     selectedAsset?.tags.some((t) => t.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG)
   );
   const canReplaceFile = isEditMode && Boolean(onReplaceFile) && !isExpenseLinked;
+
+  const metadataPatch = useMemo(() => {
+    if (!selectedAsset) {
+      return {} as UpdateAdminAssetPatchInput;
+    }
+    const title = formState.title.trim();
+    const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
+    const resourceKey = normalizedResourceKey || null;
+    const contentLanguageTrimmed = formState.contentLanguage.trim();
+    let contentLanguage: AdminAssetWriteContentLanguage | null = null;
+    if (contentLanguageTrimmed !== '') {
+      const matched = matchAdminSelectableContentLanguage(contentLanguageTrimmed);
+      if (matched !== 'unrecognized') {
+        contentLanguage = matched;
+      }
+    }
+    const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
+      formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
+    return buildEditMetadataPatch(selectedAsset, {
+      title,
+      description: formState.description.trim() || null,
+      resourceKey,
+      visibility: formState.visibility,
+      contentLanguage,
+      clientTagValue,
+      isExpenseLinked,
+    });
+  }, [selectedAsset, formState, isExpenseLinked]);
+
+  const hasMetadataChangesForSubmit = Object.keys(metadataPatch).length > 0;
 
   const cardTitle = isEditMode ? 'Edit Asset' : 'Create Asset';
   const cardDescription = isEditMode
@@ -159,14 +229,21 @@ export function AssetEditorPanel({
       if (!isEditMode) {
         return 'Creating...';
       }
-      return replacementFile ? 'Saving and replacing...' : 'Saving...';
+      if (!replacementFile) {
+        return 'Saving...';
+      }
+      return hasMetadataChangesForSubmit ? 'Save and replace...' : 'Replacing...';
+    }
+    if (isEditMode && replacementFile) {
+      return hasMetadataChangesForSubmit ? 'Save and replace' : 'Replace file';
     }
     return isEditMode ? 'Save changes' : 'Create asset';
-  }, [isEditMode, isSavingAsset, replacementFile]);
+  }, [isEditMode, isSavingAsset, replacementFile, hasMetadataChangesForSubmit]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
+    setMetadataSaveWarningAfterReplace(false);
 
     const title = formState.title.trim();
     if (!title) {
@@ -228,32 +305,7 @@ export function AssetEditorPanel({
         }
       }
 
-      const nextDescription = formState.description.trim() || null;
-      const patch: UpdateAdminAssetPatchInput = {};
-      if (title !== selectedAsset.title) {
-        patch.title = title;
-      }
-      if (nextDescription !== (selectedAsset.description ?? null)) {
-        patch.description = nextDescription;
-      }
-      if (resourceKey !== (selectedAsset.resourceKey ?? null)) {
-        patch.resourceKey = resourceKey;
-      }
-      if (formState.visibility !== selectedAsset.visibility) {
-        patch.visibility = formState.visibility;
-      }
-      const nextLang = contentLanguage;
-      const prevLangCanonical = canonicalContentLanguageFromApi(selectedAsset.contentLanguage);
-      if (nextLang !== prevLangCanonical) {
-        patch.contentLanguage = nextLang;
-      }
-      if (!isExpenseLinked) {
-        const hadClient = assetHasClientDocumentTag(selectedAsset);
-        const nextHasClient = clientTagValue === CLIENT_DOCUMENT_ASSET_TAG;
-        if (hadClient !== nextHasClient) {
-          patch.clientTag = clientTagValue;
-        }
-      }
+      const patch = metadataPatch;
       if (replacementFile && onReplaceFile) {
         const replaceOk = await onReplaceFile(replacementFile);
         if (!replaceOk) {
@@ -266,9 +318,11 @@ export function AssetEditorPanel({
         }
       }
       if (Object.keys(patch).length > 0) {
-        try {
-          await onUpdate(selectedAsset.id, patch);
-        } catch {
+        const updateOk = await onUpdate(selectedAsset.id, patch);
+        if (!updateOk) {
+          if (replacementFile) {
+            setMetadataSaveWarningAfterReplace(true);
+          }
           setFormError(
             'Metadata may not have saved. The new file may already be live. Refresh the list or fix the error in the Asset banner and save again.'
           );
@@ -324,7 +378,11 @@ export function AssetEditorPanel({
           <Button
             type='submit'
             form={ASSET_EDITOR_FORM_ID}
-            disabled={isSavingAsset}
+            disabled={
+              isSavingAsset ||
+              isDeletingCurrentAsset ||
+              (hasPendingUpload && uploadState === 'failed')
+            }
           >
             {submitLabel}
           </Button>
@@ -353,7 +411,14 @@ export function AssetEditorPanel({
         </StatusBanner>
       ) : null}
 
-      {uploadState === 'succeeded' ? (
+      {uploadState === 'succeeded' && metadataSaveWarningAfterReplace ? (
+        <StatusBanner variant='info' title='File replaced'>
+          The PDF was replaced. Metadata may not have saved; check the Validation message above or
+          the Asset banner, then save again if needed.
+        </StatusBanner>
+      ) : null}
+
+      {uploadState === 'succeeded' && !metadataSaveWarningAfterReplace ? (
         <StatusBanner variant='success' title='Upload complete'>
           {isEditMode ? 'PDF updated successfully.' : 'PDF content uploaded successfully.'}
         </StatusBanner>

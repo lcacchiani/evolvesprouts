@@ -45,7 +45,7 @@ const {
     isSavingAsset: false,
     isDeletingAssetId: null,
     uploadState: 'idle',
-    uploadPhase: 'idle',
+    uploadPhase: null,
     uploadError: '',
     hasPendingUpload: false,
     createAssetEntry: vi.fn(),

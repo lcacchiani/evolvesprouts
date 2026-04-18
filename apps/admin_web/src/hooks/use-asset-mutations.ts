@@ -22,8 +22,19 @@ import { toErrorMessage } from './hook-errors';
 
 type UploadState = 'idle' | 'uploading' | 'failed' | 'succeeded';
 
-/** When uploadState is uploading, distinguishes presigned PUT vs finalize (complete) step. */
-export type AssetUploadPhase = 'idle' | 'put' | 'complete';
+/** Meaningful only when ``uploadState === 'uploading'``: PUT vs finalize (complete). */
+export type AssetUploadPhase = 'put' | 'complete';
+
+function isPresignedUploadExpired(iso: string | null | undefined): boolean {
+  if (!iso) {
+    return false;
+  }
+  const parsed = Date.parse(iso);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+  return Date.now() >= parsed - 2000;
+}
 
 type PendingAssetFileMutation =
   | {
@@ -61,7 +72,7 @@ export interface UseAssetMutationsReturn {
   isSavingAsset: boolean;
   isDeletingAssetId: string | null;
   uploadState: UploadState;
-  uploadPhase: AssetUploadPhase;
+  uploadPhase: AssetUploadPhase | null;
   uploadError: string;
   hasPendingUpload: boolean;
   createAssetEntry: (input: UpsertAdminAssetInput, file: File) => Promise<void>;
@@ -70,7 +81,7 @@ export interface UseAssetMutationsReturn {
     file: File,
     contentType: string | null
   ) => Promise<boolean>;
-  updateAssetEntry: (assetId: string, input: UpdateAdminAssetPatchInput) => Promise<void>;
+  updateAssetEntry: (assetId: string, input: UpdateAdminAssetPatchInput) => Promise<boolean>;
   deleteAssetEntry: (assetId: string) => Promise<void>;
   retryPendingUpload: () => Promise<void>;
   resetMutationState: () => void;
@@ -87,7 +98,7 @@ export function useAssetMutations({
   const [isSavingAsset, setIsSavingAsset] = useState(false);
   const [isDeletingAssetId, setIsDeletingAssetId] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
-  const [uploadPhase, setUploadPhase] = useState<AssetUploadPhase>('idle');
+  const [uploadPhase, setUploadPhase] = useState<AssetUploadPhase | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [pendingUpload, setPendingUpload] = useState<PendingAssetFileMutation | null>(null);
   const pendingUploadRef = useRef<PendingAssetFileMutation | null>(null);
@@ -101,7 +112,7 @@ export function useAssetMutations({
   const resetMutationState = useCallback(() => {
     setAssetMutationError('');
     setUploadState('idle');
-    setUploadPhase('idle');
+    setUploadPhase(null);
     setUploadError('');
     setPendingUploadState(null);
   }, [setPendingUploadState]);
@@ -111,7 +122,7 @@ export function useAssetMutations({
       setIsSavingAsset(true);
       setAssetMutationError('');
       setUploadState('idle');
-      setUploadPhase('idle');
+      setUploadPhase(null);
       setUploadError('');
       setPendingUploadState(null);
 
@@ -138,12 +149,12 @@ export function useAssetMutations({
             file,
           });
           setUploadState('succeeded');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError('');
           setPendingUploadState(null);
         } catch (uploadFailure) {
           setUploadState('failed');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError(toErrorMessage(uploadFailure, 'File upload failed.'));
         }
       } catch (error) {
@@ -161,7 +172,7 @@ export function useAssetMutations({
       setIsSavingAsset(true);
       setAssetMutationError('');
       setUploadState('idle');
-      setUploadPhase('idle');
+      setUploadPhase(null);
       setUploadError('');
       setPendingUploadState(null);
 
@@ -172,7 +183,7 @@ export function useAssetMutations({
         });
         if (!initUpload.uploadUrl) {
           setUploadState('failed');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError('Upload URL was not returned by the API.');
           return false;
         }
@@ -197,7 +208,7 @@ export function useAssetMutations({
           });
         } catch (uploadFailure) {
           setUploadState('failed');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError(toErrorMessage(uploadFailure, 'File upload failed.'));
           return false;
         }
@@ -211,14 +222,14 @@ export function useAssetMutations({
           });
           await applyUpdatedAsset(assetId, updatedAsset);
           setUploadState('succeeded');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError('');
           setPendingUploadState(null);
           setReplaceSuccessNonce((n) => n + 1);
           return true;
         } catch (completeFailure) {
           setUploadState('failed');
-          setUploadPhase('idle');
+          setUploadPhase(null);
           setUploadError(toErrorMessage(completeFailure, 'Failed to finalize file replacement.'));
           setPendingUploadState({
             kind: 'replace',
@@ -232,7 +243,7 @@ export function useAssetMutations({
         }
       } catch (error) {
         setAssetMutationError(toErrorMessage(error, 'Failed to replace asset file.'));
-        setUploadPhase('idle');
+        setUploadPhase(null);
         return false;
       } finally {
         setIsSavingAsset(false);
@@ -242,20 +253,21 @@ export function useAssetMutations({
   );
 
   const updateAssetEntry = useCallback(
-    async (assetId: string, input: UpdateAdminAssetPatchInput) => {
+    async (assetId: string, input: UpdateAdminAssetPatchInput): Promise<boolean> => {
       setIsSavingAsset(true);
       setAssetMutationError('');
       setUploadState('idle');
-      setUploadPhase('idle');
+      setUploadPhase(null);
       setUploadError('');
       setPendingUploadState(null);
 
       try {
         const updatedAsset = await updateAdminAsset(assetId, input);
         await applyUpdatedAsset(assetId, updatedAsset);
+        return true;
       } catch (error) {
         setAssetMutationError(toErrorMessage(error, 'Failed to update asset.'));
-        throw error;
+        return false;
       } finally {
         setIsSavingAsset(false);
       }
@@ -268,7 +280,7 @@ export function useAssetMutations({
       setIsDeletingAssetId(assetId);
       setAssetMutationError('');
       setUploadState('idle');
-      setUploadPhase('idle');
+      setUploadPhase(null);
       setUploadError('');
       setPendingUploadState(null);
 
@@ -303,13 +315,13 @@ export function useAssetMutations({
         });
         await applyUpdatedAsset(pending.assetId, updatedAsset);
         setUploadState('succeeded');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError('');
         setPendingUploadState(null);
         setReplaceSuccessNonce((n) => n + 1);
       } catch (error) {
         setUploadState('failed');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError(toErrorMessage(error, 'Failed to finalize file replacement.'));
       }
       return;
@@ -318,6 +330,16 @@ export function useAssetMutations({
     if (pending.kind === 'create') {
       const { upload, file } = pending;
       if (!upload.uploadUrl) {
+        return;
+      }
+
+      if (isPresignedUploadExpired(upload.expiresAt)) {
+        setUploadState('failed');
+        setUploadPhase(null);
+        setUploadError(
+          'Upload window expired. If a draft asset appears in the list, delete it, then create the asset again.'
+        );
+        setPendingUploadState(null);
         return;
       }
 
@@ -332,12 +354,12 @@ export function useAssetMutations({
           file,
         });
         setUploadState('succeeded');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError('');
         setPendingUploadState(null);
       } catch (error) {
         setUploadState('failed');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError(toErrorMessage(error, 'File upload failed.'));
       }
       return;
@@ -348,32 +370,60 @@ export function useAssetMutations({
       return;
     }
 
+    let effectiveUpload = upload;
+    if (isPresignedUploadExpired(upload.expiresAt)) {
+      try {
+        const refreshed = await initAdminAssetContentReplace(pending.assetId, {
+          fileName: pending.fileName,
+          contentType: pending.contentType ?? undefined,
+        });
+        if (!refreshed.uploadUrl) {
+          setUploadState('failed');
+          setUploadPhase(null);
+          setUploadError('Upload URL was not returned when refreshing the upload.');
+          return;
+        }
+        effectiveUpload = refreshed;
+        setPendingUploadState({
+          ...pending,
+          upload: refreshed,
+        });
+      } catch (error) {
+        setUploadState('failed');
+        setUploadPhase(null);
+        setUploadError(
+          toErrorMessage(error, 'Upload window expired and could not be refreshed.')
+        );
+        return;
+      }
+    }
+
     setUploadPhase('put');
     setUploadState('uploading');
     setUploadError('');
     try {
       await uploadFileToPresignedUrl({
-        uploadUrl: upload.uploadUrl,
-        uploadMethod: upload.uploadMethod,
-        uploadHeaders: upload.uploadHeaders,
+        uploadUrl: effectiveUpload.uploadUrl,
+        uploadMethod: effectiveUpload.uploadMethod,
+        uploadHeaders: effectiveUpload.uploadHeaders,
         file,
       });
       try {
         setUploadPhase('complete');
         const updatedAsset = await completeAdminAssetContentReplace(pending.assetId, {
-          pendingS3Key: upload.pendingS3Key,
+          pendingS3Key: effectiveUpload.pendingS3Key,
           fileName: pending.fileName,
           contentType: pending.contentType,
         });
         await applyUpdatedAsset(pending.assetId, updatedAsset);
         setUploadState('succeeded');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError('');
         setPendingUploadState(null);
         setReplaceSuccessNonce((n) => n + 1);
       } catch (completeFailure) {
         setUploadState('failed');
-        setUploadPhase('idle');
+        setUploadPhase(null);
         setUploadError(
           toErrorMessage(completeFailure, 'Failed to finalize file replacement.')
         );
@@ -381,14 +431,14 @@ export function useAssetMutations({
           kind: 'replace',
           stage: 'complete',
           assetId: pending.assetId,
-          pendingS3Key: upload.pendingS3Key,
+          pendingS3Key: effectiveUpload.pendingS3Key,
           fileName: pending.fileName,
           contentType: pending.contentType,
         });
       }
     } catch (error) {
       setUploadState('failed');
-      setUploadPhase('idle');
+      setUploadPhase(null);
       setUploadError(toErrorMessage(error, 'File upload failed.'));
     }
   }, [applyUpdatedAsset, setPendingUploadState]);

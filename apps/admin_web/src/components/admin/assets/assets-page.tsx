@@ -92,14 +92,7 @@ export function AssetsPage() {
               // The hook stores the actionable error state for UI display.
             }
           }}
-          onUpdate={async (assetId, payload) => {
-            try {
-              await updateAssetEntry(assetId, payload);
-              return true;
-            } catch {
-              return false;
-            }
-          }}
+          onUpdate={async (assetId, payload) => updateAssetEntry(assetId, payload)}
           onStartCreate={clearSelectedAsset}
         />
 

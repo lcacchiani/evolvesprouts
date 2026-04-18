@@ -356,6 +356,13 @@ def test_file_name_from_pending_asset_content_key_strips_uuid_prefix() -> None:
     assert file_name_from_pending_asset_content_key(key) == "my-file.pdf"
 
 
+def test_file_name_from_pending_asset_content_key_rejects_non_uuid_prefix() -> None:
+    long_fake = "a" * 36 + "-attacker.pdf"
+    key = f"assets/550e8400-e29b-41d4-a716-446655440000/{long_fake}"
+    with pytest.raises(ValidationError, match="unexpected object name"):
+        file_name_from_pending_asset_content_key(key)
+
+
 def test_validate_pending_asset_content_s3_key_rejects_wrong_prefix() -> None:
     aid = uuid4()
     with pytest.raises(ValidationError):

@@ -267,7 +267,8 @@ paths:
         Step 1 of 2 for replacing the binary stored for an asset while keeping the same asset id.
         Returns a presigned upload URL for a new S3 key under `assets/{id}/...`. Call
         `POST /v1/admin/assets/{id}/content/complete` after the client uploads to that URL.
-        Not allowed when the asset has the `expense_attachment` tag (400).
+        Not allowed when the asset has the `expense_attachment` tag (400). The presigned PUT binds
+        `Content-Type: application/pdf` regardless of optional `content_type` in the body.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -301,10 +302,14 @@ paths:
         the value returned by `POST .../content/init` for this asset id. Not allowed when the asset
         has the `expense_attachment` tag (400).
         `file_name` must match the filename embedded in `pending_s3_key` after server-side sanitization
-        (same rules as init). This call is not idempotent across different `pending_s3_key` values:
-        repeating complete with a stale key after a successful replace returns 400.
-        When `content_type` is null or omitted, the stored content type is taken from the uploaded
-        object's S3 `Content-Type` metadata when present.
+        (same rules as init). The object name segment must begin with a standard UUID prefix
+        (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-`) from init. Stored `content_type` is always
+        `application/pdf`; the uploaded object's S3 Content-Type and size are validated on complete
+        (max 50 MiB). This call is not idempotent across different `pending_s3_key` values: repeating
+        complete with a stale key after a successful replace returns 400. Concurrent replaces for the
+        same asset are last-writer-wins; earlier pending keys may become orphans if never completed.
+        BadRequest responses may include `field` values such as `pending_s3_key`, `file_name`,
+        `content_type`, or `asset` depending on the failure.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -4333,13 +4338,16 @@ components:
       type: object
       required:
         - asset
+        - upload_url
+        - upload_method
+        - upload_headers
+        - expires_at
       properties:
         asset:
           $ref: "#/components/schemas/Asset"
         upload_url:
           type: string
           format: uri
-          nullable: true
         upload_method:
           type: string
         upload_headers:
@@ -4349,7 +4357,6 @@ components:
         expires_at:
           type: string
           format: date-time
-          nullable: true
     InitAssetContentReplaceRequest:
       type: object
       required:
@@ -4376,7 +4383,6 @@ components:
         upload_url:
           type: string
           format: uri
-          nullable: true
         upload_method:
           type: string
         upload_headers:
@@ -4386,7 +4392,6 @@ components:
         expires_at:
           type: string
           format: date-time
-          nullable: true
     CompleteAssetContentReplaceRequest:
       type: object
       required:
