@@ -9,7 +9,9 @@ import {
   getOrCreateAdminAssetShareLink,
   revokeAdminAssetShareLink,
   rotateAdminAssetShareLink,
+  type AssetShareLink,
 } from '@/lib/assets-api';
+import { copyTextToClipboard } from '@/lib/clipboard';
 
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { CopyIcon, DeleteIcon, RotateIcon } from '@/components/icons/action-icons';
@@ -88,20 +90,14 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     allowedDomains: parseAllowedDomainList(allowedDomainsInput),
   });
 
-  const handleCopyAssetLink = async () => {
-    setIsCopyingLink(true);
-    setLinkError('');
-    setLinkNotice('');
-    setIsLinkCopied(false);
+  const applyShareLinkCopiedUi = async (link: AssetShareLink, successNotice: string) => {
     try {
-      const policyInput = buildSharePolicyInput();
-      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
-      await navigator.clipboard.writeText(link.shareUrl);
+      await copyTextToClipboard(link.shareUrl);
       if (link.allowedDomains.length > 0) {
         setAllowedDomainsInput(link.allowedDomains.join('\n'));
       }
       setLinkError('');
-      setLinkNotice('Share link copied to clipboard.');
+      setLinkNotice(successNotice);
       setIsLinkCopied(true);
       if (copiedStateTimeoutRef.current !== null) {
         window.clearTimeout(copiedStateTimeoutRef.current);
@@ -110,6 +106,22 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
         setIsLinkCopied(false);
         copiedStateTimeoutRef.current = null;
       }, 2000);
+    } catch (error) {
+      setLinkError(
+        error instanceof Error ? error.message : 'Unable to copy the link to clipboard.'
+      );
+    }
+  };
+
+  const handleCopyAssetLink = async () => {
+    setIsCopyingLink(true);
+    setLinkError('');
+    setLinkNotice('');
+    setIsLinkCopied(false);
+    try {
+      const policyInput = buildSharePolicyInput();
+      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
+      await applyShareLinkCopiedUi(link, 'Share link copied to clipboard.');
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : 'Unable to copy the link to clipboard.');
     } finally {
@@ -136,19 +148,10 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     try {
       const policyInput = buildSharePolicyInput();
       const link = await rotateAdminAssetShareLink(selectedAsset.id, policyInput);
-      await navigator.clipboard.writeText(link.shareUrl);
-      if (link.allowedDomains.length > 0) {
-        setAllowedDomainsInput(link.allowedDomains.join('\n'));
-      }
-      setLinkNotice('Share link rotated and copied. Previous links are revoked.');
-      setIsLinkCopied(true);
-      if (copiedStateTimeoutRef.current !== null) {
-        window.clearTimeout(copiedStateTimeoutRef.current);
-      }
-      copiedStateTimeoutRef.current = window.setTimeout(() => {
-        setIsLinkCopied(false);
-        copiedStateTimeoutRef.current = null;
-      }, 2000);
+      await applyShareLinkCopiedUi(
+        link,
+        'Share link rotated and copied. Previous links are revoked.'
+      );
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : 'Unable to rotate and copy the share link.');
     } finally {
