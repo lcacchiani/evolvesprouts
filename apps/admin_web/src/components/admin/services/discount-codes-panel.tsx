@@ -16,6 +16,7 @@ import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import {
   bumpDuplicateDiscountCode,
   DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE,
@@ -340,10 +341,7 @@ export function DiscountCodesPanel({
   };
 
   async function handleCopyCode(value: string) {
-    if (typeof navigator === 'undefined' || !navigator.clipboard) {
-      return;
-    }
-    await navigator.clipboard.writeText(value.trim().toUpperCase());
+    await tryCopyTextToClipboard(value.trim().toUpperCase());
   }
 
   function openReferralDialog(entry: DiscountCode) {

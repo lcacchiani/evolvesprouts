@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { CopyIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
+import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -106,13 +107,12 @@ export function InstanceListPanel({
     event: MouseEvent<HTMLButtonElement>,
   ) => {
     event.stopPropagation();
-    if (typeof navigator === 'undefined' || !navigator.clipboard) {
-      return;
+    const copied = await tryCopyTextToClipboard(instance.id);
+    if (copied) {
+      trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
+        service_id: instance.serviceId,
+      });
     }
-    await navigator.clipboard.writeText(instance.id);
-    trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
-      service_id: instance.serviceId,
-    });
   };
 
   return (
