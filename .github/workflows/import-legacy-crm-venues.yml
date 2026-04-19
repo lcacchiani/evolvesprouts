@@ -1,0 +1,88 @@
+# Manual import of legacy CRM venues from a MariaDB SQL dump into PostgreSQL `locations`.
+#
+# The dump file is not stored in git. Provide either:
+# - `sql_download_url` when running the workflow (HTTPS URL to the .sql file), or
+# - repository secret `IMPORT_LEGACY_CRM_SQL_URL` (same), if you leave the input empty.
+#
+# Database connection: set secret `DATABASE_URL` on the chosen GitHub Environment
+# (or repository secrets if you do not use environments).
+#
+# Security: presigned URLs and database URLs are sensitive. Do not echo them in steps.
+
+name: Import legacy CRM venues
+
+on:
+  workflow_dispatch:
+    inputs:
+      sql_download_url:
+        description: >
+          HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL is set).
+        required: false
+        type: string
+      dry_run:
+        description: If true, parse and print rows but do not insert into the database.
+        required: false
+        default: true
+        type: boolean
+      environment:
+        description: GitHub Environment that provides DATABASE_URL (recommended).
+        required: true
+        type: environment
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    name: Run import script
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: Download SQL dump
+        env:
+          INPUT_URL: ${{ github.event.inputs.sql_download_url }}
+          SECRET_URL: ${{ secrets.IMPORT_LEGACY_CRM_SQL_URL }}
+        run: |
+          set -euo pipefail
+          URL="${INPUT_URL:-}"
+          if [ -z "${URL// }" ]; then
+            URL="${SECRET_URL:-}"
+          fi
+          if [ -z "${URL// }" ]; then
+            echo "Provide sql_download_url or set repository secret IMPORT_LEGACY_CRM_SQL_URL." >&2
+            exit 1
+          fi
+          curl -fsSL "$URL" -o "${RUNNER_TEMP}/legacy_crm_venues.sql"
+          echo "Downloaded SQL dump to ${RUNNER_TEMP}/legacy_crm_venues.sql (size $(wc -c < "${RUNNER_TEMP}/legacy_crm_venues.sql") bytes)"
+
+      - name: Import venues
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_SSLMODE: ${{ vars.DATABASE_SSLMODE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL is not set on this environment." >&2
+            exit 1
+          fi
+          EXTRA=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            EXTRA="--dry-run"
+          fi
+          python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql" ${EXTRA}
