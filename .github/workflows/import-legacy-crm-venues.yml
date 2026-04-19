@@ -105,6 +105,7 @@ jobs:
           DATABASE_SSLMODE: ${{ vars.DATABASE_SSLMODE }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           set -euo pipefail
           if [ -z "${DATABASE_URL:-}" ] && [ -z "${DATABASE_SECRET_ARN:-}" ]; then
@@ -118,8 +119,8 @@ jobs:
               exit 1
             fi
           fi
-          EXTRA=""
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            EXTRA="--dry-run"
+          if [ "${DRY_RUN}" = "true" ]; then
+            python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql" --dry-run
+          else
+            python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql"
           fi
-          python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql" ${EXTRA}
