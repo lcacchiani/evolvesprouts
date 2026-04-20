@@ -125,6 +125,13 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
 
     session = MagicMock()
     session.execute.return_value.all.return_value = []
+    assigned_id = uuid.uuid4()
+
+    def _flush_sets_location_id() -> None:
+        loc = session.add.call_args[0][0]
+        loc.id = assigned_id
+
+    session.flush.side_effect = _flush_sets_location_id
 
     venues = [
         LegacyVenue(
@@ -142,8 +149,7 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
     session.commit.assert_called_once()
     mod.refs.record_mapping.assert_called_once()
     assert mod.refs.record_mapping.call_args[0][2] == "1"
-    loc_arg = session.add.call_args[0][0]
-    assert mod.refs.record_mapping.call_args[0][3] == loc_arg.id
+    assert mod.refs.record_mapping.call_args[0][3] == assigned_id
 
 
 def test_apply_venues_skips_duplicate_case_insensitive(
