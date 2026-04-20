@@ -71,8 +71,30 @@ jobs:
             exit 1
           fi
 
+      - name: Validate import workflow configuration
+        id: config
+        env:
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          IMPORT_DUMP_BUCKET_NAME: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          IMPORT_LAMBDA_FUNCTION_NAME: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
+        run: |
+          set -euo pipefail
+          MISSING_VARS=()
+          [ -z "${AWS_ACCOUNT_ID:-}" ] && MISSING_VARS+=("AWS_ACCOUNT_ID")
+          [ -z "${AWS_REGION:-}" ] && MISSING_VARS+=("AWS_REGION")
+          [ -z "${IMPORT_DUMP_BUCKET_NAME:-}" ] && MISSING_VARS+=("IMPORT_DUMP_BUCKET_NAME")
+          [ -z "${IMPORT_LAMBDA_FUNCTION_NAME:-}" ] && MISSING_VARS+=("IMPORT_LAMBDA_FUNCTION_NAME")
+          if [ "${#MISSING_VARS[@]}" -gt 0 ]; then
+            echo "Missing required environment variables: ${MISSING_VARS[*]}"
+            echo "This run will be skipped until production environment vars are configured."
+            echo "should_run=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          echo "should_run=true" >> "${GITHUB_OUTPUT}"
+
       - name: Configure AWS credentials (OIDC)
-        if: ${{ vars.AWS_ACCOUNT_ID != '' }}
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
@@ -80,6 +102,7 @@ jobs:
           role-session-name: import-legacy-crm-${{ github.run_id }}
 
       - name: Verify Lambda and IAM (preflight)
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           FUNC: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
         run: |
@@ -95,6 +118,7 @@ jobs:
           fi
 
       - name: Download SQL dump
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           ENTITY: ${{ github.event.inputs.entity }}
           INPUT_URL: ${{ github.event.inputs.sql_download_url }}
@@ -118,6 +142,7 @@ jobs:
           fi
 
       - name: Upload dump to S3
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           ENTITY: ${{ github.event.inputs.entity }}
           IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
@@ -134,6 +159,7 @@ jobs:
           echo "IMPORT_S3_KEY=${KEY}" >> "${GITHUB_ENV}"
 
       - name: Invoke import Lambda
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           ENTITY: ${{ github.event.inputs.entity }}
           BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
@@ -181,7 +207,7 @@ jobs:
           fi
 
       - name: Remove uploaded dump from S3
-        if: always()
+        if: ${{ always() && steps.config.outputs.should_run == 'true' }}
         env:
           IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
           KEY: ${{ env.IMPORT_S3_KEY }}
@@ -191,3 +217,13 @@ jobs:
             exit 0
           fi
           aws s3 rm "s3://${IMPORT_DUMP_BUCKET}/${KEY}" || true
+
+      - name: Report skipped import run
+        if: ${{ steps.config.outputs.should_run != 'true' }}
+        run: |
+          {
+            echo "## Legacy CRM import skipped"
+            echo ""
+            echo "Required production environment variables are not configured."
+            echo "Set AWS_ACCOUNT_ID, AWS_REGION, IMPORT_DUMP_BUCKET_NAME, and IMPORT_LAMBDA_FUNCTION_NAME."
+          } >> "${GITHUB_STEP_SUMMARY}"
