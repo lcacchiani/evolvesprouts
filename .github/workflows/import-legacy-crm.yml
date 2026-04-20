@@ -19,7 +19,7 @@
 # `lambda:GetFunction` + `lambda:InvokeFunction` on the import Lambda.
 #
 # Security: do not echo presigned URLs. Step summary shows counts; when the Lambda sets
-# `preview_allowed: false` (PII entities), preview lines are omitted from the summary.
+# `preview_allowed: false` (PII entities), preview lines and row_details are omitted from the summary.
 # CloudWatch logs are not echoed into the summary to avoid accidental data leakage.
 
 name: Import legacy CRM
@@ -254,7 +254,7 @@ jobs:
           echo "## Lambda import result" >> "${GITHUB_STEP_SUMMARY}"
           {
             echo '```json'
-            jq 'if .preview_allowed == false then del(.preview) else . end' lambda-response-payload.json || cat lambda-response-payload.json
+            jq 'if .preview_allowed == false then del(.preview, .row_details) else . end' lambda-response-payload.json || cat lambda-response-payload.json
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}" || true
           if echo "$META" | jq -e '.FunctionError != null' >/dev/null 2>&1; then

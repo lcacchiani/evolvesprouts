@@ -165,6 +165,53 @@ class VenueImporter:
             refs_by_entity={},
         )
 
+    def _row_detail(
+        self,
+        v: LegacyVenue,
+        *,
+        area_id: UUID,
+        new_location_id: UUID | None,
+        dry_run: bool,
+    ) -> dict[str, Any]:
+        """Structured description of DB rows touched (for logs / invoke response)."""
+        loc_columns = ["area_id", "name", "address", "lat", "lng"]
+        loc_values: dict[str, Any] = {
+            "area_id": str(area_id),
+            "name": preview_line(self, v.name) if v.name else None,
+            "address": preview_line(self, v.address) if v.address else None,
+            "lat": None,
+            "lng": None,
+        }
+        tables: list[dict[str, Any]] = [
+            {
+                "table": "locations",
+                "columns": loc_columns,
+                "values": loc_values,
+            },
+        ]
+        ref_values: dict[str, Any] = {
+            "entity": self.ENTITY,
+            "legacy_key": str(v.legacy_id),
+            "new_id": None
+            if dry_run or new_location_id is None
+            else str(new_location_id),
+        }
+        tables.append(
+            {
+                "table": "legacy_import_refs",
+                "columns": ["entity", "legacy_key", "new_id"],
+                "values": ref_values,
+            },
+        )
+        return {
+            "legacy_source": {
+                "table": "venue",
+                "primary_key": {"id": v.legacy_id},
+            },
+            "target": {"tables": tables},
+            "dry_run": dry_run,
+        }
+
     def apply(
         self,
         session: Session,
@@ -209,6 +256,12 @@ class VenueImporter:
             if dry_run:
                 if len(stats.preview) < self.PREVIEW_MAX_ROWS:
                     stats.preview.append(self.format_preview(v, None))
+                if len(stats.row_details) < self.PREVIEW_MAX_ROWS:
+                    stats.row_details.append(
+                        self._row_detail(
+                            v, area_id=area_id, new_location_id=None, dry_run=True
+                        ),
+                    )
                 stats.inserted += 1
                 existing_keys.add(key)
                 continue
@@ -231,6 +284,15 @@ class VenueImporter:
                 str(v.legacy_id),
                 new_uuid,
             )
+            if len(stats.row_details) < self.PREVIEW_MAX_ROWS:
+                stats.row_details.append(
+                    self._row_detail(
+                        v,
+                        area_id=area_id,
+                        new_location_id=new_uuid,
+                        dry_run=False,
+                    ),
+                )
             stats.inserted += 1
             existing_keys.add(key)
 

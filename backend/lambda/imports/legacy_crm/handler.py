@@ -125,6 +125,8 @@ def _stats_to_json(stats: ImportStats, *, preview_allowed: bool) -> dict[str, An
     }
     if preview_allowed and stats.preview:
         out["preview"] = stats.preview
+    if preview_allowed and stats.row_details:
+        out["row_details"] = stats.row_details
     return out
 
 
@@ -151,6 +153,9 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
 
     preview_allowed = not importer.PII
     out = _stats_to_json(stats, preview_allowed=preview_allowed)
+    log_extra: dict[str, Any] = {}
+    if preview_allowed and stats.row_details:
+        log_extra["import_row_details"] = stats.row_details
     logger.info(
         "Import complete entity=%s inserted=%s skipped_duplicate=%s "
         "skipped_no_area=%s skipped_no_dep=%s dry_run=%s",
@@ -160,5 +165,6 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         stats.skipped_no_area,
         stats.skipped_no_dep,
         stats.dry_run,
+        extra=log_extra,
     )
     return out

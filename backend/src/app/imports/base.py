@@ -45,6 +45,8 @@ class ImportStats:
     skipped_no_dep: int = 0
     dry_run: bool = False
     preview: list[str] = field(default_factory=list)
+    #: Structured rows for logging / API (table, columns, values); capped per importer.
+    row_details: list[dict[str, Any]] = field(default_factory=list)
 
 
 @runtime_checkable
