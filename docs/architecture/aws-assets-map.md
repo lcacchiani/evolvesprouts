@@ -13,7 +13,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 The import workflow (`.github/workflows/import-legacy-crm.yml`) uses OIDC to assume `GitHubActionsRole` (see `docs/architecture/setup.md`). That role is **not** created by this CDK stack. If the role is narrowly scoped instead of administrator-like, attach least-privilege statements for the legacy import path:
 
 - `s3:PutObject` and `s3:DeleteObject` on `arn:aws:s3:::evolvesprouts-import-dump-{account}-{region}/dumps/*` (objects live under `dumps/<entity>/<run_id>/`; delete is post-run cleanup).
-- `lambda:InvokeFunction` and `lambda:GetFunction` on `arn:aws:lambda:{region}:{account}:function:evolvesprouts-EvolvesproutsImportLegacyVenuesFunction` (preflight uses `get-function`; it first checks explicit GitHub vars and then falls back to `evolvesprouts` stack outputs).
+- `lambda:InvokeFunction` and `lambda:GetFunction` on `arn:aws:lambda:{region}:{account}:function:evolvesprouts-ImportLegacyVenuesFunction` (preflight uses `get-function`; it first checks explicit GitHub vars and then falls back to `evolvesprouts` stack outputs).
 
 ---
 
@@ -153,7 +153,7 @@ credentials):
 |--------------|------------|------------------|-------|
 | S3 Bucket | `AssetsBucket` | `evolvesprouts-assets-{account}-{region}` | Private bucket for assets |
 | S3 Bucket | `AssetsLogBucket` | `evolvesprouts-assets-logs-{account}-{region}` | Access logs for the assets bucket |
-| S3 Bucket | `ImportDumpBucket` | `evolvesprouts-import-dump-{account}-{region}` | Ephemeral legacy-import SQL dumps (SSE-S3, 7-day expiration on current and noncurrent versions, abort incomplete multipart after 1 day); GitHub Actions uploads; `EvolvesproutsImportLegacyVenuesFunction` reads |
+| S3 Bucket | `ImportDumpBucket` | `evolvesprouts-import-dump-{account}-{region}` | Ephemeral legacy-import SQL dumps (SSE-S3, 7-day expiration on current and noncurrent versions, abort incomplete multipart after 1 day); GitHub Actions uploads; `ImportLegacyVenuesFunction` reads |
 | S3 Prefix | `AssetsBucket/inbound-email/raw/` | `s3://evolvesprouts-assets-{account}-{region}/inbound-email/raw/` | Reserved prefix for raw inbound invoice emails |
 
 ## Asset download CDN (CloudFront)
@@ -336,7 +336,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 |---------------------|---------|--------|---------|-----|-------------|
 | `EvolvesproutsAdminFunction` | `lambda/admin/handler.lambda_handler` | 512 MB | 30s | Yes | - |
 | `EvolvesproutsMigrationFunction` | `lambda/migrations/handler.lambda_handler` | 512 MB | 5 min | Yes | `db` |
-| `EvolvesproutsImportLegacyVenuesFunction` | `lambda/imports/legacy_crm/handler.lambda_handler` | 512 MB | 10 min | Yes | - |
+| `ImportLegacyVenuesFunction` | `lambda/imports/legacy_crm/handler.lambda_handler` | 512 MB | 10 min | Yes | - |
 | `HealthCheckFunction` | `lambda/health/handler.lambda_handler` | 256 MB | 10s | Yes | - |
 
 ### Auth Functions
@@ -397,7 +397,7 @@ For each function above, the following resources are created:
 | `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (public form marketing hooks), S3 read/write for the assets bucket; `DEPLOYMENT_STAGE` set to `production` in deployed stacks; `PUBLIC_WWW_BASE_URL` plus optional `PUBLIC_WWW_INSTAGRAM_URL` / `PUBLIC_WWW_LINKEDIN_URL` / `PUBLIC_WWW_WHATSAPP_URL` / `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` for transactional HTML shell data; `SALES_RECAP_DISPLAY_TIMEZONE` from CDK parameter `SalesRecapDisplayTimezone` (optional; app default if empty) |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
-| `EvolvesproutsImportLegacyVenuesFunction` | Read admin DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read on `ImportDumpBucket` only |
+| `ImportLegacyVenuesFunction` | Read admin DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read on `ImportDumpBucket` only |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
@@ -620,7 +620,7 @@ configured by stack custom resources (including retention and KMS association).
 | `ApiUrl` | API Gateway REST API URL | Base URL for API endpoints |
 | `DatabaseSecretArn` | Secrets Manager secret ARN | ARN of database credentials secret |
 | `DatabaseProxyEndpoint` | RDS Proxy endpoint | Endpoint for database connections via proxy |
-| `ImportLegacyVenuesFunctionName` | Lambda function name | Physical name of `EvolvesproutsImportLegacyVenuesFunction` (workflow auto-resolves from stack output when GitHub var is unset) |
+| `ImportLegacyVenuesFunctionName` | Lambda function name | Physical name of `ImportLegacyVenuesFunction` (workflow auto-resolves from stack output when GitHub var is unset) |
 | `ImportLegacyFunctionName` | Lambda function name | Same value as `ImportLegacyVenuesFunctionName` (alias output) |
 | `ImportDumpBucketName` | S3 bucket name | Ephemeral legacy-import SQL dumps bucket (workflow auto-resolves from stack output when GitHub var is unset) |
 | `UserPoolId` | Cognito User Pool ID | User Pool identifier |

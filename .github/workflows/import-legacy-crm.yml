@@ -1,7 +1,7 @@
 # Manual import from a legacy MariaDB SQL dump (entity-specific parsers).
 #
 # Flow: download the .sql → enforce ≤ 2 MB → upload to the import S3 bucket under
-# `dumps/<entity>/<run_id>/<entity>.sql` → invoke EvolvesproutsImportLegacyVenuesFunction
+# `dumps/<entity>/<run_id>/<entity>.sql` → invoke ImportLegacyVenuesFunction
 # with `{ entity, s3_bucket, s3_key, dry_run }`. The Lambda dispatches to the registered
 # importer for that entity.
 #

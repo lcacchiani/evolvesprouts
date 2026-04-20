@@ -317,7 +317,7 @@ Purpose: Soft mapping from legacy CRM primary keys to Aurora row ids for
 operator-triggered imports. No foreign keys to target tables (avoids cycles;
 deleting a `locations` row can orphan a ref — expected; cleanup is operator-driven).
 
-Populated only by `EvolvesproutsImportLegacyVenuesFunction` during legacy CRM import
+Populated only by `ImportLegacyVenuesFunction` during legacy CRM import
 runs (and future entity importers sharing that Lambda).
 
 Columns:

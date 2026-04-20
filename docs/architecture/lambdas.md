@@ -233,7 +233,7 @@ their primary responsibilities.
 - DB access: direct cluster endpoint with password auth
 
 ### Import legacy CRM
-- Function: EvolvesproutsImportLegacyVenuesFunction (construct id unchanged to avoid CloudFormation replacement)
+- Function: ImportLegacyVenuesFunction (physical name `evolvesprouts-ImportLegacyVenuesFunction`)
 - Handler: backend/lambda/imports/legacy_crm/handler.py — **entity dispatcher**; loads `app.imports` registry and runs the importer for `payload["entity"]`
 - Supported entities (today): `venues` (more added later with code + workflow choice list only — no CDK rename)
 - Trigger: direct `aws lambda invoke` (for example GitHub Actions after `dumps/<entity>/<run_id>/<entity>.sql` upload)
