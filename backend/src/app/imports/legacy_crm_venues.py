@@ -299,8 +299,8 @@ def apply_venues(
     area_by_name = _district_area_map(session, hk_id)
 
     existing_keys: set[tuple[str, str]] = set()
-    for loc in session.execute(select(Location.name, Location.address)).all():
-        existing_keys.add(_dedupe_key(loc[0], loc[1]))
+    for row in session.execute(select(Location.name, Location.address)).all():
+        existing_keys.add(_dedupe_key(row[0], row[1]))
 
     for v in venues:
         dname = v.district_label
@@ -332,14 +332,14 @@ def apply_venues(
             existing_keys.add(key)
             continue
 
-        loc = Location(
+        new_location = Location(
             area_id=area_id,
             name=name,
             address=address,
             lat=None,
             lng=None,
         )
-        session.add(loc)
+        session.add(new_location)
         session.flush()
         stats.inserted += 1
         existing_keys.add(key)
