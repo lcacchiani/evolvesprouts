@@ -1693,6 +1693,7 @@ export class ApiStack extends cdk.Stack {
       assetsBucketName: assetsBucket.bucketName,
       assetsBucketArn: assetsBucket.bucketArn,
       openrouterApiSecretArn: openrouterApiSecret.secretArn,
+      openrouterApiSecretKmsKeyArn: secretsEncryptionKey.keyArn,
       databaseProxyArn: database.proxy.dbProxyArn,
       databaseSecretKmsKeyArn: database.adminUserSecretKmsKey?.keyArn ?? "",
       sesSenderEmail: sesSenderEmail.valueAsString,
