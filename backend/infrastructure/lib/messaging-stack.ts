@@ -33,7 +33,6 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetsBucketName: string;
   assetsBucketArn: string;
   openrouterApiSecretArn: string;
-  /** KMS CMK ARN for `openrouterApiSecret` (Secrets Manager decrypt). */
   openrouterApiSecretKmsKeyArn: string;
   databaseProxyArn: string;
   databaseSecretKmsKeyArn: string;
