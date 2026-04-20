@@ -13,6 +13,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 The import workflow (`.github/workflows/import-legacy-crm.yml`) uses OIDC to assume `GitHubActionsRole` (see `docs/architecture/setup.md`). That role is **not** created by this CDK stack. If the role is narrowly scoped instead of administrator-like, attach least-privilege statements for the legacy import path:
 
 - `s3:PutObject` and `s3:DeleteObject` on `arn:aws:s3:::evolvesprouts-import-dump-{account}-{region}/dumps/*` (objects live under `dumps/<entity>/<run_id>/`; delete is post-run cleanup).
+- Optional: `s3:GetObject` and `s3:HeadObject` on specific object keys (or a chosen prefix) when using repository variable `IMPORT_LEGACY_CRM_SQL_OBJECT_KEY` to point at an existing dump object outside `dumps/*` (workflow checks existence with `HeadObject`; that object is not deleted after the run).
 - `lambda:InvokeFunction` and `lambda:GetFunction` on `arn:aws:lambda:{region}:{account}:function:evolvesprouts-ImportLegacyVenuesFunction` (preflight uses `get-function`; it first checks explicit GitHub vars and then falls back to `evolvesprouts` stack outputs).
 
 ---
