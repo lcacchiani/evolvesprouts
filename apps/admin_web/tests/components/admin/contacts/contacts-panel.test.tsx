@@ -59,7 +59,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ createContact });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     await user.type(screen.getByLabelText('First name'), 'Jane');
@@ -80,7 +87,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ hasMore: true, loadMore });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Load more' }));
@@ -117,7 +131,14 @@ describe('ContactsPanel', () => {
     });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Delete contact' }));
@@ -129,7 +150,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ error: 'Failed to load contacts' });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();

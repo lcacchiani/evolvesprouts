@@ -3907,7 +3907,9 @@ export interface components {
             content: string;
             created_by: string;
             /** Format: date-time */
-            created_at?: string | null;
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         CrmNote: {
             /** Format: uuid */
@@ -3915,7 +3917,9 @@ export interface components {
             content: string;
             created_by: string;
             /** Format: date-time */
-            created_at?: string | null;
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         AdminCrmNoteListResponse: {
             items: components["schemas"]["CrmNote"][];

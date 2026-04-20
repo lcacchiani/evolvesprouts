@@ -114,6 +114,117 @@ def test_handle_admin_contacts_notes_get(
     assert response is marker
 
 
+def test_handle_admin_contacts_notes_post(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 201, "body": "{}"}
+    contact_id = str(uuid4())
+
+    def _fake_create(
+        _event: Any,
+        *,
+        contact_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(contact_id)
+        return marker
+
+    monkeypatch.setattr(admin_contacts, "create_contact_note", _fake_create)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(method="POST", path=f"/v1/admin/contacts/{contact_id}/notes"),
+        "POST",
+        f"/v1/admin/contacts/{contact_id}/notes",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_contacts_note_patch(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    contact_id = str(uuid4())
+    note_id = str(uuid4())
+
+    def _fake_update(
+        _event: Any,
+        *,
+        contact_id: Any,
+        note_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(contact_id)
+        assert str(note_id)
+        return marker
+
+    monkeypatch.setattr(admin_contacts, "update_contact_note", _fake_update)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(
+            method="PATCH",
+            path=f"/v1/admin/contacts/{contact_id}/notes/{note_id}",
+        ),
+        "PATCH",
+        f"/v1/admin/contacts/{contact_id}/notes/{note_id}",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_contacts_note_delete(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 204, "body": "{}"}
+    contact_id = str(uuid4())
+    note_id = str(uuid4())
+
+    def _fake_delete_note(
+        _event: Any,
+        *,
+        contact_id: Any,
+        note_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(contact_id)
+        assert str(note_id)
+        return marker
+
+    monkeypatch.setattr(admin_contacts, "delete_contact_note", _fake_delete_note)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(
+            method="DELETE",
+            path=f"/v1/admin/contacts/{contact_id}/notes/{note_id}",
+        ),
+        "DELETE",
+        f"/v1/admin/contacts/{contact_id}/notes/{note_id}",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_families_member_delete(
     monkeypatch: Any,
     api_gateway_event: Any,

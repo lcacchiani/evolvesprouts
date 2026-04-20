@@ -30,6 +30,7 @@ import {
   CRM_ENTITY_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
+import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -65,12 +66,21 @@ const SOURCES: ApiSchemas['CrmContactSource'][] = [
 
 export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminCrmContacts>;
+  adminUsers: AdminUser[];
+  onPatchStandaloneNoteCount: (contactId: string, standaloneNoteCount: number) => void;
   tags: CrmTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
 }
 
-export function ContactsPanel({ contacts, tags, locations, geographicAreas }: ContactsPanelProps) {
+export function ContactsPanel({
+  contacts,
+  adminUsers,
+  onPatchStandaloneNoteCount,
+  tags,
+  locations,
+  geographicAreas,
+}: ContactsPanelProps) {
   const {
     contacts: rows,
     filters,
@@ -84,7 +94,6 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     createContact,
     updateContact,
     deleteContact,
-    patchContactStandaloneNoteCount,
   } = contacts;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -397,8 +406,9 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
       <ContactNotesModal
         open={notesTarget !== null}
         contact={notesTarget}
+        adminUsers={adminUsers}
         onClose={() => setNotesTarget(null)}
-        onStandaloneNoteCountChange={patchContactStandaloneNoteCount}
+        onStandaloneNoteCountChange={onPatchStandaloneNoteCount}
       />
       <AdminEditorCard
         title='Contact'
@@ -749,25 +759,20 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
-                  <td
-                    className='px-4 py-3 text-right'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
+                  <td className='px-4 py-3 text-right'>
                     <div className='flex flex-wrap justify-end gap-2'>
                       <Button
                         type='button'
                         size='sm'
                         variant='outline'
-                        className='relative h-8 min-w-8 px-0'
+                        className='relative h-8 min-w-8 overflow-visible px-0'
                         onClick={(e) => {
                           e.stopPropagation();
                           setNotesTarget(row);
                         }}
                         disabled={isSaving}
                         aria-label='Contact notes'
-                        title='Notes'
+                        title='Contact notes'
                       >
                         <NoteIcon className='h-4 w-4 shrink-0' aria-hidden />
                         {row.standalone_note_count > 0 ? (

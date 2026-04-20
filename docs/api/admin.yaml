@@ -3020,6 +3020,8 @@ components:
         - id
         - content
         - created_by
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -3031,13 +3033,17 @@ components:
         created_at:
           type: string
           format: date-time
-          nullable: true
+        updated_at:
+          type: string
+          format: date-time
     CrmNote:
       type: object
       required:
         - id
         - content
         - created_by
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -3049,7 +3055,9 @@ components:
         created_at:
           type: string
           format: date-time
-          nullable: true
+        updated_at:
+          type: string
+          format: date-time
     AdminCrmNoteListResponse:
       type: object
       required:

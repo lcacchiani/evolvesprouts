@@ -27,7 +27,19 @@ export function useAdminCrmContacts() {
     []
   );
 
-  const list = usePaginatedList({
+  const {
+    items: contacts,
+    setItems: setContactRows,
+    filters,
+    setFilter,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    totalCount,
+    refetch: refetchContacts,
+  } = usePaginatedList({
     fetcher,
     defaultFilters: DEFAULT_CRM_LIST_FILTERS,
     errorPrefix: 'Failed to load contacts',
@@ -42,13 +54,13 @@ export function useAdminCrmContacts() {
       setIsSaving(true);
       try {
         const result = await work();
-        await list.refetch();
+        await refetchContacts();
         return result;
       } finally {
         setIsSaving(false);
       }
     },
-    [list]
+    [refetchContacts]
   );
 
   const createContact = useCallback(
@@ -70,30 +82,30 @@ export function useAdminCrmContacts() {
 
   const patchContactStandaloneNoteCount = useCallback(
     (contactId: string, standaloneNoteCount: number) => {
-      list.setItems((current) =>
+      setContactRows((current) =>
         current.map((row) =>
           row.id === contactId ? { ...row, standalone_note_count: standaloneNoteCount } : row
         )
       );
     },
-    [list]
+    [setContactRows]
   );
 
   return {
-    contacts: list.items,
-    filters: list.filters,
-    setFilter: list.setFilter,
-    isLoading: list.isLoading,
-    isLoadingMore: list.isLoadingMore,
-    hasMore: list.hasMore,
-    error: list.error,
-    loadMore: list.loadMore,
-    totalCount: list.totalCount,
+    contacts,
+    filters,
+    setFilter,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    totalCount,
     isSaving,
     createContact,
     updateContact,
     deleteContact,
     patchContactStandaloneNoteCount,
-    refetch: list.refetch,
+    refetch: refetchContacts,
   };
 }

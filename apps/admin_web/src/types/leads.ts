@@ -68,6 +68,7 @@ export interface LeadNote {
   content: string;
   createdBy: string;
   createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface LeadSummary {
