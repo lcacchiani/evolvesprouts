@@ -68,8 +68,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
 
+      # Note: `secrets` is not available in `if:` expressions. Gate on vars used for
+      # the CDK/IAM path (same as deploy-backend); DATABASE_SECRET_ARN is validated in the import step.
       - name: Configure AWS credentials (Secrets Manager + IAM DB auth)
-        if: ${{ vars.AWS_ACCOUNT_ID != '' && secrets.DATABASE_SECRET_ARN != '' }}
+        if: ${{ vars.AWS_ACCOUNT_ID != '' }}
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
