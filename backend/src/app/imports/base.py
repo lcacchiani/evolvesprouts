@@ -77,6 +77,8 @@ class ImportStats:
     preview: list[str] = field(default_factory=list)
     #: Structured rows for logging / API (table, columns, values); capped per importer.
     row_details: list[dict[str, Any]] = field(default_factory=list)
+    #: Non-PII hints (counts, ref sizes) for operators — e.g. contacts ``skipped_no_dep`` breakdown.
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable

@@ -186,6 +186,9 @@ def test_skipped_no_dep_without_parent_ref(monkeypatch: pytest.MonkeyPatch) -> N
     )
     stats = importer.apply(session, people, ctx, dry_run=False)
     assert stats.skipped_no_dep == 1
+    assert stats.diagnostics["skipped_no_dep_parent_missing_from_legacy_import_refs"] == 1
+    assert stats.diagnostics["dependency_ref_count_families"] == 0
+    assert "hint" in stats.diagnostics
     mod.refs.record_mapping.assert_not_called()
 
 
