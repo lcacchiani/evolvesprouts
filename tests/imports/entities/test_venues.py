@@ -104,6 +104,7 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
     stats = apply_venues(session, venues, dry_run=True)
     assert stats.inserted == 1
     assert stats.skipped_duplicate == 0
+    assert stats.preview[0] == "Would insert: name='Foo Bar' | address='1 St' | area='Central'"
     session.add.assert_not_called()
     session.commit.assert_not_called()
     mod.refs.record_mapping.assert_not_called()
@@ -248,7 +249,7 @@ def test_apply_venues_resolves_label_from_district_map(
     assert stats.inserted == 1
 
 
-def test_apply_venues_raises_when_district_id_without_label_or_map(
+def test_apply_venues_skips_when_district_id_without_label_or_map(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.imports.entities import venues as mod
@@ -274,8 +275,9 @@ def test_apply_venues_raises_when_district_id_without_label_or_map(
             district_label=None,
         )
     ]
-    with pytest.raises(ValueError, match="no district label"):
-        apply_venues(session, venues, dry_run=True)
+    stats = apply_venues(session, venues, dry_run=True)
+    assert stats.inserted == 0
+    assert stats.skipped_no_area == 1
 
 
 def test_hk_country_missing_raises(monkeypatch: pytest.MonkeyPatch) -> None:

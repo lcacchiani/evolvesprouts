@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.imports import entities  # noqa: F401 — register importers
+from app.imports.base import resolve_importer_context
 from app.imports.registry import get
 from app.imports.registry import known_entities
 from app.utils.logging import configure_logging
@@ -71,7 +72,7 @@ def main() -> int:
 
     engine = get_engine(use_cache=False)
     with Session(engine) as session:
-        ctx = importer.resolve_context(session, dry_run=args.dry_run)
+        ctx = resolve_importer_context(importer, session, dry_run=args.dry_run)
         stats = importer.apply(session, rows, ctx, dry_run=args.dry_run)
 
     logger.info(

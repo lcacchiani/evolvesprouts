@@ -18,10 +18,10 @@ from app.db.models import Location
 from app.imports import mysqldump
 from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
+from app.imports.base import preview_line
 from app.imports.registry import register
 from app.imports import refs
 from app.utils.logging import get_logger
-from app.utils.logging import mask_pii
 
 logger = get_logger(__name__)
 
@@ -187,12 +187,6 @@ class VenueImporter:
                 and ctx.district_map is not None
             ):
                 dname = ctx.district_map.get(v.district_id)
-            if v.district_id is not None and dname is None:
-                msg = (
-                    f"Legacy venue legacy_id={v.legacy_id} has district_id={v.district_id} "
-                    "but no district label."
-                )
-                raise ValueError(msg)
             area_id = area_by_name.get(dname) if dname else None
             if area_id is None:
                 logger.warning(
@@ -251,9 +245,9 @@ class VenueImporter:
         dname = row.district_label or ""
         return (
             "Would insert: "
-            f"name={mask_pii(row.name or '')!r} | "
-            f"address={mask_pii(row.address or '')!r} | "
-            f"area={mask_pii(dname)!r}"
+            f"name={preview_line(self, row.name or '')!r} | "
+            f"address={preview_line(self, row.address or '')!r} | "
+            f"area={preview_line(self, dname)!r}"
         )
 
 

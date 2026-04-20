@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from collections.abc import Iterator
 from typing import Any
 from typing import ClassVar
 from uuid import UUID
@@ -16,6 +17,17 @@ from app.imports.base import ImporterContext
 from app.imports.registry import get
 from app.imports.registry import known_entities
 from app.imports.registry import register
+from app.imports import registry
+
+
+@pytest.fixture(autouse=True)
+def _restore_importers() -> Iterator[None]:
+    snapshot = dict(registry._IMPORTERS)
+    try:
+        yield
+    finally:
+        registry._IMPORTERS.clear()
+        registry._IMPORTERS.update(snapshot)
 
 
 def test_known_entities_includes_venues() -> None:

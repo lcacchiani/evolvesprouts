@@ -8,14 +8,12 @@ from pathlib import Path
 from typing import Any
 from typing import Mapping
 
-from dataclasses import replace
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.imports import entities  # noqa: F401 — register importers
-from app.imports.base import DependencyNotMet
 from app.imports.base import ImportStats
-from app.imports import refs
+from app.imports.base import resolve_importer_context
 from app.imports.registry import get
 from app.imports.registry import known_entities
 from app.services.aws_clients import get_s3_client
@@ -144,18 +142,11 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
 
     engine = get_engine(use_cache=False)
     with Session(engine) as session:
-        if not payload["dry_run"]:
-            for dep in importer.DEPENDS_ON:
-                if not refs.has_mapping(session, dep):
-                    raise DependencyNotMet(
-                        f"Required dependency entity {dep!r} has no rows in "
-                        "legacy_import_refs; import that entity first."
-                    )
-        base_ctx = importer.resolve_context(session, dry_run=payload["dry_run"])
-        refs_by: dict[str, dict[str, Any]] = {}
-        for dep in importer.DEPENDS_ON:
-            refs_by[dep] = refs.load_mapping(session, dep)
-        ctx = replace(base_ctx, refs_by_entity=refs_by)
+        ctx = resolve_importer_context(
+            importer,
+            session,
+            dry_run=payload["dry_run"],
+        )
         stats = importer.apply(session, rows, ctx, dry_run=payload["dry_run"])
 
     preview_allowed = not importer.PII

@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
+from dataclasses import replace
 from typing import Any
 from typing import ClassVar
 from typing import Protocol
@@ -91,3 +92,39 @@ def preview_line_email(importer: LegacyImporter, text: str) -> str:
     if importer.PII:
         return mask_email(text)
     return text
+
+
+def check_dependencies(
+    importer: LegacyImporter,
+    session: Session,
+    *,
+    dry_run: bool,
+) -> None:
+    """Raise ``DependencyNotMet`` for missing parent refs in non-dry-run mode."""
+    if dry_run:
+        return
+    from app.imports import refs
+
+    for dep in importer.DEPENDS_ON:
+        if refs.has_mapping(session, dep):
+            continue
+        raise DependencyNotMet(
+            f"Required dependency entity {dep!r} has no rows in "
+            "legacy_import_refs; import that entity first."
+        )
+
+
+def resolve_importer_context(
+    importer: LegacyImporter,
+    session: Session,
+    *,
+    dry_run: bool,
+) -> ImporterContext:
+    """Resolve importer context and attach dependency ref maps."""
+    check_dependencies(importer, session, dry_run=dry_run)
+
+    from app.imports import refs
+
+    base_ctx = importer.resolve_context(session, dry_run=dry_run)
+    refs_by = {dep: refs.load_mapping(session, dep) for dep in importer.DEPENDS_ON}
+    return replace(base_ctx, refs_by_entity=refs_by)
