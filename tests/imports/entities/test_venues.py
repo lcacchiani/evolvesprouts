@@ -104,7 +104,10 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
     stats = apply_venues(session, venues, dry_run=True)
     assert stats.inserted == 1
     assert stats.skipped_duplicate == 0
-    assert stats.preview[0] == "Would insert: name='Foo Bar' | address='1 St' | area='Central'"
+    assert (
+        stats.preview[0]
+        == "Would insert: name='  Foo Bar  ' | address='1 St' | area='Central'"
+    )
     session.add.assert_not_called()
     session.commit.assert_not_called()
     mod.refs.record_mapping.assert_not_called()
