@@ -142,8 +142,12 @@ def _parse_sql_atom(raw: str) -> str | None:
     return s
 
 
+# mysqldump often emits `INSERT INTO `t` (`c1`, `c2`) VALUES ...`; support both that
+# and the shorter `INSERT INTO `t` VALUES ...` form.
 _INSERT_RE = re.compile(
-    r"INSERT\s+INTO\s+`(?P<table>[^`]+)`\s+VALUES\s*(?P<rest>.+?);",
+    r"INSERT\s+INTO\s+`(?P<table>[^`]+)`"
+    r"\s*(?:\([^)]*\))?"
+    r"\s+VALUES\s*(?P<rest>.+?);",
     re.IGNORECASE | re.DOTALL,
 )
 
