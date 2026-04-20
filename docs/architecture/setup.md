@@ -139,6 +139,14 @@ For the OIDC provider itself, add the same tags:
 - `FIGMA_OAUTH_CLIENT_SECRET`
 - `FIGMA_OAUTH_REFRESH_TOKEN`
 
+### Production environment — legacy CRM import workflow
+
+`.github/workflows/import-legacy-crm.yml` is **production-only** (it fails if the selected environment name is not `production`). On the **`production`** GitHub Environment, set:
+
+- **Variables:** `AWS_ACCOUNT_ID`, `AWS_REGION`. After each backend deploy, copy **`ImportDumpBucketName`** and **`ImportLegacyVenuesFunctionName`** from the `evolvesprouts` stack CloudFormation outputs into `IMPORT_DUMP_BUCKET_NAME` and `IMPORT_LAMBDA_FUNCTION_NAME` (single source of truth — do not hand-type the function name).
+- **Secrets (optional):** `IMPORT_LEGACY_CRM_SQL_URL` — HTTPS URL to the `.sql` file when the workflow input is left empty.
+- **Obsolete for this workflow:** `DATABASE_URL`, `DATABASE_SECRET_ARN`, `DATABASE_PROXY_ENDPOINT`, and other runner-side DB variables used by the old script-based workflow are **not** read; remove them from the environment if you no longer need them elsewhere.
+
 ### Backend deploy manual seed toggle
 
 When running `.github/workflows/deploy-backend.yml` with `workflow_dispatch`,

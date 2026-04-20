@@ -1,0 +1,107 @@
+"""Tests for shared importer helpers."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any
+from typing import ClassVar
+from unittest.mock import MagicMock
+from uuid import UUID
+
+import pytest
+from sqlalchemy.orm import Session
+
+from app.imports.base import DependencyNotMet
+from app.imports.base import ImportStats
+from app.imports.base import ImporterContext
+from app.imports.base import check_dependencies
+from app.imports.base import resolve_importer_context
+
+
+class _DepImporter:
+    ENTITY: ClassVar[str] = "_dep_helper_test"
+    DEPENDS_ON: ClassVar[tuple[str, ...]] = ("venues",)
+    PII: ClassVar[bool] = False
+
+    def parse(self, sql_text: str) -> Sequence[Any]:
+        return []
+
+    def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+        return ImporterContext()
+
+    def apply(
+        self,
+        session: Session,
+        rows: Sequence[Any],
+        ctx: ImporterContext,
+        *,
+        dry_run: bool,
+    ) -> ImportStats:
+        return ImportStats(entity=self.ENTITY)
+
+    def format_preview(self, row: Any, mapped_id: UUID | None) -> str:
+        return ""
+
+
+def test_check_dependencies_raises_when_parent_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.imports import refs
+
+    monkeypatch.setattr(refs, "has_mapping", lambda _s, _dep: False)
+    with pytest.raises(DependencyNotMet, match="Required dependency entity"):
+        check_dependencies(_DepImporter(), MagicMock(spec=Session), dry_run=False)
+
+
+def test_check_dependencies_skips_check_during_dry_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.imports import refs
+
+    called = {"has_mapping": False}
+
+    def _has_mapping(_s: Session, _dep: str) -> bool:
+        called["has_mapping"] = True
+        return False
+
+    monkeypatch.setattr(refs, "has_mapping", _has_mapping)
+    check_dependencies(_DepImporter(), MagicMock(spec=Session), dry_run=True)
+    assert called["has_mapping"] is False
+
+
+def test_resolve_importer_context_attaches_dependency_maps(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.imports import refs
+
+    monkeypatch.setattr(refs, "has_mapping", lambda _s, _dep: True)
+    monkeypatch.setattr(refs, "load_mapping", lambda _s, dep: {"1": UUID(int=1)} if dep == "venues" else {})
+
+    ctx = resolve_importer_context(
+        _DepImporter(),
+        MagicMock(spec=Session),
+        dry_run=False,
+    )
+    assert "venues" in ctx.refs_by_entity
+    assert ctx.refs_by_entity["venues"]["1"] == UUID(int=1)
+
+
+def test_resolve_importer_context_skips_dependency_check_during_dry_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.imports import refs
+
+    called = {"has_mapping": False}
+
+    def _has_mapping(_s: Session, _dep: str) -> bool:
+        called["has_mapping"] = True
+        return False
+
+    monkeypatch.setattr(refs, "has_mapping", _has_mapping)
+    monkeypatch.setattr(refs, "load_mapping", lambda _s, _dep: {})
+
+    ctx = resolve_importer_context(
+        _DepImporter(),
+        MagicMock(spec=Session),
+        dry_run=True,
+    )
+    assert ctx.refs_by_entity == {"venues": {}}
+    assert called["has_mapping"] is False

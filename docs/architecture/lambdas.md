@@ -232,6 +232,26 @@ their primary responsibilities.
 - Purpose: run Alembic migrations and optional seed SQL
 - DB access: direct cluster endpoint with password auth
 
+### Import legacy CRM
+- Function: EvolvesproutsImportLegacyVenuesFunction (construct id unchanged to avoid CloudFormation replacement)
+- Handler: backend/lambda/imports/legacy_crm/handler.py — **entity dispatcher**; loads `app.imports` registry and runs the importer for `payload["entity"]`
+- Supported entities (today): `venues` (more added later with code + workflow choice list only — no CDK rename)
+- Trigger: direct `aws lambda invoke` (for example GitHub Actions after `dumps/<entity>/<run_id>/<entity>.sql` upload)
+- Purpose: parse mysqldump text, write target rows, record `legacy_import_refs` for idempotent re-imports
+- DB access: RDS Proxy + IAM as `evolvesprouts_admin`; reads/writes `legacy_import_refs` for mapped ids
+- Other: S3 read on import bucket; `HeadObject` size cap; temp SQL under `/tmp` with request id in the filename; **reserved concurrency 3** (parallel entity imports capped)
+- Response JSON: `entity`, counts (`inserted`, `skipped_duplicate`, `skipped_no_area`, `skipped_no_dep`), `dry_run`, `preview_allowed` (false for `PII=True` importers — workflow omits preview from step summary)
+- Stack outputs: `ImportLegacyVenuesFunctionName` / `ImportLegacyFunctionName` (same value), `ImportDumpBucketName`
+- Payload: `{ "entity": "<key>", "s3_bucket": "...", "s3_key": "...", "dry_run": <bool> }` — `s3_bucket` must match `IMPORT_DUMP_BUCKET_NAME`
+
+**How to add a new entity**
+
+1. Add `backend/src/app/imports/entities/<name>.py` implementing `LegacyImporter`, call `register(...)` at module bottom.
+2. Import the module from `entities/__init__.py`.
+3. Append the entity id to the workflow `entity` choice list in `.github/workflows/import-legacy-crm.yml`.
+4. Add tests under `tests/imports/entities/` and extend handler/registry tests if needed.
+5. Document the entity in this section and in `database-schema.md` if new tables are involved.
+
 ### Admin bootstrap
 - Function: AdminBootstrapFunction
 - Handler: backend/lambda/admin_bootstrap/handler.py

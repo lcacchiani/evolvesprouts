@@ -311,6 +311,26 @@ Columns:
 Indexes:
 - `locations_area_idx` on `area_id`
 
+## Table: legacy_import_refs
+
+Purpose: Soft mapping from legacy CRM primary keys to Aurora row ids for
+operator-triggered imports. No foreign keys to target tables (avoids cycles;
+deleting a `locations` row can orphan a ref — expected; cleanup is operator-driven).
+
+Populated only by `EvolvesproutsImportLegacyVenuesFunction` during legacy CRM import
+runs (and future entity importers sharing that Lambda).
+
+Columns:
+
+- `entity` (text, PK) — importer key (for example `venues`)
+- `legacy_key` (text, PK) — stable string form of the legacy key (venues use decimal string of legacy int)
+- `new_id` (uuid, required) — target row primary key
+- `imported_at` (timestamptz, default `now()`)
+
+Indexes:
+
+- `legacy_import_refs_new_id_idx` on `new_id`
+
 ## CRM tables (media lead capture)
 
 ### `contacts`
