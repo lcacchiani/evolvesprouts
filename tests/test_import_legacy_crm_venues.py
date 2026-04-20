@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 _SCRIPTS_IMPORTS = Path(__file__).resolve().parents[1] / "scripts" / "imports"
 if str(_SCRIPTS_IMPORTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_IMPORTS))
@@ -59,3 +58,24 @@ def test_extract_insert_skips_other_tables() -> None:
     assert stmt is not None
     assert "`district`" in stmt
     assert "`other`" not in stmt
+
+
+def test_parse_accepts_schema_qualified_backtick_tables() -> None:
+    sql = """
+    INSERT INTO `legacy_crm`.`district` (`id`, `name`) VALUES (7, 'South');
+    INSERT INTO `legacy_crm`.`venue` (`id`, `name`, `address_line1`, `address_line2`, `district_id`)
+    VALUES (99, 'Room', '9 St', NULL, 7);
+    """
+    assert legacy_venues._parse_legacy_districts(sql)[7] == "South"
+    venues = legacy_venues._parse_legacy_venues(sql)
+    assert venues[0]["legacy_id"] == 99
+    assert venues[0]["district_id"] == 7
+
+
+def test_parse_accepts_unquoted_table_names() -> None:
+    sql = """
+    INSERT INTO district (id, name) VALUES (8, 'East');
+    INSERT INTO venue VALUES (30, 'Hall', 'Lane', NULL, 8);
+    """
+    assert legacy_venues._parse_legacy_districts(sql)[8] == "East"
+    assert legacy_venues._parse_legacy_venues(sql)[0]["legacy_id"] == 30
