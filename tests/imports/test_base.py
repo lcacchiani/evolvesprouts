@@ -15,6 +15,7 @@ from app.imports.base import DependencyNotMet
 from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
 from app.imports.base import check_dependencies
+from app.imports.base import parse_skip_legacy_keys_csv
 from app.imports.base import resolve_importer_context
 
 
@@ -84,6 +85,12 @@ def test_resolve_importer_context_attaches_dependency_maps(
     assert ctx.refs_by_entity["venues"]["1"] == UUID(int=1)
 
 
+def test_parse_skip_legacy_keys_csv_trims_and_splits() -> None:
+    assert parse_skip_legacy_keys_csv(" 1 , 2 , ") == frozenset({"1", "2"})
+    assert parse_skip_legacy_keys_csv("") == frozenset()
+    assert parse_skip_legacy_keys_csv(None) == frozenset()
+
+
 def test_resolve_importer_context_skips_dependency_check_during_dry_run(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -105,3 +112,41 @@ def test_resolve_importer_context_skips_dependency_check_during_dry_run(
     )
     assert ctx.refs_by_entity == {"venues": {}}
     assert called["has_mapping"] is False
+
+
+def test_resolve_importer_context_merges_skip_legacy_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.imports import refs
+
+    class _CtxImporter:
+        ENTITY: ClassVar[str] = "_ctx_skip_test"
+        DEPENDS_ON: ClassVar[tuple[str, ...]] = ()
+
+        def parse(self, sql_text: str) -> Sequence[Any]:
+            return []
+
+        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+            return ImporterContext(skip_legacy_keys=frozenset({"a"}))
+
+        def apply(
+            self,
+            session: Session,
+            rows: Sequence[Any],
+            ctx: ImporterContext,
+            *,
+            dry_run: bool,
+        ) -> ImportStats:
+            return ImportStats(entity=self.ENTITY)
+
+        def format_preview(self, row: Any, mapped_id: UUID | None) -> str:
+            return ""
+
+    monkeypatch.setattr(refs, "has_mapping", lambda _s, _dep: True)
+    ctx = resolve_importer_context(
+        _CtxImporter(),
+        MagicMock(spec=Session),
+        dry_run=False,
+        skip_legacy_keys=frozenset({"b"}),
+    )
+    assert ctx.skip_legacy_keys == frozenset({"a", "b"})

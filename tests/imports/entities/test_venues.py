@@ -204,6 +204,41 @@ def test_apply_venues_skips_duplicate_case_insensitive(
     session.add.assert_not_called()
 
 
+def test_apply_venues_skips_excluded_legacy_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.imports.entities import venues as mod
+
+    hk = uuid.uuid4()
+    area = uuid.uuid4()
+    monkeypatch.setattr(mod, "_hk_country_id", lambda _s: hk)
+    monkeypatch.setattr(
+        mod,
+        "_district_area_map",
+        lambda _s, _h: {"Central": area},
+    )
+
+    session = MagicMock()
+    session.execute.return_value.all.return_value = []
+
+    venues = [
+        LegacyVenue(
+            legacy_id=42,
+            name="Foo",
+            address="1 St",
+            district_id=1,
+            district_label="Central",
+        )
+    ]
+    stats = apply_venues(
+        session,
+        venues,
+        dry_run=False,
+        skip_legacy_keys=frozenset({"42"}),
+    )
+    assert stats.inserted == 0
+    assert stats.skipped_excluded_key == 1
+    session.add.assert_not_called()
+
+
 def test_apply_venues_skips_no_area(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.imports.entities import venues as mod
 
