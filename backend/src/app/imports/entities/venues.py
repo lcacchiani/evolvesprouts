@@ -13,9 +13,12 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import GeographicArea
 from app.db.models import Location
 from app.imports import mysqldump
+from app.imports.entities._locations_common import (
+    district_area_map as _district_area_map_fn,
+)
+from app.imports.entities._locations_common import hk_country_id as _hk_country_id_fn
 from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
 from app.imports.base import preview_line
@@ -103,30 +106,6 @@ def _parse_legacy_venues(
             )
         )
     return rows
-
-
-def _hk_country_id(session: Session) -> UUID:
-    q = select(GeographicArea.id).where(
-        GeographicArea.parent_id.is_(None),
-        GeographicArea.code == "HK",
-        GeographicArea.level == "country",
-    )
-    row = session.execute(q).scalar_one_or_none()
-    if row is None:
-        msg = "No geographic_areas row for Hong Kong (code=HK, root). Run migrations."
-        raise RuntimeError(msg)
-    return UUID(str(row))
-
-
-def _district_area_map(session: Session, hk_id: UUID) -> dict[str, UUID]:
-    q = select(GeographicArea.id, GeographicArea.name).where(
-        GeographicArea.parent_id == hk_id,
-        GeographicArea.level == "district",
-    )
-    m: dict[str, UUID] = {}
-    for aid, name in session.execute(q).all():
-        m[str(name)] = UUID(str(aid))
-    return m
 
 
 def _dedupe_key(name: str | None, address: str | None) -> tuple[str, str]:
@@ -327,6 +306,11 @@ def parse_legacy_venues(
     districts: Mapping[int, str] | None = None,
 ) -> list[LegacyVenue]:
     return _parse_legacy_venues(sql_text, districts=districts)
+
+
+# Backwards-compatible aliases for tests and monkeypatching.
+_hk_country_id = _hk_country_id_fn
+_district_area_map = _district_area_map_fn
 
 
 def apply_venues(

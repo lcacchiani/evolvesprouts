@@ -104,10 +104,47 @@ INSERT_RE = re.compile(
     r"(?:`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)\s*\.\s*"
     r")?"
     r"(?:`(?P<table_bt>[^`]+)`|(?P<table_bare>[A-Za-z_][A-Za-z0-9_]*))"
-    r"\s*(?:\([^)]*\))?"
+    r"\s*(?:\((?P<cols>[^)]+)\))?"
     r"\s+VALUES\s*(?P<rest>.+?);",
     re.IGNORECASE | re.DOTALL,
 )
+
+
+def parse_insert_column_names(stmt: str) -> list[str] | None:
+    """Return normalized column names if the INSERT lists them, else None."""
+    m = INSERT_RE.match(stmt)
+    if m is None:
+        return None
+    raw = m.group("cols")
+    if raw is None:
+        return None
+    names: list[str] = []
+    for part in raw.split(","):
+        p = part.strip()
+        if p.startswith("`") and p.endswith("`") and len(p) >= 2:
+            names.append(p[1:-1])
+        else:
+            names.append(p)
+    return names
+
+
+def row_dict_from_fields(
+    column_names: list[str] | None,
+    fields: list[str | None],
+    *,
+    positional_fallback: dict[int, str],
+) -> dict[str, str | None]:
+    """Map split field values to names; use ``positional_fallback`` when unnamed."""
+    out: dict[str, str | None] = {}
+    if column_names is not None and len(column_names) == len(fields):
+        for name, val in zip(column_names, fields, strict=True):
+            out[name] = val
+        return out
+    for idx, val in enumerate(fields):
+        key = positional_fallback.get(idx)
+        if key is not None:
+            out[key] = val
+    return out
 
 
 def _table_name_from_insert_match(m: re.Match[str]) -> str:
