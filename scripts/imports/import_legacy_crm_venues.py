@@ -142,20 +142,39 @@ def _parse_sql_atom(raw: str) -> str | None:
     return s
 
 
-# mysqldump often emits `INSERT INTO `t` (`c1`, `c2`) VALUES ...`; support both that
-# and the shorter `INSERT INTO `t` VALUES ...` form.
+# mysqldump often emits:
+# - `INSERT INTO `db`.`t` (`c1`,...) VALUES ...` (qualified table name)
+# - `INSERT INTO `t` (`c1`,...) VALUES ...`
+# - `INSERT INTO t VALUES ...` (unquoted identifiers)
+# The first form must not capture `db` as the table name.
 _INSERT_RE = re.compile(
-    r"INSERT\s+INTO\s+`(?P<table>[^`]+)`"
+    r"INSERT\s+INTO\s+"
+    r"(?:"  # optional schema (backtick or bare identifier)
+    r"(?:`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)\s*\.\s*"
+    r")?"
+    r"(?:`(?P<table_bt>[^`]+)`|(?P<table_bare>[A-Za-z_][A-Za-z0-9_]*))"
     r"\s*(?:\([^)]*\))?"
     r"\s+VALUES\s*(?P<rest>.+?);",
     re.IGNORECASE | re.DOTALL,
 )
 
 
+def _table_name_from_insert_match(m: re.Match[str]) -> str:
+    bt = m.group("table_bt")
+    if bt is not None:
+        return bt
+    bare = m.group("table_bare")
+    if bare is not None:
+        return bare
+    msg = "INSERT match missing table name groups"
+    raise RuntimeError(msg)
+
+
 def _extract_insert_statement(sql_text: str, table: str) -> str | None:
+    want = table.lower()
     m = _INSERT_RE.search(sql_text)
     while m:
-        if m.group("table").lower() == table.lower():
+        if _table_name_from_insert_match(m).lower() == want:
             return m.group(0)
         m = _INSERT_RE.search(sql_text, m.end())
     return None
