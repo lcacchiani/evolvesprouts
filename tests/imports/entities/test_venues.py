@@ -104,6 +104,17 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
     stats = apply_venues(session, venues, dry_run=True)
     assert stats.inserted == 1
     assert stats.skipped_duplicate == 0
+    assert len(stats.row_details) == 1
+    rd = stats.row_details[0]
+    assert rd["legacy_source"]["table"] == "venue"
+    assert rd["legacy_source"]["primary_key"]["id"] == 1
+    loc_tbl = next(t for t in rd["target"]["tables"] if t["table"] == "locations")
+    assert loc_tbl["columns"] == ["area_id", "name", "address", "lat", "lng"]
+    assert loc_tbl["values"]["area_id"] == str(area)
+    assert loc_tbl["values"]["name"] == "  Foo Bar  "
+    assert loc_tbl["values"]["address"] == "1 St"
+    ref_tbl = next(t for t in rd["target"]["tables"] if t["table"] == "legacy_import_refs")
+    assert ref_tbl["values"]["new_id"] is None
     assert (
         stats.preview[0]
         == "Would insert: name='  Foo Bar  ' | address='1 St' | area='Central'"
@@ -148,6 +159,11 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
     ]
     stats = apply_venues(session, venues, dry_run=False)
     assert stats.inserted == 1
+    assert len(stats.row_details) == 1
+    ref_tbl = next(
+        t for t in stats.row_details[0]["target"]["tables"] if t["table"] == "legacy_import_refs"
+    )
+    assert ref_tbl["values"]["new_id"] == str(assigned_id)
     session.add.assert_called_once()
     session.flush.assert_called()
     session.commit.assert_called_once()
