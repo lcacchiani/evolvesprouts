@@ -2097,7 +2097,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     const importLegacyVenuesFunction = createPythonFunction(
-      "EvolvesproutsImportLegacyVenuesFunction",
+      "ImportLegacyVenuesFunction",
       {
         handler: "lambda/imports/legacy_crm/handler.lambda_handler",
         timeout: cdk.Duration.minutes(10),
@@ -3431,7 +3431,7 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ImportLegacyVenuesFunctionName", {
       value: importLegacyVenuesFunction.functionName,
       description:
-        "Physical name for EvolvesproutsImportLegacyVenuesFunction (GitHub IMPORT_LAMBDA_FUNCTION_NAME)",
+        "Physical name for ImportLegacyVenuesFunction (GitHub IMPORT_LAMBDA_FUNCTION_NAME)",
     });
 
     new cdk.CfnOutput(this, "ImportLegacyFunctionName", {

@@ -114,6 +114,11 @@ repo root
     helpers.
   - Keep `backend/src/app/api/admin.py` focused on request dispatch orchestration.
 
+### CDK Lambda physical names (`backend/infrastructure/**`)
+
+- Stack helpers set physical Lambda names to `${resourcePrefix}-${constructId}` (CloudWatch log groups follow `/aws/lambda/${functionName}`). **Do not** use construct ids that repeat the product or `resourcePrefix` token (for example `EvolvesproutsFooFunction` when `resourcePrefix` is `evolvesprouts`), or the deployed name becomes redundant (`evolvesprouts-EvolvesproutsFooFunction`). Prefer a single descriptive PascalCase id without a second product prefix (for example `ImportLegacyVenuesFunction`, `AwsApiProxyFunction`).
+- Renaming a Lambda construct id replaces the CloudFormation resource; update `docs/architecture/lambdas.md`, `docs/architecture/aws-assets-map.md`, and any workflow or IAM examples that reference the physical name.
+
 ## Database change rules (MANDATORY for schema changes)
 
 - Alembic revision IDs must be <= 32 characters.
