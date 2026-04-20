@@ -31,242 +31,25 @@ Environment:
 from __future__ import annotations
 
 import argparse
-import os
-import re
 import sys
 from pathlib import Path
-from uuid import UUID
 
 # Repo layout: scripts/imports/ -> backend/src
 _BACKEND_SRC = Path(__file__).resolve().parents[2] / "backend" / "src"
 if str(_BACKEND_SRC) not in sys.path:
     sys.path.insert(0, str(_BACKEND_SRC))
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
-from app.db.models import GeographicArea, Location
+from app.imports.legacy_crm_venues import apply_venues
+from app.imports.legacy_crm_venues import parse_legacy_districts
+from app.imports.legacy_crm_venues import parse_legacy_venues
+from app.utils.logging import configure_logging
+from app.utils.logging import get_logger
 
-
-def _iter_mysql_insert_groups(values_sql: str) -> list[str]:
-    """Split a MySQL ``VALUES (..),(..)`` fragment into ``(..)`` group strings."""
-    depth = 0
-    start: int | None = None
-    i = 0
-    groups: list[str] = []
-    in_string = False
-    n = len(values_sql)
-    while i < n:
-        c = values_sql[i]
-        if in_string:
-            if c == "'" and i + 1 < n and values_sql[i + 1] == "'":
-                i += 2
-                continue
-            if c == "'":
-                in_string = False
-            i += 1
-            continue
-        if c == "'":
-            in_string = True
-            i += 1
-            continue
-        if c == "(":
-            depth += 1
-            if depth == 1:
-                start = i
-            i += 1
-            continue
-        if c == ")":
-            if depth == 1 and start is not None:
-                groups.append(values_sql[start : i + 1])
-                start = None
-            depth -= 1
-            i += 1
-            continue
-        i += 1
-    return groups
-
-
-def _split_mysql_tuple_fields(inner: str) -> list[str | None]:
-    """Parse fields inside one ``(...)`` group. Handles quoted strings and NULL."""
-    inner = inner.strip()
-    if not (inner.startswith("(") and inner.endswith(")")):
-        msg = f"Expected tuple wrapped in parentheses, got: {inner[:80]!r}"
-        raise ValueError(msg)
-    body = inner[1:-1]
-    fields: list[str | None] = []
-    i = 0
-    buf: list[str] = []
-    in_string = False
-    while i < len(body):
-        c = body[i]
-        if in_string:
-            if c == "'" and i + 1 < len(body) and body[i + 1] == "'":
-                buf.append("'")
-                i += 2
-                continue
-            if c == "'":
-                in_string = False
-                i += 1
-                continue
-            buf.append(c)
-            i += 1
-            continue
-        if c == "'":
-            in_string = True
-            buf = []
-            i += 1
-            continue
-        if c == ",":
-            raw = "".join(buf).strip()
-            fields.append(_parse_sql_atom(raw))
-            buf = []
-            i += 1
-            continue
-        if c.isspace():
-            i += 1
-            continue
-        buf.append(c)
-        i += 1
-    tail = "".join(buf).strip()
-    if tail or fields:
-        fields.append(_parse_sql_atom(tail))
-    return fields
-
-
-def _parse_sql_atom(raw: str) -> str | None:
-    s = raw.strip()
-    if s.upper() == "NULL" or s == "":
-        return None
-    return s
-
-
-# mysqldump often emits:
-# - `INSERT INTO `db`.`t` (`c1`,...) VALUES ...` (qualified table name)
-# - `INSERT INTO `t` (`c1`,...) VALUES ...`
-# - `INSERT INTO t VALUES ...` (unquoted identifiers)
-# The first form must not capture `db` as the table name.
-_INSERT_RE = re.compile(
-    r"INSERT\s+INTO\s+"
-    r"(?:"  # optional schema (backtick or bare identifier)
-    r"(?:`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)\s*\.\s*"
-    r")?"
-    r"(?:`(?P<table_bt>[^`]+)`|(?P<table_bare>[A-Za-z_][A-Za-z0-9_]*))"
-    r"\s*(?:\([^)]*\))?"
-    r"\s+VALUES\s*(?P<rest>.+?);",
-    re.IGNORECASE | re.DOTALL,
-)
-
-
-def _table_name_from_insert_match(m: re.Match[str]) -> str:
-    bt = m.group("table_bt")
-    if bt is not None:
-        return bt
-    bare = m.group("table_bare")
-    if bare is not None:
-        return bare
-    msg = "INSERT match missing table name groups"
-    raise RuntimeError(msg)
-
-
-def _extract_insert_statement(sql_text: str, table: str) -> str | None:
-    want = table.lower()
-    m = _INSERT_RE.search(sql_text)
-    while m:
-        if _table_name_from_insert_match(m).lower() == want:
-            return m.group(0)
-        m = _INSERT_RE.search(sql_text, m.end())
-    return None
-
-
-def _parse_legacy_districts(sql_text: str) -> dict[int, str]:
-    stmt = _extract_insert_statement(sql_text, "district")
-    if stmt is None:
-        msg = "Could not find INSERT INTO `district` in dump."
-        raise ValueError(msg)
-    m = _INSERT_RE.match(stmt)
-    if m is None:
-        raise ValueError("Unexpected district INSERT shape.")
-    rest = m.group("rest").rstrip()
-    if rest.endswith(";"):
-        rest = rest[:-1].rstrip()
-    groups = _iter_mysql_insert_groups(rest)
-    out: dict[int, str] = {}
-    for g in groups:
-        fields = _split_mysql_tuple_fields(g)
-        if len(fields) < 2:
-            continue
-        did = int(str(fields[0]))
-        name = str(fields[1])
-        out[did] = name
-    return out
-
-
-def _parse_legacy_venues(sql_text: str) -> list[dict[str, object]]:
-    stmt = _extract_insert_statement(sql_text, "venue")
-    if stmt is None:
-        msg = "Could not find INSERT INTO `venue` in dump."
-        raise ValueError(msg)
-    m = _INSERT_RE.match(stmt)
-    if m is None:
-        raise ValueError("Unexpected venue INSERT shape.")
-    rest = m.group("rest").rstrip()
-    if rest.endswith(";"):
-        rest = rest[:-1].rstrip()
-    groups = _iter_mysql_insert_groups(rest)
-    rows: list[dict[str, object]] = []
-    for g in groups:
-        fields = _split_mysql_tuple_fields(g)
-        if len(fields) < 5:
-            continue
-        legacy_id = int(str(fields[0]))
-        name = str(fields[1]) if fields[1] is not None else ""
-        line1 = fields[2]
-        line2 = fields[3]
-        district_raw = fields[4]
-        district_id = int(str(district_raw)) if district_raw is not None else None
-        parts = [p for p in (line1, line2) if p]
-        address = ", ".join(parts) if parts else None
-        rows.append(
-            {
-                "legacy_id": legacy_id,
-                "name": name.strip() or None,
-                "address": address,
-                "district_id": district_id,
-            }
-        )
-    return rows
-
-
-def _hk_country_id(session: Session) -> UUID:
-    q = select(GeographicArea.id).where(
-        GeographicArea.parent_id.is_(None),
-        GeographicArea.code == "HK",
-        GeographicArea.level == "country",
-    )
-    row = session.execute(q).scalar_one_or_none()
-    if row is None:
-        msg = "No geographic_areas row for Hong Kong (code=HK, root). Run migrations."
-        raise RuntimeError(msg)
-    return UUID(str(row))
-
-
-def _district_area_map(session: Session, hk_id: UUID) -> dict[str, UUID]:
-    q = select(GeographicArea.id, GeographicArea.name).where(
-        GeographicArea.parent_id == hk_id,
-        GeographicArea.level == "district",
-    )
-    m: dict[str, UUID] = {}
-    for aid, name in session.execute(q).all():
-        m[str(name)] = UUID(str(aid))
-    return m
-
-
-def _dedupe_key(name: str | None, address: str | None) -> tuple[str, str]:
-    n = (name or "").strip().lower()
-    a = (address or "").strip().lower()
-    return (n, a)
+configure_logging()
+logger = get_logger(__name__)
 
 
 def main() -> int:
@@ -286,73 +69,23 @@ def main() -> int:
     args = parser.parse_args()
     path: Path = args.sql_path
     if not path.is_file():
-        print(f"File not found: {path}", file=sys.stderr)
+        logger.error("File not found: %s", path)
         return 1
 
     sql_text = path.read_text(encoding="utf-8", errors="replace")
-    districts = _parse_legacy_districts(sql_text)
-    venues = _parse_legacy_venues(sql_text)
+    districts = parse_legacy_districts(sql_text)
+    venues = parse_legacy_venues(sql_text, districts=districts)
 
     engine = get_engine(use_cache=False)
-    inserted = 0
-    skipped_dup = 0
-    skipped_area = 0
-
     with Session(engine) as session:
-        hk_id = _hk_country_id(session)
-        area_by_name = _district_area_map(session, hk_id)
+        stats = apply_venues(session, venues, dry_run=args.dry_run)
 
-        existing_keys: set[tuple[str, str]] = set()
-        for loc in session.execute(select(Location.name, Location.address)).all():
-            existing_keys.add(_dedupe_key(loc[0], loc[1]))
-
-        for v in venues:
-            did = v["district_id"]
-            dname = districts.get(int(did)) if did is not None else None
-            area_id = area_by_name.get(dname) if dname else None
-            if area_id is None:
-                print(
-                    f"Skip legacy venue id={v['legacy_id']}: "
-                    f"no geographic_areas match for district "
-                    f"id={did!r} name={dname!r}",
-                    file=sys.stderr,
-                )
-                skipped_area += 1
-                continue
-
-            name = v["name"]
-            address = v["address"]
-            key = _dedupe_key(name, address)
-            if key in existing_keys:
-                skipped_dup += 1
-                continue
-
-            if args.dry_run:
-                print(
-                    f"Would insert: {name!r} | {address!r} | area={dname!r}",
-                )
-                inserted += 1
-                existing_keys.add(key)
-                continue
-
-            loc = Location(
-                area_id=area_id,
-                name=name,
-                address=address,
-                lat=None,
-                lng=None,
-            )
-            session.add(loc)
-            session.flush()
-            inserted += 1
-            existing_keys.add(key)
-
-        if not args.dry_run:
-            session.commit()
-
-    print(
-        f"Done. inserted={inserted} skipped_duplicate={skipped_dup} "
-        f"skipped_no_area={skipped_area} dry_run={args.dry_run}",
+    logger.info(
+        "Done. inserted=%s skipped_duplicate=%s skipped_no_area=%s dry_run=%s",
+        stats.inserted,
+        stats.skipped_duplicate,
+        stats.skipped_no_area,
+        stats.dry_run,
     )
     return 0
 

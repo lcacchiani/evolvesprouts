@@ -1315,6 +1315,43 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
+    // Ephemeral legacy-import SQL dumps (GitHub Actions upload + import Lambda read)
+    const importDumpBucketName = [
+      name("import-dump"),
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
+
+    const importDumpBucket = new s3.Bucket(this, "ImportDumpBucket", {
+      bucketName: importDumpBucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      lifecycleRules: [
+        {
+          id: "ExpireImportDumps",
+          enabled: true,
+          expiration: cdk.Duration.days(7),
+          noncurrentVersionExpiration: cdk.Duration.days(7),
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
+      ],
+    });
+
+    const importDumpBucketCfn = importDumpBucket.node
+      .defaultChild as s3.CfnBucket;
+    importDumpBucketCfn.addMetadata("checkov", {
+      skip: [
+        {
+          id: "CKV_AWS_18",
+          comment:
+            "Ephemeral import dumps - lifecycle-bounded; access logging not required",
+        },
+      ],
+    });
+
     // Assets bucket
     const assetsBucketName = [
       name("assets"),
@@ -2058,6 +2095,29 @@ export class ApiStack extends cdk.Stack {
       sourceArn: cdk.Stack.of(this).stackId,
       sourceAccount: cdk.Stack.of(this).account,
     });
+
+    const importLegacyVenuesFunction = createPythonFunction(
+      "EvolvesproutsImportLegacyVenuesFunction",
+      {
+        handler: "lambda/imports/legacy_crm_venues/handler.lambda_handler",
+        timeout: cdk.Duration.minutes(5),
+        memorySize: 512,
+        reservedConcurrentExecutions: 1,
+        environment: {
+          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
+          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+          DATABASE_IAM_AUTH: "true",
+          IMPORT_DUMP_BUCKET_NAME: importDumpBucket.bucketName,
+          MAX_IMPORT_DUMP_BYTES: "2097152",
+        },
+      }
+    );
+    database.grantAdminUserSecretRead(importLegacyVenuesFunction);
+    database.grantConnect(importLegacyVenuesFunction, "evolvesprouts_admin");
+    importDumpBucket.grantRead(importLegacyVenuesFunction);
+    importLegacyVenuesFunction.node.addDependency(database.cluster);
 
     // Auth Lambda triggers
     const preSignUpFunction = createPythonFunction("AuthPreSignUpFunction", {

@@ -1,27 +1,23 @@
 # Manual import of legacy CRM venues from a MariaDB SQL dump into PostgreSQL `locations`.
-# The import script accepts mysqldump-style inserts including optional schema
-# qualifiers (`db`.`table`), column lists, and unquoted table names.
 #
-# The dump file is not stored in git. Provide either:
-# - `sql_download_url` when running the workflow (HTTPS URL to the .sql file), or
-# - repository secret `IMPORT_LEGACY_CRM_SQL_URL` (same), if you leave the input empty.
+# Flow: download the .sql (HTTPS URL or secret) on the runner → enforce ≤ 2 MB →
+# upload to the dedicated import S3 bucket → invoke `EvolvesproutsImportLegacyVenuesFunction`
+# with `{ s3_bucket, s3_key, dry_run }`. The Lambda reads the object, parses mysqldump-style
+# INSERTs, and writes to Aurora via RDS Proxy + IAM as `evolvesprouts_admin`.
 #
-# Database connection (same resolution as app code / optional Alembic):
+# **Production only** — the workflow exits unless the selected GitHub Environment name is
+# `production` (staging is out of scope for this path).
 #
-# Option A — Direct URL (typical for local Alembic: export DATABASE_URL=...):
-#   Set secret `DATABASE_URL` on the GitHub Environment.
+# GitHub Environment (production) configuration:
+# - vars: `AWS_ACCOUNT_ID`, `AWS_REGION`, `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`
+#   (`IMPORT_LAMBDA_FUNCTION_NAME` must match CDK `name("EvolvesproutsImportLegacyVenuesFunction")`,
+#   e.g. `evolvesprouts-EvolvesproutsImportLegacyVenuesFunction`).
+# - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` — used when `sql_download_url` input is empty.
 #
-# Option B — AWS CDK / Lambda-style (Secrets Manager + RDS Proxy + IAM), matching
-#   `app.db.connection.get_database_url`:
-#   Do **not** set DATABASE_URL. Set `DATABASE_SECRET_ARN` and configure AWS OIDC
-#   below. Also set vars aligned with CDK Lambda env, for example:
-#   - DATABASE_PROXY_ENDPOINT, DATABASE_USERNAME, DATABASE_NAME
-#   - DATABASE_IAM_AUTH=true
-#   - AWS_REGION
-#   The workflow assumes `arn:aws:iam::<AWS_ACCOUNT_ID>:role/GitHubActionsRole`
-#   when `vars.AWS_ACCOUNT_ID` is set (same pattern as deploy-backend).
+# IAM: `GitHubActionsRole` must allow `s3:PutObject` on the import bucket prefix and
+# `lambda:InvokeFunction` on the import Lambda ARN (see `docs/architecture/aws-assets-map.md`).
 #
-# Security: presigned URLs and database URLs are sensitive. Do not echo them in steps.
+# Security: presigned URLs are sensitive. Do not echo download URLs in logs.
 
 name: Import legacy CRM venues
 
@@ -34,15 +30,19 @@ on:
         required: false
         type: string
       dry_run:
-        description: If true, parse and print rows but do not insert into the database.
+        description: If true, parse and resolve areas but do not insert into the database.
         required: false
         default: true
         type: boolean
       environment:
         description: >
-          GitHub Environment that provides DATABASE_URL or DATABASE_SECRET_ARN (+ AWS vars).
+          GitHub Environment (must be `production` for this workflow).
         required: true
         type: environment
+
+concurrency:
+  group: import-legacy-crm-venues
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -50,29 +50,22 @@ permissions:
 
 jobs:
   import:
-    name: Run import script
+    name: Upload dump and run import Lambda
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
-
-      - name: Install Python dependencies
+      - name: Validate environment (production only)
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements.txt
+          set -euo pipefail
+          if [ "$ENVIRONMENT" != "production" ]; then
+            echo "This workflow is restricted to the production environment." >&2
+            exit 1
+          fi
 
-      # Note: `secrets` is not available in `if:` expressions. Gate on vars used for
-      # the CDK/IAM path (same as deploy-backend); DATABASE_SECRET_ARN is validated in the import step.
-      - name: Configure AWS credentials (Secrets Manager + IAM DB auth)
+      - name: Configure AWS credentials (OIDC)
         if: ${{ vars.AWS_ACCOUNT_ID != '' }}
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -95,36 +88,71 @@ jobs:
             exit 1
           fi
           curl -fsSL "$URL" -o "${RUNNER_TEMP}/legacy_crm_venues.sql"
-          echo "Downloaded SQL dump to ${RUNNER_TEMP}/legacy_crm_venues.sql (size $(wc -c < "${RUNNER_TEMP}/legacy_crm_venues.sql") bytes)"
-
-      - name: Import venues
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DATABASE_SECRET_ARN: ${{ secrets.DATABASE_SECRET_ARN }}
-          DATABASE_PROXY_ENDPOINT: ${{ vars.DATABASE_PROXY_ENDPOINT }}
-          DATABASE_USERNAME: ${{ vars.DATABASE_USERNAME }}
-          DATABASE_NAME: ${{ vars.DATABASE_NAME }}
-          DATABASE_PORT: ${{ vars.DATABASE_PORT }}
-          DATABASE_IAM_AUTH: ${{ vars.DATABASE_IAM_AUTH }}
-          DATABASE_SSLMODE: ${{ vars.DATABASE_SSLMODE }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: |
-          set -euo pipefail
-          if [ -z "${DATABASE_URL:-}" ] && [ -z "${DATABASE_SECRET_ARN:-}" ]; then
-            echo "Set either DATABASE_URL or DATABASE_SECRET_ARN on this environment." >&2
-            echo "For CDK/IAM: set DATABASE_SECRET_ARN and AWS_ACCOUNT_ID (for OIDC), plus proxy/user vars." >&2
+          SIZE=$(wc -c < "${RUNNER_TEMP}/legacy_crm_venues.sql")
+          echo "Downloaded SQL dump ($SIZE bytes)"
+          if [ "$SIZE" -gt 2097152 ]; then
+            echo "Dump exceeds 2 MB; reduce size or split the import." >&2
             exit 1
           fi
-          if [ -n "${DATABASE_SECRET_ARN:-}" ] && [ -z "${DATABASE_URL:-}" ]; then
-            if [ -z "${AWS_REGION:-}" ]; then
-              echo "AWS_REGION (var) is required when using DATABASE_SECRET_ARN without DATABASE_URL." >&2
-              exit 1
-            fi
+
+      - name: Upload dump to S3
+        env:
+          IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+        run: |
+          set -euo pipefail
+          if [ -z "${IMPORT_DUMP_BUCKET:-}" ]; then
+            echo "Set IMPORT_DUMP_BUCKET_NAME on the GitHub environment." >&2
+            exit 1
+          fi
+          KEY="dumps/${GITHUB_RUN_ID}/legacy_crm_venues.sql"
+          aws s3 cp "${RUNNER_TEMP}/legacy_crm_venues.sql" \
+            "s3://${IMPORT_DUMP_BUCKET}/${KEY}" \
+            --sse AES256
+          echo "IMPORT_S3_KEY=${KEY}" >> "${GITHUB_ENV}"
+
+      - name: Invoke import Lambda
+        env:
+          BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          KEY: ${{ env.IMPORT_S3_KEY }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          FUNC: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FUNC:-}" ]; then
+            echo "Set IMPORT_LAMBDA_FUNCTION_NAME on the GitHub environment." >&2
+            exit 1
           fi
           if [ "${DRY_RUN}" = "true" ]; then
-            python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql" --dry-run
+            DRY_JSON=true
           else
-            python scripts/imports/import_legacy_crm_venues.py "${RUNNER_TEMP}/legacy_crm_venues.sql"
+            DRY_JSON=false
+          fi
+          PAYLOAD=$(jq -cn --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" \
+            '{s3_bucket:$b, s3_key:$k, dry_run:$d}')
+          META=$(aws lambda invoke \
+            --function-name "$FUNC" \
+            --cli-binary-format raw-in-base64-out \
+            --payload "$PAYLOAD" \
+            --log-type Tail \
+            --output json \
+            lambda-response-payload.json)
+          echo "$META" | jq .
+          echo "## Lambda function payload" >> "${GITHUB_STEP_SUMMARY}"
+          jq -e '.' lambda-response-payload.json >> "${GITHUB_STEP_SUMMARY}"
+          if echo "$META" | jq -e '.FunctionError != null' >/dev/null 2>&1; then
+            echo "Lambda reported FunctionError" >&2
+            echo "$META" >&2
+            cat lambda-response-payload.json >&2
+            exit 1
+          fi
+          if jq -e 'has("errorMessage")' lambda-response-payload.json >/dev/null 2>&1; then
+            echo "Lambda payload contains errorMessage" >&2
+            cat lambda-response-payload.json >&2
+            exit 1
+          fi
+          LOG_B64=$(echo "$META" | jq -r '.LogResult // empty')
+          if [ -n "$LOG_B64" ]; then
+            echo "" >> "${GITHUB_STEP_SUMMARY}"
+            echo "### CloudWatch Logs (tail, base64-decoded)" >> "${GITHUB_STEP_SUMMARY}"
+            echo "$LOG_B64" | base64 -d >> "${GITHUB_STEP_SUMMARY}" || true
           fi

@@ -232,6 +232,15 @@ their primary responsibilities.
 - Purpose: run Alembic migrations and optional seed SQL
 - DB access: direct cluster endpoint with password auth
 
+### Import legacy CRM venues
+- Function: EvolvesproutsImportLegacyVenuesFunction
+- Handler: backend/lambda/imports/legacy_crm_venues/handler.py
+- Trigger: direct `aws lambda invoke` only (for example from GitHub Actions after uploading a dump)
+- Purpose: download a mysqldump-style `.sql` from the dedicated import S3 bucket, parse legacy `district` / `venue` INSERTs, and upsert rows into `locations` with HK district → `geographic_areas` resolution (same logic as `scripts/imports/import_legacy_crm_venues.py`)
+- DB access: RDS Proxy with IAM auth as `evolvesprouts_admin` (admin user secret; matches admin API path)
+- Other dependencies: S3 read on the import bucket only; `HeadObject` enforces `MAX_IMPORT_DUMP_BYTES` (2 MiB) before download; reserved concurrency `1` to avoid concurrent imports
+- Invocation payload (JSON): `{ "s3_bucket": "<import bucket name>", "s3_key": "<object key>", "dry_run": <bool> }` — `s3_bucket` must match `IMPORT_DUMP_BUCKET_NAME` in the Lambda environment
+
 ### Admin bootstrap
 - Function: AdminBootstrapFunction
 - Handler: backend/lambda/admin_bootstrap/handler.py
