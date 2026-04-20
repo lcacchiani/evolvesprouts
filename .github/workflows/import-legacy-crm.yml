@@ -2,7 +2,7 @@
 #
 # Flow: download the .sql → enforce ≤ 2 MB → upload to the import S3 bucket under
 # `dumps/<entity>/<run_id>/<entity>.sql` → invoke ImportLegacyVenuesFunction
-# with `{ entity, s3_bucket, s3_key, dry_run }`. The Lambda dispatches to the registered
+# with `{ entity, s3_bucket, s3_key, dry_run [, skip_legacy_keys] }`. The Lambda dispatches to the registered
 # importer for that entity.
 #
 # **Production only** — fails unless the GitHub Environment name is `production`.
@@ -43,6 +43,12 @@ on:
         required: false
         default: true
         type: boolean
+      skip_legacy_keys:
+        description: >
+          Comma-separated legacy primary-key values to exclude from this import (e.g. venue ids).
+          Leave empty to import every row from the dump.
+        required: false
+        type: string
       environment:
         description: GitHub Environment (must be `production` for this workflow).
         required: true
@@ -228,6 +234,7 @@ jobs:
           BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
           KEY: ${{ env.IMPORT_S3_KEY }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
+          SKIP_LEGACY_KEYS: ${{ github.event.inputs.skip_legacy_keys }}
           FUNC: ${{ env.IMPORT_LAMBDA_FUNCTION }}
         run: |
           set -euo pipefail
@@ -240,9 +247,16 @@ jobs:
           else
             DRY_JSON=false
           fi
-          PAYLOAD=$(jq -cn \
-            --arg e "$ENTITY" --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" \
-            '{entity:$e, s3_bucket:$b, s3_key:$k, dry_run:$d}')
+          SKIP_TRIMMED=$(echo "${SKIP_LEGACY_KEYS:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          if [ -z "$SKIP_TRIMMED" ]; then
+            PAYLOAD=$(jq -cn \
+              --arg e "$ENTITY" --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" \
+              '{entity:$e, s3_bucket:$b, s3_key:$k, dry_run:$d}')
+          else
+            PAYLOAD=$(jq -cn \
+              --arg e "$ENTITY" --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" --arg sk "$SKIP_TRIMMED" \
+              '{entity:$e, s3_bucket:$b, s3_key:$k, dry_run:$d, skip_legacy_keys:$sk}')
+          fi
           META=$(aws lambda invoke \
             --function-name "$FUNC" \
             --cli-binary-format raw-in-base64-out \
