@@ -12,14 +12,18 @@
 # - optional vars: `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`
 #   (if omitted, workflow resolves from stack outputs `ImportDumpBucketName` and
 #   `ImportLegacyFunctionName`/`ImportLegacyVenuesFunctionName` on stack `evolvesprouts`).
-# - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` when `sql_download_url` is empty.
+# - optional var: `IMPORT_LEGACY_CRM_SQL_OBJECT_KEY` — S3 object key (within the import bucket)
+#   for an existing .sql file. Used when `sql_download_url` and secret `IMPORT_LEGACY_CRM_SQL_URL`
+#   are both empty: the workflow checks the object exists, enforces size ≤ 2 MiB, passes it to the
+#   Lambda, and does **not** delete this object after the run (ephemeral `dumps/...` uploads are still removed).
+# - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` when `sql_download_url` is empty (HTTPS download).
 # - Obsolete for this workflow: runner-side `DATABASE_*` secrets — not used.
 #
 # IAM: `GitHubActionsRole` needs `s3:PutObject`, `s3:DeleteObject` on `dumps/*`, and
 # `lambda:GetFunction` + `lambda:InvokeFunction` on the import Lambda.
 #
-# Security: do not echo presigned URLs. Step summary shows counts; when the Lambda sets
-# `preview_allowed: false` (PII entities), preview lines and row_details are omitted from the summary.
+# Security: do not echo presigned URLs. Step summary shows counts; for PII entities,
+# `preview_allowed` is false on non-dry-run; dry-run still returns preview/row_details.
 # CloudWatch logs are not echoed into the summary to avoid accidental data leakage.
 
 name: Import legacy CRM
@@ -39,7 +43,8 @@ on:
           - notes
       sql_download_url:
         description: >
-          HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL is set).
+          HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL or
+          repository var IMPORT_LEGACY_CRM_SQL_OBJECT_KEY is set).
         required: false
         type: string
       dry_run:
@@ -190,21 +195,46 @@ jobs:
             exit 1
           fi
 
-      - name: Download SQL dump
+      - name: Download SQL dump or use bucket object key
+        id: sql_dump
         if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           ENTITY: ${{ github.event.inputs.entity }}
           INPUT_URL: ${{ github.event.inputs.sql_download_url }}
           SECRET_URL: ${{ secrets.IMPORT_LEGACY_CRM_SQL_URL }}
+          BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
+          S3_SQL_OBJECT_KEY: ${{ vars.IMPORT_LEGACY_CRM_SQL_OBJECT_KEY }}
         run: |
           set -euo pipefail
+          echo "use_existing_bucket_object=false" >> "${GITHUB_OUTPUT}"
           URL="${INPUT_URL:-}"
           if [ -z "${URL// }" ]; then
             URL="${SECRET_URL:-}"
           fi
           if [ -z "${URL// }" ]; then
-            echo "Provide sql_download_url or set IMPORT_LEGACY_CRM_SQL_URL." >&2
-            exit 1
+            KEY_TRIMMED=$(echo "${S3_SQL_OBJECT_KEY:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [ -z "$KEY_TRIMMED" ]; then
+              echo "Provide sql_download_url, set secret IMPORT_LEGACY_CRM_SQL_URL, or set repository variable IMPORT_LEGACY_CRM_SQL_OBJECT_KEY to an existing object key in the import bucket." >&2
+              exit 1
+            fi
+            if [ -z "${BUCKET:-}" ]; then
+              echo "IMPORT_DUMP_BUCKET is not set." >&2
+              exit 1
+            fi
+            echo "Resolving SQL from s3://${BUCKET}/${KEY_TRIMMED}"
+            if ! aws s3api head-object --bucket "$BUCKET" --key "$KEY_TRIMMED" --output json > /tmp/head.json; then
+              echo "Object not found: s3://${BUCKET}/${KEY_TRIMMED}" >&2
+              exit 1
+            fi
+            SIZE=$(jq -r '.ContentLength // 0' /tmp/head.json)
+            if [ "$SIZE" -gt 2097152 ]; then
+              echo "Dump exceeds 2 MB (size=$SIZE)." >&2
+              exit 1
+            fi
+            echo "Using existing bucket object ($SIZE bytes); Lambda will read this key (no re-upload, no delete of this object)."
+            echo "IMPORT_S3_KEY=${KEY_TRIMMED}" >> "${GITHUB_ENV}"
+            echo "use_existing_bucket_object=true" >> "${GITHUB_OUTPUT}"
+            exit 0
           fi
           curl -fsSL "$URL" -o "${RUNNER_TEMP}/${ENTITY}.sql"
           SIZE=$(wc -c < "${RUNNER_TEMP}/${ENTITY}.sql")
@@ -215,7 +245,7 @@ jobs:
           fi
 
       - name: Upload dump to S3
-        if: ${{ steps.config.outputs.should_run == 'true' }}
+        if: ${{ steps.config.outputs.should_run == 'true' && steps.sql_dump.outputs.use_existing_bucket_object != 'true' }}
         env:
           ENTITY: ${{ github.event.inputs.entity }}
           IMPORT_DUMP_BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
@@ -272,7 +302,7 @@ jobs:
           echo "## Lambda import result" >> "${GITHUB_STEP_SUMMARY}"
           {
             echo '```json'
-            jq 'if .preview_allowed == false then del(.preview, .row_details) else . end' lambda-response-payload.json || cat lambda-response-payload.json
+            jq 'if (.preview_allowed == false) and (.dry_run == false) then del(.preview, .row_details) else . end' lambda-response-payload.json || cat lambda-response-payload.json
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}" || true
           if echo "$META" | jq -e '.FunctionError != null' >/dev/null 2>&1; then
@@ -295,6 +325,10 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${IMPORT_DUMP_BUCKET:-}" ] || [ -z "${KEY:-}" ]; then
+            exit 0
+          fi
+          if [ "${{ steps.sql_dump.outputs.use_existing_bucket_object }}" = "true" ]; then
+            echo "Skipping delete of repository-configured object s3://${IMPORT_DUMP_BUCKET}/${KEY}"
             exit 0
           fi
           aws s3 rm "s3://${IMPORT_DUMP_BUCKET}/${KEY}" || true

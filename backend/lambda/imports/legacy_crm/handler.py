@@ -121,7 +121,12 @@ def _download_dump(bucket: str, key: str, request_id: str) -> str:
             logger.warning("Could not remove temp SQL file at %s", path)
 
 
-def _stats_to_json(stats: ImportStats, *, preview_allowed: bool) -> dict[str, Any]:
+def _stats_to_json(
+    stats: ImportStats,
+    *,
+    preview_allowed: bool,
+    include_preview: bool,
+) -> dict[str, Any]:
     out: dict[str, Any] = {
         "entity": stats.entity,
         "inserted": stats.inserted,
@@ -130,14 +135,15 @@ def _stats_to_json(stats: ImportStats, *, preview_allowed: bool) -> dict[str, An
         "skipped_no_area": stats.skipped_no_area,
         "skipped_location_no_area": stats.skipped_location_no_area,
         "skipped_no_dep": stats.skipped_no_dep,
+        "skipped_household_below_min_links": stats.skipped_household_below_min_links,
         "skipped_deleted": stats.skipped_deleted,
         "reused_existing_contact": stats.reused_existing_contact,
         "dry_run": stats.dry_run,
         "preview_allowed": preview_allowed,
     }
-    if preview_allowed and stats.preview:
+    if include_preview and stats.preview:
         out["preview"] = stats.preview
-    if preview_allowed and stats.row_details:
+    if include_preview and stats.row_details:
         out["row_details"] = stats.row_details
     if stats.diagnostics:
         out["diagnostics"] = stats.diagnostics
@@ -171,16 +177,22 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         stats = importer.apply(session, rows, ctx, dry_run=payload["dry_run"])
 
     preview_allowed = not importer.PII
-    out = _stats_to_json(stats, preview_allowed=preview_allowed)
+    include_preview = preview_allowed or bool(payload["dry_run"])
+    out = _stats_to_json(
+        stats,
+        preview_allowed=preview_allowed,
+        include_preview=include_preview,
+    )
     log_extra: dict[str, Any] = {}
-    if preview_allowed and stats.row_details:
+    if stats.row_details and (preview_allowed or payload["dry_run"]):
         log_extra["import_row_details"] = stats.row_details
     if stats.diagnostics:
         log_extra["import_diagnostics"] = stats.diagnostics
     logger.info(
         "Import complete entity=%s inserted=%s skipped_duplicate=%s "
         "skipped_excluded_key=%s skipped_no_area=%s skipped_location_no_area=%s "
-        "skipped_no_dep=%s skipped_deleted=%s reused_existing_contact=%s dry_run=%s",
+        "skipped_no_dep=%s skipped_household_below_min_links=%s skipped_deleted=%s "
+        "reused_existing_contact=%s dry_run=%s",
         stats.entity,
         stats.inserted,
         stats.skipped_duplicate,
@@ -188,6 +200,7 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         stats.skipped_no_area,
         stats.skipped_location_no_area,
         stats.skipped_no_dep,
+        stats.skipped_household_below_min_links,
         stats.skipped_deleted,
         stats.reused_existing_contact,
         stats.dry_run,

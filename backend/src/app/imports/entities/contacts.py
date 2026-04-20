@@ -215,19 +215,8 @@ class ContactsImporter:
             "legacy_family_id": p.family_id,
             "referral_person_id": p.referral_person_id,
         }
-        fam_refs = ctx.refs_by_entity.get("families", {})
-        org_refs = ctx.refs_by_entity.get("organizations", {})
-        fid = p.family_id
-        org_mode = False
-        if fid is not None:
-            org_mode = (
-                fam_refs.get(str(fid)) is None and org_refs.get(str(fid)) is not None
-            )
-        rel = (
-            RelationshipType.PARTNER
-            if ((p.kind or "").strip().lower() == "partner" and org_mode)
-            else RelationshipType.PROSPECT
-        )
+        k = (p.kind or "").strip().lower()
+        rel = RelationshipType.PARTNER if k == "partner" else RelationshipType.PROSPECT
         cvals: dict[str, Any] = {
             "email": preview_line_email(self, p.email or "") if p.email else None,
             "instagram_handle": preview_line(self, p.instagram_id or "")
@@ -294,8 +283,7 @@ class ContactsImporter:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
         fam_refs = ctx.refs_by_entity.get("families", {})
         org_refs = ctx.refs_by_entity.get("organizations", {})
-        skipped_no_dep_no_family_id = 0
-        skipped_no_dep_parent_unmapped = 0
+        skipped_membership_no_parent_ref = 0
         dial_by_id = (
             parse_legacy_country_dial_codes(ctx.source_sql_text)
             if ctx.source_sql_text
@@ -328,54 +316,105 @@ class ContactsImporter:
                 reuse_id = insta_map.get(insta_key)
 
             fid = p.family_id
-            if fid is None:
-                stats.skipped_no_dep += 1
-                skipped_no_dep_no_family_id += 1
-                continue
-            fam_key = str(fid)
-            parent_uuid: UUID | None = fam_refs.get(fam_key)
+            fam_key = str(fid) if fid is not None else None
+            parent_uuid: UUID | None = None
             org_mode = False
-            if parent_uuid is None:
-                parent_uuid = org_refs.get(fam_key)
-                org_mode = parent_uuid is not None
-            if parent_uuid is None:
-                stats.skipped_no_dep += 1
-                skipped_no_dep_parent_unmapped += 1
-                continue
+            if fam_key is not None:
+                parent_uuid = fam_refs.get(fam_key)
+                if parent_uuid is None:
+                    parent_uuid = org_refs.get(fam_key)
+                    org_mode = parent_uuid is not None
+            wants_membership = fam_key is not None and parent_uuid is not None
 
             if reuse_id is not None:
                 if dry_run:
-                    stats.reused_existing_contact += 1
                     if len(stats.preview) < self.PREVIEW_MAX_ROWS:
-                        stats.preview.append(
+                        msg = (
                             f"Would map legacy person {p.legacy_id} to existing contact "
-                            f"(dedupe); ensure membership to family/org {fam_key}",
+                            f"(dedupe)"
                         )
+                        if wants_membership:
+                            msg += f"; add membership to parent {fam_key}"
+                        else:
+                            msg += "; no family/org membership (parent not in refs)"
+                        stats.preview.append(msg)
+                    if len(stats.row_details) < self.PREVIEW_MAX_ROWS:
+                        mtables: list[dict[str, Any]] = []
+                        if wants_membership:
+                            if org_mode:
+                                mtables.append(
+                                    {
+                                        "table": "organization_members",
+                                        "columns": [
+                                            "organization_id",
+                                            "contact_id",
+                                            "role",
+                                            "title",
+                                        ],
+                                        "values": {
+                                            "organization_id": str(parent_uuid),
+                                            "contact_id": "…",
+                                            "role": _org_role(p.kind).value,
+                                            "title": _title_trim(p.occupation),
+                                        },
+                                    },
+                                )
+                            else:
+                                mtables.append(
+                                    {
+                                        "table": "family_members",
+                                        "columns": ["family_id", "contact_id", "role"],
+                                        "values": {
+                                            "family_id": str(parent_uuid),
+                                            "contact_id": "…",
+                                            "role": _family_role(p.kind).value,
+                                        },
+                                    },
+                                )
+                        stats.row_details.append(
+                            self._row_detail(
+                                ctx,
+                                p,
+                                contact_id=reuse_id,
+                                dry_run=True,
+                                membership_tables=mtables,
+                                contact_id_for_membership=str(reuse_id),
+                            ),
+                        )
+                    stats.reused_existing_contact += 1
                     continue
                 refs.record_mapping(session, self.ENTITY, str(p.legacy_id), reuse_id)
-                if not _membership_exists(
-                    session,
-                    contact_id=reuse_id,
-                    parent_uuid=parent_uuid,
-                    org_mode=org_mode,
-                ):
-                    if org_mode:
-                        session.add(
-                            OrganizationMember(
-                                organization_id=parent_uuid,
-                                contact_id=reuse_id,
-                                role=_org_role(p.kind),
-                                title=_title_trim(p.occupation),
-                            ),
+                if wants_membership:
+                    if parent_uuid is None:
+                        raise RuntimeError(
+                            "contacts importer: wants_membership but parent_uuid is None"
                         )
-                    else:
-                        session.add(
-                            FamilyMember(
-                                family_id=parent_uuid,
-                                contact_id=reuse_id,
-                                role=_family_role(p.kind),
-                            ),
-                        )
+                    membership_parent: UUID = parent_uuid
+                    if not _membership_exists(
+                        session,
+                        contact_id=reuse_id,
+                        parent_uuid=membership_parent,
+                        org_mode=org_mode,
+                    ):
+                        if org_mode:
+                            session.add(
+                                OrganizationMember(
+                                    organization_id=membership_parent,
+                                    contact_id=reuse_id,
+                                    role=_org_role(p.kind),
+                                    title=_title_trim(p.occupation),
+                                ),
+                            )
+                        else:
+                            session.add(
+                                FamilyMember(
+                                    family_id=membership_parent,
+                                    contact_id=reuse_id,
+                                    role=_family_role(p.kind),
+                                ),
+                            )
+                elif fam_key is not None and parent_uuid is None:
+                    skipped_membership_no_parent_ref += 1
                 stats.reused_existing_contact += 1
                 continue
 
@@ -387,9 +426,12 @@ class ContactsImporter:
                 str(p.instagram_id).strip().lower() if p.instagram_id else None
             )
 
-            rel = RelationshipType.PROSPECT
-            if (p.kind or "").strip().lower() == "partner" and org_mode:
-                rel = RelationshipType.PARTNER
+            kind_l = (p.kind or "").strip().lower()
+            rel = (
+                RelationshipType.PARTNER
+                if kind_l == "partner"
+                else RelationshipType.PROSPECT
+            )
 
             phone = _format_phone(p.phone, dial_by_id, p.phone_country_code_id)
             src = _map_contact_source(p.referral_source)
@@ -405,31 +447,39 @@ class ContactsImporter:
             }
 
             membership_tables: list[dict[str, Any]] = []
-            if org_mode:
-                membership_tables.append(
-                    {
-                        "table": "organization_members",
-                        "columns": ["organization_id", "contact_id", "role", "title"],
-                        "values": {
-                            "organization_id": str(parent_uuid),
-                            "contact_id": "…",
-                            "role": _org_role(p.kind).value,
-                            "title": _title_trim(p.occupation),
+            if wants_membership:
+                if org_mode:
+                    membership_tables.append(
+                        {
+                            "table": "organization_members",
+                            "columns": [
+                                "organization_id",
+                                "contact_id",
+                                "role",
+                                "title",
+                            ],
+                            "values": {
+                                "organization_id": str(parent_uuid),
+                                "contact_id": "…",
+                                "role": _org_role(p.kind).value,
+                                "title": _title_trim(p.occupation),
+                            },
                         },
-                    },
-                )
-            else:
-                membership_tables.append(
-                    {
-                        "table": "family_members",
-                        "columns": ["family_id", "contact_id", "role"],
-                        "values": {
-                            "family_id": str(parent_uuid),
-                            "contact_id": "…",
-                            "role": _family_role(p.kind).value,
+                    )
+                else:
+                    membership_tables.append(
+                        {
+                            "table": "family_members",
+                            "columns": ["family_id", "contact_id", "role"],
+                            "values": {
+                                "family_id": str(parent_uuid),
+                                "contact_id": "…",
+                                "role": _family_role(p.kind).value,
+                            },
                         },
-                    },
-                )
+                    )
+            elif fam_key is not None:
+                skipped_membership_no_parent_ref += 1
 
             if dry_run:
                 if len(stats.preview) < self.PREVIEW_MAX_ROWS:
@@ -468,23 +518,24 @@ class ContactsImporter:
             cid = contact.id
             contact_uuid = cid if isinstance(cid, UUID) else UUID(str(cid))
 
-            if org_mode:
-                session.add(
-                    OrganizationMember(
-                        organization_id=parent_uuid,
-                        contact_id=contact_uuid,
-                        role=_org_role(p.kind),
-                        title=_title_trim(p.occupation),
-                    ),
-                )
-            else:
-                session.add(
-                    FamilyMember(
-                        family_id=parent_uuid,
-                        contact_id=contact_uuid,
-                        role=_family_role(p.kind),
-                    ),
-                )
+            if wants_membership:
+                if org_mode:
+                    session.add(
+                        OrganizationMember(
+                            organization_id=parent_uuid,
+                            contact_id=contact_uuid,
+                            role=_org_role(p.kind),
+                            title=_title_trim(p.occupation),
+                        ),
+                    )
+                else:
+                    session.add(
+                        FamilyMember(
+                            family_id=parent_uuid,
+                            contact_id=contact_uuid,
+                            role=_family_role(p.kind),
+                        ),
+                    )
 
             refs.record_mapping(session, self.ENTITY, str(p.legacy_id), contact_uuid)
             if email_key:
@@ -511,18 +562,8 @@ class ContactsImporter:
         stats.diagnostics = {
             "dependency_ref_count_families": len(fam_refs),
             "dependency_ref_count_organizations": len(org_refs),
-            "skipped_no_dep_no_legacy_family_id": skipped_no_dep_no_family_id,
-            "skipped_no_dep_parent_missing_from_legacy_import_refs": skipped_no_dep_parent_unmapped,
+            "skipped_membership_no_parent_ref": skipped_membership_no_parent_ref,
         }
-        if stats.skipped_no_dep and (
-            len(fam_refs) == 0 or skipped_no_dep_parent_unmapped
-        ):
-            stats.diagnostics["hint"] = (
-                "Each person needs legacy family_id mapped via legacy_import_refs "
-                "(entities families + organizations). Run those imports against this "
-                "database first (non-dry-run), or use dry-run only after refs exist. "
-                "Dry-run does not load refs from the SQL file — only from the database."
-            )
 
         return stats
 

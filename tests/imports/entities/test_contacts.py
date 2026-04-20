@@ -10,7 +10,6 @@ import pytest
 from app.db.models.enums import ContactSource
 from app.db.models.enums import OrganizationRole
 from app.db.models.enums import RelationshipType
-from app.imports.base import DependencyNotMet
 from app.imports.base import resolve_importer_context
 from app.imports.entities._legacy_family_common import LegacyPersonRow
 from app.imports.entities._legacy_family_common import parse_legacy_country_dial_codes
@@ -149,11 +148,20 @@ def test_apply_org_partner_membership(monkeypatch: pytest.MonkeyPatch) -> None:
     assert contact.source == ContactSource.WHATSAPP
 
 
-def test_skipped_no_dep_without_parent_ref(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_inserts_contact_without_membership_when_parent_unmapped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.imports.entities import contacts as mod
 
     monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
     session = MagicMock()
+    new_cid = uuid.uuid4()
+
+    def _flush_sets_contact_id() -> None:
+        obj = session.add.call_args[0][0]
+        obj.id = new_cid
+
+    session.flush.side_effect = _flush_sets_contact_id
 
     people = [
         LegacyPersonRow(
@@ -185,20 +193,23 @@ def test_skipped_no_dep_without_parent_ref(monkeypatch: pytest.MonkeyPatch) -> N
         source_sql_text="",
     )
     stats = importer.apply(session, people, ctx, dry_run=False)
-    assert stats.skipped_no_dep == 1
-    assert stats.diagnostics["skipped_no_dep_parent_missing_from_legacy_import_refs"] == 1
+    assert stats.inserted == 1
+    assert stats.diagnostics["skipped_membership_no_parent_ref"] == 1
     assert stats.diagnostics["dependency_ref_count_families"] == 0
-    assert "hint" in stats.diagnostics
-    mod.refs.record_mapping.assert_not_called()
+    mod.refs.record_mapping.assert_called_once()
 
 
-def test_resolve_context_raises_dependency_not_met(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_context_contacts_no_required_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``families`` / ``organizations`` are optional; empty refs do not raise."""
     from app.imports import refs as refs_mod
 
     session = MagicMock()
     session.execute.return_value.first.return_value = None
     monkeypatch.setattr(refs_mod, "has_mapping", lambda _s, _e: False)
+    monkeypatch.setattr(refs_mod, "load_mapping", lambda _s, _dep: {})
+    monkeypatch.setattr(refs_mod, "load_legacy_keys", lambda _s, _e: frozenset())
 
     importer = ContactsImporter()
-    with pytest.raises(DependencyNotMet):
-        resolve_importer_context(importer, session, dry_run=False)
+    ctx = resolve_importer_context(importer, session, dry_run=False)
+    assert ctx.refs_by_entity["families"] == {}
+    assert ctx.refs_by_entity["organizations"] == {}

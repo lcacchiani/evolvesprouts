@@ -16,6 +16,9 @@ from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
 from app.imports.base import preview_line
 from app.imports.entities._legacy_family_common import LegacyFamilyRow
+from app.imports.entities._legacy_family_common import (
+    eligible_household_legacy_family_ids,
+)
 from app.imports.entities._legacy_family_common import parse_legacy_family_rows
 from app.imports.entities._locations_common import create_location_from_legacy_address
 from app.imports.entities._locations_common import district_area_map
@@ -30,7 +33,12 @@ logger = get_logger(__name__)
 
 
 class FamiliesImporter:
-    """Import legacy families (``kind='family'``) into ``families``."""
+    """Import legacy households (``kind='family'``) into ``families``.
+
+    Only creates a ``families`` row when the dump has **two or more** non-deleted
+    ``person`` rows with the same ``family_id`` (multi-contact household).
+    Single-person legacy groups are represented as standalone contacts only.
+    """
 
     ENTITY: ClassVar[str] = "families"
     DEPENDS_ON: ClassVar[tuple[str, ...]] = ()
@@ -39,7 +47,12 @@ class FamiliesImporter:
 
     def parse(self, sql_text: str) -> Sequence[LegacyFamilyRow]:
         rows = parse_legacy_family_rows(sql_text)
-        return [r for r in rows if (r.kind or "").strip().lower() == "family"]
+        eligible = eligible_household_legacy_family_ids(sql_text)
+        return [
+            r
+            for r in rows
+            if (r.kind or "").strip().lower() == "family" and r.legacy_id in eligible
+        ]
 
     def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
         hk_id = hk_country_id(session)
@@ -98,6 +111,12 @@ class FamiliesImporter:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
         area_by_name = ctx.area_by_name
 
+        eligible: frozenset[int]
+        if ctx.source_sql_text:
+            eligible = eligible_household_legacy_family_ids(ctx.source_sql_text)
+        else:
+            eligible = frozenset()
+
         for row in rows:
             if not isinstance(row, LegacyFamilyRow):
                 continue
@@ -109,6 +128,9 @@ class FamiliesImporter:
                 continue
             if str(row.legacy_id) in ctx.existing_import_keys:
                 stats.skipped_duplicate += 1
+                continue
+            if ctx.source_sql_text and row.legacy_id not in eligible:
+                stats.skipped_household_below_min_links += 1
                 continue
 
             dname = row.district_label
@@ -197,6 +219,7 @@ def apply_families(
     *,
     dry_run: bool,
     skip_legacy_keys: frozenset[str] | None = None,
+    source_sql_text: str | None = None,
 ) -> ImportStats:
     importer = FamiliesImporter()
     ctx = importer.resolve_context(session, dry_run=dry_run)
@@ -208,6 +231,7 @@ def apply_families(
         ctx,
         skip_legacy_keys=ctx.skip_legacy_keys | sk,
         existing_import_keys=ctx.existing_import_keys | existing,
+        source_sql_text=source_sql_text,
     )
     return importer.apply(session, family_rows, ctx, dry_run=dry_run)
 
