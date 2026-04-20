@@ -30,8 +30,11 @@ def _restore_importers() -> Iterator[None]:
         registry._IMPORTERS.update(snapshot)
 
 
-def test_known_entities_includes_venues() -> None:
-    assert "venues" in known_entities()
+def test_known_entities_includes_expected_importers() -> None:
+    expected = frozenset(
+        {"venues", "families", "organizations", "contacts", "notes"},
+    )
+    assert expected.issubset(frozenset(known_entities()))
 
 
 def test_get_unknown_raises() -> None:
