@@ -33,6 +33,8 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetsBucketName: string;
   assetsBucketArn: string;
   openrouterApiSecretArn: string;
+  /** KMS CMK ARN for `openrouterApiSecret` (Secrets Manager decrypt). */
+  openrouterApiSecretKmsKeyArn: string;
   databaseProxyArn: string;
   databaseSecretKmsKeyArn: string;
   sesSenderEmail: string;
@@ -350,6 +352,14 @@ export class MessagingNestedStack extends cdk.NestedStack {
         new iam.PolicyStatement({
           actions: ["kms:Decrypt"],
           resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    if (props.openrouterApiSecretKmsKeyArn) {
+      this.expenseParserFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.openrouterApiSecretKmsKeyArn],
         })
       );
     }
