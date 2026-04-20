@@ -236,4 +236,38 @@ describe('structured-data builders', () => {
       },
     });
   });
+
+  it('builds landing page event schema for May 2026 The Missing Piece', () => {
+    const schema = buildLandingPageEventSchema({
+      locale: 'en',
+      landingPageSlug: 'may-2026-the-missing-piece',
+      pagePath: '/may-2026-the-missing-piece',
+    });
+
+    expect(schema).toMatchObject({
+      '@type': 'Event',
+      name: 'The Missing Piece',
+      description:
+        'A hands-on workshop for families with children aged 0–2: the right toys, simple play-space tweaks, and practical tools your helper can use right away. Hosted with Little HK at Acorn Playhouse.',
+      startDate: '2026-05-16T01:00:00.000Z',
+      endDate: '2026-05-16T02:00:00.000Z',
+      location: {
+        '@type': 'Place',
+        name: 'Acorn Playhouse',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',
+          addressLocality: 'Hong Kong',
+          addressCountry: 'HK',
+        },
+      },
+      offers: {
+        '@type': 'Offer',
+        price: '150',
+        priceCurrency: 'HKD',
+        availability: 'https://schema.org/InStock',
+        validFrom: expect.any(String),
+      },
+    });
+  });
 });
