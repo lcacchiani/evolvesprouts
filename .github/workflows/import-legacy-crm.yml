@@ -8,8 +8,10 @@
 # **Production only** — fails unless the GitHub Environment name is `production`.
 #
 # GitHub Environment (production):
-# - vars: `AWS_ACCOUNT_ID`, `AWS_REGION`, `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`
-#   (copy from CDK outputs `ImportDumpBucketName` and `ImportLegacyVenuesFunctionName`).
+# - vars: `AWS_ACCOUNT_ID`, `AWS_REGION` (required).
+# - optional vars: `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`
+#   (if omitted, workflow resolves from stack outputs `ImportDumpBucketName` and
+#   `ImportLegacyFunctionName`/`ImportLegacyVenuesFunctionName` on stack `evolvesprouts`).
 # - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` when `sql_download_url` is empty.
 # - Obsolete for this workflow: runner-side `DATABASE_*` secrets — not used.
 #
@@ -79,18 +81,82 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-session-name: import-legacy-crm-${{ github.run_id }}
 
+      - name: Resolve import resources (vars or stack outputs)
+        env:
+          IMPORT_DUMP_BUCKET_NAME: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          IMPORT_LAMBDA_FUNCTION_NAME: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
+          IMPORT_STACK_NAME: ${{ vars.IMPORT_STACK_NAME }}
+        run: |
+          set -euo pipefail
+          STACK_NAME="${IMPORT_STACK_NAME:-evolvesprouts}"
+          RESOLVED_BUCKET="${IMPORT_DUMP_BUCKET_NAME:-}"
+          RESOLVED_FUNC="${IMPORT_LAMBDA_FUNCTION_NAME:-}"
+
+          if [ -z "${RESOLVED_BUCKET:-}" ] || [ -z "${RESOLVED_FUNC:-}" ]; then
+            STACK_EXISTS=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackName' \
+              --output text 2>/dev/null || true)
+            if [ -z "${STACK_EXISTS:-}" ] || [ "${STACK_EXISTS}" = "None" ]; then
+              echo "Stack ${STACK_NAME} not found and required import vars are missing." >&2
+              echo "Set IMPORT_STACK_NAME or provide IMPORT_DUMP_BUCKET_NAME + IMPORT_LAMBDA_FUNCTION_NAME." >&2
+              exit 1
+            fi
+          fi
+
+          if [ -z "${RESOLVED_BUCKET:-}" ]; then
+            RESOLVED_BUCKET=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='ImportDumpBucketName'].OutputValue | [0]" \
+              --output text)
+          fi
+          if [ -z "${RESOLVED_FUNC:-}" ]; then
+            RESOLVED_FUNC=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='ImportLegacyFunctionName'].OutputValue | [0]" \
+              --output text)
+          fi
+          if [ -z "${RESOLVED_FUNC:-}" ] || [ "${RESOLVED_FUNC}" = "None" ]; then
+            RESOLVED_FUNC=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='ImportLegacyVenuesFunctionName'].OutputValue | [0]" \
+              --output text)
+          fi
+
+          if [ -z "${RESOLVED_BUCKET:-}" ] || [ "${RESOLVED_BUCKET}" = "None" ]; then
+            echo "Could not resolve ImportDumpBucketName from stack ${STACK_NAME}." >&2
+            exit 1
+          fi
+          if [ -z "${RESOLVED_FUNC:-}" ] || [ "${RESOLVED_FUNC}" = "None" ]; then
+            echo "Could not resolve ImportLegacyFunctionName/ImportLegacyVenuesFunctionName from stack ${STACK_NAME}." >&2
+            exit 1
+          fi
+
+          echo "IMPORT_DUMP_BUCKET=${RESOLVED_BUCKET}" >> "${GITHUB_ENV}"
+          echo "IMPORT_LAMBDA_FUNCTION=${RESOLVED_FUNC}" >> "${GITHUB_ENV}"
+
       - name: Verify Lambda and IAM (preflight)
         env:
-          FUNC: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
+          FUNC: ${{ env.IMPORT_LAMBDA_FUNCTION }}
+          BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
         run: |
           set -euo pipefail
           if [ -z "${FUNC:-}" ]; then
-            echo "Set IMPORT_LAMBDA_FUNCTION_NAME (CDK output ImportLegacyVenuesFunctionName)." >&2
+            echo "Set IMPORT_LAMBDA_FUNCTION_NAME or stack output ImportLegacyFunctionName." >&2
+            exit 1
+          fi
+          if [ -z "${BUCKET:-}" ]; then
+            echo "Set IMPORT_DUMP_BUCKET_NAME or stack output ImportDumpBucketName." >&2
             exit 1
           fi
           echo "Checking Lambda exists: $FUNC"
           if ! aws lambda get-function --function-name "$FUNC" --query 'Configuration.FunctionArn' --output text; then
             echo "lambda:GetFunction failed. Fix IMPORT_LAMBDA_FUNCTION_NAME or IAM." >&2
+            exit 1
+          fi
+          echo "Checking S3 bucket exists/access: $BUCKET"
+          if ! aws s3api head-bucket --bucket "$BUCKET"; then
+            echo "s3:HeadBucket failed. Fix IMPORT_DUMP_BUCKET_NAME or IAM." >&2
             exit 1
           fi
 
@@ -120,7 +186,7 @@ jobs:
       - name: Upload dump to S3
         env:
           ENTITY: ${{ github.event.inputs.entity }}
-          IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          IMPORT_DUMP_BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
         run: |
           set -euo pipefail
           if [ -z "${IMPORT_DUMP_BUCKET:-}" ]; then
@@ -136,10 +202,10 @@ jobs:
       - name: Invoke import Lambda
         env:
           ENTITY: ${{ github.event.inputs.entity }}
-          BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
           KEY: ${{ env.IMPORT_S3_KEY }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-          FUNC: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
+          FUNC: ${{ env.IMPORT_LAMBDA_FUNCTION }}
         run: |
           set -euo pipefail
           if [ -z "${FUNC:-}" ]; then
@@ -183,7 +249,7 @@ jobs:
       - name: Remove uploaded dump from S3
         if: always()
         env:
-          IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
+          IMPORT_DUMP_BUCKET: ${{ env.IMPORT_DUMP_BUCKET }}
           KEY: ${{ env.IMPORT_S3_KEY }}
         run: |
           set -euo pipefail
