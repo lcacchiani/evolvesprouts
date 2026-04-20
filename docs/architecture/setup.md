@@ -147,6 +147,7 @@ For the OIDC provider itself, add the same tags:
   - Optional override vars: `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`.
   - If either override is missing, the workflow auto-resolves from CloudFormation stack outputs on `evolvesprouts` (`ImportDumpBucketName` and `ImportLegacyFunctionName`, with fallback to `ImportLegacyVenuesFunctionName` for backward compatibility).
 - **Secrets (optional):** `IMPORT_LEGACY_CRM_SQL_URL` — HTTPS URL to the `.sql` file when the workflow input is left empty.
+- **Workflow input (optional):** `skip_legacy_keys` — comma-separated legacy primary-key values to exclude (passed through to the import Lambda as `skip_legacy_keys`; venues: numeric ids as strings, e.g. `10,11,12`). Leave empty to import every row from the dump.
 - **Obsolete for this workflow:** `DATABASE_URL`, `DATABASE_SECRET_ARN`, `DATABASE_PROXY_ENDPOINT`, and other runner-side DB variables used by the old script-based workflow are **not** read; remove them from the environment if you no longer need them elsewhere.
 
 ### Backend deploy manual seed toggle
