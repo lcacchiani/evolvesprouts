@@ -33,6 +33,10 @@ on:
         type: choice
         options:
           - venues
+          - families
+          - organizations
+          - contacts
+          - notes
       sql_download_url:
         description: >
           HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL is set).
