@@ -3054,6 +3054,10 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+    adminContactById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
 
     const adminFamilies = admin.addResource("families");
     const adminFamiliesPicker = adminFamilies.addResource("picker");

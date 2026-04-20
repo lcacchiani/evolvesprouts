@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -34,6 +35,8 @@ from app.api.admin_validators import validate_email, validate_string_length
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource
+from app.db.models.crm_note import CrmNote
+from app.db.models.sales_lead import SalesLead
 from app.db.repositories import ContactRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -347,6 +350,48 @@ def update_contact(
             {"contact": serialize_contact_summary(loaded)},
             event=event,
         )
+
+
+def delete_contact(
+    event: Mapping[str, Any],
+    *,
+    contact_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    """Permanently delete one CRM contact and dependent CRM rows."""
+    logger.info(
+        "Deleting admin CRM contact",
+        extra={"contact_id": str(contact_id), "actor_sub": actor_sub},
+    )
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        repository = ContactRepository(session)
+        contact = repository.get_by_id_for_admin(contact_id)
+        if contact is None:
+            raise NotFoundError("Contact", str(contact_id))
+
+        lead_ids = list(
+            session.scalars(
+                select(SalesLead.id).where(SalesLead.contact_id == contact_id)
+            ).all()
+        )
+        if lead_ids:
+            session.execute(delete(CrmNote).where(CrmNote.lead_id.in_(tuple(lead_ids))))
+        session.execute(delete(CrmNote).where(CrmNote.contact_id == contact_id))
+        session.execute(delete(SalesLead).where(SalesLead.contact_id == contact_id))
+
+        try:
+            repository.delete(contact)
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            raise ValidationError(
+                "Contact cannot be deleted while it is still referenced",
+                field="contact_id",
+            ) from exc
+
+        return json_response(204, {}, event=event)
 
 
 def _resolve_referral_contact_id_for_referral_source(

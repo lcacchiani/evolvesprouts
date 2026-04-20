@@ -5,6 +5,20 @@ import { describe, expect, it, vi } from 'vitest';
 import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import type { components } from '@/types/generated/admin-api.generated';
+
+vi.mock('@/hooks/use-confirm-dialog', () => ({
+  useConfirmDialog: () => [
+    {
+      open: false,
+      title: '',
+      description: '',
+      onConfirm: () => {},
+      onCancel: () => {},
+    },
+    () => Promise.resolve(true),
+  ],
+}));
 
 vi.mock('@/lib/crm-api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/crm-api')>();
@@ -31,6 +45,7 @@ function buildContactsHook(
     isSaving: false,
     createContact: vi.fn().mockResolvedValue(null),
     updateContact: vi.fn().mockResolvedValue(null),
+    deleteContact: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     ...overrides,
   };
@@ -70,6 +85,42 @@ describe('ContactsPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Load more' }));
 
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it('calls deleteContact when Delete is confirmed', async () => {
+    const user = userEvent.setup();
+    const deleteContact = vi.fn().mockResolvedValue(undefined);
+    const row: components['schemas']['AdminContact'] = {
+      id: '11111111-1111-1111-1111-111111111111',
+      first_name: 'Ann',
+      last_name: 'Lee',
+      email: null,
+      instagram_handle: null,
+      phone: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      mailchimp_status: 'pending',
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      family_ids: [],
+      organization_ids: [],
+    };
+    const contacts = buildContactsHook({
+      deleteContact,
+      contacts: [row],
+    });
+
+    render(
+      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(deleteContact).toHaveBeenCalledWith(row.id);
   });
 
   it('shows list error from the hook in the table card', () => {

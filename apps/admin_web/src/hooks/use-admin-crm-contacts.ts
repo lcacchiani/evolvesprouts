@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 
 import {
   createAdminContact,
+  deleteAdminContact,
   listAdminContacts,
   updateAdminContact,
 } from '@/lib/crm-api';
@@ -62,6 +63,11 @@ export function useAdminCrmContacts() {
     [mutate]
   );
 
+  const deleteContact = useCallback(
+    async (contactId: string) => mutate(async () => deleteAdminContact(contactId)),
+    [mutate]
+  );
+
   return {
     contacts: list.items,
     filters: list.filters,
@@ -75,6 +81,7 @@ export function useAdminCrmContacts() {
     isSaving,
     createContact,
     updateContact,
+    deleteContact,
     refetch: list.refetch,
   };
 }

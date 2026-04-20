@@ -8,7 +8,11 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_contacts_mutations import create_contact, update_contact
+from app.api.admin_contacts_mutations import (
+    create_contact,
+    delete_contact,
+    update_contact,
+)
 from app.api.admin_crm_helpers import (
     list_all_tags_for_picker,
     parse_active_filter,
@@ -80,6 +84,10 @@ def handle_admin_contacts_request(
             return _get_contact(event, contact_id=contact_id)
         if method == "PATCH":
             return _update_contact(
+                event, contact_id=contact_id, actor_sub=identity.user_sub
+            )
+        if method == "DELETE":
+            return delete_contact(
                 event, contact_id=contact_id, actor_sub=identity.user_sub
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)
