@@ -52,6 +52,42 @@ def test_check_dependencies_raises_when_parent_missing(monkeypatch: pytest.Monke
         check_dependencies(_DepImporter(), MagicMock(spec=Session), dry_run=False)
 
 
+def test_check_dependencies_organizations_optional_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Contacts depend on families + organizations; org import may be empty."""
+
+    from app.imports import refs
+
+    class _ContactsLikeImporter:
+        ENTITY: ClassVar[str] = "_contacts_dep_test"
+        DEPENDS_ON: ClassVar[tuple[str, ...]] = ("families", "organizations")
+        PII: ClassVar[bool] = True
+
+        def parse(self, sql_text: str) -> Sequence[Any]:
+            return []
+
+        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+            return ImporterContext()
+
+        def apply(
+            self,
+            session: Session,
+            rows: Sequence[Any],
+            ctx: ImporterContext,
+            *,
+            dry_run: bool,
+        ) -> ImportStats:
+            return ImportStats(entity=self.ENTITY)
+
+        def format_preview(self, row: Any, mapped_id: UUID | None) -> str:
+            return ""
+
+    def _has_mapping(_s: Session, dep: str) -> bool:
+        return dep == "families"
+
+    monkeypatch.setattr(refs, "has_mapping", _has_mapping)
+    check_dependencies(_ContactsLikeImporter(), MagicMock(spec=Session), dry_run=False)
+
+
 def test_check_dependencies_skips_check_during_dry_run(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

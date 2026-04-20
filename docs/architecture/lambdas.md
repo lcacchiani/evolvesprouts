@@ -235,15 +235,16 @@ their primary responsibilities.
 ### Import legacy CRM
 - Function: ImportLegacyVenuesFunction (physical name `evolvesprouts-ImportLegacyVenuesFunction`)
 - Handler: backend/lambda/imports/legacy_crm/handler.py — **entity dispatcher**; loads `app.imports` registry and runs the importer for `payload["entity"]`
-- Supported entities (today): `venues` (more added later with code + workflow choice list only — no CDK rename)
+- Supported entities: `venues`, `families`, `organizations`, `contacts`, `notes` (registry in `app.imports.entities`; workflow choice list must stay aligned)
+- **Dependency order (non-dry-run):** import `families` and `organizations` first (either order), then `contacts`, then `notes`. The handler raises `DependencyNotMet` when a required dependency has no rows in `legacy_import_refs` (skipped on dry-run). An empty `organizations` import is allowed (no org rows to map); `families` must still be imported first when the dump contains family-linked people.
 - Trigger: direct `aws lambda invoke` (for example GitHub Actions after `dumps/<entity>/<run_id>/<entity>.sql` upload)
 - Purpose: parse mysqldump text, write target rows, record `legacy_import_refs` for idempotent re-imports
 - DB access: RDS Proxy + IAM as `evolvesprouts_admin`; reads/writes `legacy_import_refs` for mapped ids
 - Other: S3 read on import bucket; `HeadObject` size cap; temp SQL under `/tmp` with request id in the filename; **reserved concurrency 3** (parallel entity imports capped)
-- Response JSON: `entity`, counts (`inserted`, `skipped_duplicate`, `skipped_excluded_key`, `skipped_no_area`, `skipped_no_dep`), `dry_run`, `preview_allowed` (false for `PII=True` importers — workflow omits preview from step summary); when `preview_allowed` is true, optional `preview` (text lines) and `row_details` (structured table/column/value summaries per inserted row, capped)
+- Response JSON: `entity`, counts (`inserted`, `skipped_duplicate`, `skipped_excluded_key`, `skipped_no_area`, `skipped_location_no_area`, `skipped_no_dep`, `skipped_deleted`, `reused_existing_contact`), `dry_run`, `preview_allowed` (false for `PII=True` importers — workflow omits preview from step summary); when `preview_allowed` is true, optional `preview` (text lines) and `row_details` (structured table/column/value summaries per inserted row, capped)
 - CloudWatch: completion log includes `import_row_details` (same structure as `row_details`) when `preview_allowed` and details exist
 - Stack outputs: `ImportLegacyVenuesFunctionName` / `ImportLegacyFunctionName` (same value), `ImportDumpBucketName`
-- Payload: `{ "entity": "<key>", "s3_bucket": "...", "s3_key": "...", "dry_run": <bool> [, "skip_legacy_keys": "<csv>"] }` — `s3_bucket` must match `IMPORT_DUMP_BUCKET_NAME`; optional `skip_legacy_keys` is a comma-separated list of legacy primary-key strings to skip (venues: numeric id as string, e.g. `"1,2,3"`)
+- Payload: `{ "entity": "<key>", "s3_bucket": "...", "s3_key": "...", "dry_run": <bool> [, "skip_legacy_keys": "<csv>"] }` — `s3_bucket` must match `IMPORT_DUMP_BUCKET_NAME`; optional `skip_legacy_keys` is a comma-separated list of legacy primary-key strings to skip. **Skip-key semantics:** all entities use the decimal string of the legacy integer primary key; `notes` uses legacy `note.id`.
 
 **How to add a new entity**
 
