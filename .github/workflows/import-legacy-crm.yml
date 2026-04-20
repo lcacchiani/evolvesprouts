@@ -78,15 +78,11 @@ jobs:
         env:
           AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-          IMPORT_DUMP_BUCKET_NAME: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
-          IMPORT_LAMBDA_FUNCTION_NAME: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
         run: |
           set -euo pipefail
           MISSING_VARS=()
           [ -z "${AWS_ACCOUNT_ID:-}" ] && MISSING_VARS+=("AWS_ACCOUNT_ID")
           [ -z "${AWS_REGION:-}" ] && MISSING_VARS+=("AWS_REGION")
-          [ -z "${IMPORT_DUMP_BUCKET_NAME:-}" ] && MISSING_VARS+=("IMPORT_DUMP_BUCKET_NAME")
-          [ -z "${IMPORT_LAMBDA_FUNCTION_NAME:-}" ] && MISSING_VARS+=("IMPORT_LAMBDA_FUNCTION_NAME")
           if [ "${#MISSING_VARS[@]}" -gt 0 ]; then
             echo "Missing required environment variables: ${MISSING_VARS[*]}"
             echo "This run will be skipped until production environment vars are configured."
@@ -104,6 +100,7 @@ jobs:
           role-session-name: import-legacy-crm-${{ github.run_id }}
 
       - name: Resolve import resources (vars or stack outputs)
+        if: ${{ steps.config.outputs.should_run == 'true' }}
         env:
           IMPORT_DUMP_BUCKET_NAME: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
           IMPORT_LAMBDA_FUNCTION_NAME: ${{ vars.IMPORT_LAMBDA_FUNCTION_NAME }}
@@ -291,5 +288,5 @@ jobs:
             echo "## Legacy CRM import skipped"
             echo ""
             echo "Required production environment variables are not configured."
-            echo "Set AWS_ACCOUNT_ID, AWS_REGION, IMPORT_DUMP_BUCKET_NAME, and IMPORT_LAMBDA_FUNCTION_NAME."
+            echo "Set AWS_ACCOUNT_ID and AWS_REGION."
           } >> "${GITHUB_STEP_SUMMARY}"
