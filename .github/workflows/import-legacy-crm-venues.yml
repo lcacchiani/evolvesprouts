@@ -1,4 +1,6 @@
 # Manual import of legacy CRM venues from a MariaDB SQL dump into PostgreSQL `locations`.
+# The import script accepts both `INSERT INTO `t` VALUES ...` and mysqldump-style
+# `INSERT INTO `t` (`c1`,...) VALUES ...` statements.
 #
 # The dump file is not stored in git. Provide either:
 # - `sql_download_url` when running the workflow (HTTPS URL to the .sql file), or
