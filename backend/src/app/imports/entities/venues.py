@@ -18,7 +18,6 @@ from app.db.models import Location
 from app.imports import mysqldump
 from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
-from app.imports.base import LegacyImporter
 from app.imports.registry import register
 from app.imports import refs
 from app.utils.logging import get_logger
@@ -182,7 +181,11 @@ class VenueImporter:
             if not isinstance(v, LegacyVenue):
                 continue
             dname = v.district_label
-            if dname is None and v.district_id is not None and ctx.district_map is not None:
+            if (
+                dname is None
+                and v.district_id is not None
+                and ctx.district_map is not None
+            ):
                 dname = ctx.district_map.get(v.district_id)
             if v.district_id is not None and dname is None:
                 msg = (
@@ -209,7 +212,6 @@ class VenueImporter:
                 stats.skipped_duplicate += 1
                 continue
 
-            mapped_id: UUID | None = None
             if dry_run:
                 if len(stats.preview) < self.PREVIEW_MAX_ROWS:
                     stats.preview.append(self.format_preview(v, None))

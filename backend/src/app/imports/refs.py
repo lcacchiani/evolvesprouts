@@ -18,10 +18,12 @@ def record_mapping(
 ) -> None:
     """Insert mapping if absent (idempotent; portable across SQLite tests and Postgres)."""
     existing = session.execute(
-        select(LegacyImportRef).where(
+        select(LegacyImportRef)
+        .where(
             LegacyImportRef.entity == entity,
             LegacyImportRef.legacy_key == legacy_key,
-        ).limit(1)
+        )
+        .limit(1)
     ).scalar_one_or_none()
     if existing is not None:
         return
