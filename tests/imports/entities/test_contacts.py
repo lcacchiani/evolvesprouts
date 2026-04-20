@@ -8,9 +8,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from app.db.models.enums import ContactSource
-from app.db.models.enums import ContactType
-from app.db.models.enums import FamilyRole
-from app.db.models.enums import MailchimpSyncStatus
 from app.db.models.enums import OrganizationRole
 from app.db.models.enums import RelationshipType
 from app.imports.base import DependencyNotMet
@@ -19,7 +16,6 @@ from app.imports.entities._legacy_family_common import LegacyPersonRow
 from app.imports.entities._legacy_family_common import parse_legacy_country_dial_codes
 from app.imports.entities._legacy_family_common import parse_legacy_person_rows
 from app.imports.entities.contacts import ContactsImporter
-from app.imports.entities.contacts import apply_contacts
 
 
 COUNTRY_SQL = """
@@ -62,7 +58,6 @@ def test_apply_phone_format(monkeypatch: pytest.MonkeyPatch) -> None:
     session.flush.side_effect = _flush_sets_contact_id
 
     fam_id = uuid.uuid4()
-    org_id = uuid.uuid4()
     people = [
         LegacyPersonRow(
             legacy_id=1,

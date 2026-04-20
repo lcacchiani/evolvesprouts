@@ -10,7 +10,6 @@ import pytest
 from app.imports.entities._legacy_family_common import parse_legacy_notes
 from app.imports.entities._legacy_family_common import parse_legacy_person_notes
 from app.imports.entities.notes import NotesImporter
-from app.imports.entities.notes import apply_notes
 
 
 NOTE_SQL = """

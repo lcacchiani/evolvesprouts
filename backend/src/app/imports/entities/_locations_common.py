@@ -51,7 +51,10 @@ def usable_legacy_address(
 
 
 def joined_address(line1: str | None, line2: str | None) -> str | None:
-    parts = [p for p in (line1, line2) if nonempty(p)]
+    parts: list[str] = []
+    for raw in (line1, line2):
+        if nonempty(raw):
+            parts.append(str(raw))
     if not parts:
         return None
     return ", ".join(parts)
