@@ -129,6 +129,7 @@ def _stats_to_json(stats: ImportStats, *, preview_allowed: bool) -> dict[str, An
         "skipped_excluded_key": stats.skipped_excluded_key,
         "skipped_no_area": stats.skipped_no_area,
         "skipped_no_dep": stats.skipped_no_dep,
+        "skipped_deleted": stats.skipped_deleted,
         "dry_run": stats.dry_run,
         "preview_allowed": preview_allowed,
     }
@@ -161,6 +162,7 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
             session,
             dry_run=payload["dry_run"],
             skip_legacy_keys=skip_keys,
+            source_sql_text=sql_text,
         )
         stats = importer.apply(session, rows, ctx, dry_run=payload["dry_run"])
 
