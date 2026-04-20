@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 from typing import Mapping
@@ -21,8 +22,6 @@ from app.utils.logging import get_logger
 configure_logging()
 logger = get_logger(__name__)
 
-# Lambda provides writable storage only under /tmp; fixed path per invocation is intentional.
-TMP_SQL_PATH = Path("/tmp/legacy_crm_venues.sql")  # nosec B108
 _ALLOWED_EVENT_KEYS = frozenset({"s3_bucket", "s3_key", "dry_run"})
 
 
@@ -32,7 +31,11 @@ def _env_bucket() -> str:
 
 def _max_bytes() -> int:
     raw = os.environ.get("MAX_IMPORT_DUMP_BYTES", "2097152").strip()
-    return int(raw)
+    try:
+        return int(raw)
+    except ValueError as exc:
+        msg = "MAX_IMPORT_DUMP_BYTES must be a non-negative integer"
+        raise RuntimeError(msg) from exc
 
 
 def _validate_event(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -73,17 +76,31 @@ def _download_dump(bucket: str, key: str) -> str:
     if size > cap:
         msg = f"S3 object size {size} exceeds MAX_IMPORT_DUMP_BYTES ({cap})"
         raise ValueError(msg)
-    s3.download_file(bucket, key, str(TMP_SQL_PATH))
-    return TMP_SQL_PATH.read_text(encoding="utf-8", errors="replace")
+    # Lambda writable storage is only under /tmp.
+    fd, tmp_path = tempfile.mkstemp(
+        prefix="legacy_crm_venues_",
+        suffix=".sql",
+        dir="/tmp",  # nosec B108
+    )
+    os.close(fd)
+    path = Path(tmp_path)
+    try:
+        s3.download_file(bucket, key, str(path))
+        return path.read_text(encoding="utf-8", errors="replace")
+    finally:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("Could not remove temp SQL file at %s", path)
 
 
 def _stats_to_json(stats: ImportStats) -> dict[str, Any]:
+    """Return counts only (no per-row preview) for invoke response and CI summaries."""
     return {
         "inserted": stats.inserted,
         "skipped_duplicate": stats.skipped_duplicate,
         "skipped_no_area": stats.skipped_no_area,
         "dry_run": stats.dry_run,
-        "preview": stats.preview,
     }
 
 
@@ -96,7 +113,12 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
 
     engine = get_engine(use_cache=False)
     with Session(engine) as session:
-        stats = apply_venues(session, venues, dry_run=payload["dry_run"])
+        stats = apply_venues(
+            session,
+            venues,
+            dry_run=payload["dry_run"],
+            district_map=districts,
+        )
 
     out = _stats_to_json(stats)
     logger.info(

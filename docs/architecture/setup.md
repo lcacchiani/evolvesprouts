@@ -143,8 +143,9 @@ For the OIDC provider itself, add the same tags:
 
 `.github/workflows/import-legacy-crm-venues.yml` is **production-only** (it fails if the selected environment name is not `production`). On the **`production`** GitHub Environment, set:
 
-- **Variables:** `AWS_ACCOUNT_ID`, `AWS_REGION`, `IMPORT_DUMP_BUCKET_NAME` (must match the CDK bucket `evolvesprouts-import-dump-{account}-{region}`), `IMPORT_LAMBDA_FUNCTION_NAME` (physical function name from CDK, e.g. `evolvesprouts-EvolvesproutsImportLegacyVenuesFunction`).
+- **Variables:** `AWS_ACCOUNT_ID`, `AWS_REGION`. After each backend deploy, copy **`ImportDumpBucketName`** and **`ImportLegacyVenuesFunctionName`** from the `evolvesprouts` stack CloudFormation outputs into `IMPORT_DUMP_BUCKET_NAME` and `IMPORT_LAMBDA_FUNCTION_NAME` (single source of truth — do not hand-type the function name).
 - **Secrets (optional):** `IMPORT_LEGACY_CRM_SQL_URL` — HTTPS URL to the `.sql` file when the workflow input is left empty.
+- **Obsolete for this workflow:** `DATABASE_URL`, `DATABASE_SECRET_ARN`, `DATABASE_PROXY_ENDPOINT`, and other runner-side DB variables used by the old script-based workflow are **not** read; remove them from the environment if you no longer need them elsewhere.
 
 ### Backend deploy manual seed toggle
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib.util
 import sys
-from functools import lru_cache
 from pathlib import Path
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -23,7 +22,6 @@ _HANDLER_PATH = (
 )
 
 
-@lru_cache(maxsize=1)
 def _handler():
     """Load handler module without importing the ``lambda`` package name in tests."""
     spec = importlib.util.spec_from_file_location(
@@ -69,6 +67,13 @@ def test_validate_accepts_matching_bucket(mock_env: object) -> None:
         }
     )
     assert out["dry_run"] is True
+
+
+def test_max_bytes_invalid(mock_env: object) -> None:
+    h = _handler()
+    mock_env(MAX_IMPORT_DUMP_BYTES="not-a-number")
+    with pytest.raises(RuntimeError, match="MAX_IMPORT_DUMP_BYTES"):
+        h._max_bytes()
 
 
 def test_download_rejects_large_object(mock_env: object) -> None:
@@ -124,8 +129,15 @@ INSERT INTO venue (id, name, address_line1, address_line2, district_id) VALUES
 
     monkeypatch.setattr(h, "Session", _FakeSession)
 
-    def _apply(_session: object, _venues: object, *, dry_run: bool) -> ImportStats:
+    def _apply(
+        _session: object,
+        _venues: object,
+        *,
+        dry_run: bool,
+        district_map: object | None = None,
+    ) -> ImportStats:
         assert dry_run is True
+        assert district_map == {1: "Central"}
         return stats
 
     monkeypatch.setattr(h, "apply_venues", _apply)
@@ -138,5 +150,6 @@ INSERT INTO venue (id, name, address_line1, address_line2, district_id) VALUES
 
     assert result["dry_run"] is True
     assert result["skipped_no_area"] == 1
+    assert "preview" not in result
     s3.head_object.assert_called_once()
     s3.download_file.assert_called_once()

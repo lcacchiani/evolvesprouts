@@ -3428,6 +3428,18 @@ export class ApiStack extends cdk.Stack {
       value: database.proxy.endpoint,
     });
 
+    new cdk.CfnOutput(this, "ImportLegacyVenuesFunctionName", {
+      value: importLegacyVenuesFunction.functionName,
+      description:
+        "Physical name for EvolvesproutsImportLegacyVenuesFunction (GitHub IMPORT_LAMBDA_FUNCTION_NAME)",
+    });
+
+    new cdk.CfnOutput(this, "ImportDumpBucketName", {
+      value: importDumpBucket.bucketName,
+      description:
+        "S3 bucket for legacy import SQL dumps (GitHub IMPORT_DUMP_BUCKET_NAME)",
+    });
+
     new cdk.CfnOutput(this, "UserPoolId", {
       value: userPool.userPoolId,
     });

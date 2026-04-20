@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from app.db.models import GeographicArea
 from app.db.models import Location
 from app.utils.logging import get_logger
+from app.utils.logging import mask_pii
 
 logger = get_logger(__name__)
 
@@ -238,7 +239,7 @@ def parse_legacy_venues(
         line2 = fields[3]
         district_raw = fields[4]
         district_id = int(str(district_raw)) if district_raw is not None else None
-        dlabel = district_map.get(int(district_id)) if district_id is not None else None
+        dlabel = district_map.get(district_id) if district_id is not None else None
         parts = [p for p in (line1, line2) if p]
         address = ", ".join(parts) if parts else None
         rows.append(
@@ -288,22 +289,40 @@ def apply_venues(
     venues: Sequence[LegacyVenue],
     *,
     dry_run: bool,
+    district_map: Mapping[int, str] | None = None,
 ) -> ImportStats:
     """Insert venues into ``locations``, skipping duplicates and unmapped districts.
 
-    Each :class:`LegacyVenue` should carry ``district_label`` (see
-    :func:`parse_legacy_venues`).
+    ``district_map`` maps legacy ``district_id`` → label from the dump. When omitted,
+    labels must already be on each :class:`LegacyVenue` (see :func:`parse_legacy_venues`).
+    If ``district_id`` is set but neither ``district_label`` nor ``district_map`` yields
+    a label, :class:`ValueError` is raised instead of counting rows as *skipped_no_area*.
     """
     stats = ImportStats(dry_run=dry_run)
     hk_id = _hk_country_id(session)
     area_by_name = _district_area_map(session, hk_id)
-
+    area_ids = list(area_by_name.values())
+    # TODO: If `locations` grows large, narrow this query (e.g. area_id IN (...) or
+    # targeted search) instead of scanning all HK rows on every import.
     existing_keys: set[tuple[str, str]] = set()
-    for row in session.execute(select(Location.name, Location.address)).all():
-        existing_keys.add(_dedupe_key(row[0], row[1]))
+    if area_ids:
+        dup_query = select(Location.name, Location.address).where(
+            Location.area_id.in_(area_ids)
+        )
+        for row in session.execute(dup_query).all():
+            existing_keys.add(_dedupe_key(row[0], row[1]))
 
     for v in venues:
         dname = v.district_label
+        if dname is None and v.district_id is not None and district_map is not None:
+            dname = district_map.get(v.district_id)
+        if v.district_id is not None and dname is None:
+            msg = (
+                f"Legacy venue legacy_id={v.legacy_id} has district_id={v.district_id} "
+                "but no district label; pass district_map=parse_legacy_districts(...) "
+                "or set district_label on each venue."
+            )
+            raise ValueError(msg)
         area_id = area_by_name.get(dname) if dname else None
         if area_id is None:
             logger.warning(
@@ -326,7 +345,10 @@ def apply_venues(
         if dry_run:
             if len(stats.preview) < PREVIEW_MAX_ROWS:
                 stats.preview.append(
-                    f"Would insert: {name!r} | {address!r} | area={dname!r}"
+                    "Would insert: "
+                    f"name={mask_pii(name or '')!r} | "
+                    f"address={mask_pii(address or '')!r} | "
+                    f"area={mask_pii(dname or '')!r}"
                 )
             stats.inserted += 1
             existing_keys.add(key)
@@ -340,7 +362,6 @@ def apply_venues(
             lng=None,
         )
         session.add(new_location)
-        session.flush()
         stats.inserted += 1
         existing_keys.add(key)
 

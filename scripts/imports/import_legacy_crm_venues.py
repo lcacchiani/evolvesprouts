@@ -22,6 +22,9 @@ Usage::
     # Preview without writing
     python scripts/imports/import_legacy_crm_venues.py /path/to/backup.sql --dry-run
 
+Summary lines are emitted via structured logging (default: **stderr** at INFO). Set
+``LOG_LEVEL`` / handler configuration if you need them on stdout.
+
 Environment:
 
 - ``DATABASE_URL`` — required (same as Alembic / app).
@@ -78,7 +81,12 @@ def main() -> int:
 
     engine = get_engine(use_cache=False)
     with Session(engine) as session:
-        stats = apply_venues(session, venues, dry_run=args.dry_run)
+        stats = apply_venues(
+            session,
+            venues,
+            dry_run=args.dry_run,
+            district_map=districts,
+        )
 
     logger.info(
         "Done. inserted=%s skipped_duplicate=%s skipped_no_area=%s dry_run=%s",

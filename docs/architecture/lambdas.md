@@ -238,7 +238,9 @@ their primary responsibilities.
 - Trigger: direct `aws lambda invoke` only (for example from GitHub Actions after uploading a dump)
 - Purpose: download a mysqldump-style `.sql` from the dedicated import S3 bucket, parse legacy `district` / `venue` INSERTs, and upsert rows into `locations` with HK district → `geographic_areas` resolution (same logic as `scripts/imports/import_legacy_crm_venues.py`)
 - DB access: RDS Proxy with IAM auth as `evolvesprouts_admin` (admin user secret; matches admin API path)
-- Other dependencies: S3 read on the import bucket only; `HeadObject` enforces `MAX_IMPORT_DUMP_BYTES` (2 MiB) before download; reserved concurrency `1` to avoid concurrent imports
+- Other dependencies: S3 read on the import bucket only; `HeadObject` enforces `MAX_IMPORT_DUMP_BYTES` (2 MiB) before download; SQL is downloaded to a unique file under `/tmp` per invocation; reserved concurrency `1` so concurrent imports do not clobber temp files (if reservation is removed, the handler still uses unique temp paths)
+- Response: JSON with **counts only** (`inserted`, `skipped_duplicate`, `skipped_no_area`, `dry_run`) — dry-run preview lines with venue text are not returned (CLI dry-run still logs masked preview lines locally)
+- Stack outputs: `ImportLegacyVenuesFunctionName`, `ImportDumpBucketName` (copy into GitHub environment variables)
 - Invocation payload (JSON): `{ "s3_bucket": "<import bucket name>", "s3_key": "<object key>", "dry_run": <bool> }` — `s3_bucket` must match `IMPORT_DUMP_BUCKET_NAME` in the Lambda environment
 
 ### Admin bootstrap

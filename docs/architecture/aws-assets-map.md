@@ -12,8 +12,8 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 
 The import workflow (`.github/workflows/import-legacy-crm-venues.yml`) uses OIDC to assume `GitHubActionsRole` (see `docs/architecture/setup.md`). That role is **not** created by this CDK stack. If the role is narrowly scoped instead of administrator-like, attach least-privilege statements for the legacy import path:
 
-- `s3:PutObject` on `arn:aws:s3:::evolvesprouts-import-dump-{account}-{region}/dumps/*` (upload path used by the workflow).
-- `lambda:InvokeFunction` on `arn:aws:lambda:{region}:{account}:function:evolvesprouts-EvolvesproutsImportLegacyVenuesFunction`.
+- `s3:PutObject` and `s3:DeleteObject` on `arn:aws:s3:::evolvesprouts-import-dump-{account}-{region}/dumps/*` (upload path used by the workflow; delete is used for post-run cleanup).
+- `lambda:InvokeFunction` and `lambda:GetFunction` on `arn:aws:lambda:{region}:{account}:function:evolvesprouts-EvolvesproutsImportLegacyVenuesFunction` (preflight name check uses `get-function`; copy the exact function name from stack output `ImportLegacyVenuesFunctionName`).
 
 ---
 
@@ -620,6 +620,8 @@ configured by stack custom resources (including retention and KMS association).
 | `ApiUrl` | API Gateway REST API URL | Base URL for API endpoints |
 | `DatabaseSecretArn` | Secrets Manager secret ARN | ARN of database credentials secret |
 | `DatabaseProxyEndpoint` | RDS Proxy endpoint | Endpoint for database connections via proxy |
+| `ImportLegacyVenuesFunctionName` | Lambda function name | Physical name of `EvolvesproutsImportLegacyVenuesFunction` (set GitHub `IMPORT_LAMBDA_FUNCTION_NAME` to this value) |
+| `ImportDumpBucketName` | S3 bucket name | Ephemeral legacy-import SQL dumps bucket (set GitHub `IMPORT_DUMP_BUCKET_NAME` to this value) |
 | `UserPoolId` | Cognito User Pool ID | User Pool identifier |
 | `UserPoolClientId` | Cognito User Pool Client ID | OAuth client identifier |
 | `AssetsBucketName` | S3 bucket name | Assets bucket |
