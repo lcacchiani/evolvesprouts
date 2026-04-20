@@ -384,30 +384,35 @@ class ContactsImporter:
                     stats.reused_existing_contact += 1
                     continue
                 refs.record_mapping(session, self.ENTITY, str(p.legacy_id), reuse_id)
-                assert parent_uuid is not None
-                if wants_membership and not _membership_exists(
-                    session,
-                    contact_id=reuse_id,
-                    parent_uuid=parent_uuid,
-                    org_mode=org_mode,
-                ):
-                    if org_mode:
-                        session.add(
-                            OrganizationMember(
-                                organization_id=parent_uuid,
-                                contact_id=reuse_id,
-                                role=_org_role(p.kind),
-                                title=_title_trim(p.occupation),
-                            ),
+                if wants_membership:
+                    if parent_uuid is None:
+                        raise RuntimeError(
+                            "contacts importer: wants_membership but parent_uuid is None"
                         )
-                    else:
-                        session.add(
-                            FamilyMember(
-                                family_id=parent_uuid,
-                                contact_id=reuse_id,
-                                role=_family_role(p.kind),
-                            ),
-                        )
+                    membership_parent: UUID = parent_uuid
+                    if not _membership_exists(
+                        session,
+                        contact_id=reuse_id,
+                        parent_uuid=membership_parent,
+                        org_mode=org_mode,
+                    ):
+                        if org_mode:
+                            session.add(
+                                OrganizationMember(
+                                    organization_id=membership_parent,
+                                    contact_id=reuse_id,
+                                    role=_org_role(p.kind),
+                                    title=_title_trim(p.occupation),
+                                ),
+                            )
+                        else:
+                            session.add(
+                                FamilyMember(
+                                    family_id=membership_parent,
+                                    contact_id=reuse_id,
+                                    role=_family_role(p.kind),
+                                ),
+                            )
                 elif fam_key is not None and parent_uuid is None:
                     skipped_membership_no_parent_ref += 1
                 stats.reused_existing_contact += 1
