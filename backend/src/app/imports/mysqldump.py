@@ -5,6 +5,27 @@ from __future__ import annotations
 import re
 
 
+def _string_scan_advance(
+    s: str, i: int, *, n: int, in_string: bool
+) -> tuple[int, bool]:
+    """Advance one step while scanning for structural tokens (parens, semicolons).
+
+    Handles mysqldump-style ``\'`` and ``\\`` inside single-quoted strings, plus
+    SQL ``''`` doubled quotes. Returns ``(new_index, in_string)``.
+    """
+    if not in_string:
+        return i + 1, in_string
+    c = s[i]
+    # Backslash escapes the next character (mysqldump default NO_BACKSLASH_ESCAPES off).
+    if c == "\\" and i + 1 < n:
+        return i + 2, True
+    if c == "'" and i + 1 < n and s[i + 1] == "'":
+        return i + 2, True
+    if c == "'":
+        return i + 1, False
+    return i + 1, True
+
+
 def iter_groups(values_sql: str) -> list[str]:
     """Split a MySQL ``VALUES (..),(..)`` fragment into ``(..)`` group strings."""
     depth = 0
@@ -16,12 +37,7 @@ def iter_groups(values_sql: str) -> list[str]:
     while i < n:
         c = values_sql[i]
         if in_string:
-            if c == "'" and i + 1 < n and values_sql[i + 1] == "'":
-                i += 2
-                continue
-            if c == "'":
-                in_string = False
-            i += 1
+            i, in_string = _string_scan_advance(values_sql, i, n=n, in_string=True)
             continue
         if c == "'":
             in_string = True
@@ -55,10 +71,15 @@ def split_fields(inner: str) -> list[str | None]:
     i = 0
     buf: list[str] = []
     in_string = False
-    while i < len(body):
+    blen = len(body)
+    while i < blen:
         c = body[i]
         if in_string:
-            if c == "'" and i + 1 < len(body) and body[i + 1] == "'":
+            if c == "\\" and i + 1 < blen:
+                buf.append(body[i + 1])
+                i += 2
+                continue
+            if c == "'" and i + 1 < blen and body[i + 1] == "'":
                 buf.append("'")
                 i += 2
                 continue
@@ -106,12 +127,7 @@ def first_semicolon_outside_strings(s: str, start: int = 0) -> int:
     while i < n:
         c = s[i]
         if in_string:
-            if c == "'" and i + 1 < n and s[i + 1] == "'":
-                i += 2
-                continue
-            if c == "'":
-                in_string = False
-            i += 1
+            i, in_string = _string_scan_advance(s, i, n=n, in_string=True)
             continue
         if c == "'":
             in_string = True
@@ -267,12 +283,7 @@ def parse_create_table_column_names(sql_text: str, table: str) -> list[str] | No
         while i < n:
             c = sql_text[i]
             if in_string:
-                if c == "'" and i + 1 < n and sql_text[i + 1] == "'":
-                    i += 2
-                    continue
-                if c == "'":
-                    in_string = False
-                i += 1
+                i, in_string = _string_scan_advance(sql_text, i, n=n, in_string=True)
                 continue
             if c == "'":
                 in_string = True

@@ -112,6 +112,26 @@ def test_country_dial_code_column_not_iso3() -> None:
     assert m[196] == "852"
 
 
+def test_country_dial_codes_with_mysqldump_backslash_escapes() -> None:
+    """Real dumps use ``\'`` inside names; extraction must not truncate INSERT."""
+    sql = r"""
+CREATE TABLE `country` (
+  `id` int NOT NULL,
+  `iso3` char(3) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `region_id` int DEFAULT NULL,
+  `dial_code` varchar(16) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+INSERT INTO `country` VALUES
+(384,'CIV','Côte d\'Ivoire',1,'225'),
+(196,'HKG','Hong Kong',1,'852');
+"""
+    m = parse_legacy_country_dial_codes(sql)
+    assert m[196] == "852"
+    assert m[384] == "225"
+
+
 def test_note_content_with_semicolon_in_string() -> None:
     sql = """
 CREATE TABLE `note` (
