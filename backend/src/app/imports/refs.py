@@ -44,3 +44,20 @@ def has_mapping(session: Session, entity: str) -> bool:
     """Return True if any ref row exists for ``entity``."""
     q = select(LegacyImportRef.entity).where(LegacyImportRef.entity == entity).limit(1)
     return session.execute(q).first() is not None
+
+
+def get_mapped_new_id(session: Session, entity: str, legacy_key: str) -> UUID | None:
+    """Return ``new_id`` for a mapping row if present."""
+    row = session.execute(
+        select(LegacyImportRef.new_id).where(
+            LegacyImportRef.entity == entity,
+            LegacyImportRef.legacy_key == legacy_key,
+        )
+    ).scalar_one_or_none()
+    return row
+
+
+def load_legacy_keys(session: Session, entity: str) -> frozenset[str]:
+    """All ``legacy_key`` values for ``entity`` (for idempotent skip detection)."""
+    q = select(LegacyImportRef.legacy_key).where(LegacyImportRef.entity == entity)
+    return frozenset(str(k) for k in session.execute(q).scalars().all())
