@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
 
 _SCRIPTS_IMPORTS = Path(__file__).resolve().parents[1] / "scripts" / "imports"
 if str(_SCRIPTS_IMPORTS) not in sys.path:
