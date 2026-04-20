@@ -2382,7 +2382,36 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete CRM contact
+         * @description Permanently removes the contact row. Dependent CRM notes on linked sales leads
+         *     are removed first; enrollments and other references that use `ON DELETE SET NULL`
+         *     clear their `contact_id`. Returns `400` if the database still blocks deletion.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Contact deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         /** Update CRM contact */

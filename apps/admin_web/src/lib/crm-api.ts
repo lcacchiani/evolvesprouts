@@ -160,6 +160,14 @@ export async function updateAdminContact(
   return root.contact ?? null;
 }
 
+export async function deleteAdminContact(contactId: string): Promise<void> {
+  await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/contacts/${contactId}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [204],
+  });
+}
+
 export async function listAdminFamilies(
   params: Partial<CrmListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal

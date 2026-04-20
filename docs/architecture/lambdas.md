@@ -51,8 +51,9 @@ their primary responsibilities.
   reconciliation job exists. **Caching:** share-link tokens stay stable on replace;
   CDN or browser caching keyed only by URL (not `s3_key`) may show stale bytes until TTL—
   downloads keyed by changing `s3_key` generally avoid that.
-  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers and
-  `GET /v1/admin/contacts/search` for contact picker search),
+  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers,
+  `GET /v1/admin/contacts/search` for contact picker search, and `DELETE /v1/admin/contacts/{id}`
+  for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*`,
   `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations excluding
   vendors; vendors remain under `/v1/admin/vendors`),

@@ -48,6 +48,39 @@ def test_handle_admin_contacts_search_get(
     assert response is marker
 
 
+def test_handle_admin_contacts_delete(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 204, "body": "{}"}
+    contact_id = str(uuid4())
+
+    def _fake_delete(
+        _event: Any,
+        *,
+        contact_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(contact_id)
+        return marker
+
+    monkeypatch.setattr(admin_contacts, "delete_contact", _fake_delete)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(method="DELETE", path=f"/v1/admin/contacts/{contact_id}"),
+        "DELETE",
+        f"/v1/admin/contacts/{contact_id}",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_families_member_delete(
     monkeypatch: Any,
     api_gateway_event: Any,

@@ -27,7 +27,7 @@ info:
     - `GET /v1/admin/contacts/tags`
     - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
-    - `GET|PATCH /v1/admin/contacts/{id}`
+    - `GET|PATCH|DELETE /v1/admin/contacts/{id}`
     - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
     - `GET|PATCH /v1/admin/families/{id}`
@@ -1682,6 +1682,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminContactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete CRM contact
+      description: |
+        Permanently removes the contact row. Dependent CRM notes on linked sales leads
+        are removed first; enrollments and other references that use `ON DELETE SET NULL`
+        clear their `contact_id`. Returns `400` if the database still blocks deletion.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Contact deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":

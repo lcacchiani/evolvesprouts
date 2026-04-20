@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
@@ -79,7 +81,11 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     isSaving,
     createContact,
     updateContact,
+    deleteContact,
   } = contacts;
+
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [deleteActionError, setDeleteActionError] = useState('');
 
   const [familyPicker, setFamilyPicker] = useState<CrmPickerListItem[]>([]);
   const [organizationPicker, setOrganizationPicker] = useState<CrmPickerListItem[]>([]);
@@ -315,6 +321,43 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     }
   }
 
+  function contactRowLabel(row: ApiSchemas['AdminContact']): string {
+    const name = [row.first_name, row.last_name].filter(Boolean).join(' ').trim();
+    if (name) {
+      return name;
+    }
+    if (row.email?.trim()) {
+      return row.email.trim();
+    }
+    return row.id;
+  }
+
+  async function handleDeleteContact(
+    row: ApiSchemas['AdminContact'],
+    clickEvent: MouseEvent<HTMLButtonElement>
+  ): Promise<void> {
+    clickEvent.stopPropagation();
+    const confirmed = await requestConfirm({
+      title: 'Delete contact',
+      description: `Permanently delete "${contactRowLabel(row)}"? This removes the contact from the database and cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    setDeleteActionError('');
+    try {
+      await deleteContact(row.id);
+      if (selectedId === row.id) {
+        resetCreateForm();
+      }
+    } catch (err) {
+      setDeleteActionError(err instanceof Error ? err.message : 'Failed to delete contact');
+    }
+  }
+
   function selectRow(row: ApiSchemas['AdminContact']) {
     setSelectedId(row.id);
     setEditorMode('edit');
@@ -346,6 +389,7 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
 
   return (
     <div className='space-y-6'>
+      <ConfirmDialog {...confirmDialogProps} />
       <AdminEditorCard
         title='Contact'
         description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
@@ -635,7 +679,7 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
-        error={error}
+        error={error || deleteActionError}
         loadingLabel='Loading contacts...'
         onLoadMore={loadMore}
         toolbar={
@@ -645,7 +689,10 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
               <Input
                 id='crm-contacts-search'
                 value={filters.query}
-                onChange={(e) => setFilter('query', e.target.value)}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('query', e.target.value);
+                }}
                 placeholder='Name, email, phone, Instagram'
               />
             </div>
@@ -654,7 +701,10 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
               <Select
                 id='crm-contacts-active'
                 value={filters.active}
-                onChange={(e) => setFilter('active', e.target.value as CrmListFilters['active'])}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('active', e.target.value as CrmListFilters['active']);
+                }}
               >
                 <option value=''>All</option>
                 <option value='true'>Active</option>
@@ -690,18 +740,31 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
                   <td className='px-4 py-3 text-right'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='outline'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void updateContact(row.id, { active: !row.active });
-                      }}
-                      disabled={isSaving}
-                    >
-                      {row.active ? 'Archive' : 'Restore'}
-                    </Button>
+                    <div className='flex flex-wrap justify-end gap-2'>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void updateContact(row.id, { active: !row.active });
+                        }}
+                        disabled={isSaving}
+                      >
+                        {row.active ? 'Archive' : 'Restore'}
+                      </Button>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='danger'
+                        onClick={(e) => {
+                          void handleDeleteContact(row, e);
+                        }}
+                        disabled={isSaving}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               );
