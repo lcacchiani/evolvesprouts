@@ -149,7 +149,9 @@ class ContactsImporter:
     def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
         del dry_run
         email_map: dict[str, UUID] = {}
-        q_em = select(func.lower(Contact.email), Contact.id).where(Contact.email.is_not(None))
+        q_em = select(func.lower(Contact.email), Contact.id).where(
+            Contact.email.is_not(None)
+        )
         for em, cid in session.execute(q_em).all():
             if em:
                 email_map[str(em)] = cid if isinstance(cid, UUID) else UUID(str(cid))
@@ -187,10 +189,14 @@ class ContactsImporter:
         fid = p.family_id
         org_mode = False
         if fid is not None:
-            org_mode = fam_refs.get(str(fid)) is None and org_refs.get(str(fid)) is not None
-        rel = RelationshipType.PARTNER if (
-            (p.kind or "").strip().lower() == "partner" and org_mode
-        ) else RelationshipType.PROSPECT
+            org_mode = (
+                fam_refs.get(str(fid)) is None and org_refs.get(str(fid)) is not None
+            )
+        rel = (
+            RelationshipType.PARTNER
+            if ((p.kind or "").strip().lower() == "partner" and org_mode)
+            else RelationshipType.PROSPECT
+        )
         cvals: dict[str, Any] = {
             "email": preview_line_email(self, p.email or "") if p.email else None,
             "instagram_handle": preview_line(self, p.instagram_id or "")
@@ -201,7 +207,9 @@ class ContactsImporter:
             "contact_type": _map_contact_type(p.kind).value,
             "relationship_type": rel.value,
             "source": _map_contact_source(p.referral_source).value,
-            "source_detail": preview_line(self, _source_detail(p.occupation, p.company) or "")
+            "source_detail": preview_line(
+                self, _source_detail(p.occupation, p.company) or ""
+            )
             if _source_detail(p.occupation, p.company)
             else None,
             "source_metadata": meta,
@@ -232,7 +240,9 @@ class ContactsImporter:
                 "values": {
                     "entity": self.ENTITY,
                     "legacy_key": str(p.legacy_id),
-                    "new_id": None if dry_run or contact_id is None else str(contact_id),
+                    "new_id": None
+                    if dry_run or contact_id is None
+                    else str(contact_id),
                 },
             },
         )
@@ -276,9 +286,7 @@ class ContactsImporter:
                 continue
 
             email_key = str(p.email).strip().lower() if p.email else None
-            insta_key = (
-                str(p.instagram_id).strip().lower() if p.instagram_id else None
-            )
+            insta_key = str(p.instagram_id).strip().lower() if p.instagram_id else None
 
             reuse_id: UUID | None = None
             if email_key:
@@ -288,7 +296,9 @@ class ContactsImporter:
 
             if reuse_id is not None:
                 if not dry_run:
-                    refs.record_mapping(session, self.ENTITY, str(p.legacy_id), reuse_id)
+                    refs.record_mapping(
+                        session, self.ENTITY, str(p.legacy_id), reuse_id
+                    )
                 stats.inserted += 1
                 continue
 
@@ -310,7 +320,9 @@ class ContactsImporter:
             ln = _clean_name_part(p.last_name)
             email_norm = str(p.email).strip().lower() if p.email else None
             email_store = email_norm if email_norm else None
-            insta_store = str(p.instagram_id).strip().lower() if p.instagram_id else None
+            insta_store = (
+                str(p.instagram_id).strip().lower() if p.instagram_id else None
+            )
 
             rel = RelationshipType.PROSPECT
             if (p.kind or "").strip().lower() == "partner" and org_mode:

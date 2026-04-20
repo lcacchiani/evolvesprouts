@@ -167,7 +167,9 @@ def parse_legacy_family_rows(sql_text: str) -> list[LegacyFamilyRow]:
     stmt, cols = _extract_insert(sql_text, "family")
     rows: list[LegacyFamilyRow] = []
     for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_FAMILY_POS)
+        rd = mysqldump.row_dict_from_fields(
+            cols, fields, positional_fallback=_FAMILY_POS
+        )
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -195,7 +197,9 @@ def legacy_family_id_to_person_kinds(sql_text: str) -> dict[int, set[str]]:
     stmt, cols = _extract_insert(sql_text, "person")
     out: dict[int, set[str]] = {}
     for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_PERSON_POS)
+        rd = mysqldump.row_dict_from_fields(
+            cols, fields, positional_fallback=_PERSON_POS
+        )
         fid = _parse_int(rd.get("family_id"))
         if fid is None:
             continue
@@ -211,7 +215,9 @@ def parse_legacy_person_rows(sql_text: str) -> list[LegacyPersonRow]:
     stmt, cols = _extract_insert(sql_text, "person")
     rows: list[LegacyPersonRow] = []
     for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_PERSON_POS)
+        rd = mysqldump.row_dict_from_fields(
+            cols, fields, positional_fallback=_PERSON_POS
+        )
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -256,7 +262,9 @@ def parse_legacy_country_dial_codes(sql_text: str) -> dict[int, str]:
     cols = mysqldump.parse_insert_column_names(stmt)
     out: dict[int, str] = {}
     for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_COUNTRY_POS)
+        rd = mysqldump.row_dict_from_fields(
+            cols, fields, positional_fallback=_COUNTRY_POS
+        )
         cid = _parse_int(rd.get("id"))
         dial = rd.get("dial_code")
         if cid is None or dial is None:

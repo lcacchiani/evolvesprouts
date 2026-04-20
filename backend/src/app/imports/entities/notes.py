@@ -52,7 +52,13 @@ class NotesImporter:
         tables: list[dict[str, Any]] = [
             {
                 "table": "notes",
-                "columns": ["content", "took_at", "created_by", "created_at", "updated_at"],
+                "columns": [
+                    "content",
+                    "took_at",
+                    "created_by",
+                    "created_at",
+                    "updated_at",
+                ],
                 "values": {
                     "content": preview_line(self, n.content),
                     "took_at": n.took_at.isoformat(),
