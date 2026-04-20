@@ -294,6 +294,8 @@ class ContactsImporter:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
         fam_refs = ctx.refs_by_entity.get("families", {})
         org_refs = ctx.refs_by_entity.get("organizations", {})
+        skipped_no_dep_no_family_id = 0
+        skipped_no_dep_parent_unmapped = 0
         dial_by_id = (
             parse_legacy_country_dial_codes(ctx.source_sql_text)
             if ctx.source_sql_text
@@ -328,6 +330,7 @@ class ContactsImporter:
             fid = p.family_id
             if fid is None:
                 stats.skipped_no_dep += 1
+                skipped_no_dep_no_family_id += 1
                 continue
             fam_key = str(fid)
             parent_uuid: UUID | None = fam_refs.get(fam_key)
@@ -337,6 +340,7 @@ class ContactsImporter:
                 org_mode = parent_uuid is not None
             if parent_uuid is None:
                 stats.skipped_no_dep += 1
+                skipped_no_dep_parent_unmapped += 1
                 continue
 
             if reuse_id is not None:
@@ -503,6 +507,22 @@ class ContactsImporter:
 
         if not dry_run:
             session.commit()
+
+        stats.diagnostics = {
+            "dependency_ref_count_families": len(fam_refs),
+            "dependency_ref_count_organizations": len(org_refs),
+            "skipped_no_dep_no_legacy_family_id": skipped_no_dep_no_family_id,
+            "skipped_no_dep_parent_missing_from_legacy_import_refs": skipped_no_dep_parent_unmapped,
+        }
+        if stats.skipped_no_dep and (
+            len(fam_refs) == 0 or skipped_no_dep_parent_unmapped
+        ):
+            stats.diagnostics["hint"] = (
+                "Each person needs legacy family_id mapped via legacy_import_refs "
+                "(entities families + organizations). Run those imports against this "
+                "database first (non-dry-run), or use dry-run only after refs exist. "
+                "Dry-run does not load refs from the SQL file — only from the database."
+            )
 
         return stats
 
