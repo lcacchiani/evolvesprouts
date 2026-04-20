@@ -24,7 +24,9 @@ class DependencyNotMet(RuntimeError):
 
 
 # Dependency entities that may legitimately have zero imported rows (empty tenant).
-_OPTIONAL_LEGACY_IMPORT_DEPS: frozenset[str] = frozenset({"organizations"})
+_OPTIONAL_LEGACY_IMPORT_DEPS: frozenset[str] = frozenset(
+    {"organizations", "families"},
+)
 
 
 def parse_skip_legacy_keys_csv(raw: str | None) -> frozenset[str]:
@@ -73,11 +75,13 @@ class ImportStats:
     skipped_deleted: int = 0
     #: Mapped to an existing contact by email/instagram dedupe (no new contact row).
     reused_existing_contact: int = 0
+    #: Legacy ``family`` row skipped: fewer than two active persons link to it (household not imported).
+    skipped_household_below_min_links: int = 0
     dry_run: bool = False
     preview: list[str] = field(default_factory=list)
     #: Structured rows for logging / API (table, columns, values); capped per importer.
     row_details: list[dict[str, Any]] = field(default_factory=list)
-    #: Non-PII hints (counts, ref sizes) for operators — e.g. contacts ``skipped_no_dep`` breakdown.
+    #: Non-PII hints (counts, ref sizes) for operators — e.g. contacts membership diagnostics.
     diagnostics: dict[str, Any] = field(default_factory=dict)
 
 

@@ -278,6 +278,27 @@ def parse_legacy_family_rows(sql_text: str) -> list[LegacyFamilyRow]:
     return rows
 
 
+def eligible_household_legacy_family_ids(
+    sql_text: str,
+    *,
+    min_active_persons: int = 2,
+) -> frozenset[int]:
+    """Legacy ``family.id`` values with at least ``min_active_persons`` non-deleted persons.
+
+    Used to import ``families`` only for multi-contact households; single-person
+    legacy groups become contacts without a ``families`` row.
+    """
+    counts: dict[int, int] = {}
+    for rd in _iter_row_dicts(sql_text, "person"):
+        if rd.get("deleted_at") is not None:
+            continue
+        fid = _parse_int(rd.get("family_id"))
+        if fid is None:
+            continue
+        counts[fid] = counts.get(fid, 0) + 1
+    return frozenset(fid for fid, n in counts.items() if n >= min_active_persons)
+
+
 def legacy_family_id_to_person_kinds(sql_text: str) -> dict[int, set[str]]:
     """Read-only scan of ``person`` rows: map legacy family id → distinct kinds."""
     out: dict[int, set[str]] = {}

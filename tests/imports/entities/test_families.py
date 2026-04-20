@@ -20,15 +20,20 @@ INSERT INTO `family` (`id`, `name`, `kind`, `district_id`, `address_line1`, `add
 (10, 'The Smiths', 'family', 1, '1 Road', NULL, '22.3', '114.1', NULL),
 (11, 'Deleted Fam', 'family', NULL, NULL, NULL, NULL, NULL, '2020-01-01 00:00:00'),
 (12, 'Acme Corp', 'company', 1, 'HQ', NULL, NULL, NULL, NULL);
+
+INSERT INTO `person` (`id`, `family_id`, `kind`, `first_name`, `last_name`, `email`, `instagram_id`, `date_of_birth`, `phone`, `phone_country_code_id`, `occupation`, `company`, `referral_source`, `referral_person_id`, `is_newsletter_subscribed`, `deleted_at`) VALUES
+(1, 10, 'parent', 'A', NULL, 'a@example.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(2, 10, 'child', 'B', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(3, 11, 'parent', 'C', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 """
 
 
-def test_parse_filters_family_kind_only() -> None:
+def test_parse_filters_family_kind_and_two_plus_person_household() -> None:
     rows = parse_legacy_family_rows(MINIMAL_FAMILY)
     fam = FamiliesImporter().parse(MINIMAL_FAMILY)
     assert len(rows) == 3
-    assert len(fam) == 2
-    assert {r.legacy_id for r in fam} == {10, 11}
+    assert len(fam) == 1
+    assert fam[0].legacy_id == 10
 
 
 def test_parse_unicode_and_quotes() -> None:
@@ -36,6 +41,9 @@ def test_parse_unicode_and_quotes() -> None:
 INSERT INTO district (id, name) VALUES (1, 'Central');
 INSERT INTO `family` (`id`, `name`, `kind`, `district_id`, `address_line1`, `address_line2`, `latitude`, `longitude`, `deleted_at`) VALUES
 (20, 'Café O''Brien', 'family', 1, 'Line', NULL, NULL, NULL, NULL);
+INSERT INTO `person` (`id`, `family_id`, `kind`, `first_name`, `last_name`, `email`, `instagram_id`, `date_of_birth`, `phone`, `phone_country_code_id`, `occupation`, `company`, `referral_source`, `referral_person_id`, `is_newsletter_subscribed`, `deleted_at`) VALUES
+(40, 20, 'parent', 'P', NULL, 'p@example.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(41, 20, 'child', 'C', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 """
     rows = FamiliesImporter().parse(sql)
     assert len(rows) == 1
@@ -56,6 +64,14 @@ def test_apply_families_dry_run(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
 
     session = MagicMock()
+    sql = """
+INSERT INTO `district` (`id`, `name`) VALUES (1, 'Central');
+INSERT INTO `family` (`id`, `name`, `kind`, `district_id`, `address_line1`, `address_line2`, `latitude`, `longitude`, `deleted_at`) VALUES
+(1, 'Fam', 'family', 1, '1 St', NULL, NULL, NULL, NULL);
+INSERT INTO `person` (`id`, `family_id`, `kind`, `first_name`, `last_name`, `email`, `instagram_id`, `date_of_birth`, `phone`, `phone_country_code_id`, `occupation`, `company`, `referral_source`, `referral_person_id`, `is_newsletter_subscribed`, `deleted_at`) VALUES
+(10, 1, 'parent', 'A', NULL, 'a@e.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 1, 'child', 'B', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+"""
     rows = [
         LegacyFamilyRow(
             legacy_id=1,
@@ -70,7 +86,7 @@ def test_apply_families_dry_run(monkeypatch: pytest.MonkeyPatch) -> None:
             deleted_at=None,
         )
     ]
-    stats = apply_families(session, rows, dry_run=True)
+    stats = apply_families(session, rows, dry_run=True, source_sql_text=sql)
     assert stats.inserted == 1
     session.add.assert_not_called()
     mod.refs.record_mapping.assert_not_called()
@@ -90,9 +106,15 @@ def test_apply_skips_deleted_and_excluded(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
 
     session = MagicMock()
+    sql = """
+INSERT INTO `district` (`id`, `name`) VALUES (1, 'Central');
+INSERT INTO `person` (`id`, `family_id`, `kind`, `first_name`, `last_name`, `email`, `instagram_id`, `date_of_birth`, `phone`, `phone_country_code_id`, `occupation`, `company`, `referral_source`, `referral_person_id`, `is_newsletter_subscribed`, `deleted_at`) VALUES
+(10, 5, 'parent', 'A', NULL, 'a@e.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 5, 'child', 'B', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+"""
     rows = [
         LegacyFamilyRow(
-            legacy_id=1,
+            legacy_id=5,
             name="X",
             kind="family",
             district_id=None,
@@ -104,13 +126,13 @@ def test_apply_skips_deleted_and_excluded(monkeypatch: pytest.MonkeyPatch) -> No
             deleted_at="2020-01-01",
         ),
     ]
-    stats = apply_families(session, rows, dry_run=False)
+    stats = apply_families(session, rows, dry_run=False, source_sql_text=sql)
     assert stats.skipped_deleted == 1
     assert stats.inserted == 0
 
     rows2 = [
         LegacyFamilyRow(
-            legacy_id=5,
+            legacy_id=7,
             name="Y",
             kind="family",
             district_id=None,
@@ -126,6 +148,7 @@ def test_apply_skips_deleted_and_excluded(monkeypatch: pytest.MonkeyPatch) -> No
         session,
         rows2,
         dry_run=False,
-        skip_legacy_keys=frozenset({"5"}),
+        skip_legacy_keys=frozenset({"7"}),
+        source_sql_text=sql,
     )
     assert stats2.skipped_excluded_key == 1
