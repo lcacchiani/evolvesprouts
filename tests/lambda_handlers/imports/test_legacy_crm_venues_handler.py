@@ -25,7 +25,7 @@ _HANDLER_PATH = (
 
 @lru_cache(maxsize=1)
 def _handler():
-    """Load handler module without relying on the top-level name ``lambda`` in imports."""
+    """Load handler module without importing the ``lambda`` package name in tests."""
     spec = importlib.util.spec_from_file_location(
         "legacy_crm_venues_handler_under_test",
         _HANDLER_PATH,

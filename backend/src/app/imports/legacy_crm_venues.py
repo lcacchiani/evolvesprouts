@@ -238,11 +238,7 @@ def parse_legacy_venues(
         line2 = fields[3]
         district_raw = fields[4]
         district_id = int(str(district_raw)) if district_raw is not None else None
-        dlabel = (
-            district_map.get(int(district_id))
-            if district_id is not None
-            else None
-        )
+        dlabel = district_map.get(int(district_id)) if district_id is not None else None
         parts = [p for p in (line1, line2) if p]
         address = ", ".join(parts) if parts else None
         rows.append(
