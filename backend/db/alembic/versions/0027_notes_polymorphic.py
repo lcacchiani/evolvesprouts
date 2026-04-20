@@ -77,6 +77,7 @@ def upgrade() -> None:
         "note_entity_links",
         ["entity_type", "entity_id"],
     )
+    op.execute("DROP TRIGGER IF EXISTS notes_set_updated_at ON notes")
     op.execute(
         """
         CREATE TRIGGER notes_set_updated_at

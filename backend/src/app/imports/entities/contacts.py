@@ -10,6 +10,7 @@ from uuid import UUID
 
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
 from app.db.models import Contact
@@ -56,6 +57,11 @@ def _map_contact_type(kind: str | None) -> ContactType:
         return ContactType.HELPER
     if k == "partner":
         return ContactType.PROFESSIONAL
+    if k:
+        logger.warning(
+            "Unknown legacy person.kind=%r; mapping contact_type to other",
+            k,
+        )
     return ContactType.OTHER
 
 
@@ -126,6 +132,30 @@ def _source_detail(occupation: str | None, company: str | None) -> str | None:
     return None
 
 
+def _membership_exists(
+    session: Session,
+    *,
+    contact_id: UUID,
+    parent_uuid: UUID,
+    org_mode: bool,
+) -> bool:
+    if org_mode:
+        q = select(
+            exists().where(
+                OrganizationMember.contact_id == contact_id,
+                OrganizationMember.organization_id == parent_uuid,
+            ),
+        )
+    else:
+        q = select(
+            exists().where(
+                FamilyMember.contact_id == contact_id,
+                FamilyMember.family_id == parent_uuid,
+            ),
+        )
+    return bool(session.execute(q).scalar())
+
+
 def _title_trim(occupation: str | None, max_len: int = 150) -> str | None:
     if occupation is None:
         return None
@@ -139,6 +169,7 @@ class ContactsImporter:
     """Import legacy ``person`` rows into ``contacts``."""
 
     ENTITY: ClassVar[str] = "contacts"
+    #: ``organizations`` is optional (tenant may have zero imported orgs); refs still loaded when present.
     DEPENDS_ON: ClassVar[tuple[str, ...]] = ("families", "organizations")
     PII: ClassVar[bool] = True
     PREVIEW_MAX_ROWS: ClassVar[int] = 50
@@ -294,14 +325,6 @@ class ContactsImporter:
             if reuse_id is None and insta_key:
                 reuse_id = insta_map.get(insta_key)
 
-            if reuse_id is not None:
-                if not dry_run:
-                    refs.record_mapping(
-                        session, self.ENTITY, str(p.legacy_id), reuse_id
-                    )
-                stats.inserted += 1
-                continue
-
             fid = p.family_id
             if fid is None:
                 stats.skipped_no_dep += 1
@@ -314,6 +337,42 @@ class ContactsImporter:
                 org_mode = parent_uuid is not None
             if parent_uuid is None:
                 stats.skipped_no_dep += 1
+                continue
+
+            if reuse_id is not None:
+                if dry_run:
+                    stats.reused_existing_contact += 1
+                    if len(stats.preview) < self.PREVIEW_MAX_ROWS:
+                        stats.preview.append(
+                            f"Would map legacy person {p.legacy_id} to existing contact "
+                            f"(dedupe); ensure membership to family/org {fam_key}",
+                        )
+                    continue
+                refs.record_mapping(session, self.ENTITY, str(p.legacy_id), reuse_id)
+                if not _membership_exists(
+                    session,
+                    contact_id=reuse_id,
+                    parent_uuid=parent_uuid,
+                    org_mode=org_mode,
+                ):
+                    if org_mode:
+                        session.add(
+                            OrganizationMember(
+                                organization_id=parent_uuid,
+                                contact_id=reuse_id,
+                                role=_org_role(p.kind),
+                                title=_title_trim(p.occupation),
+                            ),
+                        )
+                    else:
+                        session.add(
+                            FamilyMember(
+                                family_id=parent_uuid,
+                                contact_id=reuse_id,
+                                role=_family_role(p.kind),
+                            ),
+                        )
+                stats.reused_existing_contact += 1
                 continue
 
             fn = _clean_name_part(p.first_name) or "Unknown"

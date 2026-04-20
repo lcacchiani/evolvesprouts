@@ -58,7 +58,30 @@ class LegacyNoteRow:
     content: str
 
 
-_FAMILY_POS = {
+# Real mysqldump column order (no column list) — see legacy ``CREATE TABLE`` in dump.
+# id, parent_id, created_at, created_by, deleted_at, deleted_by,
+# name, latitude, longitude, address_line1, address_line2,
+# district_id, kind, company_id, postal_code
+_FAMILY_POS: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "created_at",
+    3: "created_by",
+    4: "deleted_at",
+    5: "deleted_by",
+    6: "name",
+    7: "latitude",
+    8: "longitude",
+    9: "address_line1",
+    10: "address_line2",
+    11: "district_id",
+    12: "kind",
+    13: "company_id",
+    14: "postal_code",
+}
+
+# Tests / hand-written dumps may use a shortened 9-column layout (explicit lists).
+_FAMILY_POS_LEGACY_TEST: dict[int, str] = {
     0: "id",
     1: "name",
     2: "kind",
@@ -70,7 +93,8 @@ _FAMILY_POS = {
     8: "deleted_at",
 }
 
-_PERSON_POS = {
+# Default person layout when CREATE TABLE is missing — wide row matching typical CRM dumps.
+_PERSON_POS: dict[int, str] = {
     0: "id",
     1: "family_id",
     2: "kind",
@@ -89,9 +113,25 @@ _PERSON_POS = {
     15: "deleted_at",
 }
 
-_COUNTRY_POS = {
+# id, iso3, name, region_id, dial_code (real dump)
+_COUNTRY_POS: dict[int, str] = {
     0: "id",
-    1: "dial_code",
+    1: "iso3",
+    2: "name",
+    3: "region_id",
+    4: "dial_code",
+}
+
+_NOTE_POS: dict[int, str] = {
+    0: "id",
+    1: "created_at",
+    2: "took_at",
+    3: "content",
+}
+
+_PN_POS: dict[int, str] = {
+    0: "note_id",
+    1: "person_id",
 }
 
 
@@ -138,38 +178,84 @@ def _require_dt(raw: str | None, *, field: str) -> datetime:
     return dt
 
 
-def _extract_insert(sql_text: str, table: str) -> tuple[str, list[str] | None]:
+def _resolve_column_names(
+    sql_text: str,
+    table: str,
+    stmt: str,
+    fields: list[str | None],
+    positional: dict[int, str],
+) -> list[str] | None:
+    insert_cols = mysqldump.parse_insert_column_names(stmt)
+    if insert_cols is not None and len(insert_cols) == len(fields):
+        return insert_cols
+    create_cols = mysqldump.parse_create_table_column_names(sql_text, table)
+    if create_cols is not None and len(create_cols) == len(fields):
+        return create_cols
+    if table == "family":
+        if len(fields) == len(_FAMILY_POS):
+            return [_FAMILY_POS[i] for i in range(len(_FAMILY_POS))]
+        if len(fields) == len(_FAMILY_POS_LEGACY_TEST):
+            return [
+                _FAMILY_POS_LEGACY_TEST[i] for i in range(len(_FAMILY_POS_LEGACY_TEST))
+            ]
+    if len(fields) == len(positional):
+        return [positional[i] for i in range(len(fields))]
+    return None
+
+
+def _row_dict(
+    sql_text: str,
+    table: str,
+    stmt: str,
+    fields: list[str | None],
+    positional: dict[int, str],
+) -> dict[str, str | None]:
+    names = _resolve_column_names(sql_text, table, stmt, fields, positional)
+    if names is not None and len(names) == len(fields):
+        return {names[i]: fields[i] for i in range(len(fields))}
+    return mysqldump.row_dict_from_fields(None, fields, positional_fallback=positional)
+
+
+def _extract_insert(sql_text: str, table: str) -> str:
     stmt = mysqldump.extract_insert_statement(sql_text, table)
     if stmt is None:
         msg = f"Could not find INSERT INTO `{table}` in dump."
         raise ValueError(msg)
-    cols = mysqldump.parse_insert_column_names(stmt)
-    return stmt, cols
+    return stmt
 
 
-def _iter_field_groups(stmt: str) -> list[list[str | None]]:
-    m = mysqldump.INSERT_RE.match(stmt)
-    if m is None:
-        raise ValueError("Unexpected INSERT shape.")
-    rest = m.group("rest").rstrip()
-    if rest.endswith(";"):
-        rest = rest[:-1].rstrip()
-    groups = mysqldump.iter_groups(rest)
-    out: list[list[str | None]] = []
-    for g in groups:
+def _table_positional(table: str) -> dict[int, str]:
+    if table == "family":
+        return _FAMILY_POS
+    if table == "person":
+        return _PERSON_POS
+    if table == "country":
+        return _COUNTRY_POS
+    if table == "note":
+        return _NOTE_POS
+    if table == "person_note":
+        return _PN_POS
+    return {}
+
+
+def _iter_row_dicts(
+    sql_text: str,
+    table: str,
+) -> list[dict[str, str | None]]:
+    stmt = _extract_insert(sql_text, table)
+    pos = _table_positional(table)
+    values_sql = mysqldump.extract_values_sql_fragment(stmt)
+    out: list[dict[str, str | None]] = []
+    for g in mysqldump.iter_groups(values_sql):
         fields = mysqldump.split_fields(g)
-        out.append(fields)
+        out.append(_row_dict(sql_text, table, stmt, fields, pos))
     return out
 
 
 def parse_legacy_family_rows(sql_text: str) -> list[LegacyFamilyRow]:
     districts = parse_legacy_districts(sql_text)
-    stmt, cols = _extract_insert(sql_text, "family")
     rows: list[LegacyFamilyRow] = []
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(
-            cols, fields, positional_fallback=_FAMILY_POS
-        )
+    for rd in _iter_row_dicts(sql_text, "family"):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -194,12 +280,8 @@ def parse_legacy_family_rows(sql_text: str) -> list[LegacyFamilyRow]:
 
 def legacy_family_id_to_person_kinds(sql_text: str) -> dict[int, set[str]]:
     """Read-only scan of ``person`` rows: map legacy family id → distinct kinds."""
-    stmt, cols = _extract_insert(sql_text, "person")
     out: dict[int, set[str]] = {}
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(
-            cols, fields, positional_fallback=_PERSON_POS
-        )
+    for rd in _iter_row_dicts(sql_text, "person"):
         fid = _parse_int(rd.get("family_id"))
         if fid is None:
             continue
@@ -212,12 +294,8 @@ def legacy_family_id_to_person_kinds(sql_text: str) -> dict[int, set[str]]:
 
 
 def parse_legacy_person_rows(sql_text: str) -> list[LegacyPersonRow]:
-    stmt, cols = _extract_insert(sql_text, "person")
     rows: list[LegacyPersonRow] = []
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(
-            cols, fields, positional_fallback=_PERSON_POS
-        )
+    for rd in _iter_row_dicts(sql_text, "person"):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -256,15 +334,10 @@ def parse_legacy_person_rows(sql_text: str) -> list[LegacyPersonRow]:
 
 
 def parse_legacy_country_dial_codes(sql_text: str) -> dict[int, str]:
-    stmt = mysqldump.extract_insert_statement(sql_text, "country")
-    if stmt is None:
+    if mysqldump.extract_insert_statement(sql_text, "country") is None:
         return {}
-    cols = mysqldump.parse_insert_column_names(stmt)
     out: dict[int, str] = {}
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(
-            cols, fields, positional_fallback=_COUNTRY_POS
-        )
+    for rd in _iter_row_dicts(sql_text, "country"):
         cid = _parse_int(rd.get("id"))
         dial = rd.get("dial_code")
         if cid is None or dial is None:
@@ -273,19 +346,9 @@ def parse_legacy_country_dial_codes(sql_text: str) -> dict[int, str]:
     return out
 
 
-_NOTE_POS = {
-    0: "id",
-    1: "created_at",
-    2: "took_at",
-    3: "content",
-}
-
-
 def parse_legacy_notes(sql_text: str) -> list[LegacyNoteRow]:
-    stmt, cols = _extract_insert(sql_text, "note")
     rows: list[LegacyNoteRow] = []
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_NOTE_POS)
+    for rd in _iter_row_dicts(sql_text, "note"):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -300,21 +363,13 @@ def parse_legacy_notes(sql_text: str) -> list[LegacyNoteRow]:
     return rows
 
 
-_PN_POS = {
-    0: "note_id",
-    1: "person_id",
-}
-
-
 def parse_legacy_person_notes(sql_text: str) -> list[tuple[int, int]]:
     """Return (note_id, person_id) pairs from ``person_note``."""
     stmt = mysqldump.extract_insert_statement(sql_text, "person_note")
     if stmt is None:
         return []
-    cols = mysqldump.parse_insert_column_names(stmt)
     pairs: list[tuple[int, int]] = []
-    for fields in _iter_field_groups(stmt):
-        rd = mysqldump.row_dict_from_fields(cols, fields, positional_fallback=_PN_POS)
+    for rd in _iter_row_dicts(sql_text, "person_note"):
         nid = _parse_int(rd.get("note_id"))
         pid = _parse_int(rd.get("person_id"))
         if nid is None or pid is None:

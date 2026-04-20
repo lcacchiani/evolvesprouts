@@ -216,6 +216,7 @@ class OrganizationsImporter:
             ):
                 area_id = area_by_name.get(dname) if dname else None
                 if area_id is None:
+                    stats.skipped_location_no_area += 1
                     logger.warning(
                         "Skipping location for legacy org family id=%s: no area for district=%r",
                         row.legacy_id,

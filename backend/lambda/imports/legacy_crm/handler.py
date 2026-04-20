@@ -128,8 +128,10 @@ def _stats_to_json(stats: ImportStats, *, preview_allowed: bool) -> dict[str, An
         "skipped_duplicate": stats.skipped_duplicate,
         "skipped_excluded_key": stats.skipped_excluded_key,
         "skipped_no_area": stats.skipped_no_area,
+        "skipped_location_no_area": stats.skipped_location_no_area,
         "skipped_no_dep": stats.skipped_no_dep,
         "skipped_deleted": stats.skipped_deleted,
+        "reused_existing_contact": stats.reused_existing_contact,
         "dry_run": stats.dry_run,
         "preview_allowed": preview_allowed,
     }
@@ -173,13 +175,17 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         log_extra["import_row_details"] = stats.row_details
     logger.info(
         "Import complete entity=%s inserted=%s skipped_duplicate=%s "
-        "skipped_excluded_key=%s skipped_no_area=%s skipped_no_dep=%s dry_run=%s",
+        "skipped_excluded_key=%s skipped_no_area=%s skipped_location_no_area=%s "
+        "skipped_no_dep=%s skipped_deleted=%s reused_existing_contact=%s dry_run=%s",
         stats.entity,
         stats.inserted,
         stats.skipped_duplicate,
         stats.skipped_excluded_key,
         stats.skipped_no_area,
+        stats.skipped_location_no_area,
         stats.skipped_no_dep,
+        stats.skipped_deleted,
+        stats.reused_existing_contact,
         stats.dry_run,
         extra=log_extra,
     )

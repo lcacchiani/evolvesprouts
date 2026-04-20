@@ -23,6 +23,10 @@ class DependencyNotMet(RuntimeError):
     """Raised when a non-dry-run import needs parent rows in legacy_import_refs."""
 
 
+# Dependency entities that may legitimately have zero imported rows (empty tenant).
+_OPTIONAL_LEGACY_IMPORT_DEPS: frozenset[str] = frozenset({"organizations"})
+
+
 def parse_skip_legacy_keys_csv(raw: str | None) -> frozenset[str]:
     """Parse a comma-separated list of legacy primary-key strings to exclude from import."""
     if raw is None:
@@ -63,8 +67,12 @@ class ImportStats:
     skipped_duplicate: int = 0
     skipped_excluded_key: int = 0
     skipped_no_area: int = 0
+    #: Usable address on family/org row but HK district could not be resolved to ``geographic_areas``.
+    skipped_location_no_area: int = 0
     skipped_no_dep: int = 0
     skipped_deleted: int = 0
+    #: Mapped to an existing contact by email/instagram dedupe (no new contact row).
+    reused_existing_contact: int = 0
     dry_run: bool = False
     preview: list[str] = field(default_factory=list)
     #: Structured rows for logging / API (table, columns, values); capped per importer.
@@ -131,6 +139,8 @@ def check_dependencies(
 
     for dep in importer.DEPENDS_ON:
         if refs.has_mapping(session, dep):
+            continue
+        if dep in _OPTIONAL_LEGACY_IMPORT_DEPS:
             continue
         raise DependencyNotMet(
             f"Required dependency entity {dep!r} has no rows in "

@@ -45,12 +45,7 @@ def _parse_legacy_districts(sql_text: str) -> dict[int, str]:
     if stmt is None:
         msg = "Could not find INSERT INTO `district` in dump."
         raise ValueError(msg)
-    m = mysqldump.INSERT_RE.match(stmt)
-    if m is None:
-        raise ValueError("Unexpected district INSERT shape.")
-    rest = m.group("rest").rstrip()
-    if rest.endswith(";"):
-        rest = rest[:-1].rstrip()
+    rest = mysqldump.extract_values_sql_fragment(stmt)
     groups = mysqldump.iter_groups(rest)
     out: dict[int, str] = {}
     for g in groups:
@@ -75,12 +70,7 @@ def _parse_legacy_venues(
     if stmt is None:
         msg = "Could not find INSERT INTO `venue` in dump."
         raise ValueError(msg)
-    m = mysqldump.INSERT_RE.match(stmt)
-    if m is None:
-        raise ValueError("Unexpected venue INSERT shape.")
-    rest = m.group("rest").rstrip()
-    if rest.endswith(";"):
-        rest = rest[:-1].rstrip()
+    rest = mysqldump.extract_values_sql_fragment(stmt)
     groups = mysqldump.iter_groups(rest)
     rows: list[LegacyVenue] = []
     for g in groups:
