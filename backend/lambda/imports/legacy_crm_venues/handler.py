@@ -21,7 +21,8 @@ from app.utils.logging import get_logger
 configure_logging()
 logger = get_logger(__name__)
 
-TMP_SQL_PATH = Path("/tmp/legacy_crm_venues.sql")
+# Lambda provides writable storage only under /tmp; fixed path per invocation is intentional.
+TMP_SQL_PATH = Path("/tmp/legacy_crm_venues.sql")  # nosec B108
 _ALLOWED_EVENT_KEYS = frozenset({"s3_bucket", "s3_key", "dry_run"})
 
 
