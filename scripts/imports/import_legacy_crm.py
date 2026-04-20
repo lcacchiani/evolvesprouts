@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.imports import entities  # noqa: F401 — register importers
+from app.imports.base import parse_skip_legacy_keys_csv
 from app.imports.base import resolve_importer_context
 from app.imports.registry import get
 from app.imports.registry import known_entities
@@ -60,6 +61,15 @@ def main() -> int:
         action="store_true",
         help="Parse and resolve but do not commit writes.",
     )
+    parser.add_argument(
+        "--skip-legacy-keys",
+        default="",
+        metavar="CSV",
+        help=(
+            "Comma-separated legacy primary-key values to skip (e.g. venue ids). "
+            "Whitespace around entries is trimmed; empty tokens are ignored."
+        ),
+    )
     args = parser.parse_args()
     path: Path = args.sql_path
     if not path.is_file():
@@ -70,17 +80,24 @@ def main() -> int:
     sql_text = path.read_text(encoding="utf-8", errors="replace")
     rows = importer.parse(sql_text)
 
+    skip_keys = parse_skip_legacy_keys_csv(args.skip_legacy_keys or None)
     engine = get_engine(use_cache=False)
     with Session(engine) as session:
-        ctx = resolve_importer_context(importer, session, dry_run=args.dry_run)
+        ctx = resolve_importer_context(
+            importer,
+            session,
+            dry_run=args.dry_run,
+            skip_legacy_keys=skip_keys,
+        )
         stats = importer.apply(session, rows, ctx, dry_run=args.dry_run)
 
     logger.info(
-        "Done entity=%s inserted=%s skipped_duplicate=%s skipped_no_area=%s "
-        "skipped_no_dep=%s dry_run=%s",
+        "Done entity=%s inserted=%s skipped_duplicate=%s skipped_excluded_key=%s "
+        "skipped_no_area=%s skipped_no_dep=%s dry_run=%s",
         stats.entity,
         stats.inserted,
         stats.skipped_duplicate,
+        stats.skipped_excluded_key,
         stats.skipped_no_area,
         stats.skipped_no_dep,
         stats.dry_run,

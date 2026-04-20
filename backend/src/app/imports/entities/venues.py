@@ -227,6 +227,9 @@ class VenueImporter:
         for v in rows:
             if not isinstance(v, LegacyVenue):
                 continue
+            if str(v.legacy_id) in ctx.skip_legacy_keys:
+                stats.skipped_excluded_key += 1
+                continue
             dname = v.district_label
             if (
                 dname is None
@@ -332,12 +335,14 @@ def apply_venues(
     *,
     dry_run: bool,
     district_map: Mapping[int, str] | None = None,
+    skip_legacy_keys: frozenset[str] | None = None,
 ) -> ImportStats:
     """Apply venue rows (used by tests; delegates to :class:`VenueImporter`)."""
     importer = VenueImporter()
     ctx = importer.resolve_context(session, dry_run=dry_run)
     dm = dict(district_map) if district_map is not None else None
-    ctx = replace(ctx, district_map=dm)
+    sk = skip_legacy_keys or frozenset()
+    ctx = replace(ctx, district_map=dm, skip_legacy_keys=ctx.skip_legacy_keys | sk)
     return importer.apply(session, venues, ctx, dry_run=dry_run)
 
 

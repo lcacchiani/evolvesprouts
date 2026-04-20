@@ -23,6 +23,17 @@ class DependencyNotMet(RuntimeError):
     """Raised when a non-dry-run import needs parent rows in legacy_import_refs."""
 
 
+def parse_skip_legacy_keys_csv(raw: str | None) -> frozenset[str]:
+    """Parse a comma-separated list of legacy primary-key strings to exclude from import."""
+    if raw is None:
+        return frozenset()
+    s = raw.strip()
+    if not s:
+        return frozenset()
+    parts = (p.strip() for p in s.split(","))
+    return frozenset(p for p in parts if p)
+
+
 @dataclass(frozen=True)
 class ImporterContext:
     """Per-invocation context built in ``resolve_context``."""
@@ -32,6 +43,8 @@ class ImporterContext:
     refs_by_entity: Mapping[str, Mapping[str, UUID]] = field(default_factory=dict)
     #: Optional legacy district id → label (venues tests / manual rows without labels).
     district_map: Mapping[int, str] | None = None
+    #: Legacy row keys (string form of PK, e.g. venue id) to skip for this run.
+    skip_legacy_keys: frozenset[str] = field(default_factory=frozenset)
 
 
 @dataclass
@@ -41,6 +54,7 @@ class ImportStats:
     entity: str = ""
     inserted: int = 0
     skipped_duplicate: int = 0
+    skipped_excluded_key: int = 0
     skipped_no_area: int = 0
     skipped_no_dep: int = 0
     dry_run: bool = False
@@ -121,6 +135,7 @@ def resolve_importer_context(
     session: Session,
     *,
     dry_run: bool,
+    skip_legacy_keys: frozenset[str] | None = None,
 ) -> ImporterContext:
     """Resolve importer context and attach dependency ref maps."""
     check_dependencies(importer, session, dry_run=dry_run)
@@ -129,4 +144,7 @@ def resolve_importer_context(
 
     base_ctx = importer.resolve_context(session, dry_run=dry_run)
     refs_by = {dep: refs.load_mapping(session, dep) for dep in importer.DEPENDS_ON}
-    return replace(base_ctx, refs_by_entity=refs_by)
+    merged_skip = frozenset(base_ctx.skip_legacy_keys)
+    if skip_legacy_keys:
+        merged_skip |= skip_legacy_keys
+    return replace(base_ctx, refs_by_entity=refs_by, skip_legacy_keys=merged_skip)
