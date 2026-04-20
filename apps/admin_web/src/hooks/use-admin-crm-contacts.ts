@@ -68,6 +68,17 @@ export function useAdminCrmContacts() {
     [mutate]
   );
 
+  const patchContactStandaloneNoteCount = useCallback(
+    (contactId: string, standaloneNoteCount: number) => {
+      list.setItems((current) =>
+        current.map((row) =>
+          row.id === contactId ? { ...row, standalone_note_count: standaloneNoteCount } : row
+        )
+      );
+    },
+    [list]
+  );
+
   return {
     contacts: list.items,
     filters: list.filters,
@@ -82,6 +93,7 @@ export function useAdminCrmContacts() {
     createContact,
     updateContact,
     deleteContact,
+    patchContactStandaloneNoteCount,
     refetch: list.refetch,
   };
 }

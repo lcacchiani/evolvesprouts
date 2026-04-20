@@ -25,3 +25,26 @@ class CrmNoteRepository(BaseRepository[CrmNote]):
             .order_by(CrmNote.created_at.desc())
         )
         return list(self._session.execute(statement).scalars().all())
+
+    def list_standalone_for_contact(self, *, contact_id: UUID) -> list[CrmNote]:
+        """Return contact-scoped notes not tied to a sales lead, newest first."""
+        statement = (
+            select(CrmNote)
+            .where(
+                CrmNote.contact_id == contact_id,
+                CrmNote.lead_id.is_(None),
+            )
+            .order_by(CrmNote.created_at.desc())
+        )
+        return list(self._session.execute(statement).scalars().all())
+
+    def get_standalone_for_contact(
+        self, *, note_id: UUID, contact_id: UUID
+    ) -> CrmNote | None:
+        """Load a single standalone contact note if it belongs to the contact."""
+        statement = select(CrmNote).where(
+            CrmNote.id == note_id,
+            CrmNote.contact_id == contact_id,
+            CrmNote.lead_id.is_(None),
+        )
+        return self._session.execute(statement).scalar_one_or_none()

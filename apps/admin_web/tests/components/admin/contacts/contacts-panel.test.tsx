@@ -46,6 +46,7 @@ function buildContactsHook(
     createContact: vi.fn().mockResolvedValue(null),
     updateContact: vi.fn().mockResolvedValue(null),
     deleteContact: vi.fn().mockResolvedValue(undefined),
+    patchContactStandaloneNoteCount: vi.fn(),
     refetch: vi.fn(),
     ...overrides,
   };
@@ -108,6 +109,7 @@ describe('ContactsPanel', () => {
       tags: [],
       family_ids: [],
       organization_ids: [],
+      standalone_note_count: 0,
     };
     const contacts = buildContactsHook({
       deleteContact,
@@ -118,7 +120,7 @@ describe('ContactsPanel', () => {
       <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
     );
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete contact' }));
 
     expect(deleteContact).toHaveBeenCalledWith(row.id);
   });

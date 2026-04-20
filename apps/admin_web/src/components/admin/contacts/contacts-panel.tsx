@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -82,10 +84,12 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     createContact,
     updateContact,
     deleteContact,
+    patchContactStandaloneNoteCount,
   } = contacts;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
+  const [notesTarget, setNotesTarget] = useState<ApiSchemas['AdminContact'] | null>(null);
 
   const [familyPicker, setFamilyPicker] = useState<CrmPickerListItem[]>([]);
   const [organizationPicker, setOrganizationPicker] = useState<CrmPickerListItem[]>([]);
@@ -390,6 +394,12 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
   return (
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
+      <ContactNotesModal
+        open={notesTarget !== null}
+        contact={notesTarget}
+        onClose={() => setNotesTarget(null)}
+        onStandaloneNoteCountChange={patchContactStandaloneNoteCount}
+      />
       <AdminEditorCard
         title='Contact'
         description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
@@ -739,30 +749,65 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
-                  <td className='px-4 py-3 text-right'>
+                  <td
+                    className='px-4 py-3 text-right'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
                     <div className='flex flex-wrap justify-end gap-2'>
                       <Button
                         type='button'
                         size='sm'
                         variant='outline'
+                        className='relative h-8 min-w-8 px-0'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotesTarget(row);
+                        }}
+                        disabled={isSaving}
+                        aria-label='Contact notes'
+                        title='Notes'
+                      >
+                        <NoteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        {row.standalone_note_count > 0 ? (
+                          <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold leading-none text-white'>
+                            {row.standalone_note_count > 99 ? '99+' : row.standalone_note_count}
+                          </span>
+                        ) : null}
+                      </Button>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        className='h-8 min-w-8 px-0'
                         onClick={(e) => {
                           e.stopPropagation();
                           void updateContact(row.id, { active: !row.active });
                         }}
                         disabled={isSaving}
+                        aria-label={row.active ? 'Archive contact' : 'Restore contact'}
+                        title={row.active ? 'Archive' : 'Restore'}
                       >
-                        {row.active ? 'Archive' : 'Restore'}
+                        {row.active ? (
+                          <ArchiveIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        ) : (
+                          <RestoreIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        )}
                       </Button>
                       <Button
                         type='button'
                         size='sm'
                         variant='danger'
+                        className='h-8 min-w-8 px-0'
                         onClick={(e) => {
                           void handleDeleteContact(row, e);
                         }}
                         disabled={isSaving}
+                        aria-label='Delete contact'
+                        title='Delete contact'
                       >
-                        Delete
+                        <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                       </Button>
                     </div>
                   </td>

@@ -28,6 +28,8 @@ info:
     - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
     - `GET|PATCH|DELETE /v1/admin/contacts/{id}`
+    - `GET|POST /v1/admin/contacts/{id}/notes`
+    - `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
     - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
     - `GET|PATCH /v1/admin/families/{id}`
@@ -1729,6 +1731,102 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/contacts/{id}/notes:
+    parameters:
+      - $ref: "#/components/parameters/AdminContactId"
+    get:
+      summary: List standalone CRM notes for a contact
+      description: |
+        Returns CRM notes stored on the contact that are not tied to a sales lead
+        (`lead_id` is null), newest first. Notes created on a lead remain on the lead detail only.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Note list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCrmNoteListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Add a standalone CRM note to a contact
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCrmNoteRequest"
+      responses:
+        "201":
+          description: CRM note created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [note]
+                properties:
+                  note:
+                    $ref: "#/components/schemas/CrmNote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/contacts/{id}/notes/{noteId}:
+    parameters:
+      - $ref: "#/components/parameters/AdminContactId"
+      - $ref: "#/components/parameters/CrmNoteId"
+    patch:
+      summary: Update a standalone CRM note on a contact
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCrmNoteRequest"
+      responses:
+        "200":
+          description: CRM note updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [note]
+                properties:
+                  note:
+                    $ref: "#/components/schemas/CrmNote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete a standalone CRM note on a contact
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: CRM note deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/admin/families/picker:
     get:
       summary: List active CRM families for pickers
@@ -2541,6 +2639,14 @@ components:
         type: string
         format: uuid
       description: CRM contact identifier.
+    CrmNoteId:
+      name: noteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: CRM note identifier.
     AdminFamilyId:
       name: id
       in: path
@@ -2926,6 +3032,47 @@ components:
           type: string
           format: date-time
           nullable: true
+    CrmNote:
+      type: object
+      required:
+        - id
+        - content
+        - created_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    AdminCrmNoteListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmNote"
+    CreateCrmNoteRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+    UpdateCrmNoteRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
     LeadSummary:
       type: object
       required:
@@ -4827,6 +4974,7 @@ components:
         - tags
         - family_ids
         - organization_ids
+        - standalone_note_count
       properties:
         id:
           type: string
@@ -4906,6 +5054,12 @@ components:
           items:
             type: string
             format: uuid
+        standalone_note_count:
+          type: integer
+          minimum: 0
+          description: |
+            Count of CRM notes on this contact that are not tied to a sales lead
+            (`lead_id` is null). Lead-attached notes are excluded.
     AdminContactListResponse:
       type: object
       required:
