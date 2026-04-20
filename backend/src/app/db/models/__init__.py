@@ -40,6 +40,7 @@ from app.db.models.enums import (
 )
 from app.db.models.family import Family, FamilyMember
 from app.db.models.geographic_area import GeographicArea
+from app.db.models.legacy_import_ref import LegacyImportRef
 from app.db.models.location import Location
 from app.db.models.organization import Organization, OrganizationMember
 from app.db.models.sales_lead import SalesLead, SalesLeadEvent
@@ -102,6 +103,7 @@ __all__ = [
     "InstanceStatus",
     "LeadEventType",
     "LeadType",
+    "LegacyImportRef",
     "Location",
     "MailchimpSyncStatus",
     "Organization",

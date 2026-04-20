@@ -1,32 +1,35 @@
-# Manual import of legacy CRM venues from a MariaDB SQL dump into PostgreSQL `locations`.
+# Manual import from a legacy MariaDB SQL dump (entity-specific parsers).
 #
-# Flow: download the .sql (HTTPS URL or secret) on the runner → enforce ≤ 2 MB →
-# upload to the dedicated import S3 bucket → invoke the import Lambda with
-# `{ s3_bucket, s3_key, dry_run }`. The Lambda reads the object, parses mysqldump-style
-# INSERTs, and writes to Aurora via RDS Proxy + IAM as `evolvesprouts_admin`.
+# Flow: download the .sql → enforce ≤ 2 MB → upload to the import S3 bucket under
+# `dumps/<entity>/<run_id>/<entity>.sql` → invoke EvolvesproutsImportLegacyVenuesFunction
+# with `{ entity, s3_bucket, s3_key, dry_run }`. The Lambda dispatches to the registered
+# importer for that entity.
 #
-# **Production only** — the workflow exits unless the selected GitHub Environment name is
-# `production` (staging is out of scope for this path).
+# **Production only** — fails unless the GitHub Environment name is `production`.
 #
-# GitHub Environment (production) configuration:
+# GitHub Environment (production):
 # - vars: `AWS_ACCOUNT_ID`, `AWS_REGION`, `IMPORT_DUMP_BUCKET_NAME`, `IMPORT_LAMBDA_FUNCTION_NAME`
-#   Copy exact values from CDK stack outputs `ImportDumpBucketName` and
-#   `ImportLegacyVenuesFunctionName` after deploy (see `docs/architecture/setup.md`).
-# - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` — used when `sql_download_url` input is empty.
-# - Obsolete: `DATABASE_URL`, `DATABASE_SECRET_ARN`, `DATABASE_PROXY_ENDPOINT`, and related DB
-#   vars are **not** used by this workflow (safe to remove from the environment if present).
+#   (copy from CDK outputs `ImportDumpBucketName` and `ImportLegacyVenuesFunctionName`).
+# - secrets (optional): `IMPORT_LEGACY_CRM_SQL_URL` when `sql_download_url` is empty.
+# - Obsolete for this workflow: runner-side `DATABASE_*` secrets — not used.
 #
-# IAM: `GitHubActionsRole` must allow `s3:PutObject` on the import bucket prefix and
-# `lambda:InvokeFunction` + `lambda:GetFunction` on the import Lambda (see `docs/architecture/aws-assets-map.md`).
+# IAM: `GitHubActionsRole` needs `s3:PutObject`, `s3:DeleteObject` on `dumps/*`, and
+# `lambda:GetFunction` + `lambda:InvokeFunction` on the import Lambda.
 #
-# Security: presigned URLs are sensitive. Do not echo download URLs in logs. Step summary
-# includes Lambda invoke **counts only** (no venue names/addresses).
+# Security: do not echo presigned URLs. Step summary shows counts; when the Lambda sets
+# `preview_allowed: false` (PII entities), preview lines are omitted from the summary.
 
-name: Import legacy CRM venues
+name: Import legacy CRM
 
 on:
   workflow_dispatch:
     inputs:
+      entity:
+        description: Legacy CRM entity to import
+        required: true
+        type: choice
+        options:
+          - venues
       sql_download_url:
         description: >
           HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL is set).
@@ -38,13 +41,12 @@ on:
         default: true
         type: boolean
       environment:
-        description: >
-          GitHub Environment (must be `production` for this workflow).
+        description: GitHub Environment (must be `production` for this workflow).
         required: true
         type: environment
 
 concurrency:
-  group: import-legacy-crm-venues-${{ github.event.inputs.environment }}
+  group: import-legacy-crm-${{ github.event.inputs.environment }}-${{ github.event.inputs.entity }}
   cancel-in-progress: false
 
 permissions:
@@ -74,7 +76,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
           aws-region: ${{ vars.AWS_REGION }}
-          role-session-name: import-legacy-venues-${{ github.run_id }}
+          role-session-name: import-legacy-crm-${{ github.run_id }}
 
       - name: Verify Lambda and IAM (preflight)
         env:
@@ -82,17 +84,18 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${FUNC:-}" ]; then
-            echo "Set IMPORT_LAMBDA_FUNCTION_NAME on the GitHub environment (copy from CDK output ImportLegacyVenuesFunctionName)." >&2
+            echo "Set IMPORT_LAMBDA_FUNCTION_NAME (CDK output ImportLegacyVenuesFunctionName)." >&2
             exit 1
           fi
           echo "Checking Lambda exists: $FUNC"
           if ! aws lambda get-function --function-name "$FUNC" --query 'Configuration.FunctionArn' --output text; then
-            echo "lambda:GetFunction failed. Fix IMPORT_LAMBDA_FUNCTION_NAME (must match CDK ImportLegacyVenuesFunctionName) or attach lambda:GetFunction on GitHubActionsRole." >&2
+            echo "lambda:GetFunction failed. Fix IMPORT_LAMBDA_FUNCTION_NAME or IAM." >&2
             exit 1
           fi
 
       - name: Download SQL dump
         env:
+          ENTITY: ${{ github.event.inputs.entity }}
           INPUT_URL: ${{ github.event.inputs.sql_download_url }}
           SECRET_URL: ${{ secrets.IMPORT_LEGACY_CRM_SQL_URL }}
         run: |
@@ -102,34 +105,36 @@ jobs:
             URL="${SECRET_URL:-}"
           fi
           if [ -z "${URL// }" ]; then
-            echo "Provide sql_download_url or set repository secret IMPORT_LEGACY_CRM_SQL_URL." >&2
+            echo "Provide sql_download_url or set IMPORT_LEGACY_CRM_SQL_URL." >&2
             exit 1
           fi
-          curl -fsSL "$URL" -o "${RUNNER_TEMP}/legacy_crm_venues.sql"
-          SIZE=$(wc -c < "${RUNNER_TEMP}/legacy_crm_venues.sql")
+          curl -fsSL "$URL" -o "${RUNNER_TEMP}/${ENTITY}.sql"
+          SIZE=$(wc -c < "${RUNNER_TEMP}/${ENTITY}.sql")
           echo "Downloaded SQL dump ($SIZE bytes)"
           if [ "$SIZE" -gt 2097152 ]; then
-            echo "Dump exceeds 2 MB; reduce size or split the import." >&2
+            echo "Dump exceeds 2 MB." >&2
             exit 1
           fi
 
       - name: Upload dump to S3
         env:
+          ENTITY: ${{ github.event.inputs.entity }}
           IMPORT_DUMP_BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
         run: |
           set -euo pipefail
           if [ -z "${IMPORT_DUMP_BUCKET:-}" ]; then
-            echo "Set IMPORT_DUMP_BUCKET_NAME on the GitHub environment (copy from CDK output ImportDumpBucketName)." >&2
+            echo "Set IMPORT_DUMP_BUCKET_NAME." >&2
             exit 1
           fi
-          KEY="dumps/${GITHUB_RUN_ID}/legacy_crm_venues.sql"
-          aws s3 cp "${RUNNER_TEMP}/legacy_crm_venues.sql" \
+          KEY="dumps/${ENTITY}/${GITHUB_RUN_ID}/${ENTITY}.sql"
+          aws s3 cp "${RUNNER_TEMP}/${ENTITY}.sql" \
             "s3://${IMPORT_DUMP_BUCKET}/${KEY}" \
             --sse AES256
           echo "IMPORT_S3_KEY=${KEY}" >> "${GITHUB_ENV}"
 
       - name: Invoke import Lambda
         env:
+          ENTITY: ${{ github.event.inputs.entity }}
           BUCKET: ${{ vars.IMPORT_DUMP_BUCKET_NAME }}
           KEY: ${{ env.IMPORT_S3_KEY }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
@@ -137,7 +142,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${FUNC:-}" ]; then
-            echo "Set IMPORT_LAMBDA_FUNCTION_NAME on the GitHub environment." >&2
+            echo "Set IMPORT_LAMBDA_FUNCTION_NAME." >&2
             exit 1
           fi
           if [ "${DRY_RUN}" = "true" ]; then
@@ -145,8 +150,9 @@ jobs:
           else
             DRY_JSON=false
           fi
-          PAYLOAD=$(jq -cn --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" \
-            '{s3_bucket:$b, s3_key:$k, dry_run:$d}')
+          PAYLOAD=$(jq -cn \
+            --arg e "$ENTITY" --arg b "$BUCKET" --arg k "$KEY" --argjson d "$DRY_JSON" \
+            '{entity:$e, s3_bucket:$b, s3_key:$k, dry_run:$d}')
           META=$(aws lambda invoke \
             --function-name "$FUNC" \
             --cli-binary-format raw-in-base64-out \
@@ -155,12 +161,19 @@ jobs:
             --output json \
             lambda-response-payload.json)
           echo "$META" | jq .
-          echo "## Lambda import result (counts only)" >> "${GITHUB_STEP_SUMMARY}"
+          echo "## Lambda import result" >> "${GITHUB_STEP_SUMMARY}"
+          PA=$(jq -r 'if .preview_allowed == false then "false" else "true" end' lambda-response-payload.json 2>/dev/null || echo true)
           {
             echo '```json'
-            jq '{inserted, skipped_duplicate, skipped_no_area, dry_run}' lambda-response-payload.json || cat lambda-response-payload.json
+            jq 'if .preview_allowed == false then del(.preview) else . end' lambda-response-payload.json || cat lambda-response-payload.json
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}" || true
+          LOG_B64=$(echo "$META" | jq -r '.LogResult // empty')
+          if [ -n "$LOG_B64" ] && [ "$PA" != "false" ]; then
+            echo "" >> "${GITHUB_STEP_SUMMARY}"
+            echo "### CloudWatch Logs (tail)" >> "${GITHUB_STEP_SUMMARY}"
+            echo "$LOG_B64" | base64 -d >> "${GITHUB_STEP_SUMMARY}" || true
+          fi
           if echo "$META" | jq -e '.FunctionError != null' >/dev/null 2>&1; then
             echo "Lambda reported FunctionError" >&2
             echo "$META" >&2

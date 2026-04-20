@@ -2099,10 +2099,10 @@ export class ApiStack extends cdk.Stack {
     const importLegacyVenuesFunction = createPythonFunction(
       "EvolvesproutsImportLegacyVenuesFunction",
       {
-        handler: "lambda/imports/legacy_crm_venues/handler.lambda_handler",
-        timeout: cdk.Duration.minutes(5),
+        handler: "lambda/imports/legacy_crm/handler.lambda_handler",
+        timeout: cdk.Duration.minutes(10),
         memorySize: 512,
-        reservedConcurrentExecutions: 1,
+        reservedConcurrentExecutions: 3,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -3432,6 +3432,12 @@ export class ApiStack extends cdk.Stack {
       value: importLegacyVenuesFunction.functionName,
       description:
         "Physical name for EvolvesproutsImportLegacyVenuesFunction (GitHub IMPORT_LAMBDA_FUNCTION_NAME)",
+    });
+
+    new cdk.CfnOutput(this, "ImportLegacyFunctionName", {
+      value: importLegacyVenuesFunction.functionName,
+      description:
+        "Alias of ImportLegacyVenuesFunctionName — same Lambda (entity dispatcher)",
     });
 
     new cdk.CfnOutput(this, "ImportDumpBucketName", {

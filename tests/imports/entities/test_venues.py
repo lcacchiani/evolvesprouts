@@ -1,4 +1,4 @@
-"""Tests for legacy CRM venue SQL parsing and apply_venues."""
+"""Tests for venues legacy importer."""
 
 from __future__ import annotations
 
@@ -8,10 +8,11 @@ from unittest.mock import MagicMock
 import pytest
 from sqlalchemy.exc import SAWarning
 
-from app.imports.legacy_crm_venues import LegacyVenue
-from app.imports.legacy_crm_venues import apply_venues
-from app.imports.legacy_crm_venues import parse_legacy_districts
-from app.imports.legacy_crm_venues import parse_legacy_venues
+from app.imports import mysqldump
+from app.imports.entities.venues import LegacyVenue
+from app.imports.entities.venues import apply_venues
+from app.imports.entities.venues import parse_legacy_districts
+from app.imports.entities.venues import parse_legacy_venues
 
 
 MINIMAL_DUMP = """
@@ -76,7 +77,7 @@ def test_parse_embedded_quotes() -> None:
 
 
 def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -86,6 +87,7 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
         "_district_area_map",
         lambda _s, _h: {"Central": area},
     )
+    monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
 
     session = MagicMock()
     session.execute.return_value.all.return_value = []
@@ -104,11 +106,12 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
     assert stats.skipped_duplicate == 0
     session.add.assert_not_called()
     session.commit.assert_not_called()
+    mod.refs.record_mapping.assert_not_called()
 
 
 @pytest.mark.filterwarnings("ignore", category=SAWarning)
 def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -118,6 +121,7 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
         "_district_area_map",
         lambda _s, _h: {"Central": area},
     )
+    monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
 
     session = MagicMock()
     session.execute.return_value.all.return_value = []
@@ -134,13 +138,18 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
     stats = apply_venues(session, venues, dry_run=False)
     assert stats.inserted == 1
     session.add.assert_called_once()
+    session.flush.assert_called()
     session.commit.assert_called_once()
+    mod.refs.record_mapping.assert_called_once()
+    assert mod.refs.record_mapping.call_args[0][2] == "1"
+    loc_arg = session.add.call_args[0][0]
+    assert mod.refs.record_mapping.call_args[0][3] == loc_arg.id
 
 
 def test_apply_venues_skips_duplicate_case_insensitive(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -170,7 +179,7 @@ def test_apply_venues_skips_duplicate_case_insensitive(
 
 
 def test_apply_venues_skips_no_area(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -201,7 +210,7 @@ def test_apply_venues_skips_no_area(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_apply_venues_resolves_label_from_district_map(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -236,7 +245,7 @@ def test_apply_venues_resolves_label_from_district_map(
 def test_apply_venues_raises_when_district_id_without_label_or_map(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
     area = uuid.uuid4()
@@ -264,7 +273,7 @@ def test_apply_venues_raises_when_district_id_without_label_or_map(
 
 
 def test_hk_country_missing_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports import legacy_crm_venues as mod
+    from app.imports.entities import venues as mod
 
     monkeypatch.setattr(mod, "_hk_country_id", lambda _s: (_ for _ in ()).throw(RuntimeError("no HK")))
 
@@ -275,9 +284,6 @@ def test_hk_country_missing_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     ]
     with pytest.raises(RuntimeError, match="no HK"):
         apply_venues(session, venues, dry_run=True)
-
-
-# --- Parser coverage (moved from tests/test_import_legacy_crm_venues.py) ---
 
 
 def test_parse_legacy_districts_accepts_column_list_form() -> None:
@@ -321,13 +327,11 @@ def test_parse_legacy_still_supports_short_insert_form() -> None:
 
 
 def test_extract_insert_skips_other_tables() -> None:
-    from app.imports import legacy_crm_venues as legacy_venues
-
     sql = """
     INSERT INTO `other` VALUES (1);
     INSERT INTO `district` (`id`, `name`) VALUES (5, 'North');
     """
-    stmt = legacy_venues._extract_insert_statement(sql, "district")
+    stmt = mysqldump.extract_insert_statement(sql, "district")
     assert stmt is not None
     assert "`district`" in stmt
     assert "`other`" not in stmt
