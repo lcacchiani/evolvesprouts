@@ -546,7 +546,7 @@ describe('events-data', () => {
       ctaPriceLabel: 'HK$150',
       bookingPayload: {
         variant: 'event',
-        serviceKey: 'the-missing-piece-2026-05-16',
+        serviceKey: ['the-missing-piece', '2026-05-16'].join('-'),
         title: 'The Missing Piece',
         locationName: 'Acorn Playhouse',
         locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',
