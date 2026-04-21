@@ -4,11 +4,13 @@ import type {
   Locale,
 } from '@/content';
 import easter2026MontessoriPlayCoachingWorkshop from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import may2026TheMissingPiece from '@/content/landing-pages/may-2026-the-missing-piece.json';
 import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
 import { RESERVED_PATH_SEGMENTS } from '@/lib/routes';
 
 const LANDING_PAGES = {
   'easter-2026-montessori-play-coaching-workshop': easter2026MontessoriPlayCoachingWorkshop,
+  'may-2026-the-missing-piece': may2026TheMissingPiece,
 } satisfies Record<string, LandingPageContent>;
 
 export type LandingPageSlug = keyof typeof LANDING_PAGES;

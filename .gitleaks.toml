@@ -8,5 +8,6 @@ description = "Allow non-secret media resource taxonomy keys"
 regexTarget = "match"
 regexes = [
   '''\b4-ways-patience\b''',
+  '''\bthe-missing-piece-2026-05-16\b''',
   '''"ApiCustomDomainName"\s*:\s*"[^"]*"''',
 ]

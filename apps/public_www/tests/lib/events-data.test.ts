@@ -4,6 +4,7 @@ import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
 import easterWorkshopLandingContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import missingPieceLandingContent from '@/content/landing-pages/may-2026-the-missing-piece.json';
 import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
@@ -512,6 +513,65 @@ describe('events-data', () => {
       locationName: 'Baumhaus',
       locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
       offerPrice: '350',
+      offerCurrency: 'HKD',
+      offerAvailability: 'InStock',
+    });
+  });
+
+  it('resolves May 2026 The Missing Piece landing page content from events.json', () => {
+    const heroEventContent = getLandingPageHeroEventContent(
+      'may-2026-the-missing-piece',
+    );
+
+    expect(heroEventContent).not.toBeNull();
+    expect(heroEventContent).toMatchObject({
+      title: 'The Missing Piece',
+      startDateTime: '2026-05-16T01:00:00Z',
+      endDateTime: '2026-05-16T02:00:00Z',
+      locationLabel: 'Wong Chuk Hang',
+      partners: ['little-hk'],
+      categoryChips: ['Workshop'],
+    });
+
+    const bookingEventContent = getLandingPageBookingEventContent(
+      'may-2026-the-missing-piece',
+      'en',
+    );
+
+    expect(bookingEventContent).not.toBeNull();
+    expect(bookingEventContent).toMatchObject({
+      status: 'open',
+      spacesLeft: 8,
+      eyebrowDateLabel: formatExpectedLandingPageEyebrowDate('2026-05-16T01:00:00Z', 'en'),
+      ctaPriceLabel: 'HK$150',
+      bookingPayload: {
+        variant: 'event',
+        serviceKey: 'the-missing-piece-2026-05-16',
+        title: 'The Missing Piece',
+        locationName: 'Acorn Playhouse',
+        locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',
+        selectedDateLabel: '16 May 2026',
+        selectedDateStartTime: '2026-05-16T01:00:00Z',
+      },
+    });
+    expect(bookingEventContent?.bookingPayload).toMatchObject({
+      topicsFieldConfig: missingPieceLandingContent.en.cta.bookingTopicsField,
+    });
+
+    const structuredDataContent = getLandingPageStructuredDataContent(
+      'may-2026-the-missing-piece',
+    );
+
+    expect(structuredDataContent).not.toBeNull();
+    expect(structuredDataContent).toMatchObject({
+      eventName: 'The Missing Piece',
+      description:
+        'A hands-on workshop for families with children aged 0–2: the right toys, simple play-space tweaks, and practical tools your helper can use right away. Hosted with Little HK at Acorn Playhouse.',
+      startDate: '2026-05-16T01:00:00.000Z',
+      endDate: '2026-05-16T02:00:00.000Z',
+      locationName: 'Acorn Playhouse',
+      locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',
+      offerPrice: '150',
       offerCurrency: 'HKD',
       offerAvailability: 'InStock',
     });

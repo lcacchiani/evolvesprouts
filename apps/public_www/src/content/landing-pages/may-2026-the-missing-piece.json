@@ -1,0 +1,317 @@
+{
+  "en": {
+    "meta": {
+      "title": "The Missing Piece — Evolve Sprouts × Little HK",
+      "description": "A hands-on workshop for families with children aged 0–2 at Acorn Playhouse: toys, play space, and tools your helper can use straight away.",
+      "socialImage": {
+        "url": "/images/evolvesprouts-logo.svg",
+        "alt": "The Missing Piece workshop by Evolve Sprouts and Little HK"
+      }
+    },
+    "hero": {
+      "subtitle": "",
+      "description": "One hour. The right toys, a calmer home, and a helper who knows what to do. Bring your child, your helper, and — if you like — a photo of your toy shelf or play corner.",
+      "imageAlt": "Parent and young child playing together",
+      "imageSrc": "/images/parent-child.svg",
+      "imageMaxWidthPercent": 85
+    },
+    "outline": {
+      "eyebrow": "Why this matters",
+      "title": "Your helper spends more time with your child than you do",
+      "description": "This workshop gives her practical tools so every hour counts — not generic advice, but ideas grounded in what your family already has at home.\n\n\"The gap between a great class and the other six days at home? That's the missing piece.\"",
+      "highlightPhrase": "the missing piece"
+    },
+    "description": {
+      "eyebrow": "What we cover",
+      "title": "Concrete ideas you can use the same week",
+      "description": "",
+      "items": [
+        {
+          "title": "Best toys for 0–2 and how to use them",
+          "description": "Age-fit play that supports independence without turning your home into a showroom."
+        },
+        {
+          "title": "Simple play space changes that make a real difference",
+          "description": "Small shifts to layout and rotation that calm the room and the routine."
+        },
+        {
+          "title": "Practical tools your helper can start using straight away",
+          "description": "Clear language and habits she can repeat Monday through Sunday — not just during the workshop."
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "Make it yours",
+      "title": "While you learn, they play",
+      "description": "",
+      "items": [
+        {
+          "icon": "🏠",
+          "title": "Acorn Playhouse",
+          "description": "A warm, child-friendly space where your little one can roam and play while you focus."
+        },
+        {
+          "icon": "👨‍👩‍👧",
+          "title": "Bring your child and your helper",
+          "description": "We explore what's already working for your family and how to get even more from what you have at home."
+        },
+        {
+          "icon": "📸",
+          "title": "Optional photo of your play corner",
+          "description": "Nothing generic — we look at your real setup and build from there."
+        },
+        {
+          "icon": "⏱️",
+          "title": "One hour, focused",
+          "description": "Enough time to see ideas in context without a full-day commitment."
+        }
+      ]
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "What ages is this for?",
+          "answer": "Families with children aged 0–2. We'll tailor examples to your child's stage."
+        },
+        {
+          "question": "Should my helper come?",
+          "answer": "Yes — she's welcome and central to the session. Many families come with both parents and helper; come in whatever combination works for you."
+        },
+        {
+          "question": "Do I need to bring toys?",
+          "answer": "No. Bring yourselves, and optionally a photo of your toy shelf or play corner if you'd like personalised suggestions."
+        },
+        {
+          "question": "Where is Acorn Playhouse?",
+          "answer": "3/F, 4 Yip Fat Street, Wong Chuk Hang. Use the map link on your booking confirmation for directions."
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "⚡ {spotsLeft} spots left - {date}",
+      "eyebrowShowLogo": false,
+      "title": "Only 8 families. Reserve your spot.",
+      "description": "Tell us your child's name and age so we can prepare the session for your family.",
+      "buttonLabel": "Reserve my spot",
+      "buttonLabelTemplate": "Reserve my spot - {price}",
+      "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list",
+      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}.",
+      "bookingTopicsField": {
+        "label": "What's your child's age?",
+        "placeholder": "This will help me better personalise your experience",
+        "required": true
+      }
+    }
+  },
+  "zh-CN": {
+    "meta": {
+      "title": "缺失的那一块 — Evolve Sprouts × Little HK",
+      "description": "面向 0–2 岁家庭的实操工作坊，在 Acorn Playhouse 探讨玩具、游戏空间与姐姐可立即上手的方法。",
+      "socialImage": {
+        "url": "/images/evolvesprouts-logo.svg",
+        "alt": "Evolve Sprouts 与 Little HK 合作工作坊"
+      }
+    },
+    "hero": {
+      "subtitle": "",
+      "description": "一小时，选对玩具、让家更平静，也让姐姐知道该怎么做。欢迎带孩子与姐姐同行，也可带上玩具架或游戏角的照片。",
+      "imageAlt": "家长与幼儿一起玩耍",
+      "imageSrc": "/images/parent-child.svg",
+      "imageMaxWidthPercent": 65
+    },
+    "outline": {
+      "eyebrow": "为什么重要",
+      "title": "姐姐陪伴孩子的时间往往比家长更长",
+      "description": "这场工作坊给她可落地的工具，让每一小时都更有价值——不是泛泛而谈，而是结合你们家里真实的环境。\n\n“一节好课和一周里其他六天的差距？那就是缺失的那一块。”",
+      "highlightPhrase": "缺失的那一块"
+    },
+    "description": {
+      "eyebrow": "我们会讲到",
+      "title": "本周就能用上的具体方法",
+      "description": "",
+      "items": [
+        {
+          "title": "0–2 岁适合的玩具与使用方式",
+          "description": "在支持独立的同时，不必把家变成玩具展厅。"
+        },
+        {
+          "title": "简单调整游戏空间就能带来的改变",
+          "description": "从布局与轮换入手，让房间与节奏都更平静。"
+        },
+        {
+          "title": "姐姐马上能用的实操工具",
+          "description": "清晰的习惯与表达，让她从周一到周日都能延续，而不只在工作坊当下。"
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "把它变成你的",
+      "title": "你们学习，孩子玩耍",
+      "description": "",
+      "items": [
+        {
+          "icon": "🏠",
+          "title": "Acorn Playhouse",
+          "description": "温馨、适合孩子的空间，让孩子自由探索，你可以专注学习。"
+        },
+        {
+          "icon": "👨‍👩‍👧",
+          "title": "带孩子与姐姐一起来",
+          "description": "我们一起看看哪些做法已经有效，以及如何在家进一步放大效果。"
+        },
+        {
+          "icon": "📸",
+          "title": "可带上游戏角照片（可选）",
+          "description": "针对你的真实布置给建议，而不是千篇一律的清单。"
+        },
+        {
+          "icon": "⏱️",
+          "title": "一小时，聚焦",
+          "description": "足够在情境里理解方法，又不需要一整天的时间。"
+        }
+      ]
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": [
+        {
+          "question": "适合多大年龄？",
+          "answer": "面向 0–2 岁家庭。我们会按孩子的发展阶段举例。"
+        },
+        {
+          "question": "需要姐姐参加吗？",
+          "answer": "欢迎姐姐一起来，她在工作坊中很重要。家长与姐姐如何组合前来都可以。"
+        },
+        {
+          "question": "需要自带玩具吗？",
+          "answer": "不需要。带上你们自己即可；若想获得更针对性的建议，可带上玩具架或游戏角的照片。"
+        },
+        {
+          "question": "Acorn Playhouse 在哪里？",
+          "answer": "香港黄竹坑叶发街 4 号 3 楼。预订确认中的地图链接可查看路线。"
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "⚡ 还剩 {spotsLeft} 个名额 - {date}",
+      "eyebrowShowLogo": false,
+      "title": "仅限 8 个家庭，立即预留名额。",
+      "description": "请提供孩子的姓名与年龄，以便我们为家庭预备内容。",
+      "buttonLabel": "预留我的名额",
+      "buttonLabelTemplate": "预留我的名额 - {price}",
+      "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单",
+      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。",
+      "bookingTopicsField": {
+        "label": "您的孩子几岁了？",
+        "placeholder": "这将帮助我更好地为您定制体验",
+        "required": true
+      }
+    }
+  },
+  "zh-HK": {
+    "meta": {
+      "title": "缺失嘅一塊 — Evolve Sprouts × Little HK",
+      "description": "面向 0–2 歲家庭嘅實作工作坊，喺 Acorn Playhouse 傾玩具、遊戲空間同姐姐即刻用得著嘅方法。",
+      "socialImage": {
+        "url": "/images/evolvesprouts-logo.svg",
+        "alt": "Evolve Sprouts 與 Little HK 合作工作坊"
+      }
+    },
+    "hero": {
+      "subtitle": "",
+      "description": "一小時，揀啱玩具、令屋企更平靜，等姐姐都知道點做。歡迎帶埋小朋友同姐姐，亦可以帶玩具架或遊戲角嘅相。",
+      "imageAlt": "家長與幼兒一齊玩",
+      "imageSrc": "/images/parent-child.svg",
+      "imageMaxWidthPercent": 65
+    },
+    "outline": {
+      "eyebrow": "點解重要",
+      "title": "姐姐陪小朋友嘅時間往往比家長更長",
+      "description": "呢個工作坊俾佢實際嘅工具，令每一小時都更有價值——唔係空泛建議，而係配合你屋企真實嘅環境。\n\n「一堂好課同一星期其他六日嘅差距？就係缺失嘅嗰一塊。」",
+      "highlightPhrase": "缺失嘅一塊"
+    },
+    "description": {
+      "eyebrow": "我哋會講",
+      "title": "今個星期就用得著嘅具體方法",
+      "description": "",
+      "items": [
+        {
+          "title": "0–2 歲啱用嘅玩具同用法",
+          "description": "支援獨立之餘，唔使將屋企變成玩具展廳。"
+        },
+        {
+          "title": "簡單調整遊戲空間帶嚟嘅改變",
+          "description": "由佈局同輪換入手，令房同日常節奏都更平靜。"
+        },
+        {
+          "title": "姐姐即刻用得著嘅實用工具",
+          "description": "清晰習慣同表達，等佢由星期一做到星期日——唔止工作坊嗰一刻。"
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "變成你嘅",
+      "title": "你哋學習，佢哋玩耍",
+      "description": "",
+      "items": [
+        {
+          "icon": "🏠",
+          "title": "Acorn Playhouse",
+          "description": "溫馨、適合小朋友嘅空間，等小朋友自由探索，你可以專心學習。"
+        },
+        {
+          "icon": "👨‍👩‍👧",
+          "title": "帶埋小朋友同姐姐",
+          "description": "一齊睇邊啲做法已經有成效，點樣喺屋企再放大效果。"
+        },
+        {
+          "icon": "📸",
+          "title": "可選：帶遊戲角相",
+          "description": "針對你真實嘅佈置俾建議，唔係一式一樣嘅清單。"
+        },
+        {
+          "icon": "⏱️",
+          "title": "一小時，夠聚焦",
+          "description": "夠時間喺情境裏面理解方法，又唔使成日。"
+        }
+      ]
+    },
+    "faq": {
+      "title": "常見問題",
+      "items": [
+        {
+          "question": "適合幾多歲？",
+          "answer": "面向 0–2 歲家庭。我哋會按孩子嘅發展階段舉例。"
+        },
+        {
+          "question": "姐姐要一齊嚟嗎？",
+          "answer": "歡迎姐姐一齊，佢喺工作坊入面好重要。家長同姐姐點組合嚟都可以。"
+        },
+        {
+          "question": "要自己帶玩具嗎？",
+          "answer": "唔使。帶人就得；如果想針對性建議，可以帶玩具架或遊戲角嘅相。"
+        },
+        {
+          "question": "Acorn Playhouse 喺邊？",
+          "answer": "香港黃竹坑葉發街 4 號 3 樓。預訂確認入面嘅地圖連結有路線。"
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "⚡ 尚餘 {spotsLeft} 個名額 - {date}",
+      "eyebrowShowLogo": false,
+      "title": "只限 8 個家庭，預留名額。",
+      "description": "請提供孩子姓名同年齡，等我哋為家庭預備內容。",
+      "buttonLabel": "預留我的名額",
+      "buttonLabelTemplate": "預留我的名額 - {price}",
+      "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單",
+      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。",
+      "bookingTopicsField": {
+        "label": "你的小朋友幾歲？",
+        "placeholder": "這有助我更好地為你度身打造體驗",
+        "required": true
+      }
+    }
+  }
+}
