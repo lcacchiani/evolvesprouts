@@ -983,7 +983,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateLeadNoteRequest"
+              $ref: "#/components/schemas/CreateNoteRequest"
       responses:
         "201":
           description: Lead note created.
@@ -994,7 +994,7 @@ paths:
                 required: [note]
                 properties:
                   note:
-                    $ref: "#/components/schemas/LeadNote"
+                    $ref: "#/components/schemas/Note"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1735,9 +1735,9 @@ paths:
     parameters:
       - $ref: "#/components/parameters/AdminContactId"
     get:
-      summary: List standalone CRM notes for a contact
+      summary: List standalone notes for a contact
       description: |
-        Returns CRM notes stored on the contact that are not tied to a sales lead
+        Returns notes stored on the contact that are not tied to a sales lead
         (`lead_id` is null), newest first. Notes created on a lead remain on the lead detail only.
       security:
         - AdminBearerAuth: []
@@ -1755,7 +1755,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     post:
-      summary: Add a standalone CRM note to a contact
+      summary: Add a standalone note to a contact
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -1766,7 +1766,7 @@ paths:
               $ref: "#/components/schemas/CreateNoteRequest"
       responses:
         "201":
-          description: CRM note created.
+          description: Note created.
           content:
             application/json:
               schema:
@@ -1787,7 +1787,7 @@ paths:
       - $ref: "#/components/parameters/AdminContactId"
       - $ref: "#/components/parameters/NoteId"
     patch:
-      summary: Update a standalone CRM note on a contact
+      summary: Update a standalone note on a contact
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -1798,7 +1798,7 @@ paths:
               $ref: "#/components/schemas/UpdateNoteRequest"
       responses:
         "200":
-          description: CRM note updated.
+          description: Note updated.
           content:
             application/json:
               schema:
@@ -1814,12 +1814,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      summary: Delete a standalone CRM note on a contact
+      summary: Delete a standalone note on a contact
       security:
         - AdminBearerAuth: []
       responses:
         "204":
-          description: CRM note deleted.
+          description: Note deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -3014,28 +3014,6 @@ components:
           type: string
           format: date-time
           nullable: true
-    LeadNote:
-      type: object
-      required:
-        - id
-        - content
-        - created_by
-        - created_at
-        - updated_at
-      properties:
-        id:
-          type: string
-          format: uuid
-        content:
-          type: string
-        created_by:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
     Note:
       type: object
       required:
@@ -3149,7 +3127,7 @@ components:
             notes:
               type: array
               items:
-                $ref: "#/components/schemas/LeadNote"
+                $ref: "#/components/schemas/Note"
     LeadListResponse:
       type: object
       required:
@@ -3221,13 +3199,6 @@ components:
         lost_reason:
           type: string
           nullable: true
-    CreateLeadNoteRequest:
-      type: object
-      required:
-        - content
-      properties:
-        content:
-          type: string
     LeadAnalyticsResponse:
       type: object
       required:

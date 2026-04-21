@@ -11,7 +11,7 @@ from app.db.repositories.base import BaseRepository
 
 
 class NoteRepository(BaseRepository[Note]):
-    """Persistence helpers for CRM notes."""
+    """Persistence helpers for ``Note`` rows."""
 
     def __init__(self, session):
         super().__init__(session, Note)

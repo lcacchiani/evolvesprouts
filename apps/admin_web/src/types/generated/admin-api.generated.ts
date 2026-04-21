@@ -1309,7 +1309,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateLeadNoteRequest"];
+                    "application/json": components["schemas"]["CreateNoteRequest"];
                 };
             };
             responses: {
@@ -1320,7 +1320,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            note: components["schemas"]["LeadNote"];
+                            note: components["schemas"]["Note"];
                         };
                     };
                 };
@@ -2458,8 +2458,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List standalone CRM notes for a contact
-         * @description Returns CRM notes stored on the contact that are not tied to a sales lead
+         * List standalone notes for a contact
+         * @description Returns notes stored on the contact that are not tied to a sales lead
          *     (`lead_id` is null), newest first. Notes created on a lead remain on the lead detail only.
          */
         get: {
@@ -2489,7 +2489,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Add a standalone CRM note to a contact */
+        /** Add a standalone note to a contact */
         post: {
             parameters: {
                 query?: never;
@@ -2506,7 +2506,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description CRM note created. */
+                /** @description Note created. */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -2543,7 +2543,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete a standalone CRM note on a contact */
+        /** Delete a standalone note on a contact */
         delete: {
             parameters: {
                 query?: never;
@@ -2558,7 +2558,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description CRM note deleted. */
+                /** @description Note deleted. */
                 204: {
                     headers: {
                         [name: string]: unknown;
@@ -2572,7 +2572,7 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update a standalone CRM note on a contact */
+        /** Update a standalone note on a contact */
         patch: {
             parameters: {
                 query?: never;
@@ -2591,7 +2591,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description CRM note updated. */
+                /** @description Note updated. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -3901,16 +3901,6 @@ export interface components {
             /** Format: date-time */
             created_at?: string | null;
         };
-        LeadNote: {
-            /** Format: uuid */
-            id: string;
-            content: string;
-            created_by: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
         Note: {
             /** Format: uuid */
             id: string;
@@ -3955,7 +3945,7 @@ export interface components {
             family?: Record<string, never> | null;
             organization?: Record<string, never> | null;
             events?: components["schemas"]["LeadEvent"][];
-            notes?: components["schemas"]["LeadNote"][];
+            notes?: components["schemas"]["Note"][];
         };
         LeadListResponse: {
             items: components["schemas"]["LeadSummary"][];
@@ -3982,9 +3972,6 @@ export interface components {
             funnel_stage?: components["schemas"]["FunnelStage"];
             assigned_to?: string | null;
             lost_reason?: string | null;
-        };
-        CreateLeadNoteRequest: {
-            content: string;
         };
         LeadAnalyticsResponse: {
             funnel: {

@@ -22,7 +22,7 @@ type ApiLeadListResponse = ApiSchemas['LeadListResponse'];
 type ApiLeadDetailResponse = ApiSchemas['LeadDetailResponse'];
 type ApiCreateLeadRequest = ApiSchemas['CreateLeadRequest'];
 type ApiUpdateLeadRequest = ApiSchemas['UpdateLeadRequest'];
-type ApiCreateLeadNoteRequest = ApiSchemas['CreateLeadNoteRequest'];
+type ApiCreateNoteRequest = ApiSchemas['CreateNoteRequest'];
 type ApiLeadAnalyticsResponse = ApiSchemas['LeadAnalyticsResponse'];
 
 export interface LeadListParams extends Partial<LeadListFilters> {
@@ -85,9 +85,9 @@ function parseLeadNote(value: unknown): LeadNote {
   return {
     id: asNullableString(note.id) ?? '',
     content: asNullableString(note.content) ?? '',
-    createdBy: asNullableString(note.created_by) ?? '',
-    createdAt: asNullableString(note.created_at),
-    updatedAt: asNullableString(note.updated_at),
+    created_by: asNullableString(note.created_by) ?? '',
+    created_at: asNullableString(note.created_at) ?? '',
+    updated_at: asNullableString(note.updated_at) ?? '',
   };
 }
 
@@ -218,9 +218,9 @@ export async function updateLead(id: string, body: ApiUpdateLeadRequest): Promis
 
 export async function createLeadNote(
   leadId: string,
-  body: ApiCreateLeadNoteRequest
+  body: ApiCreateNoteRequest
 ): Promise<LeadNote | null> {
-  const payload = await adminApiRequest<{ note?: ApiSchemas['LeadNote'] }>({
+  const payload = await adminApiRequest<{ note?: ApiSchemas['Note'] }>({
     endpointPath: `/v1/admin/leads/${leadId}/notes`,
     method: 'POST',
     body,

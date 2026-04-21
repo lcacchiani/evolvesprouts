@@ -52,7 +52,11 @@ class NotesImporter:
         for i, cid in enumerate(contact_ids):
             nid = note_ids[i] if i < len(note_ids) else None
             nid_disp = str(nid) if nid else "…"
-            created_at_disp = n.created_at.isoformat() if n.created_at else "now()"
+            created_at_disp = (
+                n.created_at.isoformat()
+                if n.created_at is not None
+                else datetime.now(UTC).isoformat()
+            )
             tables.append(
                 {
                     "table": "notes",
@@ -207,17 +211,23 @@ def apply_notes(
     sql_text: str,
     skip_legacy_keys: frozenset[str] | None = None,
 ) -> ImportStats:
+    """Run the notes importer with contact refs loaded from ``legacy_import_refs``.
+
+    Callers outside the registry must use this helper (or replicate its context)
+    so person_id → contact UUID resolution works.
+    """
     importer = NotesImporter()
     base = importer.resolve_context(session, dry_run=dry_run)
     sk = skip_legacy_keys or frozenset()
     from app.imports import refs as refs_mod
 
     existing = refs_mod.load_legacy_keys(session, importer.ENTITY)
+    contact_refs = refs_mod.load_mapping(session, "contacts")
     ctx = replace(
         base,
         skip_legacy_keys=base.skip_legacy_keys | sk,
         source_sql_text=sql_text,
-        refs_by_entity={"contacts": {}},
+        refs_by_entity={"contacts": contact_refs},
         existing_import_keys=base.existing_import_keys | existing,
     )
     return importer.apply(session, note_rows, ctx, dry_run=dry_run)

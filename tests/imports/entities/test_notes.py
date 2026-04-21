@@ -12,6 +12,7 @@ from app.db.models.note import Note
 from app.imports.entities._legacy_family_common import parse_legacy_notes
 from app.imports.entities._legacy_family_common import parse_legacy_person_notes
 from app.imports.entities.notes import NotesImporter
+from app.imports.entities.notes import apply_notes
 
 
 NOTE_SQL = """
@@ -129,6 +130,36 @@ def test_skipped_no_dep_unresolved(monkeypatch: pytest.MonkeyPatch) -> None:
     ctx = replace(base, refs_by_entity={"contacts": {}}, source_sql_text=sql)
     stats = importer.apply(session, rows, ctx, dry_run=False)
     assert stats.skipped_no_dep == 1
+
+
+def test_apply_notes_helper_loads_contact_refs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``apply_notes`` must load contact UUIDs from ``legacy_import_refs``."""
+    from app.imports.entities import notes as mod
+
+    monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
+    c1 = uuid.uuid4()
+    c2 = uuid.uuid4()
+    monkeypatch.setattr(
+        mod.refs,
+        "load_mapping",
+        lambda _session, entity: {"10": c1, "11": c2} if entity == "contacts" else {},
+    )
+    monkeypatch.setattr(mod.refs, "load_legacy_keys", lambda _session, _entity: frozenset())
+
+    session = MagicMock()
+
+    def _flush_sets_note_id() -> None:
+        obj = session.add.call_args[0][0]
+        if getattr(obj, "id", None) is None:
+            obj.id = uuid.uuid4()
+
+    session.flush.side_effect = _flush_sets_note_id
+
+    sql = NOTE_SQL + PN_SQL
+    rows = NotesImporter().parse(sql)
+    stats = apply_notes(session, rows, dry_run=False, sql_text=sql)
+    assert stats.inserted == 1
+    assert session.add.call_count == 2
 
 
 def test_format_preview_masks_content(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -339,9 +339,9 @@ primary key except `notes`, which maps legacy `note.id`.
 ## Table: `notes`
 
 Purpose: Unified CRM notes — free-form text linked to contacts, families,
-organizations, and/or sales leads. Replaces the former split between typed
-`crm_notes` and polymorphic `notes` / `note_entity_links` (see migration
-`0028_unify_notes_storage`).
+organizations, and/or sales leads. Replaces the former split between the
+`crm_notes` table (FK columns per parent) and polymorphic `notes` /
+`note_entity_links` (see migration `0028_unify_notes_storage`).
 
 Columns:
 

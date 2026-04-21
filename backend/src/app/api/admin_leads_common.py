@@ -223,7 +223,7 @@ def serialize_lead_detail(lead: SalesLead) -> dict[str, Any]:
 
 
 def serialize_note(note: Note) -> dict[str, Any]:
-    """Serialize a CRM note payload."""
+    """Serialize a note payload."""
     return {
         "id": str(note.id),
         "content": note.content,

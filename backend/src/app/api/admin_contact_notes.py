@@ -1,4 +1,4 @@
-"""Admin API handlers for CRM notes on contacts (standalone, not tied to a sales lead)."""
+"""Admin API handlers for notes on contacts (standalone, not tied to a sales lead)."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def list_contact_notes(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """List standalone CRM notes for a contact (newest first)."""
+    """List standalone notes for a contact (newest first)."""
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         contact_repo = ContactRepository(session)
@@ -48,7 +48,7 @@ def create_contact_note(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Create a standalone CRM note on a contact."""
+    """Create a standalone note on a contact."""
     body = parse_body(event)
     content = validate_string_length(
         body.get("content"),
@@ -86,7 +86,7 @@ def update_contact_note(
     note_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Update a standalone CRM note on a contact."""
+    """Update a standalone note on a contact."""
     body = parse_body(event)
     content = validate_string_length(
         body.get("content"),
@@ -124,7 +124,7 @@ def delete_contact_note(
     note_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Delete a standalone CRM note on a contact."""
+    """Delete a standalone note on a contact."""
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         contact_repo = ContactRepository(session)

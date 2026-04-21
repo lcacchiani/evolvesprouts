@@ -53,7 +53,7 @@ export function NotesSection({ notes, users, isLoading, onAddNote }: NotesSectio
             <article key={note.id} className='rounded-md border border-slate-200 p-3'>
               <p className='text-sm text-slate-900'>{note.content}</p>
               <p className='mt-2 text-xs text-slate-600'>
-                {resolveAuthor(note.createdBy, users)} • {formatDate(note.createdAt)}
+                {resolveAuthor(note.created_by, users)} • {formatDate(note.created_at)}
               </p>
             </article>
           ))
