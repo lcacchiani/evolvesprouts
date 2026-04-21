@@ -1,6 +1,20 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+
+const { createLocation, geocodeVenueAddress } = vi.hoisted(() => ({
+  createLocation: vi.fn(),
+  geocodeVenueAddress: vi.fn(),
+}));
+
+vi.mock('@/lib/services-api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/services-api')>('@/lib/services-api');
+  return {
+    ...actual,
+    createLocation,
+    geocodeVenueAddress,
+  };
+});
 
 import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 
@@ -29,6 +43,8 @@ vi.mock('@/lib/crm-api', async (importOriginal) => {
   };
 });
 
+const noopRefresh = vi.fn().mockResolvedValue(undefined);
+
 function buildContactsHook(
   overrides: Partial<ReturnType<typeof useAdminCrmContacts>> = {}
 ): ReturnType<typeof useAdminCrmContacts> {
@@ -52,6 +68,17 @@ function buildContactsHook(
   };
 }
 
+const hkArea = {
+  id: 'area-hk',
+  parentId: null,
+  name: 'Hong Kong',
+  level: 'country' as const,
+  code: 'HK',
+  sovereignCountryId: null,
+  active: true,
+  displayOrder: 0,
+};
+
 describe('ContactsPanel', () => {
   it('submits create with relationship types that exclude vendor', async () => {
     const user = userEvent.setup();
@@ -66,6 +93,8 @@ describe('ContactsPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
       />
     );
 
@@ -94,6 +123,8 @@ describe('ContactsPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
       />
     );
 
@@ -138,6 +169,8 @@ describe('ContactsPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
       />
     );
 
@@ -157,9 +190,130 @@ describe('ContactsPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
       />
     );
 
     expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();
+  });
+
+  it('shows read-only location summary when contact is linked to family', async () => {
+    const user = userEvent.setup();
+    const row: components['schemas']['AdminContact'] = {
+      id: '11111111-1111-1111-1111-111111111111',
+      first_name: 'Ann',
+      last_name: 'Lee',
+      email: null,
+      instagram_handle: null,
+      phone: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      mailchimp_status: 'pending',
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      family_ids: ['fam-1'],
+      organization_ids: [],
+      location_id: 'loc-1',
+      location_summary: {
+        id: 'loc-1',
+        name: 'Studio',
+        area_id: 'area-hk',
+        area_name: 'Hong Kong',
+        address: '1 Road',
+        lat: 22.1,
+        lng: 114.2,
+      },
+      standalone_note_count: 0,
+    };
+    const contacts = buildContactsHook({ contacts: [row] });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[hkArea]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    await user.click(screen.getByText('Ann Lee'));
+
+    expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
+    expect(screen.getByText('22.1, 114.2')).toBeInTheDocument();
+    expect(
+      screen.getByText('Location is managed on the linked family or organisation.')
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument();
+  });
+
+  it('includes location_id on create after inline Save location', async () => {
+    const user = userEvent.setup();
+    const createContact = vi.fn().mockResolvedValue(null);
+    const contacts = buildContactsHook({ createContact });
+
+    createLocation.mockResolvedValue({
+      id: 'loc-new',
+      name: null,
+      areaId: 'area-hk',
+      address: '1 Test Road',
+      lat: 22.3193,
+      lng: 114.1694,
+      createdAt: null,
+      updatedAt: null,
+      lockedFromPartnerOrg: false,
+      partnerOrganizationLabels: [],
+    });
+    geocodeVenueAddress.mockResolvedValue({
+      lat: 22.3193,
+      lng: 114.1694,
+      displayName: null,
+    });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[hkArea]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    await user.type(screen.getByLabelText('First name'), 'Jane');
+    await user.selectOptions(screen.getByLabelText('Geographic area'), 'area-hk');
+    await user.type(screen.getByLabelText('Address'), '1 Test Road');
+    await user.click(screen.getByRole('button', { name: 'Fill coordinates from address' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Latitude')).toHaveValue('22.3193');
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save location' }));
+
+    await waitFor(() => {
+      expect(createLocation).toHaveBeenCalled();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Create contact' }));
+
+    expect(createContact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        first_name: 'Jane',
+        location_id: 'loc-new',
+      })
+    );
   });
 });

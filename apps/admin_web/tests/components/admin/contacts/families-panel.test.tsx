@@ -6,6 +6,8 @@ import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
 
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 
+const noopRefresh = vi.fn().mockResolvedValue(undefined);
+
 function buildFamiliesHook(
   overrides: Partial<ReturnType<typeof useAdminCrmFamilies>> = {}
 ): ReturnType<typeof useAdminCrmFamilies> {
@@ -41,6 +43,8 @@ describe('FamiliesPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
         contactOptions={[]}
         contactsForMembership={[]}
       />
@@ -68,6 +72,8 @@ describe('FamiliesPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
         contactOptions={[]}
         contactsForMembership={[]}
       />

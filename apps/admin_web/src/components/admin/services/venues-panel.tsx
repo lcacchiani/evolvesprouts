@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -13,10 +13,12 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 import { AdminApiError } from '@/lib/api-admin-client';
-import { geocodeVenueAddress } from '@/lib/services-api';
+
+import { computeLatLngErrors, parseOptionalCoordinate } from '@/components/admin/locations/inline-location-validation';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { GeographicAreaSummary, LocationSummary, VenueFilters } from '@/types/services';
@@ -44,15 +46,6 @@ export interface VenuesPanelProps {
   onDelete: (venueId: string) => Promise<void> | void;
 }
 
-function parseOptionalCoordinate(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return null;
-  }
-  const n = Number(trimmed);
-  return Number.isFinite(n) ? n : NaN;
-}
-
 export function VenuesPanel({
   venues,
   geographicAreas,
@@ -70,16 +63,34 @@ export function VenuesPanel({
   onUpdatePartial,
   onDelete,
 }: VenuesPanelProps) {
+  const { geocode: geocodeLocation, status: inlineLocStatus } = useInlineLocationSave(async () => {});
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [areaId, setAreaId] = useState('');
-  const [address, setAddress] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
+  const [areaId, setAreaIdState] = useState('');
+  const [address, setAddressState] = useState('');
+  const [lat, setLatState] = useState('');
+  const [lng, setLngState] = useState('');
   const [geocodeError, setGeocodeError] = useState('');
-  const [isGeocoding, setIsGeocoding] = useState(false);
+  const isGeocoding = inlineLocStatus.isGeocoding;
+
+  const setAreaId = (v: string) => {
+    setGeocodeError('');
+    setAreaIdState(v);
+  };
+  const setAddress = (v: string) => {
+    setGeocodeError('');
+    setAddressState(v);
+  };
+  const setLat = (v: string) => {
+    setGeocodeError('');
+    setLatState(v);
+  };
+  const setLng = (v: string) => {
+    setGeocodeError('');
+    setLngState(v);
+  };
 
   const areaOptions = useMemo(() => {
     return [...geographicAreas].sort((a, b) => {
@@ -103,33 +114,28 @@ export function VenuesPanel({
   const lngTrim = lng.trim();
   const latNum = parseOptionalCoordinate(lat);
   const lngNum = parseOptionalCoordinate(lng);
-  const latParseError = latTrim !== '' && Number.isNaN(latNum);
-  const lngParseError = lngTrim !== '' && Number.isNaN(lngNum);
-  const latRangeError =
-    latTrim !== '' && !latParseError && latNum !== null && (latNum < -90 || latNum > 90);
-  const lngRangeError =
-    lngTrim !== '' && !lngParseError && lngNum !== null && (lngNum < -180 || lngNum > 180);
-  const coordinatesInvalid = latParseError || lngParseError || latRangeError || lngRangeError;
-  const onlyOneCoordinate =
-    (latTrim !== '') !== (lngTrim !== '') && !latParseError && !lngParseError;
+  const {
+    latParseError,
+    lngParseError,
+    latRangeError,
+    lngRangeError,
+    coordinatesInvalid,
+    onlyOneCoordinate,
+  } = computeLatLngErrors(lat, lng);
   const canSubmit =
     areasReady &&
     Boolean(areaId) &&
     !coordinatesInvalid &&
     !onlyOneCoordinate;
 
-  useEffect(() => {
-    setGeocodeError('');
-  }, [address, areaId, selectedVenueId]);
-
   const resetCreateForm = () => {
     setEditorMode('create');
     setSelectedVenueId(null);
     setName('');
-    setAreaId('');
-    setAddress('');
-    setLat('');
-    setLng('');
+    setAreaIdState('');
+    setAddressState('');
+    setLatState('');
+    setLngState('');
     setGeocodeError('');
   };
 
@@ -139,9 +145,8 @@ export function VenuesPanel({
       return;
     }
     setGeocodeError('');
-    setIsGeocoding(true);
     try {
-      const result = await geocodeVenueAddress({
+      const result = await geocodeLocation({
         area_id: areaId,
         address: trimmedAddress,
       });
@@ -153,8 +158,6 @@ export function VenuesPanel({
           ? 'Geocoding is not available in this environment yet.'
           : 'Geocoding failed. Check the address and geographic area, then try again.';
       setGeocodeError(toErrorMessage(error, fallback));
-    } finally {
-      setIsGeocoding(false);
     }
   };
 

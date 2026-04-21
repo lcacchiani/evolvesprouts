@@ -3,6 +3,9 @@
 import { useMemo, useState } from 'react';
 
 import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
+import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
+import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -12,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatCrmVenueLocationLabel, formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
@@ -57,6 +60,8 @@ export interface OrganizationsPanelProps {
   tags: CrmTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
+  areasLoading: boolean;
+  refreshLocations: () => Promise<void> | void;
   contactOptions: { id: string; label: string }[];
   contactsForMembership: { id: string; family_ids: string[]; organization_ids: string[] }[];
 }
@@ -66,6 +71,8 @@ export function OrganizationsPanel({
   tags,
   locations,
   geographicAreas,
+  areasLoading,
+  refreshLocations,
   contactOptions,
   contactsForMembership,
 }: OrganizationsPanelProps) {
@@ -94,7 +101,9 @@ export function OrganizationsPanel({
   const [relationshipType, setRelationshipType] = useState<CrmEntityRelationshipType>('prospect');
   const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
-  const [locationId, setLocationId] = useState('');
+  const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
+  const [optimisticLocationSummary, setOptimisticLocationSummary] =
+    useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
 
@@ -110,13 +119,65 @@ export function OrganizationsPanel({
     [rows, selectedId]
   );
 
-  const areaNameById = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const a of geographicAreas) {
-      map[a.id] = a.name;
+  const inlineLocationStateKey =
+    editorMode === 'create'
+      ? `org-new:${pendingLocationId ?? 'none'}`
+      : `org:${selectedId ?? 'none'}:${pendingLocationId ?? 'none'}`;
+
+  const resolvedLocation = useMemo(() => {
+    if (!pendingLocationId) {
+      return null;
     }
-    return map;
-  }, [geographicAreas]);
+    return locations.find((l) => l.id === pendingLocationId) ?? null;
+  }, [locations, pendingLocationId]);
+
+  const embeddedLocationSummary = useMemo((): InlineLocationEmbeddedSummary | null => {
+    if (resolvedLocation) {
+      return null;
+    }
+    if (!pendingLocationId) {
+      return null;
+    }
+    if (optimisticLocationSummary && optimisticLocationSummary.id === pendingLocationId) {
+      return optimisticLocationSummary;
+    }
+    const s = selected?.location_summary;
+    if (s && s.id === pendingLocationId) {
+      return {
+        id: s.id,
+        name: s.name ?? null,
+        address: s.address ?? null,
+        areaName: s.area_name,
+        areaId: s.area_id,
+        lat: s.lat ?? null,
+        lng: s.lng ?? null,
+      };
+    }
+    return null;
+  }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
+
+  function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
+    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? '';
+    return {
+      id: loc.id,
+      name: loc.name,
+      address: loc.address,
+      areaName,
+      areaId: loc.areaId,
+      lat: loc.lat,
+      lng: loc.lng,
+    };
+  }
+
+  const {
+    status: locationSaveStatus,
+    createSharedLocation,
+    updateSharedLocation,
+    geocode: geocodeLocation,
+    clearError: clearLocationSaveError,
+  } = useInlineLocationSave(refreshLocations);
+
+  const locationLockedReadOnly = Boolean(resolvedLocation?.lockedFromPartnerOrg);
 
   const memberContactOptions = useMemo(() => {
     return contactOptions.filter((c) => {
@@ -136,7 +197,9 @@ export function OrganizationsPanel({
     setRelationshipType('prospect');
     setSlug('');
     setWebsite('');
-    setLocationId('');
+    setPendingLocationId(null);
+    setOptimisticLocationSummary(null);
+    clearLocationSaveError();
     setTagIds([]);
     setActive(true);
     setMemberContactId('');
@@ -145,7 +208,7 @@ export function OrganizationsPanel({
 
   async function handleSubmit(): Promise<void> {
     try {
-      const loc = locationId.trim() ? locationId.trim() : null;
+      const loc = pendingLocationId;
       if (editorMode === 'create') {
         await createOrganization({
           name: name.trim(),
@@ -207,7 +270,9 @@ export function OrganizationsPanel({
     setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
     setSlug(row.slug ?? '');
     setWebsite(row.website ?? '');
-    setLocationId(row.location_id ?? '');
+    setPendingLocationId(row.location_id ?? null);
+    setOptimisticLocationSummary(null);
+    clearLocationSaveError();
     setTagIds([...row.tag_ids]);
     setActive(row.active);
   }
@@ -301,36 +366,38 @@ export function OrganizationsPanel({
               autoComplete='off'
             />
           </div>
-          <div>
-            <Label htmlFor='crm-org-loc'>Location</Label>
-            <Select
-              id='crm-org-loc'
-              value={locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-            >
-              <option value=''>None</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {formatCrmVenueLocationLabel({
-                    id: loc.id,
-                    name: loc.name,
-                    address: loc.address,
-                    areaName: areaNameById[loc.areaId] ?? '',
-                  })}
-                </option>
-              ))}
-            </Select>
-            {editorMode === 'edit' && selected?.location_summary != null ? (
-              <p className='mt-1 text-sm text-slate-600'>
-                Current:{' '}
-                {formatCrmVenueLocationLabel({
-                  id: selected.location_summary.id,
-                  name: selected.location_summary.name,
-                  address: selected.location_summary.address,
-                  areaName: selected.location_summary.area_name,
-                })}
-              </p>
-            ) : null}
+          <div className='lg:col-span-2'>
+            <InlineLocationEditor
+              stateKey={inlineLocationStateKey}
+              location={resolvedLocation}
+              embeddedSummary={embeddedLocationSummary}
+              areas={geographicAreas}
+              areasLoading={areasLoading}
+              canModify={!locationLockedReadOnly}
+              isSaving={isSaving || locationSaveStatus.isSaving}
+              isGeocoding={locationSaveStatus.isGeocoding}
+              saveError={locationSaveStatus.error}
+              onRequestEdit={() => {}}
+              onCancelEdit={() => {}}
+              onSaveCreate={async (payload) => {
+                const created = await createSharedLocation(payload);
+                if (created) {
+                  setPendingLocationId(created.id);
+                  setOptimisticLocationSummary(summaryFromLocationRow(created));
+                  return created.id;
+                }
+                return null;
+              }}
+              onSaveUpdate={async (id, payload) => {
+                await updateSharedLocation(id, payload);
+              }}
+              onClear={() => {
+                setPendingLocationId(null);
+                setOptimisticLocationSummary(null);
+                clearLocationSaveError();
+              }}
+              onGeocode={geocodeLocation}
+            />
           </div>
           {editorMode === 'edit' ? (
             <div>

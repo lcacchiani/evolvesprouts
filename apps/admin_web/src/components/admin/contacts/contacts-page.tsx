@@ -38,6 +38,7 @@ export function ContactsPage() {
   const [tags, setTags] = useState<CrmTagRef[]>([]);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
   const [geographicAreas, setGeographicAreas] = useState<GeographicAreaSummary[]>([]);
+  const [pickerLoading, setPickerLoading] = useState(true);
   const [pickerError, setPickerError] = useState('');
 
   const contacts = useAdminCrmContacts();
@@ -53,9 +54,15 @@ export function ContactsPage() {
     patchStandaloneNoteCountRef.current(contactId, count);
   }, []);
 
+  const refreshLocations = useCallback(async () => {
+    const locList = await listAllLocations();
+    setLocations(locList);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      setPickerLoading(true);
       try {
         const [tagList, locList, areaList] = await Promise.all([
           listCrmTags(),
@@ -71,6 +78,10 @@ export function ContactsPage() {
       } catch (error) {
         if (!cancelled) {
           setPickerError(toErrorMessage(error, 'Failed to load tags or locations.'));
+        }
+      } finally {
+        if (!cancelled) {
+          setPickerLoading(false);
         }
       }
     })();
@@ -126,6 +137,8 @@ export function ContactsPage() {
           tags={tags}
           locations={locations}
           geographicAreas={geographicAreas}
+          areasLoading={pickerLoading}
+          refreshLocations={refreshLocations}
         />
       ) : activeView === 'families' ? (
         <FamiliesPanel
@@ -133,6 +146,8 @@ export function ContactsPage() {
           tags={tags}
           locations={locations}
           geographicAreas={geographicAreas}
+          areasLoading={pickerLoading}
+          refreshLocations={refreshLocations}
           contactOptions={contactOptions}
           contactsForMembership={contactsForMembership}
         />
@@ -142,6 +157,8 @@ export function ContactsPage() {
           tags={tags}
           locations={locations}
           geographicAreas={geographicAreas}
+          areasLoading={pickerLoading}
+          refreshLocations={refreshLocations}
           contactOptions={contactOptions}
           contactsForMembership={contactsForMembership}
         />

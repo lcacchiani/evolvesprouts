@@ -42,6 +42,14 @@ export function formatCrmVenueLocationLabel(location: {
   return location.id;
 }
 
+/** Single-line coordinates display for admin location summaries. */
+export function formatLocationCoordinatesLabel(lat: number | null, lng: number | null): string {
+  if (lat !== null && lng !== null) {
+    return `${lat}, ${lng}`;
+  }
+  return 'No coordinates set';
+}
+
 export function toTitleCase(value: string): string {
   return value
     .split('_')

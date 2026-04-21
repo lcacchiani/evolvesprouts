@@ -11,6 +11,7 @@ vi.mock('@/lib/services-api', async () => {
   return {
     ...actual,
     geocodeVenueAddress,
+    listAllLocations: vi.fn().mockResolvedValue([]),
   };
 });
 
