@@ -722,6 +722,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Location is linked to an active partner organisation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/users:
     get:
@@ -4248,6 +4254,8 @@ components:
       required:
         - id
         - area_id
+        - locked_from_partner_org
+        - partner_organization_labels
       properties:
         id:
           type: string
@@ -4278,6 +4286,18 @@ components:
           type: string
           format: date-time
           nullable: true
+        locked_from_partner_org:
+          type: boolean
+          description: >
+            True when at least one active CRM organisation with relationship type
+            partner references this location. The venue name is managed from the
+            organisation record; delete is blocked server-side.
+        partner_organization_labels:
+          type: array
+          description: >
+            Names of active partner organisations linked to this venue (for display).
+          items:
+            type: string
     LocationResponse:
       type: object
       required:

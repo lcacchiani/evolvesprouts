@@ -51,6 +51,7 @@ describe('VenuesPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}
         onUpdate={vi.fn()}
+        onUpdatePartial={vi.fn()}
         onDelete={vi.fn()}
       />
     );
@@ -83,6 +84,8 @@ describe('VenuesPanel', () => {
             lng: 2,
             createdAt: null,
             updatedAt: '2025-01-01T00:00:00Z',
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
           },
         ]}
         geographicAreas={[
@@ -108,12 +111,14 @@ describe('VenuesPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}
         onUpdate={vi.fn()}
+        onUpdatePartial={vi.fn()}
         onDelete={vi.fn()}
       />
     );
 
     expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Address' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Partner organisations' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Area' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Operations' })).toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Coordinates' })).not.toBeInTheDocument();

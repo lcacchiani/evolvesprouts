@@ -143,6 +143,10 @@ export interface LocationSummary {
   lng: number | null;
   createdAt: string | null;
   updatedAt: string | null;
+  /** True when an active partner CRM organisation references this venue. */
+  lockedFromPartnerOrg: boolean;
+  /** Display labels for linked partner organisations (same venue address). */
+  partnerOrganizationLabels: string[];
 }
 
 export type GeographicAreaLevel = ApiSchemas['GeographicArea']['level'];

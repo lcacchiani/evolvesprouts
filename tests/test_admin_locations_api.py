@@ -91,6 +91,8 @@ def test_serialize_location_emits_float_coordinates_for_json() -> None:
         updated_at=None,
     )
     payload = admin_locations._serialize_location(location)  # type: ignore[arg-type]
+    assert payload["locked_from_partner_org"] is False
+    assert payload["partner_organization_labels"] == []
     assert payload["lat"] == 22.3193
     assert payload["lng"] == 114.1694
     assert isinstance(payload["lat"], float)
@@ -99,3 +101,24 @@ def test_serialize_location_emits_float_coordinates_for_json() -> None:
     roundtrip = json.loads(encoded)
     assert roundtrip["lat"] == pytest.approx(22.3193)
     assert roundtrip["lng"] == pytest.approx(114.1694)
+
+
+def test_serialize_location_partner_metadata() -> None:
+    loc_id = uuid4()
+    area_id = uuid4()
+    location = SimpleNamespace(
+        id=loc_id,
+        name="Venue",
+        area_id=area_id,
+        address="1 St",
+        lat=None,
+        lng=None,
+        created_at=None,
+        updated_at=None,
+    )
+    payload = admin_locations._serialize_location(
+        location,
+        partner_organization_names=["Alpha Partners", "Beta Co"],
+    )
+    assert payload["locked_from_partner_org"] is True
+    assert payload["partner_organization_labels"] == ["Alpha Partners", "Beta Co"]

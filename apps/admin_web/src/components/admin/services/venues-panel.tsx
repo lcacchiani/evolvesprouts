@@ -37,6 +37,10 @@ export interface VenuesPanelProps {
   onLoadMore: () => Promise<void> | void;
   onCreate: (payload: ApiSchemas['CreateLocationRequest']) => Promise<unknown> | void;
   onUpdate: (venueId: string, payload: ApiSchemas['UpdateLocationRequest']) => Promise<unknown> | void;
+  onUpdatePartial: (
+    venueId: string,
+    payload: ApiSchemas['PartialUpdateLocationRequest']
+  ) => Promise<unknown> | void;
   onDelete: (venueId: string) => Promise<void> | void;
 }
 
@@ -63,6 +67,7 @@ export function VenuesPanel({
   onLoadMore,
   onCreate,
   onUpdate,
+  onUpdatePartial,
   onDelete,
 }: VenuesPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -91,6 +96,7 @@ export function VenuesPanel({
     () => venues.find((entry) => entry.id === selectedVenueId) ?? null,
     [venues, selectedVenueId]
   );
+  const selectedVenueLocked = selectedVenue?.lockedFromPartnerOrg ?? false;
 
   const areasReady = !areasLoading && areaOptions.length > 0;
   const latTrim = lat.trim();
@@ -172,6 +178,15 @@ export function VenuesPanel({
         return;
       }
       if (!selectedVenue) {
+        return;
+      }
+      if (selectedVenue.lockedFromPartnerOrg) {
+        await onUpdatePartial(selectedVenue.id, {
+          area_id: areaId,
+          address: address.trim() || null,
+          lat: latValue,
+          lng: lngValue,
+        });
         return;
       }
       await onUpdate(selectedVenue.id, payload);
@@ -261,9 +276,18 @@ export function VenuesPanel({
                 id='venue-name'
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                disabled={isSaving}
+                disabled={isSaving || selectedVenueLocked}
                 placeholder='e.g. Central Studio'
               />
+              {selectedVenueLocked && selectedVenue ? (
+                <p className='mt-1 text-sm text-slate-600'>
+                  Name is managed from the partner organisation
+                  {selectedVenue.partnerOrganizationLabels.length > 0
+                    ? ` (${selectedVenue.partnerOrganizationLabels.join(', ')})`
+                    : ''}
+                  .
+                </p>
+              ) : null}
             </div>
             <div>
               <Label htmlFor='venue-area'>Geographic area</Label>
@@ -370,6 +394,7 @@ export function VenuesPanel({
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Address</th>
+              <th className='px-4 py-3 font-semibold'>Partner organisations</th>
               <th className='px-4 py-3 font-semibold'>Area</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
@@ -387,13 +412,18 @@ export function VenuesPanel({
                 >
                   <td className='px-4 py-3'>{row.name?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{row.address?.trim() || '—'}</td>
+                  <td className='px-4 py-3'>
+                    {row.partnerOrganizationLabels.length > 0
+                      ? row.partnerOrganizationLabels.join(', ')
+                      : '—'}
+                  </td>
                   <td className='px-4 py-3'>{area?.name ?? row.areaId}</td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <Button
                       type='button'
                       size='sm'
                       variant='danger'
-                      disabled={isSaving}
+                      disabled={isSaving || row.lockedFromPartnerOrg}
                       onClick={() => void handleDeleteVenue(row)}
                       aria-label='Delete venue'
                       title='Delete venue'

@@ -298,6 +298,11 @@ Indexes:
 Purpose: Canonical address/location records referenced by contacts, families,
 and organizations.
 
+Admin venues: when an active CRM organisation has `relationship_type = partner`
+and points `location_id` at a row, the admin Venues UI treats that venue as
+partner-managed (name locked, delete blocked); the API exposes
+`locked_from_partner_org` and `partner_organization_labels` on location payloads.
+
 Columns:
 - `id` (UUID, PK, default `gen_random_uuid()`)
 - `name` (text, nullable) — display label for the venue/location
