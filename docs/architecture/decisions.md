@@ -57,6 +57,22 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - Alembic config and migrations live in `backend/db/`.
 - Seed data lives in `backend/db/seed/seed_data.sql`.
 
+## Unified CRM notes storage
+
+**Decision:** Store all CRM notes (standalone contact notes, lead-attached notes, and
+legacy mysqldump imports) in a single `notes` table with explicit FK columns to
+contacts, families, organizations, and sales leads.
+
+**Why:** The previous split (`crm_notes` vs polymorphic `notes` + `note_entity_links`)
+duplicated concepts and complicated imports. One table keeps the model coherent,
+lets legacy import target the same storage as interactive CRM notes, and preserves
+`legacy_import_refs` mapping (legacy `note.id` → first inserted row when a note
+links multiple contacts).
+
+**Migration:** `0028_unify_notes_storage` backfills polymorphic contact-linked rows,
+drops the old polymorphic tables, renames `crm_notes` → `notes`, and adds nullable
+`took_at` for legacy provenance (not exposed in the admin API).
+
 ## API Contracts
 
 **Decisions:**

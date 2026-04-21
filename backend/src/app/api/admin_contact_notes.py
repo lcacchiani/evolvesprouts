@@ -1,4 +1,4 @@
-"""Admin API handlers for CRM notes on contacts (standalone, not tied to a sales lead)."""
+"""Admin API handlers for notes on contacts (standalone, not tied to a sales lead)."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, validate_string_length
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models.crm_note import CrmNote
-from app.db.repositories import ContactRepository, CrmNoteRepository
+from app.db.models.note import Note
+from app.db.repositories import ContactRepository, NoteRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
 
@@ -27,13 +27,13 @@ def list_contact_notes(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """List standalone CRM notes for a contact (newest first)."""
+    """List standalone notes for a contact (newest first)."""
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         contact_repo = ContactRepository(session)
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
         notes = note_repo.list_standalone_for_contact(contact_id=contact_id)
         return json_response(
             200,
@@ -48,7 +48,7 @@ def create_contact_note(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Create a standalone CRM note on a contact."""
+    """Create a standalone note on a contact."""
     body = parse_body(event)
     content = validate_string_length(
         body.get("content"),
@@ -66,9 +66,9 @@ def create_contact_note(
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
 
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
         note = note_repo.create(
-            CrmNote(
+            Note(
                 contact_id=contact.id,
                 lead_id=None,
                 content=content,
@@ -86,7 +86,7 @@ def update_contact_note(
     note_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Update a standalone CRM note on a contact."""
+    """Update a standalone note on a contact."""
     body = parse_body(event)
     content = validate_string_length(
         body.get("content"),
@@ -103,12 +103,12 @@ def update_contact_note(
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
 
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
         note = note_repo.get_standalone_for_contact(
             note_id=note_id, contact_id=contact_id
         )
         if note is None:
-            raise NotFoundError("CrmNote", str(note_id))
+            raise NotFoundError("Note", str(note_id))
 
         note.content = content
         note.updated_at = datetime.now(UTC)
@@ -124,19 +124,19 @@ def delete_contact_note(
     note_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Delete a standalone CRM note on a contact."""
+    """Delete a standalone note on a contact."""
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         contact_repo = ContactRepository(session)
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
 
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
         note = note_repo.get_standalone_for_contact(
             note_id=note_id, contact_id=contact_id
         )
         if note is None:
-            raise NotFoundError("CrmNote", str(note_id))
+            raise NotFoundError("Note", str(note_id))
 
         note_repo.delete(note)
         session.commit()

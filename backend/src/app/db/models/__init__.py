@@ -3,7 +3,6 @@
 from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
 from app.db.models.audit_log import AuditLog
 from app.db.models.contact import Contact
-from app.db.models.crm_note import CrmNote
 from app.db.models.discount_code import DiscountCode
 from app.db.models.enrollment import Enrollment
 from app.db.models.expense import Expense, ExpenseAttachment
@@ -42,9 +41,7 @@ from app.db.models.family import Family, FamilyMember
 from app.db.models.geographic_area import GeographicArea
 from app.db.models.legacy_import_ref import LegacyImportRef
 from app.db.models.location import Location
-from app.db.models.note import NOTE_ENTITY_TYPE_CONTACT
 from app.db.models.note import Note
-from app.db.models.note import NoteEntityLink
 from app.db.models.organization import Organization, OrganizationMember
 from app.db.models.sales_lead import SalesLead, SalesLeadEvent
 from app.db.models.service import (
@@ -81,7 +78,6 @@ __all__ = [
     "ContactSource",
     "ContactTag",
     "ContactType",
-    "CrmNote",
     "DiscountCode",
     "DiscountType",
     "EventbriteSyncStatus",
@@ -109,9 +105,7 @@ __all__ = [
     "LegacyImportRef",
     "Location",
     "MailchimpSyncStatus",
-    "NOTE_ENTITY_TYPE_CONTACT",
     "Note",
-    "NoteEntityLink",
     "Organization",
     "OrganizationMember",
     "OrganizationRole",

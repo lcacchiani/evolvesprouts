@@ -17,7 +17,7 @@ from app.api.admin_validators import (
     validate_email,
     validate_string_length,
 )
-from app.db.models import Contact, CrmNote, SalesLead, SalesLeadEvent
+from app.db.models import Contact, Note, SalesLead, SalesLeadEvent
 from app.db.models.enums import (
     ContactSource,
     ContactType,
@@ -210,7 +210,7 @@ def serialize_lead_detail(lead: SalesLead) -> dict[str, Any]:
         reverse=True,
     )
     notes = sorted(
-        lead.crm_notes,
+        lead.notes,
         key=lambda item: item.created_at or datetime.min.replace(tzinfo=UTC),
         reverse=True,
     )
@@ -222,8 +222,8 @@ def serialize_lead_detail(lead: SalesLead) -> dict[str, Any]:
     return summary
 
 
-def serialize_note(note: CrmNote) -> dict[str, Any]:
-    """Serialize a CRM note payload."""
+def serialize_note(note: Note) -> dict[str, Any]:
+    """Serialize a note payload."""
     return {
         "id": str(note.id),
         "content": note.content,

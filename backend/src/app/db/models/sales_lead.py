@@ -19,7 +19,7 @@ from app.db.models.enums import FunnelStage, LeadEventType, LeadType
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
-    from app.db.models.crm_note import CrmNote
+    from app.db.models.note import Note
     from app.db.models.family import Family
     from app.db.models.organization import Organization
 
@@ -136,8 +136,8 @@ class SalesLead(Base):
         back_populates="lead",
         cascade="all, delete-orphan",
     )
-    crm_notes: Mapped[list[CrmNote]] = relationship(
-        "CrmNote",
+    notes: Mapped[list[Note]] = relationship(
+        "Note",
         back_populates="lead",
     )
 

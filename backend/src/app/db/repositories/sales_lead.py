@@ -102,7 +102,7 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
             .options(
                 joinedload(SalesLead.contact).joinedload(Contact.tags),
                 selectinload(SalesLead.events),
-                selectinload(SalesLead.crm_notes),
+                selectinload(SalesLead.notes),
             )
         )
         return self._session.execute(statement).unique().scalar_one_or_none()

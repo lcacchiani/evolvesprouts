@@ -1,35 +1,68 @@
-"""Generic polymorphic notes (separate from typed ``crm_notes``)."""
+"""CRM note model (unified ``notes`` table)."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, Text, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
 
-NOTE_ENTITY_TYPE_CONTACT = "contact"
+if TYPE_CHECKING:
+    from app.db.models.contact import Contact
+    from app.db.models.family import Family
+    from app.db.models.organization import Organization
+    from app.db.models.sales_lead import SalesLead
 
 
 class Note(Base):
-    """Free-form note with optional links to multiple entities."""
+    """Free-form note linked to one or more CRM entities."""
 
     __tablename__ = "notes"
+    __table_args__ = (
+        CheckConstraint(
+            (
+                "contact_id IS NOT NULL OR family_id IS NOT NULL OR "
+                "organization_id IS NOT NULL OR lead_id IS NOT NULL"
+            ),
+            name="notes_has_parent",
+        ),
+        Index("notes_contact_idx", "contact_id", "created_at"),
+        Index("notes_family_idx", "family_id", "created_at"),
+        Index("notes_lead_idx", "lead_id", "created_at"),
+    )
 
     id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         primary_key=True,
         server_default=text("gen_random_uuid()"),
     )
-    content: Mapped[str] = mapped_column(Text(), nullable=False)
-    took_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True),
-        nullable=False,
+    contact_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("contacts.id", ondelete="SET NULL"),
+        nullable=True,
     )
+    family_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("families.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    organization_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    lead_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("sales_leads.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    content: Mapped[str] = mapped_column(Text(), nullable=False)
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -41,36 +74,24 @@ class Note(Base):
         nullable=False,
         server_default=text("now()"),
     )
-
-    links: Mapped[list["NoteEntityLink"]] = relationship(
-        "NoteEntityLink",
-        back_populates="note",
-        cascade="all, delete-orphan",
-    )
-
-
-class NoteEntityLink(Base):
-    """Polymorphic association between a note and a target entity."""
-
-    __tablename__ = "note_entity_links"
-    __table_args__ = (
-        CheckConstraint(
-            "entity_type IN ('contact')",
-            name="note_entity_links_entity_type_allowed",
-        ),
-    )
-
-    note_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        ForeignKey("notes.id", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    entity_type: Mapped[str] = mapped_column(Text(), primary_key=True)
-    entity_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(
+    took_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True),
-        nullable=False,
-        server_default=text("now()"),
+        nullable=True,
     )
 
-    note: Mapped[Note] = relationship("Note", back_populates="links")
+    contact: Mapped[Contact | None] = relationship(
+        "Contact",
+        back_populates="notes",
+    )
+    family: Mapped[Family | None] = relationship(
+        "Family",
+        back_populates="notes",
+    )
+    organization: Mapped[Organization | None] = relationship(
+        "Organization",
+        back_populates="notes",
+    )
+    lead: Mapped[SalesLead | None] = relationship(
+        "SalesLead",
+        back_populates="notes",
+    )

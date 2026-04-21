@@ -63,13 +63,8 @@ export interface LeadEvent {
   createdAt: string | null;
 }
 
-export interface LeadNote {
-  id: string;
-  content: string;
-  createdBy: string;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
+/** Lead detail / lead-note API payloads use the shared ``Note`` schema (snake_case in JSON). */
+export type LeadNote = ApiSchemas['Note'];
 
 export interface LeadSummary {
   id: string;

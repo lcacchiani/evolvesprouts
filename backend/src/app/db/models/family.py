@@ -18,7 +18,7 @@ from app.db.models.enums import FamilyRole, RelationshipType
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
-    from app.db.models.crm_note import CrmNote
+    from app.db.models.note import Note
     from app.db.models.location import Location
     from app.db.models.sales_lead import SalesLead
     from app.db.models.tag import FamilyTag, Tag
@@ -85,8 +85,8 @@ class Family(Base):
         "SalesLead",
         back_populates="family",
     )
-    crm_notes: Mapped[list[CrmNote]] = relationship(
-        "CrmNote",
+    notes: Mapped[list[Note]] = relationship(
+        "Note",
         back_populates="family",
     )
     contacts: Mapped[list[Contact]] = relationship(

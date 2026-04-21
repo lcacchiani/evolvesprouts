@@ -27,11 +27,11 @@ from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, validate_string_len
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, CrmNote, SalesLead
+from app.db.models import Contact, Note, SalesLead
 from app.db.models.enums import FunnelStage, LeadEventType
 from app.db.repositories import (
     ContactRepository,
-    CrmNoteRepository,
+    NoteRepository,
     SalesLeadRepository,
 )
 from app.exceptions import NotFoundError, ValidationError
@@ -158,7 +158,7 @@ def _create_lead(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
         )
         contact_repo = ContactRepository(session)
         lead_repo = SalesLeadRepository(session)
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
 
         if payload["email"]:
             contact, _ = contact_repo.upsert_by_email(
@@ -209,7 +209,7 @@ def _create_lead(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
 
         if payload["note"]:
             note = note_repo.create(
-                CrmNote(
+                Note(
                     contact_id=contact.id,
                     lead_id=lead.id,
                     content=payload["note"],
@@ -329,9 +329,9 @@ def _create_lead_note(
         if lead is None:
             raise NotFoundError("SalesLead", str(lead_id))
 
-        note_repo = CrmNoteRepository(session)
+        note_repo = NoteRepository(session)
         note = note_repo.create(
-            CrmNote(
+            Note(
                 lead_id=lead.id,
                 contact_id=lead.contact_id,
                 content=content,

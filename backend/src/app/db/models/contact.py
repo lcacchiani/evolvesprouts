@@ -24,7 +24,7 @@ from app.db.models.enums import (
 )
 
 if TYPE_CHECKING:
-    from app.db.models.crm_note import CrmNote
+    from app.db.models.note import Note
     from app.db.models.family import Family, FamilyMember
     from app.db.models.location import Location
     from app.db.models.organization import Organization, OrganizationMember
@@ -165,8 +165,8 @@ class Contact(Base):
         "SalesLead",
         back_populates="contact",
     )
-    crm_notes: Mapped[list[CrmNote]] = relationship(
-        "CrmNote",
+    notes: Mapped[list[Note]] = relationship(
+        "Note",
         back_populates="contact",
     )
 
