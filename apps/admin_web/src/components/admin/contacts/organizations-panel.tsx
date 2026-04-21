@@ -301,7 +301,7 @@ export function OrganizationsPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
           <div>
             <Label htmlFor='crm-org-name'>Name</Label>
             <Input
@@ -311,23 +311,7 @@ export function OrganizationsPanel({
               autoComplete='off'
             />
           </div>
-          <div>
-            <Label htmlFor='crm-org-type'>Organisation type</Label>
-            <Select
-              id='crm-org-type'
-              value={organizationType}
-              onChange={(e) =>
-                setOrganizationType(e.target.value as ApiSchemas['CrmOrganizationType'])
-              }
-            >
-              {ORG_TYPES.map((v) => (
-                <option key={v} value={v}>
-                  {formatEnumLabel(v)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
+          <div className='lg:max-w-[9rem]'>
             <Label htmlFor='crm-org-rel'>Relationship</Label>
             <Select
               id='crm-org-rel'
@@ -347,6 +331,22 @@ export function OrganizationsPanel({
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor='crm-org-type'>Organisation type</Label>
+            <Select
+              id='crm-org-type'
+              value={organizationType}
+              onChange={(e) =>
+                setOrganizationType(e.target.value as ApiSchemas['CrmOrganizationType'])
+              }
+            >
+              {ORG_TYPES.map((v) => (
+                <option key={v} value={v}>
+                  {formatEnumLabel(v)}
+                </option>
+              ))}
+            </Select>
+          </div>
           {relationshipType === 'partner' ? (
             <div>
               <Label htmlFor='crm-org-slug'>Slug</Label>
@@ -357,59 +357,69 @@ export function OrganizationsPanel({
                 autoComplete='off'
                 placeholder='e.g. acme-partners'
               />
-              <p className='mt-1 text-sm text-slate-600'>
-                Lowercase letters, numbers, and hyphens only. Optional; must be unique among partner
-                organisations.
-              </p>
+            </div>
+          ) : (
+            <div>
+              <Label htmlFor='crm-org-web'>Website</Label>
+              <Input
+                id='crm-org-web'
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                autoComplete='off'
+              />
+            </div>
+          )}
+          {relationshipType === 'partner' ? (
+            <div className='lg:col-span-4'>
+              <Label htmlFor='crm-org-web-partner'>Website</Label>
+              <Input
+                id='crm-org-web-partner'
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                autoComplete='off'
+              />
             </div>
           ) : null}
-          <div>
-            <Label htmlFor='crm-org-web'>Website</Label>
-            <Input
-              id='crm-org-web'
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div className='lg:col-span-2'>
-            <InlineLocationEditor
-              stateKey={inlineLocationStateKey}
-              location={resolvedLocation}
-              embeddedSummary={embeddedLocationSummary}
-              areas={geographicAreas}
-              areasLoading={areasLoading}
-              canModify
-              allowClearWhenLocked={locationLockedReadOnly}
-              lockedSummaryExtra={
-                locationLockedReadOnly
-                  ? 'To change the venue name or switch to a different address, use Services → Venues or update the partner organisation record.'
-                  : null
-              }
-              isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationGeocoding}
-              saveError={locationSaveStatus.error}
-              onRequestEdit={() => {}}
-              onCancelEdit={() => {}}
-              onSaveCreate={async (payload) => {
-                const created = await createSharedLocation(payload);
-                if (created) {
-                  setPendingLocationId(created.id);
-                  setOptimisticLocationSummary(summaryFromLocationRow(created));
-                  return created.id;
+          <div className='lg:col-span-4'>
+            <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
+              <InlineLocationEditor
+                stateKey={inlineLocationStateKey}
+                location={resolvedLocation}
+                embeddedSummary={embeddedLocationSummary}
+                areas={geographicAreas}
+                areasLoading={areasLoading}
+                canModify
+                allowClearWhenLocked={locationLockedReadOnly}
+                lockedSummaryExtra={
+                  locationLockedReadOnly
+                    ? 'To change the venue name or switch to a different address, use Services → Venues or update the partner organisation record.'
+                    : null
                 }
-                return null;
-              }}
-              onSaveUpdate={async (id, payload) => {
-                await updateSharedLocation(id, payload);
-              }}
-              onClear={() => {
-                setPendingLocationId(null);
-                setOptimisticLocationSummary(null);
-                clearLocationSaveError();
-              }}
-              onGeocode={geocodeLocation}
-            />
+                isSaving={isSaving || locationSaveStatus.isSaving}
+                isGeocoding={locationGeocoding}
+                saveError={locationSaveStatus.error}
+                onRequestEdit={() => {}}
+                onCancelEdit={() => {}}
+                onSaveCreate={async (payload) => {
+                  const created = await createSharedLocation(payload);
+                  if (created) {
+                    setPendingLocationId(created.id);
+                    setOptimisticLocationSummary(summaryFromLocationRow(created));
+                    return created.id;
+                  }
+                  return null;
+                }}
+                onSaveUpdate={async (id, payload) => {
+                  await updateSharedLocation(id, payload);
+                }}
+                onClear={() => {
+                  setPendingLocationId(null);
+                  setOptimisticLocationSummary(null);
+                  clearLocationSaveError();
+                }}
+                onGeocode={geocodeLocation}
+              />
+            </div>
           </div>
           {editorMode === 'edit' ? (
             <div>
@@ -435,7 +445,7 @@ export function OrganizationsPanel({
             />
           </div>
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-2 space-y-3 rounded-md border border-slate-200 p-4'>
+            <div className='lg:col-span-4 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-4'>
               <h3 className='text-sm font-semibold text-slate-800'>Members</h3>
               <div className='flex flex-wrap items-end gap-3'>
                 <div className='min-w-[200px] flex-1'>

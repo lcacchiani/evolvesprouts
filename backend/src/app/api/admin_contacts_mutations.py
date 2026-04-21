@@ -80,7 +80,7 @@ def create_contact(
     )
     contact_type = parse_contact_type(body.get("contact_type"), field="contact_type")
     relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
+        body.get("relationship_type"), field="relationship_type"
     )
     source = parse_contact_source(body.get("source"), field="source")
     source_detail = validate_string_length(
@@ -255,7 +255,6 @@ def update_contact(
             contact.relationship_type = parse_crm_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
-                forbid_vendor=True,
             )
         if "source" in body:
             contact.source = parse_contact_source(body.get("source"), field="source")

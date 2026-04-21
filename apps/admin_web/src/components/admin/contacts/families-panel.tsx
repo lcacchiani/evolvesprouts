@@ -262,7 +262,7 @@ export function FamiliesPanel({
     <div className='space-y-6'>
       <AdminEditorCard
         title='Family'
-        description='Create a family or select one below. Add members by linking an existing contact. Relationship excludes vendor (aligned with non-vendor CRM entities).'
+        description='Create a family or select one below. Add members by linking an existing contact.'
         actions={
           <>
             {editorMode === 'edit' ? (
@@ -307,37 +307,39 @@ export function FamiliesPanel({
             </Select>
           </div>
           <div className='lg:col-span-2'>
-            <InlineLocationEditor
-              stateKey={inlineLocationStateKey}
-              location={resolvedLocation}
-              embeddedSummary={embeddedLocationSummary}
-              areas={geographicAreas}
-              areasLoading={areasLoading}
-              canModify
-              isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationGeocoding}
-              saveError={locationSaveStatus.error}
-              onRequestEdit={() => {}}
-              onCancelEdit={() => {}}
-              onSaveCreate={async (payload) => {
-                const created = await createSharedLocation(payload);
-                if (created) {
-                  setPendingLocationId(created.id);
-                  setOptimisticLocationSummary(summaryFromLocationRow(created));
-                  return created.id;
-                }
-                return null;
-              }}
-              onSaveUpdate={async (id, payload) => {
-                await updateSharedLocation(id, payload);
-              }}
-              onClear={() => {
-                setPendingLocationId(null);
-                setOptimisticLocationSummary(null);
-                clearLocationSaveError();
-              }}
-              onGeocode={geocodeLocation}
-            />
+            <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
+              <InlineLocationEditor
+                stateKey={inlineLocationStateKey}
+                location={resolvedLocation}
+                embeddedSummary={embeddedLocationSummary}
+                areas={geographicAreas}
+                areasLoading={areasLoading}
+                canModify
+                isSaving={isSaving || locationSaveStatus.isSaving}
+                isGeocoding={locationGeocoding}
+                saveError={locationSaveStatus.error}
+                onRequestEdit={() => {}}
+                onCancelEdit={() => {}}
+                onSaveCreate={async (payload) => {
+                  const created = await createSharedLocation(payload);
+                  if (created) {
+                    setPendingLocationId(created.id);
+                    setOptimisticLocationSummary(summaryFromLocationRow(created));
+                    return created.id;
+                  }
+                  return null;
+                }}
+                onSaveUpdate={async (id, payload) => {
+                  await updateSharedLocation(id, payload);
+                }}
+                onClear={() => {
+                  setPendingLocationId(null);
+                  setOptimisticLocationSummary(null);
+                  clearLocationSaveError();
+                }}
+                onGeocode={geocodeLocation}
+              />
+            </div>
           </div>
           {editorMode === 'edit' ? (
             <div>
@@ -363,7 +365,7 @@ export function FamiliesPanel({
             />
           </div>
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-2 space-y-3 rounded-md border border-slate-200 p-4'>
+            <div className='lg:col-span-2 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-4'>
               <h3 className='text-sm font-semibold text-slate-800'>Members</h3>
               <div className='flex flex-wrap items-end gap-3'>
                 <div className='min-w-[200px] flex-1'>

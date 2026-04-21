@@ -482,7 +482,7 @@ export function ContactsPanel({
       />
       <AdminEditorCard
         title='Contact'
-        description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
+        description='Create a contact or select a row below to edit. When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
         actions={
           <>
             {editorMode === 'edit' ? (
@@ -588,8 +588,8 @@ export function ContactsPanel({
             </div>
           </div>
 
-          <div className='flex flex-wrap items-end gap-3'>
-            <div className='min-w-[min(100%,12rem)] flex-1'>
+          <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>
+            <div className='lg:col-span-1'>
               <Label htmlFor='crm-contact-source'>Source</Label>
               <Select
                 id='crm-contact-source'
@@ -614,9 +614,18 @@ export function ContactsPanel({
                 ))}
               </Select>
             </div>
+            <div className={source === 'referral' ? 'lg:col-span-1' : 'lg:col-span-3'}>
+              <Label htmlFor='crm-contact-source-detail'>Source detail</Label>
+              <Textarea
+                id='crm-contact-source-detail'
+                value={sourceDetail}
+                onChange={(e) => setSourceDetail(e.target.value)}
+                rows={2}
+              />
+            </div>
             {source === 'referral' ? (
               <>
-                <div className='min-w-[min(100%,14rem)] flex-1'>
+                <div className='lg:col-span-1'>
                   <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
                   <Input
                     id='crm-contact-referral-search'
@@ -626,7 +635,7 @@ export function ContactsPanel({
                     autoComplete='off'
                   />
                 </div>
-                <div className='min-w-[min(100%,14rem)] flex-1'>
+                <div className='lg:col-span-1'>
                   <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
                   <Select
                     id='crm-contact-referral'
@@ -749,16 +758,6 @@ export function ContactsPanel({
                 </Select>
               </div>
             ) : null}
-          </div>
-
-          <div>
-            <Label htmlFor='crm-contact-source-detail'>Source detail</Label>
-            <Textarea
-              id='crm-contact-source-detail'
-              value={sourceDetail}
-              onChange={(e) => setSourceDetail(e.target.value)}
-              rows={2}
-            />
           </div>
 
           <CrmTagPicker
