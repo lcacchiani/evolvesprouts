@@ -198,7 +198,7 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
             encode_cursor(page_rows[-1].id) if has_more and page_rows else None
         )
         total_count = repository.count_for_admin(query=query, active=active)
-        note_counts = repository.count_standalone_crm_notes_for_contacts(
+        note_counts = repository.count_standalone_notes_for_contacts(
             [r.id for r in page_rows]
         )
         return json_response(
@@ -224,7 +224,7 @@ def _get_contact(event: Mapping[str, Any], *, contact_id: UUID) -> dict[str, Any
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
-        note_counts = repository.count_standalone_crm_notes_for_contacts([contact.id])
+        note_counts = repository.count_standalone_notes_for_contacts([contact.id])
         return json_response(
             200,
             {

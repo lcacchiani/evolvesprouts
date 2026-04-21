@@ -1,18 +1,17 @@
-"""Notes entity: legacy ``note`` + ``person_note`` → ``notes`` + ``note_entity_links``."""
+"""Notes entity: legacy ``note`` + ``person_note`` → unified ``notes`` table."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import replace
+from datetime import UTC, datetime
 from typing import Any
 from typing import ClassVar
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.db.models.note import NOTE_ENTITY_TYPE_CONTACT
 from app.db.models.note import Note
-from app.db.models.note import NoteEntityLink
 from app.imports.base import ImportStats
 from app.imports.base import ImporterContext
 from app.imports.base import preview_line
@@ -45,42 +44,41 @@ class NotesImporter:
         self,
         n: LegacyNoteRow,
         *,
-        note_id: UUID | None,
+        note_ids: list[UUID | None],
         contact_ids: list[UUID],
         dry_run: bool,
     ) -> dict[str, Any]:
-        tables: list[dict[str, Any]] = [
-            {
-                "table": "notes",
-                "columns": [
-                    "content",
-                    "took_at",
-                    "created_by",
-                    "created_at",
-                    "updated_at",
-                ],
-                "values": {
-                    "content": preview_line(self, n.content),
-                    "took_at": n.took_at.isoformat(),
-                    "created_by": LEGACY_NOTE_CREATED_BY,
-                    "created_at": "now()",
-                    "updated_at": "now()",
-                },
-            },
-        ]
-        nid_disp = str(note_id) if note_id else "…"
-        for cid in contact_ids:
+        tables: list[dict[str, Any]] = []
+        for i, cid in enumerate(contact_ids):
+            nid = note_ids[i] if i < len(note_ids) else None
+            nid_disp = str(nid) if nid else "…"
+            created_at_disp = n.created_at.isoformat() if n.created_at else "now()"
             tables.append(
                 {
-                    "table": "note_entity_links",
-                    "columns": ["note_id", "entity_type", "entity_id"],
+                    "table": "notes",
+                    "columns": [
+                        "id",
+                        "contact_id",
+                        "lead_id",
+                        "content",
+                        "took_at",
+                        "created_by",
+                        "created_at",
+                        "updated_at",
+                    ],
                     "values": {
-                        "note_id": nid_disp,
-                        "entity_type": NOTE_ENTITY_TYPE_CONTACT,
-                        "entity_id": str(cid),
+                        "id": nid_disp,
+                        "contact_id": str(cid),
+                        "lead_id": None,
+                        "content": preview_line(self, n.content),
+                        "took_at": n.took_at.isoformat(),
+                        "created_by": LEGACY_NOTE_CREATED_BY,
+                        "created_at": created_at_disp,
+                        "updated_at": created_at_disp,
                     },
                 },
             )
+        ref_id = note_ids[0] if note_ids else None
         tables.append(
             {
                 "table": "legacy_import_refs",
@@ -88,7 +86,7 @@ class NotesImporter:
                 "values": {
                     "entity": self.ENTITY,
                     "legacy_key": str(n.legacy_id),
-                    "new_id": None if dry_run or note_id is None else str(note_id),
+                    "new_id": None if dry_run or ref_id is None else str(ref_id),
                 },
             },
         )
@@ -139,10 +137,11 @@ class NotesImporter:
                 if len(stats.preview) < self.PREVIEW_MAX_ROWS:
                     stats.preview.append(self.format_preview(n, None))
                 if len(stats.row_details) < self.PREVIEW_MAX_ROWS:
+                    fake_ids: list[UUID | None] = [None] * len(resolved)
                     stats.row_details.append(
                         self._row_detail(
                             n,
-                            note_id=None,
+                            note_ids=fake_ids,
                             contact_ids=resolved,
                             dry_run=True,
                         ),
@@ -150,29 +149,35 @@ class NotesImporter:
                 stats.inserted += 1
                 continue
 
-            note = Note(
-                content=n.content,
-                took_at=n.took_at,
-                created_by=LEGACY_NOTE_CREATED_BY,
-            )
-            session.add(note)
-            session.flush()
-            nid = note.id
-            note_uuid = nid if isinstance(nid, UUID) else UUID(str(nid))
+            created_at = n.created_at if n.created_at is not None else datetime.now(UTC)
+            updated_at = created_at
+            note_ids_out: list[UUID] = []
+            first_id: UUID | None = None
             for cid in resolved:
-                session.add(
-                    NoteEntityLink(
-                        note_id=note_uuid,
-                        entity_type=NOTE_ENTITY_TYPE_CONTACT,
-                        entity_id=cid,
-                    ),
+                note = Note(
+                    contact_id=cid,
+                    lead_id=None,
+                    content=n.content,
+                    created_by=LEGACY_NOTE_CREATED_BY,
+                    created_at=created_at,
+                    updated_at=updated_at,
+                    took_at=n.took_at,
                 )
-            refs.record_mapping(session, self.ENTITY, str(n.legacy_id), note_uuid)
+                session.add(note)
+                session.flush()
+                nid = note.id
+                note_uuid = nid if isinstance(nid, UUID) else UUID(str(nid))
+                note_ids_out.append(note_uuid)
+                if first_id is None:
+                    first_id = note_uuid
+
+            if first_id is not None:
+                refs.record_mapping(session, self.ENTITY, str(n.legacy_id), first_id)
             if len(stats.row_details) < self.PREVIEW_MAX_ROWS:
                 stats.row_details.append(
                     self._row_detail(
                         n,
-                        note_id=note_uuid,
+                        note_ids=note_ids_out,
                         contact_ids=resolved,
                         dry_run=False,
                     ),

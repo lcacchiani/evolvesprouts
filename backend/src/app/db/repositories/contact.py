@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.db.models.crm_note import CrmNote
+from app.db.models.note import Note
 from app.db.models.contact import Contact
 from app.db.models.location import Location
 from app.db.models.tag import ContactTag
@@ -257,19 +257,19 @@ class ContactRepository(BaseRepository[Contact]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
-    def count_standalone_crm_notes_for_contacts(
+    def count_standalone_notes_for_contacts(
         self, contact_ids: list[UUID]
     ) -> dict[UUID, int]:
         """Count CRM notes per contact that are not tied to a sales lead."""
         if not contact_ids:
             return {}
         statement = (
-            select(CrmNote.contact_id, func.count(CrmNote.id))
+            select(Note.contact_id, func.count(Note.id))
             .where(
-                CrmNote.contact_id.in_(contact_ids),
-                CrmNote.lead_id.is_(None),
+                Note.contact_id.in_(contact_ids),
+                Note.lead_id.is_(None),
             )
-            .group_by(CrmNote.contact_id)
+            .group_by(Note.contact_id)
         )
         rows = self._session.execute(statement).all()
         return {row[0]: int(row[1]) for row in rows}

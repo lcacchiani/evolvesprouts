@@ -2480,7 +2480,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AdminCrmNoteListResponse"];
+                        "application/json": components["schemas"]["AdminNoteListResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -2502,7 +2502,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateCrmNoteRequest"];
+                    "application/json": components["schemas"]["CreateNoteRequest"];
                 };
             };
             responses: {
@@ -2513,7 +2513,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            note: components["schemas"]["CrmNote"];
+                            note: components["schemas"]["Note"];
                         };
                     };
                 };
@@ -2536,7 +2536,7 @@ export interface paths {
                 /** @description CRM contact identifier. */
                 id: components["parameters"]["AdminContactId"];
                 /** @description CRM note identifier. */
-                noteId: components["parameters"]["CrmNoteId"];
+                noteId: components["parameters"]["NoteId"];
             };
             cookie?: never;
         };
@@ -2552,7 +2552,7 @@ export interface paths {
                     /** @description CRM contact identifier. */
                     id: components["parameters"]["AdminContactId"];
                     /** @description CRM note identifier. */
-                    noteId: components["parameters"]["CrmNoteId"];
+                    noteId: components["parameters"]["NoteId"];
                 };
                 cookie?: never;
             };
@@ -2581,13 +2581,13 @@ export interface paths {
                     /** @description CRM contact identifier. */
                     id: components["parameters"]["AdminContactId"];
                     /** @description CRM note identifier. */
-                    noteId: components["parameters"]["CrmNoteId"];
+                    noteId: components["parameters"]["NoteId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["UpdateCrmNoteRequest"];
+                    "application/json": components["schemas"]["UpdateNoteRequest"];
                 };
             };
             responses: {
@@ -2598,7 +2598,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            note: components["schemas"]["CrmNote"];
+                            note: components["schemas"]["Note"];
                         };
                     };
                 };
@@ -3911,7 +3911,7 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        CrmNote: {
+        Note: {
             /** Format: uuid */
             id: string;
             content: string;
@@ -3921,13 +3921,13 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        AdminCrmNoteListResponse: {
-            items: components["schemas"]["CrmNote"][];
+        AdminNoteListResponse: {
+            items: components["schemas"]["Note"][];
         };
-        CreateCrmNoteRequest: {
+        CreateNoteRequest: {
             content: string;
         };
-        UpdateCrmNoteRequest: {
+        UpdateNoteRequest: {
             content: string;
         };
         LeadSummary: {
@@ -5025,7 +5025,7 @@ export interface components {
         /** @description CRM contact identifier. */
         AdminContactId: string;
         /** @description CRM note identifier. */
-        CrmNoteId: string;
+        NoteId: string;
         /** @description CRM family identifier. */
         AdminFamilyId: string;
         /** @description Family membership row identifier. */

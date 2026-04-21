@@ -336,41 +336,36 @@ Example `entity` values: `venues`, `families`, `organizations`, `contacts`, `not
 (see legacy CRM import registry). All use decimal string keys of the legacy integer
 primary key except `notes`, which maps legacy `note.id`.
 
-## Table: notes
+## Table: `notes`
 
-Purpose: Generic free-form notes with optional polymorphic links to CRM entities
-via `note_entity_links`. Separate from **`crm_notes`** (typed CRM-flow notes with
-fixed FK columns per parent). Polymorphic notes are used for legacy mysqldump
-imports; consolidating with `crm_notes` is a future product decision.
+Purpose: Unified CRM notes — free-form text linked to contacts, families,
+organizations, and/or sales leads. Replaces the former split between typed
+`crm_notes` and polymorphic `notes` / `note_entity_links` (see migration
+`0028_unify_notes_storage`).
 
 Columns:
 
 - `id` (UUID, PK, default `gen_random_uuid()`)
+- `contact_id`, `family_id`, `organization_id`, `lead_id` (UUID, nullable, FKs with
+  `ON DELETE SET NULL` to the respective parent tables)
 - `content` (text, required)
-- `took_at` (timestamptz, required) — when the note event occurred in the legacy system
-- `created_by` (varchar(128), required) — e.g. Cognito sub or import placeholder
-- `created_at` (timestamptz, default `now()`)
-- `updated_at` (timestamptz, default `now()`)
+- `created_by` (varchar(128), required) — Cognito sub, or `legacy-import` for
+  mysqldump imports
+- `created_at`, `updated_at` (timestamptz, default `now()`)
+- `took_at` (timestamptz, nullable) — populated for legacy-imported rows; when
+  the note was “taken” in the source system. Not exposed in the admin API.
 
-Triggers: `set_updated_at()` on UPDATE (same pattern as other CRM tables).
+Constraint `notes_has_parent` requires at least one of `contact_id`, `family_id`,
+`organization_id`, or `lead_id`.
 
-## Table: note_entity_links
+Indexes: `notes_contact_idx`, `notes_family_idx`, `notes_lead_idx` (each includes
+`created_at` for ordering).
 
-Purpose: Associate one `notes` row with one or more target entities without
-schema-wide FKs (matches the soft-pointer pattern used by `legacy_import_refs`).
+Triggers: `notes_set_updated_at` → `set_updated_at()` on UPDATE.
 
-Columns:
-
-- `note_id` (UUID, FK → `notes.id`, `ON DELETE CASCADE`, part of PK)
-- `entity_type` (text, part of PK) — CHECK allows `contact` initially; widen via migration
-- `entity_id` (UUID, part of PK) — soft pointer (no FK) to the target row
-- `created_at` (timestamptz, default `now()`)
-
-Primary key: (`note_id`, `entity_type`, `entity_id`).
-
-Indexes:
-
-- `note_entity_links_parent_idx` on (`entity_type`, `entity_id`)
+**Legacy import:** the `notes` entity importer writes one row per resolved contact
+for each legacy note (multi-contact notes yield multiple rows); `legacy_import_refs`
+maps legacy `note.id` to the **first** inserted row’s UUID.
 
 ## CRM tables (media lead capture)
 
@@ -420,15 +415,6 @@ Indexes:
 
 - Immutable event log for lead lifecycle transitions and actions.
 - Rows cascade delete with parent lead (`lead_id` FK with `ON DELETE CASCADE`).
-
-### `crm_notes`
-
-- Free-form notes linked to contacts/families/organizations/leads.
-- Uses `ON DELETE SET NULL` for parent references so note history can be kept.
-- Constraint `crm_notes_has_parent` enforces that at least one parent reference
-  is present.
-- For polymorphic notes imported from legacy CRM, see **`notes`** / **`note_entity_links`**
-  (generic store; not the same row model as `crm_notes`).
 
 ## Services tables
 
@@ -487,6 +473,6 @@ Indexes:
 
 - Function: `set_updated_at()`.
 - Applied to: `contacts`, `families`, `organizations`, `sales_leads`,
-  `crm_notes`, `notes`, `services`, `service_instances`, `discount_codes`,
+  `notes`, `services`, `service_instances`, `discount_codes`,
   `enrollments`.
 - Behavior: updates `updated_at` to `now()` before each UPDATE.

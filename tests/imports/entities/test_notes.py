@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
 
+from app.db.models.note import Note
 from app.imports.entities._legacy_family_common import parse_legacy_notes
 from app.imports.entities._legacy_family_common import parse_legacy_person_notes
 from app.imports.entities.notes import NotesImporter
@@ -56,6 +58,61 @@ def test_apply_notes_dry_run_two_contacts(monkeypatch: pytest.MonkeyPatch) -> No
     assert stats.inserted == 1
     assert len(stats.row_details[0]["target"]["tables"]) >= 3
     session.add.assert_not_called()
+
+
+def test_apply_notes_writes_unified_note_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Legacy note with two person links inserts two ``notes`` rows; ref maps to first id."""
+    from app.imports.entities import notes as mod
+
+    recorded: list[tuple[str, str, uuid.UUID]] = []
+
+    def _record(
+        session_arg,
+        entity: str,
+        legacy_key: str,
+        new_id: uuid.UUID,
+    ) -> None:
+        del session_arg
+        recorded.append((entity, legacy_key, new_id))
+
+    monkeypatch.setattr(mod.refs, "record_mapping", _record)
+    session = MagicMock()
+
+    def _flush_sets_note_id() -> None:
+        obj = session.add.call_args[0][0]
+        if getattr(obj, "id", None) is None:
+            obj.id = uuid.uuid4()
+
+    session.flush.side_effect = _flush_sets_note_id
+
+    sql = NOTE_SQL + PN_SQL
+    importer = NotesImporter()
+    rows = importer.parse(sql)
+    from dataclasses import replace
+
+    c1 = uuid.uuid4()
+    c2 = uuid.uuid4()
+    base = importer.resolve_context(session, dry_run=False)
+    ctx = replace(
+        base,
+        refs_by_entity={"contacts": {"10": c1, "11": c2}},
+        source_sql_text=sql,
+    )
+    stats = importer.apply(session, rows, ctx, dry_run=False)
+    assert stats.inserted == 1
+    assert session.add.call_count == 2
+    first = session.add.call_args_list[0][0][0]
+    second = session.add.call_args_list[1][0][0]
+    assert isinstance(first, Note)
+    assert isinstance(second, Note)
+    assert first.contact_id == c1
+    assert second.contact_id == c2
+    assert first.lead_id is None
+    assert "Line2" in first.content and "world" in first.content
+    assert first.created_by == "legacy-import"
+    assert first.took_at == datetime(2024, 1, 2, 15, 30)
+    assert first.created_at == datetime(2024, 1, 1, 10, 0)
+    assert recorded == [("notes", "1", first.id)]
 
 
 def test_skipped_no_dep_unresolved(monkeypatch: pytest.MonkeyPatch) -> None:

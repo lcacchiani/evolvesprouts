@@ -1747,7 +1747,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminCrmNoteListResponse"
+                $ref: "#/components/schemas/AdminNoteListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1763,7 +1763,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCrmNoteRequest"
+              $ref: "#/components/schemas/CreateNoteRequest"
       responses:
         "201":
           description: CRM note created.
@@ -1774,7 +1774,7 @@ paths:
                 required: [note]
                 properties:
                   note:
-                    $ref: "#/components/schemas/CrmNote"
+                    $ref: "#/components/schemas/Note"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1785,7 +1785,7 @@ paths:
   /v1/admin/contacts/{id}/notes/{noteId}:
     parameters:
       - $ref: "#/components/parameters/AdminContactId"
-      - $ref: "#/components/parameters/CrmNoteId"
+      - $ref: "#/components/parameters/NoteId"
     patch:
       summary: Update a standalone CRM note on a contact
       security:
@@ -1795,7 +1795,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateCrmNoteRequest"
+              $ref: "#/components/schemas/UpdateNoteRequest"
       responses:
         "200":
           description: CRM note updated.
@@ -1806,7 +1806,7 @@ paths:
                 required: [note]
                 properties:
                   note:
-                    $ref: "#/components/schemas/CrmNote"
+                    $ref: "#/components/schemas/Note"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -2639,7 +2639,7 @@ components:
         type: string
         format: uuid
       description: CRM contact identifier.
-    CrmNoteId:
+    NoteId:
       name: noteId
       in: path
       required: true
@@ -3036,7 +3036,7 @@ components:
         updated_at:
           type: string
           format: date-time
-    CrmNote:
+    Note:
       type: object
       required:
         - id
@@ -3058,7 +3058,7 @@ components:
         updated_at:
           type: string
           format: date-time
-    AdminCrmNoteListResponse:
+    AdminNoteListResponse:
       type: object
       required:
         - items
@@ -3066,15 +3066,15 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/CrmNote"
-    CreateCrmNoteRequest:
+            $ref: "#/components/schemas/Note"
+    CreateNoteRequest:
       type: object
       required:
         - content
       properties:
         content:
           type: string
-    UpdateCrmNoteRequest:
+    UpdateNoteRequest:
       type: object
       required:
         - content

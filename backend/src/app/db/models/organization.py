@@ -18,7 +18,7 @@ from app.db.models.enums import OrganizationRole, OrganizationType, Relationship
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
-    from app.db.models.crm_note import CrmNote
+    from app.db.models.note import Note
     from app.db.models.location import Location
     from app.db.models.sales_lead import SalesLead
     from app.db.models.tag import OrganizationTag, Tag
@@ -100,8 +100,8 @@ class Organization(Base):
         "SalesLead",
         back_populates="organization",
     )
-    crm_notes: Mapped[list[CrmNote]] = relationship(
-        "CrmNote",
+    notes: Mapped[list[Note]] = relationship(
+        "Note",
         back_populates="organization",
     )
     contacts: Mapped[list[Contact]] = relationship(

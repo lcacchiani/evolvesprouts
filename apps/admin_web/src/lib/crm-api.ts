@@ -15,15 +15,14 @@ type ApiOrganizationList = ApiSchemas['AdminOrganizationListResponse'];
 type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
 type ApiTagList = ApiSchemas['CrmTagListResponse'];
 type ApiCrmPickerList = ApiSchemas['CrmPickerListResponse'];
-type ApiCrmNoteList = ApiSchemas['AdminCrmNoteListResponse'];
-type ApiCrmNotePayload = ApiSchemas['CrmNote'];
+type ApiNoteList = ApiSchemas['AdminNoteListResponse'];
 
 export type AdminContactRow = ApiSchemas['AdminContact'];
 export type AdminFamilyRow = ApiSchemas['AdminFamily'];
 export type AdminOrganizationRow = ApiSchemas['AdminOrganization'];
 export type CrmTagRef = ApiSchemas['CrmTagRef'];
 export type CrmPickerListItem = ApiSchemas['CrmPickerListItem'];
-export type CrmNoteRow = ApiSchemas['CrmNote'];
+export type NoteRow = ApiSchemas['Note'];
 
 function parseContact(value: unknown): AdminContactRow {
   const row = isRecord(value) ? value : {};
@@ -53,9 +52,9 @@ function parsePickerItem(value: unknown): CrmPickerListItem {
   return row as CrmPickerListItem;
 }
 
-function parseCrmNote(value: unknown): CrmNoteRow {
+function parseNote(value: unknown): NoteRow {
   const row = isRecord(value) ? value : {};
-  return row as CrmNoteRow;
+  return row as NoteRow;
 }
 
 export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
@@ -182,20 +181,20 @@ export async function deleteAdminContact(contactId: string): Promise<void> {
 export async function listAdminContactNotes(
   contactId: string,
   signal?: AbortSignal
-): Promise<CrmNoteRow[]> {
-  const payload = await adminApiRequest<ApiCrmNoteList>({
+): Promise<NoteRow[]> {
+  const payload = await adminApiRequest<ApiNoteList>({
     endpointPath: `/v1/admin/contacts/${contactId}/notes`,
     method: 'GET',
     signal,
   });
   const root = unwrapPayload(payload);
-  return Array.isArray(root.items) ? root.items.map((n) => parseCrmNote(n)) : [];
+  return Array.isArray(root.items) ? root.items.map((n) => parseNote(n)) : [];
 }
 
 export async function createAdminContactNote(
   contactId: string,
-  body: ApiSchemas['CreateCrmNoteRequest']
-): Promise<CrmNoteRow | null> {
+  body: ApiSchemas['CreateNoteRequest']
+): Promise<NoteRow | null> {
   const payload = await adminApiRequest<{ note?: unknown }>({
     endpointPath: `/v1/admin/contacts/${contactId}/notes`,
     method: 'POST',
@@ -203,21 +202,21 @@ export async function createAdminContactNote(
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.note ? parseCrmNote(root.note) : null;
+  return root.note ? parseNote(root.note) : null;
 }
 
 export async function updateAdminContactNote(
   contactId: string,
   noteId: string,
-  body: ApiSchemas['UpdateCrmNoteRequest']
-): Promise<CrmNoteRow | null> {
+  body: ApiSchemas['UpdateNoteRequest']
+): Promise<NoteRow | null> {
   const payload = await adminApiRequest<{ note?: unknown }>({
     endpointPath: `/v1/admin/contacts/${contactId}/notes/${noteId}`,
     method: 'PATCH',
     body,
   });
   const root = unwrapPayload(payload);
-  return root.note ? parseCrmNote(root.note) : null;
+  return root.note ? parseNote(root.note) : null;
 }
 
 export async function deleteAdminContactNote(contactId: string, noteId: string): Promise<void> {

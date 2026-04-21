@@ -35,7 +35,7 @@ from app.api.admin_validators import validate_email, validate_string_length
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource
-from app.db.models.crm_note import CrmNote
+from app.db.models.note import Note
 from app.db.models.sales_lead import SalesLead
 from app.db.repositories import ContactRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
@@ -171,7 +171,7 @@ def create_contact(
         loaded = repository.get_by_id_for_admin(created.id)
         if loaded is None:
             raise DatabaseError("Failed to load contact after create")
-        note_counts = repository.count_standalone_crm_notes_for_contacts([loaded.id])
+        note_counts = repository.count_standalone_notes_for_contacts([loaded.id])
         return json_response(
             201,
             {
@@ -351,7 +351,7 @@ def update_contact(
         loaded = repository.get_by_id_for_admin(contact_id)
         if loaded is None:
             raise DatabaseError("Failed to load contact after update")
-        note_counts = repository.count_standalone_crm_notes_for_contacts([loaded.id])
+        note_counts = repository.count_standalone_notes_for_contacts([loaded.id])
         return json_response(
             200,
             {
@@ -389,8 +389,8 @@ def delete_contact(
             ).all()
         )
         if lead_ids:
-            session.execute(delete(CrmNote).where(CrmNote.lead_id.in_(tuple(lead_ids))))
-        session.execute(delete(CrmNote).where(CrmNote.contact_id == contact_id))
+            session.execute(delete(Note).where(Note.lead_id.in_(tuple(lead_ids))))
+        session.execute(delete(Note).where(Note.contact_id == contact_id))
         session.execute(delete(SalesLead).where(SalesLead.contact_id == contact_id))
 
         try:

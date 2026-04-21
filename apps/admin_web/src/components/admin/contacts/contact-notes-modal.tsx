@@ -15,7 +15,7 @@ import {
   deleteAdminContactNote,
   listAdminContactNotes,
   updateAdminContactNote,
-  type CrmNoteRow,
+  type NoteRow,
 } from '@/lib/crm-api';
 import { formatDate } from '@/lib/format';
 import type { AdminUser } from '@/types/leads';
@@ -41,7 +41,7 @@ function resolveNoteAuthor(createdBy: string, users: AdminUser[]): string {
   return user?.name || user?.email || createdBy;
 }
 
-function noteMetaLine(note: CrmNoteRow, users: AdminUser[]): string {
+function noteMetaLine(note: NoteRow, users: AdminUser[]): string {
   const author = resolveNoteAuthor(note.created_by, users);
   const created = formatDate(note.created_at ?? null);
   if (note.updated_at && note.updated_at !== note.created_at) {
@@ -58,7 +58,7 @@ export function ContactNotesModal({
   onStandaloneNoteCountChange,
 }: ContactNotesModalProps) {
   const newNoteFieldId = useId();
-  const [notes, setNotes] = useState<CrmNoteRow[]>([]);
+  const [notes, setNotes] = useState<NoteRow[]>([]);
   const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -149,7 +149,7 @@ export function ContactNotesModal({
     }
   }
 
-  async function handleDeleteNote(note: CrmNoteRow) {
+  async function handleDeleteNote(note: NoteRow) {
     if (!contactId) {
       return;
     }
@@ -180,7 +180,7 @@ export function ContactNotesModal({
     }
   }
 
-  function startEdit(note: CrmNoteRow) {
+  function startEdit(note: NoteRow) {
     setEditingId(note.id);
     setEditDraft(note.content);
   }
