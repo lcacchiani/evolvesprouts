@@ -32,12 +32,12 @@ info:
     - `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
     - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
-    - `GET|PATCH /v1/admin/families/{id}`
+    - `GET|PATCH|DELETE /v1/admin/families/{id}`
     - `POST /v1/admin/families/{id}/members`
     - `DELETE /v1/admin/families/{id}/members/{memberId}`
     - `GET /v1/admin/organizations/picker`
     - `GET|POST /v1/admin/organizations`
-    - `GET|PATCH /v1/admin/organizations/{id}`
+    - `GET|PATCH|DELETE /v1/admin/organizations/{id}`
     - `POST /v1/admin/organizations/{id}/members`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
@@ -1963,6 +1963,23 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete CRM family
+      description: |
+        Permanently removes the family row. Sales leads linked to the family (and their
+        lead notes) are deleted first; standalone notes and enrollments that reference the
+        family are cleared. Returns `400` if the database still blocks deletion.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Family deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /v1/admin/families/{id}/members:
     parameters:
@@ -2044,9 +2061,12 @@ paths:
     get:
       summary: List CRM organizations
       description: |
-        Lists organizations. Omit `relationship_type` to return all relationship types
-        (including vendors). Pass `relationship_type=vendor` to list vendor rows only
-        (Finance vendors UI).
+        Lists organizations for CRM and Finance. When `relationship_type` is omitted,
+        vendor rows are excluded (Contacts → Organizations default). Pass
+        `relationship_type=vendor` for the Finance vendors list only.
+        List responses may omit related loads for performance when listing vendors
+        (`include_relationships=false` server-side); use `GET /v1/admin/organizations/{id}`
+        for full tags, members, and location summary.
       security:
         - AdminBearerAuth: []
       parameters:
@@ -2061,8 +2081,9 @@ paths:
         - name: relationship_type
           in: query
           description: >
-            When set, only organizations with this CRM relationship type are returned.
-            Omit to include all types.
+            When set, only organizations with this CRM relationship type are returned
+            (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list
+            (CRM default).
           schema:
             $ref: "#/components/schemas/CrmRelationshipType"
         - name: cursor
@@ -2145,6 +2166,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete CRM organization
+      description: |
+        Permanently removes a non-vendor organisation row. Vendor organisations must be
+        managed under Finance. Sales leads linked to the organisation (and their lead notes)
+        are deleted first; standalone notes and enrollments that reference the organisation
+        are cleared. Returns `400` if the database still blocks deletion.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Organization deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":

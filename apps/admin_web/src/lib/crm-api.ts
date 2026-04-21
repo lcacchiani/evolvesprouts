@@ -277,6 +277,14 @@ export async function updateAdminFamily(
   return root.family ?? null;
 }
 
+export async function deleteAdminFamily(familyId: string): Promise<void> {
+  await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/families/${familyId}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [204],
+  });
+}
+
 export async function addAdminFamilyMember(
   familyId: string,
   body: ApiSchemas['AddFamilyMemberRequest']
@@ -350,6 +358,14 @@ export async function updateAdminOrganization(
   });
   const root = unwrapPayload(payload);
   return root.organization ?? null;
+}
+
+export async function deleteAdminOrganization(organizationId: string): Promise<void> {
+  await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/organizations/${organizationId}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [204],
+  });
 }
 
 export async function addAdminOrganizationMember(

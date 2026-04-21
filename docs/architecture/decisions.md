@@ -461,6 +461,16 @@ and simplifies OpenAPI and CDK wiring. Shared CRM helpers (`admin_crm_helpers.py
 `admin_crm_serializers.py`) stay named for cross-entity reuse; organization-specific
 modules use neutral `admin_organizations*.py` names.
 
+**Payload shape:** The organizations create/update schemas are a superset of the
+legacy vendor-only API. The Finance vendors UI is expected to send only
+`organization_type: other`, `relationship_type: vendor`, `name`, `website`, and
+`active` for vendor rows; the backend does not enforce a narrower vendor-only
+subset for authenticated callers.
+
+**CRM default list:** Unfiltered `GET /v1/admin/organizations` excludes vendor
+rows so Contacts → Organizations matches picker and member-assignment rules;
+Finance passes `relationship_type=vendor` for the vendors table.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

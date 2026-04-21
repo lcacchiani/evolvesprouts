@@ -3100,6 +3100,10 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+    adminFamilyById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     const adminFamilyMembers = adminFamilyById.addResource("members");
     adminFamilyMembers.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
@@ -3131,6 +3135,10 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminOrganizationCrmById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminOrganizationCrmById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

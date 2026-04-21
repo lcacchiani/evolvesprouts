@@ -9,6 +9,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.api.admin_crm_entity_deletes import delete_admin_crm_family
 from app.api.admin_crm_helpers import (
     assert_contact_can_join_family,
     crm_request_id,
@@ -73,6 +74,10 @@ def handle_admin_families_request(
             return _get_family(event, family_id=family_id)
         if method == "PATCH":
             return _update_family(
+                event, family_id=family_id, actor_sub=identity.user_sub
+            )
+        if method == "DELETE":
+            return delete_admin_crm_family(
                 event, family_id=family_id, actor_sub=identity.user_sub
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)

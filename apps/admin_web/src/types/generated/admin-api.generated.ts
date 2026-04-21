@@ -2772,7 +2772,36 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete CRM family
+         * @description Permanently removes the family row. Sales leads linked to the family (and their
+         *     lead notes) are deleted first; standalone notes and enrollments that reference the
+         *     family are cleared. Returns `400` if the database still blocks deletion.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Family deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         /** Update CRM family */
@@ -2959,16 +2988,19 @@ export interface paths {
         };
         /**
          * List CRM organizations
-         * @description Lists organizations. Omit `relationship_type` to return all relationship types
-         *     (including vendors). Pass `relationship_type=vendor` to list vendor rows only
-         *     (Finance vendors UI).
+         * @description Lists organizations for CRM and Finance. When `relationship_type` is omitted,
+         *     vendor rows are excluded (Contacts → Organizations default). Pass
+         *     `relationship_type=vendor` for the Finance vendors list only.
+         *     List responses may omit related loads for performance when listing vendors
+         *     (`include_relationships=false` server-side); use `GET /v1/admin/organizations/{id}`
+         *     for full tags, members, and location summary.
          */
         get: {
             parameters: {
                 query?: {
                     query?: string;
                     active?: boolean;
-                    /** @description When set, only organizations with this CRM relationship type are returned. Omit to include all types. */
+                    /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list (CRM default). */
                     relationship_type?: components["schemas"]["CrmRelationshipType"];
                     cursor?: string;
                     limit?: number;
@@ -3065,7 +3097,37 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete CRM organization
+         * @description Permanently removes a non-vendor organisation row. Vendor organisations must be
+         *     managed under Finance. Sales leads linked to the organisation (and their lead notes)
+         *     are deleted first; standalone notes and enrollments that reference the organisation
+         *     are cleared. Returns `400` if the database still blocks deletion.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         /** Update CRM organization */

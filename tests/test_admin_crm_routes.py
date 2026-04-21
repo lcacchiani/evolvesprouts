@@ -225,6 +225,41 @@ def test_handle_admin_contacts_note_delete(
     assert response is marker
 
 
+def test_handle_admin_families_delete(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 204, "body": "{}"}
+    expected_family_id = str(uuid4())
+
+    def _fake_delete(
+        _event: Any,
+        *,
+        family_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(family_id) == expected_family_id
+        return marker
+
+    monkeypatch.setattr(admin_families, "delete_admin_crm_family", _fake_delete)
+    monkeypatch.setattr(
+        admin_families,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_families.handle_admin_families_request(
+        api_gateway_event(
+            method="DELETE", path=f"/v1/admin/families/{expected_family_id}"
+        ),
+        "DELETE",
+        f"/v1/admin/families/{expected_family_id}",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_families_member_delete(
     monkeypatch: Any,
     api_gateway_event: Any,
@@ -259,6 +294,43 @@ def test_handle_admin_families_member_delete(
         ),
         "DELETE",
         f"/v1/admin/families/{family_id}/members/{member_id}",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_organizations_delete(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 204, "body": "{}"}
+    expected_org_id = str(uuid4())
+
+    def _fake_delete(
+        _event: Any,
+        *,
+        organization_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(organization_id) == expected_org_id
+        return marker
+
+    monkeypatch.setattr(
+        admin_organizations, "delete_admin_crm_organization", _fake_delete
+    )
+    monkeypatch.setattr(
+        admin_organizations,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_organizations.handle_admin_organizations_request(
+        api_gateway_event(
+            method="DELETE", path=f"/v1/admin/organizations/{expected_org_id}"
+        ),
+        "DELETE",
+        f"/v1/admin/organizations/{expected_org_id}",
     )
 
     assert response is marker

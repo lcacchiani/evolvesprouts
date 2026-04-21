@@ -74,6 +74,11 @@ def _should_skip_vendor_fuzzy_match(normalized: str) -> bool:
     return False
 
 
+_NON_VENDOR_RELATIONSHIP_TYPES: tuple[RelationshipType, ...] = tuple(
+    rt for rt in RelationshipType if rt != RelationshipType.VENDOR
+)
+
+
 def _is_substantial_vendor_name_for_reverse_match(normalized_vendor_name: str) -> bool:
     """Whether a vendor list name is specific enough to appear inside parsed text."""
     v = _normalize_vendor_match_name(normalized_vendor_name)
@@ -105,11 +110,19 @@ class OrganizationRepository(BaseRepository[Organization]):
         relationship_types: Sequence[RelationshipType] | None = None,
         include_relationships: bool = True,
     ) -> list[Organization]:
-        """List organizations with optional relationship-type filter."""
+        """List organizations with optional relationship-type filter.
+
+        When ``relationship_types`` is omitted, vendor rows are excluded (CRM default).
+        Pass ``relationship_types=(RelationshipType.VENDOR,)`` to list vendors only.
+        """
         statement = select(Organization)
         if relationship_types is not None:
             statement = statement.where(
                 Organization.relationship_type.in_(tuple(relationship_types))
+            )
+        else:
+            statement = statement.where(
+                Organization.relationship_type.in_(_NON_VENDOR_RELATIONSHIP_TYPES)
             )
         if include_relationships:
             statement = statement.options(
@@ -168,6 +181,10 @@ class OrganizationRepository(BaseRepository[Organization]):
             statement = statement.where(
                 Organization.relationship_type.in_(tuple(relationship_types))
             )
+        else:
+            statement = statement.where(
+                Organization.relationship_type.in_(_NON_VENDOR_RELATIONSHIP_TYPES)
+            )
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
@@ -183,6 +200,26 @@ class OrganizationRepository(BaseRepository[Organization]):
         statement = (
             select(Organization)
             .where(Organization.id == organization_id)
+            .options(
+                selectinload(Organization.organization_tags).selectinload(
+                    OrganizationTag.tag
+                ),
+                selectinload(Organization.organization_members).selectinload(
+                    OrganizationMember.contact
+                ),
+                selectinload(Organization.location).selectinload(Location.area),
+            )
+        )
+        return self._session.execute(statement).scalar_one_or_none()
+
+    def get_crm_organization_by_id(self, organization_id: UUID) -> Organization | None:
+        """Load one organization for CRM screens (excludes vendor rows)."""
+        statement = (
+            select(Organization)
+            .where(
+                Organization.id == organization_id,
+                Organization.relationship_type != RelationshipType.VENDOR,
+            )
             .options(
                 selectinload(Organization.organization_tags).selectinload(
                     OrganizationTag.tag

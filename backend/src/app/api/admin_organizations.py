@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.admin_crm_entity_deletes import delete_admin_crm_organization
 from app.api.admin_crm_helpers import (
     assert_contact_can_join_organization,
     crm_request_id,
@@ -86,6 +87,12 @@ def handle_admin_organizations_request(
             return _update_organization(
                 event, organization_id=organization_id, actor_sub=identity.user_sub
             )
+        if method == "DELETE":
+            return delete_admin_crm_organization(
+                event,
+                organization_id=organization_id,
+                actor_sub=identity.user_sub,
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 4 and parts[3] == "members":
@@ -154,7 +161,11 @@ def _apply_organization_slug_from_body(
 def _parse_relationship_type_filter(
     raw: str | None,
 ) -> Sequence[RelationshipType] | None:
-    """Parse optional relationship_type query; absent means all types."""
+    """Parse optional relationship_type query.
+
+    When absent, the repository applies the CRM default (all types except ``vendor``).
+    When set, filters to that single relationship type (including ``vendor`` for Finance).
+    """
     if raw is None or raw.strip() == "":
         return None
     try:
@@ -232,7 +243,7 @@ def _get_organization(
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
         repository = OrganizationRepository(session)
-        org = repository.get_organization_by_id(organization_id)
+        org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         return json_response(
@@ -301,7 +312,12 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
                     status_code=409,
                 ) from exc
             raise
-        loaded = repository.get_organization_by_id(created.id)
+        loader = (
+            repository.get_organization_by_id
+            if relationship_type == RelationshipType.VENDOR
+            else repository.get_crm_organization_by_id
+        )
+        loaded = loader(created.id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after create")
         return json_response(
@@ -322,7 +338,7 @@ def _update_organization(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_organization_by_id(organization_id)
+        org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
 
@@ -381,7 +397,12 @@ def _update_organization(
                     status_code=409,
                 ) from exc
             raise
-        loaded = repository.get_organization_by_id(organization_id)
+        loader = (
+            repository.get_organization_by_id
+            if org.relationship_type == RelationshipType.VENDOR
+            else repository.get_crm_organization_by_id
+        )
+        loaded = loader(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after update")
         return json_response(
@@ -404,7 +425,7 @@ def _add_organization_member(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_organization_by_id(organization_id)
+        org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         contact = session.get(Contact, contact_id)
@@ -422,7 +443,7 @@ def _add_organization_member(
         session.add(member)
         contact.location_id = None
         session.commit()
-        loaded = repository.get_organization_by_id(organization_id)
+        loaded = repository.get_crm_organization_by_id(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after adding member")
         return json_response(
@@ -442,7 +463,7 @@ def _remove_organization_member(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_organization_by_id(organization_id)
+        org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         member = session.get(OrganizationMember, member_id)
@@ -450,7 +471,7 @@ def _remove_organization_member(
             raise NotFoundError("OrganizationMember", str(member_id))
         session.delete(member)
         session.commit()
-        loaded = repository.get_organization_by_id(organization_id)
+        loaded = repository.get_crm_organization_by_id(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after removing member")
         return json_response(

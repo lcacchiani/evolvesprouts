@@ -54,6 +54,7 @@ function buildOrgsHook(
     updateOrganization: vi.fn().mockResolvedValue(null),
     addMember: vi.fn().mockResolvedValue(null),
     removeMember: vi.fn().mockResolvedValue(null),
+    deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     crmRelationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
       typeof useAdminCrmOrganizations
@@ -231,5 +232,50 @@ describe('OrganizationsPanel', () => {
       });
     });
     expect(updateLocationPartial.mock.calls[0][1]).not.toHaveProperty('name');
+  });
+
+  it('deletes an organisation after confirmation', async () => {
+    const user = userEvent.setup();
+    const deleteOrganization = vi.fn().mockResolvedValue(undefined);
+    const row: components['schemas']['AdminOrganization'] = {
+      id: 'org-del',
+      name: 'Delete Org',
+      organization_type: 'company',
+      relationship_type: 'customer',
+      slug: null,
+      website: null,
+      location_id: null,
+      location_summary: null,
+      tag_ids: [],
+      tags: [],
+      members: [],
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    };
+    const organizations = buildOrgsHook({
+      deleteOrganization,
+      organizations: [row],
+    });
+
+    render(
+      <OrganizationsPanel
+        organizations={organizations}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete organisation' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(deleteOrganization).toHaveBeenCalledWith('org-del');
+    });
   });
 });

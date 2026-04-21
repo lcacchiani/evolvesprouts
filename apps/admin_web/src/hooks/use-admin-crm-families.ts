@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import {
   addAdminFamilyMember,
   createAdminFamily,
+  deleteAdminFamily,
   listAdminFamilies,
   removeAdminFamilyMember,
   updateAdminFamily,
@@ -76,6 +77,11 @@ export function useAdminCrmFamilies() {
     [mutate]
   );
 
+  const deleteFamily = useCallback(
+    async (familyId: string) => mutate(async () => deleteAdminFamily(familyId)),
+    [mutate]
+  );
+
   return {
     families: list.items,
     filters: list.filters,
@@ -91,6 +97,7 @@ export function useAdminCrmFamilies() {
     updateFamily,
     addMember,
     removeMember,
+    deleteFamily,
     refetch: list.refetch,
   };
 }
