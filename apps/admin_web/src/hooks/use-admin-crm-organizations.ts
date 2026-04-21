@@ -93,6 +93,6 @@ export function useAdminCrmOrganizations() {
     addMember,
     removeMember,
     refetch: list.refetch,
-    crmRelationshipOptions: CRM_ENTITY_RELATIONSHIP_TYPES,
+    crmRelationshipOptions: CRM_ENTITY_RELATIONSHIP_TYPES.filter((v) => v !== 'vendor'),
   };
 }

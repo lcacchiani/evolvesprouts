@@ -165,7 +165,7 @@ def _create_family(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any
         required=True,
     )
     relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
+        body.get("relationship_type"), field="relationship_type"
     )
     location_id = parse_optional_uuid(body.get("location_id"), "location_id")
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
@@ -222,7 +222,6 @@ def _update_family(
             family.relationship_type = parse_crm_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
-                forbid_vendor=True,
             )
         if "location_id" in body:
             loc = parse_optional_uuid(body.get("location_id"), "location_id")

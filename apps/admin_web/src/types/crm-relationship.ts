@@ -1,28 +1,27 @@
 import type { components } from '@/types/generated/admin-api.generated';
 
-/** Relationship values allowed for CRM contacts, families, and non-vendor organisations (no vendor). */
-export type CrmEntityRelationshipType = Exclude<
-  components['schemas']['CrmRelationshipType'],
-  'vendor'
->;
+/** Relationship values shown in CRM entity editors (includes vendor where the API allows it). */
+export type CrmEntityRelationshipType = components['schemas']['CrmRelationshipType'];
 
 export const CRM_ENTITY_RELATIONSHIP_TYPES: readonly CrmEntityRelationshipType[] = [
   'prospect',
   'client',
   'past_client',
   'partner',
+  'vendor',
   'other',
 ];
 
 /**
- * Map a stored CRM relationship to a dropdown value. Vendor is not editable here
- * (Finance / vendor orgs); unknown values map to `other` so the select stays valid.
+ * Map a stored CRM relationship to a dropdown value. Unknown values map to `other`
+ * so the select stays valid.
  */
 export function relationshipTypeForCrmEditor(
   stored: components['schemas']['CrmRelationshipType']
 ): CrmEntityRelationshipType {
-  if (stored === 'vendor') {
-    return 'other';
+  const allowed = new Set(CRM_ENTITY_RELATIONSHIP_TYPES);
+  if (allowed.has(stored)) {
+    return stored;
   }
-  return stored as CrmEntityRelationshipType;
+  return 'other';
 }
