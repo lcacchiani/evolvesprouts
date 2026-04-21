@@ -409,29 +409,31 @@ export function OrganizationsPanel({
               />
             </div>
           </div>
-          {editorMode === 'edit' ? (
+          <div className='lg:col-span-4 space-y-4'>
+            {editorMode === 'edit' ? (
+              <div>
+                <Label htmlFor='crm-org-active'>Status</Label>
+                <Select
+                  id='crm-org-active'
+                  value={active ? 'true' : 'false'}
+                  onChange={(e) => setActive(e.target.value === 'true')}
+                >
+                  <option value='true'>Active</option>
+                  <option value='false'>Archived</option>
+                </Select>
+              </div>
+            ) : null}
             <div>
-              <Label htmlFor='crm-org-active'>Status</Label>
-              <Select
-                id='crm-org-active'
-                value={active ? 'true' : 'false'}
-                onChange={(e) => setActive(e.target.value === 'true')}
-              >
-                <option value='true'>Active</option>
-                <option value='false'>Archived</option>
-              </Select>
+              <CrmTagPicker
+                id='crm-org-tags'
+                label='Tags'
+                tags={tags}
+                selectedIds={tagIds}
+                onChange={setTagIds}
+                disabled={isSaving}
+                variant='collapsible'
+              />
             </div>
-          ) : null}
-          <div className='lg:col-span-2'>
-            <CrmTagPicker
-              id='crm-org-tags'
-              label='Tags'
-              tags={tags}
-              selectedIds={tagIds}
-              onChange={setTagIds}
-              disabled={isSaving}
-              variant='collapsible'
-            />
           </div>
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-4 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-4'>
