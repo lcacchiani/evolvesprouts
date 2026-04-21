@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { createLocation, deleteLocation, listGeographicAreas, listLocations, updateLocation } from '@/lib/services-api';
+import {
+  createLocation,
+  deleteLocation,
+  listGeographicAreas,
+  listLocations,
+  updateLocation,
+  updateLocationPartial,
+} from '@/lib/services-api';
 import { DEFAULT_VENUE_FILTERS } from '@/types/services';
 import type { GeographicAreaSummary, LocationSummary, VenueFilters } from '@/types/services';
 
@@ -95,6 +102,12 @@ export function useVenues(options: { onMutationSuccess?: () => void | Promise<vo
     [mutate]
   );
 
+  const updateVenuePartial = useCallback(
+    async (venueId: string, payload: ApiSchemas['PartialUpdateLocationRequest']) =>
+      mutate(async () => updateLocationPartial(venueId, payload)),
+    [mutate]
+  );
+
   const deleteVenue = useCallback(
     async (venueId: string) =>
       mutate(async () => {
@@ -117,6 +130,7 @@ export function useVenues(options: { onMutationSuccess?: () => void | Promise<vo
     totalCount: list.totalCount,
     createVenue,
     updateVenue,
+    updateVenuePartial,
     deleteVenue,
     geographicAreas,
     areasLoading,

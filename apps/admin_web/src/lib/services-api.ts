@@ -1,5 +1,12 @@
 import { adminApiRequest, isAbortRequestError } from './api-admin-client';
-import { asBoolean, asNullableFiniteNumber, asNullableString, asNumber, unwrapPayload } from './api-payload';
+import {
+  asBoolean,
+  asNullableFiniteNumber,
+  asNullableString,
+  asNumber,
+  asStringArray,
+  unwrapPayload,
+} from './api-payload';
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -45,6 +52,7 @@ type ApiLocationResponse = ApiSchemas['LocationResponse'];
 type ApiGeographicAreaListResponse = ApiSchemas['GeographicAreaListResponse'];
 type ApiCreateLocationRequest = ApiSchemas['CreateLocationRequest'];
 type ApiUpdateLocationRequest = ApiSchemas['UpdateLocationRequest'];
+type ApiPartialUpdateLocationRequest = ApiSchemas['PartialUpdateLocationRequest'];
 type ApiGeocodeLocationRequest = ApiSchemas['GeocodeLocationRequest'];
 type ApiGeocodeLocationResponse = ApiSchemas['GeocodeLocationResponse'];
 type ApiDiscountCodeUsageSummaryResponse = ApiSchemas['DiscountCodeUsageSummaryResponse'];
@@ -86,6 +94,8 @@ function parseLocationSummary(value: unknown): LocationSummary {
     lng: asNullableFiniteNumber(item.lng),
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
+    lockedFromPartnerOrg: asBoolean(item.locked_from_partner_org, false),
+    partnerOrganizationLabels: asStringArray(item.partner_organization_labels),
   };
 }
 
@@ -404,6 +414,19 @@ export async function updateLocation(
   const payload = await adminApiRequest<ApiLocationResponse>({
     endpointPath: `/v1/admin/locations/${id}`,
     method: 'PUT',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  return root.location ? parseLocationSummary(root.location) : null;
+}
+
+export async function updateLocationPartial(
+  id: string,
+  body: ApiPartialUpdateLocationRequest
+): Promise<LocationSummary | null> {
+  const payload = await adminApiRequest<ApiLocationResponse>({
+    endpointPath: `/v1/admin/locations/${id}`,
+    method: 'PATCH',
     body,
   });
   const root = unwrapPayload(payload);

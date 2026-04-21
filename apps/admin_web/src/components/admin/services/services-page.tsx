@@ -270,6 +270,7 @@ export function ServicesPage() {
           onLoadMore={state.venues.loadMore}
           onCreate={state.venues.createVenue}
           onUpdate={state.venues.updateVenue}
+          onUpdatePartial={state.venues.updateVenuePartial}
           onDelete={state.venues.deleteVenue}
         />
       )}

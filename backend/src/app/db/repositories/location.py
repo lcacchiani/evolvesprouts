@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Location
+from app.db.models import Location, Organization, RelationshipType
 from app.db.repositories.base import BaseRepository
 
 
@@ -88,3 +89,28 @@ class LocationRepository(BaseRepository[Location]):
             func.lower(func.trim(Location.address)) == func.lower(func.trim(normalized))
         )
         return self._session.execute(query).scalar_one_or_none()
+
+    def active_partner_organization_names_by_location_ids(
+        self,
+        location_ids: Sequence[UUID],
+    ) -> dict[UUID, list[str]]:
+        """Map location ids to sorted names of active partner CRM organizations."""
+        if not location_ids:
+            return {}
+        stmt = (
+            select(Organization.location_id, Organization.name)
+            .where(
+                Organization.location_id.in_(location_ids),
+                Organization.relationship_type == RelationshipType.PARTNER,
+                Organization.archived_at.is_(None),
+            )
+            .order_by(Organization.name.asc())
+        )
+        rows = self._session.execute(stmt).all()
+        by_loc: dict[UUID, list[str]] = defaultdict(list)
+        for loc_id, name in rows:
+            if loc_id is None:
+                continue
+            label = (name or "").strip() or "Partner organisation"
+            by_loc[loc_id].append(label)
+        return dict(by_loc)

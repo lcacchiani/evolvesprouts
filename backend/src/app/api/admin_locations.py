@@ -136,10 +136,23 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
         has_more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = encode_cursor(rows[-1].id) if has_more and rows else None
+        partner_by_loc = (
+            location_repo.active_partner_organization_names_by_location_ids(
+                [cast(UUID, loc.id) for loc in rows]
+            )
+        )
         return json_response(
             200,
             {
-                "items": [_serialize_location(location) for location in rows],
+                "items": [
+                    _serialize_location(
+                        location,
+                        partner_organization_names=partner_by_loc.get(
+                            cast(UUID, location.id)
+                        ),
+                    )
+                    for location in rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -182,9 +195,21 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
         )
         location = location_repo.create(location)
         session.commit()
+        partner_by_loc = (
+            location_repo.active_partner_organization_names_by_location_ids(
+                [cast(UUID, location.id)]
+            )
+        )
         return json_response(
             201,
-            {"location": _serialize_location(location)},
+            {
+                "location": _serialize_location(
+                    location,
+                    partner_organization_names=partner_by_loc.get(
+                        cast(UUID, location.id)
+                    ),
+                )
+            },
             event=event,
         )
 
@@ -195,9 +220,19 @@ def _get_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, Any]
         location = location_repo.get_by_id(location_id)
         if location is None:
             raise NotFoundError("Location", str(location_id))
+        partner_by_loc = (
+            location_repo.active_partner_organization_names_by_location_ids(
+                [location_id]
+            )
+        )
         return json_response(
             200,
-            {"location": _serialize_location(location)},
+            {
+                "location": _serialize_location(
+                    location,
+                    partner_organization_names=partner_by_loc.get(location_id),
+                )
+            },
             event=event,
         )
 
@@ -224,6 +259,19 @@ def _update_location(
         if location is None:
             raise NotFoundError("Location", str(location_id))
 
+        partner_names = location_repo.active_partner_organization_names_by_location_ids(
+            [location_id]
+        ).get(location_id)
+        if partner_names and "name" in body:
+            parsed_name = _parse_name(body.get("name"), required=False)
+            current_norm = (location.name or "").strip()
+            incoming_norm = (parsed_name or "").strip()
+            if incoming_norm != current_norm:
+                raise ValidationError(
+                    "Location name is managed from the partner organisation record",
+                    field="name",
+                )
+
         if not partial:
             if "area_id" not in body:
                 raise ValidationError("area_id is required", field="area_id")
@@ -248,9 +296,19 @@ def _update_location(
 
         location = location_repo.update(location)
         session.commit()
+        partner_by_loc = (
+            location_repo.active_partner_organization_names_by_location_ids(
+                [location_id]
+            )
+        )
         return json_response(
             200,
-            {"location": _serialize_location(location)},
+            {
+                "location": _serialize_location(
+                    location,
+                    partner_organization_names=partner_by_loc.get(location_id),
+                )
+            },
             event=event,
         )
 
@@ -269,6 +327,15 @@ def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, A
         location = location_repo.get_by_id(location_id)
         if location is None:
             raise NotFoundError("Location", str(location_id))
+        partner_names = location_repo.active_partner_organization_names_by_location_ids(
+            [location_id]
+        ).get(location_id)
+        if partner_names:
+            raise ValidationError(
+                "Cannot delete a venue linked to a partner organisation",
+                field="location_id",
+                status_code=409,
+            )
         location_repo.delete(location)
         session.commit()
         return json_response(204, {}, event=event)
@@ -285,7 +352,13 @@ def _optional_coordinate_json(value: Any) -> float | None:
     raise TypeError(f"coordinate must be numeric or None, got {type(value).__name__}")
 
 
-def _serialize_location(location: Location) -> dict[str, Any]:
+def _serialize_location(
+    location: Location,
+    *,
+    partner_organization_names: list[str] | None = None,
+) -> dict[str, Any]:
+    names = partner_organization_names or []
+    locked = bool(names)
     return {
         "id": str(location.id),
         "name": location.name,
@@ -295,6 +368,8 @@ def _serialize_location(location: Location) -> dict[str, Any]:
         "lng": _optional_coordinate_json(location.lng),
         "created_at": location.created_at,
         "updated_at": location.updated_at,
+        "locked_from_partner_org": locked,
+        "partner_organization_labels": names,
     }
 
 

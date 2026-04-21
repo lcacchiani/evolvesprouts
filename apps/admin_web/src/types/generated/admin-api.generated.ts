@@ -928,6 +928,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Location is linked to an active partner organisation. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         options?: never;
@@ -4451,6 +4460,10 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+            /** @description True when at least one active CRM organisation with relationship type partner references this location. The venue name is managed from the organisation record; delete is blocked server-side. */
+            locked_from_partner_org: boolean;
+            /** @description Names of active partner organisations linked to this venue (for display). */
+            partner_organization_labels: string[];
         };
         LocationResponse: {
             location: components["schemas"]["Location"];
