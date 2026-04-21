@@ -77,7 +77,9 @@ their primary responsibilities.
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
   `service_key` is resolved case-insensitively against `services.slug` in Aurora;
   codes with `discount_type` `referral` are rejected with the same 404 envelope as
-  unknown/inactive codes),
+  unknown/inactive codes; on each 404 the Lambda logs a structured
+  `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
+  and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
