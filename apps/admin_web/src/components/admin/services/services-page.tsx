@@ -249,7 +249,6 @@ export function ServicesPage() {
           onCreate={(payload, options) =>
             state.discountCodes.createCode(payload, {
               suppressSaving: options?.batchSaving,
-              suppressRefetch: options?.batchSaving,
             })
           }
           onUpdate={state.discountCodes.updateCode}
