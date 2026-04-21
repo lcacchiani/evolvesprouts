@@ -138,6 +138,7 @@ class ContactRepository(BaseRepository[Contact]):
         cursor: UUID | None = None,
         query: str | None = None,
         active: bool | None = None,
+        contact_type: ContactType | None = None,
     ) -> list[Contact]:
         """List contacts with optional text search and active (non-archived) filter."""
         from app.db.repositories.organization import _escape_like_pattern
@@ -177,6 +178,8 @@ class ContactRepository(BaseRepository[Contact]):
             statement = statement.where(Contact.archived_at.is_(None))
         if active is False:
             statement = statement.where(Contact.archived_at.is_not(None))
+        if contact_type is not None:
+            statement = statement.where(Contact.contact_type == contact_type)
         statement = statement.order_by(
             Contact.created_at.desc(),
             Contact.id.desc(),
@@ -221,6 +224,7 @@ class ContactRepository(BaseRepository[Contact]):
         *,
         query: str | None = None,
         active: bool | None = None,
+        contact_type: ContactType | None = None,
     ) -> int:
         from app.db.repositories.organization import _escape_like_pattern
 
@@ -241,6 +245,8 @@ class ContactRepository(BaseRepository[Contact]):
             statement = statement.where(Contact.archived_at.is_(None))
         if active is False:
             statement = statement.where(Contact.archived_at.is_not(None))
+        if contact_type is not None:
+            statement = statement.where(Contact.contact_type == contact_type)
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
 

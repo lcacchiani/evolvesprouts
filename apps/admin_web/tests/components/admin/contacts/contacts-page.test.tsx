@@ -27,7 +27,7 @@ vi.mock('@/lib/services-api', async (importOriginal) => {
 
 const defaultContactsHook = {
   contacts: [],
-  filters: { query: '', active: '' as const },
+  filters: { query: '', active: 'true' as const, contact_type: '' as const },
   setFilter: vi.fn(),
   isLoading: false,
   isLoadingMore: false,

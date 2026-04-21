@@ -496,152 +496,163 @@ export function ContactsPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-          <div>
-            <Label htmlFor='crm-contact-first'>First name</Label>
-            <Input
-              id='crm-contact-first'
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-last'>Last name</Label>
-            <Input
-              id='crm-contact-last'
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-email'>Email</Label>
-            <Input
-              id='crm-contact-email'
-              type='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-phone'>Phone</Label>
-            <Input
-              id='crm-contact-phone'
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-ig'>Instagram</Label>
-            <Input
-              id='crm-contact-ig'
-              value={instagramHandle}
-              onChange={(e) => setInstagramHandle(e.target.value)}
-              autoComplete='off'
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-dob'>Date of birth</Label>
-            <Input
-              id='crm-contact-dob'
-              type='date'
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-type'>Contact type</Label>
-            <Select
-              id='crm-contact-type'
-              value={contactType}
-              onChange={(e) => setContactType(e.target.value as ApiSchemas['CrmContactType'])}
-            >
-              {CONTACT_TYPES.map((v) => (
-                <option key={v} value={v}>
-                  {formatEnumLabel(v)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-rel'>Relationship</Label>
-            <Select
-              id='crm-contact-rel'
-              value={relationshipType}
-              onChange={(e) =>
-                setRelationshipType(e.target.value as (typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number])
-              }
-            >
-              {CRM_ENTITY_RELATIONSHIP_TYPES.map((v) => (
-                <option key={v} value={v}>
-                  {formatEnumLabel(v)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-source'>Source</Label>
-            <Select
-              id='crm-contact-source'
-              value={source}
-              onChange={(e) => {
-                const v = e.target.value as ApiSchemas['CrmContactSource'];
-                setSource(v);
-                if (v !== 'referral') {
-                  setReferralContactId('');
-                  setReferralSearchInput('');
-                  setReferralSearchResults([]);
-                  setReferralPinnedLabel('');
-                } else {
-                  setReferralSearchResults([]);
-                }
-              }}
-            >
-              {SOURCES.map((v) => (
-                <option key={v} value={v}>
-                  {formatEnumLabel(v)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          {source === 'referral' ? (
-            <div className='space-y-2 lg:col-span-2'>
-              <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
+        <div className='space-y-4'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            <div>
+              <Label htmlFor='crm-contact-first'>First name</Label>
               <Input
-                id='crm-contact-referral-search'
-                value={referralSearchInput}
-                onChange={(e) => setReferralSearchInput(e.target.value)}
-                placeholder='Type at least 2 characters (name, email, phone, Instagram)'
+                id='crm-contact-first'
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 autoComplete='off'
               />
-              <div>
-                <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
-                <Select
-                  id='crm-contact-referral'
-                  value={referralContactId}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setReferralContactId(v);
-                    const picked = referralSelectOptions.find((o) => o.id === v);
-                    if (picked) {
-                      setReferralPinnedLabel(picked.label);
-                    }
-                  }}
-                >
-                  <option value=''>Select contact</option>
-                  {referralSelectOptions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
             </div>
-          ) : null}
-          <div className='lg:col-span-2'>
+            <div>
+              <Label htmlFor='crm-contact-last'>Last name</Label>
+              <Input
+                id='crm-contact-last'
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete='off'
+              />
+            </div>
+            <div>
+              <Label htmlFor='crm-contact-type'>Contact type</Label>
+              <Select
+                id='crm-contact-type'
+                value={contactType}
+                onChange={(e) => setContactType(e.target.value as ApiSchemas['CrmContactType'])}
+              >
+                {CONTACT_TYPES.map((v) => (
+                  <option key={v} value={v}>
+                    {formatEnumLabel(v)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor='crm-contact-rel'>Relationship</Label>
+              <Select
+                id='crm-contact-rel'
+                value={relationshipType}
+                onChange={(e) =>
+                  setRelationshipType(e.target.value as (typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number])
+                }
+              >
+                {CRM_ENTITY_RELATIONSHIP_TYPES.map((v) => (
+                  <option key={v} value={v}>
+                    {formatEnumLabel(v)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            <div>
+              <Label htmlFor='crm-contact-email'>Email</Label>
+              <Input
+                id='crm-contact-email'
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete='off'
+              />
+            </div>
+            <div>
+              <Label htmlFor='crm-contact-phone'>Phone</Label>
+              <Input
+                id='crm-contact-phone'
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete='off'
+              />
+            </div>
+            <div>
+              <Label htmlFor='crm-contact-ig'>Instagram</Label>
+              <Input
+                id='crm-contact-ig'
+                value={instagramHandle}
+                onChange={(e) => setInstagramHandle(e.target.value)}
+                autoComplete='off'
+              />
+            </div>
+            <div>
+              <Label htmlFor='crm-contact-dob'>Date of birth</Label>
+              <Input
+                id='crm-contact-dob'
+                type='date'
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className='flex flex-wrap items-end gap-3'>
+            <div className='min-w-[min(100%,12rem)] flex-1'>
+              <Label htmlFor='crm-contact-source'>Source</Label>
+              <Select
+                id='crm-contact-source'
+                value={source}
+                onChange={(e) => {
+                  const v = e.target.value as ApiSchemas['CrmContactSource'];
+                  setSource(v);
+                  if (v !== 'referral') {
+                    setReferralContactId('');
+                    setReferralSearchInput('');
+                    setReferralSearchResults([]);
+                    setReferralPinnedLabel('');
+                  } else {
+                    setReferralSearchResults([]);
+                  }
+                }}
+              >
+                {SOURCES.map((v) => (
+                  <option key={v} value={v}>
+                    {formatEnumLabel(v)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            {source === 'referral' ? (
+              <>
+                <div className='min-w-[min(100%,14rem)] flex-1'>
+                  <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
+                  <Input
+                    id='crm-contact-referral-search'
+                    value={referralSearchInput}
+                    onChange={(e) => setReferralSearchInput(e.target.value)}
+                    placeholder='Type at least 2 characters (name, email, phone, Instagram)'
+                    autoComplete='off'
+                  />
+                </div>
+                <div className='min-w-[min(100%,14rem)] flex-1'>
+                  <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
+                  <Select
+                    id='crm-contact-referral'
+                    value={referralContactId}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setReferralContactId(v);
+                      const picked = referralSelectOptions.find((o) => o.id === v);
+                      if (picked) {
+                        setReferralPinnedLabel(picked.label);
+                      }
+                    }}
+                  >
+                    <option value=''>Select contact</option>
+                    {referralSelectOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
             <InlineLocationEditor
               stateKey={inlineLocationStateKey}
               location={resolvedLocation}
@@ -679,64 +690,68 @@ export function ContactsPanel({
               onGeocode={geocodeLocation}
             />
           </div>
-          <div>
-            <Label htmlFor='crm-contact-family'>Family</Label>
-            <Select
-              id='crm-contact-family'
-              value={familySelectId}
-              onChange={(e) => {
-                const v = e.target.value;
-                setFamilySelectId(v);
-                if (v) {
-                  setPendingLocationId(null);
-                  setOptimisticLocationSummary(null);
-                }
-              }}
-            >
-              <option value=''>None</option>
-              {familyPicker.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor='crm-contact-org'>Organisation</Label>
-            <Select
-              id='crm-contact-org'
-              value={organizationSelectId}
-              onChange={(e) => {
-                const v = e.target.value;
-                setOrganizationSelectId(v);
-                if (v) {
-                  setPendingLocationId(null);
-                  setOptimisticLocationSummary(null);
-                }
-              }}
-            >
-              <option value=''>None</option>
-              {organizationPicker.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-          {editorMode === 'edit' ? (
+
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             <div>
-              <Label htmlFor='crm-contact-active'>Status</Label>
+              <Label htmlFor='crm-contact-family'>Family</Label>
               <Select
-                id='crm-contact-active'
-                value={active ? 'true' : 'false'}
-                onChange={(e) => setActive(e.target.value === 'true')}
+                id='crm-contact-family'
+                value={familySelectId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFamilySelectId(v);
+                  if (v) {
+                    setPendingLocationId(null);
+                    setOptimisticLocationSummary(null);
+                  }
+                }}
               >
-                <option value='true'>Active</option>
-                <option value='false'>Archived</option>
+                <option value=''>None</option>
+                {familyPicker.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                  </option>
+                ))}
               </Select>
             </div>
-          ) : null}
-          <div className='lg:col-span-2'>
+            <div>
+              <Label htmlFor='crm-contact-org'>Organisation</Label>
+              <Select
+                id='crm-contact-org'
+                value={organizationSelectId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setOrganizationSelectId(v);
+                  if (v) {
+                    setPendingLocationId(null);
+                    setOptimisticLocationSummary(null);
+                  }
+                }}
+              >
+                <option value=''>None</option>
+                {organizationPicker.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            {editorMode === 'edit' ? (
+              <div>
+                <Label htmlFor='crm-contact-active'>Status</Label>
+                <Select
+                  id='crm-contact-active'
+                  value={active ? 'true' : 'false'}
+                  onChange={(e) => setActive(e.target.value === 'true')}
+                >
+                  <option value='true'>Active</option>
+                  <option value='false'>Archived</option>
+                </Select>
+              </div>
+            ) : null}
+          </div>
+
+          <div>
             <Label htmlFor='crm-contact-source-detail'>Source detail</Label>
             <Textarea
               id='crm-contact-source-detail'
@@ -745,18 +760,19 @@ export function ContactsPanel({
               rows={2}
             />
           </div>
-          <div className='lg:col-span-2'>
-            <CrmTagPicker
-              id='crm-contact-tags'
-              label='Tags'
-              tags={tags}
-              selectedIds={tagIds}
-              onChange={setTagIds}
-              disabled={isSaving}
-            />
-          </div>
+
+          <CrmTagPicker
+            id='crm-contact-tags'
+            label='Tags'
+            tags={tags}
+            selectedIds={tagIds}
+            onChange={setTagIds}
+            disabled={isSaving}
+            variant='collapsible'
+          />
+
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-2 text-sm text-slate-600'>
+            <div className='text-sm text-slate-600'>
               <p>Mailchimp: {formatEnumLabel(selected.mailchimp_status)}</p>
             </div>
           ) : null}
@@ -784,6 +800,24 @@ export function ContactsPanel({
                 }}
                 placeholder='Name, email, phone, Instagram'
               />
+            </div>
+            <div className='min-w-[140px]'>
+              <Label htmlFor='crm-contacts-type'>Type</Label>
+              <Select
+                id='crm-contacts-type'
+                value={filters.contact_type}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('contact_type', e.target.value as CrmListFilters['contact_type']);
+                }}
+              >
+                <option value=''>All</option>
+                {CONTACT_TYPES.map((v) => (
+                  <option key={v} value={v}>
+                    {formatEnumLabel(v)}
+                  </option>
+                ))}
+              </Select>
             </div>
             <div className='min-w-[140px]'>
               <Label htmlFor='crm-contacts-active'>Status</Label>

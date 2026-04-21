@@ -407,7 +407,7 @@ function InlineLocationEditorInner({
         {showEditForm ? (
           <div className='mt-2 space-y-3'>
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-              <div className='sm:col-span-2'>
+              <div>
                 <Label htmlFor='inline-loc-area'>Geographic area</Label>
                 <Select
                   id='inline-loc-area'
@@ -423,7 +423,7 @@ function InlineLocationEditorInner({
                   ))}
                 </Select>
               </div>
-              <div className='sm:col-span-2'>
+              <div>
                 <Label htmlFor='inline-loc-address'>Address</Label>
                 <Input
                   id='inline-loc-address'

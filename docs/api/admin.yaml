@@ -1633,6 +1633,11 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: contact_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/CrmContactType"
+          description: When set, only contacts with this contact type are returned.
         - name: cursor
           in: query
           schema:

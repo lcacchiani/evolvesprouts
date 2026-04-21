@@ -8,7 +8,7 @@ import {
   listAdminContacts,
   updateAdminContact,
 } from '@/lib/crm-api';
-import { DEFAULT_CRM_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
+import { DEFAULT_CRM_CONTACT_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
@@ -21,6 +21,7 @@ export function useAdminCrmContacts() {
       listAdminContacts({
         query: params.query,
         active: params.active || undefined,
+        contact_type: params.contact_type || undefined,
         cursor: params.cursor,
         limit: params.limit,
       }),
@@ -41,7 +42,7 @@ export function useAdminCrmContacts() {
     refetch: refetchContacts,
   } = usePaginatedList({
     fetcher,
-    defaultFilters: DEFAULT_CRM_LIST_FILTERS,
+    defaultFilters: DEFAULT_CRM_CONTACT_LIST_FILTERS,
     errorPrefix: 'Failed to load contacts',
     debounceKeys: ['query'],
     limit: 50,
