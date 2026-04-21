@@ -201,18 +201,11 @@ def parse_crm_relationship_type(
     value: Any,
     *,
     field: str,
-    forbid_vendor: bool = False,
 ) -> RelationshipType:
-    """Parse relationship_type; optional vendor block for non-vendor CRM entities."""
+    """Parse relationship_type for CRM organization payloads."""
     if value is None or str(value).strip() == "":
         return RelationshipType.PROSPECT
     try:
-        parsed = RelationshipType(str(value).strip().lower())
+        return RelationshipType(str(value).strip().lower())
     except ValueError as exc:
         raise ValidationError(f"Invalid {field}", field=field) from exc
-    if forbid_vendor and parsed == RelationshipType.VENDOR:
-        raise ValidationError(
-            "Vendor organizations are managed under Finance",
-            field=field,
-        )
-    return parsed

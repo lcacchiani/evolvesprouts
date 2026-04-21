@@ -27,11 +27,19 @@ describe('vendors-api', () => {
         {
           id: 'vendor-1',
           name: 'Acme Vendor',
+          organization_type: 'other',
+          relationship_type: 'vendor',
+          slug: null,
           website: 'https://vendor.example.com',
+          location_id: null,
+          location_summary: null,
           active: true,
           archived_at: null,
           created_at: null,
           updated_at: null,
+          tag_ids: [],
+          tags: [],
+          members: [],
         },
       ],
       next_cursor: 'cursor-1',
@@ -51,7 +59,8 @@ describe('vendors-api', () => {
 
     const request = mockAdminApiRequest.mock.calls[0][0];
     expect(request.method).toBe('GET');
-    expect(request.endpointPath).toContain('/v1/admin/vendors?');
+    expect(request.endpointPath).toContain('/v1/admin/organizations?');
+    expect(request.endpointPath).toContain('relationship_type=vendor');
     expect(request.endpointPath).toContain('query=acme');
     expect(request.endpointPath).toContain('active=true');
     expect(request.endpointPath).toContain('cursor=abc');
@@ -60,29 +69,41 @@ describe('vendors-api', () => {
 
   it('creates a vendor', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
-      vendor: {
+      organization: {
         id: 'vendor-2',
         name: 'Acme Vendor',
+        organization_type: 'other',
+        relationship_type: 'vendor',
+        slug: null,
         website: null,
+        location_id: null,
+        location_summary: null,
         active: true,
         archived_at: null,
         created_at: null,
         updated_at: null,
+        tag_ids: [],
+        tags: [],
+        members: [],
       },
     });
 
     await createAdminVendor({
       name: 'Acme Vendor',
+      organization_type: 'other',
+      relationship_type: 'vendor',
       website: null,
       active: true,
     });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({
-        endpointPath: '/v1/admin/vendors',
+        endpointPath: '/v1/admin/organizations',
         method: 'POST',
         body: {
           name: 'Acme Vendor',
+          organization_type: 'other',
+          relationship_type: 'vendor',
           website: null,
           active: true,
         },
@@ -92,14 +113,22 @@ describe('vendors-api', () => {
 
   it('updates a vendor', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
-      vendor: {
+      organization: {
         id: 'vendor-2',
         name: 'Acme Vendor Updated',
+        organization_type: 'other',
+        relationship_type: 'vendor',
+        slug: null,
         website: null,
+        location_id: null,
+        location_summary: null,
         active: true,
         archived_at: null,
         created_at: null,
         updated_at: null,
+        tag_ids: [],
+        tags: [],
+        members: [],
       },
     });
 
@@ -111,7 +140,7 @@ describe('vendors-api', () => {
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({
-        endpointPath: '/v1/admin/vendors/vendor-2',
+        endpointPath: '/v1/admin/organizations/vendor-2',
         method: 'PATCH',
       })
     );

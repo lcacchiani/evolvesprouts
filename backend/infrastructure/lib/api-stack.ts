@@ -3145,26 +3145,6 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
-    // Admin vendor routes
-    const adminVendors = admin.addResource("vendors");
-    adminVendors.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminVendors.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminVendorById = adminVendors.addResource("{id}");
-    adminVendorById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminVendorById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
     // Admin expense routes
     const adminExpenses = admin.addResource("expenses");
     adminExpenses.addMethod("GET", adminIntegration, {

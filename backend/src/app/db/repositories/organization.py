@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, func, literal, or_, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, noload, selectinload
 
 from app.db.models import Location, Organization, RelationshipType
 from app.db.models.organization import OrganizationMember
@@ -94,81 +95,24 @@ class OrganizationRepository(BaseRepository[Organization]):
     def __init__(self, session: Session):
         super().__init__(session, Organization)
 
-    def list_vendors(
+    def list_organizations(
         self,
         *,
         limit: int,
         cursor: UUID | None = None,
         query: str | None = None,
         active: bool | None = None,
+        relationship_types: Sequence[RelationshipType] | None = None,
+        include_relationships: bool = True,
     ) -> list[Organization]:
-        """List organizations scoped to vendor relationship type."""
-        statement = select(Organization).where(
-            Organization.relationship_type == RelationshipType.VENDOR
-        )
-        if cursor is not None:
-            cursor_created_at = (
-                select(Organization.created_at)
-                .where(Organization.id == cursor)
-                .scalar_subquery()
-            )
+        """List organizations with optional relationship-type filter."""
+        statement = select(Organization)
+        if relationship_types is not None:
             statement = statement.where(
-                or_(
-                    Organization.created_at < cursor_created_at,
-                    and_(
-                        Organization.created_at == cursor_created_at,
-                        Organization.id < cursor,
-                    ),
-                )
+                Organization.relationship_type.in_(tuple(relationship_types))
             )
-        if query:
-            escaped = _escape_like_pattern(query.strip())
-            pattern = f"%{escaped}%"
-            statement = statement.where(Organization.name.ilike(pattern, escape="\\"))
-        if active is True:
-            statement = statement.where(Organization.archived_at.is_(None))
-        if active is False:
-            statement = statement.where(Organization.archived_at.is_not(None))
-        statement = statement.order_by(
-            Organization.created_at.desc(),
-            Organization.id.desc(),
-        ).limit(limit)
-        return list(self._session.execute(statement).scalars().all())
-
-    def count_vendors(
-        self,
-        *,
-        query: str | None = None,
-        active: bool | None = None,
-    ) -> int:
-        """Count vendor organizations with the same filters used by list."""
-        statement = select(func.count(Organization.id)).where(
-            Organization.relationship_type == RelationshipType.VENDOR
-        )
-        if query:
-            escaped = _escape_like_pattern(query.strip())
-            pattern = f"%{escaped}%"
-            statement = statement.where(Organization.name.ilike(pattern, escape="\\"))
-        if active is True:
-            statement = statement.where(Organization.archived_at.is_(None))
-        if active is False:
-            statement = statement.where(Organization.archived_at.is_not(None))
-        count = self._session.execute(statement).scalar_one_or_none()
-        return int(count or 0)
-
-    def list_crm_organizations(
-        self,
-        *,
-        limit: int,
-        cursor: UUID | None = None,
-        query: str | None = None,
-        active: bool | None = None,
-    ) -> list[Organization]:
-        """List organizations excluding vendors (managed under Finance)."""
-        statement = (
-            select(Organization)
-            .where(Organization.relationship_type != RelationshipType.VENDOR)
-            .options(
+        if include_relationships:
+            statement = statement.options(
                 selectinload(Organization.organization_tags).selectinload(
                     OrganizationTag.tag
                 ),
@@ -177,7 +121,12 @@ class OrganizationRepository(BaseRepository[Organization]):
                 ),
                 selectinload(Organization.location).selectinload(Location.area),
             )
-        )
+        else:
+            statement = statement.options(
+                noload(Organization.organization_tags),
+                noload(Organization.organization_members),
+                noload(Organization.location),
+            )
         if cursor is not None:
             cursor_created_at = (
                 select(Organization.created_at)
@@ -207,15 +156,18 @@ class OrganizationRepository(BaseRepository[Organization]):
         ).limit(limit)
         return list(self._session.execute(statement).scalars().unique().all())
 
-    def count_crm_organizations(
+    def count_organizations(
         self,
         *,
         query: str | None = None,
         active: bool | None = None,
+        relationship_types: Sequence[RelationshipType] | None = None,
     ) -> int:
-        statement = select(func.count(Organization.id)).where(
-            Organization.relationship_type != RelationshipType.VENDOR
-        )
+        statement = select(func.count(Organization.id))
+        if relationship_types is not None:
+            statement = statement.where(
+                Organization.relationship_type.in_(tuple(relationship_types))
+            )
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
@@ -227,13 +179,10 @@ class OrganizationRepository(BaseRepository[Organization]):
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
 
-    def get_crm_organization_by_id(self, organization_id: UUID) -> Organization | None:
+    def get_organization_by_id(self, organization_id: UUID) -> Organization | None:
         statement = (
             select(Organization)
-            .where(
-                Organization.id == organization_id,
-                Organization.relationship_type != RelationshipType.VENDOR,
-            )
+            .where(Organization.id == organization_id)
             .options(
                 selectinload(Organization.organization_tags).selectinload(
                     OrganizationTag.tag

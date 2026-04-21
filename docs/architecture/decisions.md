@@ -449,6 +449,18 @@ case-insensitive unique index, and resolve public `service_key` / booking
 field and avoids deploy-time JSON drift. Public discount validate/redeem paths
 query `ServiceRepository.get_by_slug` in-session.
 
+## Vendors API merged into organizations
+
+**Decision:** Retire dedicated `/v1/admin/vendors` routes. Vendor rows remain
+`organizations` rows with `relationship_type=vendor`. The admin console and API
+clients list and edit them via `GET|POST|PATCH /v1/admin/organizations` with
+`relationship_type=vendor` on list queries where needed.
+
+**Why:** One resource model avoids duplicate CRUD paths, matches the database,
+and simplifies OpenAPI and CDK wiring. Shared CRM helpers (`admin_crm_helpers.py`,
+`admin_crm_serializers.py`) stay named for cross-entity reuse; organization-specific
+modules use neutral `admin_organizations*.py` names.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

@@ -40,8 +40,6 @@ info:
     - `GET|PATCH /v1/admin/organizations/{id}`
     - `POST /v1/admin/organizations/{id}/members`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
-    - `GET|POST /v1/admin/vendors`
-    - `GET|PATCH /v1/admin/vendors/{id}`
     - `GET|POST /v1/admin/expenses`
     - `GET|PATCH /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
@@ -2045,7 +2043,10 @@ paths:
   /v1/admin/organizations:
     get:
       summary: List CRM organizations
-      description: Lists organizations excluding vendors (vendors are under Finance).
+      description: |
+        Lists organizations. Omit `relationship_type` to return all relationship types
+        (including vendors). Pass `relationship_type=vendor` to list vendor rows only
+        (Finance vendors UI).
       security:
         - AdminBearerAuth: []
       parameters:
@@ -2057,6 +2058,13 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: relationship_type
+          in: query
+          description: >
+            When set, only organizations with this CRM relationship type are returned.
+            Omit to include all types.
+          schema:
+            $ref: "#/components/schemas/CrmRelationshipType"
         - name: cursor
           in: query
           schema:
@@ -2186,107 +2194,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminOrganizationResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  /v1/admin/vendors:
-    get:
-      summary: List vendors
-      security:
-        - AdminBearerAuth: []
-      parameters:
-        - name: query
-          in: query
-          schema:
-            type: string
-        - name: active
-          in: query
-          schema:
-            type: boolean
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-      responses:
-        "200":
-          description: Vendor list response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VendorListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-    post:
-      summary: Create vendor
-      security:
-        - AdminBearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateVendorRequest"
-      responses:
-        "201":
-          description: Vendor created.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VendorResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /v1/admin/vendors/{id}:
-    parameters:
-      - $ref: "#/components/parameters/VendorId"
-    get:
-      summary: Get vendor
-      security:
-        - AdminBearerAuth: []
-      responses:
-        "200":
-          description: Vendor response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VendorResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    patch:
-      summary: Update vendor
-      security:
-        - AdminBearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateVendorRequest"
-      responses:
-        "200":
-          description: Vendor response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VendorResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -2634,14 +2541,6 @@ components:
         type: string
         format: uuid
       description: Discount code identifier.
-    VendorId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: Vendor identifier.
     AdminContactId:
       name: id
       in: path
@@ -4108,81 +4007,6 @@ components:
           nullable: true
         active:
           type: boolean
-    Vendor:
-      type: object
-      required:
-        - id
-        - name
-        - active
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        website:
-          type: string
-          nullable: true
-        active:
-          type: boolean
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          nullable: true
-    VendorResponse:
-      type: object
-      required:
-        - vendor
-      properties:
-        vendor:
-          $ref: "#/components/schemas/Vendor"
-    VendorListResponse:
-      type: object
-      required:
-        - items
-        - total_count
-      properties:
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/Vendor"
-        next_cursor:
-          type: string
-          nullable: true
-        total_count:
-          type: integer
-    CreateVendorRequest:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-        website:
-          type: string
-          nullable: true
-        active:
-          type: boolean
-          nullable: true
-    UpdateVendorRequest:
-      type: object
-      minProperties: 1
-      properties:
-        name:
-          type: string
-        website:
-          type: string
-          nullable: true
-        active:
-          type: boolean
     AdminUser:
       type: object
       required:
@@ -5502,6 +5326,11 @@ components:
           items:
             type: string
             format: uuid
+        active:
+          type: boolean
+          description: >
+            When false, the organization is created archived (`archived_at` set).
+            Omit for default active (not archived).
     UpdateAdminOrganizationRequest:
       type: object
       properties:

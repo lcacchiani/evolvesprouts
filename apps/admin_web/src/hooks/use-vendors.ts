@@ -41,12 +41,13 @@ export function useVendors() {
   );
 
   const createVendor = useCallback(
-    async (payload: ApiSchemas['CreateVendorRequest']) => mutate(async () => createAdminVendor(payload)),
+    async (payload: ApiSchemas['CreateAdminOrganizationRequest']) =>
+      mutate(async () => createAdminVendor(payload)),
     [mutate]
   );
 
   const updateVendor = useCallback(
-    async (vendorId: string, payload: ApiSchemas['UpdateVendorRequest']) =>
+    async (vendorId: string, payload: ApiSchemas['UpdateAdminOrganizationRequest']) =>
       mutate(async () => updateAdminVendor(vendorId, payload)),
     [mutate]
   );

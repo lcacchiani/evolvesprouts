@@ -30,14 +30,16 @@ def test_parse_crm_relationship_type_defaults_to_prospect() -> None:
     assert parse_crm_relationship_type("", field="x") == RelationshipType.PROSPECT
 
 
-def test_parse_crm_relationship_type_forbids_vendor_when_configured() -> None:
-    with pytest.raises(ValidationError, match="Finance"):
-        parse_crm_relationship_type("vendor", field="relationship_type", forbid_vendor=True)
-
-
-def test_parse_crm_relationship_type_allows_non_vendor() -> None:
+def test_parse_crm_relationship_type_accepts_vendor() -> None:
     assert (
-        parse_crm_relationship_type("client", field="relationship_type", forbid_vendor=True)
+        parse_crm_relationship_type("vendor", field="relationship_type")
+        == RelationshipType.VENDOR
+    )
+
+
+def test_parse_crm_relationship_type_accepts_client() -> None:
+    assert (
+        parse_crm_relationship_type("client", field="relationship_type")
         == RelationshipType.CLIENT
     )
 

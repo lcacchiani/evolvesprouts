@@ -58,8 +58,8 @@ their primary responsibilities.
   for standalone CRM notes on a contact (not tied to a sales lead), and `DELETE /v1/admin/contacts/{id}`
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*`,
-  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations excluding
-  vendors; vendors remain under `/v1/admin/vendors`),
+  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations and
+  vendor rows; list vendors with `GET /v1/admin/organizations?relationship_type=vendor`),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
@@ -69,7 +69,6 @@ their primary responsibilities.
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
-  `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
