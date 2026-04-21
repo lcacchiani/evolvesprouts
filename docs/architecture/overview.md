@@ -33,6 +33,7 @@ Flutter Mobile / Next.js Admin
 
 ### Admin console (Next.js App Router)
 - Admin users manage assets and access grants.
+- **Locations:** CRM contacts, families, organisations, and Services venues all edit shared `locations` rows through the same inline location editor (`InlineLocationEditor`). Saving a location updates that row for every record that references it.
 - Hosted on Amplify Hosting (release jobs triggered in CI).
 
 ### Public website (Next.js static export)

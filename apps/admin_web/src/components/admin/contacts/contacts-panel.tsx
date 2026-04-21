@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
+import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
+import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
@@ -24,7 +28,7 @@ import {
   searchCrmContactsForPicker,
   type CrmTagRef,
 } from '@/lib/crm-api';
-import { formatCrmVenueLocationLabel, formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import type { CrmListFilters } from '@/types/crm';
 import {
   CRM_ENTITY_RELATIONSHIP_TYPES,
@@ -71,6 +75,8 @@ export interface ContactsPanelProps {
   tags: CrmTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
+  areasLoading: boolean;
+  refreshLocations: () => Promise<void> | void;
 }
 
 export function ContactsPanel({
@@ -80,6 +86,8 @@ export function ContactsPanel({
   tags,
   locations,
   geographicAreas,
+  areasLoading,
+  refreshLocations,
 }: ContactsPanelProps) {
   const {
     contacts: rows,
@@ -127,14 +135,6 @@ export function ContactsPanel({
     };
   }, []);
 
-  const areaNameById = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const a of geographicAreas) {
-      map[a.id] = a.name;
-    }
-    return map;
-  }, [geographicAreas]);
-
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -152,11 +152,21 @@ export function ContactsPanel({
   const [referralSearchResults, setReferralSearchResults] = useState<CrmPickerListItem[]>([]);
   const [referralPinnedLabel, setReferralPinnedLabel] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [locationId, setLocationId] = useState('');
+  const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
+  const [optimisticLocationSummary, setOptimisticLocationSummary] =
+    useState<InlineLocationEmbeddedSummary | null>(null);
   const [familySelectId, setFamilySelectId] = useState('');
   const [organizationSelectId, setOrganizationSelectId] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
+
+  const {
+    status: locationSaveStatus,
+    createSharedLocation,
+    updateSharedLocation,
+    clearError: clearLocationSaveError,
+  } = useInlineLocationSave(refreshLocations);
+  const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
 
   const selected = useMemo(
     () => rows.find((c) => c.id === selectedId) ?? null,
@@ -165,6 +175,54 @@ export function ContactsPanel({
 
   const linkedToFamilyOrOrg = Boolean(familySelectId.trim() || organizationSelectId.trim());
   const locationFieldLocked = linkedToFamilyOrOrg;
+
+  const inlineLocationStateKey =
+    editorMode === 'create' ? 'contact-new' : `contact:${selectedId ?? 'none'}`;
+
+  const resolvedLocation = useMemo(() => {
+    if (!pendingLocationId) {
+      return null;
+    }
+    return locations.find((l) => l.id === pendingLocationId) ?? null;
+  }, [locations, pendingLocationId]);
+
+  const embeddedLocationSummary = useMemo((): InlineLocationEmbeddedSummary | null => {
+    if (resolvedLocation) {
+      return null;
+    }
+    if (!pendingLocationId) {
+      return null;
+    }
+    if (optimisticLocationSummary && optimisticLocationSummary.id === pendingLocationId) {
+      return optimisticLocationSummary;
+    }
+    const s = selected?.location_summary;
+    if (s && s.id === pendingLocationId) {
+      return {
+        id: s.id,
+        name: s.name ?? null,
+        address: s.address ?? null,
+        areaName: s.area_name,
+        areaId: s.area_id,
+        lat: s.lat ?? null,
+        lng: s.lng ?? null,
+      };
+    }
+    return null;
+  }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
+
+  function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
+    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? 'Unknown area';
+    return {
+      id: loc.id,
+      name: loc.name,
+      address: loc.address,
+      areaName,
+      areaId: loc.areaId,
+      lat: loc.lat,
+      lng: loc.lng,
+    };
+  }
 
   const referralSelectOptions = useMemo(() => {
     const byId = new Map<string, string>();
@@ -245,6 +303,14 @@ export function ContactsPanel({
   }, [referralContactId, source]);
 
   function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
+      const ok = window.confirm(
+        'You saved an address to a new location but have not finished creating this contact yet. Leave anyway? The location row stays in the directory.'
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setEditorMode('create');
     setSelectedId(null);
     setFirstName('');
@@ -261,7 +327,9 @@ export function ContactsPanel({
     setReferralSearchResults([]);
     setReferralPinnedLabel('');
     setDateOfBirth('');
-    setLocationId('');
+    setPendingLocationId(null);
+    setOptimisticLocationSummary(null);
+    clearLocationSaveError();
     setFamilySelectId('');
     setOrganizationSelectId('');
     setTagIds([]);
@@ -271,7 +339,7 @@ export function ContactsPanel({
   async function handleSubmit(): Promise<void> {
     try {
       const dob = dateOfBirth.trim() ? dateOfBirth.trim() : null;
-      const loc = locationId.trim() ? locationId.trim() : null;
+      const loc = pendingLocationId;
       const fam = familySelectId.trim();
       const org = organizationSelectId.trim();
       const family_ids = fam ? [fam] : [];
@@ -388,7 +456,9 @@ export function ContactsPanel({
     setReferralSearchResults([]);
     setReferralPinnedLabel('');
     setDateOfBirth(row.date_of_birth ?? '');
-    setLocationId(row.location_id ?? '');
+    setPendingLocationId(row.location_id ?? null);
+    setOptimisticLocationSummary(null);
+    clearLocationSaveError();
     setFamilySelectId(row.family_ids[0] ?? '');
     setOrganizationSelectId(row.organization_ids[0] ?? '');
     setTagIds([...row.tag_ids]);
@@ -571,46 +641,43 @@ export function ContactsPanel({
               </div>
             </div>
           ) : null}
-          <div>
-            <Label htmlFor='crm-contact-loc'>Location</Label>
-            <Select
-              id='crm-contact-loc'
-              value={locationFieldLocked ? '' : locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-              disabled={locationFieldLocked}
-            >
-              <option value=''>None</option>
-              {!locationFieldLocked
-                ? locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>
-                      {formatCrmVenueLocationLabel({
-                        id: loc.id,
-                        name: loc.name,
-                        address: loc.address,
-                        areaName: areaNameById[loc.areaId] ?? '',
-                      })}
-                    </option>
-                  ))
-                : null}
-            </Select>
-            {locationFieldLocked ? (
-              <p className='mt-1 text-sm text-slate-600'>
-                Location is managed on the linked family or organisation.
-              </p>
-            ) : null}
-            {!locationFieldLocked &&
-            editorMode === 'edit' &&
-            selected?.location_summary != null ? (
-              <p className='mt-1 text-sm text-slate-600'>
-                Current:{' '}
-                {formatCrmVenueLocationLabel({
-                  id: selected.location_summary.id,
-                  name: selected.location_summary.name,
-                  address: selected.location_summary.address,
-                  areaName: selected.location_summary.area_name,
-                })}
-              </p>
-            ) : null}
+          <div className='lg:col-span-2'>
+            <InlineLocationEditor
+              stateKey={inlineLocationStateKey}
+              location={resolvedLocation}
+              embeddedSummary={embeddedLocationSummary}
+              areas={geographicAreas}
+              areasLoading={areasLoading}
+              canModify={!linkedToFamilyOrOrg}
+              readOnlyNote={
+                linkedToFamilyOrOrg
+                  ? 'Location is managed on the linked family or organisation.'
+                  : null
+              }
+              isSaving={isSaving || locationSaveStatus.isSaving}
+              isGeocoding={locationGeocoding}
+              saveError={locationSaveStatus.error}
+              onRequestEdit={() => {}}
+              onCancelEdit={() => {}}
+              onSaveCreate={async (payload) => {
+                const created = await createSharedLocation(payload);
+                if (created) {
+                  setPendingLocationId(created.id);
+                  setOptimisticLocationSummary(summaryFromLocationRow(created));
+                  return created.id;
+                }
+                return null;
+              }}
+              onSaveUpdate={async (id, payload) => {
+                await updateSharedLocation(id, payload);
+              }}
+              onClear={() => {
+                setPendingLocationId(null);
+                setOptimisticLocationSummary(null);
+                clearLocationSaveError();
+              }}
+              onGeocode={geocodeLocation}
+            />
           </div>
           <div>
             <Label htmlFor='crm-contact-family'>Family</Label>
@@ -621,7 +688,8 @@ export function ContactsPanel({
                 const v = e.target.value;
                 setFamilySelectId(v);
                 if (v) {
-                  setLocationId('');
+                  setPendingLocationId(null);
+                  setOptimisticLocationSummary(null);
                 }
               }}
             >
@@ -642,7 +710,8 @@ export function ContactsPanel({
                 const v = e.target.value;
                 setOrganizationSelectId(v);
                 if (v) {
-                  setLocationId('');
+                  setPendingLocationId(null);
+                  setOptimisticLocationSummary(null);
                 }
               }}
             >

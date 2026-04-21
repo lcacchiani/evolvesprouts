@@ -1,10 +1,39 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+
+const { createLocation, geocodeVenueAddress, updateLocationPartial } = vi.hoisted(() => ({
+  createLocation: vi.fn(),
+  geocodeVenueAddress: vi.fn(),
+  updateLocationPartial: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@/lib/services-api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/services-api')>('@/lib/services-api');
+  return {
+    ...actual,
+    createLocation,
+    geocodeVenueAddress,
+    updateLocationPartial,
+  };
+});
 
 import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
 
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+
+const noopRefresh = vi.fn().mockResolvedValue(undefined);
+
+const hkArea = {
+  id: 'area-hk',
+  parentId: null,
+  name: 'Hong Kong',
+  level: 'country' as const,
+  code: 'HK',
+  sovereignCountryId: null,
+  active: true,
+  displayOrder: 0,
+};
 
 function buildFamiliesHook(
   overrides: Partial<ReturnType<typeof useAdminCrmFamilies>> = {}
@@ -41,6 +70,8 @@ describe('FamiliesPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
         contactOptions={[]}
         contactsForMembership={[]}
       />
@@ -68,6 +99,8 @@ describe('FamiliesPanel', () => {
         tags={[]}
         locations={[]}
         geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
         contactOptions={[]}
         contactsForMembership={[]}
       />
@@ -76,5 +109,78 @@ describe('FamiliesPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Load more' }));
 
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it('PATCHes location without name when updating address inline', async () => {
+    const user = userEvent.setup();
+    const updateFamily = vi.fn().mockResolvedValue(null);
+    const families = buildFamiliesHook({
+      updateFamily,
+      families: [
+        {
+          id: 'fam-1',
+          family_name: 'Smith',
+          relationship_type: 'prospect',
+          location_id: 'loc-1',
+          location_summary: {
+            id: 'loc-1',
+            name: 'Venue Name',
+            area_id: 'area-hk',
+            area_name: 'Hong Kong',
+            address: '1 Old',
+            lat: null,
+            lng: null,
+          },
+          tag_ids: [],
+          tags: [],
+          members: [],
+          active: true,
+          created_at: '2020-01-01T00:00:00.000Z',
+          updated_at: '2020-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    render(
+      <FamiliesPanel
+        families={families}
+        tags={[]}
+        locations={[
+          {
+            id: 'loc-1',
+            name: 'Venue Name',
+            areaId: 'area-hk',
+            address: '1 Old',
+            lat: null,
+            lng: null,
+            createdAt: null,
+            updatedAt: null,
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
+          },
+        ]}
+        geographicAreas={[hkArea]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    await user.click(screen.getByText('Smith'));
+    await user.click(screen.getByRole('button', { name: 'Change' }));
+    await user.clear(screen.getByLabelText('Address'));
+    await user.type(screen.getByLabelText('Address'), '2 New St');
+    await user.click(screen.getByRole('button', { name: 'Update location' }));
+
+    await waitFor(() => {
+      expect(updateLocationPartial).toHaveBeenCalledWith('loc-1', {
+        area_id: 'area-hk',
+        address: '2 New St',
+        lat: null,
+        lng: null,
+      });
+    });
+    expect(updateLocationPartial.mock.calls[0][1]).not.toHaveProperty('name');
   });
 });
