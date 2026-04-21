@@ -75,9 +75,10 @@ their primary responsibilities.
   and `GET /v1/assets/free`,
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
-  `service_key` is resolved case-insensitively against `services.slug` in Aurora;
-  codes with `discount_type` `referral` are rejected with the same 404 envelope as
-  unknown/inactive codes; on each 404 the Lambda logs a structured
+  `service_key` is resolved case-insensitively against `services.slug` in Aurora when
+  the code is service-scoped; unscoped and instance-scoped codes do not fail on an
+  unknown slug; codes with `discount_type` `referral` are rejected with the same 404
+  envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
   `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,

@@ -757,6 +757,27 @@ def test_public_discount_validate_unscoped_code_ignores_service_key(
     assert response["statusCode"] == 200
 
 
+def test_public_discount_validate_unscoped_code_succeeds_when_service_key_unknown(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    """Unscoped codes must not fail because the page sent a non-matching slug."""
+    row = _usable_row(code="ANY")
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "ANY", "service_key": "not-a-real-slug"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
 def test_public_discount_validate_service_scoped_match(
     monkeypatch: Any,
     api_gateway_event: Any,
@@ -861,6 +882,35 @@ def test_public_discount_validate_instance_scoped_match_returns_200(
             {
                 "code": "INST",
                 "service_key": "my-best-auntie",
+                "service_instance_id": str(inst),
+            }
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_instance_scoped_unknown_service_key_ignored(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    """Instance-scoped validation uses `service_instance_id`; slug is not required."""
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps(
+            {
+                "code": "INST",
+                "service_key": "not-a-real-slug",
                 "service_instance_id": str(inst),
             }
         ),
