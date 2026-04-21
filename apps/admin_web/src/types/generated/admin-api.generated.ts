@@ -2772,7 +2772,36 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete CRM family
+         * @description Permanently removes the family row. Sales leads linked to the family (and their
+         *     lead notes) are deleted first; standalone notes and enrollments that reference the
+         *     family are cleared. Returns `400` if the database still blocks deletion.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Family deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         /** Update CRM family */
@@ -3061,7 +3090,37 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete CRM organization
+         * @description Permanently removes a non-vendor organisation row. Vendor organisations must be
+         *     managed under Finance. Sales leads linked to the organisation (and their lead notes)
+         *     are deleted first; standalone notes and enrollments that reference the organisation
+         *     are cleared. Returns `400` if the database still blocks deletion.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         /** Update CRM organization */

@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import {
   addAdminOrganizationMember,
   createAdminOrganization,
+  deleteAdminOrganization,
   listAdminOrganizations,
   removeAdminOrganizationMember,
   updateAdminOrganization,
@@ -77,6 +78,12 @@ export function useAdminCrmOrganizations() {
     [mutate]
   );
 
+  const deleteOrganization = useCallback(
+    async (organizationId: string) =>
+      mutate(async () => deleteAdminOrganization(organizationId)),
+    [mutate]
+  );
+
   return {
     organizations: list.items,
     filters: list.filters,
@@ -92,6 +99,7 @@ export function useAdminCrmOrganizations() {
     updateOrganization,
     addMember,
     removeMember,
+    deleteOrganization,
     refetch: list.refetch,
     crmRelationshipOptions: CRM_ENTITY_RELATIONSHIP_TYPES.filter((v) => v !== 'vendor'),
   };

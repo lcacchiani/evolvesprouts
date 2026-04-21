@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.admin_crm_entity_deletes import delete_admin_crm_organization
 from app.api.admin_crm_helpers import (
     assert_contact_can_join_organization,
     crm_request_id,
@@ -85,6 +86,12 @@ def handle_admin_organizations_crm_request(
         if method == "PATCH":
             return _update_organization(
                 event, organization_id=organization_id, actor_sub=identity.user_sub
+            )
+        if method == "DELETE":
+            return delete_admin_crm_organization(
+                event,
+                organization_id=organization_id,
+                actor_sub=identity.user_sub,
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 

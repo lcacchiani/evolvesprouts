@@ -53,6 +53,7 @@ function buildFamiliesHook(
     updateFamily: vi.fn().mockResolvedValue(null),
     addMember: vi.fn().mockResolvedValue(null),
     removeMember: vi.fn().mockResolvedValue(null),
+    deleteFamily: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     ...overrides,
   };
@@ -182,5 +183,48 @@ describe('FamiliesPanel', () => {
       });
     });
     expect(updateLocationPartial.mock.calls[0][1]).not.toHaveProperty('name');
+  });
+
+  it('deletes a family after confirmation', async () => {
+    const user = userEvent.setup();
+    const deleteFamily = vi.fn().mockResolvedValue(undefined);
+    const families = buildFamiliesHook({
+      deleteFamily,
+      families: [
+        {
+          id: 'fam-del',
+          family_name: 'Delete Me',
+          relationship_type: 'prospect',
+          location_id: null,
+          location_summary: null,
+          tag_ids: [],
+          tags: [],
+          members: [],
+          active: true,
+          created_at: '2020-01-01T00:00:00.000Z',
+          updated_at: '2020-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    render(
+      <FamiliesPanel
+        families={families}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete family' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(deleteFamily).toHaveBeenCalledWith('fam-del');
+    });
   });
 });
