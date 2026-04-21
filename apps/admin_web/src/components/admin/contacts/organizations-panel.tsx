@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -91,8 +93,12 @@ export function OrganizationsPanel({
     updateOrganization,
     addMember,
     removeMember,
+    deleteOrganization,
     crmRelationshipOptions,
   } = organizations;
+
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [deleteActionError, setDeleteActionError] = useState('');
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -264,6 +270,34 @@ export function OrganizationsPanel({
     }
   }
 
+  async function handleDeleteOrganization(
+    row: ApiSchemas['AdminOrganization'],
+    clickEvent: MouseEvent<HTMLButtonElement>
+  ): Promise<void> {
+    clickEvent.stopPropagation();
+    const confirmed = await requestConfirm({
+      title: 'Delete organisation',
+      description: `Permanently delete "${row.name}"? This removes the organisation from the database and cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    setDeleteActionError('');
+    try {
+      await deleteOrganization(row.id);
+      if (selectedId === row.id) {
+        resetCreateForm();
+      }
+    } catch (err) {
+      setDeleteActionError(
+        err instanceof Error ? err.message : 'Failed to delete organisation'
+      );
+    }
+  }
+
   function selectRow(id: string) {
     const row = rows.find((o) => o.id === id);
     if (!row) {
@@ -285,6 +319,7 @@ export function OrganizationsPanel({
 
   return (
     <div className='space-y-6'>
+      <ConfirmDialog {...confirmDialogProps} />
       <AdminEditorCard
         title='Organisation'
         description='Non-vendor organisations only. Vendors are managed under Finance.'
@@ -521,7 +556,7 @@ export function OrganizationsPanel({
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
-        error={error}
+        error={error || deleteActionError}
         loadingLabel='Loading organisations...'
         onLoadMore={loadMore}
         toolbar={
@@ -531,7 +566,10 @@ export function OrganizationsPanel({
               <Input
                 id='crm-orgs-search'
                 value={filters.query}
-                onChange={(e) => setFilter('query', e.target.value)}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('query', e.target.value);
+                }}
                 placeholder='Organisation name'
               />
             </div>
@@ -540,7 +578,10 @@ export function OrganizationsPanel({
               <Select
                 id='crm-orgs-active'
                 value={filters.active}
-                onChange={(e) => setFilter('active', e.target.value as CrmListFilters['active'])}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('active', e.target.value as CrmListFilters['active']);
+                }}
               >
                 <option value=''>All</option>
                 <option value='true'>Active</option>
@@ -550,13 +591,14 @@ export function OrganizationsPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[720px]'>
+        <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Members</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -572,6 +614,24 @@ export function OrganizationsPanel({
                 <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
                 <td className='px-4 py-3'>{row.members.length}</td>
                 <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
+                <td className='px-4 py-3 text-right'>
+                  <div className='flex flex-wrap justify-end gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      className='h-8 min-w-8 px-0'
+                      onClick={(e) => {
+                        void handleDeleteOrganization(row, e);
+                      }}
+                      disabled={isSaving}
+                      aria-label='Delete organisation'
+                      title='Delete organisation'
+                    >
+                      <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                    </Button>
+                  </div>
+                </td>
               </tr>
             ))}
           </AdminDataTableBody>

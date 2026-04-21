@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -81,7 +83,11 @@ export function FamiliesPanel({
     updateFamily,
     addMember,
     removeMember,
+    deleteFamily,
   } = families;
+
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [deleteActionError, setDeleteActionError] = useState('');
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -242,6 +248,32 @@ export function FamiliesPanel({
     }
   }
 
+  async function handleDeleteFamily(
+    row: ApiSchemas['AdminFamily'],
+    clickEvent: MouseEvent<HTMLButtonElement>
+  ): Promise<void> {
+    clickEvent.stopPropagation();
+    const confirmed = await requestConfirm({
+      title: 'Delete family',
+      description: `Permanently delete "${row.family_name}"? This removes the family from the database and cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    setDeleteActionError('');
+    try {
+      await deleteFamily(row.id);
+      if (selectedId === row.id) {
+        resetCreateForm();
+      }
+    } catch (err) {
+      setDeleteActionError(err instanceof Error ? err.message : 'Failed to delete family');
+    }
+  }
+
   function selectRow(id: string) {
     const row = rows.find((f) => f.id === id);
     if (!row) {
@@ -260,6 +292,7 @@ export function FamiliesPanel({
 
   return (
     <div className='space-y-6'>
+      <ConfirmDialog {...confirmDialogProps} />
       <AdminEditorCard
         title='Family'
         description='Create a family or select one below. Add members by linking an existing contact.'
@@ -463,7 +496,7 @@ export function FamiliesPanel({
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
-        error={error}
+        error={error || deleteActionError}
         loadingLabel='Loading families...'
         onLoadMore={loadMore}
         toolbar={
@@ -473,7 +506,10 @@ export function FamiliesPanel({
               <Input
                 id='crm-families-search'
                 value={filters.query}
-                onChange={(e) => setFilter('query', e.target.value)}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('query', e.target.value);
+                }}
                 placeholder='Family name'
               />
             </div>
@@ -482,7 +518,10 @@ export function FamiliesPanel({
               <Select
                 id='crm-families-active'
                 value={filters.active}
-                onChange={(e) => setFilter('active', e.target.value as CrmListFilters['active'])}
+                onChange={(e) => {
+                  setDeleteActionError('');
+                  setFilter('active', e.target.value as CrmListFilters['active']);
+                }}
               >
                 <option value=''>All</option>
                 <option value='true'>Active</option>
@@ -492,12 +531,13 @@ export function FamiliesPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[640px]'>
+        <AdminDataTable tableClassName='min-w-[720px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Members</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -512,6 +552,24 @@ export function FamiliesPanel({
                 <td className='px-4 py-3'>{row.family_name}</td>
                 <td className='px-4 py-3'>{row.members.length}</td>
                 <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
+                <td className='px-4 py-3 text-right'>
+                  <div className='flex flex-wrap justify-end gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      className='h-8 min-w-8 px-0'
+                      onClick={(e) => {
+                        void handleDeleteFamily(row, e);
+                      }}
+                      disabled={isSaving}
+                      aria-label='Delete family'
+                      title='Delete family'
+                    >
+                      <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                    </Button>
+                  </div>
+                </td>
               </tr>
             ))}
           </AdminDataTableBody>

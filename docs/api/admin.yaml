@@ -32,12 +32,12 @@ info:
     - `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
     - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
-    - `GET|PATCH /v1/admin/families/{id}`
+    - `GET|PATCH|DELETE /v1/admin/families/{id}`
     - `POST /v1/admin/families/{id}/members`
     - `DELETE /v1/admin/families/{id}/members/{memberId}`
     - `GET /v1/admin/organizations/picker`
     - `GET|POST /v1/admin/organizations`
-    - `GET|PATCH /v1/admin/organizations/{id}`
+    - `GET|PATCH|DELETE /v1/admin/organizations/{id}`
     - `POST /v1/admin/organizations/{id}/members`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/vendors`
@@ -1965,6 +1965,23 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete CRM family
+      description: |
+        Permanently removes the family row. Sales leads linked to the family (and their
+        lead notes) are deleted first; standalone notes and enrollments that reference the
+        family are cleared. Returns `400` if the database still blocks deletion.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Family deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /v1/admin/families/{id}/members:
     parameters:
@@ -2137,6 +2154,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete CRM organization
+      description: |
+        Permanently removes a non-vendor organisation row. Vendor organisations must be
+        managed under Finance. Sales leads linked to the organisation (and their lead notes)
+        are deleted first; standalone notes and enrollments that reference the organisation
+        are cleared. Returns `400` if the database still blocks deletion.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Organization deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
