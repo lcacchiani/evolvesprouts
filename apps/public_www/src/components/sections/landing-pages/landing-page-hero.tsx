@@ -55,6 +55,7 @@ const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = 
   'evolvesprouts': ['/images/evolvesprouts-logo.svg'],
   'baumhaus': ['/images/partners/baumhaus.webp'],
   'happy-baton': ['/images/partners/happy-baton.webp'],
+  'little-hk': ['/images/partners/little-hk.webp'],
 };
 function buildPartnerLogoSources(partner: string): string[] {
   const normalizedPartner = partner.trim().toLowerCase();

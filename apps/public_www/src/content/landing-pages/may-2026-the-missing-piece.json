@@ -11,9 +11,9 @@
     "hero": {
       "subtitle": "",
       "description": "One hour. The right toys, a calmer home, and a helper who knows what to do. Bring your child, your helper, and — if you like — a photo of your toy shelf or play corner.",
-      "imageAlt": "Parent and young child playing together",
-      "imageSrc": "/images/parent-child.svg",
-      "imageMaxWidthPercent": 85
+      "imageAlt": "Child busy playing with a Montessori-style toy",
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 90
     },
     "outline": {
       "eyebrow": "Why this matters",
@@ -116,8 +116,8 @@
     "hero": {
       "subtitle": "",
       "description": "一小时，选对玩具、让家更平静，也让姐姐知道该怎么做。欢迎带孩子与姐姐同行，也可带上玩具架或游戏角的照片。",
-      "imageAlt": "家长与幼儿一起玩耍",
-      "imageSrc": "/images/parent-child.svg",
+      "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
+      "imageSrc": "/images/hero/child-landing-hero.webp",
       "imageMaxWidthPercent": 65
     },
     "outline": {
@@ -221,8 +221,8 @@
     "hero": {
       "subtitle": "",
       "description": "一小時，揀啱玩具、令屋企更平靜，等姐姐都知道點做。歡迎帶埋小朋友同姐姐，亦可以帶玩具架或遊戲角嘅相。",
-      "imageAlt": "家長與幼兒一齊玩",
-      "imageSrc": "/images/parent-child.svg",
+      "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
+      "imageSrc": "/images/hero/child-landing-hero.webp",
       "imageMaxWidthPercent": 65
     },
     "outline": {

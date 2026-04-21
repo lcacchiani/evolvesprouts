@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import missingPieceContent from '@/content/landing-pages/may-2026-the-missing-piece.json';
 import type { EventBookingModalPayload } from '@/lib/events-data';
 
 vi.mock('next/image', () => ({
@@ -178,5 +179,63 @@ describe('LandingPageHero section', () => {
     );
 
     expect(document.querySelector('.es-type-subtitle-lg')).toBeNull();
+  });
+
+  it('renders Evolve Sprouts and little-hk partner logos for the Missing Piece landing page', () => {
+    const eventContent = {
+      title: 'The Missing Piece',
+      startDateTime: '2026-05-16T01:00:00Z',
+      endDateTime: '2026-05-16T02:00:00Z',
+      locationLabel: 'Wong Chuk Hang',
+      partners: ['little-hk'],
+      categoryChips: ['Workshop'],
+    };
+    const bookingPayload: EventBookingModalPayload = {
+      variant: 'event',
+      bookingSystem: 'event-booking',
+      serviceKey: 'the-missing-piece-test',
+      title: eventContent.title,
+      subtitle: 'Workshop',
+      originalAmount: 150,
+      locationName: 'Acorn Playhouse',
+      locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',
+      directionHref:
+        'https://www.google.com/maps/dir/?api=1&destination=3%2FF%2C+4+Yip+Fat+St%2C+Wong+Chuk+Hang',
+      dateParts: [
+        {
+          id: 'session-1',
+          startDateTime: eventContent.startDateTime,
+          endDateTime: eventContent.endDateTime,
+          description: 'Workshop',
+        },
+      ],
+      selectedDateLabel: '16 May 2026',
+      selectedDateStartTime: eventContent.startDateTime,
+    };
+
+    render(
+      <LandingPageHero
+        slug='may-2026-the-missing-piece'
+        content={missingPieceContent.en.hero}
+        ctaContent={missingPieceContent.en.cta}
+        ctaPriceLabel='HK$150'
+        commonContent={enContent.landingPages.common}
+        locale='en'
+        title={eventContent.title}
+        eventContent={eventContent}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    const partnerContainer = screen.getByTestId('landing-page-hero-partners');
+    const partnerLogos = partnerContainer.querySelectorAll('[data-testid^="landing-page-partner-logo-"]');
+    expect(partnerLogos).toHaveLength(2);
+    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-little-hk')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-little-hk')).toHaveClass('h-8');
+    const heroImage = screen.getByRole('img', { name: missingPieceContent.en.hero.imageAlt });
+    expect(heroImage).toHaveAttribute('src', missingPieceContent.en.hero.imageSrc);
   });
 });
