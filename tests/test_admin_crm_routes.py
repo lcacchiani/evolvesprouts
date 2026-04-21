@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
-from app.api import admin_contacts, admin_families, admin_organizations_crm
+from app.api import admin_contacts, admin_families, admin_organizations
 
 
 def test_handle_admin_contacts_tags_get(
@@ -299,7 +299,7 @@ def test_handle_admin_families_member_delete(
     assert response is marker
 
 
-def test_handle_admin_organizations_crm_delete(
+def test_handle_admin_organizations_delete(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
@@ -317,15 +317,15 @@ def test_handle_admin_organizations_crm_delete(
         return marker
 
     monkeypatch.setattr(
-        admin_organizations_crm, "delete_admin_crm_organization", _fake_delete
+        admin_organizations, "delete_admin_crm_organization", _fake_delete
     )
     monkeypatch.setattr(
-        admin_organizations_crm,
+        admin_organizations,
         "extract_identity",
         lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
     )
 
-    response = admin_organizations_crm.handle_admin_organizations_crm_request(
+    response = admin_organizations.handle_admin_organizations_request(
         api_gateway_event(
             method="DELETE", path=f"/v1/admin/organizations/{expected_org_id}"
         ),
@@ -336,19 +336,19 @@ def test_handle_admin_organizations_crm_delete(
     assert response is marker
 
 
-def test_handle_admin_organizations_crm_list_get(
+def test_handle_admin_organizations_list_get(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
     marker = {"statusCode": 200, "body": "{}"}
-    monkeypatch.setattr(admin_organizations_crm, "_list_organizations", lambda _: marker)
+    monkeypatch.setattr(admin_organizations, "_list_organizations", lambda _: marker)
     monkeypatch.setattr(
-        admin_organizations_crm,
+        admin_organizations,
         "extract_identity",
         lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
     )
 
-    response = admin_organizations_crm.handle_admin_organizations_crm_request(
+    response = admin_organizations.handle_admin_organizations_request(
         api_gateway_event(method="GET", path="/v1/admin/organizations"),
         "GET",
         "/v1/admin/organizations",

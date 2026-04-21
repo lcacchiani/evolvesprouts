@@ -28,8 +28,8 @@ interface VendorsPanelProps {
   error: string;
   onFilterChange: <TKey extends keyof VendorFilters>(key: TKey, value: VendorFilters[TKey]) => void;
   onLoadMore: () => Promise<void> | void;
-  onCreate: (payload: ApiSchemas['CreateVendorRequest']) => Promise<unknown> | void;
-  onUpdate: (vendorId: string, payload: ApiSchemas['UpdateVendorRequest']) => Promise<unknown> | void;
+  onCreate: (payload: ApiSchemas['CreateAdminOrganizationRequest']) => Promise<unknown> | void;
+  onUpdate: (vendorId: string, payload: ApiSchemas['UpdateAdminOrganizationRequest']) => Promise<unknown> | void;
   vendorSpendByVendorId: Map<string, number>;
   isVendorSpendLoading: boolean;
   vendorSpendError?: string;
@@ -77,6 +77,8 @@ export function VendorsPanel({
       if (editorMode === 'create') {
         await onCreate({
           name: name.trim(),
+          organization_type: 'other',
+          relationship_type: 'vendor',
           website: website.trim() || null,
           active,
         });

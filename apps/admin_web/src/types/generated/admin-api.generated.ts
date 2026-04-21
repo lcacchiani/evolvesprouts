@@ -2988,13 +2988,20 @@ export interface paths {
         };
         /**
          * List CRM organizations
-         * @description Lists organizations excluding vendors (vendors are under Finance).
+         * @description Lists organizations for CRM and Finance. When `relationship_type` is omitted,
+         *     vendor rows are excluded (Contacts → Organizations default). Pass
+         *     `relationship_type=vendor` for the Finance vendors list only.
+         *     List responses may omit related loads for performance when listing vendors
+         *     (`include_relationships=false` server-side); use `GET /v1/admin/organizations/{id}`
+         *     for full tags, members, and location summary.
          */
         get: {
             parameters: {
                 query?: {
                     query?: string;
                     active?: boolean;
+                    /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list (CRM default). */
+                    relationship_type?: components["schemas"]["CrmRelationshipType"];
                     cursor?: string;
                     limit?: number;
                 };
@@ -3252,150 +3259,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/vendors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List vendors */
-        get: {
-            parameters: {
-                query?: {
-                    query?: string;
-                    active?: boolean;
-                    cursor?: string;
-                    limit?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Vendor list response. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["VendorListResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        put?: never;
-        /** Create vendor */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateVendorRequest"];
-                };
-            };
-            responses: {
-                /** @description Vendor created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["VendorResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/vendors/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Vendor identifier. */
-                id: components["parameters"]["VendorId"];
-            };
-            cookie?: never;
-        };
-        /** Get vendor */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Vendor identifier. */
-                    id: components["parameters"]["VendorId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Vendor response. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["VendorResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update vendor */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Vendor identifier. */
-                    id: components["parameters"]["VendorId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateVendorRequest"];
-                };
-            };
-            responses: {
-                /** @description Vendor response. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["VendorResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
         trace?: never;
     };
     "/v1/admin/expenses": {
@@ -4444,37 +4307,6 @@ export interface components {
             max_uses?: number | null;
             active?: boolean;
         };
-        Vendor: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            website?: string | null;
-            active: boolean;
-            /** Format: date-time */
-            archived_at?: string | null;
-            /** Format: date-time */
-            created_at?: string | null;
-            /** Format: date-time */
-            updated_at?: string | null;
-        };
-        VendorResponse: {
-            vendor: components["schemas"]["Vendor"];
-        };
-        VendorListResponse: {
-            items: components["schemas"]["Vendor"][];
-            next_cursor?: string | null;
-            total_count: number;
-        };
-        CreateVendorRequest: {
-            name: string;
-            website?: string | null;
-            active?: boolean | null;
-        };
-        UpdateVendorRequest: {
-            name?: string;
-            website?: string | null;
-            active?: boolean;
-        };
         AdminUser: {
             sub: string;
             email?: string | null;
@@ -5007,6 +4839,8 @@ export interface components {
             /** Format: uuid */
             location_id?: string | null;
             tag_ids?: string[];
+            /** @description When false, the organization is created archived (`archived_at` set). Omit for default active (not archived). */
+            active?: boolean;
         };
         UpdateAdminOrganizationRequest: {
             name?: string;
@@ -5087,8 +4921,6 @@ export interface components {
         EnrollmentId: string;
         /** @description Discount code identifier. */
         DiscountCodeId: string;
-        /** @description Vendor identifier. */
-        VendorId: string;
         /** @description CRM contact identifier. */
         AdminContactId: string;
         /** @description CRM note identifier. */

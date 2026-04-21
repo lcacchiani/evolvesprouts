@@ -49,6 +49,8 @@ describe('useVendors', () => {
     await act(async () => {
       await result.current.createVendor({
         name: 'Acme Vendor',
+        organization_type: 'other',
+        relationship_type: 'vendor',
         website: null,
         active: true,
       });
@@ -56,6 +58,8 @@ describe('useVendors', () => {
 
     expect(mockCreateAdminVendor).toHaveBeenCalledWith({
       name: 'Acme Vendor',
+      organization_type: 'other',
+      relationship_type: 'vendor',
       website: null,
       active: true,
     });

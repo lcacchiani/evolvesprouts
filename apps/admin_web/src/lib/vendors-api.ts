@@ -6,12 +6,12 @@ import type { Vendor, VendorFilters } from '@/types/vendors';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
-type ApiVendorListResponse = ApiSchemas['VendorListResponse'];
-type ApiVendorResponse = ApiSchemas['VendorResponse'];
-type ApiCreateVendorRequest = ApiSchemas['CreateVendorRequest'];
-type ApiUpdateVendorRequest = ApiSchemas['UpdateVendorRequest'];
+type ApiOrganizationListResponse = ApiSchemas['AdminOrganizationListResponse'];
+type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
+type ApiCreateOrganizationRequest = ApiSchemas['CreateAdminOrganizationRequest'];
+type ApiUpdateOrganizationRequest = ApiSchemas['UpdateAdminOrganizationRequest'];
 
-function parseVendor(value: unknown): Vendor {
+function parseVendorFromOrganization(value: unknown): Vendor {
   const item = isRecord(value) ? value : {};
   return {
     id: asNullableString(item.id) ?? '',
@@ -29,6 +29,7 @@ export async function listAdminVendors(
   signal?: AbortSignal
 ): Promise<{ items: Vendor[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
+  query.set('relationship_type', 'vendor');
   if (params.cursor) {
     query.set('cursor', params.cursor);
   }
@@ -42,39 +43,41 @@ export async function listAdminVendors(
     query.set('active', params.active);
   }
   const queryString = query.toString();
-  const payload = await adminApiRequest<ApiVendorListResponse>({
-    endpointPath: `/v1/admin/vendors${queryString ? `?${queryString}` : ''}`,
+  const payload = await adminApiRequest<ApiOrganizationListResponse>({
+    endpointPath: `/v1/admin/organizations${queryString ? `?${queryString}` : ''}`,
     method: 'GET',
     signal,
   });
   const root = unwrapPayload(payload);
   return {
-    items: Array.isArray(root.items) ? root.items.map((entry) => parseVendor(entry)) : [],
+    items: Array.isArray(root.items)
+      ? root.items.map((entry) => parseVendorFromOrganization(entry))
+      : [],
     nextCursor: asNullableString(root.next_cursor),
     totalCount: asNumber(root.total_count, 0),
   };
 }
 
-export async function createAdminVendor(body: ApiCreateVendorRequest): Promise<Vendor | null> {
-  const payload = await adminApiRequest<ApiVendorResponse>({
-    endpointPath: '/v1/admin/vendors',
+export async function createAdminVendor(body: ApiCreateOrganizationRequest): Promise<Vendor | null> {
+  const payload = await adminApiRequest<ApiOrganizationResponse>({
+    endpointPath: '/v1/admin/organizations',
     method: 'POST',
     body,
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.vendor ? parseVendor(root.vendor) : null;
+  return root.organization ? parseVendorFromOrganization(root.organization) : null;
 }
 
 export async function updateAdminVendor(
   vendorId: string,
-  body: ApiUpdateVendorRequest
+  body: ApiUpdateOrganizationRequest
 ): Promise<Vendor | null> {
-  const payload = await adminApiRequest<ApiVendorResponse>({
-    endpointPath: `/v1/admin/vendors/${vendorId}`,
+  const payload = await adminApiRequest<ApiOrganizationResponse>({
+    endpointPath: `/v1/admin/organizations/${vendorId}`,
     method: 'PATCH',
     body,
   });
   const root = unwrapPayload(payload);
-  return root.vendor ? parseVendor(root.vendor) : null;
+  return root.organization ? parseVendorFromOrganization(root.organization) : null;
 }

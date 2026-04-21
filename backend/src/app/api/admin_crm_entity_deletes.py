@@ -103,7 +103,7 @@ def delete_admin_crm_organization(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_crm_organization_by_id(organization_id)
+        org = repository.get_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         if org.relationship_type == RelationshipType.VENDOR:

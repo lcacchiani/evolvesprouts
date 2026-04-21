@@ -59,8 +59,9 @@ their primary responsibilities.
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*` (including `DELETE /v1/admin/families/{id}`
   for hard-deleting a family after clearing blocking CRM rows),
-  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations excluding
-  vendors; vendors remain under `/v1/admin/vendors`; includes `DELETE /v1/admin/organizations/{id}`
+  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations and vendor
+  rows share one resource; default list excludes vendors, Finance lists vendors with
+  `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
   for non-vendor orgs),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
@@ -71,7 +72,6 @@ their primary responsibilities.
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
-  `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,

@@ -138,6 +138,8 @@ describe('VendorsPanel', () => {
 
     expect(onCreate).toHaveBeenCalledWith({
       name: 'Acme Vendor',
+      organization_type: 'other',
+      relationship_type: 'vendor',
       website: 'https://vendor.example.com',
       active: true,
     });

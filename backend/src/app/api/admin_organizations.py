@@ -1,10 +1,10 @@
-"""Admin CRM organizations API (non-vendor)."""
+"""Admin organizations API (CRM and vendor rows)."""
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
-from collections.abc import Mapping
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -54,14 +54,14 @@ _DEFAULT_LIMIT = 25
 logger = get_logger(__name__)
 
 
-def handle_admin_organizations_crm_request(
+def handle_admin_organizations_request(
     event: Mapping[str, Any],
     method: str,
     path: str,
 ) -> dict[str, Any]:
-    """Handle /v1/admin/organizations routes for CRM (excludes vendors)."""
+    """Handle /v1/admin/organizations routes."""
     logger.info(
-        "Handling admin CRM organizations route",
+        "Handling admin organizations route",
         extra={"method": method, "path": path},
     )
     parts = split_route_parts(path)
@@ -158,6 +158,25 @@ def _apply_organization_slug_from_body(
     org.slug = slug
 
 
+def _parse_relationship_type_filter(
+    raw: str | None,
+) -> Sequence[RelationshipType] | None:
+    """Parse optional relationship_type query.
+
+    When absent, the repository applies the CRM default (all types except ``vendor``).
+    When set, filters to that single relationship type (including ``vendor`` for Finance).
+    """
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        return (RelationshipType(raw.strip().lower()),)
+    except ValueError as exc:
+        raise ValidationError(
+            "relationship_type must be a valid relationship type",
+            field="relationship_type",
+        ) from exc
+
+
 def _is_organizations_partner_slug_unique_violation(exc: IntegrityError) -> bool:
     constraint = getattr(getattr(exc, "orig", None), "diag", None)
     constraint_name = (
@@ -179,21 +198,35 @@ def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
         required=False,
     )
     active = parse_active_filter(query_param(event, "active"))
+    relationship_types = _parse_relationship_type_filter(
+        query_param(event, "relationship_type")
+    )
+    include_relationships = not (
+        relationship_types is not None
+        and len(relationship_types) == 1
+        and relationship_types[0] == RelationshipType.VENDOR
+    )
 
     with Session(get_engine()) as session:
         repository = OrganizationRepository(session)
-        rows = repository.list_crm_organizations(
+        rows = repository.list_organizations(
             limit=limit + 1,
             cursor=cursor,
             query=query,
             active=active,
+            relationship_types=relationship_types,
+            include_relationships=include_relationships,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
         next_cursor = (
             encode_cursor(page_rows[-1].id) if has_more and page_rows else None
         )
-        total_count = repository.count_crm_organizations(query=query, active=active)
+        total_count = repository.count_organizations(
+            query=query,
+            active=active,
+            relationship_types=relationship_types,
+        )
         return json_response(
             200,
             {
@@ -222,6 +255,7 @@ def _get_organization(
 
 def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     body = parse_body(event)
+    now = datetime.now(UTC)
     name = validate_string_length(
         body.get("name"),
         "name",
@@ -232,7 +266,7 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
         body.get("organization_type"), field="organization_type"
     )
     relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
+        body.get("relationship_type"), field="relationship_type"
     )
     website = validate_string_length(
         body.get("website"),
@@ -254,6 +288,11 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
             website=website,
             location_id=location_id,
         )
+        if "active" in body:
+            active = parse_optional_bool_body(body.get("active"), field="active")
+            if active is None:
+                raise ValidationError("active is required", field="active")
+            org.archived_at = None if active else now
         _apply_organization_slug_from_body(
             org, body, relationship_type=relationship_type
         )
@@ -273,7 +312,12 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
                     status_code=409,
                 ) from exc
             raise
-        loaded = repository.get_crm_organization_by_id(created.id)
+        loader = (
+            repository.get_organization_by_id
+            if relationship_type == RelationshipType.VENDOR
+            else repository.get_crm_organization_by_id
+        )
+        loaded = loader(created.id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after create")
         return json_response(
@@ -316,7 +360,6 @@ def _update_organization(
             org.relationship_type = parse_crm_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
-                forbid_vendor=True,
             )
             if org.relationship_type != RelationshipType.PARTNER:
                 org.slug = None
@@ -354,7 +397,12 @@ def _update_organization(
                     status_code=409,
                 ) from exc
             raise
-        loaded = repository.get_crm_organization_by_id(organization_id)
+        loader = (
+            repository.get_organization_by_id
+            if org.relationship_type == RelationshipType.VENDOR
+            else repository.get_crm_organization_by_id
+        )
+        loaded = loader(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after update")
         return json_response(
