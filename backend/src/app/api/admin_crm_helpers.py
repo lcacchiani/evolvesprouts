@@ -21,6 +21,7 @@ from app.db.models import (
     RelationshipType,
     Tag,
 )
+from app.db.models.enums import ContactType
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -49,6 +50,19 @@ def parse_active_filter(raw: str | None) -> bool | None:
     if normalized in {"false", "0"}:
         return False
     raise ValidationError("active must be true or false", field="active")
+
+
+def parse_contact_type_filter(raw: str | None) -> ContactType | None:
+    """Parse optional CRM contact_type query value; empty means no filter."""
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip().lower()
+    for member in ContactType:
+        if member.value == normalized:
+            return member
+    raise ValidationError(
+        "contact_type must be a valid contact type", field="contact_type"
+    )
 
 
 def parse_optional_bool_body(value: Any, *, field: str) -> bool | None:

@@ -130,6 +130,7 @@ export async function listAdminContacts(
   if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
   if (params.query?.trim()) query.set('query', params.query.trim());
   if (params.active) query.set('active', params.active);
+  if (params.contact_type) query.set('contact_type', params.contact_type);
   const qs = query.toString();
   const payload = await adminApiRequest<ApiContactList>({
     endpointPath: `/v1/admin/contacts${qs ? `?${qs}` : ''}`,

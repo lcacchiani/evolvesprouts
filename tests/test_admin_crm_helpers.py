@@ -4,8 +4,13 @@ from typing import Any
 
 import pytest
 
-from app.api.admin_crm_helpers import crm_request_id, parse_crm_relationship_type
+from app.api.admin_crm_helpers import (
+    crm_request_id,
+    parse_contact_type_filter,
+    parse_crm_relationship_type,
+)
 from app.db.models import RelationshipType
+from app.db.models.enums import ContactType
 from app.exceptions import ValidationError
 
 
@@ -35,3 +40,19 @@ def test_parse_crm_relationship_type_allows_non_vendor() -> None:
         parse_crm_relationship_type("client", field="relationship_type", forbid_vendor=True)
         == RelationshipType.CLIENT
     )
+
+
+def test_parse_contact_type_filter_empty_means_no_filter() -> None:
+    assert parse_contact_type_filter(None) is None
+    assert parse_contact_type_filter("") is None
+    assert parse_contact_type_filter("  ") is None
+
+
+def test_parse_contact_type_filter_accepts_known_values() -> None:
+    assert parse_contact_type_filter("parent") == ContactType.PARENT
+    assert parse_contact_type_filter("CHILD") == ContactType.CHILD
+
+
+def test_parse_contact_type_filter_rejects_unknown() -> None:
+    with pytest.raises(ValidationError, match="contact_type"):
+        parse_contact_type_filter("not_a_type")

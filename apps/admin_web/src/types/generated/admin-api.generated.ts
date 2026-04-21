@@ -2296,6 +2296,8 @@ export interface paths {
                     /** @description Search first name, last name, email, phone, or Instagram handle. */
                     query?: string;
                     active?: boolean;
+                    /** @description When set, only contacts with this contact type are returned. */
+                    contact_type?: components["schemas"]["CrmContactType"];
                     cursor?: string;
                     limit?: number;
                 };

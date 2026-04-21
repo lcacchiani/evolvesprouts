@@ -22,6 +22,7 @@ from app.api.admin_contacts_mutations import (
 from app.api.admin_crm_helpers import (
     list_all_tags_for_picker,
     parse_active_filter,
+    parse_contact_type_filter,
     parse_crm_limit,
     serialize_tag_ref,
 )
@@ -183,6 +184,7 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
         required=False,
     )
     active = parse_active_filter(query_param(event, "active"))
+    contact_type = parse_contact_type_filter(query_param(event, "contact_type"))
 
     with Session(get_engine()) as session:
         repository = ContactRepository(session)
@@ -191,13 +193,16 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
             cursor=cursor,
             query=query,
             active=active,
+            contact_type=contact_type,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
         next_cursor = (
             encode_cursor(page_rows[-1].id) if has_more and page_rows else None
         )
-        total_count = repository.count_for_admin(query=query, active=active)
+        total_count = repository.count_for_admin(
+            query=query, active=active, contact_type=contact_type
+        )
         note_counts = repository.count_standalone_notes_for_contacts(
             [r.id for r in page_rows]
         )

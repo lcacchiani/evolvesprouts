@@ -52,7 +52,7 @@ function buildContactsHook(
 ): ReturnType<typeof useAdminCrmContacts> {
   return {
     contacts: [],
-    filters: { query: '', active: '' as const },
+    filters: { query: '', active: 'true' as const, contact_type: '' as const },
     setFilter: vi.fn(),
     isLoading: false,
     isLoadingMore: false,
