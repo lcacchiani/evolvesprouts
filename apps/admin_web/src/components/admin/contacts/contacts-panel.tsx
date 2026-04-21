@@ -740,7 +740,6 @@ export function ContactsPanel({
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Email</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -758,7 +757,6 @@ export function ContactsPanel({
                   <td className='px-4 py-3'>{name}</td>
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
-                  <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
                   <td className='px-4 py-3 text-right'>
                     <div className='flex flex-wrap justify-end gap-2'>
                       <Button
