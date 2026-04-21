@@ -5378,6 +5378,13 @@ components:
           $ref: "#/components/schemas/CrmOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/CrmRelationshipType"
+        slug:
+          type: string
+          nullable: true
+          description: >
+            Optional URL-safe identifier for partner organisations only (lowercase
+            letters, digits, single hyphens between segments). Null when not a partner
+            or unset. Uniqueness is enforced case-insensitively among partner rows.
         website:
           type: string
           nullable: true
@@ -5450,6 +5457,13 @@ components:
           $ref: "#/components/schemas/CrmOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/CrmRelationshipType"
+        slug:
+          type: string
+          maxLength: 128
+          nullable: true
+          description: >
+            Optional partner-only slug. Omit or null to clear. Must be null when
+            relationship_type is not partner.
         website:
           type: string
           maxLength: 500
@@ -5473,6 +5487,13 @@ components:
           $ref: "#/components/schemas/CrmOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/CrmRelationshipType"
+        slug:
+          type: string
+          maxLength: 128
+          nullable: true
+          description: >
+            Optional partner-only slug. Omit or null to clear. Must be null when
+            relationship_type is not partner.
         website:
           type: string
           maxLength: 500

@@ -4898,6 +4898,8 @@ export interface components {
             name: string;
             organization_type: components["schemas"]["CrmOrganizationType"];
             relationship_type: components["schemas"]["CrmRelationshipType"];
+            /** @description Optional URL-safe identifier for partner organisations only (lowercase letters, digits, single hyphens between segments). Null when not a partner or unset. Uniqueness is enforced case-insensitively among partner rows. */
+            slug?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -4925,6 +4927,8 @@ export interface components {
             name: string;
             organization_type: components["schemas"]["CrmOrganizationType"];
             relationship_type?: components["schemas"]["CrmRelationshipType"];
+            /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
+            slug?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -4934,6 +4938,8 @@ export interface components {
             name?: string;
             organization_type?: components["schemas"]["CrmOrganizationType"];
             relationship_type?: components["schemas"]["CrmRelationshipType"];
+            /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
+            slug?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
