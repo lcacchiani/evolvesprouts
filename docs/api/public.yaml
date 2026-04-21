@@ -1052,11 +1052,15 @@ components:
           type: string
           description: >
             How the attendee will pay. Values match the public booking modal
-            (FPS QR, bank transfer, or Stripe).
+            (FPS QR, bank transfer, Stripe, or `free` when the post-discount total is zero).
+            When `free`, `price` must be 0, `stripe_payment_intent_id` and `fps_qr_image_data_url`
+            must be omitted, and `reservation_pending_until_payment_confirmed` is always false.
+            Confirmation email and thank-you recap omit the payment row and show Total as Free.
           enum:
             - fps_qr
             - bank_transfer
             - stripe
+            - free
         stripe_payment_intent_id:
           type: string
           description: Required when payment method is Stripe/card-wallet flow.
@@ -1170,6 +1174,12 @@ components:
         paymentMethod:
           type: string
           maxLength: 100
+          description: >
+            Machine payment code. Accepted values include `fps_qr`, `bank_transfer`, `stripe`,
+            and `free` (zero-total booking after discounts). The API rejects `free` when
+            `totalAmount` is not 0, rejects `totalAmount` 0 unless `paymentMethod` is `free`,
+            and normalizes `reservationPendingUntilPaymentConfirmed` to false when `paymentMethod`
+            is `free`. Omit `stripePaymentIntentId` and `fpsQrImageDataUrl` for free bookings.
         totalAmount:
           type: number
           minimum: 0

@@ -92,7 +92,7 @@ interface BookingReservationFormProps {
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
-  selectedCohortPrice: number;
+  originalPriceAmount: number;
   venueName?: string;
   venueAddress?: string;
   venueDirectionHref?: string;
@@ -131,6 +131,7 @@ const BANK_DETAIL_PLACEHOLDER = '--';
 const PAYMENT_METHOD_FPS = 'fps_qr';
 const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
 const PAYMENT_METHOD_STRIPE = 'stripe';
+const PAYMENT_METHOD_FREE = 'free';
 const BOOKING_RESERVATION_FORM_ANALYTICS_ID = 'booking-reservation-form';
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
@@ -435,7 +436,7 @@ export function BookingReservationForm({
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
-  selectedCohortPrice,
+  originalPriceAmount,
   venueName = '',
   venueAddress = '',
   venueDirectionHref = '',
@@ -541,23 +542,33 @@ export function BookingReservationForm({
   const stripePaymentFieldsRef = useRef<StripePaymentFieldsHandle | null>(null);
   const stripePaymentIntentAbortControllerRef = useRef<AbortController | null>(null);
 
-  const originalAmount = selectedCohortPrice;
   const totalAmount = useMemo(() => {
-    return applyDiscount(originalAmount, discountRule);
-  }, [discountRule, originalAmount]);
+    return applyDiscount(originalPriceAmount, discountRule);
+  }, [discountRule, originalPriceAmount]);
+  const isFreeReservation = totalAmount <= 0;
+
+  const prevIsFreeReservationRef = useRef(isFreeReservation);
+  useEffect(() => {
+    if (prevIsFreeReservationRef.current && !isFreeReservation) {
+      setSelectedPaymentMethod(getDefaultPaymentMethod(paymentMethodFlags));
+    }
+    prevIsFreeReservationRef.current = isFreeReservation;
+  }, [isFreeReservation, paymentMethodFlags]);
+
   useEffect(() => {
     setFpsQrImageDataUrl('');
   }, [totalAmount, selectedPaymentMethod]);
-  const discountAmount = Math.max(0, originalAmount - totalAmount);
+  const discountAmount = Math.max(0, originalPriceAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const hasFullNameError = isFullNameTouched && !sanitizeSingleLineValue(fullName);
   const hasPhoneError = isPhoneTouched && !sanitizeSingleLineValue(phone);
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
   const hasTopicsError =
     isTopicsTouched && isTopicsFieldRequired && !interestedTopics.trim();
-  const hasAcknowledgementsError =
-    isAcknowledgementsTouched &&
-    (!hasPendingReservationAcknowledgement || !hasTermsAgreement);
+  const hasAcknowledgementsError = isFreeReservation
+    ? isAcknowledgementsTouched && !hasTermsAgreement
+    : isAcknowledgementsTouched &&
+      (!hasPendingReservationAcknowledgement || !hasTermsAgreement);
   const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
   const normalizedCohortDate =
     (normalizedStartDateTime.split('T')[0] ?? '') ||
@@ -583,9 +594,10 @@ export function BookingReservationForm({
     };
   }, [stripePaymentIntent]);
   const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
-  const reservationSubmitIdleLabel = isStripePaymentMethodSelected
-    ? content.submitStripeLabel
-    : content.submitLabel;
+  const reservationSubmitIdleLabel =
+    isFreeReservation || !isStripePaymentMethodSelected
+      ? content.submitLabel
+      : content.submitStripeLabel;
   const isStripeUnavailable = stripePromise === null;
   const isStripeReady = Boolean(
     stripeElementsOptions &&
@@ -619,10 +631,23 @@ export function BookingReservationForm({
       : undefined;
   const isSubmitDisabled =
     isCaptchaUnavailable ||
-    (isStripePaymentMethodSelected && (isStripePaymentIntentLoading || !isStripeReady)) ||
+    (!isFreeReservation &&
+      isStripePaymentMethodSelected &&
+      (isStripePaymentIntentLoading || !isStripeReady)) ||
     isSubmitting;
 
+  const paymentMethodForAnalytics: ReservationPaymentMethodCode = isFreeReservation
+    ? PAYMENT_METHOD_FREE
+    : selectedPaymentMethod;
+
   useEffect(() => {
+    if (isFreeReservation) {
+      stripePaymentIntentAbortControllerRef.current?.abort();
+      setStripePaymentIntent(null);
+      setStripePaymentIntentKey('');
+      setIsStripePaymentIntentLoading(false);
+      return;
+    }
     if (!paymentMethodFlags.stripeCards) {
       return;
     }
@@ -708,6 +733,7 @@ export function BookingReservationForm({
     captchaToken,
     paymentMethodFlags.stripeCards,
     isStripePaymentMethodSelected,
+    isFreeReservation,
     isStripeUnavailable,
     normalizedCohortDate,
     selectedAgeGroupLabel,
@@ -829,7 +855,7 @@ export function BookingReservationForm({
               discount_type: validatedRule.type,
               discount_amount: Math.max(
                 0,
-                originalAmount - applyDiscount(originalAmount, validatedRule),
+                originalPriceAmount - applyDiscount(originalPriceAmount, validatedRule),
               ),
             },
           });
@@ -841,7 +867,7 @@ export function BookingReservationForm({
               discount_type: validatedRule.type,
               discount_amount: Math.max(
                 0,
-                originalAmount - applyDiscount(originalAmount, validatedRule),
+                originalPriceAmount - applyDiscount(originalPriceAmount, validatedRule),
               ),
             },
           });
@@ -885,7 +911,7 @@ export function BookingReservationForm({
       discountRule,
       discountValidationServiceKey,
       serviceInstanceId,
-      originalAmount,
+      originalPriceAmount,
       referralAppliedAnnouncement,
     ],
   );
@@ -931,7 +957,7 @@ export function BookingReservationForm({
       sectionId: analyticsSectionId,
       ctaLocation: 'reservation_form',
       params: {
-        payment_method: selectedPaymentMethod,
+        payment_method: paymentMethodForAnalytics,
         age_group: selectedAgeGroupLabel,
         cohort_date: normalizedCohortDate,
         cohort_label: selectedCohortDateLabel,
@@ -948,7 +974,7 @@ export function BookingReservationForm({
       !isValidEmail(email) ||
       !normalizedPhone ||
       (isTopicsFieldRequired && !interestedTopics.trim()) ||
-      !hasPendingReservationAcknowledgement ||
+      (!isFreeReservation && !hasPendingReservationAcknowledgement) ||
       !hasTermsAgreement;
 
     if (hasFieldErrors) {
@@ -958,7 +984,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -975,7 +1001,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -991,7 +1017,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -1007,7 +1033,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -1025,7 +1051,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -1107,11 +1133,13 @@ export function BookingReservationForm({
       attendeePhone: sanitizeSingleLineValue(phone),
       ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
-      paymentMethod: sanitizeSingleLineValue(
-        getPaymentMethodLabel(content, selectedPaymentMethod),
-      ),
-      paymentMethodCode: selectedPaymentMethod,
-      totalAmount,
+      paymentMethod: isFreeReservation
+        ? ''
+        : sanitizeSingleLineValue(
+            getPaymentMethodLabel(content, selectedPaymentMethod),
+          ),
+      paymentMethodCode: isFreeReservation ? PAYMENT_METHOD_FREE : selectedPaymentMethod,
+      totalAmount: isFreeReservation ? 0 : totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
       courseSlug: sanitizeSingleLineValue(courseSlug ?? '') || undefined,
       dateStartTime: primarySession?.dateStartTime,
@@ -1119,7 +1147,9 @@ export function BookingReservationForm({
       courseSessions:
         resolvedCourseSessions.length > 0 ? resolvedCourseSessions : undefined,
       eventSubtitle: sanitizeSingleLineValue(eventSubtitle) || undefined,
-      ...(selectedPaymentMethod === 'fps_qr' && fpsQrImageDataUrl.trim()
+      ...(!isFreeReservation &&
+      selectedPaymentMethod === 'fps_qr' &&
+      fpsQrImageDataUrl.trim()
         ? { fpsQrImageDataUrl: fpsQrImageDataUrl.trim() }
         : {}),
       locationName: sanitizeSingleLineValue(venueName) || undefined,
@@ -1142,7 +1172,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -1172,11 +1202,12 @@ export function BookingReservationForm({
       cohortDate: normalizedCohortDate,
       interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
       discountCode: discountRule?.code || undefined,
-      totalAmount,
-      reservationPendingUntilPaymentConfirmed:
-        hasPendingReservationAcknowledgement,
+      totalAmount: isFreeReservation ? 0 : totalAmount,
+      reservationPendingUntilPaymentConfirmed: isFreeReservation
+        ? false
+        : hasPendingReservationAcknowledgement,
       agreedToTermsAndConditions: hasTermsAgreement,
-      paymentMethod: selectedPaymentMethod,
+      paymentMethod: isFreeReservation ? PAYMENT_METHOD_FREE : selectedPaymentMethod,
       stripePaymentIntentId: undefined,
       marketingOptIn: marketingOptIn,
       locale,
@@ -1237,7 +1268,7 @@ export function BookingReservationForm({
 
     await withSubmitting(async () => {
       let stripePaymentIntentId: string | undefined;
-      if (isStripePaymentMethodSelected) {
+      if (!isFreeReservation && isStripePaymentMethodSelected) {
         const stripePaymentFields = stripePaymentFieldsRef.current;
         if (!stripePaymentFields) {
           trackPublicFormOutcome('booking_submit_error', {
@@ -1246,7 +1277,7 @@ export function BookingReservationForm({
             sectionId: analyticsSectionId,
             ctaLocation: 'reservation_form',
             params: {
-              payment_method: selectedPaymentMethod,
+              payment_method: paymentMethodForAnalytics,
               age_group: selectedAgeGroupLabel,
               cohort_date: normalizedCohortDate,
               total_amount: totalAmount,
@@ -1264,7 +1295,7 @@ export function BookingReservationForm({
             sectionId: analyticsSectionId,
             ctaLocation: 'reservation_form',
             params: {
-              payment_method: selectedPaymentMethod,
+              payment_method: paymentMethodForAnalytics,
               age_group: selectedAgeGroupLabel,
               cohort_date: normalizedCohortDate,
               total_amount: totalAmount,
@@ -1279,6 +1310,7 @@ export function BookingReservationForm({
       }
 
       if (
+        !isFreeReservation &&
         selectedPaymentMethod === PAYMENT_METHOD_FPS &&
         !reservationPayload.stripePaymentIntentId &&
         fpsQrImageDataUrl.trim()
@@ -1301,7 +1333,7 @@ export function BookingReservationForm({
           sectionId: analyticsSectionId,
           ctaLocation: 'reservation_form',
           params: {
-            payment_method: selectedPaymentMethod,
+            payment_method: paymentMethodForAnalytics,
             age_group: selectedAgeGroupLabel,
             cohort_date: normalizedCohortDate,
             cohort_label: selectedCohortDateLabel,
@@ -1312,23 +1344,23 @@ export function BookingReservationForm({
         });
         trackMetaPixelEvent('Schedule', {
           content_name: metaPixelContentName,
-          value: totalAmount,
+          value: isFreeReservation ? 0 : totalAmount,
           currency: 'HKD',
         });
         trackMetaPixelEvent('Purchase', {
           content_name: metaPixelContentName,
-          value: totalAmount,
+          value: isFreeReservation ? 0 : totalAmount,
           currency: 'HKD',
         });
         trackEcommerceEvent('purchase', {
-          value: totalAmount,
-          paymentType: selectedPaymentMethod,
+          value: isFreeReservation ? 0 : totalAmount,
+          paymentType: paymentMethodForAnalytics,
           transactionId: stripePaymentIntentId ?? `${normalizedCohortDate}-${Date.now()}`,
           items: [{
             item_id: `mba-${selectedAgeGroupLabel}`,
             item_name: eventTitle,
             item_category: selectedAgeGroupLabel,
-            price: totalAmount,
+            price: isFreeReservation ? 0 : totalAmount,
             quantity: 1,
           }],
         });
@@ -1342,7 +1374,7 @@ export function BookingReservationForm({
         sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
-          payment_method: selectedPaymentMethod,
+          payment_method: paymentMethodForAnalytics,
           age_group: selectedAgeGroupLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
@@ -1425,11 +1457,12 @@ export function BookingReservationForm({
           <ReservationFormPriceBreakdown
             content={content}
             locale={locale}
-            originalAmount={originalAmount}
+            originalAmount={originalPriceAmount}
             discountAmount={discountAmount}
             totalAmount={totalAmount}
           />
 
+          {!isFreeReservation ? (
           <div data-booking-payment='true' className='w-full space-y-2 py-1'>
             <p className='text-sm font-semibold es-text-heading'>
               {content.paymentMethodLabel}
@@ -1683,8 +1716,10 @@ export function BookingReservationForm({
               </div>
             </div>
           </div>
+          ) : null}
 
           <div data-booking-acknowledgements='true' className='space-y-2'>
+            {!isFreeReservation ? (
             <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input
                 type='checkbox'
@@ -1702,6 +1737,7 @@ export function BookingReservationForm({
                 </span>
               </span>
             </label>
+            ) : null}
 
             <label className='flex cursor-pointer items-start gap-2.5 py-1'>
               <input

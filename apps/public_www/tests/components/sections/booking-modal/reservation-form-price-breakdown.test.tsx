@@ -61,4 +61,48 @@ describe('ReservationFormPriceBreakdown', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('shows only the free price label when originally free with no discount', () => {
+    render(
+      <ReservationFormPriceBreakdown
+        content={enContent.bookingModal.paymentModal}
+        locale='en'
+        originalAmount={0}
+        discountAmount={0}
+        totalAmount={0}
+      />,
+    );
+
+    const freeLabel = screen.getByText(
+      enContent.bookingModal.paymentModal.priceBreakdownFreeLabel,
+    );
+    expect(freeLabel.className).toContain('es-text-success');
+    expect(
+      screen.queryByText(enContent.bookingModal.paymentModal.priceBreakdownDiscountLabel),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(enContent.bookingModal.paymentModal.priceBreakdownConfirmedPriceLabel),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows discount and confirmed free label when discount brings total to zero', () => {
+    render(
+      <ReservationFormPriceBreakdown
+        content={enContent.bookingModal.paymentModal}
+        locale='en'
+        originalAmount={9000}
+        discountAmount={9000}
+        totalAmount={0}
+      />,
+    );
+
+    expect(screen.getAllByText('HK$9,000').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText('-HK$9,000').closest('div')?.className ?? '',
+    ).toContain('es-text-success');
+    const confirmedFree = screen.getByText(
+      enContent.bookingModal.paymentModal.priceBreakdownFreeLabel,
+    );
+    expect(confirmedFree.className).toContain('es-text-success');
+  });
 });

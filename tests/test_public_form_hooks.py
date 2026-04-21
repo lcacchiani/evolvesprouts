@@ -93,3 +93,89 @@ def test_run_reservation_post_success_hooks_sets_pending_without_stripe(
 
     assert captured["is_pending_payment"] is True
     assert captured["total_amount"] == "HK$15,234.50"
+
+
+def test_run_reservation_post_success_hooks_free_sets_is_free(
+    monkeypatch: Any,
+) -> None:
+    from decimal import Decimal
+
+    from app.api import public_reservations as pr
+
+    captured: dict[str, object] = {}
+
+    def _fake_send(**kwargs: object) -> None:
+        captured.update(kwargs)
+
+    monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_booking_confirmation_email",
+        _fake_send,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_sales_form_recap_email",
+        MagicMock(),
+    )
+
+    pr._run_reservation_post_success_hooks(
+        {
+            "attendee_email": "j@example.com",
+            "attendee_name": "Jane Doe",
+            "child_age_group": "3",
+            "payment_method": "free",
+            "total_amount": Decimal("0"),
+            "course_label": "Course",
+            "locale": "en",
+            "stripe_payment_intent_id": None,
+        }
+    )
+
+    assert captured["is_free"] is True
+    assert captured["is_pending_payment"] is False
+
+
+def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
+    monkeypatch: Any,
+) -> None:
+    """Hooks key off ``payment_method == 'free'``; zero total alone is not free email mode."""
+    from decimal import Decimal
+
+    from app.api import public_reservations as pr
+
+    captured: dict[str, object] = {}
+
+    def _fake_send(**kwargs: object) -> None:
+        captured.update(kwargs)
+
+    monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_booking_confirmation_email",
+        _fake_send,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_sales_form_recap_email",
+        MagicMock(),
+    )
+
+    pr._run_reservation_post_success_hooks(
+        {
+            "attendee_email": "j@example.com",
+            "attendee_name": "Jane Doe",
+            "child_age_group": "3",
+            "payment_method": "stripe",
+            "total_amount": Decimal("0"),
+            "course_label": "Course",
+            "locale": "en",
+            "stripe_payment_intent_id": "pi_abc123",
+        }
+    )
+
+    assert captured["is_free"] is False

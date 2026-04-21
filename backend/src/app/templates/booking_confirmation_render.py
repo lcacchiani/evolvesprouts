@@ -20,6 +20,7 @@ from app.templates.booking_confirmation_content import (
     DIRECTIONS_LINK_LABEL,
     FAQ_LINK_LABEL,
     FPS_PAYMENT_DISCLAIMER,
+    FREE_TOTAL_LABEL,
     FPS_QR_INTRO,
     GROUP_SESSION_LABEL_TEMPLATE,
     HEADER_TITLE,
@@ -732,6 +733,7 @@ def booking_confirmation_template_merge_data(
     consultation_level_label: str | None = None,
     course_sessions: list[dict[str, str]] | None = None,
     location_url: str | None = None,
+    is_free: bool = False,
 ) -> dict[str, Any]:
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
@@ -779,18 +781,25 @@ def booking_confirmation_template_merge_data(
         consultation_level_label=consultation_level_label,
     )
     pm_lower = (payment_method_code or "").strip().lower()
-    include_fps_instructions = pm_lower == "fps_qr" and is_pending_payment
+    pending_for_template = False if is_free else is_pending_payment
+    include_fps_instructions = (
+        not is_free and pm_lower == "fps_qr" and is_pending_payment
+    )
+    free_label = FREE_TOTAL_LABEL[loc]
     data: dict[str, Any] = {
         "full_name": full_name.strip(),
         "course_label": course_label.strip(),
-        "payment_method": pm_display,
-        "total_amount": total_amount,
-        "is_pending_payment": is_pending_payment,
+        "total_amount": free_label if is_free else total_amount,
+        "is_pending_payment": pending_for_template,
+        "is_free": is_free,
+        "free_total_label": free_label,
         "whatsapp_url": whatsapp_url.strip(),
         "include_fps_instructions": include_fps_instructions,
         "details_block_html": details_html,
         "details_plain": details_plain,
     }
+    if not is_free:
+        data["payment_method"] = pm_display
     if schedule_html:
         data["schedule_datetime_label_html"] = schedule_html
     if schedule_plain:
@@ -857,6 +866,7 @@ def render_booking_confirmation_email(
     attach_calendar_invite_ics: bool = False,
     course_sessions: list[dict[str, str]] | None = None,
     location_url: str | None = None,
+    is_free: bool = False,
 ) -> tuple[str, str, str]:
     """Return (subject, full_html, plain_text)."""
     loc = normalize_booking_locale(locale)
@@ -865,7 +875,8 @@ def render_booking_confirmation_email(
     esc_course = html.escape(course_label.strip())
     pm_display = resolve_payment_method_display(payment_method_code)
     esc_pm = html.escape(pm_display)
-    esc_total = html.escape(total_amount)
+    free_label = FREE_TOTAL_LABEL[loc]
+    esc_total = html.escape(free_label if is_free else total_amount)
     esc_wa = html.escape(whatsapp_url.strip(), quote=True)
     esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url.strip() else ""
 
@@ -943,8 +954,14 @@ def render_booking_confirmation_email(
                 loc_cell_html,
             )
         )
-    rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
-    rows_html.append(_html_table_row_final(labels["total"], esc_total))
+    if not is_free:
+        rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
+    total_cell_html = (
+        f'<span style="color:#2C6C25;font-weight:600;">{html.escape(free_label)}</span>'
+        if is_free
+        else esc_total
+    )
+    rows_html.append(_html_table_row_final(labels["total"], total_cell_html))
 
     table_html = (
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
@@ -954,7 +971,7 @@ def render_booking_confirmation_email(
     )
 
     pending_block = ""
-    if is_pending_payment:
+    if not is_free and is_pending_payment:
         pending_block = (
             '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;'
             'border-radius:8px;color:#5c4a00;">'
@@ -963,7 +980,7 @@ def render_booking_confirmation_email(
         )
 
     fps_block = ""
-    if include_fps_qr_image:
+    if not is_free and include_fps_qr_image:
         fps_block = (
             f'<p style="margin:0 0 8px;">{html.escape(FPS_QR_INTRO[loc])}</p>'
             f'<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">'
@@ -1016,6 +1033,8 @@ def render_booking_confirmation_email(
         attach_calendar_invite_ics=attach_calendar_invite_ics,
         course_sessions=course_sessions,
         location_url=location_url,
+        is_free=is_free,
+        free_total_label=free_label,
     )
     plain_text = "\n".join(text_lines)
 
@@ -1062,6 +1081,8 @@ def _build_plain_text(
     attach_calendar_invite_ics: bool,
     course_sessions: list[dict[str, str]] | None,
     location_url: str | None,
+    is_free: bool = False,
+    free_total_label: str = "",
 ) -> list[str]:
     label_sep = ": " if loc == "en" else "："
     lines: list[str] = []
@@ -1114,11 +1135,13 @@ def _build_plain_text(
     if loc_plain_block:
         lines.append(f"{labels['location']}{label_sep}\n{loc_plain_block}\n")
 
-    lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
-    lines.append(f"{labels['total']}{label_sep}{total_amount}\n\n")
-    if is_pending_payment:
+    if not is_free:
+        lines.append(f"{labels['payment']}{label_sep}{payment_method_display}\n")
+    total_plain = free_total_label if is_free else total_amount
+    lines.append(f"{labels['total']}{label_sep}{total_plain}\n\n")
+    if not is_free and is_pending_payment:
         lines.append(f"{PENDING_PAYMENT_NOTE[loc]}\n\n")
-    if include_fps_qr_image:
+    if not is_free and include_fps_qr_image:
         lines.append(f"{FPS_QR_INTRO[loc]}\n")
         lines.append(f"{FPS_PAYMENT_DISCLAIMER[loc]}\n")
         lines.append("[FPS QR code image is attached as fps-qr.png]\n\n")

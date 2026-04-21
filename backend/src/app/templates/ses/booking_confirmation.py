@@ -10,6 +10,7 @@ from app.templates.booking_confirmation_content import (
     BOOKING_ICS_ATTACHED_NOTE,
     CLOSING_NOTE,
     FAQ_LINK_LABEL,
+    FREE_TOTAL_LABEL,
     FPS_PAYMENT_DISCLAIMER,
     FPS_QR_INTRO,
     GREETING_HTML,
@@ -75,13 +76,17 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         "{{/if}}"
     )
     row_payment = (
+        "{{#unless is_free}}"
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["payment"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
         "{{payment_method}}</td></tr>"
+        "{{/unless}}"
     )
     row_total = (
         f'<tr><td style="padding:8px 0;"><strong>{labels["total"]}</strong></td>'
-        '<td style="padding:8px 0;text-align:right;">{{total_amount}}</td></tr>'
+        '<td style="padding:8px 0;text-align:right;">'
+        "{{#if is_free}}<span style=\"color:#2C6C25;font-weight:600;\">{{free_total_label}}</span>"
+        "{{else}}{{total_amount}}{{/if}}</td></tr>"
     )
     pending = PENDING_PAYMENT_NOTE[loc]
     closing = CLOSING_NOTE[loc]
@@ -104,6 +109,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + row_payment
         + row_total
         + "</table>"
+        "{{#unless is_free}}"
         "{{#if is_pending_payment}}"
         '<p style="margin:0 0 16px;padding:12px;background:#fff8e6;border-radius:8px;'
         'color:#5c4a00;">'
@@ -116,6 +122,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         f"{FPS_PAYMENT_DISCLAIMER[loc]}"
         "</p>"
         "{{/if}}"
+        "{{/unless}}"
         '<hr style="border:0;border-top:1px solid #eeeeee;margin:0 0 16px;"/>'
         f'<p style="margin:0 0 16px;">{closing}</p>' + questions_html
     )
@@ -158,10 +165,17 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + "{{location_plain}}\n"
         + "{{/if}}"
         + "{{/if}}"
+        + "{{#unless is_free}}"
         + f"{labels['payment']}{label_sep}"
         + "{{payment_method}}\n"
+        + "{{/unless}}"
         + f"{labels['total']}{label_sep}"
-        + "{{total_amount}}\n\n"
+        + "{{#if is_free}}"
+        + FREE_TOTAL_LABEL[loc]
+        + "{{else}}"
+        + "{{total_amount}}"
+        + "{{/if}}\n\n"
+        + "{{#unless is_free}}"
         + "{{#if is_pending_payment}}"
         + f"{pending}\n\n"
         + "{{/if}}"
@@ -169,6 +183,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         + f"{FPS_QR_INTRO[loc]}\n"
         + f"{FPS_PAYMENT_DISCLAIMER[loc]}\n\n"
         + "{{/if}}"
+        + "{{/unless}}"
         + f"{closing}\n\n"
         + QUESTIONS_LINE_TEXT_SES[loc]
         + "\n\n"

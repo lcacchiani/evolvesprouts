@@ -1,14 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 
-import { EventBookingModal } from '@/components/sections/events/event-booking-modal';
+import { ConsultationBookingModal } from '@/components/sections/consultations/consultation-booking-modal';
 import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import enContent from '@/content/en.json';
-import type { EventCalendarBookingModalPayload } from '@/lib/events-data';
+import { buildConsultationsBookingModalPayload } from '@/lib/consultations-booking-modal-payload';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
-import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
 import { submitReservation } from '@/lib/reservations-data';
 
 vi.mock('@/lib/hooks/use-modal-lock-body', () => ({
@@ -23,7 +22,6 @@ vi.mock('@/lib/crm-api-client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
     '@/lib/crm-api-client',
   );
-
   return {
     ...actual,
     createPublicApiClient: vi.fn(() => null),
@@ -35,7 +33,9 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 vi.mock('@/lib/fps-qr-code', () => ({
   generateFpsQrImageDataUrl: vi.fn(() =>
-    Promise.resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+    Promise.resolve(
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    ),
   ),
   hasFpsQrConfiguration: vi.fn(() => true),
 }));
@@ -44,7 +44,6 @@ vi.mock('@/lib/discounts-data', async () => {
   const actual = await vi.importActual<typeof import('@/lib/discounts-data')>(
     '@/lib/discounts-data',
   );
-
   return {
     ...actual,
     validateDiscountCode: vi.fn(() => Promise.resolve(null)),
@@ -134,36 +133,32 @@ vi.mock('@stripe/react-stripe-js', () => ({
   }),
 }));
 
-const paymentModal = enContent.bookingModal.paymentModal;
-const thankYouModalContent = enContent.bookingModal.thankYouModal;
-const mapsUrl = 'https://maps.example.com/dir?q=venue';
+function buildPickerContent(
+  paymentModal: typeof enContent.bookingModal.paymentModal,
+) {
+  const p = paymentModal.consultationPicker;
+  return {
+    pickDateTimeIntro: p.pickDateTimeIntro,
+    amLabel: p.amLabel,
+    pmLabel: p.pmLabel,
+    monthJoiner: p.monthJoiner,
+    weekdayShortLabels: [
+      p.weekdayShortMon,
+      p.weekdayShortTue,
+      p.weekdayShortWed,
+      p.weekdayShortThu,
+      p.weekdayShortFri,
+    ],
+    datePickerLegend: p.datePickerLegend,
+    datePickerDayTemplate: p.datePickerDayTemplate,
+    datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    dateConfirmationNote: p.dateConfirmationNote,
+  };
+}
 
-const eventPayload: EventCalendarBookingModalPayload = {
-  variant: 'event',
-  bookingSystem: 'event-booking',
-  serviceKey: 'test-event-1',
-  title: 'Test Event',
-  subtitle: 'Event subtitle',
-  originalAmount: 100,
-  locationName: 'Venue Name',
-  locationAddress: '1 Test St, Hong Kong',
-  directionHref: mapsUrl,
-  dateParts: [
-    {
-      id: 'part-1',
-      startDateTime: '2026-06-15T10:00:00.000Z',
-      endDateTime: '2026-06-15T11:00:00.000Z',
-      description: 'Part one',
-    },
-  ],
-  selectedDateLabel: '15 Jun 2026',
-  selectedDateStartTime: '2026-06-15T10:00:00.000Z',
-};
-
-describe('EventBookingModal', () => {
-  const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
-  const mockedGenerateFpsQr = vi.mocked(generateFpsQrImageDataUrl);
-  const mockedSubmitReservationFn = vi.mocked(submitReservation);
+describe('ConsultationBookingModal free price', () => {
+  const paymentModal = enContent.bookingModal.paymentModal;
+  const thankYouModalContent = enContent.bookingModal.thankYouModal;
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
@@ -176,90 +171,33 @@ describe('EventBookingModal', () => {
   });
 
   afterEach(() => {
-    mockedGenerateFpsQr.mockImplementation(() =>
-      Promise.resolve(
-        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-      ),
-    );
-    mockedCreateCrmApiClient.mockReturnValue(null);
-    mockedSubmitReservationFn.mockClear();
+    vi.mocked(createPublicCrmApiClient).mockReturnValue(null);
+    vi.mocked(submitReservation).mockClear();
     vi.clearAllMocks();
   });
 
-  it('submits location_url when direction link is a valid HTTP URL', async () => {
+  it('submits paymentMethod free when consultation tier price is 0', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'ok' });
-    mockedCreateCrmApiClient.mockReturnValue({ request: requestSpy });
+    vi.mocked(createPublicCrmApiClient).mockReturnValue({ request: requestSpy });
+
+    const baseReservation = enContent.consultations.booking.reservation;
+    const freeReservation = {
+      ...baseReservation,
+      essentials: {
+        ...baseReservation.essentials,
+        priceHkd: 0,
+      },
+    };
+    const topicsLabel = freeReservation.topicsField.label;
+    const bookingPayload = buildConsultationsBookingModalPayload(freeReservation, 'en');
 
     render(
-      <EventBookingModal
+      <ConsultationBookingModal
+        locale='en'
         paymentModalContent={paymentModal}
-        bookingPayload={eventPayload}
-        thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
-
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.fullNameLabel)), {
-      target: { value: 'Test User' },
-    });
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
-      target: { value: 'u@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '85212345678' },
-    });
-    fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
-      target: { value: 'Note' },
-    });
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: new RegExp(paymentModal.pendingReservationAcknowledgementLabel),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: new RegExp(paymentModal.termsLinkLabel),
-      }),
-    );
-
-    await waitFor(() => {
-      const qrImg = document.querySelector(
-        '[aria-label="FPS payment QR code"] img',
-      ) as HTMLImageElement | null;
-      expect(qrImg?.getAttribute('src') ?? '').toMatch(/^data:image\/png/);
-    });
-
-    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: paymentModal.submitLabel,
-      }),
-    );
-
-    await waitFor(() => {
-      expect(requestSpy).toHaveBeenCalled();
-    });
-
-    expect(requestSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'POST',
-        endpointPath: '/v1/reservations',
-        body: expect.objectContaining({
-          locationUrl: mapsUrl,
-          courseSlug: 'event-booking',
-        }),
-      }),
-    );
-  });
-
-  it('omits payment UI for a zero-priced event and submits paymentMethod free', async () => {
-    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn().mockResolvedValue({ message: 'ok' }) });
-
-    render(
-      <EventBookingModal
-        paymentModalContent={paymentModal}
-        bookingPayload={{ ...eventPayload, originalAmount: 0 }}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
         thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
         onClose={() => {}}
         onSubmitReservation={() => {}}
@@ -267,16 +205,6 @@ describe('EventBookingModal', () => {
     );
 
     expect(document.querySelector('div[data-booking-payment="true"]')).toBeNull();
-    expect(
-      screen.queryByRole('checkbox', {
-        name: new RegExp(paymentModal.pendingReservationAcknowledgementLabel),
-      }),
-    ).toBeNull();
-    expect(
-      screen.getByRole('checkbox', {
-        name: new RegExp(paymentModal.termsLinkLabel),
-      }),
-    ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.fullNameLabel)), {
       target: { value: 'Test User' },
@@ -287,7 +215,7 @@ describe('EventBookingModal', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
       target: { value: '85212345678' },
     });
-    fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
+    fireEvent.change(screen.getByLabelText(new RegExp(topicsLabel)), {
       target: { value: 'Note' },
     });
     fireEvent.click(
@@ -303,10 +231,10 @@ describe('EventBookingModal', () => {
     );
 
     await waitFor(() => {
-      expect(mockedSubmitReservationFn).toHaveBeenCalled();
+      expect(vi.mocked(submitReservation)).toHaveBeenCalled();
     });
 
-    expect(mockedSubmitReservationFn).toHaveBeenCalledWith(
+    expect(vi.mocked(submitReservation)).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         payload: expect.objectContaining({

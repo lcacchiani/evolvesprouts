@@ -175,6 +175,7 @@ def send_booking_confirmation_email(
     consultation_level_label: str | None = None,
     course_sessions: list[dict[str, str]] | None = None,
     location_url: str | None = None,
+    is_free: bool = False,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -204,6 +205,7 @@ def send_booking_confirmation_email(
         consultation_level_label=consultation_level_label,
         course_sessions=course_sessions,
         location_url=location_url,
+        is_free=is_free,
     )
 
     loc_line_for_ics = format_booking_location_display_line(
@@ -228,7 +230,8 @@ def send_booking_confirmation_email(
     pm_lower = payment_method.lower().strip()
     png_bytes: bytes | None = None
     if (
-        is_pending_payment
+        not is_free
+        and is_pending_payment
         and pm_lower == "fps_qr"
         and isinstance(fps_qr_image_data_url, str)
         and fps_qr_image_data_url.strip()
@@ -270,6 +273,7 @@ def send_booking_confirmation_email(
             attach_calendar_invite_ics=attach_ics,
             course_sessions=course_sessions,
             location_url=location_url,
+            is_free=is_free,
         )
         full_html = substitute_shell_placeholders(html_doc, merged)
         attachments: list[tuple[str, str, bytes]] | None = None

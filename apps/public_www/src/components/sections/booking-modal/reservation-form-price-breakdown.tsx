@@ -16,8 +16,25 @@ export function ReservationFormPriceBreakdown({
   discountAmount,
   totalAmount,
 }: ReservationFormPriceBreakdownProps) {
+  const isFree = totalAmount <= 0;
   const hasDiscount = discountAmount > 0;
   const hasConfirmedPriceDifference = totalAmount !== originalAmount;
+
+  if (originalAmount === 0 && isFree) {
+    return (
+      <div
+        data-booking-price-breakdown='true'
+        className='mt-[60px] space-y-2 rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+      >
+        <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
+          <span>{content.priceBreakdownPriceLabel}</span>
+          <span className='es-text-success font-bold'>
+            {content.priceBreakdownFreeLabel}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -37,7 +54,11 @@ export function ReservationFormPriceBreakdown({
       {hasConfirmedPriceDifference ? (
         <div className='flex items-center justify-between border-t es-border-divider pt-2 text-sm font-bold es-text-heading'>
           <span>{content.priceBreakdownConfirmedPriceLabel}</span>
-          <span>{formatCurrencyHkd(totalAmount, locale)}</span>
+          {isFree ? (
+            <span className='es-text-success font-bold'>{content.priceBreakdownFreeLabel}</span>
+          ) : (
+            <span>{formatCurrencyHkd(totalAmount, locale)}</span>
+          )}
         </div>
       ) : null}
     </div>

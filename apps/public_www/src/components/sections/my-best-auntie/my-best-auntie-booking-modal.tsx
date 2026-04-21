@@ -195,7 +195,7 @@ export function MyBestAuntieBookingModal({
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
-              selectedCohortPrice={originalAmount}
+              originalPriceAmount={originalAmount}
               venueName={selectedVenueName}
               venueAddress={selectedVenueAddress}
               venueDirectionHref={selectedVenueDirectionHref}

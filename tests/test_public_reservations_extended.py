@@ -40,6 +40,205 @@ def _post_event(api_gateway_event: Any, body: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def test_handle_public_reservation_accepts_free_payment_zero_total(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    hooks = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        hooks,
+    )
+
+    contact_id = uuid4()
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            return c, True
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+
+    body = _reservation_body(
+        paymentMethod="free",
+        totalAmount=0,
+        reservationPendingUntilPaymentConfirmed=False,
+    )
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    hooks.assert_called_once()
+    payload = hooks.call_args[0][0]
+    assert payload["payment_method"] == "free"
+
+
+def test_handle_public_reservation_rejects_free_with_nonzero_total(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    body = _reservation_body(
+        paymentMethod="free",
+        totalAmount=500,
+        reservationPendingUntilPaymentConfirmed=False,
+    )
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 400
+
+
+def test_handle_public_reservation_rejects_zero_total_without_free_method(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    body = _reservation_body(
+        paymentMethod="bank_transfer",
+        totalAmount=0,
+        reservationPendingUntilPaymentConfirmed=False,
+    )
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 400
+
+
+def test_handle_public_reservation_forces_pending_false_for_free_even_if_client_sends_true(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    hooks = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        hooks,
+    )
+
+    contact_id = uuid4()
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            return c, True
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+
+    body = _reservation_body(
+        paymentMethod="free",
+        totalAmount=0,
+        reservationPendingUntilPaymentConfirmed=True,
+    )
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    payload = hooks.call_args[0][0]
+    assert payload["reservation_pending_until_payment_confirmed"] is False
+
+
 def test_handle_public_reservation_runs_hooks_after_persist(
     api_gateway_event: Any,
     monkeypatch: pytest.MonkeyPatch,

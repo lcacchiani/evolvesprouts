@@ -114,8 +114,8 @@ data bug.
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
 | `booking_discount_autoapply_success` | Referral / URL-prefilled discount applied successfully (same semantics as manual apply; distinct event for funnel analysis) | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_autoapply_error` | Referral / URL-prefilled discount failed (invalid code, API, or unavailable client) | `section_id`, `error_type` | No |
-| `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies | No |
-| `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
+| `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies. For zero-total (free) bookings, `payment_method` is `free` and `total_amount` is `0`. | No |
+| `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date`. For free bookings, `payment_method` is `free`. | Yes |
 | `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_thank_you_ics_download` | Thank-you modal calendar (.ics) download | `section_id`, `cohort_date`, `total_amount` | No |
@@ -132,7 +132,7 @@ structured `ecommerce` objects to the dataLayer.
 |---|---|---|
 | `begin_checkout` | `booking_modal_open` | `currency`, `value`, `items[]` |
 | `add_payment_info` | `booking_payment_method_selected` | `currency`, `value`, `payment_type`, `items[]` |
-| `purchase` | `booking_submit_success` | `currency`, `value`, `payment_type`, `transaction_id`, `items[]` |
+| `purchase` | `booking_submit_success` | `currency`, `value`, `payment_type`, `transaction_id`, `items[]` (value `0` for free bookings; `payment_type` is `free`) |
 
 Each `items[]` entry includes: `item_id`, `item_name`, `item_category`,
 `price`, `quantity`. Currency is always `HKD`.

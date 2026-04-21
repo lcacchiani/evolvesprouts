@@ -9,6 +9,7 @@ def test_booking_ses_templates_preserve_handlebars_placeholders() -> None:
     en = next(t for t in definitions if t["TemplateName"].endswith("-en"))
     assert "{{course_label}}" in en["SubjectPart"]
     assert "{{full_name}}" in en["HtmlPart"]
+    assert "{{#unless is_free}}" in en["HtmlPart"]
     assert "{{#if is_pending_payment}}" in en["HtmlPart"]
     assert "{{#if include_fps_instructions}}" in en["HtmlPart"]
     assert "{{#if schedule_datetime_label_html}}" in en["HtmlPart"]

@@ -33,6 +33,7 @@ export function BookingEventDetailsPriceVenue({
   embedded = false,
 }: BookingEventDetailsPriceVenueProps) {
   const showDirectionsLink = getHrefKind(directionHref.trim()) === 'http';
+  const isFreePrice = originalAmount <= 0;
 
   const inner = (
     <Fragment>
@@ -46,17 +47,29 @@ export function BookingEventDetailsPriceVenue({
         <div className='flex items-start gap-4'>
           <span className='es-icon-circle-lg'>
             <span
-              className='es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
+              className={
+                isFreePrice
+                  ? 'es-mask-dollar-success h-[46px] w-[46px] shrink-0'
+                  : 'es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
+              }
               aria-hidden='true'
             />
           </span>
           <div>
-            <p className='text-[26px] font-bold leading-none es-text-heading'>
-              {formatCurrencyHkd(originalAmount, locale)}
+            <p
+              className={
+                isFreePrice
+                  ? 'text-[26px] font-bold leading-none es-text-success'
+                  : 'text-[26px] font-bold leading-none es-text-heading'
+              }
+            >
+              {isFreePrice ? content.priceBreakdownFreeLabel : formatCurrencyHkd(originalAmount, locale)}
             </p>
-            <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
-              {content.refundHint}
-            </p>
+            {isFreePrice ? null : (
+              <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
+                {content.refundHint}
+              </p>
+            )}
           </div>
         </div>
       </div>

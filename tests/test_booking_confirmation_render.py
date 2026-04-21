@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from app.templates.booking_confirmation_content import FREE_TOTAL_LABEL
+
 from app.templates.booking_confirmation_render import (
     build_booking_confirmation_ics,
     booking_confirmation_template_merge_data,
@@ -449,6 +451,31 @@ def test_render_booking_confirmation_location_includes_directions_link() -> None
     assert "Get Directions" in html_doc
     assert 'href="https://maps.example/dir"' in html_doc
     assert "Get Directions: https://maps.example/dir" in plain
+
+
+def test_render_booking_confirmation_email_free_omits_payment_and_pending() -> None:
+    _s, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        course_label="Workshop",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        location_name=None,
+        payment_method_code="free",
+        total_amount="HK$0.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+        is_free=True,
+    )
+    assert "Payment method" not in html_doc
+    assert "pending until payment" not in html_doc.lower()
+    assert FREE_TOTAL_LABEL["en"] in html_doc
+    assert "#2C6C25" in html_doc
+    assert "Payment method:" not in plain
+    assert "pending until payment" not in plain.lower()
+    assert FREE_TOTAL_LABEL["en"] in plain
 
 
 def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:

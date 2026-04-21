@@ -270,3 +270,22 @@ def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
     body = "\n".join(lines)
     assert "Focus: Home routines" in body
     assert "Level: Essentials" in body
+
+
+def test_build_reservation_recap_lines_free_booking() -> None:
+    lines = n.build_reservation_recap_lines(
+        payload={
+            "attendee_name": "N",
+            "attendee_email": "n@example.com",
+            "attendee_phone": "1",
+            "child_age_group": "2",
+            "package_label": "P",
+            "month_label": "M",
+            "course_label": "C",
+            "payment_method": "free",
+            "total_amount": "0",
+        }
+    )
+    body = "\n".join(lines)
+    assert "Payment method: Free" in body
+    assert "Total amount: Free" in body

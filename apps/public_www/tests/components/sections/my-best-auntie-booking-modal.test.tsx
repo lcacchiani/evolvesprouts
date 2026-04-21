@@ -49,6 +49,7 @@ import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
+import { submitReservation } from '@/lib/reservations-data';
 import { formatPartDateTimeLabel } from '@/lib/site-datetime';
 
 vi.mock('next/image', () => ({
@@ -146,6 +147,16 @@ vi.mock('@/lib/reservation-payments-data', () => ({
     })),
 }));
 
+vi.mock('@/lib/reservations-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/reservations-data')>();
+  return {
+    ...actual,
+    submitReservation: vi.fn((client, opts) => {
+      return actual.submitReservation(client, opts);
+    }),
+  };
+});
+
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
   trackPublicFormOutcome: vi.fn(),
@@ -199,6 +210,7 @@ const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedCreatePublicApiClient = vi.mocked(createPublicApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
+const mockedSubmitReservation = vi.mocked(submitReservation);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 const mockedTrackPublicFormOutcome = vi.mocked(trackPublicFormOutcome);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
@@ -317,6 +329,7 @@ afterEach(() => {
   mockedCreatePublicApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
   mockedCreateReservationPaymentIntent.mockReset();
+  mockedSubmitReservation.mockClear();
   mockedTrackAnalyticsEvent.mockReset();
   mockedTrackPublicFormOutcome.mockReset();
   mockedStripeElementsProps.mockReset();
@@ -781,6 +794,143 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(breakdownPriceValue.className).toContain('font-bold');
     expect(within(priceBreakdown as HTMLDivElement).getByText('-HK$900')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
+  });
+
+  it('hides payment UI for a zero-priced cohort and submits paymentMethod free', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    const freeCohort = { ...selectedCohort, price: 0 };
+    const { container } = renderBookingModal({
+      selectedCohort: freeCohort,
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    expect(container.querySelector('div[data-booking-payment="true"]')).toBeNull();
+    expect(
+      screen.queryByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    ).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'u@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Topics' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockedSubmitReservation).toHaveBeenCalled();
+    });
+
+    expect(mockedSubmitReservation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          paymentMethod: 'free',
+          totalAmount: 0,
+        }),
+      }),
+    );
+  });
+
+  it('hides payment UI after a 100% discount and submits paymentMethod free', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'FULL',
+      type: 'percent',
+      value: 100,
+    });
+
+    const { container } = renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
+
+    const discountInput = screen.getByPlaceholderText(
+      bookingModalContent.discountCodePlaceholder,
+    ) as HTMLInputElement;
+    fireEvent.change(discountInput, { target: { value: 'FULL' } });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.applyDiscountLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(bookingModalContent.discountAppliedLabel)).toBeInTheDocument();
+    });
+
+    expect(container.querySelector('div[data-booking-payment="true"]')).toBeNull();
+    expect(
+      screen.queryByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    ).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'u@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Topics' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockedSubmitReservation).toHaveBeenCalled();
+    });
+
+    expect(mockedSubmitReservation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          paymentMethod: 'free',
+          totalAmount: 0,
+        }),
+      }),
+    );
   });
 
   it('shows spinning gear on discount Apply while validation is pending', async () => {

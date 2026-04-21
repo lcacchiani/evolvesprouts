@@ -26,7 +26,11 @@ export interface ReservationSummary {
   locationAddress?: string;
   /** Maps or venue URL for “Get directions” on the thank-you step. */
   locationDirectionHref?: string;
-  /** Raw payment method code from the form (fps_qr, bank_transfer, stripe). */
+  /**
+   * Raw payment method code from the form (fps_qr, bank_transfer, stripe, free).
+   * When `free`, the booking total is zero: omit payment method label and the
+   * thank-you recap payment row.
+   */
   paymentMethodCode?: ReservationPaymentMethodCode;
   /** Inline FPS QR for thank-you recap when payment is FPS. */
   fpsQrImageDataUrl?: string;

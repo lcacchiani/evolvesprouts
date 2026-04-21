@@ -481,7 +481,7 @@ export function ConsultationBookingModal({
         selectedAgeGroupLabel=''
         selectedCohortDateLabel={bookingPayload.selectedDateLabel}
         selectedDateStartTime={selectedDateStartTime}
-        selectedCohortPrice={bookingPayload.originalAmount}
+        originalPriceAmount={bookingPayload.originalAmount}
         venueName={bookingPayload.locationName}
         venueAddress={bookingPayload.locationAddress}
         venueDirectionHref={bookingPayload.directionHref ?? ''}
