@@ -1,16 +1,12 @@
-import type { components } from '@/types/generated/admin-api.generated';
-
-type ApiSchemas = components['schemas'];
-type ApiVendor = ApiSchemas['Vendor'];
-
+/** Vendor rows are organizations with `relationship_type: vendor` (Finance UI view-model). */
 export interface Vendor {
-  id: ApiVendor['id'];
-  name: ApiVendor['name'];
-  website: ApiVendor['website'];
-  active: ApiVendor['active'];
-  archivedAt: ApiVendor['archived_at'];
-  createdAt: ApiVendor['created_at'];
-  updatedAt: ApiVendor['updated_at'];
+  id: string;
+  name: string;
+  website: string | null;
+  active: boolean;
+  archivedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface VendorFilters {
