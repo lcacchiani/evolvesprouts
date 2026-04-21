@@ -297,13 +297,15 @@ paths:
         **on or before** `valid_until` (both ends inclusive).
 
         **Service scoping:** codes may be limited to a service and/or instance in Aurora.
-        Unscoped codes (no `service_id` / `instance_id`) validate like today. When the
-        code is scoped to a **service only**, the request must include a matching
-        `service_key` (matched case-insensitively against `services.slug`) or a matching
-        `service_id` UUID; if both are supplied, `service_key` wins. When the code is
-        scoped to an **instance**, the request must include `service_instance_id` equal
-        to the code's instance; otherwise this endpoint returns **404** (same generic
-        message as inactive codes).
+        Unscoped codes (no `service_id` / `instance_id`) validate regardless of
+        `service_key` (unknown slugs are ignored). When the code is scoped to a
+        **service only**, the request must include a matching `service_key` (matched
+        case-insensitively against `services.slug`) or a matching `service_id` UUID; if
+        both are supplied, `service_key` wins for resolving the request service. When the
+        code is scoped to an **instance**, the request must include `service_instance_id`
+        equal to the code's instance; `service_key` is optional and not used to reject
+        unknown slugs. Otherwise this endpoint returns **404** (same generic message as
+        inactive codes).
       security:
         - ApiKeyAuth: []
       requestBody:

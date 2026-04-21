@@ -100,25 +100,18 @@ def handle_public_discount_validate(
         extra={"code": mask_pii(code.strip().upper(), visible_chars=2)},
     )
 
-    with Session(get_engine()) as session:
-        resolved_service_id: UUID | None = None
-        if service_key and service_key.strip():
-            svc = ServiceRepository(session).get_by_slug(service_key)
-            if svc is None:
-                _log_discount_validate_rejection(
-                    _REJECTION_UNKNOWN_SERVICE_KEY,
-                    code=code,
-                    extra={"service_key": service_key.strip()},
-                )
-                return json_response(
-                    404,
-                    {"error": "Discount code not found or inactive"},
-                    event=event,
-                )
-            resolved_service_id = svc.id
-        elif service_id_body is not None:
-            resolved_service_id = service_id_body
+    service_key_normalized = (
+        service_key.strip() if service_key and service_key.strip() else ""
+    )
+    # When `service_key` is sent it wins over `service_id` in the body (OpenAPI).
+    # Slug resolution is deferred until after we load the code row so unscoped
+    # ("all services") codes are not rejected when the page sends a stale or
+    # placeholder `service_key` that does not match `services.slug`.
+    resolved_service_id: UUID | None = (
+        None if service_key_normalized else service_id_body
+    )
 
+    with Session(get_engine()) as session:
         repository = DiscountCodeRepository(session)
         row = repository.get_by_code(code)
         if row is None:
@@ -158,6 +151,25 @@ def handle_public_discount_validate(
                 event=event,
             )
 
+        if service_key_normalized:
+            resolved_from_key, slug_unknown = _resolve_service_id_from_key_for_row(
+                session,
+                row,
+                service_key_normalized,
+            )
+            if slug_unknown:
+                _log_discount_validate_rejection(
+                    _REJECTION_UNKNOWN_SERVICE_KEY,
+                    code=code,
+                    extra={"service_key": service_key_normalized},
+                )
+                return json_response(
+                    404,
+                    {"error": "Discount code not found or inactive"},
+                    event=event,
+                )
+            resolved_service_id = resolved_from_key
+
         scope_reason = _scope_rejection_reason(
             row,
             resolved_request_service_id=resolved_service_id,
@@ -187,6 +199,35 @@ def handle_public_discount_validate(
             },
             event=event,
         )
+
+
+def _resolve_service_id_from_key_for_row(
+    session: Session,
+    row: DiscountCode,
+    service_key: str,
+) -> tuple[UUID | None, bool]:
+    """Resolve `service_key` to a service id when needed for scope checks.
+
+    Returns ``(resolved_service_id, slug_unknown)``. When ``slug_unknown`` is True,
+    the slug did not match any ``services.slug`` row while the code requires that
+    resolution (service-scoped code only).
+
+    Instance-scoped codes ignore ``service_key`` for resolution (instance id is
+    authoritative). Unscoped codes do not resolve the slug; an unknown slug must
+    not invalidate the code.
+    """
+    instance_id = getattr(row, "instance_id", None)
+    if instance_id is not None:
+        return (None, False)
+
+    service_id = getattr(row, "service_id", None)
+    if service_id is None:
+        return (None, False)
+
+    svc = ServiceRepository(session).get_by_slug(service_key)
+    if svc is None:
+        return (None, True)
+    return (svc.id, False)
 
 
 def _scope_rejection_reason(
