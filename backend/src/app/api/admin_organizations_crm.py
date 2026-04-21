@@ -7,6 +7,7 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
@@ -28,7 +29,10 @@ from app.api.admin_request import (
     query_param,
 )
 from app.api.admin_services_payload_utils import parse_optional_uuid, parse_uuid_list
-from app.api.admin_validators import validate_string_length
+from app.api.admin_validators import (
+    parse_optional_service_instance_slug,
+    validate_string_length,
+)
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -38,6 +42,7 @@ from app.db.models import (
     OrganizationMember,
     OrganizationRole,
     OrganizationType,
+    RelationshipType,
 )
 from app.db.repositories import OrganizationRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
@@ -120,6 +125,41 @@ def _parse_organization_role(value: Any, *, field: str) -> OrganizationRole:
         return OrganizationRole(str(value).strip().lower())
     except ValueError as exc:
         raise ValidationError(f"Invalid {field}", field=field) from exc
+
+
+def _apply_organization_slug_from_body(
+    org: Organization,
+    body: Mapping[str, Any],
+    *,
+    relationship_type: RelationshipType | None = None,
+) -> None:
+    """Set slug from request body; only partner orgs may have a slug."""
+    if "slug" not in body:
+        return
+    slug = parse_optional_service_instance_slug(body.get("slug"), field="slug")
+    effective = (
+        relationship_type if relationship_type is not None else org.relationship_type
+    )
+    if effective != RelationshipType.PARTNER:
+        if slug is not None:
+            raise ValidationError(
+                "slug is only allowed when relationship_type is partner",
+                field="slug",
+            )
+        org.slug = None
+        return
+    org.slug = slug
+
+
+def _is_organizations_partner_slug_unique_violation(exc: IntegrityError) -> bool:
+    constraint = getattr(getattr(exc, "orig", None), "diag", None)
+    constraint_name = (
+        getattr(constraint, "constraint_name", None) if constraint else None
+    )
+    if constraint_name == "organizations_partner_slug_unique_idx":
+        return True
+    message = str(exc).lower()
+    return "organizations_partner_slug_unique_idx" in message
 
 
 def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -207,12 +247,25 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
             website=website,
             location_id=location_id,
         )
+        _apply_organization_slug_from_body(
+            org, body, relationship_type=relationship_type
+        )
         created = repository.create(org)
         if tag_ids:
             replace_organization_tags(
                 session, organization_id=created.id, tag_ids=tag_ids
             )
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_organizations_partner_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Slug already in use",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         loaded = repository.get_crm_organization_by_id(created.id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after create")
@@ -258,6 +311,8 @@ def _update_organization(
                 field="relationship_type",
                 forbid_vendor=True,
             )
+            if org.relationship_type != RelationshipType.PARTNER:
+                org.slug = None
         if "website" in body:
             org.website = validate_string_length(
                 body.get("website"),
@@ -278,8 +333,20 @@ def _update_organization(
             tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
             replace_organization_tags(session, organization_id=org.id, tag_ids=tag_ids)
 
+        _apply_organization_slug_from_body(org, body)
+
         repository.update(org)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_organizations_partner_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Slug already in use",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         loaded = repository.get_crm_organization_by_id(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after update")

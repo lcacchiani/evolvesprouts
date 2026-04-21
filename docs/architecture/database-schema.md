@@ -393,6 +393,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `organizations` and `organization_members`
 
 - `organizations` stores external organization entities.
+- `organizations.slug` is an optional URL-safe identifier used when
+  `relationship_type` is `partner`; uniqueness is enforced case-insensitively
+  among partner rows with a non-null slug (partial unique index).
 - `organizations.location_id` optionally links an organization to a canonical
   row in `locations` for address management.
 - `organization_members` links contacts to organizations with role/title.

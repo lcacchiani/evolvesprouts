@@ -66,6 +66,7 @@ class Organization(Base):
         server_default=text("'prospect'"),
     )
     website: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    slug: Mapped[str | None] = mapped_column(String(128), nullable=True)
     location_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("locations.id", ondelete="SET NULL"),

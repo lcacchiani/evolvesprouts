@@ -92,6 +92,7 @@ export function OrganizationsPanel({
   const [organizationType, setOrganizationType] =
     useState<ApiSchemas['CrmOrganizationType']>('company');
   const [relationshipType, setRelationshipType] = useState<CrmEntityRelationshipType>('prospect');
+  const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
   const [locationId, setLocationId] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -133,6 +134,7 @@ export function OrganizationsPanel({
     setName('');
     setOrganizationType('company');
     setRelationshipType('prospect');
+    setSlug('');
     setWebsite('');
     setLocationId('');
     setTagIds([]);
@@ -149,6 +151,8 @@ export function OrganizationsPanel({
           name: name.trim(),
           organization_type: organizationType,
           relationship_type: relationshipType,
+          slug:
+            relationshipType === 'partner' ? slug.trim() || null : null,
           website: website.trim() || null,
           location_id: loc,
           tag_ids: tagIds,
@@ -163,6 +167,8 @@ export function OrganizationsPanel({
         name: name.trim(),
         organization_type: organizationType,
         relationship_type: relationshipType,
+        slug:
+          relationshipType === 'partner' ? slug.trim() || null : null,
         website: website.trim() || null,
         location_id: loc,
         active,
@@ -199,6 +205,7 @@ export function OrganizationsPanel({
     setName(row.name);
     setOrganizationType(row.organization_type);
     setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
+    setSlug(row.slug ?? '');
     setWebsite(row.website ?? '');
     setLocationId(row.location_id ?? '');
     setTagIds([...row.tag_ids]);
@@ -254,9 +261,13 @@ export function OrganizationsPanel({
             <Select
               id='crm-org-rel'
               value={relationshipType}
-              onChange={(e) =>
-                setRelationshipType(e.target.value as CrmEntityRelationshipType)
-              }
+              onChange={(e) => {
+                const next = e.target.value as CrmEntityRelationshipType;
+                setRelationshipType(next);
+                if (next !== 'partner') {
+                  setSlug('');
+                }
+              }}
             >
               {crmRelationshipOptions.map((v) => (
                 <option key={v} value={v}>
@@ -265,6 +276,22 @@ export function OrganizationsPanel({
               ))}
             </Select>
           </div>
+          {relationshipType === 'partner' ? (
+            <div>
+              <Label htmlFor='crm-org-slug'>Slug</Label>
+              <Input
+                id='crm-org-slug'
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                autoComplete='off'
+                placeholder='e.g. acme-partners'
+              />
+              <p className='mt-1 text-sm text-slate-600'>
+                Lowercase letters, numbers, and hyphens only. Optional; must be unique among partner
+                organisations.
+              </p>
+            </div>
+          ) : null}
           <div>
             <Label htmlFor='crm-org-web'>Website</Label>
             <Input
