@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
@@ -119,10 +120,7 @@ export function OrganizationsPanel({
     [rows, selectedId]
   );
 
-  const inlineLocationStateKey =
-    editorMode === 'create'
-      ? `org-new:${pendingLocationId ?? 'none'}`
-      : `org:${selectedId ?? 'none'}:${pendingLocationId ?? 'none'}`;
+  const inlineLocationStateKey = editorMode === 'create' ? 'org-new' : `org:${selectedId ?? 'none'}`;
 
   const resolvedLocation = useMemo(() => {
     if (!pendingLocationId) {
@@ -157,7 +155,7 @@ export function OrganizationsPanel({
   }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
 
   function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
-    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? '';
+    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? 'Unknown area';
     return {
       id: loc.id,
       name: loc.name,
@@ -173,9 +171,9 @@ export function OrganizationsPanel({
     status: locationSaveStatus,
     createSharedLocation,
     updateSharedLocation,
-    geocode: geocodeLocation,
     clearError: clearLocationSaveError,
   } = useInlineLocationSave(refreshLocations);
+  const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
 
   const locationLockedReadOnly = Boolean(resolvedLocation?.lockedFromPartnerOrg);
 
@@ -190,6 +188,14 @@ export function OrganizationsPanel({
   }, [contactOptions, contactsForMembership, selectedId]);
 
   function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
+      const ok = window.confirm(
+        'You saved an address to a new location but have not finished creating this organisation yet. Leave anyway? The location row stays in the directory.'
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setEditorMode('create');
     setSelectedId(null);
     setName('');
@@ -373,9 +379,15 @@ export function OrganizationsPanel({
               embeddedSummary={embeddedLocationSummary}
               areas={geographicAreas}
               areasLoading={areasLoading}
-              canModify={!locationLockedReadOnly}
+              canModify
+              allowClearWhenLocked={locationLockedReadOnly}
+              lockedSummaryExtra={
+                locationLockedReadOnly
+                  ? 'To change the venue name or switch to a different address, use Services → Venues or update the partner organisation record.'
+                  : null
+              }
               isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationSaveStatus.isGeocoding}
+              isGeocoding={locationGeocoding}
               saveError={locationSaveStatus.error}
               onRequestEdit={() => {}}
               onCancelEdit={() => {}}

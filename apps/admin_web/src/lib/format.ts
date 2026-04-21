@@ -42,10 +42,12 @@ export function formatCrmVenueLocationLabel(location: {
   return location.id;
 }
 
+const COORD_DISPLAY_FRACTION_DIGITS = 5;
+
 /** Single-line coordinates display for admin location summaries. */
 export function formatLocationCoordinatesLabel(lat: number | null, lng: number | null): string {
   if (lat !== null && lng !== null) {
-    return `${lat}, ${lng}`;
+    return `${lat.toFixed(COORD_DISPLAY_FRACTION_DIGITS)}, ${lng.toFixed(COORD_DISPLAY_FRACTION_DIGITS)}`;
   }
   return 'No coordinates set';
 }

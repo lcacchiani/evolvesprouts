@@ -13,11 +13,9 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
-import { toErrorMessage } from '@/hooks/hook-errors';
+import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
+import { formatGeocodeErrorMessage } from '@/hooks/hook-errors';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
-import { AdminApiError } from '@/lib/api-admin-client';
-
 import { computeLatLngErrors, parseOptionalCoordinate } from '@/components/admin/locations/inline-location-validation';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -63,7 +61,7 @@ export function VenuesPanel({
   onUpdatePartial,
   onDelete,
 }: VenuesPanelProps) {
-  const { geocode: geocodeLocation, status: inlineLocStatus } = useInlineLocationSave(async () => {});
+  const { geocode: geocodeLocation, isGeocoding } = useGeocodeVenueAddress();
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
@@ -73,8 +71,6 @@ export function VenuesPanel({
   const [lat, setLatState] = useState('');
   const [lng, setLngState] = useState('');
   const [geocodeError, setGeocodeError] = useState('');
-  const isGeocoding = inlineLocStatus.isGeocoding;
-
   const setAreaId = (v: string) => {
     setGeocodeError('');
     setAreaIdState(v);
@@ -153,11 +149,12 @@ export function VenuesPanel({
       setLat(String(result.lat));
       setLng(String(result.lng));
     } catch (error) {
-      const fallback =
-        error instanceof AdminApiError && error.statusCode === 404
-          ? 'Geocoding is not available in this environment yet.'
-          : 'Geocoding failed. Check the address and geographic area, then try again.';
-      setGeocodeError(toErrorMessage(error, fallback));
+      setGeocodeError(
+        formatGeocodeErrorMessage(
+          error,
+          'Geocoding failed. Check the address and geographic area, then try again.'
+        )
+      );
     }
   };
 

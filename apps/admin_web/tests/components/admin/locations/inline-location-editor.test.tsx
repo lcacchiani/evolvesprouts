@@ -48,7 +48,7 @@ describe('InlineLocationEditor', () => {
     );
 
     expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
-    expect(screen.getByText('22.1, 114.2')).toBeInTheDocument();
+    expect(screen.getByText('22.10000, 114.20000')).toBeInTheDocument();
   });
 
   it('disables Save location until an area is selected', async () => {
@@ -143,9 +143,118 @@ describe('InlineLocationEditor', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('The requested resource is not available in this deployment yet.')
+        screen.getByText('Geocoding is not available in this environment yet.')
       ).toBeInTheDocument();
     });
+  });
+
+  it('does not show propagation helper on create-new path', () => {
+    render(
+      <InlineLocationEditor
+        stateKey='new1'
+        location={null}
+        areas={[baseArea]}
+        areasLoading={false}
+        canModify
+        isSaving={false}
+        onRequestEdit={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onSaveCreate={vi.fn()}
+        onSaveUpdate={vi.fn()}
+        onClear={vi.fn()}
+        onGeocode={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.queryByText('Editing updates this location wherever it is used.')
+    ).not.toBeInTheDocument();
+  });
+
+  it('PATCH update sends partial fields without name', async () => {
+    const user = userEvent.setup();
+    const onSaveUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InlineLocationEditor
+        stateKey='patch1'
+        location={{
+          id: 'loc-1',
+          name: 'Central Studio',
+          areaId: 'area-1',
+          address: '1 Road',
+          lat: 22,
+          lng: 114,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: false,
+          partnerOrganizationLabels: [],
+        }}
+        areas={[baseArea]}
+        areasLoading={false}
+        canModify
+        isSaving={false}
+        onRequestEdit={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onSaveCreate={vi.fn()}
+        onSaveUpdate={onSaveUpdate}
+        onClear={vi.fn()}
+        onGeocode={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Change' }));
+    await user.clear(screen.getByLabelText('Address'));
+    await user.type(screen.getByLabelText('Address'), '2 Road');
+    await user.click(screen.getByRole('button', { name: 'Update location' }));
+
+    await waitFor(() => {
+      expect(onSaveUpdate).toHaveBeenCalledWith('loc-1', {
+        area_id: 'area-1',
+        address: '2 Road',
+        lat: 22,
+        lng: 114,
+      });
+    });
+    expect(onSaveUpdate.mock.calls[0][1]).not.toHaveProperty('name');
+  });
+
+  it('allowClearWhenLocked shows Clear without Change', async () => {
+    const user = userEvent.setup();
+    const onClear = vi.fn();
+
+    render(
+      <InlineLocationEditor
+        stateKey='ac1'
+        location={{
+          id: 'loc-1',
+          name: null,
+          areaId: 'area-1',
+          address: 'A',
+          lat: null,
+          lng: null,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: true,
+          partnerOrganizationLabels: ['X'],
+        }}
+        areas={[baseArea]}
+        areasLoading={false}
+        canModify
+        allowClearWhenLocked
+        isSaving={false}
+        onRequestEdit={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onSaveCreate={vi.fn()}
+        onSaveUpdate={vi.fn()}
+        onClear={onClear}
+        onGeocode={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(onClear).toHaveBeenCalled();
   });
 
   it('partner-org-locked: hides Change and Clear and shows managed note', () => {

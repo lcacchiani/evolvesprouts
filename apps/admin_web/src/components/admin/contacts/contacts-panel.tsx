@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
@@ -134,14 +135,6 @@ export function ContactsPanel({
     };
   }, []);
 
-  const {
-    status: locationSaveStatus,
-    createSharedLocation,
-    updateSharedLocation,
-    geocode: geocodeLocation,
-    clearError: clearLocationSaveError,
-  } = useInlineLocationSave(refreshLocations);
-
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -167,6 +160,14 @@ export function ContactsPanel({
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
 
+  const {
+    status: locationSaveStatus,
+    createSharedLocation,
+    updateSharedLocation,
+    clearError: clearLocationSaveError,
+  } = useInlineLocationSave(refreshLocations);
+  const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
+
   const selected = useMemo(
     () => rows.find((c) => c.id === selectedId) ?? null,
     [rows, selectedId]
@@ -176,9 +177,7 @@ export function ContactsPanel({
   const locationFieldLocked = linkedToFamilyOrOrg;
 
   const inlineLocationStateKey =
-    editorMode === 'create'
-      ? `contact-new:${pendingLocationId ?? 'none'}`
-      : `contact:${selectedId ?? 'none'}:${pendingLocationId ?? 'none'}`;
+    editorMode === 'create' ? 'contact-new' : `contact:${selectedId ?? 'none'}`;
 
   const resolvedLocation = useMemo(() => {
     if (!pendingLocationId) {
@@ -213,7 +212,7 @@ export function ContactsPanel({
   }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
 
   function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
-    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? '';
+    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? 'Unknown area';
     return {
       id: loc.id,
       name: loc.name,
@@ -304,6 +303,14 @@ export function ContactsPanel({
   }, [referralContactId, source]);
 
   function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
+      const ok = window.confirm(
+        'You saved an address to a new location but have not finished creating this contact yet. Leave anyway? The location row stays in the directory.'
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setEditorMode('create');
     setSelectedId(null);
     setFirstName('');
@@ -648,7 +655,7 @@ export function ContactsPanel({
                   : null
               }
               isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationSaveStatus.isGeocoding}
+              isGeocoding={locationGeocoding}
               saveError={locationSaveStatus.error}
               onRequestEdit={() => {}}
               onCancelEdit={() => {}}

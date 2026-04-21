@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
@@ -107,9 +108,7 @@ export function FamiliesPanel({
   );
 
   const inlineLocationStateKey =
-    editorMode === 'create'
-      ? `family-new:${pendingLocationId ?? 'none'}`
-      : `family:${selectedId ?? 'none'}:${pendingLocationId ?? 'none'}`;
+    editorMode === 'create' ? 'family-new' : `family:${selectedId ?? 'none'}`;
 
   const resolvedLocation = useMemo(() => {
     if (!pendingLocationId) {
@@ -144,7 +143,7 @@ export function FamiliesPanel({
   }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
 
   function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
-    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? '';
+    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? 'Unknown area';
     return {
       id: loc.id,
       name: loc.name,
@@ -160,9 +159,9 @@ export function FamiliesPanel({
     status: locationSaveStatus,
     createSharedLocation,
     updateSharedLocation,
-    geocode: geocodeLocation,
     clearError: clearLocationSaveError,
   } = useInlineLocationSave(refreshLocations);
+  const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
 
   const memberContactOptions = useMemo(() => {
     return contactOptions.filter((c) => {
@@ -175,6 +174,14 @@ export function FamiliesPanel({
   }, [contactOptions, contactsForMembership, selectedId]);
 
   function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
+      const ok = window.confirm(
+        'You saved an address to a new location but have not finished creating this family yet. Leave anyway? The location row stays in the directory.'
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setEditorMode('create');
     setSelectedId(null);
     setFamilyName('');
@@ -308,7 +315,7 @@ export function FamiliesPanel({
               areasLoading={areasLoading}
               canModify
               isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationSaveStatus.isGeocoding}
+              isGeocoding={locationGeocoding}
               saveError={locationSaveStatus.error}
               onRequestEdit={() => {}}
               onCancelEdit={() => {}}

@@ -2,9 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-const { createLocation, geocodeVenueAddress } = vi.hoisted(() => ({
+const { createLocation, geocodeVenueAddress, updateLocationPartial } = vi.hoisted(() => ({
   createLocation: vi.fn(),
   geocodeVenueAddress: vi.fn(),
+  updateLocationPartial: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/lib/services-api', async () => {
@@ -13,6 +14,7 @@ vi.mock('@/lib/services-api', async () => {
     ...actual,
     createLocation,
     geocodeVenueAddress,
+    updateLocationPartial,
   };
 });
 
@@ -179,7 +181,7 @@ describe('ContactsPanel', () => {
     expect(deleteContact).toHaveBeenCalledWith(row.id);
   });
 
-  it('shows list error from the hook in the table card', () => {
+  it('shows list error from the hook in the table card', async () => {
     const contacts = buildContactsHook({ error: 'Failed to load contacts' });
 
     render(
@@ -195,7 +197,9 @@ describe('ContactsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();
+    });
   });
 
   it('shows read-only location summary when contact is linked to family', async () => {
@@ -248,7 +252,7 @@ describe('ContactsPanel', () => {
     await user.click(screen.getByText('Ann Lee'));
 
     expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
-    expect(screen.getByText('22.1, 114.2')).toBeInTheDocument();
+    expect(screen.getByText('22.10000, 114.20000')).toBeInTheDocument();
     expect(
       screen.getByText('Location is managed on the linked family or organisation.')
     ).toBeInTheDocument();
@@ -315,5 +319,74 @@ describe('ContactsPanel', () => {
         location_id: 'loc-new',
       })
     );
+  });
+
+  it('sends location_id null on update after Clear', async () => {
+    const user = userEvent.setup();
+    const updateContact = vi.fn().mockResolvedValue(null);
+    const row: components['schemas']['AdminContact'] = {
+      id: '22222222-2222-2222-2222-222222222222',
+      first_name: 'Bob',
+      last_name: null,
+      email: null,
+      instagram_handle: null,
+      phone: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      mailchimp_status: 'pending',
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      family_ids: [],
+      organization_ids: [],
+      location_id: 'loc-1',
+      location_summary: null,
+      standalone_note_count: 0,
+    };
+    const contacts = buildContactsHook({
+      updateContact,
+      contacts: [row],
+    });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[
+          {
+            id: 'loc-1',
+            name: null,
+            areaId: 'area-hk',
+            address: 'X',
+            lat: null,
+            lng: null,
+            createdAt: null,
+            updatedAt: null,
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
+          },
+        ]}
+        geographicAreas={[hkArea]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    await user.click(screen.getByText('Bob'));
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    await user.click(screen.getByRole('button', { name: 'Update contact' }));
+
+    expect(updateContact).toHaveBeenCalledWith(
+      row.id,
+      expect.objectContaining({
+        location_id: null,
+      })
+    );
+    expect(updateLocationPartial).not.toHaveBeenCalled();
   });
 });

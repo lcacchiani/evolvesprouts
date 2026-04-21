@@ -7,8 +7,7 @@ import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { toErrorMessage } from '@/hooks/hook-errors';
-import { AdminApiError } from '@/lib/api-admin-client';
+import { formatGeocodeErrorMessage } from '@/hooks/hook-errors';
 import { formatCrmVenueLocationLabel, formatEnumLabel, formatLocationCoordinatesLabel } from '@/lib/format';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -41,16 +40,17 @@ export interface InlineLocationEditorProps {
   onRequestEdit(): void;
   onCancelEdit(): void;
   onSaveCreate(payload: ApiSchemas['CreateLocationRequest']): Promise<string | null>;
-  onSaveUpdate(
-    id: string,
-    payload: ApiSchemas['UpdateLocationRequest'] | ApiSchemas['PartialUpdateLocationRequest']
-  ): Promise<void>;
+  onSaveUpdate(id: string, payload: ApiSchemas['PartialUpdateLocationRequest']): Promise<void>;
   onClear(): void;
   onGeocode(args: { area_id: string; address: string }): Promise<{ lat: number; lng: number }>;
   /** When true, geocode / save-location runs are in flight (disables actions). */
   isGeocoding?: boolean;
   /** Hook-level error (e.g. create/update location failed). */
   saveError?: string;
+  /** Allow Clear to unlink the owner when the linked venue is partner-org locked (Change stays hidden). */
+  allowClearWhenLocked?: boolean;
+  /** Extra line under the partner-managed copy when the location is partner-locked (for example orgs screen). */
+  lockedSummaryExtra?: string | null;
 }
 
 function resolveDisplaySummary(
@@ -136,6 +136,8 @@ function InlineLocationEditorInner({
   onGeocode,
   isGeocoding = false,
   saveError = '',
+  allowClearWhenLocked = false,
+  lockedSummaryExtra,
 }: InnerProps) {
   const initial = deriveInitialDraft(canModify, location, embeddedSummary);
   const [isEditing, setIsEditing] = useState(initial.isEditing);
@@ -262,11 +264,12 @@ function InlineLocationEditorInner({
       setLatState(String(result.lat));
       setLngState(String(result.lng));
     } catch (error) {
-      const fallback =
-        error instanceof AdminApiError && error.statusCode === 404
-          ? 'Geocoding is not available in this environment yet.'
-          : 'Geocoding failed. Check the address and geographic area, then try again.';
-      setGeocodeError(toErrorMessage(error, fallback));
+      setGeocodeError(
+        formatGeocodeErrorMessage(
+          error,
+          'Geocoding failed. Check the address and geographic area, then try again.'
+        )
+      );
     }
   }
 
@@ -278,15 +281,15 @@ function InlineLocationEditorInner({
     const lngParsed = parseOptionalCoordinate(lng);
     const latValue: number | null = latTrim === '' ? null : (latParsed as number);
     const lngValue: number | null = lngTrim === '' ? null : (lngParsed as number);
-    const payload: ApiSchemas['CreateLocationRequest'] = {
-      area_id: areaId,
-      name: null,
-      address: address.trim() || null,
-      lat: latValue,
-      lng: lngValue,
-    };
     if (!location) {
-      const id = await onSaveCreate(payload);
+      const createPayload: ApiSchemas['CreateLocationRequest'] = {
+        area_id: areaId,
+        name: null,
+        address: address.trim() || null,
+        lat: latValue,
+        lng: lngValue,
+      };
+      const id = await onSaveCreate(createPayload);
       if (id) {
         setIsEditing(false);
       }
@@ -295,8 +298,14 @@ function InlineLocationEditorInner({
     if (lockedFromPartner) {
       return;
     }
+    const partialPayload: ApiSchemas['PartialUpdateLocationRequest'] = {
+      area_id: areaId,
+      address: address.trim() || null,
+      lat: latValue,
+      lng: lngValue,
+    };
     try {
-      await onSaveUpdate(location.id, payload);
+      await onSaveUpdate(location.id, partialPayload);
       setIsEditing(false);
     } catch {
       // Parent surfaces error; keep edit mode.
@@ -305,6 +314,8 @@ function InlineLocationEditorInner({
 
   const showReadBlock = Boolean(displaySummary) && !isEditing;
   const showEditForm = canModify && !effectiveReadOnly && (isEditing || (!location && !embeddedSummary));
+  const showChangeButton = canModify && !lockedFromPartner;
+  const showClearButton = canModify && (!lockedFromPartner || allowClearWhenLocked);
 
   if (!canModify && displaySummary) {
     return (
@@ -322,6 +333,9 @@ function InlineLocationEditorInner({
               : ''}
             .
           </p>
+        ) : null}
+        {lockedFromPartner && lockedSummaryExtra ? (
+          <p className='text-sm text-slate-600'>{lockedSummaryExtra}</p>
         ) : null}
         {readOnlyNote ? <p className='text-sm text-slate-600'>{readOnlyNote}</p> : null}
       </div>
@@ -356,28 +370,35 @@ function InlineLocationEditorInner({
                 .
               </p>
             ) : null}
-            {canModify && !lockedFromPartner ? (
+            {lockedFromPartner && lockedSummaryExtra ? (
+              <p className='text-sm text-slate-600'>{lockedSummaryExtra}</p>
+            ) : null}
+            {showChangeButton || showClearButton ? (
               <div className='flex flex-wrap gap-2'>
-                <Button type='button' size='sm' variant='secondary' disabled={isSaving} onClick={handleRequestEdit}>
-                  Change
-                </Button>
-                <Button
-                  type='button'
-                  size='sm'
-                  variant='danger'
-                  disabled={isSaving}
-                  onClick={() => {
-                    onClear();
-                    setIsEditing(true);
-                    setAreaIdState('');
-                    setAddressState('');
-                    setLatState('');
-                    setLngState('');
-                    setGeocodeError('');
-                  }}
-                >
-                  Clear
-                </Button>
+                {showChangeButton ? (
+                  <Button type='button' size='sm' variant='secondary' disabled={isSaving} onClick={handleRequestEdit}>
+                    Change
+                  </Button>
+                ) : null}
+                {showClearButton ? (
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='danger'
+                    disabled={isSaving}
+                    onClick={() => {
+                      onClear();
+                      setIsEditing(true);
+                      setAreaIdState('');
+                      setAddressState('');
+                      setLatState('');
+                      setLngState('');
+                      setGeocodeError('');
+                    }}
+                  >
+                    Clear
+                  </Button>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -432,7 +453,9 @@ function InlineLocationEditorInner({
                 />
               </div>
             </div>
-            <p className='text-sm text-slate-600'>Editing updates this location wherever it is used.</p>
+            {location || embeddedSummary ? (
+              <p className='text-sm text-slate-600'>Editing updates this location wherever it is used.</p>
+            ) : null}
             {saveError ? <AdminInlineError>{saveError}</AdminInlineError> : null}
             {geocodeError ? <AdminInlineError>{geocodeError}</AdminInlineError> : null}
             {(latParseError || lngParseError) ? (
