@@ -115,6 +115,12 @@ PAYMENT_METHOD_LABELS: dict[str, str] = {
     "stripe": "Credit Card",
 }
 
+FREE_TOTAL_LABEL: dict[str, str] = {
+    "en": "Free",
+    "zh-CN": "免费",
+    "zh-HK": "免費",
+}
+
 CLOSING_NOTE: dict[str, str] = {
     "en": "We look forward to seeing you! If you have any questions beforehand, we're happy to help.",
     "zh-CN": "期待与您见面！如有任何问题，欢迎随时联系我们。",

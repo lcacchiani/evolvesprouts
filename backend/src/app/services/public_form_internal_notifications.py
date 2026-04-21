@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from decimal import Decimal
 from functools import lru_cache
 from typing import Any, Mapping
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -309,6 +310,15 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
     question_heading = (
         f"Question ({question_label})" if question_label else "Interested topics"
     )
+    pm_raw = str(payload.get("payment_method") or "").strip().lower()
+    total_raw = payload.get("total_amount")
+    try:
+        total_is_zero = Decimal(str(total_raw or 0)) == Decimal("0")
+    except Exception:
+        total_is_zero = False
+    is_free_recap = pm_raw == "free" or total_is_zero
+    payment_recap = "Free" if is_free_recap else str(payload.get("payment_method", ""))
+    total_recap = "Free" if is_free_recap else str(payload.get("total_amount", ""))
     lines = [
         "Form: Reservation / booking",
         "",
@@ -319,8 +329,8 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Package: {payload.get('package_label', '') or '(not set)'}",
         f"Month: {payload.get('month_label', '') or '(not set)'}",
         f"Course: {payload.get('course_label', '')}",
-        f"Payment method: {payload.get('payment_method', '')}",
-        f"Total amount: {payload.get('total_amount', '')}",
+        f"Payment method: {payment_recap}",
+        f"Total amount: {total_recap}",
     ]
     if payload.get("cohort_date"):
         lines.append(f"Cohort date: {payload['cohort_date']}")

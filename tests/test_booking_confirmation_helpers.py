@@ -106,3 +106,23 @@ def test_booking_confirmation_template_merge_includes_directions_when_url() -> N
     assert "Hong Kong" in data["location_block_html"]
     assert "Get Directions: https://maps.example/dir" in data["location_plain"]
     assert "Venue\nHong Kong" in data["location_plain"]
+
+
+def test_booking_confirmation_template_merge_data_free_omits_payment() -> None:
+    data = booking_confirmation_template_merge_data(
+        locale="en",
+        full_name="A",
+        course_label="Workshop",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        payment_method_code="free",
+        total_amount="HK$0.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        is_free=True,
+    )
+    assert "payment_method" not in data
+    assert data["total_amount"] == "Free"
+    assert data["is_free"] is True
+    assert data["is_pending_payment"] is False
+    assert data["include_fps_instructions"] is False

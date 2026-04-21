@@ -188,4 +188,32 @@ describe('BookingThankYouModal', () => {
     revokeSpy.mockRestore();
     clickSpy.mockRestore();
   });
+
+  it('hides payment row and shows free total for free reservations', () => {
+    const summary: ReservationSummary = {
+      attendeeName: 'Pat',
+      attendeeEmail: 'pat@example.com',
+      attendeePhone: '123',
+      paymentMethod: '',
+      paymentMethodCode: 'free',
+      totalAmount: 0,
+      eventTitle: 'Workshop',
+      courseSlug: 'event-booking',
+    };
+
+    render(
+      <BookingThankYouModal
+        locale='en'
+        content={thankYouEn}
+        summary={summary}
+        analyticsSectionId='test'
+        onClose={() => {}}
+      />,
+    );
+
+    expect(screen.queryByText(thankYouEn.paymentMethodLabel)).not.toBeInTheDocument();
+    const freeTotal = screen.getByText(thankYouEn.freeTotalLabel);
+    expect(freeTotal.className).toContain('es-text-success');
+    expect(screen.queryByText(thankYouEn.fpsReservationPendingNote)).not.toBeInTheDocument();
+  });
 });

@@ -191,8 +191,12 @@ export function BookingThankYouModal({
     summary,
     content.summaryLocationVirtualFallback,
   );
+  const isFreeReservation =
+    summary?.paymentMethodCode === 'free' || summary?.totalAmount === 0;
   const amountLine = summary
-    ? formatCurrencyHkd(summary.totalAmount, locale)
+    ? isFreeReservation
+      ? content.freeTotalLabel
+      : formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
   const isFpsPayment = summary?.paymentMethodCode === 'fps_qr';
   const paymentMethodLine = isFpsPayment
@@ -446,6 +450,7 @@ export function BookingThankYouModal({
                 </div>
               </div>
 
+              {!isFreeReservation ? (
               <div className='es-booking-thank-you-recap-row-border py-4'>
                 <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
                   <dt className='es-booking-thank-you-recap-label'>
@@ -461,6 +466,7 @@ export function BookingThankYouModal({
                   </dd>
                 </div>
               </div>
+              ) : null}
 
               <div className='pt-4'>
                 <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
@@ -468,7 +474,11 @@ export function BookingThankYouModal({
                     {content.totalLabel}
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
+                    {isFreeReservation ? (
+                      <span className='block es-text-success font-semibold'>{amountLine}</span>
+                    ) : (
                     <span className='block'>{amountLine}</span>
+                    )}
                     {isFpsPayment ? (
                       <>
                         <span className='mt-3 block text-base font-semibold leading-6'>

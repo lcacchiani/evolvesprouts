@@ -33,6 +33,7 @@ export function BookingEventDetailsPriceVenue({
   embedded = false,
 }: BookingEventDetailsPriceVenueProps) {
   const showDirectionsLink = getHrefKind(directionHref.trim()) === 'http';
+  const isFreePrice = originalAmount <= 0;
 
   const inner = (
     <Fragment>
@@ -51,8 +52,14 @@ export function BookingEventDetailsPriceVenue({
             />
           </span>
           <div>
-            <p className='text-[26px] font-bold leading-none es-text-heading'>
-              {formatCurrencyHkd(originalAmount, locale)}
+            <p
+              className={
+                isFreePrice
+                  ? 'text-[26px] font-bold leading-none es-text-success'
+                  : 'text-[26px] font-bold leading-none es-text-heading'
+              }
+            >
+              {isFreePrice ? content.priceBreakdownFreeLabel : formatCurrencyHkd(originalAmount, locale)}
             </p>
             <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
               {content.refundHint}

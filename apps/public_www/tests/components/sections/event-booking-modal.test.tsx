@@ -9,6 +9,7 @@ import enContent from '@/content/en.json';
 import type { EventCalendarBookingModalPayload } from '@/lib/events-data';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
+import { submitReservation } from '@/lib/reservations-data';
 
 vi.mock('@/lib/hooks/use-modal-lock-body', () => ({
   useModalLockBody: () => {},
@@ -57,6 +58,16 @@ vi.mock('@/lib/reservation-payments-data', () => ({
       client_secret: 'pi_mock_123_secret_abc',
     })),
 }));
+
+vi.mock('@/lib/reservations-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/reservations-data')>();
+  return {
+    ...actual,
+    submitReservation: vi.fn((client, opts) => {
+      return actual.submitReservation(client, opts);
+    }),
+  };
+});
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
@@ -152,6 +163,7 @@ const eventPayload: EventCalendarBookingModalPayload = {
 describe('EventBookingModal', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
   const mockedGenerateFpsQr = vi.mocked(generateFpsQrImageDataUrl);
+  const mockedSubmitReservationFn = vi.mocked(submitReservation);
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
@@ -170,6 +182,7 @@ describe('EventBookingModal', () => {
       ),
     );
     mockedCreateCrmApiClient.mockReturnValue(null);
+    mockedSubmitReservationFn.mockClear();
     vi.clearAllMocks();
   });
 
@@ -235,6 +248,70 @@ describe('EventBookingModal', () => {
         body: expect.objectContaining({
           locationUrl: mapsUrl,
           courseSlug: 'event-booking',
+        }),
+      }),
+    );
+  });
+
+  it('omits payment UI for a zero-priced event and submits paymentMethod free', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({ request: vi.fn().mockResolvedValue({ message: 'ok' }) });
+
+    render(
+      <EventBookingModal
+        paymentModalContent={paymentModal}
+        bookingPayload={{ ...eventPayload, originalAmount: 0 }}
+        thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(document.querySelector('div[data-booking-payment="true"]')).toBeNull();
+    expect(
+      screen.queryByRole('checkbox', {
+        name: new RegExp(paymentModal.pendingReservationAcknowledgementLabel),
+      }),
+    ).toBeNull();
+    expect(
+      screen.getByRole('checkbox', {
+        name: new RegExp(paymentModal.termsLinkLabel),
+      }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
+      target: { value: 'u@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
+      target: { value: 'Note' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(paymentModal.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: paymentModal.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockedSubmitReservationFn).toHaveBeenCalled();
+    });
+
+    expect(mockedSubmitReservationFn).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          paymentMethod: 'free',
+          totalAmount: 0,
         }),
       }),
     );

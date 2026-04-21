@@ -207,7 +207,12 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     total_amount = f"HK${float(total_dec):,.2f}"
     stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
     pm_lower = payment_method.lower()
-    is_pending = pm_lower != "stripe" and not stripe_pi
+    try:
+        total_for_free_check = Decimal(str(total_dec))
+    except (InvalidOperation, TypeError, ValueError):
+        total_for_free_check = Decimal("0")
+    is_free = pm_lower == "free" or total_for_free_check == Decimal("0")
+    is_pending = False if is_free else (pm_lower != "stripe" and not stripe_pi)
     fps_qr_data_url = optional_fps_qr_data_url_from_payload(
         payload.get("fps_qr_image_data_url")
     )
@@ -235,6 +240,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 consultation_level_label=consultation_level,
                 course_sessions=course_sessions,
                 location_url=location_url,
+                is_free=is_free,
             )
         except Exception:
             logger.exception(
