@@ -106,9 +106,7 @@ def upgrade() -> None:
         ("crm_notes_organization_id_fkey", "notes_organization_id_fkey"),
         ("crm_notes_lead_id_fkey", "notes_lead_id_fkey"),
     ):
-        op.execute(
-            f'ALTER TABLE notes RENAME CONSTRAINT "{old_name}" TO "{new_name}"'
-        )
+        op.execute(f'ALTER TABLE notes RENAME CONSTRAINT "{old_name}" TO "{new_name}"')
 
     op.execute(
         """
@@ -127,9 +125,7 @@ def downgrade() -> None:
         ("notes_organization_id_fkey", "crm_notes_organization_id_fkey"),
         ("notes_lead_id_fkey", "crm_notes_lead_id_fkey"),
     ):
-        op.execute(
-            f'ALTER TABLE notes RENAME CONSTRAINT "{new_name}" TO "{old_name}"'
-        )
+        op.execute(f'ALTER TABLE notes RENAME CONSTRAINT "{new_name}" TO "{old_name}"')
 
     op.execute(
         "ALTER TABLE notes RENAME CONSTRAINT notes_has_parent TO crm_notes_has_parent"

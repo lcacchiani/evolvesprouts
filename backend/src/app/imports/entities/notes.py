@@ -44,7 +44,7 @@ class NotesImporter:
         self,
         n: LegacyNoteRow,
         *,
-        note_ids: list[UUID | None],
+        note_ids: Sequence[UUID | None],
         contact_ids: list[UUID],
         dry_run: bool,
     ) -> dict[str, Any]:

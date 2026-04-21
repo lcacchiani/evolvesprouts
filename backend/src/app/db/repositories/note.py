@@ -18,9 +18,7 @@ class NoteRepository(BaseRepository[Note]):
 
     def list_by_lead(self, *, lead_id: UUID) -> list[Note]:
         statement = (
-            select(Note)
-            .where(Note.lead_id == lead_id)
-            .order_by(Note.created_at.desc())
+            select(Note).where(Note.lead_id == lead_id).order_by(Note.created_at.desc())
         )
         return list(self.session.scalars(statement).all())
 
