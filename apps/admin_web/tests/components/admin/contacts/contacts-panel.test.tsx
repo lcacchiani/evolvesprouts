@@ -46,6 +46,7 @@ function buildContactsHook(
     createContact: vi.fn().mockResolvedValue(null),
     updateContact: vi.fn().mockResolvedValue(null),
     deleteContact: vi.fn().mockResolvedValue(undefined),
+    patchContactStandaloneNoteCount: vi.fn(),
     refetch: vi.fn(),
     ...overrides,
   };
@@ -58,7 +59,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ createContact });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     await user.type(screen.getByLabelText('First name'), 'Jane');
@@ -79,7 +87,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ hasMore: true, loadMore });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Load more' }));
@@ -108,6 +123,7 @@ describe('ContactsPanel', () => {
       tags: [],
       family_ids: [],
       organization_ids: [],
+      standalone_note_count: 0,
     };
     const contacts = buildContactsHook({
       deleteContact,
@@ -115,10 +131,17 @@ describe('ContactsPanel', () => {
     });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete contact' }));
 
     expect(deleteContact).toHaveBeenCalledWith(row.id);
   });
@@ -127,7 +150,14 @@ describe('ContactsPanel', () => {
     const contacts = buildContactsHook({ error: 'Failed to load contacts' });
 
     render(
-      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+      />
     );
 
     expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();

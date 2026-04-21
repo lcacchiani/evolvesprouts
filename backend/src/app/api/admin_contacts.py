@@ -8,6 +8,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.api.admin_contact_notes import (
+    create_contact_note,
+    delete_contact_note,
+    list_contact_notes,
+    update_contact_note,
+)
 from app.api.admin_contacts_mutations import (
     create_contact,
     delete_contact,
@@ -92,6 +98,35 @@ def handle_admin_contacts_request(
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
+    if len(parts) == 4 and parts[3] == "notes":
+        if method == "GET":
+            return list_contact_notes(
+                event, contact_id=contact_id, actor_sub=identity.user_sub
+            )
+        if method == "POST":
+            return create_contact_note(
+                event, contact_id=contact_id, actor_sub=identity.user_sub
+            )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 5 and parts[3] == "notes":
+        note_id = parse_uuid(parts[4])
+        if method == "PATCH":
+            return update_contact_note(
+                event,
+                contact_id=contact_id,
+                note_id=note_id,
+                actor_sub=identity.user_sub,
+            )
+        if method == "DELETE":
+            return delete_contact_note(
+                event,
+                contact_id=contact_id,
+                note_id=note_id,
+                actor_sub=identity.user_sub,
+            )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
     return json_response(404, {"error": "Not found"}, event=event)
 
 
@@ -163,10 +198,19 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
             encode_cursor(page_rows[-1].id) if has_more and page_rows else None
         )
         total_count = repository.count_for_admin(query=query, active=active)
+        note_counts = repository.count_standalone_crm_notes_for_contacts(
+            [r.id for r in page_rows]
+        )
         return json_response(
             200,
             {
-                "items": [serialize_contact_summary(r) for r in page_rows],
+                "items": [
+                    serialize_contact_summary(
+                        r,
+                        standalone_note_count=note_counts.get(r.id, 0),
+                    )
+                    for r in page_rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -180,9 +224,15 @@ def _get_contact(event: Mapping[str, Any], *, contact_id: UUID) -> dict[str, Any
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
+        note_counts = repository.count_standalone_crm_notes_for_contacts([contact.id])
         return json_response(
             200,
-            {"contact": serialize_contact_summary(contact)},
+            {
+                "contact": serialize_contact_summary(
+                    contact,
+                    standalone_note_count=note_counts.get(contact.id, 0),
+                )
+            },
             event=event,
         )
 

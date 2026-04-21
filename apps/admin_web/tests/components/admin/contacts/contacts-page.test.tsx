@@ -38,6 +38,8 @@ const defaultContactsHook = {
   isSaving: false,
   createContact: vi.fn(),
   updateContact: vi.fn(),
+  deleteContact: vi.fn(),
+  patchContactStandaloneNoteCount: vi.fn(),
   refetch: vi.fn(),
 };
 
@@ -88,6 +90,10 @@ vi.mock('@/hooks/use-admin-crm-families', () => ({
 
 vi.mock('@/hooks/use-admin-crm-organizations', () => ({
   useAdminCrmOrganizations: () => defaultOrgsHook,
+}));
+
+vi.mock('@/hooks/use-admin-users', () => ({
+  useAdminUsers: () => ({ users: [], isLoading: false, error: '', refetch: vi.fn() }),
 }));
 
 describe('ContactsPage', () => {

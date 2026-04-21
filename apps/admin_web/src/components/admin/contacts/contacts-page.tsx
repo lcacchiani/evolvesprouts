@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
@@ -11,6 +11,7 @@ import { listCrmTags, type CrmTagRef } from '@/lib/crm-api';
 import { listAllLocations, listGeographicAreas } from '@/lib/services-api';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useAdminUsers } from '@/hooks/use-admin-users';
 import { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 import { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
 import { useQueryTabState } from '@/hooks/use-query-tab-state';
@@ -40,8 +41,17 @@ export function ContactsPage() {
   const [pickerError, setPickerError] = useState('');
 
   const contacts = useAdminCrmContacts();
+  const adminUsers = useAdminUsers();
   const families = useAdminCrmFamilies();
   const organizations = useAdminCrmOrganizations();
+
+  const patchStandaloneNoteCountRef = useRef(contacts.patchContactStandaloneNoteCount);
+  useLayoutEffect(() => {
+    patchStandaloneNoteCountRef.current = contacts.patchContactStandaloneNoteCount;
+  });
+  const stablePatchStandaloneNoteCount = useCallback((contactId: string, count: number) => {
+    patchStandaloneNoteCountRef.current(contactId, count);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +121,8 @@ export function ContactsPage() {
       {activeView === 'contacts' ? (
         <ContactsPanel
           contacts={contacts}
+          adminUsers={adminUsers.users}
+          onPatchStandaloneNoteCount={stablePatchStandaloneNoteCount}
           tags={tags}
           locations={locations}
           geographicAreas={geographicAreas}

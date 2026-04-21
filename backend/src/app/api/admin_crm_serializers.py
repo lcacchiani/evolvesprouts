@@ -57,7 +57,11 @@ def serialize_contact_picker_row(contact: Contact) -> dict[str, Any]:
     return {"id": str(contact.id), "label": label}
 
 
-def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
+def serialize_contact_summary(
+    contact: Contact,
+    *,
+    standalone_note_count: int = 0,
+) -> dict[str, Any]:
     logger.debug("Serializing contact summary", extra={"contact_id": str(contact.id)})
     family_ids = {str(m.family_id) for m in contact.family_members}
     organization_ids = {str(m.organization_id) for m in contact.organization_members}
@@ -95,6 +99,7 @@ def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
         "tags": tags,
         "family_ids": sorted(family_ids),
         "organization_ids": sorted(organization_ids),
+        "standalone_note_count": standalone_note_count,
     }
 
 

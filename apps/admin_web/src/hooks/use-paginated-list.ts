@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
@@ -23,6 +23,7 @@ export interface UsePaginatedListOptions<TItem, TFilters extends object> {
 
 export interface UsePaginatedListReturn<TItem, TFilters extends object> {
   items: TItem[];
+  setItems: Dispatch<SetStateAction<TItem[]>>;
   filters: TFilters;
   setFilter: <TKey extends keyof TFilters>(key: TKey, value: TFilters[TKey]) => void;
   clearFilters: () => void;
@@ -150,6 +151,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
 
   return {
     items,
+    setItems,
     filters,
     setFilter,
     clearFilters,

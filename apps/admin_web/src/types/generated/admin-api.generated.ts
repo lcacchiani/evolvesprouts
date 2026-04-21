@@ -2447,6 +2447,168 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/admin/contacts/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM contact identifier. */
+                id: components["parameters"]["AdminContactId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List standalone CRM notes for a contact
+         * @description Returns CRM notes stored on the contact that are not tied to a sales lead
+         *     (`lead_id` is null), newest first. Notes created on a lead remain on the lead detail only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Note list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCrmNoteListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Add a standalone CRM note to a contact */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCrmNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description CRM note created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            note: components["schemas"]["CrmNote"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts/{id}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM contact identifier. */
+                id: components["parameters"]["AdminContactId"];
+                /** @description CRM note identifier. */
+                noteId: components["parameters"]["CrmNoteId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a standalone CRM note on a contact */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                    /** @description CRM note identifier. */
+                    noteId: components["parameters"]["CrmNoteId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CRM note deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a standalone CRM note on a contact */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                    /** @description CRM note identifier. */
+                    noteId: components["parameters"]["CrmNoteId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCrmNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description CRM note updated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            note: components["schemas"]["CrmNote"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
     "/v1/admin/families/picker": {
         parameters: {
             query?: never;
@@ -3745,7 +3907,28 @@ export interface components {
             content: string;
             created_by: string;
             /** Format: date-time */
-            created_at?: string | null;
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        CrmNote: {
+            /** Format: uuid */
+            id: string;
+            content: string;
+            created_by: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminCrmNoteListResponse: {
+            items: components["schemas"]["CrmNote"][];
+        };
+        CreateCrmNoteRequest: {
+            content: string;
+        };
+        UpdateCrmNoteRequest: {
+            content: string;
         };
         LeadSummary: {
             /** Format: uuid */
@@ -4593,6 +4776,11 @@ export interface components {
             tags: components["schemas"]["CrmTagRef"][];
             family_ids: string[];
             organization_ids: string[];
+            /**
+             * @description Count of CRM notes on this contact that are not tied to a sales lead
+             *     (`lead_id` is null). Lead-attached notes are excluded.
+             */
+            standalone_note_count: number;
         };
         AdminContactListResponse: {
             items: components["schemas"]["AdminContact"][];
@@ -4836,6 +5024,8 @@ export interface components {
         VendorId: string;
         /** @description CRM contact identifier. */
         AdminContactId: string;
+        /** @description CRM note identifier. */
+        CrmNoteId: string;
         /** @description CRM family identifier. */
         AdminFamilyId: string;
         /** @description Family membership row identifier. */

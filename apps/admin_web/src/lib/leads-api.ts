@@ -87,6 +87,7 @@ function parseLeadNote(value: unknown): LeadNote {
     content: asNullableString(note.content) ?? '',
     createdBy: asNullableString(note.created_by) ?? '',
     createdAt: asNullableString(note.created_at),
+    updatedAt: asNullableString(note.updated_at),
   };
 }
 

@@ -171,9 +171,15 @@ def create_contact(
         loaded = repository.get_by_id_for_admin(created.id)
         if loaded is None:
             raise DatabaseError("Failed to load contact after create")
+        note_counts = repository.count_standalone_crm_notes_for_contacts([loaded.id])
         return json_response(
             201,
-            {"contact": serialize_contact_summary(loaded)},
+            {
+                "contact": serialize_contact_summary(
+                    loaded,
+                    standalone_note_count=note_counts.get(loaded.id, 0),
+                )
+            },
             event=event,
         )
 
@@ -345,9 +351,15 @@ def update_contact(
         loaded = repository.get_by_id_for_admin(contact_id)
         if loaded is None:
             raise DatabaseError("Failed to load contact after update")
+        note_counts = repository.count_standalone_crm_notes_for_contacts([loaded.id])
         return json_response(
             200,
-            {"contact": serialize_contact_summary(loaded)},
+            {
+                "contact": serialize_contact_summary(
+                    loaded,
+                    standalone_note_count=note_counts.get(loaded.id, 0),
+                )
+            },
             event=event,
         )
 

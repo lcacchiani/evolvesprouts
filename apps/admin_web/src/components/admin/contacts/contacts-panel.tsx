@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -28,6 +30,7 @@ import {
   CRM_ENTITY_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
+import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -63,12 +66,21 @@ const SOURCES: ApiSchemas['CrmContactSource'][] = [
 
 export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminCrmContacts>;
+  adminUsers: AdminUser[];
+  onPatchStandaloneNoteCount: (contactId: string, standaloneNoteCount: number) => void;
   tags: CrmTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
 }
 
-export function ContactsPanel({ contacts, tags, locations, geographicAreas }: ContactsPanelProps) {
+export function ContactsPanel({
+  contacts,
+  adminUsers,
+  onPatchStandaloneNoteCount,
+  tags,
+  locations,
+  geographicAreas,
+}: ContactsPanelProps) {
   const {
     contacts: rows,
     filters,
@@ -86,6 +98,7 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
+  const [notesTarget, setNotesTarget] = useState<ApiSchemas['AdminContact'] | null>(null);
 
   const [familyPicker, setFamilyPicker] = useState<CrmPickerListItem[]>([]);
   const [organizationPicker, setOrganizationPicker] = useState<CrmPickerListItem[]>([]);
@@ -390,6 +403,13 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
   return (
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
+      <ContactNotesModal
+        open={notesTarget !== null}
+        contact={notesTarget}
+        adminUsers={adminUsers}
+        onClose={() => setNotesTarget(null)}
+        onStandaloneNoteCountChange={onPatchStandaloneNoteCount}
+      />
       <AdminEditorCard
         title='Contact'
         description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
@@ -745,24 +765,54 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                         type='button'
                         size='sm'
                         variant='outline'
+                        className='relative h-8 min-w-8 overflow-visible px-0'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotesTarget(row);
+                        }}
+                        disabled={isSaving}
+                        aria-label='Contact notes'
+                        title='Contact notes'
+                      >
+                        <NoteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        {row.standalone_note_count > 0 ? (
+                          <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold leading-none text-white'>
+                            {row.standalone_note_count > 99 ? '99+' : row.standalone_note_count}
+                          </span>
+                        ) : null}
+                      </Button>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        className='h-8 min-w-8 px-0'
                         onClick={(e) => {
                           e.stopPropagation();
                           void updateContact(row.id, { active: !row.active });
                         }}
                         disabled={isSaving}
+                        aria-label={row.active ? 'Archive contact' : 'Restore contact'}
+                        title={row.active ? 'Archive' : 'Restore'}
                       >
-                        {row.active ? 'Archive' : 'Restore'}
+                        {row.active ? (
+                          <ArchiveIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        ) : (
+                          <RestoreIcon className='h-4 w-4 shrink-0' aria-hidden />
+                        )}
                       </Button>
                       <Button
                         type='button'
                         size='sm'
                         variant='danger'
+                        className='h-8 min-w-8 px-0'
                         onClick={(e) => {
                           void handleDeleteContact(row, e);
                         }}
                         disabled={isSaving}
+                        aria-label='Delete contact'
+                        title='Delete contact'
                       >
-                        Delete
+                        <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                       </Button>
                     </div>
                   </td>

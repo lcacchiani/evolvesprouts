@@ -229,6 +229,7 @@ def serialize_note(note: CrmNote) -> dict[str, Any]:
         "content": note.content,
         "created_by": note.created_by,
         "created_at": note.created_at.isoformat() if note.created_at else None,
+        "updated_at": note.updated_at.isoformat() if note.updated_at else None,
     }
 
 
