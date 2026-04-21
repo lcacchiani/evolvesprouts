@@ -138,9 +138,10 @@ def test_run_reservation_post_success_hooks_free_sets_is_free(
     assert captured["is_pending_payment"] is False
 
 
-def test_run_reservation_post_success_hooks_zero_total_sets_is_free(
+def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
     monkeypatch: Any,
 ) -> None:
+    """Hooks key off ``payment_method == 'free'``; zero total alone is not free email mode."""
     from decimal import Decimal
 
     from app.api import public_reservations as pr
@@ -177,4 +178,4 @@ def test_run_reservation_post_success_hooks_zero_total_sets_is_free(
         }
     )
 
-    assert captured["is_free"] is True
+    assert captured["is_free"] is False
