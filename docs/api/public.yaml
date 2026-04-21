@@ -1176,9 +1176,10 @@ components:
           maxLength: 100
           description: >
             Machine payment code. Accepted values include `fps_qr`, `bank_transfer`, `stripe`,
-            and `free` (zero-total booking after discounts). When `free`, `totalAmount` must be 0,
-            omit `stripePaymentIntentId` and `fpsQrImageDataUrl`, and set
-            `reservationPendingUntilPaymentConfirmed` to false.
+            and `free` (zero-total booking after discounts). The API rejects `free` when
+            `totalAmount` is not 0, rejects `totalAmount` 0 unless `paymentMethod` is `free`,
+            and normalizes `reservationPendingUntilPaymentConfirmed` to false when `paymentMethod`
+            is `free`. Omit `stripePaymentIntentId` and `fpsQrImageDataUrl` for free bookings.
         totalAmount:
           type: number
           minimum: 0

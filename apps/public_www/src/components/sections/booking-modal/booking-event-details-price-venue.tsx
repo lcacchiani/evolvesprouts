@@ -47,7 +47,11 @@ export function BookingEventDetailsPriceVenue({
         <div className='flex items-start gap-4'>
           <span className='es-icon-circle-lg'>
             <span
-              className='es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
+              className={
+                isFreePrice
+                  ? 'es-mask-dollar-success h-[46px] w-[46px] shrink-0'
+                  : 'es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
+              }
               aria-hidden='true'
             />
           </span>
@@ -61,9 +65,11 @@ export function BookingEventDetailsPriceVenue({
             >
               {isFreePrice ? content.priceBreakdownFreeLabel : formatCurrencyHkd(originalAmount, locale)}
             </p>
-            <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
-              {content.refundHint}
-            </p>
+            {isFreePrice ? null : (
+              <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
+                {content.refundHint}
+              </p>
+            )}
           </div>
         </div>
       </div>

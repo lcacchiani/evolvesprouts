@@ -207,11 +207,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     total_amount = f"HK${float(total_dec):,.2f}"
     stripe_pi = _optional_str(payload.get("stripe_payment_intent_id"))
     pm_lower = payment_method.lower()
-    try:
-        total_for_free_check = Decimal(str(total_dec))
-    except (InvalidOperation, TypeError, ValueError):
-        total_for_free_check = Decimal("0")
-    is_free = pm_lower == "free" or total_for_free_check == Decimal("0")
+    is_free = pm_lower == "free"
     is_pending = False if is_free else (pm_lower != "stripe" and not stripe_pi)
     fps_qr_data_url = optional_fps_qr_data_url_from_payload(
         payload.get("fps_qr_image_data_url")
@@ -436,6 +432,20 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         body.get("reservationPendingUntilPaymentConfirmed"),
         default=False,
     )
+
+    pm_lower = payment_method.strip().lower()
+    if pm_lower == "free" and total_amount != Decimal("0"):
+        raise ValidationError(
+            "totalAmount must be 0 when paymentMethod is free",
+            field="totalAmount",
+        )
+    if total_amount == Decimal("0") and pm_lower != "free":
+        raise ValidationError(
+            "paymentMethod must be free when totalAmount is 0",
+            field="paymentMethod",
+        )
+    if pm_lower == "free":
+        reservation_pending = False
 
     return {
         "attendee_name": attendee_name,

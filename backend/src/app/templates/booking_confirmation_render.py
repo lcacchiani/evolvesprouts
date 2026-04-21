@@ -957,7 +957,7 @@ def render_booking_confirmation_email(
     if not is_free:
         rows_html.append(_html_table_row_bordered(labels["payment"], esc_pm))
     total_cell_html = (
-        f'<span style="color:#2F7D3E;font-weight:600;">{html.escape(free_label)}</span>'
+        f'<span style="color:#2C6C25;font-weight:600;">{html.escape(free_label)}</span>'
         if is_free
         else esc_total
     )

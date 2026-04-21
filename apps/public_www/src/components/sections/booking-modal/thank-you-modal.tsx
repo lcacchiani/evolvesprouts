@@ -191,17 +191,19 @@ export function BookingThankYouModal({
     summary,
     content.summaryLocationVirtualFallback,
   );
-  const isFreeReservation =
-    summary?.paymentMethodCode === 'free' || summary?.totalAmount === 0;
+  const isFreeReservation = summary?.paymentMethodCode === 'free';
   const amountLine = summary
     ? isFreeReservation
       ? content.freeTotalLabel
       : formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
   const isFpsPayment = summary?.paymentMethodCode === 'fps_qr';
-  const paymentMethodLine = isFpsPayment
-    ? content.fpsPaymentLabel
-    : (summary?.paymentMethod?.trim() ?? content.summaryEmptyValue);
+  const paymentMethodLine =
+    isFreeReservation || !summary
+      ? ''
+      : isFpsPayment
+        ? content.fpsPaymentLabel
+        : (summary.paymentMethod?.trim() ?? content.summaryEmptyValue);
   const locationNameRaw = summary?.locationName?.trim() ?? '';
   const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
   const hasStructuredVenue =
@@ -451,21 +453,21 @@ export function BookingThankYouModal({
               </div>
 
               {!isFreeReservation ? (
-              <div className='es-booking-thank-you-recap-row-border py-4'>
-                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
-                  <dt className='es-booking-thank-you-recap-label'>
-                    {content.paymentMethodLabel}
-                  </dt>
-                  <dd className='es-booking-thank-you-recap-value m-0'>
-                    <span className='block'>{paymentMethodLine}</span>
-                    {!isFpsPayment ? (
-                      <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
-                        {content.paymentConfirmationNote}
-                      </span>
-                    ) : null}
-                  </dd>
+                <div className='es-booking-thank-you-recap-row-border py-4'>
+                  <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
+                    <dt className='es-booking-thank-you-recap-label'>
+                      {content.paymentMethodLabel}
+                    </dt>
+                    <dd className='es-booking-thank-you-recap-value m-0'>
+                      <span className='block'>{paymentMethodLine}</span>
+                      {!isFpsPayment ? (
+                        <span className='mt-1 block text-base font-normal leading-6 opacity-80'>
+                          {content.paymentConfirmationNote}
+                        </span>
+                      ) : null}
+                    </dd>
+                  </div>
                 </div>
-              </div>
               ) : null}
 
               <div className='pt-4'>
@@ -477,7 +479,7 @@ export function BookingThankYouModal({
                     {isFreeReservation ? (
                       <span className='block es-text-success font-semibold'>{amountLine}</span>
                     ) : (
-                    <span className='block'>{amountLine}</span>
+                      <span className='block'>{amountLine}</span>
                     )}
                     {isFpsPayment ? (
                       <>

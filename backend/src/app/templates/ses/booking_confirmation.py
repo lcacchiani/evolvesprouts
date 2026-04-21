@@ -85,7 +85,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
     row_total = (
         f'<tr><td style="padding:8px 0;"><strong>{labels["total"]}</strong></td>'
         '<td style="padding:8px 0;text-align:right;">'
-        "{{#if is_free}}<span style=\"color:#2F7D3E;font-weight:600;\">{{free_total_label}}</span>"
+        "{{#if is_free}}<span style=\"color:#2C6C25;font-weight:600;\">{{free_total_label}}</span>"
         "{{else}}{{total_amount}}{{/if}}</td></tr>"
     )
     pending = PENDING_PAYMENT_NOTE[loc]

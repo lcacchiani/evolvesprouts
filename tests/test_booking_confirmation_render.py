@@ -472,7 +472,7 @@ def test_render_booking_confirmation_email_free_omits_payment_and_pending() -> N
     assert "Payment method" not in html_doc
     assert "pending until payment" not in html_doc.lower()
     assert FREE_TOTAL_LABEL["en"] in html_doc
-    assert "#2F7D3E" in html_doc
+    assert "#2C6C25" in html_doc
     assert "Payment method:" not in plain
     assert "pending until payment" not in plain.lower()
     assert FREE_TOTAL_LABEL["en"] in plain
