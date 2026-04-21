@@ -362,6 +362,7 @@ export function FamiliesPanel({
               selectedIds={tagIds}
               onChange={setTagIds}
               disabled={isSaving}
+              variant='collapsible'
             />
           </div>
           {editorMode === 'edit' && selected ? (

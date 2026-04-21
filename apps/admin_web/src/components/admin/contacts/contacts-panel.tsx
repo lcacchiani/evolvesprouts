@@ -588,33 +588,71 @@ export function ContactsPanel({
             </div>
           </div>
 
-          <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>
-            <div className='lg:col-span-1'>
-              <Label htmlFor='crm-contact-source'>Source</Label>
-              <Select
-                id='crm-contact-source'
-                value={source}
-                onChange={(e) => {
-                  const v = e.target.value as ApiSchemas['CrmContactSource'];
-                  setSource(v);
-                  if (v !== 'referral') {
-                    setReferralContactId('');
-                    setReferralSearchInput('');
-                    setReferralSearchResults([]);
-                    setReferralPinnedLabel('');
-                  } else {
-                    setReferralSearchResults([]);
-                  }
-                }}
-              >
-                {SOURCES.map((v) => (
-                  <option key={v} value={v}>
-                    {formatEnumLabel(v)}
-                  </option>
-                ))}
-              </Select>
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>
+              <div className='lg:col-span-1'>
+                <Label htmlFor='crm-contact-source'>Source</Label>
+                <Select
+                  id='crm-contact-source'
+                  value={source}
+                  onChange={(e) => {
+                    const v = e.target.value as ApiSchemas['CrmContactSource'];
+                    setSource(v);
+                    if (v !== 'referral') {
+                      setReferralContactId('');
+                      setReferralSearchInput('');
+                      setReferralSearchResults([]);
+                      setReferralPinnedLabel('');
+                    } else {
+                      setReferralSearchResults([]);
+                    }
+                  }}
+                >
+                  {SOURCES.map((v) => (
+                    <option key={v} value={v}>
+                      {formatEnumLabel(v)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              {source === 'referral' ? (
+                <>
+                  <div className='lg:col-span-1'>
+                    <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
+                    <Input
+                      id='crm-contact-referral-search'
+                      value={referralSearchInput}
+                      onChange={(e) => setReferralSearchInput(e.target.value)}
+                      placeholder='Type at least 2 characters (name, email, phone, Instagram)'
+                      autoComplete='off'
+                    />
+                  </div>
+                  <div className='lg:col-span-1'>
+                    <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
+                    <Select
+                      id='crm-contact-referral'
+                      value={referralContactId}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setReferralContactId(v);
+                        const picked = referralSelectOptions.find((o) => o.id === v);
+                        if (picked) {
+                          setReferralPinnedLabel(picked.label);
+                        }
+                      }}
+                    >
+                      <option value=''>Select contact</option>
+                      {referralSelectOptions.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                </>
+              ) : null}
             </div>
-            <div className={source === 'referral' ? 'lg:col-span-1' : 'lg:col-span-3'}>
+            <div>
               <Label htmlFor='crm-contact-source-detail'>Source detail</Label>
               <Textarea
                 id='crm-contact-source-detail'
@@ -623,42 +661,6 @@ export function ContactsPanel({
                 rows={2}
               />
             </div>
-            {source === 'referral' ? (
-              <>
-                <div className='lg:col-span-1'>
-                  <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
-                  <Input
-                    id='crm-contact-referral-search'
-                    value={referralSearchInput}
-                    onChange={(e) => setReferralSearchInput(e.target.value)}
-                    placeholder='Type at least 2 characters (name, email, phone, Instagram)'
-                    autoComplete='off'
-                  />
-                </div>
-                <div className='lg:col-span-1'>
-                  <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
-                  <Select
-                    id='crm-contact-referral'
-                    value={referralContactId}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setReferralContactId(v);
-                      const picked = referralSelectOptions.find((o) => o.id === v);
-                      if (picked) {
-                        setReferralPinnedLabel(picked.label);
-                      }
-                    }}
-                  >
-                    <option value=''>Select contact</option>
-                    {referralSelectOptions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </>
-            ) : null}
           </div>
 
           <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>

@@ -302,7 +302,7 @@ export function OrganizationsPanel({
         }
       >
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
-          <div>
+          <div className='lg:col-span-2'>
             <Label htmlFor='crm-org-name'>Name</Label>
             <Input
               id='crm-org-name'
@@ -311,7 +311,7 @@ export function OrganizationsPanel({
               autoComplete='off'
             />
           </div>
-          <div className='lg:max-w-[9rem]'>
+          <div className='lg:col-span-1'>
             <Label htmlFor='crm-org-rel'>Relationship</Label>
             <Select
               id='crm-org-rel'
@@ -331,7 +331,19 @@ export function OrganizationsPanel({
               ))}
             </Select>
           </div>
-          <div>
+          {relationshipType === 'partner' ? (
+            <div className='lg:col-span-1'>
+              <Label htmlFor='crm-org-slug'>Slug</Label>
+              <Input
+                id='crm-org-slug'
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                autoComplete='off'
+                placeholder='e.g. acme-partners'
+              />
+            </div>
+          ) : null}
+          <div className='lg:col-span-2'>
             <Label htmlFor='crm-org-type'>Organisation type</Label>
             <Select
               id='crm-org-type'
@@ -347,39 +359,15 @@ export function OrganizationsPanel({
               ))}
             </Select>
           </div>
-          {relationshipType === 'partner' ? (
-            <div>
-              <Label htmlFor='crm-org-slug'>Slug</Label>
-              <Input
-                id='crm-org-slug'
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                autoComplete='off'
-                placeholder='e.g. acme-partners'
-              />
-            </div>
-          ) : (
-            <div>
-              <Label htmlFor='crm-org-web'>Website</Label>
-              <Input
-                id='crm-org-web'
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-          )}
-          {relationshipType === 'partner' ? (
-            <div className='lg:col-span-4'>
-              <Label htmlFor='crm-org-web-partner'>Website</Label>
-              <Input
-                id='crm-org-web-partner'
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-          ) : null}
+          <div className='lg:col-span-2'>
+            <Label htmlFor='crm-org-web'>Website</Label>
+            <Input
+              id='crm-org-web'
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              autoComplete='off'
+            />
+          </div>
           <div className='lg:col-span-4'>
             <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
               <InlineLocationEditor
@@ -442,6 +430,7 @@ export function OrganizationsPanel({
               selectedIds={tagIds}
               onChange={setTagIds}
               disabled={isSaving}
+              variant='collapsible'
             />
           </div>
           {editorMode === 'edit' && selected ? (
