@@ -18,7 +18,7 @@ export function formatLocationLabel(location: LocationSummary): string {
 }
 
 /** Full venue label: address (when present) plus geographic area name. */
-export function formatCrmVenueLocationLabel(location: {
+export function formatEntityVenueLocationLabel(location: {
   name?: string | null;
   address?: string | null;
   areaName?: string | null;

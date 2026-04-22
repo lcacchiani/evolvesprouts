@@ -457,9 +457,10 @@ clients list and edit them via `GET|POST|PATCH /v1/admin/organizations` with
 `relationship_type=vendor` on list queries where needed.
 
 **Why:** One resource model avoids duplicate CRUD paths, matches the database,
-and simplifies OpenAPI and CDK wiring. Shared CRM helpers (`admin_crm_helpers.py`,
-`admin_crm_serializers.py`) stay named for cross-entity reuse; organization-specific
-modules use neutral `admin_organizations*.py` names.
+and simplifies OpenAPI and CDK wiring. Shared contact/family/organization helpers
+live in `admin_entities_helpers.py` and `admin_entities_serializers.py` for
+cross-entity reuse; organization-specific modules use neutral `admin_organizations*.py`
+names.
 
 **Payload shape:** The organizations create/update schemas are a superset of the
 legacy vendor-only API. The Finance vendors UI is expected to send only

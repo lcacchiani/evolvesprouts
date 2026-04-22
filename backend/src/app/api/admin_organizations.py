@@ -10,8 +10,8 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_entity_deletes import delete_admin_crm_organization
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_deletes import delete_admin_entity_organization
+from app.api.admin_entities_helpers import (
     ORGANIZATION_RELATIONSHIP_TYPES,
     assert_contact_can_join_organization,
     request_id,
@@ -22,7 +22,7 @@ from app.api.admin_crm_helpers import (
     parse_optional_bool_body,
     replace_organization_tags,
 )
-from app.api.admin_crm_serializers import serialize_organization_summary
+from app.api.admin_entities_serializers import serialize_organization_summary
 from app.api.admin_request import (
     encode_cursor,
     parse_body,
@@ -89,7 +89,7 @@ def handle_admin_organizations_request(
                 event, organization_id=organization_id, actor_sub=identity.user_sub
             )
         if method == "DELETE":
-            return delete_admin_crm_organization(
+            return delete_admin_entity_organization(
                 event,
                 organization_id=organization_id,
                 actor_sub=identity.user_sub,
@@ -244,7 +244,7 @@ def _get_organization(
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
         repository = OrganizationRepository(session)
-        org = repository.get_crm_organization_by_id(organization_id)
+        org = repository.get_non_vendor_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         return json_response(
@@ -318,7 +318,7 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
         loader = (
             repository.get_organization_by_id
             if relationship_type == RelationshipType.VENDOR
-            else repository.get_crm_organization_by_id
+            else repository.get_non_vendor_organization_by_id
         )
         loaded = loader(created.id)
         if loaded is None:
@@ -341,7 +341,7 @@ def _update_organization(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_crm_organization_by_id(organization_id)
+        org = repository.get_non_vendor_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
 
@@ -404,7 +404,7 @@ def _update_organization(
         loader = (
             repository.get_organization_by_id
             if org.relationship_type == RelationshipType.VENDOR
-            else repository.get_crm_organization_by_id
+            else repository.get_non_vendor_organization_by_id
         )
         loaded = loader(organization_id)
         if loaded is None:
@@ -429,7 +429,7 @@ def _add_organization_member(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_crm_organization_by_id(organization_id)
+        org = repository.get_non_vendor_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         contact = session.get(Contact, contact_id)
@@ -447,7 +447,7 @@ def _add_organization_member(
         session.add(member)
         contact.location_id = None
         session.commit()
-        loaded = repository.get_crm_organization_by_id(organization_id)
+        loaded = repository.get_non_vendor_organization_by_id(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after adding member")
         return json_response(
@@ -467,7 +467,7 @@ def _remove_organization_member(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
-        org = repository.get_crm_organization_by_id(organization_id)
+        org = repository.get_non_vendor_organization_by_id(organization_id)
         if org is None:
             raise NotFoundError("Organization", str(organization_id))
         member = session.get(OrganizationMember, member_id)
@@ -475,7 +475,7 @@ def _remove_organization_member(
             raise NotFoundError("OrganizationMember", str(member_id))
         session.delete(member)
         session.commit()
-        loaded = repository.get_crm_organization_by_id(organization_id)
+        loaded = repository.get_non_vendor_organization_by_id(organization_id)
         if loaded is None:
             raise DatabaseError("Failed to load organization after removing member")
         return json_response(

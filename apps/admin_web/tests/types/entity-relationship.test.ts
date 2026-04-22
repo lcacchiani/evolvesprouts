@@ -4,7 +4,7 @@ import {
   FAMILY_RELATIONSHIP_TYPES,
   ORGANIZATION_RELATIONSHIP_TYPES,
   relationshipTypeForEditor,
-} from '@/types/crm-relationship';
+} from '@/types/entity-relationship';
 
 describe('relationshipTypeForEditor', () => {
   it('passes through values in the allowed list', () => {

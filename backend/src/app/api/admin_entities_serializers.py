@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.api.admin_crm_helpers import serialize_tag_ref
+from app.api.admin_entities_helpers import serialize_tag_ref
 from app.db.models import (
     Contact,
     Family,

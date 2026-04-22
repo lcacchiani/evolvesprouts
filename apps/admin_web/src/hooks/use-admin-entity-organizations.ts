@@ -9,18 +9,18 @@ import {
   listAdminOrganizations,
   removeAdminOrganizationMember,
   updateAdminOrganization,
-} from '@/lib/crm-api';
-import { DEFAULT_CRM_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
-import { ORGANIZATION_RELATIONSHIP_TYPES } from '@/types/crm-relationship';
+} from '@/lib/entity-api';
+import { DEFAULT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
+import { ORGANIZATION_RELATIONSHIP_TYPES } from '@/types/entity-relationship';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
 
-export function useAdminCrmOrganizations() {
+export function useAdminEntityOrganizations() {
   const fetcher = useCallback(
-    (params: CrmListFilters & { cursor: string | null; limit: number }) =>
+    (params: EntityListFilters & { cursor: string | null; limit: number }) =>
       listAdminOrganizations({
         query: params.query,
         active: params.active || undefined,
@@ -32,7 +32,7 @@ export function useAdminCrmOrganizations() {
 
   const list = usePaginatedList({
     fetcher,
-    defaultFilters: DEFAULT_CRM_LIST_FILTERS,
+    defaultFilters: DEFAULT_LIST_FILTERS,
     errorPrefix: 'Failed to load organizations',
     debounceKeys: ['query'],
     limit: 50,

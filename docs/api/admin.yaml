@@ -1571,7 +1571,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CrmTagListResponse"
+                $ref: "#/components/schemas/EntityTagListResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
 
@@ -1610,7 +1610,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CrmPickerListResponse"
+                $ref: "#/components/schemas/EntityPickerListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1634,7 +1634,7 @@ paths:
         - name: contact_type
           in: query
           schema:
-            $ref: "#/components/schemas/CrmContactType"
+            $ref: "#/components/schemas/EntityContactType"
           description: When set, only contacts with this contact type are returned.
         - name: cursor
           in: query
@@ -1857,7 +1857,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CrmPickerListResponse"
+                $ref: "#/components/schemas/EntityPickerListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -2051,7 +2051,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CrmPickerListResponse"
+                $ref: "#/components/schemas/EntityPickerListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -2085,7 +2085,7 @@ paths:
             (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list
             (CRM default).
           schema:
-            $ref: "#/components/schemas/CrmRelationshipType"
+            $ref: "#/components/schemas/EntityRelationshipType"
         - name: cursor
           in: query
           schema:
@@ -4721,27 +4721,29 @@ components:
       properties:
         reason:
           type: string
-    CrmContactType:
+    EntityContactType:
       type: string
       enum: [parent, child, helper, professional, other]
-    CrmRelationshipType:
+    EntityRelationshipType:
       type: string
       description: >
         Stored relationship for contacts and read responses. Family and organization
-        create/update requests use narrower enums (`CrmFamilyRelationshipType`,
-        `CrmOrganizationRelationshipType`).
+        create/update requests use narrower enums (`EntityFamilyRelationshipType`,
+        `EntityOrganizationRelationshipType`). Historical rows may still return values
+        outside those narrower sets; PATCH bodies must send an allowed value (for
+        example map unknown values to `other` before submit, matching the admin UI).
       enum: [prospect, client, past_client, partner, vendor, other]
-    CrmFamilyRelationshipType:
+    EntityFamilyRelationshipType:
       type: string
       enum: [prospect, client, other]
       description: Allowed values when setting a family's CRM relationship.
-    CrmOrganizationRelationshipType:
+    EntityOrganizationRelationshipType:
       type: string
       enum: [prospect, client, partner, vendor, other]
       description: >
         Allowed values when setting an organization's CRM relationship.
         `past_client` is not permitted for organizations (use contacts for that lifecycle).
-    CrmContactSource:
+    EntityContactSource:
       type: string
       enum:
         - free_guide
@@ -4756,19 +4758,19 @@ components:
         - phone_call
         - public_website
         - manual
-    CrmMailchimpSyncStatus:
+    EntityMailchimpSyncStatus:
       type: string
       enum: [pending, synced, failed, unsubscribed]
-    CrmFamilyRole:
+    EntityFamilyRole:
       type: string
       enum: [parent, child, helper, guardian, other]
-    CrmOrganizationType:
+    EntityOrganizationType:
       type: string
       enum: [school, company, community_group, ngo, other]
-    CrmOrganizationRole:
+    EntityOrganizationRole:
       type: string
       enum: [admin, staff, teacher, member, client, partner, other]
-    CrmTagRef:
+    EntityTagRef:
       type: object
       required:
         - id
@@ -4782,7 +4784,7 @@ components:
         color:
           type: string
           nullable: true
-    CrmTagListResponse:
+    EntityTagListResponse:
       type: object
       required:
         - items
@@ -4790,8 +4792,8 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/CrmTagRef"
-    CrmPickerListItem:
+            $ref: "#/components/schemas/EntityTagRef"
+    EntityPickerListItem:
       type: object
       required:
         - id
@@ -4802,7 +4804,7 @@ components:
           format: uuid
         label:
           type: string
-    CrmPickerListResponse:
+    EntityPickerListResponse:
       type: object
       required:
         - items
@@ -4810,8 +4812,8 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/CrmPickerListItem"
-    CrmLocationVenueSummary:
+            $ref: "#/components/schemas/EntityPickerListItem"
+    EntityLocationVenueSummary:
       type: object
       required:
         - id
@@ -4875,9 +4877,9 @@ components:
           type: string
           nullable: true
         contact_type:
-          $ref: "#/components/schemas/CrmContactType"
+          $ref: "#/components/schemas/EntityContactType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/EntityRelationshipType"
         date_of_birth:
           type: string
           format: date
@@ -4888,10 +4890,10 @@ components:
           nullable: true
         location_summary:
           allOf:
-            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+            - $ref: "#/components/schemas/EntityLocationVenueSummary"
           nullable: true
         source:
-          $ref: "#/components/schemas/CrmContactSource"
+          $ref: "#/components/schemas/EntityContactSource"
         source_detail:
           type: string
           nullable: true
@@ -4903,7 +4905,7 @@ components:
             When `source` is `referral`, the contact UUID of the referring contact
             (stored in `source_metadata`).
         mailchimp_status:
-          $ref: "#/components/schemas/CrmMailchimpSyncStatus"
+          $ref: "#/components/schemas/EntityMailchimpSyncStatus"
         active:
           type: boolean
         archived_at:
@@ -4924,7 +4926,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/CrmTagRef"
+            $ref: "#/components/schemas/EntityTagRef"
         family_ids:
           type: array
           items:
@@ -4989,11 +4991,11 @@ components:
           maxLength: 30
           nullable: true
         contact_type:
-          $ref: "#/components/schemas/CrmContactType"
+          $ref: "#/components/schemas/EntityContactType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/EntityRelationshipType"
         source:
-          $ref: "#/components/schemas/CrmContactSource"
+          $ref: "#/components/schemas/EntityContactSource"
         source_detail:
           type: string
           nullable: true
@@ -5053,11 +5055,11 @@ components:
           maxLength: 30
           nullable: true
         contact_type:
-          $ref: "#/components/schemas/CrmContactType"
+          $ref: "#/components/schemas/EntityContactType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/EntityRelationshipType"
         source:
-          $ref: "#/components/schemas/CrmContactSource"
+          $ref: "#/components/schemas/EntityContactSource"
         source_detail:
           type: string
           nullable: true
@@ -5113,7 +5115,7 @@ components:
         contact_label:
           type: string
         role:
-          $ref: "#/components/schemas/CrmFamilyRole"
+          $ref: "#/components/schemas/EntityFamilyRole"
         is_primary_contact:
           type: boolean
     AdminFamily:
@@ -5133,14 +5135,14 @@ components:
         family_name:
           type: string
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/EntityRelationshipType"
         location_id:
           type: string
           format: uuid
           nullable: true
         location_summary:
           allOf:
-            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+            - $ref: "#/components/schemas/EntityLocationVenueSummary"
           nullable: true
         active:
           type: boolean
@@ -5162,7 +5164,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/CrmTagRef"
+            $ref: "#/components/schemas/EntityTagRef"
         members:
           type: array
           items:
@@ -5199,7 +5201,7 @@ components:
           type: string
           maxLength: 150
         relationship_type:
-          $ref: "#/components/schemas/CrmFamilyRelationshipType"
+          $ref: "#/components/schemas/EntityFamilyRelationshipType"
         location_id:
           type: string
           format: uuid
@@ -5216,7 +5218,7 @@ components:
           type: string
           maxLength: 150
         relationship_type:
-          $ref: "#/components/schemas/CrmFamilyRelationshipType"
+          $ref: "#/components/schemas/EntityFamilyRelationshipType"
         location_id:
           type: string
           format: uuid
@@ -5238,7 +5240,7 @@ components:
           type: string
           format: uuid
         role:
-          $ref: "#/components/schemas/CrmFamilyRole"
+          $ref: "#/components/schemas/EntityFamilyRole"
         is_primary_contact:
           type: boolean
     AdminOrganizationMember:
@@ -5258,7 +5260,7 @@ components:
         contact_label:
           type: string
         role:
-          $ref: "#/components/schemas/CrmOrganizationRole"
+          $ref: "#/components/schemas/EntityOrganizationRole"
     AdminOrganization:
       type: object
       required:
@@ -5277,9 +5279,9 @@ components:
         name:
           type: string
         organization_type:
-          $ref: "#/components/schemas/CrmOrganizationType"
+          $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/EntityRelationshipType"
         slug:
           type: string
           nullable: true
@@ -5296,7 +5298,7 @@ components:
           nullable: true
         location_summary:
           allOf:
-            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+            - $ref: "#/components/schemas/EntityLocationVenueSummary"
           nullable: true
         active:
           type: boolean
@@ -5318,7 +5320,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/CrmTagRef"
+            $ref: "#/components/schemas/EntityTagRef"
         members:
           type: array
           items:
@@ -5356,9 +5358,9 @@ components:
           type: string
           maxLength: 255
         organization_type:
-          $ref: "#/components/schemas/CrmOrganizationType"
+          $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
-          $ref: "#/components/schemas/CrmOrganizationRelationshipType"
+          $ref: "#/components/schemas/EntityOrganizationRelationshipType"
         slug:
           type: string
           maxLength: 128
@@ -5391,9 +5393,9 @@ components:
           type: string
           maxLength: 255
         organization_type:
-          $ref: "#/components/schemas/CrmOrganizationType"
+          $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
-          $ref: "#/components/schemas/CrmOrganizationRelationshipType"
+          $ref: "#/components/schemas/EntityOrganizationRelationshipType"
         slug:
           type: string
           maxLength: 128
@@ -5426,7 +5428,7 @@ components:
           type: string
           format: uuid
         role:
-          $ref: "#/components/schemas/CrmOrganizationRole"
+          $ref: "#/components/schemas/EntityOrganizationRole"
     ActionMessageResponse:
       type: object
       required:

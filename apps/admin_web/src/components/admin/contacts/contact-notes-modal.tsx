@@ -16,7 +16,7 @@ import {
   listAdminContactNotes,
   updateAdminContactNote,
   type NoteRow,
-} from '@/lib/crm-api';
+} from '@/lib/entity-api';
 import { formatDate } from '@/lib/format';
 import type { AdminUser } from '@/types/leads';
 import type { components } from '@/types/generated/admin-api.generated';

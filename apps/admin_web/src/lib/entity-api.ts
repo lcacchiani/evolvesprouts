@@ -2,7 +2,7 @@ import { adminApiRequest } from './api-admin-client';
 import { asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
-import type { CrmListFilters } from '@/types/crm';
+import type { EntityListFilters } from '@/types/entity-list';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
@@ -13,15 +13,15 @@ type ApiFamilyList = ApiSchemas['AdminFamilyListResponse'];
 type ApiFamilyResponse = ApiSchemas['AdminFamilyResponse'];
 type ApiOrganizationList = ApiSchemas['AdminOrganizationListResponse'];
 type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
-type ApiTagList = ApiSchemas['CrmTagListResponse'];
-type ApiCrmPickerList = ApiSchemas['CrmPickerListResponse'];
+type ApiTagList = ApiSchemas['EntityTagListResponse'];
+type ApiEntityPickerList = ApiSchemas['EntityPickerListResponse'];
 type ApiNoteList = ApiSchemas['AdminNoteListResponse'];
 
 export type AdminContactRow = ApiSchemas['AdminContact'];
 export type AdminFamilyRow = ApiSchemas['AdminFamily'];
 export type AdminOrganizationRow = ApiSchemas['AdminOrganization'];
-export type CrmTagRef = ApiSchemas['CrmTagRef'];
-export type CrmPickerListItem = ApiSchemas['CrmPickerListItem'];
+export type EntityTagRef = ApiSchemas['EntityTagRef'];
+export type EntityPickerListItem = ApiSchemas['EntityPickerListItem'];
 export type NoteRow = ApiSchemas['Note'];
 
 function parseContact(value: unknown): AdminContactRow {
@@ -42,14 +42,14 @@ function parseOrganization(value: unknown): AdminOrganizationRow {
   return row as AdminOrganizationRow;
 }
 
-function parseTag(value: unknown): CrmTagRef {
+function parseTag(value: unknown): EntityTagRef {
   const row = isRecord(value) ? value : {};
-  return row as CrmTagRef;
+  return row as EntityTagRef;
 }
 
-function parsePickerItem(value: unknown): CrmPickerListItem {
+function parsePickerItem(value: unknown): EntityPickerListItem {
   const row = isRecord(value) ? value : {};
-  return row as CrmPickerListItem;
+  return row as EntityPickerListItem;
 }
 
 function parseNote(value: unknown): NoteRow {
@@ -57,7 +57,7 @@ function parseNote(value: unknown): NoteRow {
   return row as NoteRow;
 }
 
-export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
+export async function listEntityTags(signal?: AbortSignal): Promise<EntityTagRef[]> {
   const payload = await adminApiRequest<ApiTagList>({
     endpointPath: '/v1/admin/contacts/tags',
     method: 'GET',
@@ -67,8 +67,10 @@ export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
   return Array.isArray(root.items) ? root.items.map((t) => parseTag(t)) : [];
 }
 
-export async function listCrmFamilyPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
-  const payload = await adminApiRequest<ApiCrmPickerList>({
+export async function listEntityFamilyPicker(
+  signal?: AbortSignal
+): Promise<EntityPickerListItem[]> {
+  const payload = await adminApiRequest<ApiEntityPickerList>({
     endpointPath: '/v1/admin/families/picker?limit=100',
     method: 'GET',
     signal,
@@ -77,8 +79,10 @@ export async function listCrmFamilyPicker(signal?: AbortSignal): Promise<CrmPick
   return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
 }
 
-export async function listCrmOrganizationPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
-  const payload = await adminApiRequest<ApiCrmPickerList>({
+export async function listEntityOrganizationPicker(
+  signal?: AbortSignal
+): Promise<EntityPickerListItem[]> {
+  const payload = await adminApiRequest<ApiEntityPickerList>({
     endpointPath: '/v1/admin/organizations/picker?limit=100',
     method: 'GET',
     signal,
@@ -87,10 +91,10 @@ export async function listCrmOrganizationPicker(signal?: AbortSignal): Promise<C
   return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
 }
 
-export async function searchCrmContactsForPicker(
+export async function searchEntityContactsForPicker(
   params: { query: string; excludeContactId?: string | null; limit?: number },
   signal?: AbortSignal
-): Promise<CrmPickerListItem[]> {
+): Promise<EntityPickerListItem[]> {
   const q = new URLSearchParams();
   q.set('query', params.query.trim());
   if (params.excludeContactId?.trim()) {
@@ -99,7 +103,7 @@ export async function searchCrmContactsForPicker(
   if (typeof params.limit === 'number') {
     q.set('limit', `${params.limit}`);
   }
-  const payload = await adminApiRequest<ApiCrmPickerList>({
+  const payload = await adminApiRequest<ApiEntityPickerList>({
     endpointPath: `/v1/admin/contacts/search?${q.toString()}`,
     method: 'GET',
     signal,
@@ -122,7 +126,7 @@ export async function getAdminContact(
 }
 
 export async function listAdminContacts(
-  params: Partial<CrmListFilters> & { cursor?: string | null; limit?: number },
+  params: Partial<EntityListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal
 ): Promise<{ items: AdminContactRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
@@ -229,7 +233,7 @@ export async function deleteAdminContactNote(contactId: string, noteId: string):
 }
 
 export async function listAdminFamilies(
-  params: Partial<CrmListFilters> & { cursor?: string | null; limit?: number },
+  params: Partial<EntityListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal
 ): Promise<{ items: AdminFamilyRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
@@ -312,7 +316,7 @@ export async function removeAdminFamilyMember(
 }
 
 export async function listAdminOrganizations(
-  params: Partial<CrmListFilters> & { cursor?: string | null; limit?: number },
+  params: Partial<EntityListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal
 ): Promise<{ items: AdminOrganizationRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();

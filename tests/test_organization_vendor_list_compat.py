@@ -70,10 +70,10 @@ def test_get_organization_by_id_includes_vendor_rows() -> None:
     assert repo.get_organization_by_id(vid) is vendor
 
 
-def test_get_crm_organization_by_id_excludes_vendor_rows() -> None:
+def test_get_non_vendor_organization_by_id_excludes_vendor_rows() -> None:
     vid = uuid4()
     mock_session = MagicMock()
     mock_session.execute.return_value.scalar_one_or_none.return_value = None
     repo = OrganizationRepository(mock_session)
-    assert repo.get_crm_organization_by_id(vid) is None
+    assert repo.get_non_vendor_organization_by_id(vid) is None
     mock_session.execute.assert_called_once()

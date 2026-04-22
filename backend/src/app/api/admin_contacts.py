@@ -19,14 +19,14 @@ from app.api.admin_contacts_mutations import (
     delete_contact,
     update_contact,
 )
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_helpers import (
     list_all_tags_for_picker,
     parse_active_filter,
     parse_contact_type_filter,
     parse_limit,
     serialize_tag_ref,
 )
-from app.api.admin_crm_serializers import (
+from app.api.admin_entities_serializers import (
     serialize_contact_picker_row,
     serialize_contact_summary,
 )

@@ -20,7 +20,7 @@ vi.mock('@/lib/services-api', async () => {
 
 import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 
-import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import type { useAdminEntityContacts } from '@/hooks/use-admin-entity-contacts';
 import type { components } from '@/types/generated/admin-api.generated';
 
 vi.mock('@/hooks/use-confirm-dialog', () => ({
@@ -36,20 +36,20 @@ vi.mock('@/hooks/use-confirm-dialog', () => ({
   ],
 }));
 
-vi.mock('@/lib/crm-api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/crm-api')>();
+vi.mock('@/lib/entity-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/entity-api')>();
   return {
     ...actual,
-    listCrmFamilyPicker: vi.fn().mockResolvedValue([]),
-    listCrmOrganizationPicker: vi.fn().mockResolvedValue([]),
+    listEntityFamilyPicker: vi.fn().mockResolvedValue([]),
+    listEntityOrganizationPicker: vi.fn().mockResolvedValue([]),
   };
 });
 
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
 
 function buildContactsHook(
-  overrides: Partial<ReturnType<typeof useAdminCrmContacts>> = {}
-): ReturnType<typeof useAdminCrmContacts> {
+  overrides: Partial<ReturnType<typeof useAdminEntityContacts>> = {}
+): ReturnType<typeof useAdminEntityContacts> {
   return {
     contacts: [],
     filters: { query: '', active: 'true' as const, contact_type: '' as const },

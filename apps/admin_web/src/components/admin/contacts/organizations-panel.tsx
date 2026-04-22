@@ -2,13 +2,13 @@
 
 import { useMemo, useState, type MouseEvent } from 'react';
 
-import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import type { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
-import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -19,18 +19,18 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { formatEnumLabel } from '@/lib/format';
-import type { CrmTagRef } from '@/lib/crm-api';
-import type { CrmListFilters } from '@/types/crm';
+import type { EntityTagRef } from '@/lib/entity-api';
+import type { EntityListFilters } from '@/types/entity-list';
 import {
   ORGANIZATION_RELATIONSHIP_TYPES,
   relationshipTypeForEditor,
-} from '@/types/crm-relationship';
+} from '@/types/entity-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
 
-const ORG_TYPES: ApiSchemas['CrmOrganizationType'][] = [
+const ORG_TYPES: ApiSchemas['EntityOrganizationType'][] = [
   'school',
   'company',
   'community_group',
@@ -38,7 +38,7 @@ const ORG_TYPES: ApiSchemas['CrmOrganizationType'][] = [
   'other',
 ];
 
-const ORG_ROLES: ApiSchemas['CrmOrganizationRole'][] = [
+const ORG_ROLES: ApiSchemas['EntityOrganizationRole'][] = [
   'admin',
   'staff',
   'teacher',
@@ -59,8 +59,8 @@ function contactEligibleForOrgMember(
 }
 
 export interface OrganizationsPanelProps {
-  organizations: ReturnType<typeof useAdminCrmOrganizations>;
-  tags: CrmTagRef[];
+  organizations: ReturnType<typeof useAdminEntityOrganizations>;
+  tags: EntityTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
   areasLoading: boolean;
@@ -104,9 +104,9 @@ export function OrganizationsPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [organizationType, setOrganizationType] =
-    useState<ApiSchemas['CrmOrganizationType']>('company');
+    useState<ApiSchemas['EntityOrganizationType']>('company');
   const [relationshipType, setRelationshipType] =
-    useState<ApiSchemas['CrmOrganizationRelationshipType']>('prospect');
+    useState<ApiSchemas['EntityOrganizationRelationshipType']>('prospect');
   const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
@@ -116,7 +116,7 @@ export function OrganizationsPanel({
   const [active, setActive] = useState(true);
 
   const [memberContactId, setMemberContactId] = useState('');
-  const [memberRole, setMemberRole] = useState<ApiSchemas['CrmOrganizationRole']>('member');
+  const [memberRole, setMemberRole] = useState<ApiSchemas['EntityOrganizationRole']>('member');
 
   const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
     null
@@ -355,7 +355,7 @@ export function OrganizationsPanel({
               id='crm-org-rel'
               value={relationshipType}
               onChange={(e) => {
-                const next = e.target.value as ApiSchemas['CrmOrganizationRelationshipType'];
+                const next = e.target.value as ApiSchemas['EntityOrganizationRelationshipType'];
                 setRelationshipType(next);
                 if (next !== 'partner') {
                   setSlug('');
@@ -387,7 +387,7 @@ export function OrganizationsPanel({
               id='crm-org-type'
               value={organizationType}
               onChange={(e) =>
-                setOrganizationType(e.target.value as ApiSchemas['CrmOrganizationType'])
+                setOrganizationType(e.target.value as ApiSchemas['EntityOrganizationType'])
               }
             >
               {ORG_TYPES.map((v) => (
@@ -462,7 +462,7 @@ export function OrganizationsPanel({
               </div>
             ) : null}
             <div>
-              <CrmTagPicker
+              <EntityTagPicker
                 id='crm-org-tags'
                 label='Tags'
                 tags={tags}
@@ -498,7 +498,7 @@ export function OrganizationsPanel({
                     id='crm-org-member-role'
                     value={memberRole}
                     onChange={(e) =>
-                      setMemberRole(e.target.value as ApiSchemas['CrmOrganizationRole'])
+                      setMemberRole(e.target.value as ApiSchemas['EntityOrganizationRole'])
                     }
                   >
                     {ORG_ROLES.map((r) => (
@@ -583,7 +583,7 @@ export function OrganizationsPanel({
                 value={filters.active}
                 onChange={(e) => {
                   setDeleteActionError('');
-                  setFilter('active', e.target.value as CrmListFilters['active']);
+                  setFilter('active', e.target.value as EntityListFilters['active']);
                 }}
               >
                 <option value=''>All</option>

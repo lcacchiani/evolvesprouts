@@ -7,17 +7,17 @@ import {
   deleteAdminContact,
   listAdminContacts,
   updateAdminContact,
-} from '@/lib/crm-api';
-import { DEFAULT_CONTACT_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
+} from '@/lib/entity-api';
+import { DEFAULT_CONTACT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
 
-export function useAdminCrmContacts() {
+export function useAdminEntityContacts() {
   const fetcher = useCallback(
-    (params: CrmListFilters & { cursor: string | null; limit: number }) =>
+    (params: EntityListFilters & { cursor: string | null; limit: number }) =>
       listAdminContacts({
         query: params.query,
         active: params.active || undefined,

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { formatGeocodeErrorMessage } from '@/hooks/hook-errors';
-import { formatCrmVenueLocationLabel, formatEnumLabel, formatLocationCoordinatesLabel } from '@/lib/format';
+import { formatEntityVenueLocationLabel, formatEnumLabel, formatLocationCoordinatesLabel } from '@/lib/format';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -59,7 +59,7 @@ function resolveDisplaySummary(
   areaNameForLocation: string
 ): { line1: string; line2: string; labels: string[] } | null {
   if (location) {
-    const line1 = formatCrmVenueLocationLabel({
+    const line1 = formatEntityVenueLocationLabel({
       id: location.id,
       name: location.name,
       address: location.address,
@@ -69,7 +69,7 @@ function resolveDisplaySummary(
     return { line1, line2, labels: location.partnerOrganizationLabels };
   }
   if (embedded) {
-    const line1 = formatCrmVenueLocationLabel({
+    const line1 = formatEntityVenueLocationLabel({
       id: embedded.id,
       name: embedded.name,
       address: embedded.address,

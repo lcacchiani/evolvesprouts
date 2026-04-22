@@ -10,7 +10,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import request_id
+from app.api.admin_entities_helpers import request_id
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment, Note, RelationshipType, SalesLead
@@ -52,7 +52,7 @@ def _delete_sales_leads_for_organization(
         session.execute(delete(SalesLead).where(SalesLead.id.in_(tuple(lead_ids))))
 
 
-def delete_admin_crm_family(
+def delete_admin_entity_family(
     event: Mapping[str, Any],
     *,
     family_id: UUID,
@@ -88,7 +88,7 @@ def delete_admin_crm_family(
         return json_response(204, {}, event=event)
 
 
-def delete_admin_crm_organization(
+def delete_admin_entity_organization(
     event: Mapping[str, Any],
     *,
     organization_id: UUID,

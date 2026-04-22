@@ -2221,7 +2221,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CrmTagListResponse"];
+                        "application/json": components["schemas"]["EntityTagListResponse"];
                     };
                 };
                 403: components["responses"]["Forbidden"];
@@ -2267,7 +2267,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                        "application/json": components["schemas"]["EntityPickerListResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -2297,7 +2297,7 @@ export interface paths {
                     query?: string;
                     active?: boolean;
                     /** @description When set, only contacts with this contact type are returned. */
-                    contact_type?: components["schemas"]["CrmContactType"];
+                    contact_type?: components["schemas"]["EntityContactType"];
                     cursor?: string;
                     limit?: number;
                 };
@@ -2649,7 +2649,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                        "application/json": components["schemas"]["EntityPickerListResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -2964,7 +2964,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                        "application/json": components["schemas"]["EntityPickerListResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -3001,7 +3001,7 @@ export interface paths {
                     query?: string;
                     active?: boolean;
                     /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list (CRM default). */
-                    relationship_type?: components["schemas"]["CrmRelationshipType"];
+                    relationship_type?: components["schemas"]["EntityRelationshipType"];
                     cursor?: string;
                     limit?: number;
                 };
@@ -4591,50 +4591,50 @@ export interface components {
             reason: string;
         };
         /** @enum {string} */
-        CrmContactType: "parent" | "child" | "helper" | "professional" | "other";
+        EntityContactType: "parent" | "child" | "helper" | "professional" | "other";
         /**
-         * @description Stored relationship for contacts and read responses. Family and organization create/update requests use narrower enums (`CrmFamilyRelationshipType`, `CrmOrganizationRelationshipType`).
+         * @description Stored relationship for contacts and read responses. Family and organization create/update requests use narrower enums (`EntityFamilyRelationshipType`, `EntityOrganizationRelationshipType`). Historical rows may still return values outside those narrower sets; PATCH bodies must send an allowed value (for example map unknown values to `other` before submit, matching the admin UI).
          * @enum {string}
          */
-        CrmRelationshipType: "prospect" | "client" | "past_client" | "partner" | "vendor" | "other";
+        EntityRelationshipType: "prospect" | "client" | "past_client" | "partner" | "vendor" | "other";
         /**
          * @description Allowed values when setting a family's CRM relationship.
          * @enum {string}
          */
-        CrmFamilyRelationshipType: "prospect" | "client" | "other";
+        EntityFamilyRelationshipType: "prospect" | "client" | "other";
         /**
          * @description Allowed values when setting an organization's CRM relationship. `past_client` is not permitted for organizations (use contacts for that lifecycle).
          * @enum {string}
          */
-        CrmOrganizationRelationshipType: "prospect" | "client" | "partner" | "vendor" | "other";
+        EntityOrganizationRelationshipType: "prospect" | "client" | "partner" | "vendor" | "other";
         /** @enum {string} */
-        CrmContactSource: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | "manual";
+        EntityContactSource: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | "manual";
         /** @enum {string} */
-        CrmMailchimpSyncStatus: "pending" | "synced" | "failed" | "unsubscribed";
+        EntityMailchimpSyncStatus: "pending" | "synced" | "failed" | "unsubscribed";
         /** @enum {string} */
-        CrmFamilyRole: "parent" | "child" | "helper" | "guardian" | "other";
+        EntityFamilyRole: "parent" | "child" | "helper" | "guardian" | "other";
         /** @enum {string} */
-        CrmOrganizationType: "school" | "company" | "community_group" | "ngo" | "other";
+        EntityOrganizationType: "school" | "company" | "community_group" | "ngo" | "other";
         /** @enum {string} */
-        CrmOrganizationRole: "admin" | "staff" | "teacher" | "member" | "client" | "partner" | "other";
-        CrmTagRef: {
+        EntityOrganizationRole: "admin" | "staff" | "teacher" | "member" | "client" | "partner" | "other";
+        EntityTagRef: {
             /** Format: uuid */
             id: string;
             name: string;
             color?: string | null;
         };
-        CrmTagListResponse: {
-            items: components["schemas"]["CrmTagRef"][];
+        EntityTagListResponse: {
+            items: components["schemas"]["EntityTagRef"][];
         };
-        CrmPickerListItem: {
+        EntityPickerListItem: {
             /** Format: uuid */
             id: string;
             label: string;
         };
-        CrmPickerListResponse: {
-            items: components["schemas"]["CrmPickerListItem"][];
+        EntityPickerListResponse: {
+            items: components["schemas"]["EntityPickerListItem"][];
         };
-        CrmLocationVenueSummary: {
+        EntityLocationVenueSummary: {
             /** Format: uuid */
             id: string;
             name?: string | null;
@@ -4655,14 +4655,14 @@ export interface components {
             first_name: string;
             last_name?: string | null;
             phone?: string | null;
-            contact_type: components["schemas"]["CrmContactType"];
-            relationship_type: components["schemas"]["CrmRelationshipType"];
+            contact_type: components["schemas"]["EntityContactType"];
+            relationship_type: components["schemas"]["EntityRelationshipType"];
             /** Format: date */
             date_of_birth?: string | null;
             /** Format: uuid */
             location_id?: string | null;
-            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
-            source: components["schemas"]["CrmContactSource"];
+            location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
+            source: components["schemas"]["EntityContactSource"];
             source_detail?: string | null;
             /**
              * Format: uuid
@@ -4670,7 +4670,7 @@ export interface components {
              *     (stored in `source_metadata`).
              */
             referral_contact_id?: string | null;
-            mailchimp_status: components["schemas"]["CrmMailchimpSyncStatus"];
+            mailchimp_status: components["schemas"]["EntityMailchimpSyncStatus"];
             active: boolean;
             /** Format: date-time */
             archived_at?: string | null;
@@ -4679,7 +4679,7 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
             tag_ids: string[];
-            tags: components["schemas"]["CrmTagRef"][];
+            tags: components["schemas"]["EntityTagRef"][];
             family_ids: string[];
             organization_ids: string[];
             /**
@@ -4702,9 +4702,9 @@ export interface components {
             email?: string | null;
             instagram_handle?: string | null;
             phone?: string | null;
-            contact_type: components["schemas"]["CrmContactType"];
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
-            source?: components["schemas"]["CrmContactSource"];
+            contact_type: components["schemas"]["EntityContactType"];
+            relationship_type?: components["schemas"]["EntityRelationshipType"];
+            source?: components["schemas"]["EntityContactSource"];
             source_detail?: string | null;
             /** Format: date */
             date_of_birth?: string | null;
@@ -4727,9 +4727,9 @@ export interface components {
             email?: string | null;
             instagram_handle?: string | null;
             phone?: string | null;
-            contact_type?: components["schemas"]["CrmContactType"];
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
-            source?: components["schemas"]["CrmContactSource"];
+            contact_type?: components["schemas"]["EntityContactType"];
+            relationship_type?: components["schemas"]["EntityRelationshipType"];
+            source?: components["schemas"]["EntityContactSource"];
             source_detail?: string | null;
             /** Format: date */
             date_of_birth?: string | null;
@@ -4752,17 +4752,17 @@ export interface components {
             /** Format: uuid */
             contact_id: string;
             contact_label: string;
-            role: components["schemas"]["CrmFamilyRole"];
+            role: components["schemas"]["EntityFamilyRole"];
             is_primary_contact: boolean;
         };
         AdminFamily: {
             /** Format: uuid */
             id: string;
             family_name: string;
-            relationship_type: components["schemas"]["CrmRelationshipType"];
+            relationship_type: components["schemas"]["EntityRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
-            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
+            location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
             active: boolean;
             /** Format: date-time */
             archived_at?: string | null;
@@ -4771,7 +4771,7 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
             tag_ids: string[];
-            tags: components["schemas"]["CrmTagRef"][];
+            tags: components["schemas"]["EntityTagRef"][];
             members: components["schemas"]["AdminFamilyMember"][];
         };
         AdminFamilyListResponse: {
@@ -4784,14 +4784,14 @@ export interface components {
         };
         CreateAdminFamilyRequest: {
             family_name: string;
-            relationship_type?: components["schemas"]["CrmFamilyRelationshipType"];
+            relationship_type?: components["schemas"]["EntityFamilyRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
             tag_ids?: string[];
         };
         UpdateAdminFamilyRequest: {
             family_name?: string;
-            relationship_type?: components["schemas"]["CrmFamilyRelationshipType"];
+            relationship_type?: components["schemas"]["EntityFamilyRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
             active?: boolean;
@@ -4800,7 +4800,7 @@ export interface components {
         AddFamilyMemberRequest: {
             /** Format: uuid */
             contact_id: string;
-            role: components["schemas"]["CrmFamilyRole"];
+            role: components["schemas"]["EntityFamilyRole"];
             is_primary_contact?: boolean;
         };
         AdminOrganizationMember: {
@@ -4809,20 +4809,20 @@ export interface components {
             /** Format: uuid */
             contact_id: string;
             contact_label: string;
-            role: components["schemas"]["CrmOrganizationRole"];
+            role: components["schemas"]["EntityOrganizationRole"];
         };
         AdminOrganization: {
             /** Format: uuid */
             id: string;
             name: string;
-            organization_type: components["schemas"]["CrmOrganizationType"];
-            relationship_type: components["schemas"]["CrmRelationshipType"];
+            organization_type: components["schemas"]["EntityOrganizationType"];
+            relationship_type: components["schemas"]["EntityRelationshipType"];
             /** @description Optional URL-safe identifier for partner organisations only (lowercase letters, digits, single hyphens between segments). Null when not a partner or unset. Uniqueness is enforced case-insensitively among partner rows. */
             slug?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
-            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
+            location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
             active: boolean;
             /** Format: date-time */
             archived_at?: string | null;
@@ -4831,7 +4831,7 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
             tag_ids: string[];
-            tags: components["schemas"]["CrmTagRef"][];
+            tags: components["schemas"]["EntityTagRef"][];
             members: components["schemas"]["AdminOrganizationMember"][];
         };
         AdminOrganizationListResponse: {
@@ -4844,8 +4844,8 @@ export interface components {
         };
         CreateAdminOrganizationRequest: {
             name: string;
-            organization_type: components["schemas"]["CrmOrganizationType"];
-            relationship_type?: components["schemas"]["CrmOrganizationRelationshipType"];
+            organization_type: components["schemas"]["EntityOrganizationType"];
+            relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
             /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
             slug?: string | null;
             website?: string | null;
@@ -4857,8 +4857,8 @@ export interface components {
         };
         UpdateAdminOrganizationRequest: {
             name?: string;
-            organization_type?: components["schemas"]["CrmOrganizationType"];
-            relationship_type?: components["schemas"]["CrmOrganizationRelationshipType"];
+            organization_type?: components["schemas"]["EntityOrganizationType"];
+            relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
             /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
             slug?: string | null;
             website?: string | null;
@@ -4870,7 +4870,7 @@ export interface components {
         AddOrganizationMemberRequest: {
             /** Format: uuid */
             contact_id: string;
-            role: components["schemas"]["CrmOrganizationRole"];
+            role: components["schemas"]["EntityOrganizationRole"];
         };
         ActionMessageResponse: {
             message: string;
