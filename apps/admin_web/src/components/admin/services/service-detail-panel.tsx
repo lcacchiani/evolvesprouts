@@ -529,13 +529,15 @@ export function ServiceDetailPanel({
         ) : null}
 
         {isEditMode ? (
-          <div>
-            <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-            <Input
-              id='service-detail-cover-file-name'
-              value={coverFileName}
-              onChange={(event) => setCoverFileName(event.target.value)}
-            />
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div className='md:col-span-2'>
+              <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+              <Input
+                id='service-detail-cover-file-name'
+                value={coverFileName}
+                onChange={(event) => setCoverFileName(event.target.value)}
+              />
+            </div>
           </div>
         ) : null}
 

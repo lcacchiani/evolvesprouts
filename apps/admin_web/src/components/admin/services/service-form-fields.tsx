@@ -35,9 +35,6 @@ export function ServiceReferralSlugField({
         placeholder='e.g. my-best-auntie'
         autoComplete='off'
       />
-      <p className='mt-1 text-xs text-slate-500'>
-        Used in referral URLs. Lowercase letters, numbers, and hyphens.
-      </p>
       {value.trim() && !SLUG_PATTERN.test(value.trim()) ? (
         <p className='mt-1 text-xs text-red-600'>
           Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
