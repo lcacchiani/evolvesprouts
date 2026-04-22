@@ -34,7 +34,7 @@ info:
     - `GET|POST /v1/admin/families`
     - `GET|PATCH|DELETE /v1/admin/families/{id}`
     - `POST /v1/admin/families/{id}/members`
-    - `DELETE /v1/admin/families/{id}/members/{memberId}`
+    - `PATCH|DELETE /v1/admin/families/{id}/members/{memberId}`
     - `GET /v1/admin/organizations/picker`
     - `GET|POST /v1/admin/organizations`
     - `GET|PATCH|DELETE /v1/admin/organizations/{id}`
@@ -2012,6 +2012,33 @@ paths:
     parameters:
       - $ref: "#/components/parameters/AdminFamilyId"
       - $ref: "#/components/parameters/AdminFamilyMemberId"
+    patch:
+      summary: Update family member
+      description: |
+        Currently supports toggling the family's primary contact. At most one member may be
+        primary; setting `is_primary_contact` to true clears the flag on other members in the
+        same family.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFamilyMemberRequest"
+      responses:
+        "200":
+          description: Family with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFamilyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       summary: Remove family member
       security:
@@ -5250,15 +5277,28 @@ components:
       type: object
       required:
         - contact_id
-        - role
       properties:
         contact_id:
           type: string
           format: uuid
         role:
-          $ref: "#/components/schemas/EntityFamilyRole"
+          type: string
+          deprecated: true
+          description: |
+            Ignored. Membership role is derived from the contact's `contact_type` (parent, child,
+            helper map to the same family roles; professional and other map to `other`).
         is_primary_contact:
           type: boolean
+    UpdateFamilyMemberRequest:
+      type: object
+      required:
+        - is_primary_contact
+      properties:
+        is_primary_contact:
+          type: boolean
+          description: |
+            When true, this member becomes the family's sole primary contact. When false, this
+            member is cleared as primary (other members are unchanged).
     AdminOrganizationMember:
       type: object
       required:

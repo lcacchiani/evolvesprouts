@@ -53,6 +53,7 @@ function buildFamiliesHook(
     updateFamily: vi.fn().mockResolvedValue(null),
     addMember: vi.fn().mockResolvedValue(null),
     removeMember: vi.fn().mockResolvedValue(null),
+    updateMember: vi.fn().mockResolvedValue(null),
     deleteFamily: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     ...overrides,
@@ -183,6 +184,62 @@ describe('FamiliesPanel', () => {
       });
     });
     expect(updateLocationPartial.mock.calls[0][1]).not.toHaveProperty('name');
+  });
+
+  it('toggles primary contact from the members table', async () => {
+    const user = userEvent.setup();
+    const updateMember = vi.fn().mockResolvedValue(null);
+    const families = buildFamiliesHook({
+      updateMember,
+      families: [
+        {
+          id: 'fam-1',
+          family_name: 'Smith',
+          relationship_type: 'prospect',
+          location_id: null,
+          location_summary: null,
+          tag_ids: [],
+          tags: [],
+          members: [
+            {
+              id: 'mem-1',
+              contact_id: 'c-1',
+              contact_label: 'Alex Smith',
+              role: 'parent',
+              is_primary_contact: false,
+            },
+          ],
+          active: true,
+          created_at: '2020-01-01T00:00:00.000Z',
+          updated_at: '2020-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    render(
+      <FamiliesPanel
+        families={families}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    await user.click(screen.getByText('Smith'));
+    const primaryCheckbox = screen.getByRole('checkbox', {
+      name: 'Primary contact for Alex Smith',
+    });
+    await user.click(primaryCheckbox);
+
+    await waitFor(() => {
+      expect(updateMember).toHaveBeenCalledWith('fam-1', 'mem-1', {
+        is_primary_contact: true,
+      });
+    });
   });
 
   it('deletes a family after confirmation', async () => {
