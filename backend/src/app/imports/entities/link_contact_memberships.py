@@ -323,6 +323,7 @@ class LinkContactMembershipsImporter:
                         organization_id=org_uuid,
                         contact_id=contact_uuid,
                         role=_org_role(p.kind),
+                        is_primary_contact=False,
                         title=_title_trim(p.occupation),
                     ),
                 )

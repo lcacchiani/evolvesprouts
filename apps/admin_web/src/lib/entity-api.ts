@@ -411,3 +411,17 @@ export async function removeAdminOrganizationMember(
   const root = unwrapPayload(payload);
   return root.organization ?? null;
 }
+
+export async function patchAdminOrganizationMember(
+  organizationId: string,
+  memberId: string,
+  body: ApiSchemas['UpdateOrganizationMemberRequest']
+): Promise<AdminOrganizationRow | null> {
+  const payload = await adminApiRequest<ApiOrganizationResponse>({
+    endpointPath: `/v1/admin/organizations/${organizationId}/members/${memberId}`,
+    method: 'PATCH',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  return root.organization ?? null;
+}

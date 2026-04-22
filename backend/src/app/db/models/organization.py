@@ -8,13 +8,18 @@ from uuid import UUID
 
 from collections.abc import Iterable
 
-from sqlalchemy import Enum, ForeignKey, Index, String, UniqueConstraint, text
+from sqlalchemy import Boolean, Enum, ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
-from app.db.models.enums import OrganizationRole, OrganizationType, RelationshipType
+from app.db.models.enums import (
+    ContactType,
+    OrganizationRole,
+    OrganizationType,
+    RelationshipType,
+)
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
@@ -29,6 +34,21 @@ def _enum_values(
 ) -> list[str]:
     """Return enum labels stored in PostgreSQL."""
     return [member.value for member in enum_cls]
+
+
+def organization_membership_role_from_contact_type(
+    contact_type: ContactType,
+) -> OrganizationRole:
+    """Map contact category to stored organization membership role."""
+    if contact_type is ContactType.PARENT:
+        return OrganizationRole.STAFF
+    if contact_type is ContactType.CHILD:
+        return OrganizationRole.MEMBER
+    if contact_type is ContactType.HELPER:
+        return OrganizationRole.STAFF
+    if contact_type is ContactType.PROFESSIONAL:
+        return OrganizationRole.STAFF
+    return OrganizationRole.OTHER
 
 
 class Organization(Base):
@@ -153,6 +173,11 @@ class OrganizationMember(Base):
             create_type=False,
         ),
         nullable=False,
+    )
+    is_primary_contact: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        server_default=text("false"),
     )
     title: Mapped[str | None] = mapped_column(String(150), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

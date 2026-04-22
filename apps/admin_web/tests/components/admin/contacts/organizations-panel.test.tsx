@@ -54,6 +54,7 @@ function buildOrgsHook(
     updateOrganization: vi.fn().mockResolvedValue(null),
     addMember: vi.fn().mockResolvedValue(null),
     removeMember: vi.fn().mockResolvedValue(null),
+    updateMember: vi.fn().mockResolvedValue(null),
     deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     relationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<

@@ -3152,6 +3152,10 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     const adminOrganizationCrmMemberById = adminOrganizationCrmMembers.addResource("{memberId}");
+    adminOrganizationCrmMemberById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminOrganizationCrmMemberById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,

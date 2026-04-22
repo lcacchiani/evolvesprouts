@@ -18,6 +18,7 @@ from app.api.admin_contacts_helpers import (
     parse_contact_type,
     parse_optional_date,
     parse_referral_contact_id_from_metadata,
+    refresh_organization_member_roles_for_contact,
     sync_memberships_from_body,
     validate_referrer_contact,
 )
@@ -250,6 +251,9 @@ def update_contact(
         if "contact_type" in body:
             contact.contact_type = parse_contact_type(
                 body.get("contact_type"), field="contact_type"
+            )
+            refresh_organization_member_roles_for_contact(
+                session, contact_id=contact.id
             )
         if "relationship_type" in body:
             contact.relationship_type = parse_relationship_type(
