@@ -24,8 +24,6 @@ import type {
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
@@ -346,7 +344,6 @@ export function InstanceDetailPanel({
         isLoadingLocations={isLoadingLocations}
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
-        omitWaitlistField={effectiveServiceType === 'training_course'}
         onSelectService={handleSelectService}
         onChange={setInstanceForm}
       />
@@ -356,25 +353,6 @@ export function InstanceDetailPanel({
           value={trainingForm}
           onChange={setTrainingForm}
           layout='service-detail'
-          prePricingUnitColumn={
-            <>
-              <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
-              <Select
-                id='instance-waitlist'
-                value={instanceForm.waitlistEnabled ? 'true' : 'false'}
-                disabled={typeFieldsLocked}
-                onChange={(event) =>
-                  setInstanceForm((prev) => ({
-                    ...prev,
-                    waitlistEnabled: event.target.value === 'true',
-                  }))
-                }
-              >
-                <option value='false'>Disabled</option>
-                <option value='true'>Enabled</option>
-              </Select>
-            </>
-          }
         />
       ) : null}
       {effectiveServiceType === 'event' ? (

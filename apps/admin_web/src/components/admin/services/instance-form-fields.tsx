@@ -44,8 +44,6 @@ export interface InstanceFormFieldsProps {
   isLoadingLocations?: boolean;
   instructorOptions?: InstanceInstructorOption[];
   isLoadingInstructors?: boolean;
-  /** When true, the waitlist control is omitted (shown next to training pricing instead). */
-  omitWaitlistField?: boolean;
   onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
 }
@@ -70,7 +68,6 @@ export function InstanceFormFields({
   isLoadingLocations = false,
   instructorOptions = [],
   isLoadingInstructors = false,
-  omitWaitlistField = false,
   onSelectService,
   onChange,
 }: InstanceFormFieldsProps) {
@@ -167,7 +164,7 @@ export function InstanceFormFields({
           placeholder='Leave empty to inherit from service'
         />
       </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
         <div>
           <Label htmlFor='instance-delivery-mode'>Delivery mode</Label>
           <Select
@@ -180,27 +177,6 @@ export function InstanceFormFields({
             {SERVICE_DELIVERY_MODES.map((entry) => (
               <option key={entry} value={entry}>
                 {formatEnumLabel(entry)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor='instance-instructor-id'>Instructor</Label>
-          <Select
-            id='instance-instructor-id'
-            value={value.instructorId}
-            disabled={instanceFieldsLocked || isLoadingInstructors}
-            onChange={(event) => onChange({ ...value, instructorId: event.target.value })}
-          >
-            <option value=''>
-              {isLoadingInstructors ? 'Loading instructors...' : 'None'}
-            </option>
-            {value.instructorId.trim() && !instructorExists ? (
-              <option value={value.instructorId}>{value.instructorId}</option>
-            ) : null}
-            {instructorOptions.map((entry) => (
-              <option key={entry.sub} value={entry.sub}>
-                {getInstructorOptionLabel(entry)}
               </option>
             ))}
           </Select>
@@ -236,8 +212,6 @@ export function InstanceFormFields({
             />
           )}
         </div>
-      </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>
           <Label htmlFor='instance-max-capacity'>Max capacity</Label>
           <Input
@@ -249,22 +223,41 @@ export function InstanceFormFields({
             placeholder='Unlimited if empty'
           />
         </div>
-        {omitWaitlistField ? null : (
-          <div>
-            <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
-            <Select
-              id='instance-waitlist'
-              value={value.waitlistEnabled ? 'true' : 'false'}
-              disabled={instanceFieldsLocked}
-              onChange={(event) =>
-                onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
-              }
-            >
-              <option value='false'>Disabled</option>
-              <option value='true'>Enabled</option>
-            </Select>
-          </div>
-        )}
+        <div>
+          <Label htmlFor='instance-waitlist'>Whitelist</Label>
+          <Select
+            id='instance-waitlist'
+            value={value.waitlistEnabled ? 'true' : 'false'}
+            disabled={instanceFieldsLocked}
+            onChange={(event) =>
+              onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
+            }
+          >
+            <option value='false'>Disabled</option>
+            <option value='true'>Enabled</option>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label htmlFor='instance-instructor-id'>Instructor</Label>
+        <Select
+          id='instance-instructor-id'
+          value={value.instructorId}
+          disabled={instanceFieldsLocked || isLoadingInstructors}
+          onChange={(event) => onChange({ ...value, instructorId: event.target.value })}
+        >
+          <option value=''>
+            {isLoadingInstructors ? 'Loading instructors...' : 'None'}
+          </option>
+          {value.instructorId.trim() && !instructorExists ? (
+            <option value={value.instructorId}>{value.instructorId}</option>
+          ) : null}
+          {instructorOptions.map((entry) => (
+            <option key={entry.sub} value={entry.sub}>
+              {getInstructorOptionLabel(entry)}
+            </option>
+          ))}
+        </Select>
       </div>
       <div>
         <Label htmlFor='instance-notes'>Notes</Label>

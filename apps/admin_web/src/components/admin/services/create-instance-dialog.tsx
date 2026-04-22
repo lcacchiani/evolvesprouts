@@ -3,8 +3,6 @@
 import { useState } from 'react';
 
 import { FormDialog } from '@/components/ui/form-dialog';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { ServiceType } from '@/types/services';
@@ -112,31 +110,12 @@ export function CreateInstanceDialog({
       <InstanceFormFields
         value={instanceForm}
         onChange={setInstanceForm}
-        omitWaitlistField={serviceType === 'training_course'}
       />
       {serviceType === 'training_course' ? (
         <TrainingFormFields
           value={trainingForm}
           onChange={setTrainingForm}
           layout='service-detail'
-          prePricingUnitColumn={
-            <>
-              <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
-              <Select
-                id='instance-waitlist'
-                value={instanceForm.waitlistEnabled ? 'true' : 'false'}
-                onChange={(event) =>
-                  setInstanceForm((prev) => ({
-                    ...prev,
-                    waitlistEnabled: event.target.value === 'true',
-                  }))
-                }
-              >
-                <option value='false'>Disabled</option>
-                <option value='true'>Enabled</option>
-              </Select>
-            </>
-          }
         />
       ) : null}
       {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
