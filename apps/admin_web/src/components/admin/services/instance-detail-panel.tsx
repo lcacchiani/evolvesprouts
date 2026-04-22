@@ -10,7 +10,12 @@ import {
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
-import { InstanceFormFields, type InstanceFormState } from './instance-form-fields';
+import {
+  InstanceFormFields,
+  InstancePrimaryLocationField,
+  type InstanceFormState,
+} from './instance-form-fields';
+import { SessionSlotEditor } from './session-slot-editor';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -24,6 +29,8 @@ import type {
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
@@ -346,9 +353,54 @@ export function InstanceDetailPanel({
         isLoadingInstructors={isLoadingInstructors}
         onSelectService={handleSelectService}
         onChange={setInstanceForm}
+        primaryLocationPlacement='omit'
+        sessionSlotsPlacement='omit'
       />
+      {effectiveServiceType !== 'training_course' ? (
+        <div>
+          <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
+          <Select
+            id='instance-waitlist'
+            value={instanceForm.waitlistEnabled ? 'true' : 'false'}
+            disabled={typeFieldsLocked}
+            onChange={(event) =>
+              setInstanceForm({
+                ...instanceForm,
+                waitlistEnabled: event.target.value === 'true',
+              })
+            }
+          >
+            <option value='false'>Disabled</option>
+            <option value='true'>Enabled</option>
+          </Select>
+        </div>
+      ) : null}
       {effectiveServiceType === 'training_course' ? (
-        <TrainingFormFields disabled={typeFieldsLocked} value={trainingForm} onChange={setTrainingForm} />
+        <TrainingFormFields
+          disabled={typeFieldsLocked}
+          value={trainingForm}
+          onChange={setTrainingForm}
+          layout='instance-detail'
+          leadingColumn={
+            <>
+              <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
+              <Select
+                id='instance-waitlist'
+                value={instanceForm.waitlistEnabled ? 'true' : 'false'}
+                disabled={typeFieldsLocked}
+                onChange={(event) =>
+                  setInstanceForm({
+                    ...instanceForm,
+                    waitlistEnabled: event.target.value === 'true',
+                  })
+                }
+              >
+                <option value='false'>Disabled</option>
+                <option value='true'>Enabled</option>
+              </Select>
+            </>
+          }
+        />
       ) : null}
       {effectiveServiceType === 'event' ? (
         <EventFormFields disabled={typeFieldsLocked} value={eventForm} onChange={setEventForm} />
@@ -360,6 +412,23 @@ export function InstanceDetailPanel({
           onChange={setConsultationForm}
         />
       ) : null}
+
+      <div className='space-y-3'>
+        <InstancePrimaryLocationField
+          value={instanceForm}
+          locationOptions={locationOptions}
+          isLoadingLocations={isLoadingLocations}
+          disabled={typeFieldsLocked}
+          onChange={setInstanceForm}
+        />
+        <SessionSlotEditor
+          slots={instanceForm.sessionSlots}
+          disabled={typeFieldsLocked}
+          locationOptions={locationOptions}
+          isLoadingLocations={isLoadingLocations}
+          onChange={(sessionSlots) => setInstanceForm({ ...instanceForm, sessionSlots })}
+        />
+      </div>
 
       {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
       {error ? <AdminInlineError>{error}</AdminInlineError> : null}

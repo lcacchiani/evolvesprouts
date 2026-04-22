@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -46,6 +48,69 @@ export interface InstanceFormFieldsProps {
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
+  /**
+   * When `'omit'`, the primary instance location is not shown here; render
+   * `InstancePrimaryLocationField` from the parent where the locations section should appear.
+   * @default 'with-delivery'
+   */
+  primaryLocationPlacement?: 'with-delivery' | 'omit';
+  /**
+   * When `'omit'`, session slots are not shown here; render `SessionSlotEditor` from the parent.
+   * @default 'inline'
+   */
+  sessionSlotsPlacement?: 'inline' | 'omit';
+}
+
+export interface InstancePrimaryLocationFieldProps {
+  value: InstanceFormState;
+  locationOptions?: LocationSummary[];
+  isLoadingLocations?: boolean;
+  disabled?: boolean;
+  onChange: (value: InstanceFormState) => void;
+}
+
+export function InstancePrimaryLocationField({
+  value,
+  locationOptions = [],
+  isLoadingLocations = false,
+  disabled = false,
+  onChange,
+}: InstancePrimaryLocationFieldProps) {
+  const locationExists = locationOptions.some((entry) => entry.id === value.locationId);
+  const selectedLocationValue = locationExists ? value.locationId : value.locationId || '';
+  const hasLocationOptions = locationOptions.length > 0;
+
+  return (
+    <div>
+      <Label htmlFor='instance-location-id'>Location</Label>
+      {hasLocationOptions || isLoadingLocations ? (
+        <Select
+          id='instance-location-id'
+          value={selectedLocationValue}
+          disabled={disabled}
+          onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+        >
+          <option value=''>
+            {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
+          </option>
+          {value.locationId && !locationExists ? <option value={value.locationId}>{value.locationId}</option> : null}
+          {locationOptions.map((location) => (
+            <option key={location.id} value={location.id}>
+              {formatLocationLabel(location)}
+            </option>
+          ))}
+        </Select>
+      ) : (
+        <Input
+          id='instance-location-id'
+          value={value.locationId}
+          disabled={disabled}
+          onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+          placeholder='Location UUID'
+        />
+      )}
+    </div>
+  );
 }
 
 function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
@@ -70,12 +135,11 @@ export function InstanceFormFields({
   isLoadingInstructors = false,
   onSelectService,
   onChange,
+  primaryLocationPlacement = 'with-delivery',
+  sessionSlotsPlacement = 'inline',
 }: InstanceFormFieldsProps) {
   const canSelectService = Boolean(onSelectService);
   const serviceExists = serviceOptions.some((entry) => entry.id === serviceId);
-  const locationExists = locationOptions.some((entry) => entry.id === value.locationId);
-  const selectedLocationValue = locationExists ? value.locationId : value.locationId || '';
-  const hasLocationOptions = locationOptions.length > 0;
   const instanceFieldsLocked = canSelectService && !serviceId;
   const instructorExists = instructorOptions.some((entry) => entry.sub === value.instructorId);
 
@@ -164,7 +228,13 @@ export function InstanceFormFields({
           placeholder='Leave empty to inherit from service'
         />
       </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      <div
+        className={
+          primaryLocationPlacement === 'with-delivery'
+            ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+            : 'grid grid-cols-1 gap-3 sm:grid-cols-2'
+        }
+      >
         <div>
           <Label htmlFor='instance-delivery-mode'>Delivery mode</Label>
           <Select
@@ -181,50 +251,6 @@ export function InstanceFormFields({
             ))}
           </Select>
         </div>
-        <div>
-          <Label htmlFor='instance-location-id'>Location</Label>
-          {hasLocationOptions || isLoadingLocations ? (
-            <Select
-              id='instance-location-id'
-              value={selectedLocationValue}
-              disabled={instanceFieldsLocked}
-              onChange={(event) => onChange({ ...value, locationId: event.target.value })}
-            >
-              <option value=''>
-                {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
-              </option>
-              {value.locationId && !locationExists ? (
-                <option value={value.locationId}>{value.locationId}</option>
-              ) : null}
-              {locationOptions.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {formatLocationLabel(location)}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <Input
-              id='instance-location-id'
-              value={value.locationId}
-              disabled={instanceFieldsLocked}
-              onChange={(event) => onChange({ ...value, locationId: event.target.value })}
-              placeholder='Location UUID'
-            />
-          )}
-        </div>
-        <div>
-          <Label htmlFor='instance-max-capacity'>Max capacity</Label>
-          <Input
-            id='instance-max-capacity'
-            value={value.maxCapacity}
-            disabled={instanceFieldsLocked}
-            onChange={(event) => onChange({ ...value, maxCapacity: event.target.value })}
-            type='number'
-            placeholder='Unlimited if empty'
-          />
-        </div>
-      </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>
           <Label htmlFor='instance-instructor-id'>Instructor</Label>
           <Select
@@ -246,20 +272,26 @@ export function InstanceFormFields({
             ))}
           </Select>
         </div>
-        <div>
-          <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
-          <Select
-            id='instance-waitlist'
-            value={value.waitlistEnabled ? 'true' : 'false'}
+        {primaryLocationPlacement === 'with-delivery' ? (
+          <InstancePrimaryLocationField
+            value={value}
+            locationOptions={locationOptions}
+            isLoadingLocations={isLoadingLocations}
             disabled={instanceFieldsLocked}
-            onChange={(event) =>
-              onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
-            }
-          >
-            <option value='false'>Disabled</option>
-            <option value='true'>Enabled</option>
-          </Select>
-        </div>
+            onChange={onChange}
+          />
+        ) : null}
+      </div>
+      <div>
+        <Label htmlFor='instance-max-capacity'>Max capacity</Label>
+        <Input
+          id='instance-max-capacity'
+          value={value.maxCapacity}
+          disabled={instanceFieldsLocked}
+          onChange={(event) => onChange({ ...value, maxCapacity: event.target.value })}
+          type='number'
+          placeholder='Unlimited if empty'
+        />
       </div>
       <div>
         <Label htmlFor='instance-notes'>Notes</Label>
@@ -271,13 +303,15 @@ export function InstanceFormFields({
           rows={2}
         />
       </div>
-      <SessionSlotEditor
-        slots={value.sessionSlots}
-        disabled={instanceFieldsLocked}
-        locationOptions={locationOptions}
-        isLoadingLocations={isLoadingLocations}
-        onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
-      />
+      {sessionSlotsPlacement === 'inline' ? (
+        <SessionSlotEditor
+          slots={value.sessionSlots}
+          disabled={instanceFieldsLocked}
+          locationOptions={locationOptions}
+          isLoadingLocations={isLoadingLocations}
+          onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
+        />
+      ) : null}
     </div>
   );
 }
