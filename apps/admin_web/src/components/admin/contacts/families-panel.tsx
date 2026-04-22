@@ -11,6 +11,7 @@ import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
+import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -352,7 +353,7 @@ export function FamiliesPanel({
             </Select>
           </div>
           <div className='lg:col-span-2'>
-            <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
+            <AdminCollapsibleSection id='crm-family-location' title='Location'>
               <InlineLocationEditor
                 stateKey={inlineLocationStateKey}
                 location={resolvedLocation}
@@ -384,7 +385,7 @@ export function FamiliesPanel({
                 }}
                 onGeocode={geocodeLocation}
               />
-            </div>
+            </AdminCollapsibleSection>
           </div>
           {editorMode === 'edit' ? (
             <div>
@@ -411,84 +412,87 @@ export function FamiliesPanel({
             />
           </div>
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-2 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-4'>
-              <h3 className='text-sm font-semibold text-slate-800'>Members</h3>
-              <div className='flex flex-wrap items-end gap-3'>
-                <div className='min-w-[200px] flex-1'>
-                  <Label htmlFor='crm-family-member-contact'>Contact</Label>
-                  <Select
-                    id='crm-family-member-contact'
-                    value={memberContactId}
-                    onChange={(e) => setMemberContactId(e.target.value)}
-                  >
-                    <option value=''>Select contact</option>
-                    {memberContactOptions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </Select>
+            <div className='lg:col-span-2'>
+              <AdminCollapsibleSection id='crm-family-members' title='Members'>
+                <div className='space-y-3 pt-1'>
+                  <div className='flex flex-wrap items-end gap-3'>
+                    <div className='min-w-[200px] flex-1'>
+                      <Label htmlFor='crm-family-member-contact'>Contact</Label>
+                      <Select
+                        id='crm-family-member-contact'
+                        value={memberContactId}
+                        onChange={(e) => setMemberContactId(e.target.value)}
+                      >
+                        <option value=''>Select contact</option>
+                        {memberContactOptions.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <Button
+                      type='button'
+                      disabled={isSaving || !memberContactId}
+                      onClick={() => void handleAddMember()}
+                    >
+                      Add member
+                    </Button>
+                  </div>
+                  <p className='text-xs text-slate-600'>
+                    Role for each member follows the contact type set on the contact record.
+                  </p>
+                  <AdminDataTable tableClassName='min-w-[520px]'>
+                    <AdminDataTableHead>
+                      <tr>
+                        <th className='px-3 py-2 font-semibold'>Contact</th>
+                        <th className='px-3 py-2 font-semibold'>Role</th>
+                        <th className='px-3 py-2 font-semibold'>Primary contact</th>
+                        <th className='px-3 py-2 font-semibold text-right'>Operations</th>
+                      </tr>
+                    </AdminDataTableHead>
+                    <AdminDataTableBody>
+                      {selected.members.map((m) => (
+                        <tr key={m.id}>
+                          <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
+                          <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
+                          <td className='px-3 py-2'>
+                            <input
+                              type='checkbox'
+                              className='h-4 w-4 rounded border-slate-300'
+                              checked={m.is_primary_contact}
+                              disabled={isSaving}
+                              onChange={(e) => {
+                                void handlePrimaryMemberChange(m.id, e.target.checked);
+                              }}
+                              aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
+                            />
+                          </td>
+                          <td className='px-3 py-2 text-right'>
+                            <Button
+                              type='button'
+                              size='sm'
+                              variant='danger'
+                              className='h-8 min-w-8 px-0'
+                              disabled={isSaving}
+                              onClick={() =>
+                                setRemoveTarget({
+                                  memberId: m.id,
+                                  label: m.contact_label || m.contact_id,
+                                })
+                              }
+                              aria-label={`Remove ${m.contact_label || m.contact_id} from family`}
+                              title='Remove member'
+                            >
+                              <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </AdminDataTableBody>
+                  </AdminDataTable>
                 </div>
-                <Button
-                  type='button'
-                  disabled={isSaving || !memberContactId}
-                  onClick={() => void handleAddMember()}
-                >
-                  Add member
-                </Button>
-              </div>
-              <p className='text-xs text-slate-600'>
-                Role for each member follows the contact type set on the contact record.
-              </p>
-              <AdminDataTable tableClassName='min-w-[520px]'>
-                <AdminDataTableHead>
-                  <tr>
-                    <th className='px-3 py-2 font-semibold'>Contact</th>
-                    <th className='px-3 py-2 font-semibold'>Role</th>
-                    <th className='px-3 py-2 font-semibold'>Primary contact</th>
-                    <th className='px-3 py-2 font-semibold text-right'>Operations</th>
-                  </tr>
-                </AdminDataTableHead>
-                <AdminDataTableBody>
-                  {selected.members.map((m) => (
-                    <tr key={m.id}>
-                      <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
-                      <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
-                      <td className='px-3 py-2'>
-                        <input
-                          type='checkbox'
-                          className='h-4 w-4 rounded border-slate-300'
-                          checked={m.is_primary_contact}
-                          disabled={isSaving}
-                          onChange={(e) => {
-                            void handlePrimaryMemberChange(m.id, e.target.checked);
-                          }}
-                          aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
-                        />
-                      </td>
-                      <td className='px-3 py-2 text-right'>
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='danger'
-                          className='h-8 min-w-8 px-0'
-                          disabled={isSaving}
-                          onClick={() =>
-                            setRemoveTarget({
-                              memberId: m.id,
-                              label: m.contact_label || m.contact_id,
-                            })
-                          }
-                          aria-label={`Remove ${m.contact_label || m.contact_id} from family`}
-                          title='Remove member'
-                        >
-                          <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </AdminDataTableBody>
-              </AdminDataTable>
+              </AdminCollapsibleSection>
             </div>
           ) : null}
         </div>
