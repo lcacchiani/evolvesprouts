@@ -41,7 +41,7 @@ function buildOrgsHook(
 ): ReturnType<typeof useAdminEntityOrganizations> {
   return {
     organizations: [],
-    filters: { query: '', active: '' as const },
+    filters: { query: '', active: 'true' as const },
     setFilter: vi.fn(),
     isLoading: false,
     isLoadingMore: false,

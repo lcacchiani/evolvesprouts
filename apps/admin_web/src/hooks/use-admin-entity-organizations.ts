@@ -10,7 +10,10 @@ import {
   removeAdminOrganizationMember,
   updateAdminOrganization,
 } from '@/lib/entity-api';
-import { DEFAULT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
+import {
+  DEFAULT_FAMILY_ORG_LIST_FILTERS,
+  type EntityListFilters,
+} from '@/types/entity-list';
 import { ORGANIZATION_RELATIONSHIP_TYPES } from '@/types/entity-relationship';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -32,7 +35,7 @@ export function useAdminEntityOrganizations() {
 
   const list = usePaginatedList({
     fetcher,
-    defaultFilters: DEFAULT_LIST_FILTERS,
+    defaultFilters: DEFAULT_FAMILY_ORG_LIST_FILTERS,
     errorPrefix: 'Failed to load organizations',
     debounceKeys: ['query'],
     limit: 50,

@@ -40,7 +40,7 @@ function buildFamiliesHook(
 ): ReturnType<typeof useAdminEntityFamilies> {
   return {
     families: [],
-    filters: { query: '', active: '' as const },
+    filters: { query: '', active: 'true' as const },
     setFilter: vi.fn(),
     isLoading: false,
     isLoadingMore: false,

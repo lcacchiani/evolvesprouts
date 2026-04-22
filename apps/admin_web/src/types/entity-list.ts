@@ -9,7 +9,14 @@ export interface EntityListFilters {
   contact_type: '' | EntityContactType;
 }
 
-/** Default filters for family and organization lists (all activeness). */
+/** Default filters for family and organization lists (active records only). */
+export const DEFAULT_FAMILY_ORG_LIST_FILTERS: EntityListFilters = {
+  query: '',
+  active: 'true',
+  contact_type: '',
+};
+
+/** Default filters for generic entity lists (all activeness). */
 export const DEFAULT_LIST_FILTERS: EntityListFilters = {
   query: '',
   active: '',
