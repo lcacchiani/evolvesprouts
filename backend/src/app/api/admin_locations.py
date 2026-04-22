@@ -112,9 +112,9 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = _parse_limit(event)
     cursor = parse_cursor(query_param(event, "cursor"))
     area_id = _parse_optional_uuid(query_param(event, "area_id"), field="area_id")
-    exclude_crm_addresses = _parse_query_bool(
-        query_param(event, "exclude_crm_addresses"),
-        field="exclude_crm_addresses",
+    exclude_addresses = _parse_query_bool(
+        query_param(event, "exclude_addresses"),
+        field="exclude_addresses",
         default=False,
     )
     search_raw = query_param(event, "search")
@@ -132,7 +132,7 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
         total_count = location_repo.count_with_filters(
             area_id=area_id,
             search=search,
-            exclude_crm_addresses=exclude_crm_addresses,
+            exclude_addresses=exclude_addresses,
         )
         rows = list(
             location_repo.list_with_filters(
@@ -140,7 +140,7 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
                 cursor=cursor,
                 area_id=area_id,
                 search=search,
-                exclude_crm_addresses=exclude_crm_addresses,
+                exclude_addresses=exclude_addresses,
             )
         )
         has_more = len(rows) > limit

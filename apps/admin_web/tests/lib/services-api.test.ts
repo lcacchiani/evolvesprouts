@@ -218,7 +218,7 @@ describe('services-api', () => {
     expect(result.items[1].lng).toBe(55.5);
   });
 
-  it('adds exclude_crm_addresses when listLocations requests CRM address exclusion', async () => {
+  it('adds exclude_addresses when listLocations requests family/org address exclusion', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
         items: [],
@@ -227,12 +227,12 @@ describe('services-api', () => {
       },
     });
 
-    await listLocations({ limit: 50, excludeCrmAddresses: true });
+    await listLocations({ limit: 50, excludeAddresses: true });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         method: 'GET',
-        endpointPath: '/v1/admin/locations?limit=50&exclude_crm_addresses=true',
+        endpointPath: '/v1/admin/locations?limit=50&exclude_addresses=true',
       })
     );
   });

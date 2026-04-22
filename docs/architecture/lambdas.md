@@ -38,8 +38,8 @@ their primary responsibilities.
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
-  `/v1/admin/locations/*` (including `GET /v1/admin/locations?exclude_crm_addresses=true`
-  to list service venues without CRM family/organisation home addresses, and
+  `/v1/admin/locations/*` (including `GET /v1/admin/locations?exclude_addresses=true`
+  to list service venues without family/organisation home addresses, and
   `POST /v1/admin/locations/geocode` for
   Nominatim-backed address geocoding via `AwsApiProxyFunction`),
   `/v1/admin/assets/*` (including `POST /v1/admin/assets/{id}/content/init` and

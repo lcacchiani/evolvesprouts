@@ -42,7 +42,7 @@ class LocationRepository(BaseRepository[Location]):
         cursor: UUID | None = None,
         area_id: UUID | None = None,
         search: str | None = None,
-        exclude_crm_addresses: bool = False,
+        exclude_addresses: bool = False,
     ) -> Sequence[Location]:
         """List locations with optional area and address search (case-insensitive)."""
         query = select(Location).order_by(Location.id)
@@ -59,7 +59,7 @@ class LocationRepository(BaseRepository[Location]):
                 pattern, escape="\\"
             )
             query = query.where(or_(name_match, address_match))
-        if exclude_crm_addresses:
+        if exclude_addresses:
             query = query.where(self._not_linked_to_active_family_or_org())
         return self._session.execute(query.limit(limit)).scalars().all()
 
@@ -68,7 +68,7 @@ class LocationRepository(BaseRepository[Location]):
         *,
         area_id: UUID | None = None,
         search: str | None = None,
-        exclude_crm_addresses: bool = False,
+        exclude_addresses: bool = False,
     ) -> int:
         """Count locations matching optional area and address search."""
         query = select(func.count()).select_from(Location)
@@ -83,7 +83,7 @@ class LocationRepository(BaseRepository[Location]):
                 pattern, escape="\\"
             )
             query = query.where(or_(name_match, address_match))
-        if exclude_crm_addresses:
+        if exclude_addresses:
             query = query.where(self._not_linked_to_active_family_or_org())
         return int(self._session.execute(query).scalar_one())
 

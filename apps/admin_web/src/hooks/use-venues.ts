@@ -62,7 +62,7 @@ export function useVenues(options: { onMutationSuccess?: () => void | Promise<vo
         limit: params.limit,
         areaId: params.areaId || undefined,
         search: params.search,
-        excludeCrmAddresses: true,
+        excludeAddresses: true,
       }),
     []
   );

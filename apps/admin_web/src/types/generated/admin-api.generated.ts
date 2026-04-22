@@ -711,11 +711,11 @@ export interface paths {
                     search?: string;
                     /**
                      * @description When `true`, omit locations linked as the saved venue for a non-archived
-                     *     CRM family or organisation (so Services → Venues lists only service-oriented
+                     *     family or organisation (so Services → Venues lists only service-oriented
                      *     venues). Partner organisations are still included when they use the same
                      *     location row; those rows remain visible with partner lock metadata.
                      */
-                    exclude_crm_addresses?: boolean;
+                    exclude_addresses?: boolean;
                 };
                 header?: never;
                 path?: never;

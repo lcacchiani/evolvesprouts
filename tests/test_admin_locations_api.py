@@ -114,8 +114,8 @@ def test_parse_query_bool_defaults_and_accepts_aliases() -> None:
 
 def test_parse_query_bool_rejects_invalid() -> None:
     with pytest.raises(ValidationError) as exc:
-        admin_locations._parse_query_bool("maybe", field="exclude_crm_addresses", default=False)
-    assert exc.value.field == "exclude_crm_addresses"
+        admin_locations._parse_query_bool("maybe", field="exclude_addresses", default=False)
+    assert exc.value.field == "exclude_addresses"
 
 
 def test_serialize_location_partner_metadata() -> None:
