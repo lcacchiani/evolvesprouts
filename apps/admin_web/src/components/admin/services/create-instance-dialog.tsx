@@ -45,8 +45,10 @@ export function CreateInstanceDialog({
   );
 
   const handleSubmit = async () => {
+    const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
+      slug: slugTrimmed || null,
       description: instanceForm.description.trim() || null,
       status: instanceForm.status,
       delivery_mode: instanceForm.deliveryMode || undefined,

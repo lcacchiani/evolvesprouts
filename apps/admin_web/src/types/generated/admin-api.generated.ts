@@ -4236,6 +4236,8 @@ export interface components {
         };
         CreateInstanceRequest: {
             title?: string | null;
+            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set. */
+            slug?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status?: components["schemas"]["InstanceStatus"];

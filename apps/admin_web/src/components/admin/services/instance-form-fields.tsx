@@ -13,6 +13,9 @@ import { SessionSlotEditor } from './session-slot-editor';
 
 import type { SessionSlot } from '@/types/services';
 
+/** Same pattern as service referral slugs; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
+const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export interface InstanceInstructorOption {
   sub: string;
   email: string | null;
@@ -21,6 +24,7 @@ export interface InstanceInstructorOption {
 
 export interface InstanceFormState {
   title: string;
+  slug: string;
   description: string;
   status: InstanceStatus;
   deliveryMode: ServiceDeliveryMode | '';
@@ -77,10 +81,10 @@ export function InstanceFormFields({
 
   const topRowClass =
     canSelectService && !instanceFieldsLocked
-      ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+      ? 'grid grid-cols-1 gap-3 sm:grid-cols-4'
       : canSelectService && instanceFieldsLocked
-        ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
-        : 'grid grid-cols-1 gap-3 sm:grid-cols-2';
+        ? 'grid grid-cols-1 gap-3 sm:grid-cols-4'
+        : 'grid grid-cols-1 gap-3 sm:grid-cols-3';
 
   return (
     <div className='space-y-3'>
@@ -114,6 +118,24 @@ export function InstanceFormFields({
             onChange={(event) => onChange({ ...value, title: event.target.value })}
             placeholder='Leave empty to inherit from service'
           />
+        </div>
+        <div>
+          <Label htmlFor='instance-slug'>Referral slug</Label>
+          <Input
+            id='instance-slug'
+            value={value.slug}
+            disabled={instanceFieldsLocked}
+            onChange={(event) => onChange({ ...value, slug: event.target.value })}
+            onBlur={() => onChange({ ...value, slug: value.slug.trim().toLowerCase() })}
+            placeholder='e.g. spring-workshop'
+            autoComplete='off'
+          />
+          {value.slug.trim() && !INSTANCE_SLUG_PATTERN.test(value.slug.trim().toLowerCase()) ? (
+            <p className='mt-1 text-xs text-red-600'>
+              Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+              hyphen).
+            </p>
+          ) : null}
         </div>
         <div>
           <Label htmlFor='instance-status'>Status</Label>

@@ -30,6 +30,7 @@ const INSTANCE_FIXTURE: ServiceInstance = {
   parentServiceTitle: null,
   parentServiceType: null,
   title: null,
+  slug: null,
   description: null,
   coverImageS3Key: null,
   status: 'in_progress',

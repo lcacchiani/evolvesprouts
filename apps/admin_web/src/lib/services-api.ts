@@ -207,6 +207,7 @@ function parseInstance(value: unknown): ServiceInstance {
       ? (parentTypeRaw as ServiceInstance['parentServiceType'])
       : null,
     title: asNullableString(item.title),
+    slug: asNullableString(item.slug),
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     status: (asNullableString(item.status) ?? 'scheduled') as ServiceInstance['status'],
