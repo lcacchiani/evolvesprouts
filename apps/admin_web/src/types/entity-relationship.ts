@@ -27,14 +27,17 @@ export const ORGANIZATION_RELATIONSHIP_TYPES: readonly components['schemas']['En
 /**
  * Map a stored relationship to a select value. Values outside `allowed` map to `other`
  * so the select stays valid.
+ *
+ * When `allowed` is a tuple like `FAMILY_RELATIONSHIP_TYPES`, the return type narrows to
+ * that tuple's element union so it can be passed to `useState` for a constrained select.
  */
-export function relationshipTypeForEditor(
-  stored: EntityRelationshipType,
-  allowed: readonly EntityRelationshipType[] = CONTACT_RELATIONSHIP_TYPES
-): EntityRelationshipType {
-  const allowedSet = new Set<string>(allowed);
+export function relationshipTypeForEditor<
+  const A extends readonly EntityRelationshipType[] = typeof CONTACT_RELATIONSHIP_TYPES,
+>(stored: EntityRelationshipType, allowed?: A): A[number] {
+  const list = (allowed ?? (CONTACT_RELATIONSHIP_TYPES as unknown as A)) as readonly EntityRelationshipType[];
+  const allowedSet = new Set<string>(list);
   if (allowedSet.has(stored)) {
-    return stored;
+    return stored as A[number];
   }
-  return 'other';
+  return 'other' as A[number];
 }
