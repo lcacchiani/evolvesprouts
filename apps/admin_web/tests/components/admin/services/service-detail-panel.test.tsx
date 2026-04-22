@@ -145,7 +145,7 @@ describe('ServiceDetailPanel', () => {
       />
     );
 
-    const createModeServiceType = screen.getByLabelText('Service type');
+    const createModeServiceType = screen.getByLabelText('Type');
     expect(createModeServiceType).toBeEnabled();
 
     rerender(
@@ -163,7 +163,7 @@ describe('ServiceDetailPanel', () => {
       />
     );
 
-    const editModeServiceType = screen.getByLabelText('Service type');
+    const editModeServiceType = screen.getByLabelText('Type');
     expect(editModeServiceType).toBeDisabled();
     expect(editModeServiceType).toHaveValue('consultation');
   });
@@ -187,13 +187,34 @@ describe('ServiceDetailPanel', () => {
       />
     );
 
-    await user.selectOptions(screen.getByLabelText('Service type'), 'event');
+    await user.selectOptions(screen.getByLabelText('Type'), 'event');
 
     expect(screen.getByLabelText('Delivery mode')).toBeInTheDocument();
     expect(screen.getByLabelText('Event category')).toBeInTheDocument();
     expect(screen.getByLabelText('Booking system')).toBeInTheDocument();
-    expect(screen.getByLabelText('Cover image file name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Cover file name')).toBeInTheDocument();
     expect(screen.queryAllByLabelText('Booking system')).toHaveLength(1);
     expect(screen.queryByText('Pricing unit')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Default price')).toBeInTheDocument();
+  });
+
+  it('shows consultation Row D/E fields without Calendly', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    expect(screen.getByLabelText('Consultation format')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pricing model')).toBeInTheDocument();
+    expect(screen.getByLabelText('Max group size')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Calendly/i)).not.toBeInTheDocument();
   });
 });

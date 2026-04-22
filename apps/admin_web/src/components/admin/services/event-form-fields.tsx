@@ -1,17 +1,17 @@
 'use client';
 
-import type { ReactNode } from 'react';
-
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import { EVENT_CATEGORIES } from '@/types/services';
 import type { EventCategory } from '@/types/services';
 
 export interface EventFormState {
   eventCategory: EventCategory;
+  defaultPrice: string;
+  defaultCurrency: string;
 }
 
 export interface EventFormFieldsProps {
@@ -22,44 +22,36 @@ export interface EventFormFieldsProps {
   categoryReadOnly?: boolean;
   /** Optional id for the category control (read-only input or select). */
   categoryFieldId?: string;
-  /**
-   * With `layout="service-detail"`, renders one md+ row: optional `leadingColumn`,
-   * event category, then `trailingSlot` (typically booking + cover as two grid cells).
-   * With `layout="instance-detail"`, category spans three quarters and `trailingSlot` one quarter on large screens.
-   */
-  layout?: 'default' | 'service-detail' | 'instance-detail';
-  leadingColumn?: ReactNode;
-  trailingSlot?: ReactNode;
 }
 
-export function EventFormFields({
+export function EventCategoryControl({
   value,
   disabled = false,
   onChange,
   categoryReadOnly = false,
   categoryFieldId = 'event-category',
-  layout = 'default',
-  leadingColumn,
-  trailingSlot,
 }: EventFormFieldsProps) {
-  const categoryField = categoryReadOnly ? (
-    <div>
-      <Label htmlFor={categoryFieldId}>Event category</Label>
-      <Input
-        id={categoryFieldId}
-        readOnly
-        value={formatEnumLabel(value.eventCategory)}
-        className='bg-slate-50 text-slate-700'
-      />
-    </div>
-  ) : (
+  if (categoryReadOnly) {
+    return (
+      <div>
+        <Label htmlFor={categoryFieldId}>Event category</Label>
+        <Input
+          id={categoryFieldId}
+          readOnly
+          value={formatEnumLabel(value.eventCategory)}
+          className='bg-slate-50 text-slate-700'
+        />
+      </div>
+    );
+  }
+  return (
     <div>
       <Label htmlFor={categoryFieldId}>Event category</Label>
       <Select
         id={categoryFieldId}
         value={value.eventCategory}
         disabled={disabled}
-        onChange={(event) => onChange({ eventCategory: event.target.value as EventCategory })}
+        onChange={(event) => onChange({ ...value, eventCategory: event.target.value as EventCategory })}
       >
         {EVENT_CATEGORIES.map((entry) => (
           <option key={entry} value={entry}>
@@ -69,26 +61,74 @@ export function EventFormFields({
       </Select>
     </div>
   );
+}
 
-  if (layout === 'service-detail') {
-    return (
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        {leadingColumn ? <div>{leadingColumn}</div> : null}
-        {categoryField}
-        {trailingSlot}
+export function EventDefaultPriceControl({
+  value,
+  disabled = false,
+  onChange,
+  priceLabel = 'Default price',
+}: Pick<EventFormFieldsProps, 'value' | 'disabled' | 'onChange'> & { priceLabel?: string }) {
+  return (
+    <div>
+      <Label htmlFor='event-default-price'>{priceLabel}</Label>
+      <Input
+        id='event-default-price'
+        value={value.defaultPrice}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultPrice: event.target.value })}
+        placeholder='0.00'
+      />
+    </div>
+  );
+}
+
+export function EventDefaultCurrencyControl({
+  value,
+  disabled = false,
+  onChange,
+}: Pick<EventFormFieldsProps, 'value' | 'disabled' | 'onChange'>) {
+  const currencyOptions = getCurrencyOptions();
+  return (
+    <div>
+      <Label htmlFor='event-default-currency'>Currency</Label>
+      <Select
+        id='event-default-currency'
+        value={value.defaultCurrency}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
+      >
+        {currencyOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
+/** Stacked layout for dialogs and non-detail flows. */
+export function EventFormFields({
+  value,
+  disabled = false,
+  onChange,
+  categoryReadOnly = false,
+  categoryFieldId = 'event-category',
+}: EventFormFieldsProps) {
+  return (
+    <div className='space-y-3'>
+      <EventCategoryControl
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        categoryReadOnly={categoryReadOnly}
+        categoryFieldId={categoryFieldId}
+      />
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <EventDefaultPriceControl value={value} disabled={disabled} onChange={onChange} />
+        <EventDefaultCurrencyControl value={value} disabled={disabled} onChange={onChange} />
       </div>
-    );
-  }
-
-  if (layout === 'instance-detail') {
-    return (
-      <div className='grid grid-cols-1 gap-3 lg:grid-cols-12'>
-        {leadingColumn ? <div className='lg:col-span-12'>{leadingColumn}</div> : null}
-        <div className='lg:col-span-9'>{categoryField}</div>
-        {trailingSlot ? <div className='lg:col-span-3'>{trailingSlot}</div> : null}
-      </div>
-    );
-  }
-
-  return categoryField;
+    </div>
+  );
 }

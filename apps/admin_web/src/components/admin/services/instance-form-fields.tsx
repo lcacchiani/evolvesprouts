@@ -7,9 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
-import type { InstanceStatus, LocationSummary, ServiceDeliveryMode, ServiceSummary } from '@/types/services';
-
-import { SessionSlotEditor } from './session-slot-editor';
+import type {
+  InstanceStatus,
+  LocationSummary,
+  PartnerOrgRef,
+  ServiceDeliveryMode,
+  ServiceSummary,
+} from '@/types/services';
 
 import type { SessionSlot } from '@/types/services';
 
@@ -33,6 +37,8 @@ export interface InstanceFormState {
   waitlistEnabled: boolean;
   instructorId: string;
   notes: string;
+  externalUrl: string;
+  partnerOrganizations: PartnerOrgRef[];
   sessionSlots: SessionSlot[];
 }
 
@@ -42,8 +48,6 @@ export interface InstanceFormFieldsProps {
   serviceOptions?: ServiceSummary[];
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
-  /** When true, omit the instructor field (shown beside training pricing instead). */
-  hideInstructorField?: boolean;
   instructorOptions?: InstanceInstructorOption[];
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
@@ -71,7 +75,7 @@ export interface InstanceInstructorFieldProps {
   onChange: (instructorId: string) => void;
 }
 
-/** Instructor select for instance flows; pairs with `TrainingFormFields` `prePricingUnitColumn`. */
+/** Instructor select for instance flows; composed in instance detail Row D. */
 export function InstanceInstructorField({
   value,
   disabled = false,
@@ -108,7 +112,6 @@ export function InstanceFormFields({
   serviceOptions = [],
   locationOptions = [],
   isLoadingLocations = false,
-  hideInstructorField = false,
   instructorOptions = [],
   isLoadingInstructors = false,
   onSelectService,
@@ -266,7 +269,7 @@ export function InstanceFormFields({
           />
         </div>
         <div>
-          <Label htmlFor='instance-waitlist'>Whitelist</Label>
+          <Label htmlFor='instance-waitlist'>Waitlist</Label>
           <Select
             id='instance-waitlist'
             value={value.waitlistEnabled ? 'true' : 'false'}
@@ -280,32 +283,6 @@ export function InstanceFormFields({
           </Select>
         </div>
       </div>
-      {!hideInstructorField ? (
-        <InstanceInstructorField
-          value={value.instructorId}
-          disabled={instanceFieldsLocked}
-          instructorOptions={instructorOptions}
-          isLoadingInstructors={isLoadingInstructors}
-          onChange={(instructorId) => onChange({ ...value, instructorId })}
-        />
-      ) : null}
-      <div>
-        <Label htmlFor='instance-notes'>Notes</Label>
-        <Textarea
-          id='instance-notes'
-          value={value.notes}
-          disabled={instanceFieldsLocked}
-          onChange={(event) => onChange({ ...value, notes: event.target.value })}
-          rows={2}
-        />
-      </div>
-      <SessionSlotEditor
-        slots={value.sessionSlots}
-        disabled={instanceFieldsLocked}
-        locationOptions={locationOptions}
-        isLoadingLocations={isLoadingLocations}
-        onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
-      />
     </div>
   );
 }

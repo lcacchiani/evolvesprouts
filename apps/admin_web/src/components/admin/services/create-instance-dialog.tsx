@@ -15,11 +15,13 @@ import {
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
+import { EventInstancePartnersField } from './event-instance-partners-field';
 import {
   InstanceFormFields,
   InstanceInstructorField,
   type InstanceFormState,
 } from './instance-form-fields';
+import { SessionSlotEditor } from './session-slot-editor';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 type ApiSchemas = components['schemas'];
@@ -61,6 +63,9 @@ export function CreateInstanceDialog({
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
       notes: instanceForm.notes.trim() || null,
+      external_url: instanceForm.externalUrl.trim() || null,
+      partner_organization_ids:
+        serviceType === 'event' ? instanceForm.partnerOrganizations.map((row) => row.id) : [],
       session_slots: instanceForm.sessionSlots.map((slot, index) => ({
         location_id: slot.locationId,
         starts_at: slot.startsAt,
@@ -77,12 +82,14 @@ export function CreateInstanceDialog({
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (serviceType === 'event') {
+      const priceStr = eventForm.defaultPrice.trim();
+      const currencyStr = (eventForm.defaultCurrency || 'HKD').trim();
       payload.event_ticket_tiers = [
         {
           name: eventForm.eventCategory,
           description: null,
-          price: '0',
-          currency: 'HKD',
+          price: priceStr.length ? priceStr : null,
+          currency: currencyStr.length ? currencyStr : null,
           max_quantity: null,
           sort_order: 0,
         },
@@ -95,7 +102,6 @@ export function CreateInstanceDialog({
         package_sessions: consultationForm.defaultPackageSessions
           ? Number(consultationForm.defaultPackageSessions)
           : null,
-        calendly_event_url: consultationForm.calendlyUrl || null,
       };
     }
     await onCreate(payload);
@@ -111,30 +117,47 @@ export function CreateInstanceDialog({
       onClose={onClose}
       onSubmit={handleSubmit}
     >
-      <InstanceFormFields
-        value={instanceForm}
-        hideInstructorField={serviceType === 'training_course'}
-        onChange={setInstanceForm}
-      />
+      <InstanceFormFields value={instanceForm} onChange={setInstanceForm} />
       {serviceType === 'training_course' ? (
-        <TrainingFormFields
-          value={trainingForm}
-          onChange={setTrainingForm}
-          layout='service-detail'
-          prePricingUnitColumn={
-            <InstanceInstructorField
-              value={instanceForm.instructorId}
-              onChange={(instructorId) =>
-                setInstanceForm((prev) => ({ ...prev, instructorId }))
-              }
-            />
-          }
-        />
+        <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <InstanceInstructorField
+            value={instanceForm.instructorId}
+            onChange={(instructorId) =>
+              setInstanceForm((prev) => ({ ...prev, instructorId }))
+            }
+          />
+          <div className='sm:col-span-1' />
+        </div>
       ) : null}
-      {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
+      {serviceType === 'training_course' ? (
+        <div className='mt-3'>
+          <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
+        </div>
+      ) : null}
+      {serviceType === 'event' ? (
+        <div className='mt-3'>
+          <EventFormFields value={eventForm} onChange={setEventForm} />
+        </div>
+      ) : null}
+      {serviceType === 'event' ? (
+        <div className='mt-3'>
+          <EventInstancePartnersField
+            value={instanceForm.partnerOrganizations}
+            onChange={(next) => setInstanceForm((prev) => ({ ...prev, partnerOrganizations: next }))}
+          />
+        </div>
+      ) : null}
       {serviceType === 'consultation' ? (
-        <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
+        <div className='mt-3'>
+          <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
+        </div>
       ) : null}
+      <div className='mt-3'>
+        <SessionSlotEditor
+          slots={instanceForm.sessionSlots}
+          onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
+        />
+      </div>
     </FormDialog>
   );
 }

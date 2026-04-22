@@ -20,6 +20,8 @@ export const DEFAULT_TRAINING_FORM: TrainingFormState = {
 
 export const DEFAULT_EVENT_FORM: EventFormState = {
   eventCategory: 'workshop',
+  defaultPrice: '',
+  defaultCurrency: 'HKD',
 };
 
 export const DEFAULT_CONSULTATION_FORM: ConsultationFormState = {
@@ -31,7 +33,6 @@ export const DEFAULT_CONSULTATION_FORM: ConsultationFormState = {
   defaultPackagePrice: '',
   defaultPackageSessions: '',
   defaultCurrency: 'HKD',
-  calendlyUrl: '',
 };
 
 export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
@@ -45,5 +46,7 @@ export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
   waitlistEnabled: false,
   instructorId: '',
   notes: '',
+  externalUrl: '',
+  partnerOrganizations: [],
   sessionSlots: [],
 };

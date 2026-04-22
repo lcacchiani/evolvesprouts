@@ -39,35 +39,21 @@ export function SessionSlotEditor({
   const hasLocationOptions = locationOptions.length > 0;
 
   const slotGridClassName =
-    'grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-[1fr_1fr_1fr_minmax(0,5.5rem)_auto] sm:items-end';
+    'grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-[1fr_1fr_1fr_minmax(0,5.5rem)_auto] sm:items-end';
 
   return (
     <AdminCollapsibleSection id='service-instance-session-slots' title='Session slots' disabled={disabled}>
       <div className='grid grid-rows-[auto_1fr_auto] gap-3'>
         <div className='min-h-0'>
           {slots.length === 0 ? <p className='text-sm text-slate-500'>No slots configured.</p> : null}
-          {slots.length > 0 ? (
-            <div className={`hidden ${slotGridClassName} sm:grid`}>
-              <div className='text-xs font-medium text-slate-600'>Start time</div>
-              <div className='text-xs font-medium text-slate-600'>End time</div>
-              <div className='text-xs font-medium text-slate-600'>Location</div>
-              <div className='text-xs font-medium text-slate-600'>Sort order</div>
-              <div className='min-h-5' aria-hidden='true' />
-            </div>
-          ) : null}
         </div>
         <div className='flex min-h-0 flex-col gap-3 overflow-y-auto'>
           {slots.map((slot, index) => (
             <div key={`${slot.id ?? 'new'}-${index}`} className={slotGridClassName}>
               <div className='space-y-1'>
-                {index === 0 ? (
-                  <Label
-                    className='text-xs font-medium text-slate-600 sm:hidden'
-                    htmlFor={`slot-${index}-starts`}
-                  >
-                    Start time
-                  </Label>
-                ) : null}
+                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-starts`}>
+                  Start time
+                </Label>
                 <Input
                   id={`slot-${index}-starts`}
                   type='datetime-local'
@@ -82,11 +68,9 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                {index === 0 ? (
-                  <Label className='text-xs font-medium text-slate-600 sm:hidden' htmlFor={`slot-${index}-ends`}>
-                    End time
-                  </Label>
-                ) : null}
+                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-ends`}>
+                  End time
+                </Label>
                 <Input
                   id={`slot-${index}-ends`}
                   type='datetime-local'
@@ -101,14 +85,9 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                {index === 0 ? (
-                  <Label
-                    className='text-xs font-medium text-slate-600 sm:hidden'
-                    htmlFor={`slot-${index}-location`}
-                  >
-                    Location
-                  </Label>
-                ) : null}
+                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-location`}>
+                  Location
+                </Label>
                 {hasLocationOptions || isLoadingLocations ? (
                   <Select
                     id={`slot-${index}-location`}
@@ -150,11 +129,9 @@ export function SessionSlotEditor({
                 )}
               </div>
               <div className='space-y-1'>
-                {index === 0 ? (
-                  <Label className='text-xs font-medium text-slate-600 sm:hidden' htmlFor={`slot-${index}-sort`}>
-                    Sort order
-                  </Label>
-                ) : null}
+                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-sort`}>
+                  Sort order
+                </Label>
                 <Input
                   id={`slot-${index}-sort`}
                   type='number'
