@@ -57,6 +57,40 @@ def serialize_contact_picker_row(contact: Contact) -> dict[str, Any]:
     return {"id": str(contact.id), "label": label}
 
 
+def _first_linked_family_location_summary(contact: Contact) -> dict[str, Any] | None:
+    """Venue summary for the lexicographically first linked family that has a location."""
+    summaries: dict[str, dict[str, Any]] = {}
+    for member in contact.family_members:
+        family = member.family
+        if family is None:
+            continue
+        if family.location_id is None or family.location is None:
+            continue
+        summaries[str(family.id)] = serialize_location_venue(family.location)
+    if not summaries:
+        return None
+    first_id = min(summaries.keys())
+    return summaries[first_id]
+
+
+def _first_linked_organization_location_summary(
+    contact: Contact,
+) -> dict[str, Any] | None:
+    """Venue summary for the lexicographically first linked org that has a location."""
+    summaries: dict[str, dict[str, Any]] = {}
+    for member in contact.organization_members:
+        org = member.organization
+        if org is None:
+            continue
+        if org.location_id is None or org.location is None:
+            continue
+        summaries[str(org.id)] = serialize_location_venue(org.location)
+    if not summaries:
+        return None
+    first_id = min(summaries.keys())
+    return summaries[first_id]
+
+
 def serialize_contact_summary(
     contact: Contact,
     *,
@@ -85,6 +119,10 @@ def serialize_contact_summary(
         "location_summary": serialize_location_venue(contact.location)
         if contact.location_id is not None and contact.location is not None
         else None,
+        "family_location_summary": _first_linked_family_location_summary(contact),
+        "organization_location_summary": _first_linked_organization_location_summary(
+            contact
+        ),
         "source": contact.source.value,
         "source_detail": contact.source_detail,
         "referral_contact_id": _referral_contact_id_from_metadata(

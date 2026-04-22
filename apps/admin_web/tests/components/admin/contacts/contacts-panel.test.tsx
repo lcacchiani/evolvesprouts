@@ -159,6 +159,8 @@ describe('ContactsPanel', () => {
       last_name: 'Family',
       family_ids: ['fam-1'],
       organization_ids: [],
+      family_location_summary: null,
+      organization_location_summary: null,
     };
     const orgOnly: components['schemas']['AdminContact'] = {
       ...baseRow,
@@ -167,6 +169,8 @@ describe('ContactsPanel', () => {
       last_name: 'Org',
       family_ids: [],
       organization_ids: ['org-1'],
+      family_location_summary: null,
+      organization_location_summary: null,
     };
     const both: components['schemas']['AdminContact'] = {
       ...baseRow,
@@ -175,6 +179,8 @@ describe('ContactsPanel', () => {
       last_name: 'Both',
       family_ids: ['fam-2'],
       organization_ids: ['org-2'],
+      family_location_summary: null,
+      organization_location_summary: null,
     };
     const contacts = buildContactsHook({ contacts: [familyOnly, orgOnly, both] });
 
@@ -194,6 +200,62 @@ describe('ContactsPanel', () => {
     expect(screen.getByText(/Ann Family/)).toHaveTextContent('Ann Family 👨‍👩‍👧');
     expect(screen.getByText(/Bob Org/)).toHaveTextContent('Bob Org 🏢');
     expect(screen.getByText(/Pat Both/)).toHaveTextContent('Pat Both 👨‍👩‍👧 🏢');
+  });
+
+  it('shows read-only family and organisation venue lines in the Location column', () => {
+    const summary = {
+      id: 'loc-1',
+      name: 'Studio',
+      area_id: 'area-hk',
+      area_name: 'Hong Kong',
+      address: '1 Road',
+      lat: 22.1,
+      lng: 114.2,
+    };
+    const row: components['schemas']['AdminContact'] = {
+      id: '11111111-1111-1111-1111-111111111111',
+      first_name: 'Pat',
+      last_name: 'Both',
+      email: null,
+      instagram_handle: null,
+      phone: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      mailchimp_status: 'pending',
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      family_ids: ['fam-1'],
+      organization_ids: ['org-1'],
+      family_location_summary: summary,
+      organization_location_summary: summary,
+      standalone_note_count: 0,
+    };
+    const contacts = buildContactsHook({ contacts: [row] });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    const familyLines = screen.getAllByText(/👨‍👩‍👧 1 Road · Hong Kong/);
+    expect(familyLines.length).toBeGreaterThanOrEqual(1);
+    const orgLines = screen.getAllByText(/🏢 1 Road · Hong Kong/);
+    expect(orgLines.length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText('Read-only. Edit addresses on the family and organisation records.')
+    ).toBeInTheDocument();
   });
 
   it('calls deleteContact when Delete is confirmed', async () => {
@@ -293,6 +355,16 @@ describe('ContactsPanel', () => {
         lat: 22.1,
         lng: 114.2,
       },
+      family_location_summary: {
+        id: 'loc-1',
+        name: 'Studio',
+        area_id: 'area-hk',
+        area_name: 'Hong Kong',
+        address: '1 Road',
+        lat: 22.1,
+        lng: 114.2,
+      },
+      organization_location_summary: null,
       standalone_note_count: 0,
     };
     const contacts = buildContactsHook({ contacts: [row] });
@@ -312,7 +384,7 @@ describe('ContactsPanel', () => {
 
     await user.click(screen.getByText('Ann Lee'));
 
-    expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
+    expect(screen.getAllByText('1 Road · Hong Kong').length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByText('Location is managed on the linked family or organisation.')
     ).toBeInTheDocument();
