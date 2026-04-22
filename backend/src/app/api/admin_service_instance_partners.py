@@ -20,7 +20,9 @@ logger = get_logger(__name__)
 
 def parse_partner_organization_ids(body: Mapping[str, Any]) -> list[UUID]:
     """Parse partner_organization_ids; dedupe while preserving order."""
-    raw = parse_uuid_list(body.get("partner_organization_ids"), "partner_organization_ids")
+    raw = parse_uuid_list(
+        body.get("partner_organization_ids"), "partner_organization_ids"
+    )
     seen: set[UUID] = set()
     ordered: list[UUID] = []
     for org_id in raw:
@@ -30,9 +32,7 @@ def parse_partner_organization_ids(body: Mapping[str, Any]) -> list[UUID]:
     return ordered
 
 
-def validate_partner_organization_ids(
-    session: Session, org_ids: list[UUID]
-) -> None:
+def validate_partner_organization_ids(session: Session, org_ids: list[UUID]) -> None:
     """Raise ValidationError if any organization id does not exist."""
     if not org_ids:
         return

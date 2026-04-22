@@ -53,21 +53,22 @@ def _list_organization_picker(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = parse_limit(event, default=_DEFAULT_LIMIT)
     relationship_filter = query_param(event, "relationship_type")
     with Session(get_engine()) as session:
-        filters = [Organization.archived_at.is_(None)]
+        statement = select(Organization.id, Organization.name).where(
+            Organization.archived_at.is_(None)
+        )
         if relationship_filter:
             rel_type = parse_relationship_type(
                 relationship_filter,
                 field="relationship_type",
             )
-            filters.append(Organization.relationship_type == rel_type)
+            statement = statement.where(Organization.relationship_type == rel_type)
         else:
-            filters.append(Organization.relationship_type != RelationshipType.VENDOR)
-        statement = (
-            select(Organization.id, Organization.name)
-            .where(*filters)
-            .order_by(Organization.name.asc(), Organization.id.asc())
-            .limit(limit)
-        )
+            statement = statement.where(
+                Organization.relationship_type != RelationshipType.VENDOR
+            )
+        statement = statement.order_by(
+            Organization.name.asc(), Organization.id.asc()
+        ).limit(limit)
         rows = session.execute(statement).all()
         items = [{"id": str(r[0]), "label": r[1]} for r in rows]
         return json_response(200, {"items": items}, event=event)

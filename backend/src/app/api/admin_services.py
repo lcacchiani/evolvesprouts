@@ -450,35 +450,35 @@ def _apply_service_type_details(*, service: Service, details: Any) -> None:
         if service.training_course_details is None:
             service.training_course_details = details
         else:
-            existing = service.training_course_details
-            existing.pricing_unit = details.pricing_unit
-            existing.default_price = details.default_price
-            existing.default_currency = details.default_currency
+            training_row = service.training_course_details
+            training_row.pricing_unit = details.pricing_unit
+            training_row.default_price = details.default_price
+            training_row.default_currency = details.default_currency
         service.event_details = None
         service.consultation_details = None
     elif isinstance(details, EventDetails):
         if service.event_details is None:
             service.event_details = details
         else:
-            existing = service.event_details
-            existing.event_category = details.event_category
-            existing.default_price = details.default_price
-            existing.default_currency = details.default_currency
+            event_row = service.event_details
+            event_row.event_category = details.event_category
+            event_row.default_price = details.default_price
+            event_row.default_currency = details.default_currency
         service.training_course_details = None
         service.consultation_details = None
     else:
         if service.consultation_details is None:
             service.consultation_details = details
         else:
-            existing = service.consultation_details
-            existing.consultation_format = details.consultation_format
-            existing.max_group_size = details.max_group_size
-            existing.duration_minutes = details.duration_minutes
-            existing.pricing_model = details.pricing_model
-            existing.default_hourly_rate = details.default_hourly_rate
-            existing.default_package_price = details.default_package_price
-            existing.default_package_sessions = details.default_package_sessions
-            existing.default_currency = details.default_currency
+            consultation_row = service.consultation_details
+            consultation_row.consultation_format = details.consultation_format
+            consultation_row.max_group_size = details.max_group_size
+            consultation_row.duration_minutes = details.duration_minutes
+            consultation_row.pricing_model = details.pricing_model
+            consultation_row.default_hourly_rate = details.default_hourly_rate
+            consultation_row.default_package_price = details.default_package_price
+            consultation_row.default_package_sessions = details.default_package_sessions
+            consultation_row.default_currency = details.default_currency
         service.training_course_details = None
         service.event_details = None
 
