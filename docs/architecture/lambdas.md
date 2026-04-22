@@ -66,7 +66,9 @@ their primary responsibilities.
   `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations and vendor
   rows share one resource; default list excludes vendors, Finance lists vendors with
   `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
-  for non-vendor orgs),
+  for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from
+  the linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
+  membership fields such as primary contact),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -38,16 +38,6 @@ const ORG_TYPES: ApiSchemas['EntityOrganizationType'][] = [
   'other',
 ];
 
-const ORG_ROLES: ApiSchemas['EntityOrganizationRole'][] = [
-  'admin',
-  'staff',
-  'teacher',
-  'member',
-  'client',
-  'partner',
-  'other',
-];
-
 function contactEligibleForOrgMember(
   contact: { id: string; family_ids: string[]; organization_ids: string[] },
   selectedOrgId: string | null
@@ -68,7 +58,7 @@ export interface OrganizationsPanelProps {
   contactOptions: { id: string; label: string }[];
   contactsForMembership: {
     id: string;
-    contact_type?: ApiSchemas['EntityContactType'];
+    contact_type: ApiSchemas['EntityContactType'];
     family_ids: string[];
     organization_ids: string[];
   }[];
@@ -98,6 +88,7 @@ export function OrganizationsPanel({
     updateOrganization,
     addMember,
     removeMember,
+    updateMember,
     deleteOrganization,
     relationshipOptions,
   } = organizations;
@@ -121,7 +112,6 @@ export function OrganizationsPanel({
   const [active, setActive] = useState(true);
 
   const [memberContactId, setMemberContactId] = useState('');
-  const [memberRole, setMemberRole] = useState<ApiSchemas['EntityOrganizationRole']>('member');
 
   const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
     null
@@ -199,6 +189,25 @@ export function OrganizationsPanel({
     });
   }, [contactOptions, contactsForMembership, selectedId]);
 
+  const primaryMemberLabel = useCallback((members: ApiSchemas['AdminOrganizationMember'][]) => {
+    const primary = members.find((m) => m.is_primary_contact);
+    return primary?.contact_label?.trim() || null;
+  }, []);
+
+  async function handlePrimaryMemberChange(
+    memberId: string,
+    nextChecked: boolean
+  ): Promise<void> {
+    if (!selected) {
+      return;
+    }
+    try {
+      await updateMember(selected.id, memberId, { is_primary_contact: nextChecked });
+    } catch {
+      // Retry preserved.
+    }
+  }
+
   function resetCreateForm() {
     if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
       const ok = window.confirm(
@@ -221,7 +230,6 @@ export function OrganizationsPanel({
     setTagIds([]);
     setActive(true);
     setMemberContactId('');
-    setMemberRole('member');
   }
 
   async function handleSubmit(): Promise<void> {
@@ -267,10 +275,9 @@ export function OrganizationsPanel({
     try {
       await addMember(selected.id, {
         contact_id: memberContactId.trim(),
-        role: memberRole,
+        is_primary_contact: false,
       });
       setMemberContactId('');
-      setMemberRole('member');
     } catch {
       // Retry preserved.
     }
@@ -497,22 +504,6 @@ export function OrganizationsPanel({
                     ))}
                   </Select>
                 </div>
-                <div className='min-w-[140px]'>
-                  <Label htmlFor='crm-org-member-role'>Role</Label>
-                  <Select
-                    id='crm-org-member-role'
-                    value={memberRole}
-                    onChange={(e) =>
-                      setMemberRole(e.target.value as ApiSchemas['EntityOrganizationRole'])
-                    }
-                  >
-                    {ORG_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {formatEnumLabel(r)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
                 <Button
                   type='button'
                   disabled={isSaving || !memberContactId}
@@ -521,11 +512,15 @@ export function OrganizationsPanel({
                   Add member
                 </Button>
               </div>
+              <p className='text-xs text-slate-600'>
+                Role for each member follows the contact type set on the contact record.
+              </p>
               <AdminDataTable tableClassName='min-w-[520px]'>
                 <AdminDataTableHead>
                   <tr>
                     <th className='px-3 py-2 font-semibold'>Contact</th>
                     <th className='px-3 py-2 font-semibold'>Role</th>
+                    <th className='px-3 py-2 font-semibold'>Primary contact</th>
                     <th className='px-3 py-2 font-semibold text-right'>Operations</th>
                   </tr>
                 </AdminDataTableHead>
@@ -534,11 +529,24 @@ export function OrganizationsPanel({
                     <tr key={m.id}>
                       <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
                       <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
+                      <td className='px-3 py-2'>
+                        <input
+                          type='checkbox'
+                          className='h-4 w-4 rounded border-slate-300'
+                          checked={m.is_primary_contact}
+                          disabled={isSaving}
+                          onChange={(e) => {
+                            void handlePrimaryMemberChange(m.id, e.target.checked);
+                          }}
+                          aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
+                        />
+                      </td>
                       <td className='px-3 py-2 text-right'>
                         <Button
                           type='button'
                           size='sm'
                           variant='danger'
+                          className='h-8 min-w-8 px-0'
                           disabled={isSaving}
                           onClick={() =>
                             setRemoveTarget({
@@ -546,8 +554,10 @@ export function OrganizationsPanel({
                               label: m.contact_label || m.contact_id,
                             })
                           }
+                          aria-label={`Remove ${m.contact_label || m.contact_id} from organisation`}
+                          title='Remove member'
                         >
-                          Remove
+                          <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                         </Button>
                       </td>
                     </tr>
@@ -610,7 +620,9 @@ export function OrganizationsPanel({
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const primaryLabel = primaryMemberLabel(row.members);
+              return (
               <tr
                 key={row.id}
                 className={`cursor-pointer transition ${
@@ -618,7 +630,15 @@ export function OrganizationsPanel({
                 }`}
                 onClick={() => selectRow(row.id)}
               >
-                <td className='px-4 py-3'>{row.name}</td>
+                <td className='px-4 py-3'>
+                  {row.name}
+                  {primaryLabel ? (
+                    <>
+                      <span aria-hidden> · </span>
+                      {primaryLabel}
+                    </>
+                  ) : null}
+                </td>
                 <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
                 <td className='px-4 py-3'>{row.members.length}</td>
                 <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
@@ -641,7 +661,8 @@ export function OrganizationsPanel({
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>

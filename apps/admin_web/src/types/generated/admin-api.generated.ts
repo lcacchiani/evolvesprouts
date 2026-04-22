@@ -3295,7 +3295,44 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update organization member
+         * @description Currently supports toggling the organisation's primary contact. At most one member may
+         *     be primary; setting `is_primary_contact` to true clears the flag on other members in the
+         *     same organisation.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                    /** @description Organization membership row identifier. */
+                    memberId: components["parameters"]["AdminOrganizationMemberId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateOrganizationMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization with updated members. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         trace?: never;
     };
     "/v1/admin/expenses": {
@@ -4871,6 +4908,7 @@ export interface components {
             contact_id: string;
             contact_label: string;
             role: components["schemas"]["EntityOrganizationRole"];
+            is_primary_contact: boolean;
         };
         AdminOrganization: {
             /** Format: uuid */
@@ -4931,7 +4969,20 @@ export interface components {
         AddOrganizationMemberRequest: {
             /** Format: uuid */
             contact_id: string;
-            role: components["schemas"]["EntityOrganizationRole"];
+            /**
+             * @deprecated
+             * @description Ignored. Membership role is derived from the contact's `contact_type` (parent→client,
+             *     child→member, helper→staff, professional→partner, other→other).
+             */
+            role?: string;
+            is_primary_contact?: boolean;
+        };
+        UpdateOrganizationMemberRequest: {
+            /**
+             * @description When true, this member becomes the organisation's sole primary contact. When false,
+             *     this member is cleared as primary (other members are unchanged).
+             */
+            is_primary_contact: boolean;
         };
         ActionMessageResponse: {
             message: string;

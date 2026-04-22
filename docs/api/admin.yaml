@@ -39,7 +39,7 @@ info:
     - `GET|POST /v1/admin/organizations`
     - `GET|PATCH|DELETE /v1/admin/organizations/{id}`
     - `POST /v1/admin/organizations/{id}/members`
-    - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
+    - `PATCH|DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
     - `GET|PATCH /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
@@ -2249,6 +2249,33 @@ paths:
     parameters:
       - $ref: "#/components/parameters/AdminOrganizationId"
       - $ref: "#/components/parameters/AdminOrganizationMemberId"
+    patch:
+      summary: Update organization member
+      description: |
+        Currently supports toggling the organisation's primary contact. At most one member may
+        be primary; setting `is_primary_contact` to true clears the flag on other members in the
+        same organisation.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationMemberRequest"
+      responses:
+        "200":
+          description: Organization with updated members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       summary: Remove organization member
       security:
@@ -5306,6 +5333,7 @@ components:
         - contact_id
         - contact_label
         - role
+        - is_primary_contact
       properties:
         id:
           type: string
@@ -5317,6 +5345,8 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/EntityOrganizationRole"
+        is_primary_contact:
+          type: boolean
     AdminOrganization:
       type: object
       required:
@@ -5478,13 +5508,28 @@ components:
       type: object
       required:
         - contact_id
-        - role
       properties:
         contact_id:
           type: string
           format: uuid
         role:
-          $ref: "#/components/schemas/EntityOrganizationRole"
+          type: string
+          deprecated: true
+          description: |
+            Ignored. Membership role is derived from the contact's `contact_type` (parent→client,
+            child→member, helper→staff, professional→partner, other→other).
+        is_primary_contact:
+          type: boolean
+    UpdateOrganizationMemberRequest:
+      type: object
+      required:
+        - is_primary_contact
+      properties:
+        is_primary_contact:
+          type: boolean
+          description: |
+            When true, this member becomes the organisation's sole primary contact. When false,
+            this member is cleared as primary (other members are unchanged).
     ActionMessageResponse:
       type: object
       required:

@@ -54,6 +54,7 @@ function buildOrgsHook(
     updateOrganization: vi.fn().mockResolvedValue(null),
     addMember: vi.fn().mockResolvedValue(null),
     removeMember: vi.fn().mockResolvedValue(null),
+    updateMember: vi.fn().mockResolvedValue(null),
     deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     relationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
@@ -232,6 +233,64 @@ describe('OrganizationsPanel', () => {
       });
     });
     expect(updateLocationPartial.mock.calls[0][1]).not.toHaveProperty('name');
+  });
+
+  it('toggles primary contact from the members table', async () => {
+    const user = userEvent.setup();
+    const updateMember = vi.fn().mockResolvedValue(null);
+    const row: components['schemas']['AdminOrganization'] = {
+      id: 'org-mem',
+      name: 'Mem Org',
+      organization_type: 'company',
+      relationship_type: 'customer',
+      slug: null,
+      website: null,
+      location_id: null,
+      location_summary: null,
+      tag_ids: [],
+      tags: [],
+      members: [
+        {
+          id: 'om-1',
+          contact_id: 'c-1',
+          contact_label: 'Pat Lee',
+          role: 'client',
+          is_primary_contact: false,
+        },
+      ],
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    };
+    const organizations = buildOrgsHook({
+      updateMember,
+      organizations: [row],
+    });
+
+    render(
+      <OrganizationsPanel
+        organizations={organizations}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    await user.click(screen.getByText('Mem Org'));
+    const primaryCheckbox = screen.getByRole('checkbox', {
+      name: 'Primary contact for Pat Lee',
+    });
+    await user.click(primaryCheckbox);
+
+    await waitFor(() => {
+      expect(updateMember).toHaveBeenCalledWith('org-mem', 'om-1', {
+        is_primary_contact: true,
+      });
+    });
   });
 
   it('deletes an organisation after confirmation', async () => {

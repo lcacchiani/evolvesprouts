@@ -7,6 +7,7 @@ import {
   createAdminOrganization,
   deleteAdminOrganization,
   listAdminOrganizations,
+  patchAdminOrganizationMember,
   removeAdminOrganizationMember,
   updateAdminOrganization,
 } from '@/lib/entity-api';
@@ -78,6 +79,16 @@ export function useAdminEntityOrganizations() {
     [mutate]
   );
 
+  const updateMember = useCallback(
+    async (
+      organizationId: string,
+      memberId: string,
+      payload: ApiSchemas['UpdateOrganizationMemberRequest']
+    ) =>
+      mutate(async () => patchAdminOrganizationMember(organizationId, memberId, payload)),
+    [mutate]
+  );
+
   const deleteOrganization = useCallback(
     async (organizationId: string) =>
       mutate(async () => deleteAdminOrganization(organizationId)),
@@ -99,6 +110,7 @@ export function useAdminEntityOrganizations() {
     updateOrganization,
     addMember,
     removeMember,
+    updateMember,
     deleteOrganization,
     refetch: list.refetch,
     relationshipOptions: ORGANIZATION_RELATIONSHIP_TYPES,

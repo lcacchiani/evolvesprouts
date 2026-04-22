@@ -8,7 +8,7 @@ from uuid import UUID
 
 from collections.abc import Iterable
 
-from sqlalchemy import Enum, ForeignKey, Index, String, UniqueConstraint, text
+from sqlalchemy import Boolean, Enum, ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
@@ -153,6 +153,11 @@ class OrganizationMember(Base):
             create_type=False,
         ),
         nullable=False,
+    )
+    is_primary_contact: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        server_default=text("false"),
     )
     title: Mapped[str | None] = mapped_column(String(150), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

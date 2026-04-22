@@ -377,6 +377,46 @@ def test_handle_admin_organizations_delete(
     assert response is marker
 
 
+def test_handle_admin_organizations_member_patch(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(
+        admin_organizations,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+    organization_id = str(uuid4())
+    member_id = str(uuid4())
+
+    def _fake_update(
+        _event: Any,
+        *,
+        organization_id: Any,
+        member_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(organization_id)
+        assert str(member_id)
+        return marker
+
+    monkeypatch.setattr(admin_organizations, "_update_organization_member", _fake_update)
+
+    response = admin_organizations.handle_admin_organizations_request(
+        api_gateway_event(
+            method="PATCH",
+            path=f"/v1/admin/organizations/{organization_id}/members/{member_id}",
+            body=json.dumps({"is_primary_contact": True}),
+        ),
+        "PATCH",
+        f"/v1/admin/organizations/{organization_id}/members/{member_id}",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_organizations_list_get(
     monkeypatch: Any,
     api_gateway_event: Any,

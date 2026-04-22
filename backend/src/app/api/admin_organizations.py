@@ -38,14 +38,8 @@ from app.api.admin_validators import (
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import (
-    Contact,
-    Organization,
-    OrganizationMember,
-    OrganizationRole,
-    OrganizationType,
-    RelationshipType,
-)
+from app.db.models import Contact, Organization, OrganizationMember, OrganizationType
+from app.db.models.enums import ContactType, OrganizationRole, RelationshipType
 from app.db.repositories import OrganizationRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -105,6 +99,13 @@ def handle_admin_organizations_request(
 
     if len(parts) == 5 and parts[3] == "members":
         member_id = parse_uuid(parts[4])
+        if method == "PATCH":
+            return _update_organization_member(
+                event,
+                organization_id=organization_id,
+                member_id=member_id,
+                actor_sub=identity.user_sub,
+            )
         if method == "DELETE":
             return _remove_organization_member(
                 event,
@@ -126,13 +127,17 @@ def _parse_organization_type(value: Any, *, field: str) -> OrganizationType:
         raise ValidationError(f"Invalid {field}", field=field) from exc
 
 
-def _parse_organization_role(value: Any, *, field: str) -> OrganizationRole:
-    if value is None or str(value).strip() == "":
-        raise ValidationError(f"{field} is required", field=field)
-    try:
-        return OrganizationRole(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
+def _organization_role_from_contact_type(contact_type: ContactType) -> OrganizationRole:
+    """Map contact category to stored organization membership role."""
+    if contact_type is ContactType.PARENT:
+        return OrganizationRole.CLIENT
+    if contact_type is ContactType.CHILD:
+        return OrganizationRole.MEMBER
+    if contact_type is ContactType.HELPER:
+        return OrganizationRole.STAFF
+    if contact_type is ContactType.PROFESSIONAL:
+        return OrganizationRole.PARTNER
+    return OrganizationRole.OTHER
 
 
 def _apply_organization_slug_from_body(
@@ -424,7 +429,20 @@ def _add_organization_member(
 ) -> dict[str, Any]:
     body = parse_body(event)
     contact_id = parse_uuid(str(body.get("contact_id")))
-    role = _parse_organization_role(body.get("role"), field="role")
+    is_primary = body.get("is_primary_contact")
+    if is_primary is None:
+        is_primary_contact = False
+    elif isinstance(is_primary, bool):
+        is_primary_contact = is_primary
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"true", "1"}:
+        is_primary_contact = True
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"false", "0"}:
+        is_primary_contact = False
+    else:
+        raise ValidationError(
+            "is_primary_contact must be true or false",
+            field="is_primary_contact",
+        )
 
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
@@ -439,10 +457,16 @@ def _add_organization_member(
             session, contact_id=contact_id, organization_id=organization_id
         )
 
+        role = _organization_role_from_contact_type(contact.contact_type)
+        if is_primary_contact:
+            for m in org.organization_members:
+                m.is_primary_contact = False
+
         member = OrganizationMember(
             organization_id=organization_id,
             contact_id=contact_id,
             role=role,
+            is_primary_contact=is_primary_contact,
         )
         session.add(member)
         contact.location_id = None
@@ -452,6 +476,59 @@ def _add_organization_member(
             raise DatabaseError("Failed to load organization after adding member")
         return json_response(
             201,
+            {"organization": serialize_organization_summary(loaded)},
+            event=event,
+        )
+
+
+def _update_organization_member(
+    event: Mapping[str, Any],
+    *,
+    organization_id: UUID,
+    member_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    body = parse_body(event)
+    if "is_primary_contact" not in body:
+        raise ValidationError(
+            "is_primary_contact is required",
+            field="is_primary_contact",
+        )
+    is_primary = body.get("is_primary_contact")
+    if isinstance(is_primary, bool):
+        is_primary_contact = is_primary
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"true", "1"}:
+        is_primary_contact = True
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"false", "0"}:
+        is_primary_contact = False
+    else:
+        raise ValidationError(
+            "is_primary_contact must be true or false",
+            field="is_primary_contact",
+        )
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
+        repository = OrganizationRepository(session)
+        org = repository.get_non_vendor_organization_by_id(organization_id)
+        if org is None:
+            raise NotFoundError("Organization", str(organization_id))
+        member = session.get(OrganizationMember, member_id)
+        if member is None or member.organization_id != organization_id:
+            raise NotFoundError("OrganizationMember", str(member_id))
+
+        if is_primary_contact:
+            for m in org.organization_members:
+                m.is_primary_contact = m.id == member_id
+        else:
+            member.is_primary_contact = False
+
+        session.commit()
+        loaded = repository.get_non_vendor_organization_by_id(organization_id)
+        if loaded is None:
+            raise DatabaseError("Failed to load organization after updating member")
+        return json_response(
+            200,
             {"organization": serialize_organization_summary(loaded)},
             event=event,
         )
