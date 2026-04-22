@@ -22,9 +22,9 @@ from app.api.admin_contacts_helpers import (
     validate_referrer_contact,
 )
 from app.api.admin_crm_helpers import (
-    crm_request_id,
+    request_id,
     ensure_location_exists,
-    parse_crm_relationship_type,
+    parse_relationship_type,
     parse_optional_bool_body,
     replace_contact_tags,
 )
@@ -79,7 +79,7 @@ def create_contact(
         required=False,
     )
     contact_type = parse_contact_type(body.get("contact_type"), field="contact_type")
-    relationship_type = parse_crm_relationship_type(
+    relationship_type = parse_relationship_type(
         body.get("relationship_type"), field="relationship_type"
     )
     source = parse_contact_source(body.get("source"), field="source")
@@ -109,7 +109,7 @@ def create_contact(
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         has_membership = bool(family_ids or organization_ids)
         if location_id is not None and has_membership:
             raise ValidationError(
@@ -207,7 +207,7 @@ def update_contact(
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ContactRepository(session)
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:
@@ -252,7 +252,7 @@ def update_contact(
                 body.get("contact_type"), field="contact_type"
             )
         if "relationship_type" in body:
-            contact.relationship_type = parse_crm_relationship_type(
+            contact.relationship_type = parse_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
             )
@@ -376,7 +376,7 @@ def delete_contact(
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ContactRepository(session)
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:

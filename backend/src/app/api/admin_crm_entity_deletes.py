@@ -10,7 +10,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import crm_request_id
+from app.api.admin_crm_helpers import request_id
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment, Note, RelationshipType, SalesLead
@@ -65,7 +65,7 @@ def delete_admin_crm_family(
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -101,7 +101,7 @@ def delete_admin_crm_organization(
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_organization_by_id(organization_id)
         if org is None:

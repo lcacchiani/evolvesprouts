@@ -22,8 +22,8 @@ import { formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  type CrmEntityRelationshipType,
-  relationshipTypeForCrmEditor,
+  ORGANIZATION_RELATIONSHIP_TYPES,
+  relationshipTypeForEditor,
 } from '@/types/crm-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -94,7 +94,7 @@ export function OrganizationsPanel({
     addMember,
     removeMember,
     deleteOrganization,
-    crmRelationshipOptions,
+    relationshipOptions,
   } = organizations;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -105,7 +105,8 @@ export function OrganizationsPanel({
   const [name, setName] = useState('');
   const [organizationType, setOrganizationType] =
     useState<ApiSchemas['CrmOrganizationType']>('company');
-  const [relationshipType, setRelationshipType] = useState<CrmEntityRelationshipType>('prospect');
+  const [relationshipType, setRelationshipType] =
+    useState<ApiSchemas['CrmOrganizationRelationshipType']>('prospect');
   const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
@@ -307,7 +308,9 @@ export function OrganizationsPanel({
     setEditorMode('edit');
     setName(row.name);
     setOrganizationType(row.organization_type);
-    setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
+    setRelationshipType(
+      relationshipTypeForEditor(row.relationship_type, ORGANIZATION_RELATIONSHIP_TYPES)
+    );
     setSlug(row.slug ?? '');
     setWebsite(row.website ?? '');
     setPendingLocationId(row.location_id ?? null);
@@ -352,14 +355,14 @@ export function OrganizationsPanel({
               id='crm-org-rel'
               value={relationshipType}
               onChange={(e) => {
-                const next = e.target.value as CrmEntityRelationshipType;
+                const next = e.target.value as ApiSchemas['CrmOrganizationRelationshipType'];
                 setRelationshipType(next);
                 if (next !== 'partner') {
                   setSlug('');
                 }
               }}
             >
-              {crmRelationshipOptions.map((v) => (
+              {relationshipOptions.map((v) => (
                 <option key={v} value={v}>
                   {formatEnumLabel(v)}
                 </option>

@@ -12,11 +12,12 @@ from sqlalchemy.orm import Session
 from app.api.admin_crm_entity_deletes import delete_admin_crm_family
 from app.api.admin_crm_helpers import (
     assert_contact_can_join_family,
-    crm_request_id,
+    request_id,
     ensure_location_exists,
     parse_active_filter,
-    parse_crm_limit,
-    parse_crm_relationship_type,
+    parse_limit,
+    FAMILY_RELATIONSHIP_TYPES,
+    parse_relationship_type,
     parse_optional_bool_body,
     replace_family_tags,
 )
@@ -113,7 +114,7 @@ def _parse_family_role(value: Any, *, field: str) -> FamilyRole:
 
 
 def _list_families(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT)
     cursor = parse_cursor(query_param(event, "cursor"))
     query = validate_string_length(
         query_param(event, "query"),
@@ -169,14 +170,16 @@ def _create_family(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any
         max_length=150,
         required=True,
     )
-    relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type"
+    relationship_type = parse_relationship_type(
+        body.get("relationship_type"),
+        field="relationship_type",
+        allowed=FAMILY_RELATIONSHIP_TYPES,
     )
     location_id = parse_optional_uuid(body.get("location_id"), "location_id")
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         ensure_location_exists(session, location_id)
         repository = FamilyRepository(session)
         family = Family(
@@ -207,7 +210,7 @@ def _update_family(
     body = parse_body(event)
     now = datetime.now(UTC)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -224,9 +227,10 @@ def _update_family(
                 or family.family_name
             )
         if "relationship_type" in body:
-            family.relationship_type = parse_crm_relationship_type(
+            family.relationship_type = parse_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
+                allowed=FAMILY_RELATIONSHIP_TYPES,
             )
         if "location_id" in body:
             loc = parse_optional_uuid(body.get("location_id"), "location_id")
@@ -278,7 +282,7 @@ def _add_family_member(
         )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -318,7 +322,7 @@ def _remove_family_member(
     actor_sub: str,
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:

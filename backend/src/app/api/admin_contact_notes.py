@@ -9,7 +9,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import crm_request_id
+from app.api.admin_crm_helpers import request_id
 from app.api.admin_leads_common import serialize_note
 from app.api.admin_request import parse_body
 from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, validate_string_length
@@ -29,7 +29,7 @@ def list_contact_notes(
 ) -> dict[str, Any]:
     """List standalone notes for a contact (newest first)."""
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         contact_repo = ContactRepository(session)
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
@@ -60,7 +60,7 @@ def create_contact_note(
         raise ValidationError("content is required", field="content")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         contact_repo = ContactRepository(session)
         contact = contact_repo.get_by_id_for_admin(contact_id)
         if contact is None:
@@ -98,7 +98,7 @@ def update_contact_note(
         raise ValidationError("content is required", field="content")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         contact_repo = ContactRepository(session)
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
@@ -126,7 +126,7 @@ def delete_contact_note(
 ) -> dict[str, Any]:
     """Delete a standalone note on a contact."""
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         contact_repo = ContactRepository(session)
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))

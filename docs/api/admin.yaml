@@ -4726,7 +4726,21 @@ components:
       enum: [parent, child, helper, professional, other]
     CrmRelationshipType:
       type: string
+      description: >
+        Stored relationship for contacts and read responses. Family and organization
+        create/update requests use narrower enums (`CrmFamilyRelationshipType`,
+        `CrmOrganizationRelationshipType`).
       enum: [prospect, client, past_client, partner, vendor, other]
+    CrmFamilyRelationshipType:
+      type: string
+      enum: [prospect, client, other]
+      description: Allowed values when setting a family's CRM relationship.
+    CrmOrganizationRelationshipType:
+      type: string
+      enum: [prospect, client, partner, vendor, other]
+      description: >
+        Allowed values when setting an organization's CRM relationship.
+        `past_client` is not permitted for organizations (use contacts for that lifecycle).
     CrmContactSource:
       type: string
       enum:
@@ -5185,7 +5199,7 @@ components:
           type: string
           maxLength: 150
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/CrmFamilyRelationshipType"
         location_id:
           type: string
           format: uuid
@@ -5202,7 +5216,7 @@ components:
           type: string
           maxLength: 150
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/CrmFamilyRelationshipType"
         location_id:
           type: string
           format: uuid
@@ -5344,7 +5358,7 @@ components:
         organization_type:
           $ref: "#/components/schemas/CrmOrganizationType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/CrmOrganizationRelationshipType"
         slug:
           type: string
           maxLength: 128
@@ -5379,7 +5393,7 @@ components:
         organization_type:
           $ref: "#/components/schemas/CrmOrganizationType"
         relationship_type:
-          $ref: "#/components/schemas/CrmRelationshipType"
+          $ref: "#/components/schemas/CrmOrganizationRelationshipType"
         slug:
           type: string
           maxLength: 128

@@ -11,7 +11,7 @@ import {
   updateAdminOrganization,
 } from '@/lib/crm-api';
 import { DEFAULT_CRM_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
-import { CRM_ENTITY_RELATIONSHIP_TYPES } from '@/types/crm-relationship';
+import { ORGANIZATION_RELATIONSHIP_TYPES } from '@/types/crm-relationship';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
@@ -101,6 +101,6 @@ export function useAdminCrmOrganizations() {
     removeMember,
     deleteOrganization,
     refetch: list.refetch,
-    crmRelationshipOptions: CRM_ENTITY_RELATIONSHIP_TYPES.filter((v) => v !== 'vendor'),
+    relationshipOptions: ORGANIZATION_RELATIONSHIP_TYPES,
   };
 }

@@ -1,9 +1,10 @@
 import type { components } from '@/types/generated/admin-api.generated';
 
-/** Relationship values shown in CRM entity editors (includes vendor where the API allows it). */
-export type CrmEntityRelationshipType = components['schemas']['CrmRelationshipType'];
+/** Full stored CRM relationship (contacts, families, orgs in API responses). */
+export type CrmRelationshipType = components['schemas']['CrmRelationshipType'];
 
-export const CRM_ENTITY_RELATIONSHIP_TYPES: readonly CrmEntityRelationshipType[] = [
+/** Relationship values allowed on contact create/update (matches API storage). */
+export const CONTACT_RELATIONSHIP_TYPES: readonly CrmRelationshipType[] = [
   'prospect',
   'client',
   'past_client',
@@ -12,15 +13,27 @@ export const CRM_ENTITY_RELATIONSHIP_TYPES: readonly CrmEntityRelationshipType[]
   'other',
 ];
 
+/** Relationship values allowed when creating or editing a family. */
+export const FAMILY_RELATIONSHIP_TYPES: readonly components['schemas']['CrmFamilyRelationshipType'][] =
+  ['prospect', 'client', 'other'];
+
 /**
- * Map a stored CRM relationship to a dropdown value. Unknown values map to `other`
+ * Relationship values for the CRM organization editor (excludes `vendor`,
+ * which is managed from Finance; excludes `past_client`, which organizations cannot use).
+ */
+export const ORGANIZATION_RELATIONSHIP_TYPES: readonly components['schemas']['CrmOrganizationRelationshipType'][] =
+  ['prospect', 'client', 'partner', 'other'];
+
+/**
+ * Map a stored CRM relationship to a select value. Values outside `allowed` map to `other`
  * so the select stays valid.
  */
-export function relationshipTypeForCrmEditor(
-  stored: components['schemas']['CrmRelationshipType']
-): CrmEntityRelationshipType {
-  const allowed = new Set(CRM_ENTITY_RELATIONSHIP_TYPES);
-  if (allowed.has(stored)) {
+export function relationshipTypeForEditor(
+  stored: CrmRelationshipType,
+  allowed: readonly CrmRelationshipType[] = CONTACT_RELATIONSHIP_TYPES
+): CrmRelationshipType {
+  const allowedSet = new Set<string>(allowed);
+  if (allowedSet.has(stored)) {
     return stored;
   }
   return 'other';

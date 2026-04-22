@@ -4592,8 +4592,21 @@ export interface components {
         };
         /** @enum {string} */
         CrmContactType: "parent" | "child" | "helper" | "professional" | "other";
-        /** @enum {string} */
+        /**
+         * @description Stored relationship for contacts and read responses. Family and organization create/update requests use narrower enums (`CrmFamilyRelationshipType`, `CrmOrganizationRelationshipType`).
+         * @enum {string}
+         */
         CrmRelationshipType: "prospect" | "client" | "past_client" | "partner" | "vendor" | "other";
+        /**
+         * @description Allowed values when setting a family's CRM relationship.
+         * @enum {string}
+         */
+        CrmFamilyRelationshipType: "prospect" | "client" | "other";
+        /**
+         * @description Allowed values when setting an organization's CRM relationship. `past_client` is not permitted for organizations (use contacts for that lifecycle).
+         * @enum {string}
+         */
+        CrmOrganizationRelationshipType: "prospect" | "client" | "partner" | "vendor" | "other";
         /** @enum {string} */
         CrmContactSource: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | "manual";
         /** @enum {string} */
@@ -4771,14 +4784,14 @@ export interface components {
         };
         CreateAdminFamilyRequest: {
             family_name: string;
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            relationship_type?: components["schemas"]["CrmFamilyRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
             tag_ids?: string[];
         };
         UpdateAdminFamilyRequest: {
             family_name?: string;
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            relationship_type?: components["schemas"]["CrmFamilyRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
             active?: boolean;
@@ -4832,7 +4845,7 @@ export interface components {
         CreateAdminOrganizationRequest: {
             name: string;
             organization_type: components["schemas"]["CrmOrganizationType"];
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            relationship_type?: components["schemas"]["CrmOrganizationRelationshipType"];
             /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
             slug?: string | null;
             website?: string | null;
@@ -4845,7 +4858,7 @@ export interface components {
         UpdateAdminOrganizationRequest: {
             name?: string;
             organization_type?: components["schemas"]["CrmOrganizationType"];
-            relationship_type?: components["schemas"]["CrmRelationshipType"];
+            relationship_type?: components["schemas"]["CrmOrganizationRelationshipType"];
             /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
             slug?: string | null;
             website?: string | null;
