@@ -15,7 +15,11 @@ import {
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
-import { InstanceFormFields, type InstanceFormState } from './instance-form-fields';
+import {
+  InstanceFormFields,
+  InstanceInstructorField,
+  type InstanceFormState,
+} from './instance-form-fields';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 type ApiSchemas = components['schemas'];
@@ -109,6 +113,7 @@ export function CreateInstanceDialog({
     >
       <InstanceFormFields
         value={instanceForm}
+        hideInstructorField={serviceType === 'training_course'}
         onChange={setInstanceForm}
       />
       {serviceType === 'training_course' ? (
@@ -116,6 +121,14 @@ export function CreateInstanceDialog({
           value={trainingForm}
           onChange={setTrainingForm}
           layout='service-detail'
+          prePricingUnitColumn={
+            <InstanceInstructorField
+              value={instanceForm.instructorId}
+              onChange={(instructorId) =>
+                setInstanceForm((prev) => ({ ...prev, instructorId }))
+              }
+            />
+          }
         />
       ) : null}
       {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}

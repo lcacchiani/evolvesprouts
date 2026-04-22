@@ -168,7 +168,7 @@ describe('InstanceDetailPanel', () => {
     expect(screen.getByLabelText('Description')).toHaveValue('Service body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
-    expect(screen.getByLabelText('Default price')).toHaveValue('199.00');
+    expect(screen.getByLabelText('Price')).toHaveValue('199.00');
     expect(screen.getByLabelText('Currency')).toHaveValue('USD');
   });
 });

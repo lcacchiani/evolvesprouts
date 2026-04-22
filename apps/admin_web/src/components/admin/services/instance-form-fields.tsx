@@ -42,6 +42,8 @@ export interface InstanceFormFieldsProps {
   serviceOptions?: ServiceSummary[];
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
+  /** When true, omit the instructor field (shown beside training pricing instead). */
+  hideInstructorField?: boolean;
   instructorOptions?: InstanceInstructorOption[];
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
@@ -60,12 +62,51 @@ function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
   return entry.sub;
 }
 
+export interface InstanceInstructorFieldProps {
+  value: string;
+  disabled?: boolean;
+  instructorOptions?: InstanceInstructorOption[];
+  isLoadingInstructors?: boolean;
+  onChange: (instructorId: string) => void;
+}
+
+/** Instructor select for instance flows; pairs with `TrainingFormFields` `prePricingUnitColumn`. */
+export function InstanceInstructorField({
+  value,
+  disabled = false,
+  instructorOptions = [],
+  isLoadingInstructors = false,
+  onChange,
+}: InstanceInstructorFieldProps) {
+  const instructorExists = instructorOptions.some((entry) => entry.sub === value);
+  return (
+    <div>
+      <Label htmlFor='instance-instructor-id'>Instructor</Label>
+      <Select
+        id='instance-instructor-id'
+        value={value}
+        disabled={disabled || isLoadingInstructors}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value=''>{isLoadingInstructors ? 'Loading instructors...' : 'None'}</option>
+        {value.trim() && !instructorExists ? <option value={value}>{value}</option> : null}
+        {instructorOptions.map((entry) => (
+          <option key={entry.sub} value={entry.sub}>
+            {getInstructorOptionLabel(entry)}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
 export function InstanceFormFields({
   value,
   serviceId = null,
   serviceOptions = [],
   locationOptions = [],
   isLoadingLocations = false,
+  hideInstructorField = false,
   instructorOptions = [],
   isLoadingInstructors = false,
   onSelectService,
@@ -77,7 +118,6 @@ export function InstanceFormFields({
   const selectedLocationValue = locationExists ? value.locationId : value.locationId || '';
   const hasLocationOptions = locationOptions.length > 0;
   const instanceFieldsLocked = canSelectService && !serviceId;
-  const instructorExists = instructorOptions.some((entry) => entry.sub === value.instructorId);
 
   const topRowClass =
     canSelectService && !instanceFieldsLocked
@@ -238,27 +278,15 @@ export function InstanceFormFields({
           </Select>
         </div>
       </div>
-      <div>
-        <Label htmlFor='instance-instructor-id'>Instructor</Label>
-        <Select
-          id='instance-instructor-id'
+      {!hideInstructorField ? (
+        <InstanceInstructorField
           value={value.instructorId}
-          disabled={instanceFieldsLocked || isLoadingInstructors}
-          onChange={(event) => onChange({ ...value, instructorId: event.target.value })}
-        >
-          <option value=''>
-            {isLoadingInstructors ? 'Loading instructors...' : 'None'}
-          </option>
-          {value.instructorId.trim() && !instructorExists ? (
-            <option value={value.instructorId}>{value.instructorId}</option>
-          ) : null}
-          {instructorOptions.map((entry) => (
-            <option key={entry.sub} value={entry.sub}>
-              {getInstructorOptionLabel(entry)}
-            </option>
-          ))}
-        </Select>
-      </div>
+          disabled={instanceFieldsLocked}
+          instructorOptions={instructorOptions}
+          isLoadingInstructors={isLoadingInstructors}
+          onChange={(instructorId) => onChange({ ...value, instructorId })}
+        />
+      ) : null}
       <div>
         <Label htmlFor='instance-notes'>Notes</Label>
         <Textarea

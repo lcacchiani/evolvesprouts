@@ -10,7 +10,11 @@ import {
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
-import { InstanceFormFields, type InstanceFormState } from './instance-form-fields';
+import {
+  InstanceFormFields,
+  InstanceInstructorField,
+  type InstanceFormState,
+} from './instance-form-fields';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -342,6 +346,7 @@ export function InstanceDetailPanel({
         serviceOptions={serviceOptions}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
+        hideInstructorField={effectiveServiceType === 'training_course'}
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
         onSelectService={handleSelectService}
@@ -353,6 +358,17 @@ export function InstanceDetailPanel({
           value={trainingForm}
           onChange={setTrainingForm}
           layout='service-detail'
+          prePricingUnitColumn={
+            <InstanceInstructorField
+              value={instanceForm.instructorId}
+              disabled={typeFieldsLocked}
+              instructorOptions={instructorUsers}
+              isLoadingInstructors={isLoadingInstructors}
+              onChange={(instructorId) =>
+                setInstanceForm((prev) => ({ ...prev, instructorId }))
+              }
+            />
+          }
         />
       ) : null}
       {effectiveServiceType === 'event' ? (
