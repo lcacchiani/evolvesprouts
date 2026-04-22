@@ -45,7 +45,7 @@ const defaultContactsHook = {
 
 const defaultFamiliesHook = {
   families: [],
-  filters: { query: '', active: '' as const },
+  filters: { query: '', active: 'true' as const },
   setFilter: vi.fn(),
   isLoading: false,
   isLoadingMore: false,
@@ -63,7 +63,7 @@ const defaultFamiliesHook = {
 
 const defaultOrgsHook = {
   organizations: [],
-  filters: { query: '', active: '' as const },
+  filters: { query: '', active: 'true' as const },
   setFilter: vi.fn(),
   isLoading: false,
   isLoadingMore: false,

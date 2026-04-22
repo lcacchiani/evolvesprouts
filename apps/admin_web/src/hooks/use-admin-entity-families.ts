@@ -11,7 +11,10 @@ import {
   removeAdminFamilyMember,
   updateAdminFamily,
 } from '@/lib/entity-api';
-import { DEFAULT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
+import {
+  DEFAULT_FAMILY_ORG_LIST_FILTERS,
+  type EntityListFilters,
+} from '@/types/entity-list';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
@@ -32,7 +35,7 @@ export function useAdminEntityFamilies() {
 
   const list = usePaginatedList({
     fetcher,
-    defaultFilters: DEFAULT_LIST_FILTERS,
+    defaultFilters: DEFAULT_FAMILY_ORG_LIST_FILTERS,
     errorPrefix: 'Failed to load families',
     debounceKeys: ['query'],
     limit: 50,

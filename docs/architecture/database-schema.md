@@ -393,6 +393,7 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `families` and `family_members`
 
 - `families` stores household-level entities.
+- Activeness is derived from `archived_at` (no separate `status` column).
 - `family_members` links contacts to families with role metadata.
 - `family_members` rows are deleted automatically when either parent record is
   deleted (`ON DELETE CASCADE`).
@@ -400,6 +401,7 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `organizations` and `organization_members`
 
 - `organizations` stores external organization entities.
+- Activeness is derived from `archived_at` (no separate `status` column).
 - `organizations.slug` is an optional URL-safe identifier used when
   `relationship_type` is `partner`; uniqueness is enforced case-insensitively
   among partner rows with a non-null slug (partial unique index).
