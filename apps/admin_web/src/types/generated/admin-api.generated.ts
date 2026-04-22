@@ -2932,7 +2932,44 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update family member
+         * @description Currently supports toggling the family's primary contact. At most one member may be
+         *     primary; setting `is_primary_contact` to true clears the flag on other members in the
+         *     same family.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                    /** @description Family membership row identifier. */
+                    memberId: components["parameters"]["AdminFamilyMemberId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateFamilyMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Family with updated members. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFamilyResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         trace?: never;
     };
     "/v1/admin/organizations/picker": {
@@ -4812,8 +4849,20 @@ export interface components {
         AddFamilyMemberRequest: {
             /** Format: uuid */
             contact_id: string;
-            role: components["schemas"]["EntityFamilyRole"];
+            /**
+             * @deprecated
+             * @description Ignored. Membership role is derived from the contact's `contact_type` (parent, child,
+             *     helper map to the same family roles; professional and other map to `other`).
+             */
+            role?: string;
             is_primary_contact?: boolean;
+        };
+        UpdateFamilyMemberRequest: {
+            /**
+             * @description When true, this member becomes the family's sole primary contact. When false, this
+             *     member is cleared as primary (other members are unchanged).
+             */
+            is_primary_contact: boolean;
         };
         AdminOrganizationMember: {
             /** Format: uuid */

@@ -102,6 +102,7 @@ export function ContactsPage() {
     () =>
       contacts.contacts.map((c) => ({
         id: c.id,
+        contact_type: c.contact_type,
         family_ids: c.family_ids,
         organization_ids: c.organization_ids,
       })),

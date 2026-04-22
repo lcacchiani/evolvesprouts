@@ -7,6 +7,7 @@ import {
   createAdminFamily,
   deleteAdminFamily,
   listAdminFamilies,
+  patchAdminFamilyMember,
   removeAdminFamilyMember,
   updateAdminFamily,
 } from '@/lib/entity-api';
@@ -77,6 +78,15 @@ export function useAdminEntityFamilies() {
     [mutate]
   );
 
+  const updateMember = useCallback(
+    async (
+      familyId: string,
+      memberId: string,
+      payload: ApiSchemas['UpdateFamilyMemberRequest']
+    ) => mutate(async () => patchAdminFamilyMember(familyId, memberId, payload)),
+    [mutate]
+  );
+
   const deleteFamily = useCallback(
     async (familyId: string) => mutate(async () => deleteAdminFamily(familyId)),
     [mutate]
@@ -97,6 +107,7 @@ export function useAdminEntityFamilies() {
     updateFamily,
     addMember,
     removeMember,
+    updateMember,
     deleteFamily,
     refetch: list.refetch,
   };

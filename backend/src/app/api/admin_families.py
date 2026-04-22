@@ -34,7 +34,7 @@ from app.api.admin_validators import validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, Family, FamilyMember, FamilyRole
+from app.db.models import Contact, ContactType, Family, FamilyMember, FamilyRole
 from app.db.repositories import FamilyRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -92,6 +92,13 @@ def handle_admin_families_request(
 
     if len(parts) == 5 and parts[3] == "members":
         member_id = parse_uuid(parts[4])
+        if method == "PATCH":
+            return _update_family_member(
+                event,
+                family_id=family_id,
+                member_id=member_id,
+                actor_sub=identity.user_sub,
+            )
         if method == "DELETE":
             return _remove_family_member(
                 event,
@@ -104,13 +111,15 @@ def handle_admin_families_request(
     return json_response(404, {"error": "Not found"}, event=event)
 
 
-def _parse_family_role(value: Any, *, field: str) -> FamilyRole:
-    if value is None or str(value).strip() == "":
-        raise ValidationError(f"{field} is required", field=field)
-    try:
-        return FamilyRole(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
+def _family_role_from_contact_type(contact_type: ContactType) -> FamilyRole:
+    """Map contact category to stored family membership role."""
+    if contact_type is ContactType.PARENT:
+        return FamilyRole.PARENT
+    if contact_type is ContactType.CHILD:
+        return FamilyRole.CHILD
+    if contact_type is ContactType.HELPER:
+        return FamilyRole.HELPER
+    return FamilyRole.OTHER
 
 
 def _list_families(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -265,7 +274,6 @@ def _add_family_member(
 ) -> dict[str, Any]:
     body = parse_body(event)
     contact_id = parse_uuid(str(body.get("contact_id")))
-    role = _parse_family_role(body.get("role"), field="role")
     is_primary = body.get("is_primary_contact")
     if is_primary is None:
         is_primary_contact = False
@@ -294,6 +302,7 @@ def _add_family_member(
             session, contact_id=contact_id, family_id=family_id
         )
 
+        role = _family_role_from_contact_type(contact.contact_type)
         member = FamilyMember(
             family_id=family_id,
             contact_id=contact_id,
@@ -309,6 +318,59 @@ def _add_family_member(
             raise DatabaseError("Failed to load family after adding member")
         return json_response(
             201,
+            {"family": serialize_family_summary(loaded)},
+            event=event,
+        )
+
+
+def _update_family_member(
+    event: Mapping[str, Any],
+    *,
+    family_id: UUID,
+    member_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    body = parse_body(event)
+    if "is_primary_contact" not in body:
+        raise ValidationError(
+            "is_primary_contact is required",
+            field="is_primary_contact",
+        )
+    is_primary = body.get("is_primary_contact")
+    if isinstance(is_primary, bool):
+        is_primary_contact = is_primary
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"true", "1"}:
+        is_primary_contact = True
+    elif isinstance(is_primary, str) and is_primary.strip().lower() in {"false", "0"}:
+        is_primary_contact = False
+    else:
+        raise ValidationError(
+            "is_primary_contact must be true or false",
+            field="is_primary_contact",
+        )
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
+        repository = FamilyRepository(session)
+        family = repository.get_by_id_for_admin(family_id)
+        if family is None:
+            raise NotFoundError("Family", str(family_id))
+        member = session.get(FamilyMember, member_id)
+        if member is None or member.family_id != family_id:
+            raise NotFoundError("FamilyMember", str(member_id))
+
+        if is_primary_contact:
+            for m in family.family_members:
+                m.is_primary_contact = m.id == member_id
+        else:
+            member.is_primary_contact = False
+
+        session.commit()
+        loaded = repository.get_by_id_for_admin(family_id)
+        if loaded is None:
+            raise DatabaseError("Failed to load family after updating member")
+        return json_response(
+            200,
             {"family": serialize_family_summary(loaded)},
             event=event,
         )

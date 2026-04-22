@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -30,14 +30,6 @@ import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
 
-const FAMILY_ROLES: ApiSchemas['EntityFamilyRole'][] = [
-  'parent',
-  'child',
-  'helper',
-  'guardian',
-  'other',
-];
-
 function contactEligibleForFamilyMember(
   contact: { id: string; family_ids: string[]; organization_ids: string[] },
   selectedFamilyId: string | null
@@ -56,7 +48,12 @@ export interface FamiliesPanelProps {
   areasLoading: boolean;
   refreshLocations: () => Promise<void> | void;
   contactOptions: { id: string; label: string }[];
-  contactsForMembership: { id: string; family_ids: string[]; organization_ids: string[] }[];
+  contactsForMembership: {
+    id: string;
+    contact_type: ApiSchemas['EntityContactType'];
+    family_ids: string[];
+    organization_ids: string[];
+  }[];
 }
 
 export function FamiliesPanel({
@@ -83,6 +80,7 @@ export function FamiliesPanel({
     updateFamily,
     addMember,
     removeMember,
+    updateMember,
     deleteFamily,
   } = families;
 
@@ -101,8 +99,6 @@ export function FamiliesPanel({
   const [active, setActive] = useState(true);
 
   const [memberContactId, setMemberContactId] = useState('');
-  const [memberRole, setMemberRole] = useState<ApiSchemas['EntityFamilyRole']>('parent');
-  const [memberPrimary, setMemberPrimary] = useState(false);
 
   const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
     null
@@ -179,6 +175,25 @@ export function FamiliesPanel({
     });
   }, [contactOptions, contactsForMembership, selectedId]);
 
+  const primaryMemberLabel = useCallback((members: ApiSchemas['AdminFamilyMember'][]) => {
+    const primary = members.find((m) => m.is_primary_contact);
+    return primary?.contact_label?.trim() || null;
+  }, []);
+
+  async function handlePrimaryMemberChange(
+    memberId: string,
+    nextChecked: boolean
+  ): Promise<void> {
+    if (!selected) {
+      return;
+    }
+    try {
+      await updateMember(selected.id, memberId, { is_primary_contact: nextChecked });
+    } catch {
+      // Retry preserved.
+    }
+  }
+
   function resetCreateForm() {
     if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
       const ok = window.confirm(
@@ -198,8 +213,6 @@ export function FamiliesPanel({
     setTagIds([]);
     setActive(true);
     setMemberContactId('');
-    setMemberRole('parent');
-    setMemberPrimary(false);
   }
 
   async function handleSubmit(): Promise<void> {
@@ -237,12 +250,9 @@ export function FamiliesPanel({
     try {
       await addMember(selected.id, {
         contact_id: memberContactId.trim(),
-        role: memberRole,
-        is_primary_contact: memberPrimary,
+        is_primary_contact: false,
       });
       setMemberContactId('');
-      setMemberRole('parent');
-      setMemberPrimary(false);
     } catch {
       // Retry preserved.
     }
@@ -419,31 +429,6 @@ export function FamiliesPanel({
                     ))}
                   </Select>
                 </div>
-                <div className='min-w-[140px]'>
-                  <Label htmlFor='crm-family-member-role'>Role</Label>
-                  <Select
-                    id='crm-family-member-role'
-                    value={memberRole}
-                    onChange={(e) =>
-                      setMemberRole(e.target.value as ApiSchemas['EntityFamilyRole'])
-                    }
-                  >
-                    {FAMILY_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {formatEnumLabel(r)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <label className='flex items-center gap-2 text-sm'>
-                  <input
-                    type='checkbox'
-                    className='h-4 w-4 rounded border-slate-300'
-                    checked={memberPrimary}
-                    onChange={(e) => setMemberPrimary(e.target.checked)}
-                  />
-                  Primary contact
-                </label>
                 <Button
                   type='button'
                   disabled={isSaving || !memberContactId}
@@ -452,11 +437,15 @@ export function FamiliesPanel({
                   Add member
                 </Button>
               </div>
+              <p className='text-xs text-slate-600'>
+                Role for each member follows the contact type set on the contact record.
+              </p>
               <AdminDataTable tableClassName='min-w-[520px]'>
                 <AdminDataTableHead>
                   <tr>
                     <th className='px-3 py-2 font-semibold'>Contact</th>
                     <th className='px-3 py-2 font-semibold'>Role</th>
+                    <th className='px-3 py-2 font-semibold'>Primary contact</th>
                     <th className='px-3 py-2 font-semibold text-right'>Operations</th>
                   </tr>
                 </AdminDataTableHead>
@@ -464,15 +453,25 @@ export function FamiliesPanel({
                   {selected.members.map((m) => (
                     <tr key={m.id}>
                       <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
+                      <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
                       <td className='px-3 py-2'>
-                        {formatEnumLabel(m.role)}
-                        {m.is_primary_contact ? ' · primary' : ''}
+                        <input
+                          type='checkbox'
+                          className='h-4 w-4 rounded border-slate-300'
+                          checked={m.is_primary_contact}
+                          disabled={isSaving}
+                          onChange={(e) => {
+                            void handlePrimaryMemberChange(m.id, e.target.checked);
+                          }}
+                          aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
+                        />
                       </td>
                       <td className='px-3 py-2 text-right'>
                         <Button
                           type='button'
                           size='sm'
                           variant='danger'
+                          className='h-8 min-w-8 px-0'
                           disabled={isSaving}
                           onClick={() =>
                             setRemoveTarget({
@@ -480,8 +479,10 @@ export function FamiliesPanel({
                               label: m.contact_label || m.contact_id,
                             })
                           }
+                          aria-label={`Remove ${m.contact_label || m.contact_id} from family`}
+                          title='Remove member'
                         >
-                          Remove
+                          <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                         </Button>
                       </td>
                     </tr>
@@ -543,7 +544,9 @@ export function FamiliesPanel({
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const primaryLabel = primaryMemberLabel(row.members);
+              return (
               <tr
                 key={row.id}
                 className={`cursor-pointer transition ${
@@ -551,7 +554,15 @@ export function FamiliesPanel({
                 }`}
                 onClick={() => selectRow(row.id)}
               >
-                <td className='px-4 py-3'>{row.family_name}</td>
+                <td className='px-4 py-3'>
+                  {row.family_name}
+                  {primaryLabel ? (
+                    <>
+                      <span aria-hidden> · </span>
+                      {primaryLabel}
+                    </>
+                  ) : null}
+                </td>
                 <td className='px-4 py-3'>{row.members.length}</td>
                 <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
                 <td className='px-4 py-3 text-right'>
@@ -573,7 +584,8 @@ export function FamiliesPanel({
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>

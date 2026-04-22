@@ -315,6 +315,20 @@ export async function removeAdminFamilyMember(
   return root.family ?? null;
 }
 
+export async function patchAdminFamilyMember(
+  familyId: string,
+  memberId: string,
+  body: ApiSchemas['UpdateFamilyMemberRequest']
+): Promise<AdminFamilyRow | null> {
+  const payload = await adminApiRequest<ApiFamilyResponse>({
+    endpointPath: `/v1/admin/families/${familyId}/members/${memberId}`,
+    method: 'PATCH',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  return root.family ?? null;
+}
+
 export async function listAdminOrganizations(
   params: Partial<EntityListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal

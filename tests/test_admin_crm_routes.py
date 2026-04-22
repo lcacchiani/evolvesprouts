@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 from uuid import uuid4
 
@@ -255,6 +256,46 @@ def test_handle_admin_families_delete(
         ),
         "DELETE",
         f"/v1/admin/families/{expected_family_id}",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_families_member_patch(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(
+        admin_families,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+    family_id = str(uuid4())
+    member_id = str(uuid4())
+
+    def _fake_update(
+        _event: Any,
+        *,
+        family_id: Any,
+        member_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(family_id)
+        assert str(member_id)
+        return marker
+
+    monkeypatch.setattr(admin_families, "_update_family_member", _fake_update)
+
+    response = admin_families.handle_admin_families_request(
+        api_gateway_event(
+            method="PATCH",
+            path=f"/v1/admin/families/{family_id}/members/{member_id}",
+            body=json.dumps({"is_primary_contact": True}),
+        ),
+        "PATCH",
+        f"/v1/admin/families/{family_id}/members/{member_id}",
     )
 
     assert response is marker

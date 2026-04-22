@@ -66,7 +66,12 @@ export interface OrganizationsPanelProps {
   areasLoading: boolean;
   refreshLocations: () => Promise<void> | void;
   contactOptions: { id: string; label: string }[];
-  contactsForMembership: { id: string; family_ids: string[]; organization_ids: string[] }[];
+  contactsForMembership: {
+    id: string;
+    contact_type?: ApiSchemas['EntityContactType'];
+    family_ids: string[];
+    organization_ids: string[];
+  }[];
 }
 
 export function OrganizationsPanel({

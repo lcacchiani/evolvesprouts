@@ -3110,6 +3110,10 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     const adminFamilyMemberById = adminFamilyMembers.addResource("{memberId}");
+    adminFamilyMemberById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminFamilyMemberById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,

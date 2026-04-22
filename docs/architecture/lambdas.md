@@ -60,7 +60,9 @@ their primary responsibilities.
   for standalone CRM notes on a contact (not tied to a sales lead), and `DELETE /v1/admin/contacts/{id}`
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*` (including `DELETE /v1/admin/families/{id}`
-  for hard-deleting a family after clearing blocking CRM rows),
+  for hard-deleting a family after clearing blocking CRM rows; `POST /v1/admin/families/{id}/members`
+  derives each member's role from the linked contact's `contact_type`; `PATCH /v1/admin/families/{id}/members/{memberId}`
+  updates membership fields such as primary contact),
   `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations and vendor
   rows share one resource; default list excludes vendors, Finance lists vendors with
   `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
