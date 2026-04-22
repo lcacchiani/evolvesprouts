@@ -59,6 +59,7 @@ describe('DiscountCodesPanel', () => {
       defaultPrice: '100',
       defaultCurrency: 'HKD',
     },
+    eventDetails: null,
   };
 
   it('includes service and instance selects and sends scope in create payload', async () => {

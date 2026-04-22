@@ -34,6 +34,14 @@ def _training_details_summary(service: Service) -> dict[str, Any] | None:
     }
 
 
+def _event_details_summary(service: Service) -> dict[str, Any] | None:
+    """Return event category for list/summary payloads when present."""
+    details = service.event_details
+    if details is None:
+        return None
+    return {"event_category": details.event_category.value}
+
+
 def serialize_service_summary(service: Service) -> dict[str, Any]:
     """Serialize service list row payload."""
     logger.debug("Serializing service summary", extra={"service_id": str(service.id)})
@@ -51,6 +59,7 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
         "created_at": service.created_at.isoformat() if service.created_at else None,
         "updated_at": service.updated_at.isoformat() if service.updated_at else None,
         "training_details": _training_details_summary(service),
+        "event_details": _event_details_summary(service),
     }
 
 
@@ -66,9 +75,7 @@ def serialize_service_detail(service: Service) -> dict[str, Any]:
     if service.training_course_details is not None:
         detail["training_details"] = _training_details_summary(service)
     if service.event_details is not None:
-        detail["event_details"] = {
-            "event_category": service.event_details.event_category.value
-        }
+        detail["event_details"] = _event_details_summary(service)
     if service.consultation_details is not None:
         detail["consultation_details"] = {
             "consultation_format": service.consultation_details.consultation_format.value,

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -20,6 +20,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     trainingDetails: null,
+    eventDetails: null,
     ...overrides,
   };
 }
@@ -170,5 +171,54 @@ describe('InstanceDetailPanel', () => {
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Price')).toHaveValue('199.00');
     expect(screen.getByLabelText('Currency')).toHaveValue('USD');
+  });
+
+  it('inherits event category from the selected service and omits category select for event instances', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InstanceDetailPanel
+        instance={null}
+        selectedServiceId='evt-svc'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'evt-svc',
+            serviceType: 'event',
+            title: 'Spring open house',
+            trainingDetails: null,
+            eventDetails: { eventCategory: 'open_house' },
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='event'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Event category')).toHaveValue('Open House');
+    });
+    expect(screen.queryByRole('combobox', { name: 'Event category' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Instructor')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+
+    expect(onCreate).toHaveBeenCalledWith(
+      'evt-svc',
+      expect.objectContaining({
+        event_ticket_tiers: [
+          expect.objectContaining({
+            name: 'open_house',
+          }),
+        ],
+      })
+    );
   });
 });

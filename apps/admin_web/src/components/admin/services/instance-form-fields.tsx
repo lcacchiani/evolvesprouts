@@ -65,6 +65,7 @@ function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
 export interface InstanceInstructorFieldProps {
   value: string;
   disabled?: boolean;
+  className?: string;
   instructorOptions?: InstanceInstructorOption[];
   isLoadingInstructors?: boolean;
   onChange: (instructorId: string) => void;
@@ -74,13 +75,14 @@ export interface InstanceInstructorFieldProps {
 export function InstanceInstructorField({
   value,
   disabled = false,
+  className,
   instructorOptions = [],
   isLoadingInstructors = false,
   onChange,
 }: InstanceInstructorFieldProps) {
   const instructorExists = instructorOptions.some((entry) => entry.sub === value);
   return (
-    <div>
+    <div className={className}>
       <Label htmlFor='instance-instructor-id'>Instructor</Label>
       <Select
         id='instance-instructor-id'

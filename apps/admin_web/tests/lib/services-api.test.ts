@@ -89,6 +89,45 @@ describe('services-api', () => {
     expect(request.endpointPath).toContain('limit=10');
   });
 
+  it('maps event_details on service list rows when present', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'service-event-1',
+            service_type: 'event',
+            title: 'Open day',
+            description: null,
+            cover_image_s3_key: null,
+            delivery_mode: 'in_person',
+            status: 'published',
+            created_by: 'admin-1',
+            created_at: '2026-03-01T00:00:00.000Z',
+            updated_at: '2026-03-01T00:00:00.000Z',
+            training_details: null,
+            event_details: { event_category: 'open_house' },
+          },
+        ],
+        next_cursor: null,
+        total_count: 1,
+      },
+    });
+
+    const result = await listServices({
+      serviceType: 'event',
+      status: 'published',
+      search: '',
+      cursor: null,
+      limit: 20,
+    });
+
+    expect(result.items[0]).toMatchObject({
+      id: 'service-event-1',
+      serviceType: 'event',
+      eventDetails: { eventCategory: 'open_house' },
+    });
+  });
+
   it('creates cover-image upload URL and maps response', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {

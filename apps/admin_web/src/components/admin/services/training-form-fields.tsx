@@ -44,23 +44,37 @@ export function TrainingFormFields({
   const hasLeading = layout === 'service-detail' && Boolean(leadingColumn);
   const hasPrePricing = layout === 'service-detail' && Boolean(prePricingUnitColumn);
   const serviceDetailColumnCount = (hasLeading ? 1 : 0) + (hasPrePricing ? 1 : 0) + 3;
+  const useQuarterInstructorRow =
+    layout === 'service-detail' && hasPrePricing && !hasLeading;
 
   const pricingGridClass =
     layout === 'service-detail'
-      ? serviceDetailColumnCount <= 3
-        ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
-        : serviceDetailColumnCount === 4
-          ? 'grid grid-cols-1 gap-3 md:grid-cols-4'
-          : serviceDetailColumnCount === 5
-            ? 'grid grid-cols-1 gap-3 md:grid-cols-5'
-            : 'grid grid-cols-1 gap-3 md:grid-cols-6'
+      ? useQuarterInstructorRow
+        ? 'grid grid-cols-1 gap-3 lg:grid-cols-12'
+        : serviceDetailColumnCount <= 3
+          ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+          : serviceDetailColumnCount === 4
+            ? 'grid grid-cols-1 gap-3 md:grid-cols-4'
+            : serviceDetailColumnCount === 5
+              ? 'grid grid-cols-1 gap-3 md:grid-cols-5'
+              : 'grid grid-cols-1 gap-3 md:grid-cols-6'
       : 'grid grid-cols-1 gap-3 sm:grid-cols-3';
+
+  const pricingFieldsWrapperClass = useQuarterInstructorRow ? 'lg:col-span-9' : undefined;
+  const prePricingWrapperClass = useQuarterInstructorRow ? 'lg:col-span-3' : undefined;
+  const innerThreeColClass = useQuarterInstructorRow
+    ? 'grid grid-cols-1 gap-3 sm:grid-cols-3 lg:contents'
+    : undefined;
 
   return (
     <div className='space-y-3'>
       <div className={pricingGridClass}>
         {hasLeading ? <div>{leadingColumn}</div> : null}
-        {hasPrePricing ? <div>{prePricingUnitColumn}</div> : null}
+        {hasPrePricing ? (
+          <div className={prePricingWrapperClass}>{prePricingUnitColumn}</div>
+        ) : null}
+        <div className={pricingFieldsWrapperClass}>
+          <div className={innerThreeColClass}>
         <div>
           <Label htmlFor='training-pricing-unit'>Pricing unit</Label>
           <Select
@@ -102,6 +116,8 @@ export function TrainingFormFields({
               </option>
             ))}
           </Select>
+        </div>
+          </div>
         </div>
       </div>
     </div>

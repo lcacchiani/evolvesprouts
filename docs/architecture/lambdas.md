@@ -137,7 +137,8 @@ their primary responsibilities.
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
   listing for lead assignment and instructor-group listing for service instances
-  (service list items may include nullable `training_details` for training courses),
+  (service list items may include nullable `training_details` for training courses
+  and nullable `event_details` for events),
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
