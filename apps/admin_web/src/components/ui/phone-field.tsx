@@ -123,7 +123,7 @@ export function PhoneField({
           aria-label={regionLabel}
           value={region}
           onChange={(event) => onRegionChange(event.target.value)}
-          className='basis-1/4 shrink-0 min-w-0'
+          className='basis-1/3 shrink-0 min-w-0'
         >
           {compactSelectRows.map((row) => {
             const isDrift = row.dialCode === '' && !PHONE_COUNTRIES.some((p) => p.region === row.region);
