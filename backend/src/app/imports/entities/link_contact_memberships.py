@@ -238,7 +238,11 @@ class LinkContactMembershipsImporter:
                     )
                 continue
 
-            assert org_uuid is not None
+            if org_uuid is None:
+                raise RuntimeError(
+                    "link_contact_memberships: org_uuid unexpectedly None "
+                    "after parent mapping resolution",
+                )
             if _organization_membership_exists(
                 session,
                 organization_id=org_uuid,
