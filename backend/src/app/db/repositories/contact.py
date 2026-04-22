@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db.models.note import Note
 from app.db.models.contact import Contact
+from app.db.models.family import Family, FamilyMember
 from app.db.models.location import Location
+from app.db.models.organization import Organization, OrganizationMember
 from app.db.models.tag import ContactTag
 from app.db.models.enums import ContactSource, ContactType, RelationshipType
 from app.db.repositories.base import BaseRepository
@@ -145,8 +147,14 @@ class ContactRepository(BaseRepository[Contact]):
 
         statement = select(Contact).options(
             selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
-            selectinload(Contact.family_members),
-            selectinload(Contact.organization_members),
+            selectinload(Contact.family_members)
+            .selectinload(FamilyMember.family)
+            .selectinload(Family.location)
+            .selectinload(Location.area),
+            selectinload(Contact.organization_members)
+            .selectinload(OrganizationMember.organization)
+            .selectinload(Organization.location)
+            .selectinload(Location.area),
             selectinload(Contact.location).selectinload(Location.area),
         )
         if cursor is not None:
@@ -256,8 +264,14 @@ class ContactRepository(BaseRepository[Contact]):
             .where(Contact.id == contact_id)
             .options(
                 selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
-                selectinload(Contact.family_members),
-                selectinload(Contact.organization_members),
+                selectinload(Contact.family_members)
+                .selectinload(FamilyMember.family)
+                .selectinload(Family.location)
+                .selectinload(Location.area),
+                selectinload(Contact.organization_members)
+                .selectinload(OrganizationMember.organization)
+                .selectinload(Organization.location)
+                .selectinload(Location.area),
                 selectinload(Contact.location).selectinload(Location.area),
             )
         )

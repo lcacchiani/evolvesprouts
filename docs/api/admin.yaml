@@ -4892,6 +4892,22 @@ components:
           allOf:
             - $ref: "#/components/schemas/EntityLocationVenueSummary"
           nullable: true
+        family_location_summary:
+          allOf:
+            - $ref: "#/components/schemas/EntityLocationVenueSummary"
+          nullable: true
+          description: |
+            When the contact belongs to at least one family with a saved location, the venue
+            summary for the lexicographically first such family (by family id). Read-only in
+            the admin UI; edit location on the family record.
+        organization_location_summary:
+          allOf:
+            - $ref: "#/components/schemas/EntityLocationVenueSummary"
+          nullable: true
+          description: |
+            When the contact belongs to at least one organisation with a saved location, the
+            venue summary for the lexicographically first such organisation (by organisation id).
+            Read-only in the admin UI; edit location on the organisation record.
         source:
           $ref: "#/components/schemas/EntityContactSource"
         source_detail:
