@@ -38,6 +38,11 @@ import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
+/** Shown after the contact name in the list when `family_ids` is non-empty. */
+const CONTACT_NAME_FAMILY_EMOJI = '👨‍👩‍👧';
+/** Shown after the contact name in the list when `organization_ids` is non-empty. */
+const CONTACT_NAME_ORG_EMOJI = '🏢';
+
 type ApiSchemas = components['schemas'];
 
 const CONTACT_TYPES: ApiSchemas['EntityContactType'][] = [
@@ -67,6 +72,17 @@ const SOURCES: ApiSchemas['EntityContactSource'][] = [
   'public_website',
   'manual',
 ];
+
+function contactNameMembershipSuffix(row: ApiSchemas['AdminContact']): string {
+  const parts: string[] = [];
+  if (row.family_ids.length > 0) {
+    parts.push(CONTACT_NAME_FAMILY_EMOJI);
+  }
+  if (row.organization_ids.length > 0) {
+    parts.push(CONTACT_NAME_ORG_EMOJI);
+  }
+  return parts.length > 0 ? ` ${parts.join(' ')}` : '';
+}
 
 export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminEntityContacts>;
@@ -850,6 +866,7 @@ export function ContactsPanel({
           <AdminDataTableBody>
             {rows.map((row) => {
               const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || '—';
+              const membershipSuffix = contactNameMembershipSuffix(row);
               return (
                 <tr
                   key={row.id}
@@ -858,7 +875,20 @@ export function ContactsPanel({
                   }`}
                   onClick={() => selectRow(row)}
                 >
-                  <td className='px-4 py-3'>{name}</td>
+                  <td className='px-4 py-3'>
+                    {name}
+                    {membershipSuffix ? (
+                      <>
+                        <span aria-hidden>{membershipSuffix}</span>
+                        {row.family_ids.length > 0 ? (
+                          <span className='sr-only'>, linked to a family</span>
+                        ) : null}
+                        {row.organization_ids.length > 0 ? (
+                          <span className='sr-only'>, linked to an organisation</span>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </td>
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3 text-right'>
