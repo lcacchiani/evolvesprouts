@@ -165,6 +165,7 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             service_type=payload["service_type"],
             title=payload["title"],
             slug=payload["slug"],
+            booking_system=payload["booking_system"],
             description=payload["description"],
             cover_image_s3_key=payload["cover_image_s3_key"],
             delivery_mode=payload["delivery_mode"],
@@ -246,6 +247,8 @@ def _update_service(
             service.title = payload["title"]
         if "slug" in payload:
             service.slug = payload["slug"]
+        if "booking_system" in payload:
+            service.booking_system = payload["booking_system"]
         if "description" in payload:
             service.description = payload["description"]
         if "cover_image_s3_key" in payload:

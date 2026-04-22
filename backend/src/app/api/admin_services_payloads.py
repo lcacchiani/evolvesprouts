@@ -52,6 +52,7 @@ _LIST_MAX_LIMIT = 100
 _MAX_CODE_LENGTH = 50
 _SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _MAX_SERVICE_SLUG_LENGTH = 80
+_MAX_BOOKING_SYSTEM_LENGTH = 80
 logger = get_logger(__name__)
 
 # Sibling defaults: admin_web `REFERRAL_DEFAULT_*` in `apps/admin_web/src/types/services.ts`.
@@ -76,6 +77,23 @@ def parse_optional_service_slug(value: Any, field: str) -> str | None:
     if not _SERVICE_SLUG_PATTERN.fullmatch(trimmed):
         raise ValidationError(
             f"{field} must use lowercase letters, numbers, and single hyphens between segments",
+            field=field,
+        )
+    return trimmed
+
+
+def parse_optional_booking_system(value: Any, field: str) -> str | None:
+    """Parse optional booking system label; strip; empty -> None."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(f"{field} must be a string", field=field)
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+    if len(trimmed) > _MAX_BOOKING_SYSTEM_LENGTH:
+        raise ValidationError(
+            f"{field} must be at most {_MAX_BOOKING_SYSTEM_LENGTH} characters",
             field=field,
         )
     return trimmed
@@ -206,6 +224,9 @@ def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "service_type": service_type,
         "title": parse_required_text(body.get("title"), "title", max_length=255),
         "slug": parse_optional_service_slug(body.get("slug"), "slug"),
+        "booking_system": parse_optional_booking_system(
+            body.get("booking_system"), "booking_system"
+        ),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -241,6 +262,10 @@ def parse_update_service_payload(
         )
     if has_field(body, "slug"):
         payload["slug"] = parse_optional_service_slug(body.get("slug"), "slug")
+    if has_field(body, "booking_system"):
+        payload["booking_system"] = parse_optional_booking_system(
+            body.get("booking_system"), "booking_system"
+        )
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH

@@ -121,6 +121,7 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
     title: asNullableString(item.title) ?? '',
     slug: asNullableString(item.slug),
+    bookingSystem: asNullableString(item.booking_system),
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     deliveryMode: (asNullableString(item.delivery_mode) ?? 'online') as ServiceSummary['deliveryMode'],

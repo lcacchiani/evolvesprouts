@@ -13,6 +13,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     serviceType: 'training_course',
     title: 'Alpha service',
     slug: 'old-slug',
+    bookingSystem: null,
     description: null,
     coverImageS3Key: null,
     deliveryMode: 'online',

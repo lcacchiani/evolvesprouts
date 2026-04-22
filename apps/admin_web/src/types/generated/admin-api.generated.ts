@@ -4071,6 +4071,8 @@ export interface components {
             title: string;
             /** @description Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`). Uniqueness is enforced case-insensitively in Aurora. */
             slug?: string | null;
+            /** @description Optional label for which booking system or flow applies to this service (free-form text, same max length as referral slug). */
+            booking_system?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode: components["schemas"]["ServiceDeliveryMode"];
@@ -4104,6 +4106,8 @@ export interface components {
             title: string;
             /** @description Optional referral slug (lowercase letters, numbers, hyphens). */
             slug?: string | null;
+            /** @description Optional booking system label (free-form text). */
+            booking_system?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode: components["schemas"]["ServiceDeliveryMode"];
@@ -4118,6 +4122,7 @@ export interface components {
         PartialUpdateServiceRequest: {
             title?: string;
             slug?: string | null;
+            booking_system?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             delivery_mode?: components["schemas"]["ServiceDeliveryMode"];

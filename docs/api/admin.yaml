@@ -3385,6 +3385,13 @@ components:
           description: >
             Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`).
             Uniqueness is enforced case-insensitively in Aurora.
+        booking_system:
+          type: string
+          nullable: true
+          maxLength: 80
+          description: >
+            Optional label for which booking system or flow applies to this service
+            (free-form text, same max length as referral slug).
         description:
           type: string
           nullable: true
@@ -3466,6 +3473,11 @@ components:
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: Optional referral slug (lowercase letters, numbers, hyphens).
+        booking_system:
+          type: string
+          nullable: true
+          maxLength: 80
+          description: Optional booking system label (free-form text).
         description:
           type: string
           nullable: true
@@ -3506,6 +3518,10 @@ components:
           nullable: true
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        booking_system:
+          type: string
+          nullable: true
+          maxLength: 80
         description:
           type: string
           nullable: true
