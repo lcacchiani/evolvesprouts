@@ -167,4 +167,33 @@ describe('ServiceDetailPanel', () => {
     expect(editModeServiceType).toBeDisabled();
     expect(editModeServiceType).toHaveValue('consultation');
   });
+
+  it('lays out event fields in one row with delivery mode and omits placeholder pricing', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn();
+    const onCreate = vi.fn();
+    const onUploadCover = vi.fn();
+    const onCancelSelection = vi.fn();
+
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    await user.selectOptions(screen.getByLabelText('Service type'), 'event');
+
+    expect(screen.getByLabelText('Delivery mode')).toBeInTheDocument();
+    expect(screen.getByLabelText('Event category')).toBeInTheDocument();
+    expect(screen.getByLabelText('Booking system')).toBeInTheDocument();
+    expect(screen.getByLabelText('Cover image file name')).toBeInTheDocument();
+    expect(screen.queryAllByLabelText('Booking system')).toHaveLength(1);
+    expect(screen.queryByText('Pricing unit')).not.toBeInTheDocument();
+  });
 });
