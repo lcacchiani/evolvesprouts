@@ -326,8 +326,8 @@ export function FamiliesPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-          <div>
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
+          <div className='lg:col-span-2'>
             <Label htmlFor='crm-family-name'>Family name</Label>
             <Input
               id='crm-family-name'
@@ -336,7 +336,7 @@ export function FamiliesPanel({
               autoComplete='off'
             />
           </div>
-          <div>
+          <div className='lg:col-span-1'>
             <Label htmlFor='crm-family-rel'>Relationship</Label>
             <Select
               id='crm-family-rel'
@@ -352,7 +352,22 @@ export function FamiliesPanel({
               ))}
             </Select>
           </div>
-          <div className='lg:col-span-2'>
+          {editorMode === 'edit' ? (
+            <div className='lg:col-span-1'>
+              <Label htmlFor='crm-family-active'>Status</Label>
+              <Select
+                id='crm-family-active'
+                value={active ? 'true' : 'false'}
+                onChange={(e) => setActive(e.target.value === 'true')}
+              >
+                <option value='true'>Active</option>
+                <option value='false'>Archived</option>
+              </Select>
+            </div>
+          ) : (
+            <div className='hidden lg:col-span-1 lg:block' aria-hidden />
+          )}
+          <div className='lg:col-span-4'>
             <AdminCollapsibleSection id='crm-family-location' title='Location'>
               <InlineLocationEditor
                 stateKey={inlineLocationStateKey}
@@ -387,20 +402,7 @@ export function FamiliesPanel({
               />
             </AdminCollapsibleSection>
           </div>
-          {editorMode === 'edit' ? (
-            <div>
-              <Label htmlFor='crm-family-active'>Status</Label>
-              <Select
-                id='crm-family-active'
-                value={active ? 'true' : 'false'}
-                onChange={(e) => setActive(e.target.value === 'true')}
-              >
-                <option value='true'>Active</option>
-                <option value='false'>Archived</option>
-              </Select>
-            </div>
-          ) : null}
-          <div className='lg:col-span-2'>
+          <div className='lg:col-span-4'>
             <EntityTagPicker
               id='crm-family-tags'
               label='Tags'
@@ -412,7 +414,7 @@ export function FamiliesPanel({
             />
           </div>
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-2'>
+            <div className='lg:col-span-4'>
               <AdminCollapsibleSection id='crm-family-members' title='Members'>
                 <div className='space-y-3 pt-1'>
                   <div className='flex flex-wrap items-end gap-3'>
