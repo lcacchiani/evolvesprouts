@@ -270,7 +270,7 @@ export interface ServiceListFilters {
 
 export const DEFAULT_SERVICE_LIST_FILTERS: ServiceListFilters = {
   serviceType: '',
-  status: '',
+  status: 'published',
   search: '',
 };
 

@@ -534,18 +534,6 @@ export function ServiceDetailPanel({
         ) : null}
 
         <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-          {isEditMode ? (
-            <div className='md:col-span-3'>
-              <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-              <Input
-                id='service-detail-cover-file-name'
-                value={coverFileName}
-                onChange={(event) => setCoverFileName(event.target.value)}
-              />
-            </div>
-          ) : (
-            <div className='hidden md:block md:col-span-3' aria-hidden />
-          )}
           <div>
             <Label htmlFor='service-booking-system'>Booking system</Label>
             <Input
@@ -557,6 +545,15 @@ export function ServiceDetailPanel({
               autoComplete='off'
             />
           </div>
+          <div>
+            <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+            <Input
+              id='service-detail-cover-file-name'
+              value={coverFileName}
+              onChange={(event) => setCoverFileName(event.target.value)}
+            />
+          </div>
+          <div className='hidden md:block md:col-span-2' aria-hidden />
         </div>
 
         {error ? <AdminInlineError>{error}</AdminInlineError> : null}
