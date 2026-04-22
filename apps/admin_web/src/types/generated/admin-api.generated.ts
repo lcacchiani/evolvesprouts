@@ -2251,7 +2251,10 @@ export interface paths {
         };
         /**
          * Search CRM contacts for pickers
-         * @description Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+         * @description Returns active contacts matching name, email, Instagram, and **phone** using
+         *     server-side normalisation: ``+`` international forms, long digit strings, and
+         *     substring matches against stored national significant numbers (with optional
+         *     region match when the query resolves to a valid number).
          *     Requires at least two characters in `query`. Intended for referral and other admin pickers.
          */
         get: {
@@ -2300,7 +2303,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    /** @description Search first name, last name, email, phone, or Instagram handle. */
+                    /**
+                     * @description Search first name, last name, email, Instagram, and phone (stored as ISO region +
+                     *     national digits; server normalises ``+`` / digit queries before matching).
+                     */
                     query?: string;
                     active?: boolean;
                     /** @description When set, only contacts with this contact type are returned. */
@@ -3891,7 +3897,9 @@ export interface components {
             first_name?: string | null;
             last_name?: string | null;
             email?: string | null;
-            phone?: string | null;
+            phone_region?: string | null;
+            phone_national_number?: string | null;
+            readonly phone_e164?: string | null;
             instagram_handle?: string | null;
             /** @enum {string|null} */
             source?: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "manual" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | null;
@@ -3972,7 +3980,13 @@ export interface components {
             first_name: string;
             last_name?: string | null;
             email?: string | null;
-            phone?: string | null;
+            /**
+             * @description ISO 3166-1 alpha-2 region. Omit both `phone_region` and `phone_number` to leave
+             *     phone unchanged on create; send both keys with JSON `null` to clear phone.
+             */
+            phone_region?: string | null;
+            /** @description National significant digits only; must be provided with `phone_region` when setting phone. */
+            phone_number?: string | null;
             instagram_handle?: string | null;
             source: components["schemas"]["ContactSource"];
             source_detail?: string | null;
@@ -4741,7 +4755,9 @@ export interface components {
             instagram_handle?: string | null;
             first_name: string;
             last_name?: string | null;
-            phone?: string | null;
+            phone_region?: string | null;
+            phone_national_number?: string | null;
+            readonly phone_e164?: string | null;
             contact_type: components["schemas"]["EntityContactType"];
             relationship_type: components["schemas"]["EntityRelationshipType"];
             /** Format: date */
@@ -4800,7 +4816,12 @@ export interface components {
             last_name?: string | null;
             email?: string | null;
             instagram_handle?: string | null;
-            phone?: string | null;
+            phone_region?: string | null;
+            /**
+             * @description National significant digits. Omit both `phone_region` and `phone_number` to leave
+             *     phone unset; send both keys with JSON `null` to clear phone on create.
+             */
+            phone_number?: string | null;
             contact_type: components["schemas"]["EntityContactType"];
             relationship_type?: components["schemas"]["EntityRelationshipType"];
             source?: components["schemas"]["EntityContactSource"];
@@ -4825,7 +4846,8 @@ export interface components {
             last_name?: string | null;
             email?: string | null;
             instagram_handle?: string | null;
-            phone?: string | null;
+            phone_region?: string | null;
+            phone_number?: string | null;
             contact_type?: components["schemas"]["EntityContactType"];
             relationship_type?: components["schemas"]["EntityRelationshipType"];
             source?: components["schemas"]["EntityContactSource"];

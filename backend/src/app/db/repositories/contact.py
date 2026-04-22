@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+import phonenumbers
+from phonenumbers.phonenumberutil import NumberParseException
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -55,6 +57,88 @@ def _should_replace_first_name(existing: str, incoming: str) -> bool:
 
 def _should_replace_source(existing: ContactSource, incoming: ContactSource) -> bool:
     return _SOURCE_PRIORITY[incoming] >= _SOURCE_PRIORITY[existing]
+
+
+def _phone_search_predicates(query: str) -> list:
+    """Build OR conditions for phone search (region + national columns)."""
+    from app.db.repositories.organization import _escape_like_pattern
+    from app.utils.phone import (
+        country_calling_codes_longest_first,
+        default_phone_region,
+        strip_phone_search_term,
+        try_parse_international_digit_string,
+    )
+
+    normalized = strip_phone_search_term(query)
+    if not normalized:
+        return []
+
+    preds: list = []
+
+    if normalized.startswith("+"):
+        body = normalized[1:]
+        if not body.isdigit():
+            return []
+        for cc in country_calling_codes_longest_first():
+            cc_s = str(cc)
+            if not body.startswith(cc_s):
+                continue
+            national_rest = body[len(cc_s) :]
+            if not national_rest:
+                continue
+            region = phonenumbers.region_code_for_country_code(cc)
+            if not region:
+                continue
+            escaped_prefix = _escape_like_pattern(national_rest)
+            escaped_sub = _escape_like_pattern(national_rest)
+            prefix_pat = f"{escaped_prefix}%"
+            sub_pat = f"%{escaped_sub}%"
+            preds.append(
+                and_(
+                    Contact.phone_region == region,
+                    or_(
+                        Contact.phone_national_number.ilike(prefix_pat, escape="\\"),
+                        Contact.phone_national_number.ilike(sub_pat, escape="\\"),
+                    ),
+                )
+            )
+            preds.append(
+                Contact.phone_national_number.ilike(sub_pat, escape="\\"),
+            )
+        return preds
+
+    digits_only = "".join(ch for ch in normalized if ch.isdigit())
+    if len(digits_only) >= 8:
+        intl = try_parse_international_digit_string(digits_only)
+        if intl is not None:
+            r, nsn = intl
+            preds.append(
+                and_(
+                    Contact.phone_region == r,
+                    Contact.phone_national_number == nsn,
+                )
+            )
+        try:
+            parsed = phonenumbers.parse(normalized, default_phone_region())
+        except NumberParseException:
+            parsed = None
+        if parsed is not None and phonenumbers.is_valid_number(parsed):
+            r = phonenumbers.region_code_for_number(parsed) or default_phone_region()
+            if r == "ZZ":
+                r = default_phone_region()
+            nsn = phonenumbers.national_significant_number(parsed)
+            preds.append(
+                and_(
+                    Contact.phone_region == r,
+                    Contact.phone_national_number == nsn,
+                )
+            )
+
+    escaped = _escape_like_pattern(digits_only if digits_only else normalized)
+    preds.append(
+        Contact.phone_national_number.ilike(f"%{escaped}%", escape="\\"),
+    )
+    return preds
 
 
 class ContactRepository(BaseRepository[Contact]):
@@ -173,15 +257,17 @@ class ContactRepository(BaseRepository[Contact]):
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
-            statement = statement.where(
-                or_(
-                    Contact.first_name.ilike(pattern, escape="\\"),
-                    Contact.last_name.ilike(pattern, escape="\\"),
-                    Contact.email.ilike(pattern, escape="\\"),
-                    Contact.phone.ilike(pattern, escape="\\"),
-                    Contact.instagram_handle.ilike(pattern, escape="\\"),
-                )
-            )
+            phone_preds = _phone_search_predicates(query.strip())
+            text_preds = [
+                Contact.first_name.ilike(pattern, escape="\\"),
+                Contact.last_name.ilike(pattern, escape="\\"),
+                Contact.email.ilike(pattern, escape="\\"),
+                Contact.instagram_handle.ilike(pattern, escape="\\"),
+            ]
+            if phone_preds:
+                statement = statement.where(or_(*text_preds, *phone_preds))
+            else:
+                statement = statement.where(or_(*text_preds))
         if active is True:
             statement = statement.where(Contact.archived_at.is_(None))
         if active is False:
@@ -207,15 +293,17 @@ class ContactRepository(BaseRepository[Contact]):
         statement = select(Contact)
         escaped = _escape_like_pattern(query.strip())
         pattern = f"%{escaped}%"
-        statement = statement.where(
-            or_(
-                Contact.first_name.ilike(pattern, escape="\\"),
-                Contact.last_name.ilike(pattern, escape="\\"),
-                Contact.email.ilike(pattern, escape="\\"),
-                Contact.phone.ilike(pattern, escape="\\"),
-                Contact.instagram_handle.ilike(pattern, escape="\\"),
-            )
-        )
+        phone_preds = _phone_search_predicates(query.strip())
+        text_preds = [
+            Contact.first_name.ilike(pattern, escape="\\"),
+            Contact.last_name.ilike(pattern, escape="\\"),
+            Contact.email.ilike(pattern, escape="\\"),
+            Contact.instagram_handle.ilike(pattern, escape="\\"),
+        ]
+        if phone_preds:
+            statement = statement.where(or_(*text_preds, *phone_preds))
+        else:
+            statement = statement.where(or_(*text_preds))
         if active is True:
             statement = statement.where(Contact.archived_at.is_(None))
         if active is False:
@@ -240,15 +328,17 @@ class ContactRepository(BaseRepository[Contact]):
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
-            statement = statement.where(
-                or_(
-                    Contact.first_name.ilike(pattern, escape="\\"),
-                    Contact.last_name.ilike(pattern, escape="\\"),
-                    Contact.email.ilike(pattern, escape="\\"),
-                    Contact.phone.ilike(pattern, escape="\\"),
-                    Contact.instagram_handle.ilike(pattern, escape="\\"),
-                )
-            )
+            phone_preds = _phone_search_predicates(query.strip())
+            text_preds = [
+                Contact.first_name.ilike(pattern, escape="\\"),
+                Contact.last_name.ilike(pattern, escape="\\"),
+                Contact.email.ilike(pattern, escape="\\"),
+                Contact.instagram_handle.ilike(pattern, escape="\\"),
+            ]
+            if phone_preds:
+                statement = statement.where(or_(*text_preds, *phone_preds))
+            else:
+                statement = statement.where(or_(*text_preds))
         if active is True:
             statement = statement.where(Contact.archived_at.is_(None))
         if active is False:

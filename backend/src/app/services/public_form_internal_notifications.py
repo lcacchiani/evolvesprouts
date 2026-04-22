@@ -18,9 +18,24 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from app.services.aws_proxy import AwsProxyError, invoke
 from app.services.email import send_email
 from app.utils.logging import get_logger, mask_email
+from app.utils.phone import format_phone_international
 from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
+
+
+def _international_phone_display(payload: Mapping[str, Any], raw_key: str) -> str:
+    region = payload.get("phone_region")
+    national = payload.get("phone_national_number")
+    formatted = format_phone_international(
+        region if isinstance(region, str) else None,
+        national if isinstance(national, str) else None,
+    )
+    if formatted:
+        return formatted
+    raw = str(payload.get(raw_key) or "").strip()
+    return raw
+
 
 # IANA tz database id (e.g. Asia/Hong_Kong). Default matches Evolve Sprouts' primary market.
 _DEFAULT_SALES_RECAP_DISPLAY_TIMEZONE = "Asia/Hong_Kong"
@@ -99,7 +114,7 @@ def send_contact_inquiry_support_email(*, payload: Mapping[str, Any]) -> None:
         return
     first_name = str(payload.get("first_name") or "").strip()
     email = str(payload.get("email_address") or "").strip().lower()
-    phone = str(payload.get("phone_number") or "").strip()
+    phone = _international_phone_display(payload, "phone_number")
     message = str(payload.get("message") or "").strip()
     raw_intent = payload.get("signup_intent")
     signup_intent = (
@@ -253,7 +268,7 @@ def send_sales_form_recap_email(
 def build_contact_us_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
     first_name = str(payload.get("first_name") or "").strip()
     email = str(payload.get("email_address") or "").strip()
-    phone = str(payload.get("phone_number") or "").strip()
+    phone = _international_phone_display(payload, "phone_number")
     message = str(payload.get("message") or "").strip()
     raw_intent = payload.get("signup_intent")
     signup_intent = (
@@ -302,7 +317,7 @@ def build_media_lead_recap_lines(
 
 
 def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
-    phone = str(payload.get("attendee_phone") or "").strip()
+    phone_display = _international_phone_display(payload, "attendee_phone")
     focus = str(payload.get("consultation_writing_focus_label") or "").strip()
     level = str(payload.get("consultation_level_label") or "").strip()
     topics = str(payload.get("interested_topics") or "").strip()
@@ -324,7 +339,7 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         "",
         f"Attendee name: {payload.get('attendee_name', '')}",
         f"Attendee email: {payload.get('attendee_email', '')}",
-        f"Telephone: {phone or '(not provided)'}",
+        f"Telephone: {phone_display or '(not provided)'}",
         f"Child age group: {payload.get('child_age_group', '')}",
         f"Package: {payload.get('package_label', '') or '(not set)'}",
         f"Month: {payload.get('month_label', '') or '(not set)'}",

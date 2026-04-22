@@ -16,7 +16,8 @@ describe('reservations-data', () => {
       payload: {
         attendeeName: 'Test User',
         attendeeEmail: 'test@example.com',
-        attendeePhone: '85212345678',
+        attendeePhone: '91234567',
+        attendeeCountry: 'HK',
         childAgeGroup: '18-24 months',
         cohortDate: '2026-04-08',
         interestedTopics: 'Please share more details.',

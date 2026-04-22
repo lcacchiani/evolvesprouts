@@ -224,7 +224,8 @@ const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
   attendeeEmail: 'test@example.com',
-  attendeePhone: '12345678',
+  attendeePhone: '91234567',
+  attendeeCountry: 'HK',
   ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   paymentMethodCode: 'fps_qr',
@@ -680,7 +681,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
     fireEvent.change(fullNameField, { target: { value: 'Test User' } });
     fireEvent.change(emailField, { target: { value: 'ida@example.com' } });
-    fireEvent.change(phoneField, { target: { value: '85212345678' } });
+    fireEvent.change(phoneField, { target: { value: '91234567' } });
     fireEvent.click(pendingAcknowledgement);
     expect(submitButton).toBeEnabled();
     fireEvent.click(termsAcknowledgement);
@@ -824,7 +825,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'u@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Topics' },
@@ -901,7 +902,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'u@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Topics' },
@@ -1087,7 +1088,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'ida@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
@@ -1141,7 +1142,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'not-an-email' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
@@ -1204,7 +1205,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'ida@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
@@ -1241,7 +1242,8 @@ describe('my-best-auntie booking modals footer content', () => {
       body: expect.objectContaining({
         attendeeName: 'Test User',
         attendeeEmail: 'ida@example.com',
-        attendeePhone: '85212345678',
+        attendeePhone: '91234567',
+        attendeeCountry: 'HK',
         childAgeGroup: '18-24 months',
         cohortDate: selectedCohortDate,
         interestedTopics: 'Need details',
@@ -1351,7 +1353,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'ida@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
@@ -1443,7 +1445,7 @@ describe('my-best-auntie booking modals footer content', () => {
       target: { value: 'ida@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
@@ -1473,7 +1475,8 @@ describe('my-best-auntie booking modals footer content', () => {
       body: expect.objectContaining({
         attendeeName: 'Test User',
         attendeeEmail: 'ida@example.com',
-        attendeePhone: '85212345678',
+        attendeePhone: '91234567',
+        attendeeCountry: 'HK',
         childAgeGroup: '18-24 months',
         cohortDate: selectedCohortDate,
         interestedTopics: 'Need details',

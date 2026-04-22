@@ -8,9 +8,11 @@ import type { AdminUser, ContactSource, LeadType } from '@/types/leads';
 import { StatusBanner } from '@/components/status-banner';
 import { FormDialog } from '@/components/ui/form-dialog';
 import { Input } from '@/components/ui/input';
+import { PhoneField } from '@/components/ui/phone-field';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toTitleCase } from '@/lib/format';
+import { contactPhoneRequestFields } from '@/lib/phone-request';
 
 export interface CreateLeadDialogProps {
   open: boolean;
@@ -22,7 +24,8 @@ export interface CreateLeadDialogProps {
     first_name: string;
     last_name?: string | null;
     email?: string | null;
-    phone?: string | null;
+    phone_region?: string | null;
+    phone_number?: string | null;
     instagram_handle?: string | null;
     source: ContactSource;
     source_detail?: string | null;
@@ -44,7 +47,8 @@ export function CreateLeadDialog({
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneRegion, setPhoneRegion] = useState('HK');
+  const [phoneNational, setPhoneNational] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
   const [source, setSource] = useState<ContactSource>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
@@ -59,7 +63,7 @@ export function CreateLeadDialog({
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         email: email.trim() || null,
-        phone: phone.trim() || null,
+        ...contactPhoneRequestFields(phoneRegion, phoneNational),
         instagram_handle: instagramHandle.trim() || null,
         source,
         source_detail: sourceDetail.trim() || null,
@@ -71,7 +75,8 @@ export function CreateLeadDialog({
       setFirstName('');
       setLastName('');
       setEmail('');
-      setPhone('');
+      setPhoneRegion('HK');
+      setPhoneNational('');
       setInstagramHandle('');
       setSource('manual');
       setSourceDetail('');
@@ -109,7 +114,16 @@ export function CreateLeadDialog({
         />
         <Input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder='Last name' />
         <Input value={email} onChange={(event) => setEmail(event.target.value)} type='email' placeholder='Email' />
-        <Input value={phone} onChange={(event) => setPhone(event.target.value)} type='tel' placeholder='Phone' />
+        <div className='md:col-span-2'>
+          <PhoneField
+            region={phoneRegion}
+            national={phoneNational}
+            onRegionChange={setPhoneRegion}
+            onNationalChange={setPhoneNational}
+            regionLabel='Phone country / region'
+            nationalLabel='Phone number (national digits)'
+          />
+        </div>
         <Input
           value={instagramHandle}
           onChange={(event) => setInstagramHandle(event.target.value)}

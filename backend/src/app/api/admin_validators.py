@@ -18,7 +18,7 @@ MAX_DESCRIPTION_LENGTH = 5000
 MAX_ADDRESS_LENGTH = 500
 MAX_URL_LENGTH = 2048
 MAX_EMAIL_LENGTH = 320
-MAX_PHONE_COUNTRY_CODE_LENGTH = 2
+MAX_PHONE_REGION_LENGTH = 2
 MAX_PHONE_NUMBER_LENGTH = 20
 MAX_LANGUAGE_CODE_LENGTH = 10
 MAX_LANGUAGES_COUNT = 20
@@ -230,68 +230,56 @@ def validate_email(value: Any) -> str | None:
     return value
 
 
-def _validate_phone_country_code(value: Any) -> str | None:
-    """Validate phone country code (ISO 3166-1 alpha-2)."""
+def validate_phone_region(value: Any) -> str | None:
+    """Validate ISO 3166-1 alpha-2 region code for phone parsing (upper-case)."""
     if value is None:
         return None
     if not isinstance(value, str):
-        raise ValidationError(
-            "phone_country_code must be a string",
-            field="phone_country_code",
-        )
+        raise ValidationError("phone_region must be a string", field="phone_region")
     value = value.strip().upper()
     if not value:
         return None
-    if len(value) > MAX_PHONE_COUNTRY_CODE_LENGTH:
+    if len(value) != MAX_PHONE_REGION_LENGTH:
         raise ValidationError(
-            "phone_country_code must be 2 characters",
-            field="phone_country_code",
+            "phone_region must be 2 characters",
+            field="phone_region",
         )
 
     import phonenumbers
 
     if value not in phonenumbers.SUPPORTED_REGIONS:
         raise ValidationError(
-            "phone_country_code must be a valid ISO country code",
-            field="phone_country_code",
+            "phone_region must be a valid ISO 3166-1 alpha-2 region code",
+            field="phone_region",
         )
     return value
 
 
-def _validate_phone_fields(
-    phone_country_code: Any, phone_number: Any
+def validate_phone_fields(
+    phone_region: Any, phone_number: Any
 ) -> tuple[str | None, str | None]:
-    """Validate phone fields, returning normalized values."""
-    if phone_country_code is None and phone_number is None:
+    """Validate phone_region + phone_number; return (region upper, national digits only)."""
+    if phone_region is None and phone_number is None:
         return None, None
 
-    if phone_country_code is None:
-        raise ValidationError(
-            "phone_country_code is required",
-            field="phone_country_code",
-        )
+    if phone_region is None:
+        raise ValidationError("phone_region is required", field="phone_region")
     if phone_number is None:
-        raise ValidationError(
-            "phone_number is required",
-            field="phone_number",
-        )
+        raise ValidationError("phone_number is required", field="phone_number")
 
-    country_code = _validate_phone_country_code(phone_country_code)
-    if country_code is None:
-        raise ValidationError(
-            "phone_country_code is required",
-            field="phone_country_code",
-        )
+    region = validate_phone_region(phone_region)
+    if region is None:
+        raise ValidationError("phone_region is required", field="phone_region")
 
     if not isinstance(phone_number, str):
         raise ValidationError("phone_number must be a string", field="phone_number")
     number = phone_number.strip()
-    normalized_number = re.sub(r"[\s-]+", "", number)
+    normalized_number = re.sub(r"\D", "", number)
     if not number:
         raise ValidationError("phone_number is required", field="phone_number")
     if len(normalized_number) > MAX_PHONE_NUMBER_LENGTH:
         raise ValidationError(
-            f"phone_number must be at most {MAX_PHONE_NUMBER_LENGTH} characters",
+            f"phone_number must be at most {MAX_PHONE_NUMBER_LENGTH} digits",
             field="phone_number",
         )
 
@@ -299,7 +287,7 @@ def _validate_phone_fields(
     from phonenumbers.phonenumberutil import NumberParseException
 
     try:
-        parsed = phonenumbers.parse(number, country_code)
+        parsed = phonenumbers.parse(number, region)
     except NumberParseException as exc:
         raise ValidationError(
             "phone_number must be a valid number",
@@ -308,12 +296,12 @@ def _validate_phone_fields(
 
     if not phonenumbers.is_valid_number(parsed):
         raise ValidationError(
-            "phone_number is not valid for phone_country_code",
+            "phone_number is not valid for phone_region",
             field="phone_number",
         )
 
     national_number = phonenumbers.national_significant_number(parsed)
-    return country_code, national_number
+    return region, national_number
 
 
 def _validate_currency(currency: str) -> str:

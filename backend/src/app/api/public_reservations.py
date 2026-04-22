@@ -14,7 +14,13 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import validate_email, validate_string_length
+from app.api.admin_validators import (
+    validate_email,
+    validate_phone_fields,
+    validate_phone_region,
+    validate_string_length,
+)
+from app.utils.phone import default_phone_region
 from app.api.public_discount_validate import (
     _is_usable_now as discount_code_is_usable_now,
 )
@@ -133,6 +139,9 @@ def _handle_public_reservation(
                 source_detail="public-www-booking",
                 contact_type=ContactType.PARENT,
             )
+            contact.phone_region = reservation_payload["phone_region"]
+            contact.phone_national_number = reservation_payload["phone_national_number"]
+            contact_repo.update(contact)
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
                 "course_label": reservation_payload["course_label"],
@@ -258,9 +267,18 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
             extra={"lead_email": mask_email(email)},
         )
 
+    recap_payload: dict[str, Any] = dict(payload)
+    recap_payload.setdefault(
+        "phone_region", str(payload.get("phone_region") or "") or None
+    )
+    recap_payload.setdefault(
+        "phone_national_number",
+        str(payload.get("phone_national_number") or "") or None,
+    )
+
     send_sales_form_recap_email(
         form_title="Reservation",
-        body_lines=build_reservation_recap_lines(payload=payload),
+        body_lines=build_reservation_recap_lines(payload=recap_payload),
         required=False,
         retry_transient_failures=True,
     )
@@ -308,6 +326,19 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         body.get("attendeePhone"),
         "attendeePhone",
         _MAX_PHONE_LENGTH,
+    )
+    attendee_country_raw = body.get("attendeeCountry")
+    attendee_country: str | None = None
+    if attendee_country_raw is not None and str(attendee_country_raw).strip():
+        attendee_country = validate_phone_region(attendee_country_raw)
+        if attendee_country is None:
+            raise ValidationError(
+                "attendeeCountry must be a valid ISO region code",
+                field="attendeeCountry",
+            )
+    parse_region = attendee_country or default_phone_region()
+    phone_region, phone_national_number = validate_phone_fields(
+        parse_region, attendee_phone
     )
     child_age_group = _require_text(
         body.get("childAgeGroup"),
@@ -451,6 +482,9 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "attendee_name": attendee_name,
         "attendee_email": attendee_email,
         "attendee_phone": attendee_phone,
+        "attendee_country": attendee_country,
+        "phone_region": phone_region,
+        "phone_national_number": phone_national_number,
         "child_age_group": child_age_group,
         "package_label": package_label,
         "month_label": month_label,

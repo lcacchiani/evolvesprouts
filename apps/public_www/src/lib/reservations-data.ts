@@ -13,6 +13,8 @@ export interface ReservationSubmissionPayload {
   attendeeName: string;
   attendeeEmail: string;
   attendeePhone: string;
+  /** ISO 3166-1 alpha-2; optional — server defaults when omitted. */
+  attendeeCountry?: string;
   childAgeGroup: string;
   cohortDate: string;
   interestedTopics?: string;

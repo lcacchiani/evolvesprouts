@@ -109,7 +109,9 @@ def serialize_contact_summary(
         "instagram_handle": contact.instagram_handle,
         "first_name": contact.first_name,
         "last_name": contact.last_name,
-        "phone": contact.phone,
+        "phone_region": contact.phone_region,
+        "phone_national_number": contact.phone_national_number,
+        "phone_e164": contact.phone_e164,
         "contact_type": contact.contact_type.value,
         "relationship_type": contact.relationship_type.value,
         "date_of_birth": contact.date_of_birth.isoformat()

@@ -15,6 +15,7 @@ from app.api.admin_validators import (
     MAX_NAME_LENGTH,
     MAX_SOCIAL_HANDLE_LENGTH,
     validate_email,
+    validate_phone_fields,
     validate_string_length,
 )
 from app.db.models import Contact, Note, SalesLead, SalesLeadEvent
@@ -91,6 +92,24 @@ def parse_create_lead_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     source = _parse_enum_value(body.get("source"), ContactSource, "source")
     lead_type = _parse_enum_value(body.get("lead_type"), LeadType, "lead_type")
     email = validate_email(body.get("email"))
+    phone_in_body = "phone_region" in body or "phone_number" in body
+    skip_phone_update = not phone_in_body
+    phone_region: str | None = None
+    phone_national_number: str | None = None
+    if phone_in_body:
+        phone_region_raw = body.get("phone_region")
+        phone_number_raw = body.get("phone_number")
+        if phone_region_raw is None and phone_number_raw is None:
+            phone_region, phone_national_number = None, None
+        else:
+            if phone_region_raw is None or phone_number_raw is None:
+                raise ValidationError(
+                    "phone_region and phone_number must both be provided or both null",
+                    field="phone_number",
+                )
+            phone_region, phone_national_number = validate_phone_fields(
+                phone_region_raw, phone_number_raw
+            )
     return {
         "first_name": first_name,
         "last_name": validate_string_length(
@@ -100,9 +119,9 @@ def parse_create_lead_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             required=False,
         ),
         "email": email,
-        "phone": validate_string_length(
-            body.get("phone"), "phone", max_length=32, required=False
-        ),
+        "phone_region": phone_region,
+        "phone_national_number": phone_national_number,
+        "skip_phone_update": skip_phone_update,
         "instagram_handle": validate_string_length(
             body.get("instagram_handle"),
             "instagram_handle",
@@ -298,7 +317,9 @@ def _serialize_contact(contact: Contact | None) -> dict[str, Any]:
             "first_name": None,
             "last_name": None,
             "email": None,
-            "phone": None,
+            "phone_region": None,
+            "phone_national_number": None,
+            "phone_e164": None,
             "instagram_handle": None,
             "source": None,
             "source_detail": None,
@@ -310,7 +331,9 @@ def _serialize_contact(contact: Contact | None) -> dict[str, Any]:
         "first_name": contact.first_name,
         "last_name": contact.last_name,
         "email": contact.email,
-        "phone": contact.phone,
+        "phone_region": contact.phone_region,
+        "phone_national_number": contact.phone_national_number,
+        "phone_e164": contact.phone_e164,
         "instagram_handle": contact.instagram_handle,
         "source": contact.source.value if contact.source else None,
         "source_detail": contact.source_detail,

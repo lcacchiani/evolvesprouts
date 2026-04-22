@@ -9,6 +9,7 @@ describe('ReservationFormFields', () => {
     const onFullNameChange = vi.fn();
     const onEmailChange = vi.fn();
     const onEmailBlur = vi.fn();
+    const onPhoneCountryChange = vi.fn();
     const onPhoneChange = vi.fn();
     const onTopicsChange = vi.fn();
 
@@ -17,16 +18,19 @@ describe('ReservationFormFields', () => {
         content={enContent.bookingModal.paymentModal}
         fullName='Ada'
         email='bad-email'
-        phone='12345678'
+        phoneCountry='HK'
+        phone='91234567'
         interestedTopics='Boundaries'
         hasFullNameError={false}
         hasEmailError
         hasPhoneError={false}
+        hasPhoneInvalidForCountry={false}
         hasTopicsError={false}
         onFullNameChange={onFullNameChange}
         onFullNameBlur={vi.fn()}
         onEmailChange={onEmailChange}
         onEmailBlur={onEmailBlur}
+        onPhoneCountryChange={onPhoneCountryChange}
         onPhoneChange={onPhoneChange}
         onPhoneBlur={vi.fn()}
         onTopicsChange={onTopicsChange}
@@ -36,6 +40,9 @@ describe('ReservationFormFields', () => {
 
     const nameInput = screen.getByLabelText(/Full Name/i);
     const emailInput = screen.getByLabelText(/Email/i);
+    const countrySelect = screen.getByLabelText(
+      enContent.bookingModal.paymentModal.phoneCountryLabel,
+    );
     const phoneInput = screen.getByLabelText(/Phone Number/i);
     const topicsInput = screen.getByLabelText(
       /Anything you'd like me to know about your child or helper before we start\?/i,
@@ -44,12 +51,14 @@ describe('ReservationFormFields', () => {
     fireEvent.change(nameInput, { target: { value: 'Grace' } });
     fireEvent.change(emailInput, { target: { value: 'grace@example.com' } });
     fireEvent.blur(emailInput);
+    fireEvent.change(countrySelect, { target: { value: 'US' } });
     fireEvent.change(phoneInput, { target: { value: '87654321' } });
     fireEvent.change(topicsInput, { target: { value: 'Routines' } });
 
     expect(onFullNameChange).toHaveBeenCalledWith('Grace');
     expect(onEmailChange).toHaveBeenCalledWith('grace@example.com');
     expect(onEmailBlur).toHaveBeenCalledTimes(1);
+    expect(onPhoneCountryChange).toHaveBeenCalledWith('US');
     expect(onPhoneChange).toHaveBeenCalledWith('87654321');
     expect(onTopicsChange).toHaveBeenCalledWith('Routines');
     expect(
@@ -63,11 +72,13 @@ describe('ReservationFormFields', () => {
         content={enContent.bookingModal.paymentModal}
         fullName=''
         email=''
+        phoneCountry='HK'
         phone=''
         interestedTopics=''
         hasFullNameError={false}
         hasEmailError={false}
         hasPhoneError={false}
+        hasPhoneInvalidForCountry={false}
         hasTopicsError={false}
         topicsFieldConfig={{
           label: "What's your child's age?",
@@ -78,6 +89,7 @@ describe('ReservationFormFields', () => {
         onFullNameBlur={() => {}}
         onEmailChange={() => {}}
         onEmailBlur={() => {}}
+        onPhoneCountryChange={() => {}}
         onPhoneChange={() => {}}
         onPhoneBlur={() => {}}
         onTopicsChange={() => {}}

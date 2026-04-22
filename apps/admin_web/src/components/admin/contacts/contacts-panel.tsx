@@ -18,6 +18,7 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PhoneField } from '@/components/ui/phone-field';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +31,7 @@ import {
   type EntityTagRef,
 } from '@/lib/entity-api';
 import { formatEntityVenueLocationLabel, formatEnumLabel } from '@/lib/format';
+import { contactPhoneRequestFields } from '@/lib/phone-request';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   CONTACT_RELATIONSHIP_TYPES,
@@ -200,7 +202,8 @@ export function ContactsPanel({
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneRegion, setPhoneRegion] = useState('HK');
+  const [phoneNational, setPhoneNational] = useState('');
   const [contactType, setContactType] = useState<ApiSchemas['EntityContactType']>('parent');
   const [relationshipType, setRelationshipType] =
     useState<(typeof CONTACT_RELATIONSHIP_TYPES)[number]>('prospect');
@@ -387,7 +390,8 @@ export function ContactsPanel({
     setLastName('');
     setEmail('');
     setInstagramHandle('');
-    setPhone('');
+    setPhoneRegion('HK');
+    setPhoneNational('');
     setContactType('parent');
     setRelationshipType('prospect');
     setSource('manual');
@@ -425,7 +429,7 @@ export function ContactsPanel({
           last_name: lastName.trim() || null,
           email: email.trim() || null,
           instagram_handle: instagramHandle.trim() || null,
-          phone: phone.trim() || null,
+          ...contactPhoneRequestFields(phoneRegion, phoneNational),
           contact_type: contactType,
           relationship_type: relationshipType,
           source,
@@ -449,7 +453,7 @@ export function ContactsPanel({
         last_name: lastName.trim() || null,
         email: email.trim() || null,
         instagram_handle: instagramHandle.trim() || null,
-        phone: phone.trim() || null,
+        ...contactPhoneRequestFields(phoneRegion, phoneNational),
         contact_type: contactType,
         relationship_type: relationshipType,
         source,
@@ -516,7 +520,8 @@ export function ContactsPanel({
     setLastName(row.last_name ?? '');
     setEmail(row.email ?? '');
     setInstagramHandle(row.instagram_handle ?? '');
-    setPhone(row.phone ?? '');
+    setPhoneRegion(row.phone_region ?? 'HK');
+    setPhoneNational(row.phone_national_number ?? '');
     setContactType(row.contact_type);
     setRelationshipType(relationshipTypeForEditor(row.relationship_type));
     setSource(row.source);
@@ -630,15 +635,6 @@ export function ContactsPanel({
               />
             </div>
             <div>
-              <Label htmlFor='crm-contact-phone'>Phone</Label>
-              <Input
-                id='crm-contact-phone'
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-            <div>
               <Label htmlFor='crm-contact-ig'>Instagram</Label>
               <Input
                 id='crm-contact-ig'
@@ -657,6 +653,16 @@ export function ContactsPanel({
               />
             </div>
           </div>
+
+          <PhoneField
+            region={phoneRegion}
+            national={phoneNational}
+            onRegionChange={setPhoneRegion}
+            onNationalChange={setPhoneNational}
+            regionLabel='Phone country / region'
+            nationalLabel='Phone number (national digits)'
+            nationalInputId='crm-contact-phone-national'
+          />
 
           <div className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>

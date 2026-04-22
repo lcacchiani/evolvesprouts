@@ -8,8 +8,14 @@ from collections.abc import Mapping
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import validate_email, validate_string_length
+from app.api.admin_validators import (
+    validate_email,
+    validate_phone_fields,
+    validate_phone_region,
+    validate_string_length,
+)
 from app.api.public_form_hooks import run_contact_us_post_success
+from app.utils.phone import default_phone_region
 from app.db.engine import get_engine
 from app.db.models.enums import (
     ContactSource,
@@ -86,6 +92,18 @@ def handle_public_contact_us(
                 source_detail=normalized["signup_intent"],
                 contact_type=ContactType.PARENT,
             )
+            if (
+                normalized["phone_number"] is None
+                or str(normalized["phone_number"]).strip() == ""
+            ):
+                contact.phone_region = None
+                contact.phone_national_number = None
+            else:
+                region = normalized["phone_country"] or default_phone_region()
+                contact.phone_region, contact.phone_national_number = (
+                    validate_phone_fields(region, normalized["phone_number"])
+                )
+            contact_repo.update(contact)
             if normalized["signup_intent"] == "contact_inquiry":
                 lead = SalesLead(
                     contact_id=contact.id,
@@ -147,6 +165,15 @@ def _validate_contact_body(body: Mapping[str, Any]) -> dict[str, Any]:
         max_length=_MAX_PHONE,
         required=False,
     )
+    phone_country_raw = body.get("phone_country")
+    phone_country: str | None = None
+    if phone_country_raw is not None and str(phone_country_raw).strip() != "":
+        phone_country = validate_phone_region(phone_country_raw)
+        if phone_country is None:
+            raise ValidationError(
+                "phone_country must be a valid ISO region code",
+                field="phone_country",
+            )
 
     message = validate_string_length(
         body.get("message"),
@@ -166,10 +193,21 @@ def _validate_contact_body(body: Mapping[str, Any]) -> dict[str, Any]:
 
     locale = _normalize_locale(body.get("locale"))
 
+    phone_region_parsed: str | None = None
+    phone_national_parsed: str | None = None
+    if phone_number is not None and str(phone_number).strip():
+        region = phone_country or default_phone_region()
+        phone_region_parsed, phone_national_parsed = validate_phone_fields(
+            region, phone_number
+        )
+
     return {
         "first_name": first_name,
         "email_address": email_address,
         "phone_number": phone_number,
+        "phone_country": phone_country,
+        "phone_region": phone_region_parsed,
+        "phone_national_number": phone_national_parsed,
         "message": message,
         "marketing_opt_in": marketing_opt_in,
         "signup_intent": signup_intent,
@@ -212,6 +250,11 @@ def _body_for_hooks(normalized: Mapping[str, Any]) -> dict[str, Any]:
     phone = normalized.get("phone_number")
     if phone:
         out["phone_number"] = phone
+    if normalized.get("phone_country"):
+        out["phone_country"] = normalized["phone_country"]
+    if normalized.get("phone_region") and normalized.get("phone_national_number"):
+        out["phone_region"] = normalized["phone_region"]
+        out["phone_national_number"] = normalized["phone_national_number"]
     msg = normalized.get("message")
     if msg:
         out["message"] = msg

@@ -472,6 +472,21 @@ subset for authenticated callers.
 rows so Contacts → Organizations matches picker and member-assignment rules;
 Finance passes `relationship_type=vendor` for the vendors table.
 
+## Phone numbers on CRM contacts (region + national)
+
+**Decision:** Store phone numbers on `contacts` as ISO 3166-1 alpha-2
+`phone_region` plus digit-only `phone_national_number` (E.164 national
+significant number). Do not persist E.164; derive it at read time with
+`phonenumbers` so stored fields cannot drift from a cached E.164 column.
+
+**Default region:** Public and importer parsing use `DEFAULT_PHONE_REGION` from
+Lambda environment (CDK parameter `DefaultPhoneRegion`, default `HK` in stack
+parameters) when the client omits an explicit region.
+
+**Why:** Matches libphonenumber guidance (store structured parts, format for
+display/API), keeps validation and search aligned with one source of truth,
+and avoids denormalised E.164 maintenance.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

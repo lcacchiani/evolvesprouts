@@ -41,6 +41,7 @@ describe('ContactFormFields', () => {
     const formState: ContactUsFormState = {
       firstName: 'Ava',
       email: 'bad-email',
+      phoneCountry: 'HK',
       phone: 'abc',
       message: 'Hello',
     };
@@ -112,7 +113,7 @@ describe('ContactFormFields', () => {
       screen.getByText(enContent.contactUs.form.emailValidationError),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.contactUs.form.phoneValidationError),
+      screen.getByText(enContent.contactUs.form.phoneInvalidForCountry),
     ).toBeInTheDocument();
   });
 });

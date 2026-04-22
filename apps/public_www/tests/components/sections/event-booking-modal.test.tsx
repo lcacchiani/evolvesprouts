@@ -207,7 +207,7 @@ describe('EventBookingModal', () => {
       target: { value: 'u@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
       target: { value: 'Note' },
@@ -285,7 +285,7 @@ describe('EventBookingModal', () => {
       target: { value: 'u@example.com' },
     });
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '85212345678' },
+      target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
       target: { value: 'Note' },

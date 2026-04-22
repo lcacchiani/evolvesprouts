@@ -929,6 +929,13 @@ export class ApiStack extends cdk.Stack {
           "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
+    const defaultPhoneRegion = new cdk.CfnParameter(this, "DefaultPhoneRegion", {
+      type: "String",
+      default: "HK",
+      allowedPattern: "^[A-Z]{2}$",
+      description:
+        "ISO 3166-1 alpha-2 default region for parsing public phone fields when the client omits region (DEFAULT_PHONE_REGION on API Lambda).",
+    });
     const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
       type: "String",
       description: "Admin website domain used for backend CORS allowlisting.",
@@ -1588,6 +1595,7 @@ export class ApiStack extends cdk.Stack {
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
         SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
         SALES_RECAP_DISPLAY_TIMEZONE: salesRecapDisplayTimezone.valueAsString,
+        DEFAULT_PHONE_REGION: defaultPhoneRegion.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);

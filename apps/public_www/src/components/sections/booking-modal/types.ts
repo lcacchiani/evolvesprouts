@@ -9,6 +9,8 @@ export interface ReservationSummary {
   attendeeName: string;
   attendeeEmail: string;
   attendeePhone: string;
+  /** ISO 3166-1 alpha-2 region for the national phone number (e.g. HK). */
+  attendeeCountry?: string;
   ageGroup?: string;
   cohort?: string;
   paymentMethod: string;

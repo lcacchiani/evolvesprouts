@@ -30,6 +30,7 @@ import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
+import { isValidPhoneForRegion } from '@/lib/public-phone-validation';
 
 export type ContactUsFormContactConfig = Pick<
   PublicSiteConfig,
@@ -42,17 +43,7 @@ interface ContactUsFormProps {
   contactConfig: ContactUsFormContactConfig;
 }
 
-const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
-
-function isValidPhone(value: string): boolean {
-  const normalizedValue = value.trim();
-  if (normalizedValue === '') {
-    return true;
-  }
-
-  return PHONE_PATTERN.test(normalizedValue);
-}
 
 function sanitizeMultilineValue(value: string): string {
   return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
@@ -64,6 +55,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   const [formState, setFormState] = useState<ContactUsFormState>({
     firstName: '',
     email: '',
+    phoneCountry: 'HK',
     phone: '',
     message: '',
   });
@@ -93,7 +85,11 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   });
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
-  const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
+  const phoneNationalDigits = formState.phone.replace(/\D/g, '');
+  const hasPhoneError =
+    isPhoneTouched &&
+    phoneNationalDigits.length > 0 &&
+    !isValidPhoneForRegion(formState.phone, formState.phoneCountry);
   const hasFirstNameError =
     isFirstNameTouched && !sanitizeSingleLineValue(formState.firstName);
   const hasMessageError = isMessageTouched && !sanitizeMultilineValue(formState.message);
@@ -139,7 +135,8 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
     if (
       !sanitizeSingleLineValue(formState.firstName) ||
       !isValidEmail(formState.email) ||
-      !isValidPhone(formState.phone) ||
+      (phoneNationalDigits.length > 0 &&
+        !isValidPhoneForRegion(formState.phone, formState.phoneCountry)) ||
       !sanitizeMultilineValue(formState.message)
     ) {
       trackPublicFormOutcome('contact_form_submit_error', {
@@ -211,9 +208,11 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
     }
     const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
     const normalizedPhone = sanitizeSingleLineValue(formState.phone);
+    const phoneDigits = normalizedPhone.replace(/\D/g, '');
     const requestBody: {
       first_name: string;
       email_address: string;
+      phone_country?: string;
       phone_number?: string;
       message: string;
       marketing_opt_in: boolean;
@@ -227,8 +226,9 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
       signup_intent: 'contact_inquiry',
       locale,
     };
-    if (normalizedPhone) {
-      requestBody.phone_number = normalizedPhone;
+    if (phoneDigits) {
+      requestBody.phone_country = formState.phoneCountry;
+      requestBody.phone_number = phoneDigits;
     }
 
     await withSubmitting(async () => {

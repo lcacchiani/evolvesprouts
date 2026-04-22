@@ -208,7 +208,7 @@ describe('ContactUsForm section', () => {
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.form.phoneLabel,
+      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
     );
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
@@ -256,7 +256,7 @@ describe('ContactUsForm section', () => {
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.form.phoneLabel,
+      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
     );
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
@@ -271,7 +271,7 @@ describe('ContactUsForm section', () => {
     fireEvent.change(firstNameInput, { target: { value: 'Pat' } });
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
     fireEvent.blur(emailInput);
-    fireEvent.change(phoneInput, { target: { value: 'not-a-phone' } });
+    fireEvent.change(phoneInput, { target: { value: '12' } });
     fireEvent.blur(phoneInput);
     fireEvent.change(messageInput, { target: { value: 'Hello.' } });
     fireEvent.submit(formElement);
@@ -280,7 +280,7 @@ describe('ContactUsForm section', () => {
       screen.getByText(enContent.contactUs.form.emailValidationError),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.contactUs.form.phoneValidationError),
+      screen.getByText(enContent.contactUs.form.phoneInvalidForCountry),
     ).toBeInTheDocument();
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
     expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
@@ -465,7 +465,7 @@ describe('ContactUsForm section', () => {
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.form.phoneLabel,
+      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
     );
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
@@ -476,7 +476,7 @@ describe('ContactUsForm section', () => {
 
     fireEvent.change(firstNameInput, { target: { value: ' Ida ' } });
     fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
-    fireEvent.change(phoneInput, { target: { value: ' +852 1234 5678 ' } });
+    fireEvent.change(phoneInput, { target: { value: '91234567' } });
     fireEvent.change(messageInput, { target: { value: ' Tell me more about your courses. ' } });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     fireEvent.click(submitButton);
@@ -488,7 +488,8 @@ describe('ContactUsForm section', () => {
         body: {
           first_name: 'Ida',
           email_address: 'parent@example.com',
-          phone_number: '+852 1234 5678',
+          phone_country: 'HK',
+          phone_number: '91234567',
           message: 'Tell me more about your courses.',
           marketing_opt_in: false,
           signup_intent: 'contact_inquiry',

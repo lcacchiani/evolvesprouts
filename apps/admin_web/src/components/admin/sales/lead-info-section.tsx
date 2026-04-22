@@ -19,7 +19,7 @@ export function LeadInfoSection({ lead }: LeadInfoSectionProps) {
           <span className='font-medium text-slate-900'>Email:</span> {lead.contact.email ?? '—'}
         </p>
         <p>
-          <span className='font-medium text-slate-900'>Phone:</span> {lead.contact.phone ?? '—'}
+          <span className='font-medium text-slate-900'>Phone:</span> {lead.contact.phoneE164 ?? '—'}
         </p>
         <p>
           <span className='font-medium text-slate-900'>Instagram:</span>{' '}
