@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-
 import { Label } from '@/components/ui/label';
+import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
 
 import type { EntityTagRef } from '@/lib/entity-api';
 
@@ -27,7 +26,6 @@ export function EntityTagPicker({
   variant = 'default',
 }: EntityTagPickerProps) {
   const set = new Set(selectedIds);
-  const [disclosureOpen, setDisclosureOpen] = useState(false);
 
   function toggle(tagId: string) {
     const next = new Set(set);
@@ -40,6 +38,15 @@ export function EntityTagPicker({
   }
 
   if (tags.length === 0) {
+    if (variant === 'collapsible') {
+      return (
+        <AdminCollapsibleSection id={id} title={label} disabled={disabled}>
+          <p id={id} className='text-sm text-slate-500'>
+            No tags in the database yet.
+          </p>
+        </AdminCollapsibleSection>
+      );
+    }
     return (
       <div>
         <Label htmlFor={id}>{label}</Label>
@@ -51,7 +58,13 @@ export function EntityTagPicker({
   }
 
   const list = (
-    <div className='max-h-40 space-y-2 overflow-y-auto rounded-md border border-slate-200 bg-white p-3'>
+    <div
+      className={
+        variant === 'collapsible'
+          ? 'max-h-40 space-y-2 overflow-y-auto pt-1'
+          : 'max-h-40 space-y-2 overflow-y-auto rounded-md border border-slate-200 bg-white p-3'
+      }
+    >
       {tags.map((tag) => (
         <label key={tag.id} className='flex cursor-pointer items-center gap-2 text-sm'>
           <input
@@ -67,27 +80,10 @@ export function EntityTagPicker({
   );
 
   if (variant === 'collapsible') {
-    const panelId = `${id}-panel`;
     return (
-      <fieldset disabled={disabled}>
-        <details
-          className='rounded-md border border-slate-200 bg-white'
-          open={disclosureOpen}
-          onToggle={(event) => {
-            setDisclosureOpen(event.currentTarget.open);
-          }}
-        >
-          <summary
-            className='cursor-pointer select-none px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50'
-            aria-controls={panelId}
-          >
-            {label}
-          </summary>
-          <div className='border-t border-slate-200 px-3 pb-3 pt-2' id={panelId}>
-            {list}
-          </div>
-        </details>
-      </fieldset>
+      <AdminCollapsibleSection id={id} title={label} disabled={disabled}>
+        {list}
+      </AdminCollapsibleSection>
     );
   }
 

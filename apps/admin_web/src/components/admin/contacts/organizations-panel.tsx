@@ -11,6 +11,7 @@ import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
+import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -412,7 +413,7 @@ export function OrganizationsPanel({
             />
           </div>
           <div className='lg:col-span-4'>
-            <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
+            <AdminCollapsibleSection id='crm-org-location' title='Location'>
               <InlineLocationEditor
                 stateKey={inlineLocationStateKey}
                 location={resolvedLocation}
@@ -450,7 +451,7 @@ export function OrganizationsPanel({
                 }}
                 onGeocode={geocodeLocation}
               />
-            </div>
+            </AdminCollapsibleSection>
           </div>
           <div className='lg:col-span-4 space-y-4'>
             {editorMode === 'edit' ? (
@@ -479,81 +480,84 @@ export function OrganizationsPanel({
             </div>
           </div>
           {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-4 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-4'>
-              <h3 className='text-sm font-semibold text-slate-800'>Members</h3>
-              <div className='flex flex-wrap items-end gap-3'>
-                <div className='min-w-[200px] flex-1'>
-                  <Label htmlFor='crm-org-member-contact'>Contact</Label>
-                  <Select
-                    id='crm-org-member-contact'
-                    value={memberContactId}
-                    onChange={(e) => setMemberContactId(e.target.value)}
-                  >
-                    <option value=''>Select contact</option>
-                    {memberContactOptions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </Select>
+            <div className='lg:col-span-4'>
+              <AdminCollapsibleSection id='crm-org-members' title='Members'>
+                <div className='space-y-3 pt-1'>
+                  <div className='flex flex-wrap items-end gap-3'>
+                    <div className='min-w-[200px] flex-1'>
+                      <Label htmlFor='crm-org-member-contact'>Contact</Label>
+                      <Select
+                        id='crm-org-member-contact'
+                        value={memberContactId}
+                        onChange={(e) => setMemberContactId(e.target.value)}
+                      >
+                        <option value=''>Select contact</option>
+                        {memberContactOptions.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div className='min-w-[140px]'>
+                      <Label htmlFor='crm-org-member-role'>Role</Label>
+                      <Select
+                        id='crm-org-member-role'
+                        value={memberRole}
+                        onChange={(e) =>
+                          setMemberRole(e.target.value as ApiSchemas['EntityOrganizationRole'])
+                        }
+                      >
+                        {ORG_ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {formatEnumLabel(r)}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <Button
+                      type='button'
+                      disabled={isSaving || !memberContactId}
+                      onClick={() => void handleAddMember()}
+                    >
+                      Add member
+                    </Button>
+                  </div>
+                  <AdminDataTable tableClassName='min-w-[520px]'>
+                    <AdminDataTableHead>
+                      <tr>
+                        <th className='px-3 py-2 font-semibold'>Contact</th>
+                        <th className='px-3 py-2 font-semibold'>Role</th>
+                        <th className='px-3 py-2 font-semibold text-right'>Operations</th>
+                      </tr>
+                    </AdminDataTableHead>
+                    <AdminDataTableBody>
+                      {selected.members.map((m) => (
+                        <tr key={m.id}>
+                          <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
+                          <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
+                          <td className='px-3 py-2 text-right'>
+                            <Button
+                              type='button'
+                              size='sm'
+                              variant='danger'
+                              disabled={isSaving}
+                              onClick={() =>
+                                setRemoveTarget({
+                                  memberId: m.id,
+                                  label: m.contact_label || m.contact_id,
+                                })
+                              }
+                            >
+                              Remove
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </AdminDataTableBody>
+                  </AdminDataTable>
                 </div>
-                <div className='min-w-[140px]'>
-                  <Label htmlFor='crm-org-member-role'>Role</Label>
-                  <Select
-                    id='crm-org-member-role'
-                    value={memberRole}
-                    onChange={(e) =>
-                      setMemberRole(e.target.value as ApiSchemas['EntityOrganizationRole'])
-                    }
-                  >
-                    {ORG_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {formatEnumLabel(r)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <Button
-                  type='button'
-                  disabled={isSaving || !memberContactId}
-                  onClick={() => void handleAddMember()}
-                >
-                  Add member
-                </Button>
-              </div>
-              <AdminDataTable tableClassName='min-w-[520px]'>
-                <AdminDataTableHead>
-                  <tr>
-                    <th className='px-3 py-2 font-semibold'>Contact</th>
-                    <th className='px-3 py-2 font-semibold'>Role</th>
-                    <th className='px-3 py-2 font-semibold text-right'>Operations</th>
-                  </tr>
-                </AdminDataTableHead>
-                <AdminDataTableBody>
-                  {selected.members.map((m) => (
-                    <tr key={m.id}>
-                      <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
-                      <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
-                      <td className='px-3 py-2 text-right'>
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='danger'
-                          disabled={isSaving}
-                          onClick={() =>
-                            setRemoveTarget({
-                              memberId: m.id,
-                              label: m.contact_label || m.contact_id,
-                            })
-                          }
-                        >
-                          Remove
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </AdminDataTableBody>
-              </AdminDataTable>
+              </AdminCollapsibleSection>
             </div>
           ) : null}
         </div>
