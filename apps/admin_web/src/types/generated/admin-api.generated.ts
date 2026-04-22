@@ -4662,6 +4662,18 @@ export interface components {
             /** Format: uuid */
             location_id?: string | null;
             location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
+            /**
+             * @description When the contact belongs to at least one family with a saved location, the venue
+             *     summary for the lexicographically first such family (by family id). Read-only in
+             *     the admin UI; edit location on the family record.
+             */
+            family_location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
+            /**
+             * @description When the contact belongs to at least one organisation with a saved location, the
+             *     venue summary for the lexicographically first such organisation (by organisation id).
+             *     Read-only in the admin UI; edit location on the organisation record.
+             */
+            organization_location_summary?: components["schemas"]["EntityLocationVenueSummary"] | null;
             source: components["schemas"]["EntityContactSource"];
             source_detail?: string | null;
             /**
