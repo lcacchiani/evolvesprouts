@@ -62,6 +62,9 @@ Migration `0023_services_add_slug` adds nullable `services.slug` (varchar(80)) w
 unique partial index `services_slug_unique_idx` on `lower(slug)` where `slug` is not
 null (case-insensitive uniqueness for public referral URLs).
 
+Migration `0032_services_booking` adds nullable `services.booking_system` (varchar(80))
+for an optional admin-visible booking-system label.
+
 ## Table: assets
 
 Purpose: Stores asset metadata for files in S3.
@@ -434,7 +437,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `services` + type-detail tables
 
 - `services` stores reusable templates (title/description/cover image, type,
-  delivery mode, status, optional `slug` for public referral URLs).
+  delivery mode, status, optional `slug` for public referral URLs, optional
+  `booking_system` varchar(80) for an admin-visible booking-system label).
 - Type-specific one-to-one extension tables:
   - `training_course_details`
   - `event_details`

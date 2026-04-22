@@ -105,6 +105,7 @@ export function ServiceDetailPanel({
       : DEFAULT_CONSULTATION_FORM
   );
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
+  const [bookingSystem, setBookingSystem] = useState(service?.bookingSystem ?? '');
   const [discountUsageSummary, setDiscountUsageSummary] = useState<{
     totalCurrentUses: number;
     referencingCodeCount: number;
@@ -153,11 +154,13 @@ export function ServiceDetailPanel({
         setTrainingForm(DEFAULT_TRAINING_FORM);
         setEventForm(DEFAULT_EVENT_FORM);
         setConsultationForm(DEFAULT_CONSULTATION_FORM);
+        setBookingSystem('');
         setSlugConflictError('');
         setConflictingSlugNormalized(null);
         return;
       }
       setServiceType(service.serviceType);
+      setBookingSystem(service.bookingSystem ?? '');
       setServiceForm({
         title: service.title,
         description: service.description ?? '',
@@ -292,6 +295,7 @@ export function ServiceDetailPanel({
         title: serviceForm.title.trim(),
         description: serviceForm.description.trim() || null,
         slug: newSlug,
+        booking_system: bookingSystem.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(service.serviceType),
@@ -319,6 +323,7 @@ export function ServiceDetailPanel({
         title: serviceForm.title.trim(),
         description: serviceForm.description.trim() || null,
         slug: slugPayloadValue,
+        booking_system: bookingSystem.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(serviceType),
@@ -528,9 +533,9 @@ export function ServiceDetailPanel({
           <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
         ) : null}
 
-        {isEditMode ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <div className='md:col-span-2'>
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+          {isEditMode ? (
+            <div className='md:col-span-3'>
               <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
               <Input
                 id='service-detail-cover-file-name'
@@ -538,8 +543,21 @@ export function ServiceDetailPanel({
                 onChange={(event) => setCoverFileName(event.target.value)}
               />
             </div>
+          ) : (
+            <div className='hidden md:block md:col-span-3' aria-hidden />
+          )}
+          <div>
+            <Label htmlFor='service-booking-system'>Booking system</Label>
+            <Input
+              id='service-booking-system'
+              value={bookingSystem}
+              onChange={(event) => setBookingSystem(event.target.value)}
+              placeholder='e.g. calendly'
+              maxLength={80}
+              autoComplete='off'
+            />
           </div>
-        ) : null}
+        </div>
 
         {error ? <AdminInlineError>{error}</AdminInlineError> : null}
       </AdminEditorCard>

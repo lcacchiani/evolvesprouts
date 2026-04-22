@@ -86,6 +86,8 @@ export interface ServiceSummary {
   title: string;
   /** Lowercase referral slug from Aurora; null when unset. */
   slug: string | null;
+  /** Optional admin label for booking system or flow (free-form text). */
+  bookingSystem: string | null;
   description: string | null;
   coverImageS3Key: string | null;
   deliveryMode: ServiceDeliveryMode;
