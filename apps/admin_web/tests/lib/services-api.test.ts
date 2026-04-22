@@ -217,4 +217,23 @@ describe('services-api', () => {
     expect(result.items[1].lat).toBe(33.3);
     expect(result.items[1].lng).toBe(55.5);
   });
+
+  it('adds exclude_addresses when listLocations requests family/org address exclusion', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [],
+        next_cursor: null,
+        total_count: 0,
+      },
+    });
+
+    await listLocations({ limit: 50, excludeAddresses: true });
+
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'GET',
+        endpointPath: '/v1/admin/locations?limit=50&exclude_addresses=true',
+      })
+    );
+  });
 });

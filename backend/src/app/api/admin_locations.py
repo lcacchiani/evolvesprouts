@@ -112,6 +112,11 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = _parse_limit(event)
     cursor = parse_cursor(query_param(event, "cursor"))
     area_id = _parse_optional_uuid(query_param(event, "area_id"), field="area_id")
+    exclude_addresses = _parse_query_bool(
+        query_param(event, "exclude_addresses"),
+        field="exclude_addresses",
+        default=False,
+    )
     search_raw = query_param(event, "search")
     search: str | None = None
     if search_raw is not None and str(search_raw).strip() != "":
@@ -124,13 +129,18 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
 
     with Session(get_engine()) as session:
         location_repo = LocationRepository(session)
-        total_count = location_repo.count_with_filters(area_id=area_id, search=search)
+        total_count = location_repo.count_with_filters(
+            area_id=area_id,
+            search=search,
+            exclude_addresses=exclude_addresses,
+        )
         rows = list(
             location_repo.list_with_filters(
                 limit=limit + 1,
                 cursor=cursor,
                 area_id=area_id,
                 search=search,
+                exclude_addresses=exclude_addresses,
             )
         )
         has_more = len(rows) > limit
@@ -371,6 +381,22 @@ def _serialize_location(
         "locked_from_partner_org": locked,
         "partner_organization_labels": names,
     }
+
+
+def _parse_query_bool(
+    raw_value: str | None,
+    *,
+    field: str,
+    default: bool,
+) -> bool:
+    if raw_value is None or str(raw_value).strip() == "":
+        return default
+    normalized = str(raw_value).strip().lower()
+    if normalized in {"true", "1", "yes"}:
+        return True
+    if normalized in {"false", "0", "no"}:
+        return False
+    raise ValidationError(f"{field} must be true or false", field=field)
 
 
 def _parse_limit(event: Mapping[str, Any]) -> int:

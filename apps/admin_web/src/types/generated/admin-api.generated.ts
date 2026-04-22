@@ -709,6 +709,13 @@ export interface paths {
                     area_id?: string;
                     /** @description Case-insensitive substring match on location name or address. */
                     search?: string;
+                    /**
+                     * @description When `true`, omit locations linked as the saved venue for a non-archived
+                     *     family or organisation (so Services → Venues lists only service-oriented
+                     *     venues). Partner organisations are still included when they use the same
+                     *     location row; those rows remain visible with partner lock metadata.
+                     */
+                    exclude_addresses?: boolean;
                 };
                 header?: never;
                 path?: never;

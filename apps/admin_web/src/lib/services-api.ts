@@ -327,7 +327,12 @@ export async function listGeographicAreas(
 }
 
 export async function listLocations(
-  params: Partial<VenueFilters> & { cursor?: string | null; limit?: number },
+  params: Partial<VenueFilters> & {
+    cursor?: string | null;
+    limit?: number;
+    /** When true, omit locations used as a non-archived family or organisation venue. */
+    excludeAddresses?: boolean;
+  },
   signal?: AbortSignal
 ): Promise<{ items: LocationSummary[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
@@ -335,6 +340,7 @@ export async function listLocations(
   if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
   if (params.areaId) query.set('area_id', params.areaId);
   if (params.search?.trim()) query.set('search', params.search.trim());
+  if (params.excludeAddresses) query.set('exclude_addresses', 'true');
   const queryString = query.toString();
 
   const payload = await adminApiRequest<ApiLocationListResponse>({

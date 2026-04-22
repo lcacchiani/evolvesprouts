@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Sequence
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, not_, or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import exists
 
-from app.db.models import Location, Organization, RelationshipType
+from app.db.models import Family, Location, Organization, RelationshipType
 from app.db.repositories.base import BaseRepository
 
 
@@ -40,6 +42,7 @@ class LocationRepository(BaseRepository[Location]):
         cursor: UUID | None = None,
         area_id: UUID | None = None,
         search: str | None = None,
+        exclude_addresses: bool = False,
     ) -> Sequence[Location]:
         """List locations with optional area and address search (case-insensitive)."""
         query = select(Location).order_by(Location.id)
@@ -56,6 +59,8 @@ class LocationRepository(BaseRepository[Location]):
                 pattern, escape="\\"
             )
             query = query.where(or_(name_match, address_match))
+        if exclude_addresses:
+            query = query.where(self._not_linked_to_active_family_or_org())
         return self._session.execute(query.limit(limit)).scalars().all()
 
     def count_with_filters(
@@ -63,6 +68,7 @@ class LocationRepository(BaseRepository[Location]):
         *,
         area_id: UUID | None = None,
         search: str | None = None,
+        exclude_addresses: bool = False,
     ) -> int:
         """Count locations matching optional area and address search."""
         query = select(func.count()).select_from(Location)
@@ -77,7 +83,22 @@ class LocationRepository(BaseRepository[Location]):
                 pattern, escape="\\"
             )
             query = query.where(or_(name_match, address_match))
+        if exclude_addresses:
+            query = query.where(self._not_linked_to_active_family_or_org())
         return int(self._session.execute(query).scalar_one())
+
+    @staticmethod
+    def _not_linked_to_active_family_or_org() -> Any:
+        """Exclude rows referenced as venue by a non-archived family or organisation."""
+        family_link = exists().where(
+            Family.location_id == Location.id,
+            Family.archived_at.is_(None),
+        )
+        org_link = exists().where(
+            Organization.location_id == Location.id,
+            Organization.archived_at.is_(None),
+        )
+        return and_(not_(family_link), not_(org_link))
 
     def find_by_address_case_insensitive(
         self,
