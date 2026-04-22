@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { PhoneRegionSelect } from '@/components/shared/phone-region-select';
 import {
   SubmitButtonLoadingContent,
   submitButtonClassName,
@@ -12,6 +13,7 @@ import type { ContactUsContent } from '@/content';
 export interface ContactUsFormState {
   firstName: string;
   email: string;
+  phoneCountry: string;
   phone: string;
   message: string;
 }
@@ -148,32 +150,43 @@ export function ContactFormFields({
         ) : null}
       </label>
 
-      <label className='block'>
-        <span className='mb-1 block text-sm font-semibold es-text-heading'>
-          {content.phoneLabel}
-        </span>
-        <input
-          type='tel'
-          autoComplete='tel'
-          value={formState.phone}
-          onChange={(event) => {
-            onUpdateField('phone', event.target.value);
-          }}
-          onBlur={onPhoneBlur}
-          className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
-          aria-invalid={hasPhoneError}
-          aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
+      <div className='grid gap-3 sm:grid-cols-2'>
+        <PhoneRegionSelect
+          id='contact-us-phone-country'
+          value={formState.phoneCountry}
+          onChange={(region) => onUpdateField('phoneCountry', region)}
+          label={content.phoneCountryLabel}
         />
-        {hasPhoneError ? (
-          <p
-            id={PHONE_ERROR_MESSAGE_ID}
-            className='es-form-field-error'
-            role='alert'
-          >
-            {content.phoneValidationError}
-          </p>
-        ) : null}
-      </label>
+        <label className='block' htmlFor='contact-us-phone-national'>
+          <span className='mb-1 block text-sm font-semibold es-text-heading'>
+            {content.phoneLabel}
+          </span>
+          <input
+            id='contact-us-phone-national'
+            type='tel'
+            inputMode='numeric'
+            autoComplete='tel-national'
+            value={formState.phone}
+            onChange={(event) => {
+              onUpdateField('phone', event.target.value);
+            }}
+            onBlur={onPhoneBlur}
+            className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
+            aria-invalid={hasPhoneError}
+            aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
+          />
+          <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
+          {hasPhoneError ? (
+            <p
+              id={PHONE_ERROR_MESSAGE_ID}
+              className='es-form-field-error'
+              role='alert'
+            >
+              {content.phoneInvalidForCountry}
+            </p>
+          ) : null}
+        </label>
+      </div>
 
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>

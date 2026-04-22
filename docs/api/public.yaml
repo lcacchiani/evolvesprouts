@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.6
+  version: 0.2.7
   description: |
     Public endpoint contract.
 
@@ -1021,6 +1021,15 @@ components:
         phone_number:
           type: string
           maxLength: 40
+        phone_country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
+          nullable: true
+          description: >
+            Optional ISO 3166-1 alpha-2 region for parsing `phone_number`. When omitted, the
+            API uses the configured default phone region (production default HK).
         cohort_age:
           type: string
           maxLength: 200
@@ -1162,6 +1171,15 @@ components:
         attendeePhone:
           type: string
           maxLength: 40
+        attendeeCountry:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
+          nullable: true
+          description: >
+            Optional ISO 3166-1 alpha-2 region for parsing `attendeePhone`. When omitted, the
+            API uses the configured default phone region (production default HK).
         childAgeGroup:
           type: string
           maxLength: 200
@@ -1342,6 +1360,15 @@ components:
         phone_number:
           type: string
           maxLength: 40
+        phone_country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
+          nullable: true
+          description: >
+            Optional ISO 3166-1 alpha-2 region for parsing `phone_number`. When omitted, the
+            API uses the configured default phone region (production default HK).
         message:
           type: string
           maxLength: 2000

@@ -384,6 +384,11 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - Purpose: canonical contact profile for CRM and campaign sync.
 - Key fields: `email`, `first_name`, `contact_type`, `source`,
   `mailchimp_status`.
+- Phone numbers: `phone_region` (`varchar(2)`, ISO 3166-1 alpha-2, upper-case)
+  and `phone_national_number` (`varchar(20)`, digits only — E.164 national
+  significant number). Both are nullable and must be set or cleared together
+  (check constraint). E.164 is not stored; APIs derive it at read time with
+  `phonenumbers` from region + national number.
 - `source_metadata` (jsonb, nullable) may hold structured source data; the admin
   API stores `referral_contact_id` (UUID string) when `source = referral`.
 - Key indexes: case-insensitive unique email/instagram indexes and source/type

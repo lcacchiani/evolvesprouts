@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal, overload
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -32,7 +32,11 @@ from app.api.admin_entities_helpers import (
 from app.api.admin_entities_serializers import serialize_contact_summary
 from app.api.admin_request import parse_body
 from app.api.admin_services_payload_utils import parse_optional_uuid, parse_uuid_list
-from app.api.admin_validators import validate_email, validate_string_length
+from app.api.admin_validators import (
+    validate_email,
+    validate_phone_fields,
+    validate_string_length,
+)
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource
@@ -44,6 +48,40 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _phone_fields_in_body(body: Mapping[str, Any]) -> bool:
+    return "phone_region" in body or "phone_number" in body
+
+
+@overload
+def _parse_contact_phone_pair(
+    body: Mapping[str, Any], *, allow_absent: Literal[True]
+) -> tuple[str | None, str | None] | None: ...
+
+
+@overload
+def _parse_contact_phone_pair(
+    body: Mapping[str, Any], *, allow_absent: Literal[False]
+) -> tuple[str | None, str | None]: ...
+
+
+def _parse_contact_phone_pair(
+    body: Mapping[str, Any], *, allow_absent: bool
+) -> tuple[str | None, str | None] | None:
+    """Return (region, national) or None when ``allow_absent`` and keys omitted."""
+    region_raw = body.get("phone_region")
+    number_raw = body.get("phone_number")
+    if allow_absent and not _phone_fields_in_body(body):
+        return None
+    if region_raw is None and number_raw is None:
+        return None, None
+    if region_raw is None or number_raw is None:
+        raise ValidationError(
+            "phone_region and phone_number must both be provided or both omitted",
+            field="phone_number",
+        )
+    return validate_phone_fields(region_raw, number_raw)
 
 
 def create_contact(
@@ -73,12 +111,11 @@ def create_contact(
         required=False,
     )
     instagram_handle = instagram_raw.lower() if instagram_raw else None
-    phone = validate_string_length(
-        body.get("phone"),
-        "phone",
-        max_length=30,
-        required=False,
-    )
+    phone_pair = _parse_contact_phone_pair(body, allow_absent=True)
+    phone_region: str | None = None
+    phone_national: str | None = None
+    if phone_pair is not None:
+        phone_region, phone_national = phone_pair
     contact_type = parse_contact_type(body.get("contact_type"), field="contact_type")
     relationship_type = parse_relationship_type(
         body.get("relationship_type"), field="relationship_type"
@@ -136,7 +173,8 @@ def create_contact(
             instagram_handle=instagram_handle,
             first_name=first_name or "",
             last_name=last_name,
-            phone=phone,
+            phone_region=phone_region,
+            phone_national_number=phone_national,
             contact_type=contact_type,
             relationship_type=relationship_type,
             date_of_birth=date_of_birth,
@@ -241,13 +279,9 @@ def update_contact(
                 required=False,
             )
             contact.instagram_handle = ig.lower() if ig else None
-        if "phone" in body:
-            contact.phone = validate_string_length(
-                body.get("phone"),
-                "phone",
-                max_length=30,
-                required=False,
-            )
+        if _phone_fields_in_body(body):
+            pair = _parse_contact_phone_pair(body, allow_absent=False)
+            contact.phone_region, contact.phone_national_number = pair
         if "contact_type" in body:
             contact.contact_type = parse_contact_type(
                 body.get("contact_type"), field="contact_type"

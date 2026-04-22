@@ -117,7 +117,9 @@ their primary responsibilities.
   align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are
   rewritten to `https://wa.me/<phone>` for reliable email clients),
   `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
-  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`), `SUPPORT_EMAIL` (contact-us
+  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`),
+  `DEFAULT_PHONE_REGION` (ISO 3166-1 alpha-2; CDK `DefaultPhoneRegion`; parses
+  public `phone_country` / `attendeeCountry` when omitted), `SUPPORT_EMAIL` (contact-us
   **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,
   `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (sales recap recipient resolution via Cognito group),
   `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; CDK `SalesRecapDisplayTimezone` parameter, empty = app default),

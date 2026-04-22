@@ -45,7 +45,9 @@ export interface LeadContact {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
-  phone: string | null;
+  phoneRegion: string | null;
+  phoneNationalNumber: string | null;
+  phoneE164: string | null;
   instagramHandle: string | null;
   source: ContactSource | null;
   sourceDetail: string | null;

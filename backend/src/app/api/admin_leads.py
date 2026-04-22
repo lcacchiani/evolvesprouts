@@ -180,8 +180,9 @@ def _create_lead(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
 
         if payload["last_name"] is not None:
             contact.last_name = payload["last_name"]
-        if payload["phone"] is not None:
-            contact.phone = payload["phone"]
+        if not payload["skip_phone_update"]:
+            contact.phone_region = payload["phone_region"]
+            contact.phone_national_number = payload["phone_national_number"]
         if payload["instagram_handle"] is not None:
             contact.instagram_handle = payload["instagram_handle"]
         contact_repo.update(contact)
@@ -403,7 +404,7 @@ def _export_leads(event: Mapping[str, Any]) -> dict[str, Any]:
                 "First Name",
                 "Last Name",
                 "Email",
-                "Phone",
+                "Phone E.164",
                 "Source",
                 "Lead Type",
                 "Stage",
@@ -444,7 +445,7 @@ def _export_leads(event: Mapping[str, Any]) -> dict[str, Any]:
                         contact["first_name"],
                         contact["last_name"],
                         contact["email"],
-                        contact["phone"],
+                        contact["phone_e164"],
                         contact["source"],
                         summary["lead_type"],
                         summary["funnel_stage"],

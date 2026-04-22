@@ -17,6 +17,7 @@ import {
   BOOKING_EMAIL_ERROR_MESSAGE_ID,
   BOOKING_FULL_NAME_ERROR_MESSAGE_ID,
   BOOKING_PHONE_ERROR_MESSAGE_ID,
+  BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID,
   BOOKING_TOPICS_ERROR_MESSAGE_ID,
   ReservationFormFields,
 } from '@/components/sections/booking-modal/reservation-form-fields';
@@ -75,6 +76,7 @@ import {
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { getHrefKind } from '@/lib/url-utils';
+import { isValidPhoneForRegion } from '@/lib/public-phone-validation';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
@@ -462,6 +464,7 @@ export function BookingReservationForm({
   const [email, setEmail] = useState('');
   const [isFullNameTouched, setIsFullNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
+  const [phoneCountry, setPhoneCountry] = useState('HK');
   const [phone, setPhone] = useState('');
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
   const [isTopicsTouched, setIsTopicsTouched] = useState(false);
@@ -561,7 +564,15 @@ export function BookingReservationForm({
   const discountAmount = Math.max(0, originalPriceAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const hasFullNameError = isFullNameTouched && !sanitizeSingleLineValue(fullName);
-  const hasPhoneError = isPhoneTouched && !sanitizeSingleLineValue(phone);
+  const normalizedPhoneForValidation = sanitizeSingleLineValue(phone);
+  const phoneNationalDigits = normalizedPhoneForValidation.replace(/\D/g, '');
+  const hasPhoneError =
+    isPhoneTouched &&
+    (!normalizedPhoneForValidation || phoneNationalDigits.length === 0);
+  const hasPhoneInvalidForCountry =
+    isPhoneTouched &&
+    phoneNationalDigits.length > 0 &&
+    !isValidPhoneForRegion(phone, phoneCountry);
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
   const hasTopicsError =
     isTopicsTouched && isTopicsFieldRequired && !interestedTopics.trim();
@@ -620,6 +631,9 @@ export function BookingReservationForm({
     hasFullNameError ? BOOKING_FULL_NAME_ERROR_MESSAGE_ID : null,
     hasEmailError ? BOOKING_EMAIL_ERROR_MESSAGE_ID : null,
     hasPhoneError ? BOOKING_PHONE_ERROR_MESSAGE_ID : null,
+    hasPhoneInvalidForCountry && !hasPhoneError
+      ? BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID
+      : null,
     hasTopicsError ? BOOKING_TOPICS_ERROR_MESSAGE_ID : null,
     hasAcknowledgementsError ? ACKNOWLEDGEMENT_ERROR_MESSAGE_ID : null,
     captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : null,
@@ -969,10 +983,13 @@ export function BookingReservationForm({
 
     const normalizedFullName = sanitizeSingleLineValue(fullName);
     const normalizedPhone = sanitizeSingleLineValue(phone);
+    const submitPhoneDigits = normalizedPhone.replace(/\D/g, '');
     const hasFieldErrors =
       !normalizedFullName ||
       !isValidEmail(email) ||
       !normalizedPhone ||
+      submitPhoneDigits.length === 0 ||
+      !isValidPhoneForRegion(phone, phoneCountry) ||
       (isTopicsFieldRequired && !interestedTopics.trim()) ||
       (!isFreeReservation && !hasPendingReservationAcknowledgement) ||
       !hasTermsAgreement;
@@ -1130,7 +1147,8 @@ export function BookingReservationForm({
     const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
-      attendeePhone: sanitizeSingleLineValue(phone),
+      attendeePhone: submitPhoneDigits,
+      attendeeCountry: phoneCountry,
       ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: isFreeReservation
@@ -1198,6 +1216,7 @@ export function BookingReservationForm({
       attendeeName: reservationSummary.attendeeName,
       attendeeEmail: reservationSummary.attendeeEmail,
       attendeePhone: reservationSummary.attendeePhone,
+      attendeeCountry: reservationSummary.attendeeCountry,
       childAgeGroup: reservationSummary.ageGroup ?? '',
       cohortDate: normalizedCohortDate,
       interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
@@ -1404,11 +1423,13 @@ export function BookingReservationForm({
             content={content}
             fullName={fullName}
             email={email}
+            phoneCountry={phoneCountry}
             phone={phone}
             interestedTopics={interestedTopics}
             hasFullNameError={hasFullNameError}
             hasEmailError={hasEmailError}
             hasPhoneError={hasPhoneError}
+            hasPhoneInvalidForCountry={hasPhoneInvalidForCountry}
             hasTopicsError={hasTopicsError}
             topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
@@ -1419,6 +1440,7 @@ export function BookingReservationForm({
             onEmailBlur={() => {
               setIsEmailTouched(true);
             }}
+            onPhoneCountryChange={setPhoneCountry}
             onPhoneChange={setPhone}
             onPhoneBlur={() => {
               setIsPhoneTouched(true);

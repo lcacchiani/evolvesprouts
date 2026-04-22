@@ -9,13 +9,15 @@ from uuid import UUID
 
 from collections.abc import Iterable
 
-from sqlalchemy import Date, Enum, ForeignKey, Index, String, Text, text
+from sqlalchemy import Date, Enum, ForeignKey, Index, String, Text, null, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
+from app.utils.phone import format_phone_e164
 from app.db.models.enums import (
     ContactSource,
     ContactType,
@@ -77,7 +79,8 @@ class Contact(Base):
     instagram_handle: Mapped[str | None] = mapped_column(String(30), nullable=True)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    phone_region: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    phone_national_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     contact_type: Mapped[ContactType] = mapped_column(
         Enum(
             ContactType,
@@ -189,3 +192,13 @@ class Contact(Base):
         secondary="contact_tags",
         viewonly=True,
     )
+
+    @hybrid_property
+    def phone_e164(self) -> str | None:
+        """E.164 derived at read time (not stored)."""
+        return format_phone_e164(self.phone_region, self.phone_national_number)
+
+    @phone_e164.expression  # type: ignore[no-redef]
+    def phone_e164(cls) -> object:  # noqa: N805
+        """Always NULL in SQL — do not use in SELECT; use Python ``phone_e164`` or serializers."""
+        return null().label("phone_e164")

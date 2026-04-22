@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Admin API
-  version: 0.2.0
+  version: 0.2.1
   description: |
     API contract for routes currently wired in
     `backend/infrastructure/lib/api-stack.ts`.
@@ -1591,7 +1591,10 @@ paths:
     get:
       summary: Search CRM contacts for pickers
       description: |
-        Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+        Returns active contacts matching name, email, Instagram, and **phone** using
+        server-side normalisation: ``+`` international forms, long digit strings, and
+        substring matches against stored national significant numbers (with optional
+        region match when the query resolves to a valid number).
         Requires at least two characters in `query`. Intended for referral and other admin pickers.
       security:
         - AdminBearerAuth: []
@@ -1638,7 +1641,9 @@ paths:
           in: query
           schema:
             type: string
-          description: Search first name, last name, email, phone, or Instagram handle.
+          description: |
+            Search first name, last name, email, Instagram, and phone (stored as ISO region +
+            national digits; server normalises ``+`` / digit queries before matching).
         - name: active
           in: query
           schema:
@@ -2965,9 +2970,22 @@ components:
         email:
           type: string
           nullable: true
-        phone:
+        phone_region:
           type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
           nullable: true
+        phone_national_number:
+          type: string
+          pattern: "^[0-9]+$"
+          maxLength: 20
+          nullable: true
+        phone_e164:
+          type: string
+          pattern: "^\\+[1-9][0-9]{1,14}$"
+          nullable: true
+          readOnly: true
         instagram_handle:
           type: string
           nullable: true
@@ -3179,9 +3197,21 @@ components:
         email:
           type: string
           nullable: true
-        phone:
+        phone_region:
           type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
           nullable: true
+          description: |
+            ISO 3166-1 alpha-2 region. Omit both `phone_region` and `phone_number` to leave
+            phone unchanged on create; send both keys with JSON `null` to clear phone.
+        phone_number:
+          type: string
+          pattern: "^[0-9]+$"
+          maxLength: 20
+          nullable: true
+          description: National significant digits only; must be provided with `phone_region` when setting phone.
         instagram_handle:
           type: string
           nullable: true
@@ -4965,9 +4995,22 @@ components:
         last_name:
           type: string
           nullable: true
-        phone:
+        phone_region:
           type: string
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
           nullable: true
+        phone_national_number:
+          type: string
+          pattern: "^[0-9]+$"
+          maxLength: 20
+          nullable: true
+        phone_e164:
+          type: string
+          pattern: "^\\+[1-9][0-9]{1,14}$"
+          nullable: true
+          readOnly: true
         contact_type:
           $ref: "#/components/schemas/EntityContactType"
         relationship_type:
@@ -5094,10 +5137,20 @@ components:
           type: string
           maxLength: 30
           nullable: true
-        phone:
+        phone_region:
           type: string
-          maxLength: 30
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
           nullable: true
+        phone_number:
+          type: string
+          pattern: "^[0-9]+$"
+          maxLength: 20
+          nullable: true
+          description: |
+            National significant digits. Omit both `phone_region` and `phone_number` to leave
+            phone unset; send both keys with JSON `null` to clear phone on create.
         contact_type:
           $ref: "#/components/schemas/EntityContactType"
         relationship_type:
@@ -5158,9 +5211,16 @@ components:
           type: string
           maxLength: 30
           nullable: true
-        phone:
+        phone_region:
           type: string
-          maxLength: 30
+          minLength: 2
+          maxLength: 2
+          pattern: "^[A-Z]{2}$"
+          nullable: true
+        phone_number:
+          type: string
+          pattern: "^[0-9]+$"
+          maxLength: 20
           nullable: true
         contact_type:
           $ref: "#/components/schemas/EntityContactType"

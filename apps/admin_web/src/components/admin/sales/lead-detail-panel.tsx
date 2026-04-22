@@ -16,15 +16,18 @@ import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { PhoneField } from '@/components/ui/phone-field';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toTitleCase } from '@/lib/format';
+import { contactPhoneRequestFields } from '@/lib/phone-request';
 
 interface CreateLeadFormState {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phoneRegion: string;
+  phoneNational: string;
   instagramHandle: string;
   source: ContactSource;
   sourceDetail: string;
@@ -38,7 +41,8 @@ const EMPTY_CREATE_FORM: CreateLeadFormState = {
   firstName: '',
   lastName: '',
   email: '',
-  phone: '',
+  phoneRegion: 'HK',
+  phoneNational: '',
   instagramHandle: '',
   source: 'manual',
   sourceDetail: '',
@@ -60,7 +64,8 @@ export interface LeadDetailPanelProps {
     first_name: string;
     last_name?: string | null;
     email?: string | null;
-    phone?: string | null;
+    phone_region?: string | null;
+    phone_number?: string | null;
     instagram_handle?: string | null;
     source: ContactSource;
     source_detail?: string | null;
@@ -95,7 +100,7 @@ export function LeadDetailPanel({
         first_name: createForm.firstName.trim(),
         last_name: createForm.lastName.trim() || null,
         email: createForm.email.trim() || null,
-        phone: createForm.phone.trim() || null,
+        ...contactPhoneRequestFields(createForm.phoneRegion, createForm.phoneNational),
         instagram_handle: createForm.instagramHandle.trim() || null,
         source: createForm.source,
         source_detail: createForm.sourceDetail.trim() || null,
@@ -154,12 +159,20 @@ export function LeadDetailPanel({
               type='email'
               placeholder='Email'
             />
-            <Input
-              value={createForm.phone}
-              onChange={(event) => setCreateForm((previous) => ({ ...previous, phone: event.target.value }))}
-              type='tel'
-              placeholder='Phone'
-            />
+            <div className='md:col-span-2'>
+              <PhoneField
+                region={createForm.phoneRegion}
+                national={createForm.phoneNational}
+                onRegionChange={(value) =>
+                  setCreateForm((previous) => ({ ...previous, phoneRegion: value }))
+                }
+                onNationalChange={(value) =>
+                  setCreateForm((previous) => ({ ...previous, phoneNational: value }))
+                }
+                regionLabel='Phone country / region'
+                nationalLabel='Phone number (national digits)'
+              />
+            </div>
             <Input
               value={createForm.instagramHandle}
               onChange={(event) =>

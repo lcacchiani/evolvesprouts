@@ -19,7 +19,8 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
     base: dict[str, Any] = {
         "attendeeName": "Test User",
         "attendeeEmail": "u@example.com",
-        "attendeePhone": "85290000000",
+        "attendeePhone": "91234567",
+        "attendeeCountry": "HK",
         "childAgeGroup": "3-5 years",
         "paymentMethod": "bank_transfer",
         "totalAmount": 100,
@@ -63,7 +64,12 @@ def test_handle_public_reservation_accepts_free_payment_zero_total(
         def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
             c = MagicMock()
             c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
             return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
 
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:
@@ -181,7 +187,12 @@ def test_handle_public_reservation_forces_pending_false_for_free_even_if_client_
         def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
             c = MagicMock()
             c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
             return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
 
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:
@@ -262,7 +273,12 @@ def test_handle_public_reservation_runs_hooks_after_persist(
         def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
             c = MagicMock()
             c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
             return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
 
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:

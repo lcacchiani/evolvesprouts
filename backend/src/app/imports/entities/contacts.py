@@ -35,8 +35,6 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-_PHONE_MAX = 30
-
 
 def _clean_name_part(raw: str | None) -> str | None:
     if raw is None:
@@ -96,28 +94,50 @@ def _org_role(kind: str | None) -> OrganizationRole:
     return OrganizationRole.MEMBER
 
 
-def _format_phone(
+def _split_phone(
     raw_phone: str | None,
     dial_by_id: dict[int, str],
     country_id: int | None,
-) -> str | None:
+) -> tuple[str | None, str | None]:
+    """Resolve legacy dial id → region, parse national digits for ``contacts`` columns."""
+    import phonenumbers
+    from phonenumbers.phonenumberutil import NumberParseException
+
     if raw_phone is None:
-        return None
+        return None, None
     p = str(raw_phone).strip()
     if not p:
-        return None
+        return None, None
+
+    region_from_dial: str | None = None
     if country_id is not None and country_id in dial_by_id:
-        combined = f"+{dial_by_id[country_id]}-{p}"
-    else:
-        combined = p
-    if len(combined) > _PHONE_MAX:
-        logger.warning(
-            "Truncating legacy phone from %s to %s chars",
-            len(combined),
-            _PHONE_MAX,
-        )
-        return combined[:_PHONE_MAX]
-    return combined
+        dial_raw = str(dial_by_id[country_id]).strip().lstrip("+")
+        try:
+            cc = int(dial_raw)
+        except ValueError:
+            cc = None
+        if cc is not None:
+            region_from_dial = phonenumbers.region_code_for_country_code(cc)
+
+    try_order: list[str | None] = []
+    if region_from_dial:
+        try_order.append(region_from_dial)
+    try_order.append(None)
+    if region_from_dial != "HK":
+        try_order.append("HK")
+
+    for region in try_order:
+        try:
+            parsed = phonenumbers.parse(p, region)
+        except NumberParseException:
+            continue
+        if not phonenumbers.is_possible_number(parsed):
+            continue
+        r = phonenumbers.region_code_for_number(parsed)
+        if not r or r == "ZZ":
+            r = region_from_dial or "HK"
+        return r, phonenumbers.national_significant_number(parsed)
+    return None, None
 
 
 def _source_detail(occupation: str | None, company: str | None) -> str | None:
@@ -434,7 +454,9 @@ class ContactsImporter:
                 else RelationshipType.PROSPECT
             )
 
-            phone = _format_phone(p.phone, dial_by_id, p.phone_country_code_id)
+            phone_region, phone_national = _split_phone(
+                p.phone, dial_by_id, p.phone_country_code_id
+            )
             src = _map_contact_source(p.referral_source)
             mc_status = (
                 MailchimpSyncStatus.PENDING
@@ -504,7 +526,8 @@ class ContactsImporter:
                 instagram_handle=insta_store,
                 first_name=fn,
                 last_name=ln,
-                phone=phone,
+                phone_region=phone_region,
+                phone_national_number=phone_national,
                 contact_type=_map_contact_type(p.kind),
                 relationship_type=rel,
                 date_of_birth=p.date_of_birth,

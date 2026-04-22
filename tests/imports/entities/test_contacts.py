@@ -90,7 +90,8 @@ def test_apply_phone_format(monkeypatch: pytest.MonkeyPatch) -> None:
     stats = importer.apply(session, people, ctx, dry_run=False)
     assert stats.inserted == 1
     contact = session.add.call_args_list[0][0][0]
-    assert contact.phone == "+852-98765432"
+    assert contact.phone_region == "HK"
+    assert contact.phone_national_number == "98765432"
     assert contact.source == ContactSource.MANUAL
 
 

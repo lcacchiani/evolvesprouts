@@ -105,6 +105,9 @@ def test_handle_public_contact_us_persists_and_runs_hooks(
             c.id = contact_id
             return c, True
 
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:
             pass
@@ -167,6 +170,9 @@ def test_handle_public_contact_us_newsletter_skips_sales_lead_repo(
             c.id = uuid4()
             return c, True
 
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:
             pass
@@ -228,6 +234,9 @@ def test_handle_public_contact_us_hook_failure_still_returns_202(
             c = MagicMock()
             c.id = uuid4()
             return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
 
     class _FakeLeadRepo:
         def __init__(self, _session: object) -> None:

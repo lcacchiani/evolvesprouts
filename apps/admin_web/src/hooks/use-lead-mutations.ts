@@ -19,7 +19,8 @@ export function useLeadMutations({ onSuccess }: MutationOptions = {}) {
       first_name: string;
       last_name?: string | null;
       email?: string | null;
-      phone?: string | null;
+      phone_region?: string | null;
+      phone_number?: string | null;
       instagram_handle?: string | null;
       source: ContactSource;
       source_detail?: string | null;

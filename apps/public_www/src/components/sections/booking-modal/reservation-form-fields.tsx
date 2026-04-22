@@ -1,21 +1,25 @@
 import type { BookingPaymentModalContent } from '@/content';
 import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
+import { PhoneRegionSelect } from '@/components/shared/phone-region-select';
 
 interface ReservationFormFieldsProps {
   content: BookingPaymentModalContent;
   fullName: string;
   email: string;
+  phoneCountry: string;
   phone: string;
   interestedTopics: string;
   hasFullNameError: boolean;
   hasEmailError: boolean;
   hasPhoneError: boolean;
+  hasPhoneInvalidForCountry: boolean;
   hasTopicsError: boolean;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   onFullNameChange: (value: string) => void;
   onFullNameBlur: () => void;
   onEmailChange: (value: string) => void;
   onEmailBlur: () => void;
+  onPhoneCountryChange: (value: string) => void;
   onPhoneChange: (value: string) => void;
   onPhoneBlur: () => void;
   onTopicsChange: (value: string) => void;
@@ -25,23 +29,28 @@ interface ReservationFormFieldsProps {
 export const BOOKING_FULL_NAME_ERROR_MESSAGE_ID = 'booking-modal-full-name-error-message';
 export const BOOKING_EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
 export const BOOKING_PHONE_ERROR_MESSAGE_ID = 'booking-modal-phone-error-message';
+export const BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID =
+  'booking-modal-phone-invalid-country-error-message';
 export const BOOKING_TOPICS_ERROR_MESSAGE_ID = 'booking-modal-topics-error-message';
 
 export function ReservationFormFields({
   content,
   fullName,
   email,
+  phoneCountry,
   phone,
   interestedTopics,
   hasFullNameError,
   hasEmailError,
   hasPhoneError,
+  hasPhoneInvalidForCountry,
   hasTopicsError,
   topicsFieldConfig,
   onFullNameChange,
   onFullNameBlur,
   onEmailChange,
   onEmailBlur,
+  onPhoneCountryChange,
   onPhoneChange,
   onPhoneBlur,
   onTopicsChange,
@@ -114,6 +123,12 @@ export function ReservationFormFields({
           </p>
         ) : null}
       </label>
+      <PhoneRegionSelect
+        id='booking-reservation-phone-country'
+        value={phoneCountry}
+        onChange={onPhoneCountryChange}
+        label={content.phoneCountryLabel}
+      />
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
           {content.phoneLabel}
@@ -123,6 +138,7 @@ export function ReservationFormFields({
         </span>
         <input
           type='tel'
+          inputMode='numeric'
           required
           autoComplete='tel'
           value={phone}
@@ -130,10 +146,19 @@ export function ReservationFormFields({
             onPhoneChange(event.target.value);
           }}
           onBlur={onPhoneBlur}
-          className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
-          aria-invalid={hasPhoneError}
-          aria-describedby={hasPhoneError ? BOOKING_PHONE_ERROR_MESSAGE_ID : undefined}
+          className={`es-focus-ring es-form-input ${
+            hasPhoneError || hasPhoneInvalidForCountry ? 'es-form-input-error' : ''
+          }`}
+          aria-invalid={hasPhoneError || hasPhoneInvalidForCountry}
+          aria-describedby={
+            hasPhoneError
+              ? BOOKING_PHONE_ERROR_MESSAGE_ID
+              : hasPhoneInvalidForCountry
+                ? BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID
+                : undefined
+          }
         />
+        <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
         {hasPhoneError ? (
           <p
             id={BOOKING_PHONE_ERROR_MESSAGE_ID}
@@ -141,6 +166,15 @@ export function ReservationFormFields({
             role='alert'
           >
             {content.phoneRequiredError}
+          </p>
+        ) : null}
+        {hasPhoneInvalidForCountry && !hasPhoneError ? (
+          <p
+            id={BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.phoneInvalidForCountry}
           </p>
         ) : null}
       </label>
