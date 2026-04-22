@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { formatGeocodeErrorMessage } from '@/hooks/hook-errors';
-import { formatEntityVenueLocationLabel, formatEnumLabel, formatLocationCoordinatesLabel } from '@/lib/format';
+import { formatEntityVenueLocationLabel, formatEnumLabel } from '@/lib/format';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -57,7 +57,7 @@ function resolveDisplaySummary(
   location: LocationSummary | null,
   embedded: InlineLocationEmbeddedSummary | null | undefined,
   areaNameForLocation: string
-): { line1: string; line2: string; labels: string[] } | null {
+): { line1: string; labels: string[] } | null {
   if (location) {
     const line1 = formatEntityVenueLocationLabel({
       id: location.id,
@@ -65,8 +65,7 @@ function resolveDisplaySummary(
       address: location.address,
       areaName: areaNameForLocation,
     });
-    const line2 = formatLocationCoordinatesLabel(location.lat, location.lng);
-    return { line1, line2, labels: location.partnerOrganizationLabels };
+    return { line1, labels: location.partnerOrganizationLabels };
   }
   if (embedded) {
     const line1 = formatEntityVenueLocationLabel({
@@ -75,8 +74,7 @@ function resolveDisplaySummary(
       address: embedded.address,
       areaName: embedded.areaName,
     });
-    const line2 = formatLocationCoordinatesLabel(embedded.lat ?? null, embedded.lng ?? null);
-    return { line1, line2, labels: [] };
+    return { line1, labels: [] };
   }
   return null;
 }
@@ -323,7 +321,6 @@ function InlineLocationEditorInner({
         <Label>Location</Label>
         <div className='rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-800'>
           <div>{displaySummary.line1}</div>
-          <div className='mt-1 text-slate-600'>{displaySummary.line2}</div>
         </div>
         {lockedFromPartner ? (
           <p className='text-sm text-slate-600'>
@@ -359,7 +356,6 @@ function InlineLocationEditorInner({
           <div className='mt-2 space-y-2'>
             <div className='rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-800'>
               <div>{displaySummary.line1}</div>
-              <div className='mt-1 text-slate-600'>{displaySummary.line2}</div>
             </div>
             {lockedFromPartner ? (
               <p className='text-sm text-slate-600'>

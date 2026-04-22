@@ -313,7 +313,6 @@ describe('ContactsPanel', () => {
     await user.click(screen.getByText('Ann Lee'));
 
     expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
-    expect(screen.getByText('22.10000, 114.20000')).toBeInTheDocument();
     expect(
       screen.getByText('Location is managed on the linked family or organisation.')
     ).toBeInTheDocument();
