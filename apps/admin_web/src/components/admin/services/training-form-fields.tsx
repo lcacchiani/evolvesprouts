@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -18,14 +20,32 @@ export interface TrainingFormFieldsProps {
   value: TrainingFormState;
   disabled?: boolean;
   onChange: (value: TrainingFormState) => void;
+  /**
+   * When set with `layout="service-detail"`, renders a single md+ row of four equal
+   * columns: leading column (e.g. delivery mode) plus pricing unit, price, currency.
+   */
+  leadingColumn?: ReactNode;
+  layout?: 'default' | 'service-detail';
 }
 
-export function TrainingFormFields({ value, disabled = false, onChange }: TrainingFormFieldsProps) {
+export function TrainingFormFields({
+  value,
+  disabled = false,
+  onChange,
+  leadingColumn,
+  layout = 'default',
+}: TrainingFormFieldsProps) {
   const currencyOptions = getCurrencyOptions();
+
+  const pricingGridClass =
+    layout === 'service-detail'
+      ? 'grid grid-cols-1 gap-3 md:grid-cols-4'
+      : 'grid grid-cols-1 gap-3 sm:grid-cols-3';
 
   return (
     <div className='space-y-3'>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      <div className={pricingGridClass}>
+        {layout === 'service-detail' && leadingColumn ? <div>{leadingColumn}</div> : null}
         <div>
           <Label htmlFor='training-pricing-unit'>Pricing unit</Label>
           <Select

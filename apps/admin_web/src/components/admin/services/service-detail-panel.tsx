@@ -15,7 +15,8 @@ import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import { SERVICE_TYPES } from '@/types/services';
+import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
+import type { ServiceDeliveryMode } from '@/types/services';
 import type { ServiceDetail, ServiceType } from '@/types/services';
 
 import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
@@ -26,7 +27,11 @@ import {
   DEFAULT_SERVICE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
-import { ServiceFormFields, type ServiceFormState } from './service-form-fields';
+import {
+  ServiceFormFields,
+  ServiceReferralSlugField,
+  type ServiceFormState,
+} from './service-form-fields';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 type ApiSchemas = components['schemas'];
@@ -384,7 +389,7 @@ export function ServiceDetailPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
           <div>
             <Label htmlFor='service-type'>Service type</Label>
             <Select
@@ -409,6 +414,38 @@ export function ServiceDetailPanel({
               placeholder='Service title'
             />
           </div>
+          <ServiceReferralSlugField
+            value={serviceForm.slug}
+            onChange={(next) => {
+              if (next !== serviceForm.slug) {
+                setSlugConflictError('');
+                setConflictingSlugNormalized(null);
+              }
+              setServiceForm({ ...serviceForm, slug: next });
+            }}
+            slugUsageLoadError={
+              discountUsageLoadState === 'error'
+                ? 'Could not load discount code usage. Try again later.'
+                : undefined
+            }
+            slugConflictError={slugConflictError || undefined}
+          />
+          <div>
+            <Label htmlFor='service-status'>Status</Label>
+            <Select
+              id='service-status'
+              value={serviceForm.status}
+              onChange={(event) =>
+                setServiceForm({ ...serviceForm, status: event.target.value as ServiceFormState['status'] })
+              }
+            >
+              {SERVICE_STATUSES.map((entry) => (
+                <option key={entry} value={entry}>
+                  {formatEnumLabel(entry)}
+                </option>
+              ))}
+            </Select>
+          </div>
         </div>
 
         <ServiceFormFields
@@ -421,17 +458,71 @@ export function ServiceDetailPanel({
             setServiceForm(next);
           }}
           hideTitle
-          slugUsageLoadError={
-            discountUsageLoadState === 'error'
-              ? 'Could not load discount code usage. Try again later.'
-              : undefined
-          }
-          slugConflictError={slugConflictError || undefined}
+          layout='service-detail'
         />
 
         {serviceType === 'training_course' ? (
-          <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
-        ) : null}
+          <TrainingFormFields
+            value={trainingForm}
+            onChange={setTrainingForm}
+            layout='service-detail'
+            leadingColumn={
+              <>
+                <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
+                <Select
+                  id='service-delivery-mode'
+                  value={serviceForm.deliveryMode}
+                  onChange={(event) =>
+                    setServiceForm({
+                      ...serviceForm,
+                      deliveryMode: event.target.value as ServiceDeliveryMode,
+                    })
+                  }
+                >
+                  {SERVICE_DELIVERY_MODES.map((entry) => (
+                    <option key={entry} value={entry}>
+                      {formatEnumLabel(entry)}
+                    </option>
+                  ))}
+                </Select>
+              </>
+            }
+          />
+        ) : (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div>
+              <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
+              <Select
+                id='service-delivery-mode'
+                value={serviceForm.deliveryMode}
+                onChange={(event) =>
+                  setServiceForm({
+                    ...serviceForm,
+                    deliveryMode: event.target.value as ServiceDeliveryMode,
+                  })
+                }
+              >
+                {SERVICE_DELIVERY_MODES.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {formatEnumLabel(entry)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Label className='text-slate-500'>Pricing unit</Label>
+              <p className='mt-2 text-sm text-slate-400'>—</p>
+            </div>
+            <div>
+              <Label className='text-slate-500'>Price</Label>
+              <p className='mt-2 text-sm text-slate-400'>—</p>
+            </div>
+            <div>
+              <Label className='text-slate-500'>Currency</Label>
+              <p className='mt-2 text-sm text-slate-400'>—</p>
+            </div>
+          </div>
+        )}
         {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
         {serviceType === 'consultation' ? (
           <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
