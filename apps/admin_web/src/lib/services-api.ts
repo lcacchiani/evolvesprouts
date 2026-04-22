@@ -375,6 +375,50 @@ export async function listAllLocations(signal?: AbortSignal): Promise<LocationSu
   return all;
 }
 
+/**
+ * Locations suitable for service instances: standalone venues (not used as a
+ * family or non-partner org address) plus any location linked to an active
+ * partner organisation (those may be excluded from the venue-only query).
+ */
+export async function listAllVenueAndPartnerLocations(signal?: AbortSignal): Promise<LocationSummary[]> {
+  const byId = new Map<string, LocationSummary>();
+
+  let venueCursor: string | null = null;
+  do {
+    const page = await listLocations(
+      {
+        cursor: venueCursor,
+        limit: 100,
+        excludeAddresses: true,
+      },
+      signal
+    );
+    for (const loc of page.items) {
+      byId.set(loc.id, loc);
+    }
+    venueCursor = page.nextCursor;
+  } while (venueCursor);
+
+  let allCursor: string | null = null;
+  do {
+    const page = await listLocations(
+      {
+        cursor: allCursor,
+        limit: 100,
+      },
+      signal
+    );
+    for (const loc of page.items) {
+      if (loc.partnerOrganizationLabels.length > 0) {
+        byId.set(loc.id, loc);
+      }
+    }
+    allCursor = page.nextCursor;
+  } while (allCursor);
+
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export interface GeocodeLocationResult {
   lat: number;
   lng: number;
