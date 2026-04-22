@@ -10,6 +10,11 @@ import { PHONE_COUNTRIES } from '@/lib/phone-countries.generated';
 
 type PhoneCountryRow = (typeof PHONE_COUNTRIES)[number];
 
+/** Compact dropdown rows: generated countries plus optional synthetic drift row. */
+type CompactSelectRow =
+  | PhoneCountryRow
+  | { region: string; dialCode: string; englishName: string };
+
 export interface PhoneFieldProps {
   region: string;
   national: string;
@@ -36,9 +41,9 @@ function buildDedupedByDialCode(): PhoneCountryRow[] {
   return out;
 }
 
-function buildCompactSelectRows(region: string): PhoneCountryRow[] {
+function buildCompactSelectRows(region: string): CompactSelectRow[] {
   const deduped = buildDedupedByDialCode();
-  const canonicalRegions = new Set(deduped.map((r) => r.region));
+  const canonicalRegions = new Set<string>(deduped.map((r) => r.region));
 
   if (!region || canonicalRegions.has(region)) {
     return deduped;
@@ -52,7 +57,8 @@ function buildCompactSelectRows(region: string): PhoneCountryRow[] {
   if (typeof console !== 'undefined' && console.warn) {
     console.warn('PhoneField: unknown phone_region not found in PHONE_COUNTRIES', region);
   }
-  return [{ region, dialCode: '', englishName: region }, ...deduped];
+  const driftRow: CompactSelectRow = { region, dialCode: '', englishName: region };
+  return [driftRow, ...deduped];
 }
 
 export function PhoneField({
@@ -71,7 +77,7 @@ export function PhoneField({
   const regionId = `${autoId}-region`;
   const nationalId = nationalInputId ?? `${autoId}-national`;
 
-  const compactSelectRows = useMemo((): PhoneCountryRow[] => {
+  const compactSelectRows = useMemo((): CompactSelectRow[] => {
     if (variant !== 'compact') {
       return [];
     }
