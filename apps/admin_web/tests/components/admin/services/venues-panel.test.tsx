@@ -72,7 +72,7 @@ describe('VenuesPanel', () => {
     });
   });
 
-  it('lists name, address, area, and operations columns without coordinates or updated', () => {
+  it('lists name, address, area, and operations columns without partner organisations, coordinates, or updated', () => {
     render(
       <VenuesPanel
         venues={[
@@ -119,7 +119,7 @@ describe('VenuesPanel', () => {
 
     expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Address' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Partner organisations' })).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Partner organisations' })).not.toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Area' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Operations' })).toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Coordinates' })).not.toBeInTheDocument();

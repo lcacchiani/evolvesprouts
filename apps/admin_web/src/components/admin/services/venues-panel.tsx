@@ -394,7 +394,6 @@ export function VenuesPanel({
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Address</th>
-              <th className='px-4 py-3 font-semibold'>Partner organisations</th>
               <th className='px-4 py-3 font-semibold'>Area</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
@@ -412,11 +411,6 @@ export function VenuesPanel({
                 >
                   <td className='px-4 py-3'>{row.name?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{row.address?.trim() || '—'}</td>
-                  <td className='px-4 py-3'>
-                    {row.partnerOrganizationLabels.length > 0
-                      ? row.partnerOrganizationLabels.join(', ')
-                      : '—'}
-                  </td>
                   <td className='px-4 py-3'>{area?.name ?? row.areaId}</td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <Button
