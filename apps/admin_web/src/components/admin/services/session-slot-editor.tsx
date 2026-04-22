@@ -43,7 +43,7 @@ export function SessionSlotEditor({
 
   return (
     <AdminCollapsibleSection id='service-instance-session-slots' title='Session slots' disabled={disabled}>
-      <div className='grid min-h-[12rem] grid-rows-[auto_1fr_auto] gap-3'>
+      <div className='grid grid-rows-[auto_1fr_auto] gap-3'>
         <div className='min-h-0'>
           {slots.length === 0 ? <p className='text-sm text-slate-500'>No slots configured.</p> : null}
           {slots.length > 0 ? (
