@@ -38,35 +38,41 @@ export function SessionSlotEditor({
 }: SessionSlotEditorProps) {
   const hasLocationOptions = locationOptions.length > 0;
 
+  const slotGridClassName =
+    'grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-[1fr_1fr_1fr_minmax(0,5.5rem)_auto] sm:items-end';
+
   return (
     <AdminCollapsibleSection id='service-instance-session-slots' title='Session slots' disabled={disabled}>
-      <div className='space-y-2'>
-        <div className='flex justify-end'>
-          <Button
-            type='button'
-            variant='secondary'
-            size='sm'
-            disabled={disabled}
-            onClick={() => onChange([...slots, emptySlot(slots.length)])}
-          >
-            Add slot
-          </Button>
+      <div className='grid min-h-[12rem] grid-rows-[auto_1fr_auto] gap-3'>
+        <div className='min-h-0'>
+          {slots.length === 0 ? <p className='text-sm text-slate-500'>No slots configured.</p> : null}
+          {slots.length > 0 ? (
+            <div className={`hidden ${slotGridClassName} sm:grid`}>
+              <div className='text-xs font-medium text-slate-600'>Start time</div>
+              <div className='text-xs font-medium text-slate-600'>End time</div>
+              <div className='text-xs font-medium text-slate-600'>Location</div>
+              <div className='text-xs font-medium text-slate-600'>Sort order</div>
+              <div className='min-h-5' aria-hidden='true' />
+            </div>
+          ) : null}
         </div>
-        {slots.length === 0 ? <p className='text-sm text-slate-500'>No slots configured.</p> : null}
-        <div className='space-y-3'>
+        <div className='flex min-h-0 flex-col gap-3 overflow-y-auto'>
           {slots.map((slot, index) => (
-            <div
-              key={`${slot.id ?? 'new'}-${index}`}
-              className='grid grid-cols-1 gap-3 rounded-md border p-3 sm:grid-cols-[1fr_1fr_1fr_minmax(0,5.5rem)_auto] sm:items-end'
-            >
+            <div key={`${slot.id ?? 'new'}-${index}`} className={slotGridClassName}>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-starts`}>
-                  Start time
-                </Label>
+                {index === 0 ? (
+                  <Label
+                    className='text-xs font-medium text-slate-600 sm:hidden'
+                    htmlFor={`slot-${index}-starts`}
+                  >
+                    Start time
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-starts`}
                   type='datetime-local'
                   disabled={disabled}
+                  aria-label='Start time'
                   value={(slot.startsAt ?? '').slice(0, 16)}
                   onChange={(event) => {
                     const next = [...slots];
@@ -76,13 +82,16 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-ends`}>
-                  End time
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600 sm:hidden' htmlFor={`slot-${index}-ends`}>
+                    End time
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-ends`}
                   type='datetime-local'
                   disabled={disabled}
+                  aria-label='End time'
                   value={(slot.endsAt ?? '').slice(0, 16)}
                   onChange={(event) => {
                     const next = [...slots];
@@ -92,13 +101,19 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-location`}>
-                  Location
-                </Label>
+                {index === 0 ? (
+                  <Label
+                    className='text-xs font-medium text-slate-600 sm:hidden'
+                    htmlFor={`slot-${index}-location`}
+                  >
+                    Location
+                  </Label>
+                ) : null}
                 {hasLocationOptions || isLoadingLocations ? (
                   <Select
                     id={`slot-${index}-location`}
                     disabled={disabled}
+                    aria-label='Location'
                     value={slot.locationId ?? ''}
                     onChange={(event) => {
                       const next = [...slots];
@@ -123,6 +138,7 @@ export function SessionSlotEditor({
                   <Input
                     id={`slot-${index}-location`}
                     disabled={disabled}
+                    aria-label='Location'
                     value={slot.locationId ?? ''}
                     onChange={(event) => {
                       const next = [...slots];
@@ -134,13 +150,16 @@ export function SessionSlotEditor({
                 )}
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-sort`}>
-                  Sort order
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600 sm:hidden' htmlFor={`slot-${index}-sort`}>
+                    Sort order
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-sort`}
                   type='number'
                   disabled={disabled}
+                  aria-label='Sort order'
                   value={slot.sortOrder ?? index}
                   onChange={(event) => {
                     const next = [...slots];
@@ -165,6 +184,17 @@ export function SessionSlotEditor({
               </div>
             </div>
           ))}
+        </div>
+        <div className='flex justify-start justify-self-start'>
+          <Button
+            type='button'
+            variant='secondary'
+            size='sm'
+            disabled={disabled}
+            onClick={() => onChange([...slots, emptySlot(slots.length)])}
+          >
+            Add slot
+          </Button>
         </div>
       </div>
     </AdminCollapsibleSection>
