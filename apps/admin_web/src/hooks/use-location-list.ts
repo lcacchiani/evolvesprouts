@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { listAllLocations } from '@/lib/services-api';
+import { listAllVenueAndPartnerLocations } from '@/lib/services-api';
 
 import type { LocationSummary } from '@/types/services';
 
@@ -17,7 +17,7 @@ export function useLocationList() {
     setIsLoading(true);
     setError('');
     try {
-      const items = await listAllLocations();
+      const items = await listAllVenueAndPartnerLocations();
       setLocations(items);
     } catch (err) {
       setError(toErrorMessage(err, 'Failed to load locations.'));

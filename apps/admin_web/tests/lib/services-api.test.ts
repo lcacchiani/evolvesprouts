@@ -17,6 +17,7 @@ vi.mock('@/lib/api-admin-client', async () => {
 import {
   createServiceCoverImageUpload,
   listDiscountCodes,
+  listAllVenueAndPartnerLocations,
   listLocations,
   listServices,
 } from '@/lib/services-api';
@@ -274,5 +275,67 @@ describe('services-api', () => {
         endpointPath: '/v1/admin/locations?limit=50&exclude_addresses=true',
       })
     );
+  });
+
+  it('listAllVenueAndPartnerLocations merges exclude_addresses pages with partner-labelled locations', async () => {
+    const venueRow = {
+      id: '00000000-0000-0000-0000-000000000002',
+      name: 'Hall',
+      area_id: '00000000-0000-0000-0000-000000000001',
+      address: '2 Rd',
+      lat: null,
+      lng: null,
+      created_at: null,
+      updated_at: null,
+      locked_from_partner_org: false,
+      partner_organization_labels: [],
+    };
+    const partnerOnlyRow = {
+      id: '00000000-0000-0000-0000-000000000003',
+      name: 'Partner HQ',
+      area_id: '00000000-0000-0000-0000-000000000001',
+      address: '3 Rd',
+      lat: null,
+      lng: null,
+      created_at: null,
+      updated_at: null,
+      locked_from_partner_org: true,
+      partner_organization_labels: ['Acme Partner'],
+    };
+
+    mockAdminApiRequest
+      .mockResolvedValueOnce({
+        data: {
+          items: [venueRow],
+          next_cursor: null,
+          total_count: 1,
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          items: [partnerOnlyRow, venueRow],
+          next_cursor: null,
+          total_count: 2,
+        },
+      });
+
+    const merged = await listAllVenueAndPartnerLocations();
+
+    expect(mockAdminApiRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        endpointPath: '/v1/admin/locations?limit=100&exclude_addresses=true',
+      })
+    );
+    expect(mockAdminApiRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        endpointPath: '/v1/admin/locations?limit=100',
+      })
+    );
+    expect(merged.map((l) => l.id)).toEqual([
+      '00000000-0000-0000-0000-000000000002',
+      '00000000-0000-0000-0000-000000000003',
+    ]);
   });
 });
