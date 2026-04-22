@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal, overload
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -52,6 +52,18 @@ logger = get_logger(__name__)
 
 def _phone_fields_in_body(body: Mapping[str, Any]) -> bool:
     return "phone_region" in body or "phone_number" in body
+
+
+@overload
+def _parse_contact_phone_pair(
+    body: Mapping[str, Any], *, allow_absent: Literal[True]
+) -> tuple[str | None, str | None] | None: ...
+
+
+@overload
+def _parse_contact_phone_pair(
+    body: Mapping[str, Any], *, allow_absent: Literal[False]
+) -> tuple[str | None, str | None]: ...
 
 
 def _parse_contact_phone_pair(
