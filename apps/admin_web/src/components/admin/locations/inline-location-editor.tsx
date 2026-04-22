@@ -51,6 +51,11 @@ export interface InlineLocationEditorProps {
   allowClearWhenLocked?: boolean;
   /** Extra line under the partner-managed copy when the location is partner-locked (for example orgs screen). */
   lockedSummaryExtra?: string | null;
+  /**
+   * When `canModify` is false and there is no contact-level location to show, render these
+   * lines instead of an em dash (for example family/org venue summaries on a linked contact).
+   */
+  readOnlyLockedLines?: { lines: string[]; footerNote?: string | null } | null;
 }
 
 function resolveDisplaySummary(
@@ -136,6 +141,7 @@ function InlineLocationEditorInner({
   saveError = '',
   allowClearWhenLocked = false,
   lockedSummaryExtra,
+  readOnlyLockedLines = null,
 }: InnerProps) {
   const initial = deriveInitialDraft(canModify, location, embeddedSummary);
   const [isEditing, setIsEditing] = useState(initial.isEditing);
@@ -314,6 +320,23 @@ function InlineLocationEditorInner({
   const showEditForm = canModify && !effectiveReadOnly && (isEditing || (!location && !embeddedSummary));
   const showChangeButton = canModify && !lockedFromPartner;
   const showClearButton = canModify && (!lockedFromPartner || allowClearWhenLocked);
+
+  if (!canModify && readOnlyLockedLines && readOnlyLockedLines.lines.length > 0) {
+    return (
+      <div className='space-y-2'>
+        <Label>Location</Label>
+        <div className='space-y-2 rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-800'>
+          {readOnlyLockedLines.lines.map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </div>
+        {readOnlyLockedLines.footerNote ? (
+          <p className='text-sm text-slate-600'>{readOnlyLockedLines.footerNote}</p>
+        ) : null}
+        {readOnlyNote ? <p className='text-sm text-slate-600'>{readOnlyNote}</p> : null}
+      </div>
+    );
+  }
 
   if (!canModify && displaySummary) {
     return (

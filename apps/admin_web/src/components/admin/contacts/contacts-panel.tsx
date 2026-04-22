@@ -28,11 +28,7 @@ import {
   searchEntityContactsForPicker,
   type EntityTagRef,
 } from '@/lib/entity-api';
-import {
-  formatEntityVenueLocationLabel,
-  formatEnumLabel,
-  formatLocationCoordinatesLabel,
-} from '@/lib/format';
+import { formatEntityVenueLocationLabel, formatEnumLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   CONTACT_RELATIONSHIP_TYPES,
@@ -88,47 +84,46 @@ function contactNameMembershipSuffix(row: ApiSchemas['AdminContact']): string {
   return parts.length > 0 ? ` ${parts.join(' ')}` : '';
 }
 
-function contactTableLinkedVenueBlocks(row: ApiSchemas['AdminContact']): {
-  blocks: { line1: string; line2: string }[];
-  caption: string | null;
+function linkedVenueReadOnlyLines(row: ApiSchemas['AdminContact']): {
+  lines: string[];
+  footerNote: string | null;
 } {
-  const blocks: { line1: string; line2: string }[] = [];
+  const lines: string[] = [];
 
-  function pushBlock(emoji: string, summary: ApiSchemas['EntityLocationVenueSummary'] | null) {
+  function pushLine(emoji: string, summary: ApiSchemas['EntityLocationVenueSummary'] | null) {
     if (!summary) {
-      blocks.push({ line1: `${emoji} Not set`, line2: '' });
+      lines.push(`${emoji} Not set`);
       return;
     }
-    blocks.push({
-      line1: `${emoji} ${formatEntityVenueLocationLabel({
+    lines.push(
+      `${emoji} ${formatEntityVenueLocationLabel({
         id: summary.id,
         name: summary.name,
         address: summary.address,
         areaName: summary.area_name,
-      })}`,
-      line2: formatLocationCoordinatesLabel(summary.lat ?? null, summary.lng ?? null),
-    });
+      })}`
+    );
   }
 
   if (row.family_ids.length > 0) {
-    pushBlock(CONTACT_NAME_FAMILY_EMOJI, row.family_location_summary ?? null);
+    pushLine(CONTACT_NAME_FAMILY_EMOJI, row.family_location_summary ?? null);
   }
   if (row.organization_ids.length > 0) {
-    pushBlock(CONTACT_NAME_ORG_EMOJI, row.organization_location_summary ?? null);
+    pushLine(CONTACT_NAME_ORG_EMOJI, row.organization_location_summary ?? null);
   }
 
-  if (blocks.length === 0) {
-    return { blocks: [], caption: null };
+  if (lines.length === 0) {
+    return { lines: [], footerNote: null };
   }
 
-  const caption =
+  const footerNote =
     row.family_ids.length > 0 && row.organization_ids.length > 0
       ? 'Read-only. Edit addresses on the family and organisation records.'
       : row.family_ids.length > 0
         ? 'Read-only. Edit address on the family record.'
         : 'Read-only. Edit address on the organisation record.';
 
-  return { blocks, caption };
+  return { lines, footerNote };
 }
 
 export interface ContactsPanelProps {
@@ -238,6 +233,17 @@ export function ContactsPanel({
 
   const linkedToFamilyOrOrg = Boolean(familySelectId.trim() || organizationSelectId.trim());
   const locationFieldLocked = linkedToFamilyOrOrg;
+
+  const readOnlyLockedLinesForEditor = useMemo(() => {
+    if (!linkedToFamilyOrOrg || !selected) {
+      return null;
+    }
+    const { lines, footerNote } = linkedVenueReadOnlyLines(selected);
+    if (lines.length === 0) {
+      return null;
+    }
+    return { lines, footerNote };
+  }, [linkedToFamilyOrOrg, selected]);
 
   const inlineLocationStateKey =
     editorMode === 'create' ? 'contact-new' : `contact:${selectedId ?? 'none'}`;
@@ -734,6 +740,7 @@ export function ContactsPanel({
               areas={geographicAreas}
               areasLoading={areasLoading}
               canModify={!linkedToFamilyOrOrg}
+              readOnlyLockedLines={readOnlyLockedLinesForEditor}
               readOnlyNote={
                 linkedToFamilyOrOrg
                   ? 'Location is managed on the linked family or organisation.'
@@ -901,13 +908,12 @@ export function ContactsPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[1120px]'>
+        <AdminDataTable tableClassName='min-w-[960px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Email</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Location</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -915,7 +921,6 @@ export function ContactsPanel({
             {rows.map((row) => {
               const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || '—';
               const membershipSuffix = contactNameMembershipSuffix(row);
-              const linkedVenue = contactTableLinkedVenueBlocks(row);
               return (
                 <tr
                   key={row.id}
@@ -940,25 +945,6 @@ export function ContactsPanel({
                   </td>
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
-                  <td className='max-w-xs px-4 py-3 align-top text-sm text-slate-700'>
-                    {linkedVenue.blocks.length > 0 ? (
-                      <div className='space-y-2'>
-                        {linkedVenue.blocks.map((block, idx) => (
-                          <div key={idx}>
-                            <div>{block.line1}</div>
-                            {block.line2 ? (
-                              <div className='text-xs text-slate-500'>{block.line2}</div>
-                            ) : null}
-                          </div>
-                        ))}
-                        {linkedVenue.caption ? (
-                          <p className='text-xs text-slate-500'>{linkedVenue.caption}</p>
-                        ) : null}
-                      </div>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
                   <td className='px-4 py-3 text-right'>
                     <div className='flex flex-wrap justify-end gap-2'>
                       <Button
