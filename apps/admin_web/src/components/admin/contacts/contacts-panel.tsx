@@ -13,6 +13,7 @@ import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
@@ -732,46 +733,6 @@ export function ContactsPanel({
             </div>
           </div>
 
-          <div className='rounded-md border border-slate-200 bg-slate-50/40 p-3'>
-            <InlineLocationEditor
-              stateKey={inlineLocationStateKey}
-              location={resolvedLocation}
-              embeddedSummary={embeddedLocationSummary}
-              areas={geographicAreas}
-              areasLoading={areasLoading}
-              canModify={!linkedToFamilyOrOrg}
-              readOnlyLockedLines={readOnlyLockedLinesForEditor}
-              readOnlyNote={
-                linkedToFamilyOrOrg
-                  ? 'Location is managed on the linked family or organisation.'
-                  : null
-              }
-              isSaving={isSaving || locationSaveStatus.isSaving}
-              isGeocoding={locationGeocoding}
-              saveError={locationSaveStatus.error}
-              onRequestEdit={() => {}}
-              onCancelEdit={() => {}}
-              onSaveCreate={async (payload) => {
-                const created = await createSharedLocation(payload);
-                if (created) {
-                  setPendingLocationId(created.id);
-                  setOptimisticLocationSummary(summaryFromLocationRow(created));
-                  return created.id;
-                }
-                return null;
-              }}
-              onSaveUpdate={async (id, payload) => {
-                await updateSharedLocation(id, payload);
-              }}
-              onClear={() => {
-                setPendingLocationId(null);
-                setOptimisticLocationSummary(null);
-                clearLocationSaveError();
-              }}
-              onGeocode={geocodeLocation}
-            />
-          </div>
-
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             <div>
               <Label htmlFor='crm-contact-family'>Family</Label>
@@ -831,6 +792,46 @@ export function ContactsPanel({
               </div>
             ) : null}
           </div>
+
+          <AdminCollapsibleSection id='crm-contact-location' title='Location' disabled={isSaving}>
+            <InlineLocationEditor
+              stateKey={inlineLocationStateKey}
+              location={resolvedLocation}
+              embeddedSummary={embeddedLocationSummary}
+              areas={geographicAreas}
+              areasLoading={areasLoading}
+              canModify={!linkedToFamilyOrOrg}
+              readOnlyLockedLines={readOnlyLockedLinesForEditor}
+              readOnlyNote={
+                linkedToFamilyOrOrg
+                  ? 'Location is managed on the linked family or organisation.'
+                  : null
+              }
+              isSaving={isSaving || locationSaveStatus.isSaving}
+              isGeocoding={locationGeocoding}
+              saveError={locationSaveStatus.error}
+              onRequestEdit={() => {}}
+              onCancelEdit={() => {}}
+              onSaveCreate={async (payload) => {
+                const created = await createSharedLocation(payload);
+                if (created) {
+                  setPendingLocationId(created.id);
+                  setOptimisticLocationSummary(summaryFromLocationRow(created));
+                  return created.id;
+                }
+                return null;
+              }}
+              onSaveUpdate={async (id, payload) => {
+                await updateSharedLocation(id, payload);
+              }}
+              onClear={() => {
+                setPendingLocationId(null);
+                setOptimisticLocationSummary(null);
+                clearLocationSaveError();
+              }}
+              onGeocode={geocodeLocation}
+            />
+          </AdminCollapsibleSection>
 
           <EntityTagPicker
             id='crm-contact-tags'

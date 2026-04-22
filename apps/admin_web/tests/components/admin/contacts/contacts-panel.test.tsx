@@ -251,6 +251,7 @@ describe('ContactsPanel', () => {
     );
 
     await user.click(screen.getByText('Pat Both'));
+    await user.click(screen.getByText('Location', { selector: 'summary' }));
 
     const familyLines = screen.getAllByText(/👨‍👩‍👧 1 Road · Hong Kong/);
     expect(familyLines.length).toBeGreaterThanOrEqual(1);
@@ -386,6 +387,7 @@ describe('ContactsPanel', () => {
     );
 
     await user.click(screen.getByText('Ann Lee'));
+    await user.click(screen.getByText('Location', { selector: 'summary' }));
 
     expect(screen.getAllByText(/👨‍👩‍👧 1 Road · Hong Kong/).length).toBeGreaterThanOrEqual(1);
     expect(
@@ -431,6 +433,7 @@ describe('ContactsPanel', () => {
       />
     );
 
+    await user.click(screen.getByText('Location', { selector: 'summary' }));
     await user.type(screen.getByLabelText('First name'), 'Jane');
     await user.selectOptions(screen.getByLabelText('Geographic area'), 'area-hk');
     await user.type(screen.getByLabelText('Address'), '1 Test Road');
@@ -513,6 +516,7 @@ describe('ContactsPanel', () => {
     );
 
     await user.click(screen.getByText('Bob'));
+    await user.click(screen.getByText('Location', { selector: 'summary' }));
     await user.click(screen.getByRole('button', { name: 'Clear' }));
     await user.click(screen.getByRole('button', { name: 'Update contact' }));
 
