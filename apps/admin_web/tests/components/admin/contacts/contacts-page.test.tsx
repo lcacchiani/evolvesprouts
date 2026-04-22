@@ -4,15 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContactsPage } from '@/components/admin/contacts/contacts-page';
 
-const listCrmTags = vi.fn();
+const listEntityTags = vi.fn();
 const listAllLocations = vi.fn();
 const listGeographicAreas = vi.fn();
 
-vi.mock('@/lib/crm-api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/crm-api')>();
+vi.mock('@/lib/entity-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/entity-api')>();
   return {
     ...actual,
-    listCrmTags: (...args: unknown[]) => listCrmTags(...args),
+    listEntityTags: (...args: unknown[]) => listEntityTags(...args),
   };
 });
 
@@ -80,16 +80,16 @@ const defaultOrgsHook = {
   relationshipOptions: ['prospect', 'client', 'partner', 'other'] as const,
 };
 
-vi.mock('@/hooks/use-admin-crm-contacts', () => ({
-  useAdminCrmContacts: () => defaultContactsHook,
+vi.mock('@/hooks/use-admin-entity-contacts', () => ({
+  useAdminEntityContacts: () => defaultContactsHook,
 }));
 
-vi.mock('@/hooks/use-admin-crm-families', () => ({
-  useAdminCrmFamilies: () => defaultFamiliesHook,
+vi.mock('@/hooks/use-admin-entity-families', () => ({
+  useAdminEntityFamilies: () => defaultFamiliesHook,
 }));
 
-vi.mock('@/hooks/use-admin-crm-organizations', () => ({
-  useAdminCrmOrganizations: () => defaultOrgsHook,
+vi.mock('@/hooks/use-admin-entity-organizations', () => ({
+  useAdminEntityOrganizations: () => defaultOrgsHook,
 }));
 
 vi.mock('@/hooks/use-admin-users', () => ({
@@ -106,14 +106,14 @@ describe('ContactsPage', () => {
   });
 
   it('loads tags and locations on mount', async () => {
-    listCrmTags.mockResolvedValue([]);
+    listEntityTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
     listGeographicAreas.mockResolvedValue([]);
 
     render(<ContactsPage />);
 
     await waitFor(() => {
-      expect(listCrmTags).toHaveBeenCalled();
+      expect(listEntityTags).toHaveBeenCalled();
     });
     expect(listAllLocations).toHaveBeenCalled();
     expect(listGeographicAreas).toHaveBeenCalled();
@@ -121,14 +121,14 @@ describe('ContactsPage', () => {
 
   it('switches sub-views with the tab strip', async () => {
     const user = userEvent.setup();
-    listCrmTags.mockResolvedValue([]);
+    listEntityTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
     listGeographicAreas.mockResolvedValue([]);
 
     render(<ContactsPage />);
 
     await waitFor(() => {
-      expect(listCrmTags).toHaveBeenCalled();
+      expect(listEntityTags).toHaveBeenCalled();
     });
 
     await user.click(screen.getByRole('button', { name: 'Families' }));
@@ -144,7 +144,7 @@ describe('ContactsPage', () => {
   });
 
   it('seeds the active sub-view from the URL query parameter on mount', async () => {
-    listCrmTags.mockResolvedValue([]);
+    listEntityTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
     listGeographicAreas.mockResolvedValue([]);
 

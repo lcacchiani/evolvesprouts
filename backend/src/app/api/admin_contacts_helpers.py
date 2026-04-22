@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_helpers import (
     assert_contact_can_join_family,
     assert_contact_can_join_organization,
 )

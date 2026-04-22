@@ -111,13 +111,13 @@ def test_get_organization_returns_404_when_crm_loader_finds_nothing(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
-    """CRM GET by id uses get_crm_organization_by_id (e.g. vendor rows are invisible)."""
+    """CRM GET by id uses get_non_vendor_organization_by_id (e.g. vendor rows are invisible)."""
 
     class _FakeRepo:
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_crm_organization_by_id(self, _organization_id: object) -> None:
+        def get_non_vendor_organization_by_id(self, _organization_id: object) -> None:
             return None
 
     class _FakeSessionCtx:

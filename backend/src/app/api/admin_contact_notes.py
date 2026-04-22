@@ -9,7 +9,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import request_id
+from app.api.admin_entities_helpers import request_id
 from app.api.admin_leads_common import serialize_note
 from app.api.admin_request import parse_body
 from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, validate_string_length

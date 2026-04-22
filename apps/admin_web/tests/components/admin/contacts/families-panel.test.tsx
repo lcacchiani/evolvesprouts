@@ -20,7 +20,7 @@ vi.mock('@/lib/services-api', async () => {
 
 import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
 
-import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+import type { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
 
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
 
@@ -36,8 +36,8 @@ const hkArea = {
 };
 
 function buildFamiliesHook(
-  overrides: Partial<ReturnType<typeof useAdminCrmFamilies>> = {}
-): ReturnType<typeof useAdminCrmFamilies> {
+  overrides: Partial<ReturnType<typeof useAdminEntityFamilies>> = {}
+): ReturnType<typeof useAdminEntityFamilies> {
   return {
     families: [],
     filters: { query: '', active: '' as const },

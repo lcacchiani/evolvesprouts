@@ -21,14 +21,14 @@ from app.api.admin_contacts_helpers import (
     sync_memberships_from_body,
     validate_referrer_contact,
 )
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_helpers import (
     request_id,
     ensure_location_exists,
     parse_relationship_type,
     parse_optional_bool_body,
     replace_contact_tags,
 )
-from app.api.admin_crm_serializers import serialize_contact_summary
+from app.api.admin_entities_serializers import serialize_contact_summary
 from app.api.admin_request import parse_body
 from app.api.admin_services_payload_utils import parse_optional_uuid, parse_uuid_list
 from app.api.admin_validators import validate_email, validate_string_length

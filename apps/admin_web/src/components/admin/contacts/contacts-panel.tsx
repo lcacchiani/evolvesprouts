@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
-import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import type { useAdminEntityContacts } from '@/hooks/use-admin-entity-contacts';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
-import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -21,26 +21,26 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  type CrmPickerListItem,
+  type EntityPickerListItem,
   getAdminContact,
-  listCrmFamilyPicker,
-  listCrmOrganizationPicker,
-  searchCrmContactsForPicker,
-  type CrmTagRef,
-} from '@/lib/crm-api';
+  listEntityFamilyPicker,
+  listEntityOrganizationPicker,
+  searchEntityContactsForPicker,
+  type EntityTagRef,
+} from '@/lib/entity-api';
 import { formatEnumLabel } from '@/lib/format';
-import type { CrmListFilters } from '@/types/crm';
+import type { EntityListFilters } from '@/types/entity-list';
 import {
   CONTACT_RELATIONSHIP_TYPES,
   relationshipTypeForEditor,
-} from '@/types/crm-relationship';
+} from '@/types/entity-relationship';
 import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
 
-const CONTACT_TYPES: ApiSchemas['CrmContactType'][] = [
+const CONTACT_TYPES: ApiSchemas['EntityContactType'][] = [
   'parent',
   'child',
   'helper',
@@ -53,7 +53,7 @@ function formatContactPickerLabel(c: ApiSchemas['AdminContact']): string {
   return name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
 }
 
-const SOURCES: ApiSchemas['CrmContactSource'][] = [
+const SOURCES: ApiSchemas['EntityContactSource'][] = [
   'free_guide',
   'newsletter',
   'contact_form',
@@ -69,10 +69,10 @@ const SOURCES: ApiSchemas['CrmContactSource'][] = [
 ];
 
 export interface ContactsPanelProps {
-  contacts: ReturnType<typeof useAdminCrmContacts>;
+  contacts: ReturnType<typeof useAdminEntityContacts>;
   adminUsers: AdminUser[];
   onPatchStandaloneNoteCount: (contactId: string, standaloneNoteCount: number) => void;
-  tags: CrmTagRef[];
+  tags: EntityTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
   areasLoading: boolean;
@@ -108,16 +108,16 @@ export function ContactsPanel({
   const [deleteActionError, setDeleteActionError] = useState('');
   const [notesTarget, setNotesTarget] = useState<ApiSchemas['AdminContact'] | null>(null);
 
-  const [familyPicker, setFamilyPicker] = useState<CrmPickerListItem[]>([]);
-  const [organizationPicker, setOrganizationPicker] = useState<CrmPickerListItem[]>([]);
+  const [familyPicker, setFamilyPicker] = useState<EntityPickerListItem[]>([]);
+  const [organizationPicker, setOrganizationPicker] = useState<EntityPickerListItem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
         const [families, orgs] = await Promise.all([
-          listCrmFamilyPicker(),
-          listCrmOrganizationPicker(),
+          listEntityFamilyPicker(),
+          listEntityOrganizationPicker(),
         ]);
         if (!cancelled) {
           setFamilyPicker(Array.isArray(families) ? families : []);
@@ -142,14 +142,14 @@ export function ContactsPanel({
   const [email, setEmail] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
   const [phone, setPhone] = useState('');
-  const [contactType, setContactType] = useState<ApiSchemas['CrmContactType']>('parent');
+  const [contactType, setContactType] = useState<ApiSchemas['EntityContactType']>('parent');
   const [relationshipType, setRelationshipType] =
     useState<(typeof CONTACT_RELATIONSHIP_TYPES)[number]>('prospect');
-  const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
+  const [source, setSource] = useState<ApiSchemas['EntityContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
   const [referralContactId, setReferralContactId] = useState('');
   const [referralSearchInput, setReferralSearchInput] = useState('');
-  const [referralSearchResults, setReferralSearchResults] = useState<CrmPickerListItem[]>([]);
+  const [referralSearchResults, setReferralSearchResults] = useState<EntityPickerListItem[]>([]);
   const [referralPinnedLabel, setReferralPinnedLabel] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
@@ -254,7 +254,7 @@ export function ContactsPanel({
     const handle = setTimeout(() => {
       void (async () => {
         try {
-          const items = await searchCrmContactsForPicker({
+          const items = await searchEntityContactsForPicker({
             query: q,
             excludeContactId: editorMode === 'edit' ? selectedId : null,
             limit: 50,
@@ -521,7 +521,7 @@ export function ContactsPanel({
               <Select
                 id='crm-contact-type'
                 value={contactType}
-                onChange={(e) => setContactType(e.target.value as ApiSchemas['CrmContactType'])}
+                onChange={(e) => setContactType(e.target.value as ApiSchemas['EntityContactType'])}
               >
                 {CONTACT_TYPES.map((v) => (
                   <option key={v} value={v}>
@@ -596,7 +596,7 @@ export function ContactsPanel({
                   id='crm-contact-source'
                   value={source}
                   onChange={(e) => {
-                    const v = e.target.value as ApiSchemas['CrmContactSource'];
+                    const v = e.target.value as ApiSchemas['EntityContactSource'];
                     setSource(v);
                     if (v !== 'referral') {
                       setReferralContactId('');
@@ -762,7 +762,7 @@ export function ContactsPanel({
             ) : null}
           </div>
 
-          <CrmTagPicker
+          <EntityTagPicker
             id='crm-contact-tags'
             label='Tags'
             tags={tags}
@@ -809,7 +809,7 @@ export function ContactsPanel({
                 value={filters.contact_type}
                 onChange={(e) => {
                   setDeleteActionError('');
-                  setFilter('contact_type', e.target.value as CrmListFilters['contact_type']);
+                  setFilter('contact_type', e.target.value as EntityListFilters['contact_type']);
                 }}
               >
                 <option value=''>All</option>
@@ -827,7 +827,7 @@ export function ContactsPanel({
                 value={filters.active}
                 onChange={(e) => {
                   setDeleteActionError('');
-                  setFilter('active', e.target.value as CrmListFilters['active']);
+                  setFilter('active', e.target.value as EntityListFilters['active']);
                 }}
               >
                 <option value=''>All</option>

@@ -2,13 +2,13 @@
 
 import { useMemo, useState, type MouseEvent } from 'react';
 
-import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+import type { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
-import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
+import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -19,18 +19,18 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { formatEnumLabel } from '@/lib/format';
-import type { CrmTagRef } from '@/lib/crm-api';
-import type { CrmListFilters } from '@/types/crm';
+import type { EntityTagRef } from '@/lib/entity-api';
+import type { EntityListFilters } from '@/types/entity-list';
 import {
   FAMILY_RELATIONSHIP_TYPES,
   relationshipTypeForEditor,
-} from '@/types/crm-relationship';
+} from '@/types/entity-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
 
-const FAMILY_ROLES: ApiSchemas['CrmFamilyRole'][] = [
+const FAMILY_ROLES: ApiSchemas['EntityFamilyRole'][] = [
   'parent',
   'child',
   'helper',
@@ -49,8 +49,8 @@ function contactEligibleForFamilyMember(
 }
 
 export interface FamiliesPanelProps {
-  families: ReturnType<typeof useAdminCrmFamilies>;
-  tags: CrmTagRef[];
+  families: ReturnType<typeof useAdminEntityFamilies>;
+  tags: EntityTagRef[];
   locations: LocationSummary[];
   geographicAreas: GeographicAreaSummary[];
   areasLoading: boolean;
@@ -101,7 +101,7 @@ export function FamiliesPanel({
   const [active, setActive] = useState(true);
 
   const [memberContactId, setMemberContactId] = useState('');
-  const [memberRole, setMemberRole] = useState<ApiSchemas['CrmFamilyRole']>('parent');
+  const [memberRole, setMemberRole] = useState<ApiSchemas['EntityFamilyRole']>('parent');
   const [memberPrimary, setMemberPrimary] = useState(false);
 
   const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
@@ -390,7 +390,7 @@ export function FamiliesPanel({
             </div>
           ) : null}
           <div className='lg:col-span-2'>
-            <CrmTagPicker
+            <EntityTagPicker
               id='crm-family-tags'
               label='Tags'
               tags={tags}
@@ -425,7 +425,7 @@ export function FamiliesPanel({
                     id='crm-family-member-role'
                     value={memberRole}
                     onChange={(e) =>
-                      setMemberRole(e.target.value as ApiSchemas['CrmFamilyRole'])
+                      setMemberRole(e.target.value as ApiSchemas['EntityFamilyRole'])
                     }
                   >
                     {FAMILY_ROLES.map((r) => (
@@ -522,7 +522,7 @@ export function FamiliesPanel({
                 value={filters.active}
                 onChange={(e) => {
                   setDeleteActionError('');
-                  setFilter('active', e.target.value as CrmListFilters['active']);
+                  setFilter('active', e.target.value as EntityListFilters['active']);
                 }}
               >
                 <option value=''>All</option>

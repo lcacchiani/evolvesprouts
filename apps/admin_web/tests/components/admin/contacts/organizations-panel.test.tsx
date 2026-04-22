@@ -20,7 +20,7 @@ vi.mock('@/lib/services-api', async () => {
 
 import { OrganizationsPanel } from '@/components/admin/contacts/organizations-panel';
 
-import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import type { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
 import type { components } from '@/types/generated/admin-api.generated';
 
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
@@ -37,8 +37,8 @@ const hkArea = {
 };
 
 function buildOrgsHook(
-  overrides: Partial<ReturnType<typeof useAdminCrmOrganizations>> = {}
-): ReturnType<typeof useAdminCrmOrganizations> {
+  overrides: Partial<ReturnType<typeof useAdminEntityOrganizations>> = {}
+): ReturnType<typeof useAdminEntityOrganizations> {
   return {
     organizations: [],
     filters: { query: '', active: '' as const },
@@ -57,7 +57,7 @@ function buildOrgsHook(
     deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
     relationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
-      typeof useAdminCrmOrganizations
+      typeof useAdminEntityOrganizations
     >['relationshipOptions'],
     ...overrides,
   };

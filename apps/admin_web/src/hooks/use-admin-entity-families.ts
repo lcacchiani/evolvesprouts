@@ -9,17 +9,17 @@ import {
   listAdminFamilies,
   removeAdminFamilyMember,
   updateAdminFamily,
-} from '@/lib/crm-api';
-import { DEFAULT_CRM_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
+} from '@/lib/entity-api';
+import { DEFAULT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
 
-export function useAdminCrmFamilies() {
+export function useAdminEntityFamilies() {
   const fetcher = useCallback(
-    (params: CrmListFilters & { cursor: string | null; limit: number }) =>
+    (params: EntityListFilters & { cursor: string | null; limit: number }) =>
       listAdminFamilies({
         query: params.query,
         active: params.active || undefined,
@@ -31,7 +31,7 @@ export function useAdminCrmFamilies() {
 
   const list = usePaginatedList({
     fetcher,
-    defaultFilters: DEFAULT_CRM_LIST_FILTERS,
+    defaultFilters: DEFAULT_LIST_FILTERS,
     errorPrefix: 'Failed to load families',
     debounceKeys: ['query'],
     limit: 50,

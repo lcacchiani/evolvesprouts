@@ -4,12 +4,12 @@ import { useState } from 'react';
 
 import { Label } from '@/components/ui/label';
 
-import type { CrmTagRef } from '@/lib/crm-api';
+import type { EntityTagRef } from '@/lib/entity-api';
 
-export interface CrmTagPickerProps {
+export interface EntityTagPickerProps {
   id: string;
   label: string;
-  tags: CrmTagRef[];
+  tags: EntityTagRef[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   disabled?: boolean;
@@ -17,7 +17,7 @@ export interface CrmTagPickerProps {
   variant?: 'default' | 'collapsible';
 }
 
-export function CrmTagPicker({
+export function EntityTagPicker({
   id,
   label,
   tags,
@@ -25,7 +25,7 @@ export function CrmTagPicker({
   onChange,
   disabled,
   variant = 'default',
-}: CrmTagPickerProps) {
+}: EntityTagPickerProps) {
   const set = new Set(selectedIds);
   const [disclosureOpen, setDisclosureOpen] = useState(false);
 

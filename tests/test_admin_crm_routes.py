@@ -242,7 +242,7 @@ def test_handle_admin_families_delete(
         assert str(family_id) == expected_family_id
         return marker
 
-    monkeypatch.setattr(admin_families, "delete_admin_crm_family", _fake_delete)
+    monkeypatch.setattr(admin_families, "delete_admin_entity_family", _fake_delete)
     monkeypatch.setattr(
         admin_families,
         "extract_identity",
@@ -317,7 +317,7 @@ def test_handle_admin_organizations_delete(
         return marker
 
     monkeypatch.setattr(
-        admin_organizations, "delete_admin_crm_organization", _fake_delete
+        admin_organizations, "delete_admin_entity_organization", _fake_delete
     )
     monkeypatch.setattr(
         admin_organizations,

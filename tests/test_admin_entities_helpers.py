@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_helpers import (
     FAMILY_RELATIONSHIP_TYPES,
     ORGANIZATION_RELATIONSHIP_TYPES,
     request_id,

@@ -9,8 +9,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_entity_deletes import delete_admin_crm_family
-from app.api.admin_crm_helpers import (
+from app.api.admin_entities_deletes import delete_admin_entity_family
+from app.api.admin_entities_helpers import (
     assert_contact_can_join_family,
     request_id,
     ensure_location_exists,
@@ -21,7 +21,7 @@ from app.api.admin_crm_helpers import (
     parse_optional_bool_body,
     replace_family_tags,
 )
-from app.api.admin_crm_serializers import serialize_family_summary
+from app.api.admin_entities_serializers import serialize_family_summary
 from app.api.admin_request import (
     encode_cursor,
     parse_body,
@@ -78,7 +78,7 @@ def handle_admin_families_request(
                 event, family_id=family_id, actor_sub=identity.user_sub
             )
         if method == "DELETE":
-            return delete_admin_crm_family(
+            return delete_admin_entity_family(
                 event, family_id=family_id, actor_sub=identity.user_sub
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)

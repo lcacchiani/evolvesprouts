@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import parse_limit
+from app.api.admin_entities_helpers import parse_limit
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.engine import get_engine
 from app.db.models import Family

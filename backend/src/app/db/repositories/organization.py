@@ -212,8 +212,10 @@ class OrganizationRepository(BaseRepository[Organization]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
-    def get_crm_organization_by_id(self, organization_id: UUID) -> Organization | None:
-        """Load one organization for CRM screens (excludes vendor rows)."""
+    def get_non_vendor_organization_by_id(
+        self, organization_id: UUID
+    ) -> Organization | None:
+        """Load one organization for Contacts (excludes vendor rows)."""
         statement = (
             select(Organization)
             .where(

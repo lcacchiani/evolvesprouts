@@ -7,13 +7,13 @@ import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
 import { OrganizationsPanel } from '@/components/admin/contacts/organizations-panel';
 import { StatusBanner } from '@/components/status-banner';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
-import { listCrmTags, type CrmTagRef } from '@/lib/crm-api';
+import { listEntityTags, type EntityTagRef } from '@/lib/entity-api';
 import { listAllLocations, listGeographicAreas } from '@/lib/services-api';
 import { toErrorMessage } from '@/hooks/hook-errors';
-import { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useAdminEntityContacts } from '@/hooks/use-admin-entity-contacts';
 import { useAdminUsers } from '@/hooks/use-admin-users';
-import { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
-import { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
+import { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
 import { useQueryTabState } from '@/hooks/use-query-tab-state';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 
@@ -35,16 +35,16 @@ export function ContactsPage() {
     CONTACTS_TAB_KEYS,
     DEFAULT_CONTACTS_VIEW
   );
-  const [tags, setTags] = useState<CrmTagRef[]>([]);
+  const [tags, setTags] = useState<EntityTagRef[]>([]);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
   const [geographicAreas, setGeographicAreas] = useState<GeographicAreaSummary[]>([]);
   const [pickerLoading, setPickerLoading] = useState(true);
   const [pickerError, setPickerError] = useState('');
 
-  const contacts = useAdminCrmContacts();
+  const contacts = useAdminEntityContacts();
   const adminUsers = useAdminUsers();
-  const families = useAdminCrmFamilies();
-  const organizations = useAdminCrmOrganizations();
+  const families = useAdminEntityFamilies();
+  const organizations = useAdminEntityOrganizations();
 
   const patchStandaloneNoteCountRef = useRef(contacts.patchContactStandaloneNoteCount);
   useLayoutEffect(() => {
@@ -65,7 +65,7 @@ export function ContactsPage() {
       setPickerLoading(true);
       try {
         const [tagList, locList, areaList] = await Promise.all([
-          listCrmTags(),
+          listEntityTags(),
           listAllLocations(),
           listGeographicAreas({ flat: true, activeOnly: true }),
         ]);
