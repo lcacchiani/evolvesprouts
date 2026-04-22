@@ -269,7 +269,6 @@ def update_contact(
             contact.instagram_handle = ig.lower() if ig else None
         if _phone_fields_in_body(body):
             pair = _parse_contact_phone_pair(body, allow_absent=False)
-            assert pair is not None
             contact.phone_region, contact.phone_national_number = pair
         if "contact_type" in body:
             contact.contact_type = parse_contact_type(

@@ -65,10 +65,11 @@ def country_calling_codes_longest_first() -> tuple[int, ...]:
     """Distinct country calling codes, longest digit-length first (for ``+`` prefix match)."""
     codes: set[int] = set()
     for region in phonenumbers.SUPPORTED_REGIONS:
+        c: int | None
         try:
             c = phonenumbers.country_code_for_region(region)
         except Exception:
-            continue
+            c = None
         if c and c > 0:
             codes.add(int(c))
     return tuple(
