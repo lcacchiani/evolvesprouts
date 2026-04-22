@@ -388,6 +388,15 @@ export function OrganizationsPanel({
             </div>
           ) : null}
           <div className='lg:col-span-2'>
+            <Label htmlFor='crm-org-web'>Website</Label>
+            <Input
+              id='crm-org-web'
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              autoComplete='off'
+            />
+          </div>
+          <div className='lg:col-span-1'>
             <Label htmlFor='crm-org-type'>Organisation type</Label>
             <Select
               id='crm-org-type'
@@ -403,14 +412,20 @@ export function OrganizationsPanel({
               ))}
             </Select>
           </div>
-          <div className='lg:col-span-2'>
-            <Label htmlFor='crm-org-web'>Website</Label>
-            <Input
-              id='crm-org-web'
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              autoComplete='off'
-            />
+          <div className='lg:col-span-1'>
+            {editorMode === 'edit' ? (
+              <>
+                <Label htmlFor='crm-org-active'>Status</Label>
+                <Select
+                  id='crm-org-active'
+                  value={active ? 'true' : 'false'}
+                  onChange={(e) => setActive(e.target.value === 'true')}
+                >
+                  <option value='true'>Active</option>
+                  <option value='false'>Archived</option>
+                </Select>
+              </>
+            ) : null}
           </div>
           <div className='lg:col-span-4'>
             <AdminCollapsibleSection id='crm-org-location' title='Location'>
@@ -454,19 +469,6 @@ export function OrganizationsPanel({
             </AdminCollapsibleSection>
           </div>
           <div className='lg:col-span-4 space-y-4'>
-            {editorMode === 'edit' ? (
-              <div>
-                <Label htmlFor='crm-org-active'>Status</Label>
-                <Select
-                  id='crm-org-active'
-                  value={active ? 'true' : 'false'}
-                  onChange={(e) => setActive(e.target.value === 'true')}
-                >
-                  <option value='true'>Active</option>
-                  <option value='false'>Archived</option>
-                </Select>
-              </div>
-            ) : null}
             <div>
               <EntityTagPicker
                 id='crm-org-tags'
