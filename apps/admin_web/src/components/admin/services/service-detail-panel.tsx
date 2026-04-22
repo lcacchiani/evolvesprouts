@@ -493,6 +493,56 @@ export function ServiceDetailPanel({
               </>
             }
           />
+        ) : serviceType === 'event' ? (
+          <EventFormFields
+            value={eventForm}
+            onChange={setEventForm}
+            layout='service-detail'
+            leadingColumn={
+              <>
+                <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
+                <Select
+                  id='service-delivery-mode'
+                  value={serviceForm.deliveryMode}
+                  onChange={(event) =>
+                    setServiceForm({
+                      ...serviceForm,
+                      deliveryMode: event.target.value as ServiceDeliveryMode,
+                    })
+                  }
+                >
+                  {SERVICE_DELIVERY_MODES.map((entry) => (
+                    <option key={entry} value={entry}>
+                      {formatEnumLabel(entry)}
+                    </option>
+                  ))}
+                </Select>
+              </>
+            }
+            trailingSlot={
+              <>
+                <div>
+                  <Label htmlFor='service-booking-system'>Booking system</Label>
+                  <Input
+                    id='service-booking-system'
+                    value={bookingSystem}
+                    onChange={(event) => setBookingSystem(event.target.value)}
+                    placeholder='e.g. calendly'
+                    maxLength={80}
+                    autoComplete='off'
+                  />
+                </div>
+                <div>
+                  <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+                  <Input
+                    id='service-detail-cover-file-name'
+                    value={coverFileName}
+                    onChange={(event) => setCoverFileName(event.target.value)}
+                  />
+                </div>
+              </>
+            }
+          />
         ) : (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <div>
@@ -528,33 +578,34 @@ export function ServiceDetailPanel({
             </div>
           </div>
         )}
-        {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
         {serviceType === 'consultation' ? (
           <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
         ) : null}
 
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-          <div>
-            <Label htmlFor='service-booking-system'>Booking system</Label>
-            <Input
-              id='service-booking-system'
-              value={bookingSystem}
-              onChange={(event) => setBookingSystem(event.target.value)}
-              placeholder='e.g. calendly'
-              maxLength={80}
-              autoComplete='off'
-            />
+        {serviceType === 'event' ? null : (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div>
+              <Label htmlFor='service-booking-system'>Booking system</Label>
+              <Input
+                id='service-booking-system'
+                value={bookingSystem}
+                onChange={(event) => setBookingSystem(event.target.value)}
+                placeholder='e.g. calendly'
+                maxLength={80}
+                autoComplete='off'
+              />
+            </div>
+            <div>
+              <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+              <Input
+                id='service-detail-cover-file-name'
+                value={coverFileName}
+                onChange={(event) => setCoverFileName(event.target.value)}
+              />
+            </div>
+            <div className='hidden md:block md:col-span-2' aria-hidden />
           </div>
-          <div>
-            <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-            <Input
-              id='service-detail-cover-file-name'
-              value={coverFileName}
-              onChange={(event) => setCoverFileName(event.target.value)}
-            />
-          </div>
-          <div className='hidden md:block md:col-span-2' aria-hidden />
-        </div>
+        )}
 
         {error ? <AdminInlineError>{error}</AdminInlineError> : null}
       </AdminEditorCard>
