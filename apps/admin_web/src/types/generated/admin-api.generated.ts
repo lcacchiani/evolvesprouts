@@ -3302,7 +3302,43 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update organization member
+         * @description Updates membership fields such as primary contact. Membership role is derived from the
+         *     linked contact's `contact_type` (see `POST /v1/admin/organizations/{id}/members`).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                    /** @description Organization membership row identifier. */
+                    memberId: components["parameters"]["AdminOrganizationMemberId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateOrganizationMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization with updated members. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         trace?: never;
     };
     "/v1/admin/expenses": {
@@ -4871,13 +4907,26 @@ export interface components {
              */
             is_primary_contact: boolean;
         };
+        UpdateOrganizationMemberRequest: {
+            /**
+             * @description When true, this member becomes the organisation's sole primary contact. When false, this
+             *     member is cleared as primary (other members are unchanged).
+             */
+            is_primary_contact: boolean;
+        };
         AdminOrganizationMember: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             contact_id: string;
             contact_label: string;
+            /**
+             * @description Stored organisation membership role derived from the contact's `contact_type` (parent,
+             *     helper, and professional map to `staff`; child maps to `member`; other maps to
+             *     `other`).
+             */
             role: components["schemas"]["EntityOrganizationRole"];
+            is_primary_contact: boolean;
         };
         AdminOrganization: {
             /** Format: uuid */
@@ -4938,7 +4987,13 @@ export interface components {
         AddOrganizationMemberRequest: {
             /** Format: uuid */
             contact_id: string;
-            role: components["schemas"]["EntityOrganizationRole"];
+            /**
+             * @deprecated
+             * @description Ignored. Membership role is derived from the contact's `contact_type` (parent, helper,
+             *     and professional map to `staff`; child maps to `member`; other maps to `other`).
+             */
+            role?: string;
+            is_primary_contact?: boolean;
         };
         ActionMessageResponse: {
             message: string;

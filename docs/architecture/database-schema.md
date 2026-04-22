@@ -407,7 +407,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   among partner rows with a non-null slug (partial unique index).
 - `organizations.location_id` optionally links an organization to a canonical
   row in `locations` for address management.
-- `organization_members` links contacts to organizations with role/title.
+- `organization_members` links contacts to organizations with role/title and an optional
+  primary-contact flag (at most one primary per organisation in normal admin use).
 - Membership rows use `ON DELETE CASCADE`.
 
 ### `tags`, `contact_tags`, `family_tags`, `organization_tags`, `asset_tags`

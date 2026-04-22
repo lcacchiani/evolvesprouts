@@ -402,6 +402,7 @@ class ContactsImporter:
                                     organization_id=membership_parent,
                                     contact_id=reuse_id,
                                     role=_org_role(p.kind),
+                                    is_primary_contact=False,
                                     title=_title_trim(p.occupation),
                                 ),
                             )
@@ -525,6 +526,7 @@ class ContactsImporter:
                             organization_id=parent_uuid,
                             contact_id=contact_uuid,
                             role=_org_role(p.kind),
+                            is_primary_contact=False,
                             title=_title_trim(p.occupation),
                         ),
                     )

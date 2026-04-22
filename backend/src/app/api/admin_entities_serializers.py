@@ -194,6 +194,7 @@ def serialize_organization_member_row(member: OrganizationMember) -> dict[str, A
         "contact_id": str(member.contact_id),
         "contact_label": label,
         "role": member.role.value,
+        "is_primary_contact": member.is_primary_contact,
     }
 
 
