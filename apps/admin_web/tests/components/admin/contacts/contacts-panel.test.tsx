@@ -135,6 +135,67 @@ describe('ContactsPanel', () => {
     expect(loadMore).toHaveBeenCalled();
   });
 
+  it('shows family and organisation emoji after the name when the contact is linked', () => {
+    const baseRow = {
+      id: '11111111-1111-1111-1111-111111111111',
+      email: null,
+      instagram_handle: null,
+      phone: null,
+      contact_type: 'parent' as const,
+      relationship_type: 'prospect' as const,
+      source: 'manual' as const,
+      mailchimp_status: 'pending' as const,
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      standalone_note_count: 0,
+    };
+    const familyOnly: components['schemas']['AdminContact'] = {
+      ...baseRow,
+      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      first_name: 'Ann',
+      last_name: 'Family',
+      family_ids: ['fam-1'],
+      organization_ids: [],
+    };
+    const orgOnly: components['schemas']['AdminContact'] = {
+      ...baseRow,
+      id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      first_name: 'Bob',
+      last_name: 'Org',
+      family_ids: [],
+      organization_ids: ['org-1'],
+    };
+    const both: components['schemas']['AdminContact'] = {
+      ...baseRow,
+      id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      first_name: 'Pat',
+      last_name: 'Both',
+      family_ids: ['fam-2'],
+      organization_ids: ['org-2'],
+    };
+    const contacts = buildContactsHook({ contacts: [familyOnly, orgOnly, both] });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    expect(screen.getByText(/Ann Family/)).toHaveTextContent('Ann Family 👨‍👩‍👧');
+    expect(screen.getByText(/Bob Org/)).toHaveTextContent('Bob Org 🏢');
+    expect(screen.getByText(/Pat Both/)).toHaveTextContent('Pat Both 👨‍👩‍👧 🏢');
+  });
+
   it('calls deleteContact when Delete is confirmed', async () => {
     const user = userEvent.setup();
     const deleteContact = vi.fn().mockResolvedValue(undefined);
