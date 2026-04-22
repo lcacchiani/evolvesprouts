@@ -23,7 +23,7 @@ export interface TrainingFormFieldsProps {
   /**
    * When set with `layout="service-detail"`, renders a single md+ row of equal
    * columns: optional leading column (e.g. delivery mode), optional column before
-   * pricing unit, then pricing unit, default price, and currency.
+   * pricing unit (e.g. instance instructor), then pricing unit, price, and currency.
    */
   leadingColumn?: ReactNode;
   /** Renders immediately before the pricing unit column when `layout="service-detail"`. */
@@ -51,7 +51,9 @@ export function TrainingFormFields({
         ? 'grid grid-cols-1 gap-3 sm:grid-cols-3'
         : serviceDetailColumnCount === 4
           ? 'grid grid-cols-1 gap-3 md:grid-cols-4'
-          : 'grid grid-cols-1 gap-3 md:grid-cols-5'
+          : serviceDetailColumnCount === 5
+            ? 'grid grid-cols-1 gap-3 md:grid-cols-5'
+            : 'grid grid-cols-1 gap-3 md:grid-cols-6'
       : 'grid grid-cols-1 gap-3 sm:grid-cols-3';
 
   return (
@@ -77,7 +79,7 @@ export function TrainingFormFields({
           </Select>
         </div>
         <div>
-          <Label htmlFor='training-default-price'>Default price</Label>
+          <Label htmlFor='training-default-price'>Price</Label>
           <Input
             id='training-default-price'
             value={value.defaultPrice}
