@@ -24,7 +24,7 @@ from app.db.models import (
     OrganizationMember,
     RelationshipType,
 )
-from app.db.models.enums import FamilyRole, OrganizationRole
+from app.db.models.enums import FamilyRole
 from app.db.models.organization import organization_membership_role_from_contact_type
 from app.exceptions import ValidationError
 from app.utils.logging import get_logger
