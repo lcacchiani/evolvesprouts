@@ -307,13 +307,22 @@ def parse_optional_uuid(value: Any, field: str) -> UUID | None:
         raise ValidationError(f"{field} must be a valid UUID", field=field) from exc
 
 
-def parse_uuid_list(value: Any, field: str) -> list[UUID]:
+def parse_uuid_list(
+    value: Any, field: str, *, reject_empty_members: bool = False
+) -> list[UUID]:
     if value is None:
         return []
     if not isinstance(value, list):
         raise ValidationError(f"{field} must be a list of UUID strings", field=field)
     parsed: list[UUID] = []
     for idx, entry in enumerate(value):
+        if reject_empty_members and (
+            entry is None or (isinstance(entry, str) and entry.strip() == "")
+        ):
+            raise ValidationError(
+                f"{field}[{idx}] must be a non-empty UUID string",
+                field=field,
+            )
         parsed_value = parse_optional_uuid(entry, f"{field}[{idx}]")
         if parsed_value is not None:
             parsed.append(parsed_value)

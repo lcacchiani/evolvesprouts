@@ -440,6 +440,14 @@ def parse_update_instance_payload(
         raise ValidationError("status is required for PUT", field="status")
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")
+    if service.service_type == ServiceType.EVENT and "type_details" not in payload:
+        non_status = {key for key in payload if key != "status"}
+        if non_status:
+            raise ValidationError(
+                "event_ticket_tiers (or nested event tier fields) is required when "
+                "updating other fields on an event instance",
+                field="event_ticket_tiers",
+            )
     return payload
 
 

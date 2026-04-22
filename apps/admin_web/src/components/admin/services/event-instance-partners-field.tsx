@@ -65,7 +65,10 @@ export function EventInstancePartnersField({
     <div className='space-y-2'>
       <Label htmlFor='event-instance-partner-orgs'>Partner organisations</Label>
       {loadError ? <p className='text-xs text-amber-700'>{loadError}</p> : null}
-      <div className='flex min-h-8 flex-wrap gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1'>
+      <div
+        className='flex min-h-8 flex-wrap gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1'
+        aria-label='Selected partner organisations'
+      >
         {value.length === 0 ? (
           <span className='text-xs text-slate-500'>None selected</span>
         ) : (
@@ -84,17 +87,27 @@ export function EventInstancePartnersField({
         id='event-instance-partner-orgs'
         multiple
         disabled={disabled}
+        aria-describedby='event-instance-partner-orgs-hint'
         className='min-h-28 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm'
         value={selectedIds}
         onChange={(event) => {
           const selected = new Set(
             Array.from(event.target.selectedOptions, (option) => option.value)
           );
+          const stickyKeep = value.filter((row) => !row.active);
           const next: PartnerOrgRef[] = [];
+          for (const ref of stickyKeep) {
+            next.push(ref);
+          }
           for (const id of selected) {
+            if (stickyKeep.some((row) => row.id === id)) {
+              continue;
+            }
             const fromValue = value.find((row) => row.id === id);
             if (fromValue) {
-              next.push(fromValue);
+              if (!next.some((row) => row.id === fromValue.id)) {
+                next.push(fromValue);
+              }
               continue;
             }
             const fromPicker = pickerItems.find((row) => row.id === id);
@@ -111,7 +124,10 @@ export function EventInstancePartnersField({
           </option>
         ))}
       </select>
-      <p className='text-xs text-slate-500'>Hold Ctrl or Cmd to select multiple partners.</p>
+      <p id='event-instance-partner-orgs-hint' className='text-xs text-slate-500'>
+        Selected partners are listed above. Hold Ctrl or Cmd in the list below to add or remove active
+        partners; archived partners stay linked until you remove them from the list.
+      </p>
     </div>
   );
 }

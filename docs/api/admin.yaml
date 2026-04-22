@@ -3751,6 +3751,7 @@ components:
         external_url:
           type: string
           format: uri
+          pattern: ^https?://
           nullable: true
           maxLength: 500
           description: >
@@ -3884,6 +3885,7 @@ components:
         external_url:
           type: string
           format: uri
+          pattern: ^https?://
           nullable: true
           maxLength: 500
         partner_organization_ids:

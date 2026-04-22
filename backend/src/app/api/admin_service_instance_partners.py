@@ -21,7 +21,9 @@ logger = get_logger(__name__)
 def parse_partner_organization_ids(body: Mapping[str, Any]) -> list[UUID]:
     """Parse partner_organization_ids; dedupe while preserving order."""
     raw = parse_uuid_list(
-        body.get("partner_organization_ids"), "partner_organization_ids"
+        body.get("partner_organization_ids"),
+        "partner_organization_ids",
+        reject_empty_members=True,
     )
     seen: set[UUID] = set()
     ordered: list[UUID] = []

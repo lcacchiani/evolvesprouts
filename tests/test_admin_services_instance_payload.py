@@ -29,3 +29,11 @@ def test_parse_partner_organization_ids_dedupes_preserving_order() -> None:
         {"partner_organization_ids": [str(a), str(b), str(a), str(b)]}
     )
     assert raw == [a, b]
+
+
+def test_parse_partner_organization_ids_rejects_empty_string_entry() -> None:
+    with pytest.raises(ValidationError) as exc:
+        parse_partner_organization_ids(
+            {"partner_organization_ids": [str(uuid4()), "  "]}
+        )
+    assert exc.value.field == "partner_organization_ids"

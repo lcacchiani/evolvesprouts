@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ConsultationInstanceRowDFields,
@@ -303,6 +303,11 @@ export function InstanceDetailPanel({
   const canSubmit = Boolean(selectedServiceId);
   const typeFieldsLocked = !selectedServiceId;
 
+  const resolvedEventCategory = useMemo(
+    () => resolveInheritedEventCategory(selectedService, instance),
+    [selectedService, instance]
+  );
+
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
@@ -334,19 +339,48 @@ export function InstanceDetailPanel({
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (effectiveServiceType === 'event') {
-      const eventCategory = resolveInheritedEventCategory(selectedService, instance);
       const priceStr = eventForm.defaultPrice.trim();
       const currencyStr = (eventForm.defaultCurrency || defaultCurrencyCode).trim();
-      payload.event_ticket_tiers = [
-        {
-          name: eventCategory,
-          description: null,
-          price: priceStr.length ? priceStr : null,
-          currency: currencyStr.length ? currencyStr : null,
-          max_quantity: null,
-          sort_order: 0,
-        },
-      ];
+      const tiers = instance?.eventTicketTiers ?? [];
+      if (tiers.length > 1) {
+        payload.event_ticket_tiers = tiers.map((tier, index) => ({
+          name: tier.name,
+          description: tier.description,
+          price:
+            tier.name === resolvedEventCategory
+              ? priceStr
+              : (tier.price ?? '0'),
+          currency:
+            tier.name === resolvedEventCategory
+              ? (currencyStr || defaultCurrencyCode)
+              : (tier.currency ?? defaultCurrencyCode),
+          max_quantity: tier.maxQuantity,
+          sort_order: tier.sortOrder ?? index,
+        }));
+      } else if (tiers.length === 1) {
+        const t = tiers[0];
+        payload.event_ticket_tiers = [
+          {
+            name: t.name,
+            description: t.description,
+            price: priceStr,
+            currency: currencyStr || defaultCurrencyCode,
+            max_quantity: t.maxQuantity,
+            sort_order: t.sortOrder ?? 0,
+          },
+        ];
+      } else {
+        payload.event_ticket_tiers = [
+          {
+            name: resolvedEventCategory,
+            description: null,
+            price: priceStr,
+            currency: currencyStr || defaultCurrencyCode,
+            max_quantity: null,
+            sort_order: 0,
+          },
+        ];
+      }
     } else {
       payload.consultation_details = {
         pricing_model: consultationForm.pricingModel,
@@ -371,6 +405,9 @@ export function InstanceDetailPanel({
     Boolean(instanceForm.externalUrl.trim()) &&
     !/^https?:\/\//i.test(instanceForm.externalUrl.trim());
 
+  const eventPriceMissing =
+    effectiveServiceType === 'event' && !eventForm.defaultPrice.trim();
+
   return (
     <AdminEditorCard
       title='Instance'
@@ -385,7 +422,7 @@ export function InstanceDetailPanel({
                 </Button>
                 <Button
                   type='button'
-                  disabled={isLoading || !instance || externalUrlInvalid}
+                  disabled={isLoading || !instance || externalUrlInvalid || eventPriceMissing}
                   onClick={() => {
                     if (!instance || !selectedServiceId) {
                       return;
@@ -399,7 +436,7 @@ export function InstanceDetailPanel({
             ) : (
               <Button
                 type='button'
-                disabled={isLoading || !selectedServiceId || externalUrlInvalid}
+                disabled={isLoading || !selectedServiceId || externalUrlInvalid || eventPriceMissing}
                 onClick={() => {
                   if (!selectedServiceId) {
                     return;
@@ -457,10 +494,12 @@ export function InstanceDetailPanel({
             <EventCategoryControl
               value={{
                 ...eventForm,
-                eventCategory: resolveInheritedEventCategory(selectedService, instance),
+                eventCategory: resolvedEventCategory,
               }}
               disabled={typeFieldsLocked}
-              onChange={setEventForm}
+              onChange={(next) =>
+                setEventForm({ ...next, eventCategory: resolvedEventCategory })
+              }
               categoryReadOnly
               categoryFieldId='instance-event-category'
             />
@@ -543,6 +582,9 @@ export function InstanceDetailPanel({
         onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
       />
 
+      {effectiveServiceType === 'event' && eventPriceMissing ? (
+        <AdminInlineError>Enter a price for this event instance.</AdminInlineError>
+      ) : null}
       {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
       {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>

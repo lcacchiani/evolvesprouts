@@ -525,6 +525,14 @@ and strip the corresponding fields from the admin OpenAPI contract (version bump
 simplifies consultation services/instances and avoids maintaining unused PII-adjacent
 URLs. **Data loss:** upgrade drops stored values; downgrade re-adds nullable columns only.
 
+**Same contract bump (0.3.0):** Admin instance ``event_ticket_tiers`` request entries may
+omit ``price`` / ``currency`` / ``name`` when the server fills from ``event_details``
+defaults; ``PUT`` updates that touch other fields on an event instance must still
+include ``event_ticket_tiers`` (or nested tier fields) so tier rows are not skipped
+silently. Multi-tier instances accept a single-tier payload only when one tier's
+``name`` matches the service event category (otherwise the client must send the full
+array, one object per tier).
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

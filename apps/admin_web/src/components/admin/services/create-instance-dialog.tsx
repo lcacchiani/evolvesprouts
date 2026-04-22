@@ -8,7 +8,12 @@ import type { components } from '@/types/generated/admin-api.generated';
 import type { ServiceType } from '@/types/services';
 
 import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
-import { EventFormFields, type EventFormState } from './event-form-fields';
+import {
+  EventCategoryControl,
+  EventDefaultCurrencyControl,
+  EventDefaultPriceControl,
+  type EventFormState,
+} from './event-form-fields';
 import {
   DEFAULT_CONSULTATION_FORM,
   DEFAULT_EVENT_FORM,
@@ -50,6 +55,8 @@ export function CreateInstanceDialog({
     DEFAULT_CONSULTATION_FORM
   );
 
+  const eventPriceMissing = serviceType === 'event' && !eventForm.defaultPrice.trim();
+
   const handleSubmit = async () => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
@@ -88,8 +95,8 @@ export function CreateInstanceDialog({
         {
           name: eventForm.eventCategory,
           description: null,
-          price: priceStr.length ? priceStr : null,
-          currency: currencyStr.length ? currencyStr : null,
+          price: priceStr,
+          currency: currencyStr || 'HKD',
           max_quantity: null,
           sort_order: 0,
         },
@@ -114,6 +121,7 @@ export function CreateInstanceDialog({
       isLoading={isLoading}
       error={error}
       submitLabel='Create instance'
+      submitDisabled={eventPriceMissing}
       onClose={onClose}
       onSubmit={handleSubmit}
     >
@@ -129,14 +137,26 @@ export function CreateInstanceDialog({
           <div className='sm:col-span-1' />
         </div>
       ) : null}
+      {serviceType === 'consultation' || serviceType === 'event' ? (
+        <div className='mt-3'>
+          <InstanceInstructorField
+            value={instanceForm.instructorId}
+            onChange={(instructorId) =>
+              setInstanceForm((prev) => ({ ...prev, instructorId }))
+            }
+          />
+        </div>
+      ) : null}
       {serviceType === 'training_course' ? (
         <div className='mt-3'>
           <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
         </div>
       ) : null}
       {serviceType === 'event' ? (
-        <div className='mt-3'>
-          <EventFormFields value={eventForm} onChange={setEventForm} />
+        <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+          <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='dialog-event-category' />
+          <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
+          <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
         </div>
       ) : null}
       {serviceType === 'event' ? (
