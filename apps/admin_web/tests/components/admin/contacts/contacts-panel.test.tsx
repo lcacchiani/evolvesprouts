@@ -202,7 +202,8 @@ describe('ContactsPanel', () => {
     expect(screen.getByText(/Pat Both/)).toHaveTextContent('Pat Both 👨‍👩‍👧 🏢');
   });
 
-  it('shows read-only family and organisation venue lines in the Location column', () => {
+  it('shows read-only family and organisation venue lines in the Location box when the row is selected', async () => {
+    const user = userEvent.setup();
     const summary = {
       id: 'loc-1',
       name: 'Studio',
@@ -248,6 +249,8 @@ describe('ContactsPanel', () => {
         refreshLocations={noopRefresh}
       />
     );
+
+    await user.click(screen.getByText('Pat Both'));
 
     const familyLines = screen.getAllByText(/👨‍👩‍👧 1 Road · Hong Kong/);
     expect(familyLines.length).toBeGreaterThanOrEqual(1);
@@ -384,7 +387,7 @@ describe('ContactsPanel', () => {
 
     await user.click(screen.getByText('Ann Lee'));
 
-    expect(screen.getAllByText('1 Road · Hong Kong').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/👨‍👩‍👧 1 Road · Hong Kong/).length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByText('Location is managed on the linked family or organisation.')
     ).toBeInTheDocument();
