@@ -139,8 +139,11 @@ def _handle_public_reservation(
                 source_detail="public-www-booking",
                 contact_type=ContactType.PARENT,
             )
-            contact.phone_region = reservation_payload["phone_region"]
-            contact.phone_national_number = reservation_payload["phone_national_number"]
+            new_region = reservation_payload["phone_region"]
+            new_national = reservation_payload["phone_national_number"]
+            if contact.phone_region is None or contact.phone_national_number is None:
+                contact.phone_region = new_region
+                contact.phone_national_number = new_national
             contact_repo.update(contact)
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],

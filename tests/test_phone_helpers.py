@@ -26,9 +26,14 @@ def test_validate_phone_region_invalid() -> None:
 
 
 def test_validate_phone_fields_hk() -> None:
-    r, n = validate_phone_fields("HK", "9123 4567")
+    r, n = validate_phone_fields("HK", "91234567")
     assert r == "HK"
     assert n == "91234567"
+
+
+def test_validate_phone_fields_rejects_non_digit_input() -> None:
+    with pytest.raises(ValidationError):
+        validate_phone_fields("HK", "9123 4567")
 
 
 def test_validate_phone_fields_requires_pair() -> None:
@@ -39,6 +44,12 @@ def test_validate_phone_fields_requires_pair() -> None:
 def test_format_phone_e164_and_international() -> None:
     assert format_phone_e164("HK", "91234567") == "+85291234567"
     assert format_phone_international("HK", "91234567") is not None
+
+
+def test_format_phone_e164_accepts_possible_not_only_valid() -> None:
+    """Align read-time formatting with migration soft gate (possible numbers)."""
+    assert format_phone_e164("HK", "90000000") == "+85290000000"
+    assert format_phone_international("HK", "90000000") is not None
 
 
 def test_strip_phone_search_term() -> None:

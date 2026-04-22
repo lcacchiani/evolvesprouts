@@ -63,7 +63,6 @@ def _phone_search_predicates(query: str) -> list:
     """Build OR conditions for phone search (region + national columns)."""
     from app.db.repositories.organization import _escape_like_pattern
     from app.utils.phone import (
-        country_calling_codes_longest_first,
         default_phone_region,
         strip_phone_search_term,
         try_parse_international_digit_string,
@@ -79,32 +78,25 @@ def _phone_search_predicates(query: str) -> list:
         body = normalized[1:]
         if not body.isdigit():
             return []
-        for cc in country_calling_codes_longest_first():
-            cc_s = str(cc)
-            if not body.startswith(cc_s):
-                continue
-            national_rest = body[len(cc_s) :]
-            if not national_rest:
-                continue
-            region = phonenumbers.region_code_for_country_code(cc)
-            if not region:
-                continue
-            escaped_prefix = _escape_like_pattern(national_rest)
-            escaped_sub = _escape_like_pattern(national_rest)
-            prefix_pat = f"{escaped_prefix}%"
-            sub_pat = f"%{escaped_sub}%"
+        intl = try_parse_international_digit_string(body)
+        if intl is not None:
+            r, nsn = intl
+            escaped_nsn = _escape_like_pattern(nsn)
+            prefix_pat = f"{escaped_nsn}%"
+            sub_pat = f"%{escaped_nsn}%"
             preds.append(
                 and_(
-                    Contact.phone_region == region,
+                    Contact.phone_region == r,
                     or_(
                         Contact.phone_national_number.ilike(prefix_pat, escape="\\"),
                         Contact.phone_national_number.ilike(sub_pat, escape="\\"),
                     ),
                 )
             )
-            preds.append(
-                Contact.phone_national_number.ilike(sub_pat, escape="\\"),
-            )
+        escaped_body = _escape_like_pattern(body)
+        preds.append(
+            Contact.phone_national_number.ilike(f"%{escaped_body}%", escape="\\"),
+        )
         return preds
 
     digits_only = "".join(ch for ch in normalized if ch.isdigit())

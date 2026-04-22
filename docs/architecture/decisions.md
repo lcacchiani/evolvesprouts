@@ -487,6 +487,18 @@ parameters) when the client omits an explicit region.
 display/API), keeps validation and search aligned with one source of truth,
 and avoids denormalised E.164 maintenance.
 
+**Migration caveat:** Alembic backfill uses ``is_possible_number`` so legacy
+strings are not dropped unnecessarily. Read-time E.164 / international formatting
+accepts the same possible-or-valid gate so admin and exports stay consistent with
+stored rows.
+
+**Rollback:** After upgrade, rows that could not be parsed have NULL phone fields
+and the legacy ``phone`` string is gone; downgrade cannot reconstruct them.
+
+**Search indexing:** Btree / composite indexes accelerate exact region + national
+match and anchored-prefix ``ILIKE``; substring ``ILIKE '%…%'`` remains a sequential
+scan at CRM scale (by design).
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

@@ -200,5 +200,5 @@ class Contact(Base):
 
     @phone_e164.expression  # type: ignore[no-redef]
     def phone_e164(cls) -> object:  # noqa: N805
-        """SQL expression placeholder; prefer Python ``format_phone_e164`` for serialization."""
+        """Always NULL in SQL — do not use in SELECT; use Python ``phone_e164`` or serializers."""
         return null().label("phone_e164")

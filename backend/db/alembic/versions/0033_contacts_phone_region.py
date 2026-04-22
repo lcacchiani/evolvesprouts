@@ -8,12 +8,24 @@ Seed-data assessment (``backend/db/seed/seed_data.sql``):
 5. Enum: N/A.
 6. FK order: N/A.
 
+**Irreversible data on parse failure:** Rows whose legacy ``phone`` cannot be parsed
+leave ``phone_region`` / ``phone_national_number`` as NULL and the legacy column is
+then dropped. **Downgrade cannot recover** those values (the old string is gone).
+Operators who need rollback fidelity must export or fix ``contacts.phone`` before
+upgrade.
+
+**Backfill vs read-time formatting:** Migration backfill uses
+``phonenumbers.is_possible_number`` (soft gate) so borderline legacy strings are not
+discarded. API read paths format E.164 / international using
+``is_valid_number OR is_possible_number`` so those stored rows still display.
+
 Idempotency: if ``phone`` was already dropped, upgrade skips backfill and only ensures
 indexes and check constraints exist (constraints are added only when missing).
 
 Dry-run: set ``PHONE_MIGRATION_DRY_RUN=true`` to scan legacy ``phone`` values, log
 masked per-row warnings and summary counts, then **abort** before any DDL so the
-revision is not stamped.
+revision is not stamped. If ``contacts.phone`` is already absent, dry-run exits with
+a message that there is nothing to assess (upgrade would also skip backfill).
 """
 
 from __future__ import annotations
@@ -35,7 +47,9 @@ _BATCH_SIZE = 500
 
 
 def _migration_parse_phone(phone: str) -> tuple[str | None, str | None] | None:
-    from app.utils.legacy_phone_migration import parse_legacy_contact_phone_for_migration
+    from app.utils.legacy_phone_migration import (
+        parse_legacy_contact_phone_for_migration,
+    )
 
     return parse_legacy_contact_phone_for_migration(phone)
 
@@ -54,9 +68,13 @@ def _dry_run_analysis(bind: Connection) -> None:
         )
     col_names = {c["name"] for c in insp.get_columns("contacts")}
     if "phone" not in col_names:
-        logger.warning("contacts.phone already absent; dry-run has nothing to scan")
+        logger.warning(
+            "contacts.phone already absent; dry-run has nothing to scan "
+            "(upgrade backfill would also be skipped)"
+        )
         raise RuntimeError(
-            "PHONE_MIGRATION_DRY_RUN is set; unset and re-run to apply migration"
+            "PHONE_MIGRATION_DRY_RUN: nothing to assess (legacy phone column already "
+            "removed). Unset PHONE_MIGRATION_DRY_RUN — no migration action pending."
         )
 
     last_id = None
@@ -128,9 +146,7 @@ def _ensure_check_constraints() -> None:
         op.create_check_constraint(
             "ck_contacts_phone_pair",
             "contacts",
-            sa.text(
-                "(phone_region IS NULL) = (phone_national_number IS NULL)"
-            ),
+            sa.text("(phone_region IS NULL) = (phone_national_number IS NULL)"),
         )
 
 
@@ -282,6 +298,7 @@ def downgrade() -> None:
                 )
             except NumberParseException:
                 e164 = ""
+            # E.164 max length is 15 digits + leading '+' (≤16); column is varchar(30).
             phone_val = (e164 or "")[:30]
             bind.execute(
                 text("UPDATE contacts SET phone = :p WHERE id = :id"),

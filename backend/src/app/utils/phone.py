@@ -16,9 +16,6 @@ def default_phone_region() -> str:
     return raw if len(raw) == 2 and raw.isalpha() else "HK"
 
 
-DEFAULT_PHONE_REGION = default_phone_region()
-
-
 def format_phone_e164(region: str | None, national_number: str | None) -> str | None:
     """Format stored region + national digits to E.164, or None if incomplete."""
     if not region or not national_number:
@@ -31,7 +28,9 @@ def format_phone_e164(region: str | None, national_number: str | None) -> str | 
         parsed = phonenumbers.parse(digits, region_u)
     except NumberParseException:
         return None
-    if not phonenumbers.is_valid_number(parsed):
+    if not (
+        phonenumbers.is_valid_number(parsed) or phonenumbers.is_possible_number(parsed)
+    ):
         return None
     return phonenumbers.format_number(parsed, PhoneNumberFormat.E164)
 
@@ -50,7 +49,9 @@ def format_phone_international(
         parsed = phonenumbers.parse(digits, region_u)
     except NumberParseException:
         return None
-    if not phonenumbers.is_valid_number(parsed):
+    if not (
+        phonenumbers.is_valid_number(parsed) or phonenumbers.is_possible_number(parsed)
+    ):
         return None
     return phonenumbers.format_number(parsed, PhoneNumberFormat.INTERNATIONAL)
 
@@ -61,7 +62,7 @@ def strip_phone_search_term(term: str) -> str:
 
 
 def country_calling_codes_longest_first() -> tuple[int, ...]:
-    """Distinct country calling codes, longest-first (for ``+`` search prefix match)."""
+    """Distinct country calling codes, longest digit-length first (for ``+`` prefix match)."""
     codes: set[int] = set()
     for region in phonenumbers.SUPPORTED_REGIONS:
         try:
@@ -70,7 +71,9 @@ def country_calling_codes_longest_first() -> tuple[int, ...]:
             continue
         if c and c > 0:
             codes.add(int(c))
-    return tuple(sorted(codes, reverse=True))
+    return tuple(
+        sorted(codes, key=lambda c: (len(str(c)), c), reverse=True),
+    )
 
 
 _CC_CACHE: tuple[int, ...] | None = None
@@ -103,7 +106,10 @@ def try_parse_international_digit_string(
             parsed = phonenumbers.parse(national, region)
         except NumberParseException:
             continue
-        if not phonenumbers.is_valid_number(parsed):
+        if not (
+            phonenumbers.is_valid_number(parsed)
+            or phonenumbers.is_possible_number(parsed)
+        ):
             continue
         resolved = phonenumbers.region_code_for_number(parsed)
         if not resolved or resolved == "ZZ":

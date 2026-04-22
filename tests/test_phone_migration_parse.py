@@ -21,3 +21,13 @@ def test_migration_parse_default_region() -> None:
     r, n = parse_legacy_contact_phone_for_migration("91234567")  # type: ignore[assignment]
     assert r == "HK"
     assert n == "91234567"
+
+
+def test_migration_parse_possible_but_not_strictly_valid_still_stored() -> None:
+    """Backfill uses is_possible_number; same digits must format on read."""
+    from app.utils.phone import format_phone_e164
+
+    r, n = parse_legacy_contact_phone_for_migration("90000000")  # type: ignore[assignment]
+    assert r == "HK"
+    assert n == "90000000"
+    assert format_phone_e164(r, n) == "+85290000000"

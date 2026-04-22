@@ -93,12 +93,9 @@ def handle_public_contact_us(
                 contact_type=ContactType.PARENT,
             )
             if (
-                normalized["phone_number"] is None
-                or str(normalized["phone_number"]).strip() == ""
+                normalized["phone_number"] is not None
+                and str(normalized["phone_number"]).strip()
             ):
-                contact.phone_region = None
-                contact.phone_national_number = None
-            else:
                 region = normalized["phone_country"] or default_phone_region()
                 contact.phone_region, contact.phone_national_number = (
                     validate_phone_fields(region, normalized["phone_number"])

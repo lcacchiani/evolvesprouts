@@ -277,6 +277,11 @@ def validate_phone_fields(
     normalized_number = re.sub(r"\D", "", number)
     if not number:
         raise ValidationError("phone_number is required", field="phone_number")
+    if number != normalized_number:
+        raise ValidationError(
+            "phone_number must contain digits only (no spaces or punctuation)",
+            field="phone_number",
+        )
     if len(normalized_number) > MAX_PHONE_NUMBER_LENGTH:
         raise ValidationError(
             f"phone_number must be at most {MAX_PHONE_NUMBER_LENGTH} digits",
@@ -287,7 +292,7 @@ def validate_phone_fields(
     from phonenumbers.phonenumberutil import NumberParseException
 
     try:
-        parsed = phonenumbers.parse(number, region)
+        parsed = phonenumbers.parse(normalized_number, region)
     except NumberParseException as exc:
         raise ValidationError(
             "phone_number must be a valid number",

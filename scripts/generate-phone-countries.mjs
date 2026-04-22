@@ -3,16 +3,37 @@
  * Generate shared phone country metadata for admin_web and public_www.
  * Reads libphonenumber-js `metadata.min.json` (same source as backend phonenumbers).
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
-const metadataPath = join(
-  repoRoot,
-  "apps/admin_web/node_modules/libphonenumber-js/metadata.min.json"
-);
+const require = createRequire(import.meta.url);
+
+function resolveMetadataPath() {
+  const candidates = [
+    join(repoRoot, "apps/admin_web/node_modules/libphonenumber-js/metadata.min.json"),
+    join(repoRoot, "apps/public_www/node_modules/libphonenumber-js/metadata.min.json"),
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) {
+      return p;
+    }
+  }
+  try {
+    return require.resolve("libphonenumber-js/metadata.min.json", {
+      paths: [join(repoRoot, "apps/admin_web"), join(repoRoot, "apps/public_www")],
+    });
+  } catch {
+    throw new Error(
+      "Could not find libphonenumber-js/metadata.min.json. Run npm install in apps/admin_web or apps/public_www.",
+    );
+  }
+}
+
+const metadataPath = resolveMetadataPath();
 
 /** ~30 high-signal regions for Evolve Sprouts; remainder follow alphabetically. */
 const PREFERRED_REGION_ORDER = [
@@ -65,6 +86,7 @@ const ordered = [
   ...rest,
 ];
 
+// English names only (shared across locales); localized labels would need per-locale generated tables.
 const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
 
 const rows = ordered.map((region) => {
