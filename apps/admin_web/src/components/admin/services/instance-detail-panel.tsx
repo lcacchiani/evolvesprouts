@@ -103,6 +103,7 @@ export function InstanceDetailPanel({
     instance
       ? {
           title: instance.title ?? '',
+          slug: instance.slug ?? '',
           description: instance.description ?? '',
           status: instance.status,
           deliveryMode: instance.deliveryMode ?? '',
@@ -184,6 +185,46 @@ export function InstanceDetailPanel({
     });
   }, [instance, selectedServiceId, serviceOptions]);
 
+  useEffect(() => {
+    if (!instance) {
+      return;
+    }
+    queueMicrotask(() => {
+      setInstanceForm({
+        title: instance.title ?? '',
+        slug: instance.slug ?? '',
+        description: instance.description ?? '',
+        status: instance.status,
+        deliveryMode: instance.deliveryMode ?? '',
+        locationId: instance.locationId ?? '',
+        maxCapacity: instance.maxCapacity?.toString() ?? '',
+        waitlistEnabled: instance.waitlistEnabled,
+        instructorId: instance.instructorId ?? '',
+        notes: instance.notes ?? '',
+        sessionSlots: instance.sessionSlots,
+      });
+      setTrainingForm({
+        pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
+        defaultPrice: instance.trainingDetails?.price ?? '',
+        defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
+      });
+      setEventForm({
+        eventCategory: 'workshop',
+      });
+      setConsultationForm({
+        consultationFormat: 'one_on_one',
+        maxGroupSize: '',
+        durationMinutes: '60',
+        pricingModel: instance.consultationDetails?.pricingModel ?? 'free',
+        defaultHourlyRate: instance.consultationDetails?.price ?? '',
+        defaultPackagePrice: '',
+        defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
+        defaultCurrency: instance.consultationDetails?.currency ?? defaultCurrencyCode,
+        calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
+      });
+    });
+  }, [instance]);
+
   const selectedService =
     serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null;
   const effectiveServiceType = serviceType ?? selectedService?.serviceType ?? 'training_course';
@@ -191,8 +232,10 @@ export function InstanceDetailPanel({
   const typeFieldsLocked = !selectedServiceId;
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
+    const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
+      slug: slugTrimmed || null,
       description: instanceForm.description.trim() || null,
       status: instanceForm.status,
       delivery_mode: instanceForm.deliveryMode || undefined,

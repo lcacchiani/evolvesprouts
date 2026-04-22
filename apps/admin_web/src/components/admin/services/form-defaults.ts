@@ -36,6 +36,7 @@ export const DEFAULT_CONSULTATION_FORM: ConsultationFormState = {
 
 export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
   title: '',
+  slug: '',
   description: '',
   status: 'scheduled',
   deliveryMode: '',

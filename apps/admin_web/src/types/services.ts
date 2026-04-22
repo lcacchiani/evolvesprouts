@@ -191,6 +191,8 @@ export interface ServiceInstance {
   parentServiceTitle: string | null;
   parentServiceType: ServiceType | null;
   title: string | null;
+  /** Lowercase URL slug from Aurora; null when unset. */
+  slug: string | null;
   description: string | null;
   coverImageS3Key: string | null;
   status: InstanceStatus;

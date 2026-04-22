@@ -3775,6 +3775,12 @@ components:
         title:
           type: string
           nullable: true
+        slug:
+          type: string
+          nullable: true
+          description: >
+            Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments
+            (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set.
         description:
           type: string
           nullable: true

@@ -61,6 +61,7 @@ describe('InstanceDetailPanel', () => {
 
     expect(screen.getByLabelText('Service')).toBeInTheDocument();
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
+    expect(screen.getByLabelText('Referral slug')).toBeDisabled();
     expect(screen.getByLabelText('Title')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Add instance' })).not.toBeInTheDocument();
   });
