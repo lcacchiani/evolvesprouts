@@ -12,6 +12,7 @@ import { isRecord } from './type-guards';
 import type { components } from '@/types/generated/admin-api.generated';
 import {
   normalizeDiscountTypeFromApi,
+  normalizeEventCategoryFromApi,
   type DiscountCode,
   type DiscountCodeFilters,
   type Enrollment,
@@ -116,6 +117,7 @@ function parseGeographicAreaSummary(value: unknown): GeographicAreaSummary {
 function parseServiceSummary(value: unknown): ServiceSummary {
   const item = isRecord(value) ? value : {};
   const trainingRaw = isRecord(item.training_details) ? item.training_details : null;
+  const eventRaw = isRecord(item.event_details) ? item.event_details : null;
   return {
     id: asNullableString(item.id) ?? '',
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
@@ -137,6 +139,11 @@ function parseServiceSummary(value: unknown): ServiceSummary {
           defaultCurrency: asNullableString(trainingRaw.default_currency),
         }
       : null,
+    eventDetails: eventRaw
+      ? {
+          eventCategory: normalizeEventCategoryFromApi(eventRaw.event_category),
+        }
+      : null,
   };
 }
 
@@ -153,8 +160,7 @@ function parseServiceDetail(value: unknown): ServiceDetail {
     : null;
   const eventDetails = isRecord(item.event_details)
     ? {
-        eventCategory: (asNullableString(item.event_details.event_category) ??
-          'workshop') as NonNullable<ServiceDetail['eventDetails']>['eventCategory'],
+        eventCategory: normalizeEventCategoryFromApi(item.event_details.event_category),
       }
     : null;
   const consultationDetails = isRecord(item.consultation_details)

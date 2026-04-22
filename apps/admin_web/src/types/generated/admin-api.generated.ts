@@ -4084,6 +4084,8 @@ export interface components {
             updated_at?: string | null;
             /** @description Present for training_course rows when details exist. */
             training_details?: components["schemas"]["ServiceTrainingDetails"] | null;
+            /** @description Present for event rows when details exist. */
+            event_details?: components["schemas"]["ServiceEventDetails"] | null;
         };
         Service: components["schemas"]["ServiceSummary"] & {
             tag_ids?: string[];

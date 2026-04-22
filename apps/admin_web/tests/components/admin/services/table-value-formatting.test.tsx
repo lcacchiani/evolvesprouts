@@ -22,6 +22,7 @@ const SERVICE_FIXTURE: ServiceSummary = {
   createdAt: '2026-03-01T10:00:00Z',
   updatedAt: '2026-03-01T10:00:00Z',
   trainingDetails: null,
+  eventDetails: null,
 };
 
 const INSTANCE_FIXTURE: ServiceInstance = {

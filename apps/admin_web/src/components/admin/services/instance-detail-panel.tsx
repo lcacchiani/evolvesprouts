@@ -18,11 +18,13 @@ import {
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import type {
-  LocationSummary,
-  ServiceInstance,
-  ServiceSummary,
-  ServiceType,
+import {
+  normalizeEventCategoryFromApi,
+  type EventCategory,
+  type LocationSummary,
+  type ServiceInstance,
+  type ServiceSummary,
+  type ServiceType,
 } from '@/types/services';
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -64,6 +66,31 @@ function mergeServiceIntoInstanceForm(
     description: service.description ?? '',
     deliveryMode: service.deliveryMode,
   };
+}
+
+function mergeServiceIntoEventForm(prev: EventFormState, service: ServiceSummary): EventFormState {
+  if (service.serviceType !== 'event') {
+    return prev;
+  }
+  return {
+    ...prev,
+    eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+  };
+}
+
+function resolveInheritedEventCategory(
+  selectedService: ServiceSummary | null,
+  instance: ServiceInstance | null
+): EventCategory {
+  const fromService = selectedService?.eventDetails?.eventCategory;
+  if (fromService) {
+    return fromService;
+  }
+  const tierName = instance?.eventTicketTiers?.[0]?.name;
+  if (tierName) {
+    return normalizeEventCategoryFromApi(tierName);
+  }
+  return 'workshop';
 }
 
 function mergeServiceIntoTrainingForm(
@@ -158,6 +185,7 @@ export function InstanceDetailPanel({
       onSelectService(serviceId);
       if (!serviceId) {
         lastMergedServiceIdForCreateRef.current = null;
+        setEventForm(DEFAULT_EVENT_FORM);
         return;
       }
       const svc = serviceOptions.find((entry) => entry.id === serviceId);
@@ -167,6 +195,7 @@ export function InstanceDetailPanel({
       lastMergedServiceIdForCreateRef.current = serviceId;
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
       setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
+      setEventForm((prev) => mergeServiceIntoEventForm(prev, svc));
     },
     [onSelectService, serviceOptions]
   );
@@ -186,6 +215,7 @@ export function InstanceDetailPanel({
     queueMicrotask(() => {
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
       setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
+      setEventForm((prev) => mergeServiceIntoEventForm(prev, svc));
     });
   }, [instance, selectedServiceId, serviceOptions]);
 
@@ -213,7 +243,10 @@ export function InstanceDetailPanel({
         defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
       });
       setEventForm({
-        eventCategory: 'workshop',
+        eventCategory: resolveInheritedEventCategory(
+          serviceOptions.find((entry) => entry.id === instance.serviceId) ?? null,
+          instance
+        ),
       });
       setConsultationForm({
         consultationFormat: 'one_on_one',
@@ -227,7 +260,7 @@ export function InstanceDetailPanel({
         calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
       });
     });
-  }, [instance]);
+  }, [instance, serviceOptions]);
 
   const selectedService =
     serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null;
@@ -264,9 +297,10 @@ export function InstanceDetailPanel({
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (effectiveServiceType === 'event') {
+      const eventCategory = resolveInheritedEventCategory(selectedService, instance);
       payload.event_ticket_tiers = [
         {
-          name: eventForm.eventCategory,
+          name: eventCategory,
           description: null,
           price: '0',
           currency: defaultCurrencyCode,
@@ -346,7 +380,9 @@ export function InstanceDetailPanel({
         serviceOptions={serviceOptions}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
-        hideInstructorField={effectiveServiceType === 'training_course'}
+        hideInstructorField={
+          effectiveServiceType === 'training_course' || effectiveServiceType === 'event'
+        }
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
         onSelectService={handleSelectService}
@@ -372,7 +408,25 @@ export function InstanceDetailPanel({
         />
       ) : null}
       {effectiveServiceType === 'event' ? (
-        <EventFormFields disabled={typeFieldsLocked} value={eventForm} onChange={setEventForm} />
+        <EventFormFields
+          disabled={typeFieldsLocked}
+          value={eventForm}
+          onChange={setEventForm}
+          categoryReadOnly
+          categoryFieldId='instance-event-category'
+          layout='instance-detail'
+          trailingSlot={
+            <InstanceInstructorField
+              value={instanceForm.instructorId}
+              disabled={typeFieldsLocked}
+              instructorOptions={instructorUsers}
+              isLoadingInstructors={isLoadingInstructors}
+              onChange={(instructorId) =>
+                setInstanceForm((prev) => ({ ...prev, instructorId }))
+              }
+            />
+          }
+        />
       ) : null}
       {effectiveServiceType === 'consultation' ? (
         <ConsultationFormFields

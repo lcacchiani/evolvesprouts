@@ -36,6 +36,20 @@ export const EVENT_CATEGORIES = defineEnumValues<EventCategory>()(
   ['workshop', 'webinar', 'open_house', 'community_meetup', 'other'] as const satisfies readonly EventCategory[]
 );
 
+const EVENT_CATEGORY_SET = new Set<string>(EVENT_CATEGORIES);
+
+/**
+ * Map API `event_category` to a value that matches `<option value>` entries.
+ * Unknown values fall back to `workshop`.
+ */
+export function normalizeEventCategoryFromApi(raw: unknown): EventCategory {
+  if (typeof raw !== 'string') {
+    return 'workshop';
+  }
+  const normalized = raw.trim().toLowerCase();
+  return EVENT_CATEGORY_SET.has(normalized) ? (normalized as EventCategory) : 'workshop';
+}
+
 export type ConsultationFormat = ApiSchemas['ConsultationFormat'];
 export const CONSULTATION_FORMATS = defineEnumValues<ConsultationFormat>()(
   ['one_on_one', 'group'] as const satisfies readonly ConsultationFormat[]
@@ -99,6 +113,9 @@ export interface ServiceSummary {
     pricingUnit: TrainingPricingUnit;
     defaultPrice: string | null;
     defaultCurrency: string | null;
+  } | null;
+  eventDetails: {
+    eventCategory: EventCategory;
   } | null;
 }
 
