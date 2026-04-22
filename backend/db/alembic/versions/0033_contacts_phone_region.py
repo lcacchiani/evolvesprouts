@@ -31,11 +31,12 @@ a message that there is nothing to assess (upgrade would also skip backfill).
 from __future__ import annotations
 
 import os
-from typing import Sequence, Union
+from typing import Sequence, Union, cast
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import text
+from sqlalchemy import and_, or_, select, update
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.engine import Connection
 
 revision: str = "0033_phone_region"
@@ -44,6 +45,14 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 _BATCH_SIZE = 500
+
+_CONTACTS = sa.table(
+    "contacts",
+    sa.column("id", PG_UUID(as_uuid=True)),
+    sa.column("phone", sa.String(length=30)),
+    sa.column("phone_region", sa.String(length=2)),
+    sa.column("phone_national_number", sa.String(length=20)),
+)
 
 
 def _migration_parse_phone(phone: str) -> tuple[str | None, str | None] | None:
@@ -77,21 +86,27 @@ def _dry_run_analysis(bind: Connection) -> None:
             "removed). Unset PHONE_MIGRATION_DRY_RUN — no migration action pending."
         )
 
-    last_id = None
+    last_id: object | None = None
     while True:
-        params: dict[str, object] = {"lim": _BATCH_SIZE}
         if last_id is None:
-            q = (
-                "SELECT id, phone FROM contacts WHERE phone IS NOT NULL "
-                "ORDER BY id ASC LIMIT :lim"
+            stmt = (
+                select(_CONTACTS.c.id, _CONTACTS.c.phone)
+                .where(_CONTACTS.c.phone.is_not(None))
+                .order_by(_CONTACTS.c.id.asc())
+                .limit(_BATCH_SIZE)
             )
+            rows = bind.execute(stmt).mappings().all()
         else:
-            q = (
-                "SELECT id, phone FROM contacts WHERE phone IS NOT NULL "
-                "AND id > :last ORDER BY id ASC LIMIT :lim"
+            stmt = (
+                select(_CONTACTS.c.id, _CONTACTS.c.phone)
+                .where(
+                    _CONTACTS.c.phone.is_not(None),
+                    _CONTACTS.c.id > last_id,
+                )
+                .order_by(_CONTACTS.c.id.asc())
+                .limit(_BATCH_SIZE)
             )
-            params["last"] = str(last_id)
-        rows = bind.execute(text(q), params).mappings().all()
+            rows = bind.execute(stmt).mappings().all()
         if not rows:
             break
         for row in rows:
@@ -124,35 +139,44 @@ def _dry_run_analysis(bind: Connection) -> None:
 
 
 def _ensure_check_constraints() -> None:
-    bind = op.get_bind()
-    assert isinstance(bind, Connection)
+    bind = cast(Connection, op.get_bind())
     insp = sa.inspect(bind)
     names = {c["name"] for c in insp.get_check_constraints("contacts")}
+    c = _CONTACTS.c
     if "ck_contacts_phone_region_format" not in names:
+        region_ok = or_(
+            c.phone_region.is_(None),
+            c.phone_region.regexp_match("^[A-Z]{2}$"),
+        )
         op.create_check_constraint(
             "ck_contacts_phone_region_format",
             "contacts",
-            sa.text("phone_region IS NULL OR phone_region ~ '^[A-Z]{2}$'"),
+            region_ok,
         )
     if "ck_contacts_phone_national_digits" not in names:
+        national_ok = or_(
+            c.phone_national_number.is_(None),
+            c.phone_national_number.regexp_match("^[0-9]+$"),
+        )
         op.create_check_constraint(
             "ck_contacts_phone_national_digits",
             "contacts",
-            sa.text(
-                "phone_national_number IS NULL OR phone_national_number ~ '^[0-9]+$'"
-            ),
+            national_ok,
         )
     if "ck_contacts_phone_pair" not in names:
+        pair_ok = or_(
+            and_(c.phone_region.is_(None), c.phone_national_number.is_(None)),
+            and_(c.phone_region.is_not(None), c.phone_national_number.is_not(None)),
+        )
         op.create_check_constraint(
             "ck_contacts_phone_pair",
             "contacts",
-            sa.text("(phone_region IS NULL) = (phone_national_number IS NULL)"),
+            pair_ok,
         )
 
 
 def upgrade() -> None:
-    bind = op.get_bind()
-    assert isinstance(bind, Connection)
+    bind = cast(Connection, op.get_bind())
 
     dry_run = os.environ.get("PHONE_MIGRATION_DRY_RUN", "").strip().lower() in (
         "1",
@@ -183,21 +207,27 @@ def upgrade() -> None:
         from app.utils.logging import get_logger, mask_pii
 
         logger = get_logger("alembic.0033_phone_region")
-        last_id = None
+        last_id: object | None = None
         while True:
-            params: dict[str, object] = {"lim": _BATCH_SIZE}
             if last_id is None:
-                q = (
-                    "SELECT id, phone FROM contacts WHERE phone IS NOT NULL "
-                    "ORDER BY id ASC LIMIT :lim"
+                stmt = (
+                    select(_CONTACTS.c.id, _CONTACTS.c.phone)
+                    .where(_CONTACTS.c.phone.is_not(None))
+                    .order_by(_CONTACTS.c.id.asc())
+                    .limit(_BATCH_SIZE)
                 )
+                rows = bind.execute(stmt).mappings().all()
             else:
-                q = (
-                    "SELECT id, phone FROM contacts WHERE phone IS NOT NULL "
-                    "AND id > :last ORDER BY id ASC LIMIT :lim"
+                stmt = (
+                    select(_CONTACTS.c.id, _CONTACTS.c.phone)
+                    .where(
+                        _CONTACTS.c.phone.is_not(None),
+                        _CONTACTS.c.id > last_id,
+                    )
+                    .order_by(_CONTACTS.c.id.asc())
+                    .limit(_BATCH_SIZE)
                 )
-                params["last"] = str(last_id)
-            rows = bind.execute(text(q), params).mappings().all()
+                rows = bind.execute(stmt).mappings().all()
             if not rows:
                 break
             for row in rows:
@@ -217,29 +247,34 @@ def upgrade() -> None:
                     )
                 else:
                     region, national = outcome
+                    upd = (
+                        update(_CONTACTS)
+                        .where(_CONTACTS.c.id == sa.bindparam("cid"))
+                        .values(
+                            phone_region=sa.bindparam("r"),
+                            phone_national_number=sa.bindparam("n"),
+                        )
+                    )
                     bind.execute(
-                        text(
-                            "UPDATE contacts SET phone_region = :r, "
-                            "phone_national_number = :n WHERE id = :id"
-                        ),
-                        {"r": region, "n": national, "id": str(row["id"])},
+                        upd,
+                        {"cid": row["id"], "r": region, "n": national},
                     )
             if len(rows) < _BATCH_SIZE:
                 break
 
         op.drop_column("contacts", "phone")
 
-    bind.execute(
-        text(
-            "CREATE INDEX IF NOT EXISTS contacts_phone_national_number_idx "
-            "ON contacts (phone_national_number)"
-        )
+    op.create_index(
+        "contacts_phone_national_number_idx",
+        "contacts",
+        ["phone_national_number"],
+        if_not_exists=True,
     )
-    bind.execute(
-        text(
-            "CREATE INDEX IF NOT EXISTS contacts_phone_search_idx "
-            "ON contacts (phone_region, phone_national_number)"
-        )
+    op.create_index(
+        "contacts_phone_search_idx",
+        "contacts",
+        ["phone_region", "phone_national_number"],
+        if_not_exists=True,
     )
 
 
@@ -247,18 +282,25 @@ def downgrade() -> None:
     import phonenumbers
     from phonenumbers.phonenumberutil import NumberParseException
 
-    bind = op.get_bind()
-    assert isinstance(bind, Connection)
+    bind = cast(Connection, op.get_bind())
 
     for name in (
         "ck_contacts_phone_pair",
         "ck_contacts_phone_national_digits",
         "ck_contacts_phone_region_format",
     ):
-        op.execute(text(f'ALTER TABLE contacts DROP CONSTRAINT IF EXISTS "{name}"'))
+        op.drop_constraint(name, "contacts", type_="check", if_exists=True)
 
-    bind.execute(text("DROP INDEX IF EXISTS contacts_phone_search_idx"))
-    bind.execute(text("DROP INDEX IF EXISTS contacts_phone_national_number_idx"))
+    op.drop_index(
+        "contacts_phone_search_idx",
+        table_name="contacts",
+        if_exists=True,
+    )
+    op.drop_index(
+        "contacts_phone_national_number_idx",
+        table_name="contacts",
+        if_exists=True,
+    )
 
     insp = sa.inspect(bind)
     cols = {c["name"] for c in insp.get_columns("contacts")}
@@ -268,23 +310,39 @@ def downgrade() -> None:
             sa.Column("phone", sa.String(length=30), nullable=True),
         )
 
-    last_id = None
+    last_id: object | None = None
     while True:
-        params: dict[str, object] = {"lim": _BATCH_SIZE}
         if last_id is None:
-            q = (
-                "SELECT id, phone_region, phone_national_number FROM contacts "
-                "WHERE phone_region IS NOT NULL AND phone_national_number IS NOT NULL "
-                "ORDER BY id ASC LIMIT :lim"
+            stmt = (
+                select(
+                    _CONTACTS.c.id,
+                    _CONTACTS.c.phone_region,
+                    _CONTACTS.c.phone_national_number,
+                )
+                .where(
+                    _CONTACTS.c.phone_region.is_not(None),
+                    _CONTACTS.c.phone_national_number.is_not(None),
+                )
+                .order_by(_CONTACTS.c.id.asc())
+                .limit(_BATCH_SIZE)
             )
+            rows = bind.execute(stmt).mappings().all()
         else:
-            q = (
-                "SELECT id, phone_region, phone_national_number FROM contacts "
-                "WHERE phone_region IS NOT NULL AND phone_national_number IS NOT NULL "
-                "AND id > :last ORDER BY id ASC LIMIT :lim"
+            stmt = (
+                select(
+                    _CONTACTS.c.id,
+                    _CONTACTS.c.phone_region,
+                    _CONTACTS.c.phone_national_number,
+                )
+                .where(
+                    _CONTACTS.c.phone_region.is_not(None),
+                    _CONTACTS.c.phone_national_number.is_not(None),
+                    _CONTACTS.c.id > last_id,
+                )
+                .order_by(_CONTACTS.c.id.asc())
+                .limit(_BATCH_SIZE)
             )
-            params["last"] = str(last_id)
-        rows = bind.execute(text(q), params).mappings().all()
+            rows = bind.execute(stmt).mappings().all()
         if not rows:
             break
         for row in rows:
@@ -300,10 +358,12 @@ def downgrade() -> None:
                 e164 = ""
             # E.164 max length is 15 digits + leading '+' (≤16); column is varchar(30).
             phone_val = (e164 or "")[:30]
-            bind.execute(
-                text("UPDATE contacts SET phone = :p WHERE id = :id"),
-                {"p": phone_val or None, "id": str(row["id"])},
+            upd = (
+                update(_CONTACTS)
+                .where(_CONTACTS.c.id == sa.bindparam("cid"))
+                .values(phone=sa.bindparam("p"))
             )
+            bind.execute(upd, {"cid": row["id"], "p": phone_val or None})
         if len(rows) < _BATCH_SIZE:
             break
 
