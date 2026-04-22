@@ -558,6 +558,17 @@ paths:
           schema:
             type: string
             maxLength: 500
+        - name: exclude_crm_addresses
+          in: query
+          required: false
+          description: |
+            When `true`, omit locations linked as the saved venue for a non-archived
+            CRM family or organisation (so Services → Venues lists only service-oriented
+            venues). Partner organisations are still included when they use the same
+            location row; those rows remain visible with partner lock metadata.
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Location list response.

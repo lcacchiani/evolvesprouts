@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 
 from app.api import admin_locations
+from app.exceptions import ValidationError
 
 
 def test_handle_admin_locations_dispatches_geocode_post(
@@ -101,6 +102,20 @@ def test_serialize_location_emits_float_coordinates_for_json() -> None:
     roundtrip = json.loads(encoded)
     assert roundtrip["lat"] == pytest.approx(22.3193)
     assert roundtrip["lng"] == pytest.approx(114.1694)
+
+
+def test_parse_query_bool_defaults_and_accepts_aliases() -> None:
+    assert admin_locations._parse_query_bool(None, field="f", default=False) is False
+    assert admin_locations._parse_query_bool("", field="f", default=True) is True
+    assert admin_locations._parse_query_bool("true", field="f", default=False) is True
+    assert admin_locations._parse_query_bool("1", field="f", default=False) is True
+    assert admin_locations._parse_query_bool("FALSE", field="f", default=True) is False
+
+
+def test_parse_query_bool_rejects_invalid() -> None:
+    with pytest.raises(ValidationError) as exc:
+        admin_locations._parse_query_bool("maybe", field="exclude_crm_addresses", default=False)
+    assert exc.value.field == "exclude_crm_addresses"
 
 
 def test_serialize_location_partner_metadata() -> None:
