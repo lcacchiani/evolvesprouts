@@ -5,6 +5,8 @@ from typing import Any
 import pytest
 
 from app.api.admin_crm_helpers import (
+    CRM_FAMILY_RELATIONSHIP_TYPES,
+    CRM_ORGANIZATION_RELATIONSHIP_TYPES,
     crm_request_id,
     parse_contact_type_filter,
     parse_crm_relationship_type,
@@ -42,6 +44,40 @@ def test_parse_crm_relationship_type_accepts_client() -> None:
         parse_crm_relationship_type("client", field="relationship_type")
         == RelationshipType.CLIENT
     )
+
+
+def test_parse_crm_relationship_type_family_allowed_subset() -> None:
+    assert (
+        parse_crm_relationship_type(
+            "client",
+            field="relationship_type",
+            allowed=CRM_FAMILY_RELATIONSHIP_TYPES,
+        )
+        == RelationshipType.CLIENT
+    )
+    with pytest.raises(ValidationError, match="relationship_type"):
+        parse_crm_relationship_type(
+            "past_client",
+            field="relationship_type",
+            allowed=CRM_FAMILY_RELATIONSHIP_TYPES,
+        )
+
+
+def test_parse_crm_relationship_type_organization_excludes_past_client() -> None:
+    assert (
+        parse_crm_relationship_type(
+            "partner",
+            field="relationship_type",
+            allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
+        )
+        == RelationshipType.PARTNER
+    )
+    with pytest.raises(ValidationError, match="relationship_type"):
+        parse_crm_relationship_type(
+            "past_client",
+            field="relationship_type",
+            allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
+        )
 
 
 def test_parse_contact_type_filter_empty_means_no_filter() -> None:

@@ -22,7 +22,7 @@ import { formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  type CrmEntityRelationshipType,
+  CRM_ORGANIZATION_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
@@ -105,7 +105,8 @@ export function OrganizationsPanel({
   const [name, setName] = useState('');
   const [organizationType, setOrganizationType] =
     useState<ApiSchemas['CrmOrganizationType']>('company');
-  const [relationshipType, setRelationshipType] = useState<CrmEntityRelationshipType>('prospect');
+  const [relationshipType, setRelationshipType] =
+    useState<ApiSchemas['CrmOrganizationRelationshipType']>('prospect');
   const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
@@ -307,7 +308,9 @@ export function OrganizationsPanel({
     setEditorMode('edit');
     setName(row.name);
     setOrganizationType(row.organization_type);
-    setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
+    setRelationshipType(
+      relationshipTypeForCrmEditor(row.relationship_type, CRM_ORGANIZATION_RELATIONSHIP_TYPES)
+    );
     setSlug(row.slug ?? '');
     setWebsite(row.website ?? '');
     setPendingLocationId(row.location_id ?? null);
@@ -352,7 +355,7 @@ export function OrganizationsPanel({
               id='crm-org-rel'
               value={relationshipType}
               onChange={(e) => {
-                const next = e.target.value as CrmEntityRelationshipType;
+                const next = e.target.value as ApiSchemas['CrmOrganizationRelationshipType'];
                 setRelationshipType(next);
                 if (next !== 'partner') {
                   setSlug('');

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_crm_entity_deletes import delete_admin_crm_organization
 from app.api.admin_crm_helpers import (
+    CRM_ORGANIZATION_RELATIONSHIP_TYPES,
     assert_contact_can_join_organization,
     crm_request_id,
     ensure_location_exists,
@@ -266,7 +267,9 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
         body.get("organization_type"), field="organization_type"
     )
     relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type"
+        body.get("relationship_type"),
+        field="relationship_type",
+        allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
     )
     website = validate_string_length(
         body.get("website"),
@@ -360,6 +363,7 @@ def _update_organization(
             org.relationship_type = parse_crm_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
+                allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
             )
             if org.relationship_type != RelationshipType.PARTNER:
                 org.slug = None

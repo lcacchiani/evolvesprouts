@@ -22,7 +22,9 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
   `reservation`, `referral`, `instagram`, `manual`, `whatsapp`,
   `linkedin`, `event`, `phone_call`, `public_website`.
 - Enum `relationship_type`: `prospect`, `client`, `past_client`, `partner`,
-  `vendor`, `other`.
+  `vendor`, `other` (stored on contacts, families, and organizations). Admin API
+  write rules narrow allowed values: families may only use `prospect`, `client`,
+  or `other`; organizations may not use `past_client`.
 - Enum `mailchimp_sync_status`: `pending`, `synced`, `failed`, `unsubscribed`.
 - Enum `family_role`: `parent`, `child`, `helper`, `guardian`, `other`.
 - Enum `organization_type`: `school`, `company`, `community_group`, `ngo`, `other`.

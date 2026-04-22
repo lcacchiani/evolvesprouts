@@ -201,11 +201,36 @@ def parse_crm_relationship_type(
     value: Any,
     *,
     field: str,
+    allowed: frozenset[RelationshipType] | None = None,
 ) -> RelationshipType:
-    """Parse relationship_type for CRM organization payloads."""
+    """Parse relationship_type for CRM payloads.
+
+    When ``allowed`` is set, the parsed value must be a member of that set
+    (after resolving the string to :class:`RelationshipType`).
+    """
     if value is None or str(value).strip() == "":
-        return RelationshipType.PROSPECT
-    try:
-        return RelationshipType(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
+        parsed = RelationshipType.PROSPECT
+    else:
+        try:
+            parsed = RelationshipType(str(value).strip().lower())
+        except ValueError as exc:
+            raise ValidationError(f"Invalid {field}", field=field) from exc
+    if allowed is not None and parsed not in allowed:
+        raise ValidationError(
+            f"{field} is not allowed for this entity",
+            field=field,
+        )
+    return parsed
+
+
+CRM_FAMILY_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
+    {
+        RelationshipType.PROSPECT,
+        RelationshipType.CLIENT,
+        RelationshipType.OTHER,
+    }
+)
+
+CRM_ORGANIZATION_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
+    set(RelationshipType) - {RelationshipType.PAST_CLIENT}
+)

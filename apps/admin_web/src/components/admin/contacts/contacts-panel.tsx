@@ -31,7 +31,7 @@ import {
 import { formatEnumLabel } from '@/lib/format';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  CRM_ENTITY_RELATIONSHIP_TYPES,
+  CRM_CONTACT_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
 import type { AdminUser } from '@/types/leads';
@@ -144,7 +144,7 @@ export function ContactsPanel({
   const [phone, setPhone] = useState('');
   const [contactType, setContactType] = useState<ApiSchemas['CrmContactType']>('parent');
   const [relationshipType, setRelationshipType] =
-    useState<(typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number]>('prospect');
+    useState<(typeof CRM_CONTACT_RELATIONSHIP_TYPES)[number]>('prospect');
   const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
   const [referralContactId, setReferralContactId] = useState('');
@@ -536,10 +536,10 @@ export function ContactsPanel({
                 id='crm-contact-rel'
                 value={relationshipType}
                 onChange={(e) =>
-                  setRelationshipType(e.target.value as (typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number])
+                  setRelationshipType(e.target.value as (typeof CRM_CONTACT_RELATIONSHIP_TYPES)[number])
                 }
               >
-                {CRM_ENTITY_RELATIONSHIP_TYPES.map((v) => (
+                {CRM_CONTACT_RELATIONSHIP_TYPES.map((v) => (
                   <option key={v} value={v}>
                     {formatEnumLabel(v)}
                   </option>

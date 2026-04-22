@@ -16,6 +16,7 @@ from app.api.admin_crm_helpers import (
     ensure_location_exists,
     parse_active_filter,
     parse_crm_limit,
+    CRM_FAMILY_RELATIONSHIP_TYPES,
     parse_crm_relationship_type,
     parse_optional_bool_body,
     replace_family_tags,
@@ -170,7 +171,9 @@ def _create_family(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any
         required=True,
     )
     relationship_type = parse_crm_relationship_type(
-        body.get("relationship_type"), field="relationship_type"
+        body.get("relationship_type"),
+        field="relationship_type",
+        allowed=CRM_FAMILY_RELATIONSHIP_TYPES,
     )
     location_id = parse_optional_uuid(body.get("location_id"), "location_id")
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
@@ -227,6 +230,7 @@ def _update_family(
             family.relationship_type = parse_crm_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
+                allowed=CRM_FAMILY_RELATIONSHIP_TYPES,
             )
         if "location_id" in body:
             loc = parse_optional_uuid(body.get("location_id"), "location_id")

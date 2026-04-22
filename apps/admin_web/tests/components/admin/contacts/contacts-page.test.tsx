@@ -77,7 +77,7 @@ const defaultOrgsHook = {
   addMember: vi.fn(),
   removeMember: vi.fn(),
   refetch: vi.fn(),
-  crmRelationshipOptions: ['prospect', 'client', 'past_client', 'partner', 'other'] as const,
+  crmRelationshipOptions: ['prospect', 'client', 'partner', 'other'] as const,
 };
 
 vi.mock('@/hooks/use-admin-crm-contacts', () => ({
