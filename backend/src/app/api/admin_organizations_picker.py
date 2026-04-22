@@ -1,14 +1,15 @@
-"""Lightweight organization picker list for admin UI (excludes vendors)."""
+"""Lightweight organization picker list for admin UI."""
 
 from __future__ import annotations
 
-from typing import Any
 from collections.abc import Mapping
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.admin_entities_helpers import parse_limit
+from app.api.admin_entities_helpers import parse_limit, parse_relationship_type
+from app.api.admin_request import query_param
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.engine import get_engine
 from app.db.models import Organization, RelationshipType
@@ -50,13 +51,20 @@ def handle_admin_organizations_picker_request(
 
 def _list_organization_picker(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = parse_limit(event, default=_DEFAULT_LIMIT)
+    relationship_filter = query_param(event, "relationship_type")
     with Session(get_engine()) as session:
+        filters = [Organization.archived_at.is_(None)]
+        if relationship_filter:
+            rel_type = parse_relationship_type(
+                relationship_filter,
+                field="relationship_type",
+            )
+            filters.append(Organization.relationship_type == rel_type)
+        else:
+            filters.append(Organization.relationship_type != RelationshipType.VENDOR)
         statement = (
             select(Organization.id, Organization.name)
-            .where(
-                Organization.archived_at.is_(None),
-                Organization.relationship_type != RelationshipType.VENDOR,
-            )
+            .where(*filters)
             .order_by(Organization.name.asc(), Organization.id.asc())
             .limit(limit)
         )

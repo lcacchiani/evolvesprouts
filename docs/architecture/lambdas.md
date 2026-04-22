@@ -65,7 +65,9 @@ their primary responsibilities.
   for hard-deleting a family after clearing blocking CRM rows; `POST /v1/admin/families/{id}/members`
   derives each member's role from the linked contact's `contact_type`; `PATCH /v1/admin/families/{id}/members/{memberId}`
   updates membership fields such as primary contact),
-  `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations and vendor
+  `/v1/admin/organizations/picker` (optional `relationship_type` query mirrors organisation list
+  semantics; default still excludes vendors; pass `relationship_type=partner` for partner-only
+  admin pickers), `/v1/admin/organizations/*` (CRM organisations and vendor
   rows share one resource; default list excludes vendors, Finance lists vendors with
   `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the

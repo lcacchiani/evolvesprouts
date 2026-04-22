@@ -388,7 +388,9 @@ def _build_service_type_details(
         )
     if service_type == ServiceType.EVENT:
         return EventDetails(
-            event_category=EventCategory(parsed_details["event_category"].value)
+            event_category=EventCategory(parsed_details["event_category"].value),
+            default_price=parsed_details["default_price"],
+            default_currency=parsed_details["default_currency"],
         )
     return ConsultationDetails(
         consultation_format=ConsultationFormat(
@@ -401,7 +403,6 @@ def _build_service_type_details(
         default_package_price=parsed_details["default_package_price"],
         default_package_sessions=parsed_details["default_package_sessions"],
         default_currency=parsed_details["default_currency"],
-        calendly_url=parsed_details["calendly_url"],
     )
 
 
@@ -446,15 +447,38 @@ def _is_services_slug_unique_violation(exc: IntegrityError) -> bool:
 
 def _apply_service_type_details(*, service: Service, details: Any) -> None:
     if isinstance(details, TrainingCourseDetails):
-        service.training_course_details = details
+        if service.training_course_details is None:
+            service.training_course_details = details
+        else:
+            existing = service.training_course_details
+            existing.pricing_unit = details.pricing_unit
+            existing.default_price = details.default_price
+            existing.default_currency = details.default_currency
         service.event_details = None
         service.consultation_details = None
     elif isinstance(details, EventDetails):
-        service.event_details = details
+        if service.event_details is None:
+            service.event_details = details
+        else:
+            existing = service.event_details
+            existing.event_category = details.event_category
+            existing.default_price = details.default_price
+            existing.default_currency = details.default_currency
         service.training_course_details = None
         service.consultation_details = None
     else:
-        service.consultation_details = details
+        if service.consultation_details is None:
+            service.consultation_details = details
+        else:
+            existing = service.consultation_details
+            existing.consultation_format = details.consultation_format
+            existing.max_group_size = details.max_group_size
+            existing.duration_minutes = details.duration_minutes
+            existing.pricing_model = details.pricing_model
+            existing.default_hourly_rate = details.default_hourly_rate
+            existing.default_package_price = details.default_package_price
+            existing.default_package_sessions = details.default_package_sessions
+            existing.default_currency = details.default_currency
         service.training_course_details = None
         service.event_details = None
 

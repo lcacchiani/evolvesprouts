@@ -14,6 +14,7 @@ from app.api.admin_validators import (
     parse_optional_service_instance_slug,
 )
 from app.api.admin_services_cursor import parse_created_cursor
+from app.api.admin_service_instance_partners import parse_partner_organization_ids
 from app.api.admin_services_payload_utils import (
     has_any_field,
     has_field,
@@ -24,6 +25,7 @@ from app.api.admin_services_payload_utils import (
     parse_optional_decimal,
     parse_optional_enum,
     parse_optional_int,
+    parse_optional_external_url,
     parse_optional_text,
     parse_optional_uuid,
     parse_required_bool,
@@ -297,6 +299,8 @@ def parse_update_service_payload(
         "consultation_details",
         "pricing_unit",
         "event_category",
+        "default_price",
+        "default_currency",
         "consultation_format",
         "pricing_model",
     ):
@@ -349,6 +353,10 @@ def parse_create_instance_payload(
         "notes": parse_optional_text(
             body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
         ),
+        "external_url": parse_optional_external_url(
+            body.get("external_url"), "external_url"
+        ),
+        "partner_organization_ids": parse_partner_organization_ids(body),
         "session_slots": parse_session_slots(body.get("session_slots")),
         "type_details": parse_instance_type_details(service.service_type, body),
     }
@@ -408,6 +416,12 @@ def parse_update_instance_payload(
         payload["notes"] = parse_optional_text(
             body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
         )
+    if has_field(body, "external_url"):
+        payload["external_url"] = parse_optional_external_url(
+            body.get("external_url"), "external_url"
+        )
+    if has_field(body, "partner_organization_ids"):
+        payload["partner_organization_ids"] = parse_partner_organization_ids(body)
     if has_field(body, "session_slots"):
         payload["session_slots"] = parse_session_slots(body.get("session_slots"))
     if has_any_field(

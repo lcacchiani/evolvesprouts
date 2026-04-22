@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
@@ -68,7 +69,20 @@ def parse_service_type_details(
                 source.get("event_category") or body.get("event_category"),
                 EventCategory,
                 "event_category",
+            ),
+            "default_price": parse_optional_decimal(
+                source.get("default_price")
+                if "default_price" in source
+                else body.get("default_price"),
+                "default_price",
+            ),
+            "default_currency": parse_optional_currency(
+                source.get("default_currency")
+                if "default_currency" in source
+                else body.get("default_currency"),
+                "default_currency",
             )
+            or "HKD",
         }
 
     source = extract_obj(body, "consultation_details")
@@ -130,12 +144,6 @@ def parse_service_type_details(
             "default_currency",
         )
         or "HKD",
-        "calendly_url": parse_optional_text(
-            source.get("calendly_url")
-            if "calendly_url" in source
-            else body.get("calendly_url"),
-            max_length=500,
-        ),
     }
 
 
@@ -191,19 +199,17 @@ def parse_instance_type_details(
                     f"event_ticket_tiers[{idx}] must be an object",
                     field="event_ticket_tiers",
                 )
+            name_raw = parse_optional_text(entry.get("name"), max_length=100)
             tiers.append(
                 {
-                    "name": parse_required_text(
-                        entry.get("name"), "name", max_length=100
-                    ),
+                    "name": (name_raw or "").strip(),
                     "description": parse_optional_text(
                         entry.get("description"), max_length=MAX_DESCRIPTION_LENGTH
                     ),
-                    "price": parse_required_decimal(entry.get("price"), "price"),
+                    "price": parse_optional_decimal(entry.get("price"), "price"),
                     "currency": parse_optional_currency(
                         entry.get("currency"), "currency"
-                    )
-                    or "HKD",
+                    ),
                     "max_quantity": parse_optional_int(
                         entry.get("max_quantity"), "max_quantity", minimum=1
                     ),
@@ -237,12 +243,6 @@ def parse_instance_type_details(
             else body.get("package_sessions"),
             "package_sessions",
             minimum=1,
-        ),
-        "calendly_event_url": parse_optional_text(
-            source.get("calendly_event_url")
-            if "calendly_event_url" in source
-            else body.get("calendly_event_url"),
-            max_length=500,
         ),
     }
 
@@ -400,6 +400,26 @@ def parse_required_decimal(value: Any, field: str) -> Decimal:
     if parsed <= Decimal("0"):
         raise ValidationError(f"{field} must be greater than 0", field=field)
     return parsed
+
+
+_EXTERNAL_URL_PATTERN = re.compile(r"^https?://", re.IGNORECASE)
+
+
+def parse_optional_external_url(value: Any, field: str) -> str | None:
+    """Parse optional external URL: trim, max 500, http(s) only."""
+    if value is None or str(value).strip() == "":
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(f"{field} must be a string", field=field)
+    trimmed = value.strip()
+    if len(trimmed) > 500:
+        raise ValidationError(f"{field} must be at most 500 characters", field=field)
+    if not _EXTERNAL_URL_PATTERN.match(trimmed):
+        raise ValidationError(
+            f"{field} must start with http:// or https://",
+            field=field,
+        )
+    return trimmed
 
 
 def parse_required_non_negative_decimal(value: Any, field: str) -> Decimal:

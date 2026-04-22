@@ -207,6 +207,12 @@ class EventDetails(Base):
         ),
         nullable=False,
     )
+    default_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    default_currency: Mapped[str] = mapped_column(
+        String(3),
+        nullable=False,
+        server_default=text("'HKD'"),
+    )
 
     service: Mapped[Service] = relationship(
         "Service",
@@ -258,7 +264,6 @@ class ConsultationDetails(Base):
         nullable=False,
         server_default=text("'HKD'"),
     )
-    calendly_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     service: Mapped[Service] = relationship(
         "Service",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -10,6 +11,10 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_enrollments import handle_admin_enrollments_request
 from app.api.admin_request import parse_body, parse_uuid
+from app.api.admin_service_instance_partners import (
+    reconcile_instance_partner_organizations,
+    validate_partner_organization_ids,
+)
 from app.api.admin_services_common import (
     encode_instance_cursor,
     parse_create_instance_payload,
@@ -24,8 +29,10 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import (
     ConsultationInstanceDetails,
+    EventCategory,
     EventTicketTier,
     InstanceSessionSlot,
+    Service,
     ServiceInstance,
     ServiceType,
     TrainingFormat,
@@ -38,6 +45,44 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _resolve_event_ticket_tiers_for_persist(
+    service: Service, parsed_tiers: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Fill missing tier price/currency from service event defaults; default name from category."""
+    if not parsed_tiers:
+        parsed_tiers = [{}]
+    event_details = service.event_details
+    default_price = event_details.default_price if event_details is not None else None
+    default_currency = (
+        event_details.default_currency if event_details is not None else "HKD"
+    )
+    category_name = (
+        event_details.event_category.value
+        if event_details is not None
+        else EventCategory.WORKSHOP.value
+    )
+    resolved: list[dict[str, Any]] = []
+    for idx, tier in enumerate(parsed_tiers):
+        price = tier.get("price")
+        if price is None:
+            price = default_price if default_price is not None else Decimal("0")
+        currency = tier.get("currency") or default_currency
+        name = tier.get("name") or category_name
+        resolved.append(
+            {
+                "name": name,
+                "description": tier.get("description"),
+                "price": price,
+                "currency": currency,
+                "max_quantity": tier.get("max_quantity"),
+                "sort_order": tier.get("sort_order")
+                if tier.get("sort_order") is not None
+                else idx,
+            }
+        )
+    return resolved
 
 
 def handle_admin_all_service_instances_request(
@@ -225,10 +270,11 @@ def _create_instance(
         service_repository = ServiceRepository(session)
         instance_repository = ServiceInstanceRepository(session)
 
-        service = service_repository.get_by_id(service_id)
+        service = service_repository.get_by_id_with_details(service_id)
         if service is None:
             raise NotFoundError("Service", str(service_id))
         payload = parse_create_instance_payload(body, service)
+        validate_partner_organization_ids(session, payload["partner_organization_ids"])
 
         instance = ServiceInstance(
             service_id=service_id,
@@ -244,10 +290,19 @@ def _create_instance(
             waitlist_enabled=payload["waitlist_enabled"],
             instructor_id=payload["instructor_id"],
             notes=payload["notes"],
+            external_url=payload["external_url"],
             created_by=actor_sub,
         )
+        type_details_raw = payload["type_details"]
+        if service.service_type == ServiceType.EVENT:
+            type_details_raw = {
+                **type_details_raw,
+                "event_ticket_tiers": _resolve_event_ticket_tiers_for_persist(
+                    service, type_details_raw["event_ticket_tiers"]
+                ),
+            }
         type_details = _build_instance_type_details(
-            service.service_type, payload["type_details"]
+            service.service_type, type_details_raw
         )
         slots = [
             InstanceSessionSlot(
@@ -259,6 +314,11 @@ def _create_instance(
             for item in payload["session_slots"]
         ]
         created = instance_repository.create_instance(instance, type_details, slots)
+        reconcile_instance_partner_organizations(
+            session,
+            instance_id=created.id,
+            ordered_org_ids=payload["partner_organization_ids"],
+        )
         session.commit()
         if service.service_type == ServiceType.EVENT:
             enqueue_eventbrite_instance_sync_by_id(created.id)
@@ -311,13 +371,17 @@ def _update_instance(
         service_repository = ServiceRepository(session)
         instance_repository = ServiceInstanceRepository(session)
 
-        service = service_repository.get_by_id(service_id)
+        service = service_repository.get_by_id_with_details(service_id)
         if service is None:
             raise NotFoundError("Service", str(service_id))
         instance = instance_repository.get_by_id_with_details(instance_id)
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
         payload = parse_update_instance_payload(body, service)
+        if "partner_organization_ids" in payload:
+            validate_partner_organization_ids(
+                session, payload["partner_organization_ids"]
+            )
 
         if "title" in payload:
             instance.title = payload["title"]
@@ -343,6 +407,8 @@ def _update_instance(
             instance.instructor_id = payload["instructor_id"]
         if "notes" in payload:
             instance.notes = payload["notes"]
+        if "external_url" in payload:
+            instance.external_url = payload["external_url"]
         if "session_slots" in payload:
             instance.session_slots.clear()
             for item in payload["session_slots"]:
@@ -355,10 +421,24 @@ def _update_instance(
                     )
                 )
         if "type_details" in payload:
+            type_details_raw = payload["type_details"]
+            if service.service_type == ServiceType.EVENT:
+                type_details_raw = {
+                    **type_details_raw,
+                    "event_ticket_tiers": _resolve_event_ticket_tiers_for_persist(
+                        service, type_details_raw["event_ticket_tiers"]
+                    ),
+                }
             _apply_instance_type_details(
                 instance=instance,
                 service_type=service.service_type,
-                parsed_details=payload["type_details"],
+                parsed_details=type_details_raw,
+            )
+        if "partner_organization_ids" in payload:
+            reconcile_instance_partner_organizations(
+                session,
+                instance_id=instance.id,
+                ordered_org_ids=payload["partner_organization_ids"],
             )
 
         updated = instance_repository.update_instance(instance)
@@ -430,7 +510,6 @@ def _build_instance_type_details(
         price=parsed["price"],
         currency=parsed["currency"],
         package_sessions=parsed["package_sessions"],
-        calendly_event_url=parsed["calendly_event_url"],
     )
 
 

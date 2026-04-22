@@ -9,7 +9,16 @@ from uuid import UUID
 
 from collections.abc import Iterable
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, String, Text, text
+from sqlalchemy import (
+    CheckConstraint,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,6 +38,7 @@ if TYPE_CHECKING:
     from app.db.models.discount_code import DiscountCode
     from app.db.models.enrollment import Enrollment
     from app.db.models.location import Location
+    from app.db.models.organization import Organization
     from app.db.models.service import Service
 
 
@@ -146,6 +156,7 @@ class ServiceInstance(Base):
         nullable=False,
         server_default=text("0"),
     )
+    external_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     service: Mapped[Service] = relationship(
         "Service",
@@ -182,6 +193,51 @@ class ServiceInstance(Base):
         "DiscountCode",
         back_populates="instance",
     )
+    partner_organization_links: Mapped[list[ServiceInstancePartnerOrganization]] = (
+        relationship(
+            "ServiceInstancePartnerOrganization",
+            back_populates="instance",
+            cascade="all, delete-orphan",
+            order_by="ServiceInstancePartnerOrganization.sort_order.asc()",
+        )
+    )
+
+
+class ServiceInstancePartnerOrganization(Base):
+    """Many-to-many link between event instances and partner organizations."""
+
+    __tablename__ = "service_instance_organizations"
+    __table_args__ = (
+        Index("svc_instance_org_instance_idx", "service_instance_id"),
+        Index("svc_instance_org_organization_idx", "organization_id"),
+    )
+
+    service_instance_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("service_instances.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    organization_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    sort_order: Mapped[int] = mapped_column(
+        Integer(),
+        nullable=False,
+        server_default=text("0"),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+
+    instance: Mapped[ServiceInstance] = relationship(
+        "ServiceInstance",
+        back_populates="partner_organization_links",
+    )
+    organization: Mapped[Organization] = relationship("Organization")
 
 
 class InstanceSessionSlot(Base):
@@ -343,7 +399,6 @@ class ConsultationInstanceDetails(Base):
         server_default=text("'HKD'"),
     )
     package_sessions: Mapped[int | None] = mapped_column(nullable=True)
-    calendly_event_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     instance: Mapped[ServiceInstance] = relationship(
         "ServiceInstance",

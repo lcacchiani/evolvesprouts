@@ -17,6 +17,7 @@ from app.db.models import (
     InstanceSessionSlot,
     InstanceStatus,
     Service,
+    ServiceInstancePartnerOrganization,
     ServiceStatus,
     ServiceInstance,
     ServiceType,
@@ -54,6 +55,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 joinedload(ServiceInstance.training_details),
                 joinedload(ServiceInstance.consultation_details),
                 selectinload(ServiceInstance.ticket_tiers),
+                selectinload(ServiceInstance.partner_organization_links).joinedload(
+                    ServiceInstancePartnerOrganization.organization
+                ),
             )
         )
         if status is not None:
@@ -104,6 +108,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             joinedload(ServiceInstance.training_details),
             joinedload(ServiceInstance.consultation_details),
             selectinload(ServiceInstance.ticket_tiers),
+            selectinload(ServiceInstance.partner_organization_links).joinedload(
+                ServiceInstancePartnerOrganization.organization
+            ),
             joinedload(ServiceInstance.service),
         )
         if service_type is not None:
@@ -163,6 +170,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 joinedload(ServiceInstance.training_details),
                 joinedload(ServiceInstance.consultation_details),
                 selectinload(ServiceInstance.ticket_tiers),
+                selectinload(ServiceInstance.partner_organization_links).joinedload(
+                    ServiceInstancePartnerOrganization.organization
+                ),
                 selectinload(ServiceInstance.enrollments),
             )
         )
