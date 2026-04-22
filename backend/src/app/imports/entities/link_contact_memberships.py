@@ -18,7 +18,10 @@ from sqlalchemy import exists
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.db.models import Contact
+from app.db.models import Family
 from app.db.models import FamilyMember
+from app.db.models import Organization
 from app.db.models import OrganizationMember
 from app.imports import refs
 from app.imports.base import ImportStats
@@ -33,6 +36,31 @@ from app.imports.registry import register
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _prune_refs_to_existing(
+    session: Session,
+    ref_map: dict[str, UUID] | None,
+    *,
+    model: Any,
+) -> tuple[dict[str, UUID], int]:
+    """Return ``(pruned_map, dropped_count)`` filtering IDs missing from ``model``.
+
+    ``legacy_import_refs`` is a soft pointer (no FK) — rows can survive after the
+    referenced target row is deleted, which would cause FK violations on
+    downstream inserts. Filter out stale mappings before planning links.
+    """
+    if not ref_map:
+        return {}, 0
+    candidate_ids = {v for v in ref_map.values() if v is not None}
+    if not candidate_ids:
+        return dict(ref_map), 0
+    existing_ids: set[UUID] = set()
+    rows = session.execute(select(model.id).where(model.id.in_(candidate_ids))).all()
+    for (rid,) in rows:
+        existing_ids.add(rid if isinstance(rid, UUID) else UUID(str(rid)))
+    pruned = {k: v for k, v in ref_map.items() if v in existing_ids}
+    return pruned, len(ref_map) - len(pruned)
 
 
 def _family_membership_exists(
@@ -140,24 +168,44 @@ class LinkContactMembershipsImporter:
         dry_run: bool,
     ) -> ImportStats:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
-        contact_refs = ctx.refs_by_entity.get("contacts") or refs.load_mapping(
+        raw_contact_refs = ctx.refs_by_entity.get("contacts") or refs.load_mapping(
             session,
             "contacts",
         )
-        family_refs = ctx.refs_by_entity.get("families") or refs.load_mapping(
+        raw_family_refs = ctx.refs_by_entity.get("families") or refs.load_mapping(
             session,
             "families",
         )
-        org_refs = ctx.refs_by_entity.get("organizations") or refs.load_mapping(
+        raw_org_refs = ctx.refs_by_entity.get("organizations") or refs.load_mapping(
             session,
             "organizations",
         )
 
+        contact_refs, stale_contact_refs = _prune_refs_to_existing(
+            session,
+            dict(raw_contact_refs),
+            model=Contact,
+        )
+        family_refs, stale_family_refs = _prune_refs_to_existing(
+            session,
+            dict(raw_family_refs),
+            model=Family,
+        )
+        org_refs, stale_org_refs = _prune_refs_to_existing(
+            session,
+            dict(raw_org_refs),
+            model=Organization,
+        )
+
         logger.info(
-            "link_contact_memberships: contacts=%d families=%d organizations=%d",
+            "link_contact_memberships: contacts=%d (stale=%d) families=%d "
+            "(stale=%d) organizations=%d (stale=%d)",
             len(contact_refs),
+            stale_contact_refs,
             len(family_refs),
+            stale_family_refs,
             len(org_refs),
+            stale_org_refs,
         )
 
         family_inserted = 0
@@ -167,6 +215,8 @@ class LinkContactMembershipsImporter:
         skipped_no_family_id = 0
         skipped_no_contact_mapping = 0
         skipped_no_parent_mapping = 0
+        skipped_stale_contact_ref = 0
+        skipped_stale_parent_ref = 0
 
         for p in rows:
             if not isinstance(p, LegacyPersonRow):
@@ -183,7 +233,10 @@ class LinkContactMembershipsImporter:
 
             contact_uuid = contact_refs.get(str(p.legacy_id))
             if contact_uuid is None:
-                skipped_no_contact_mapping += 1
+                if str(p.legacy_id) in raw_contact_refs:
+                    skipped_stale_contact_ref += 1
+                else:
+                    skipped_no_contact_mapping += 1
                 continue
 
             fam_key = str(p.family_id)
@@ -191,7 +244,10 @@ class LinkContactMembershipsImporter:
             org_uuid = None if family_uuid is not None else org_refs.get(fam_key)
 
             if family_uuid is None and org_uuid is None:
-                skipped_no_parent_mapping += 1
+                if fam_key in raw_family_refs or fam_key in raw_org_refs:
+                    skipped_stale_parent_ref += 1
+                else:
+                    skipped_no_parent_mapping += 1
                 continue
 
             if family_uuid is not None:
@@ -297,6 +353,11 @@ class LinkContactMembershipsImporter:
             "skipped_no_family_id": skipped_no_family_id,
             "skipped_no_contact_mapping": skipped_no_contact_mapping,
             "skipped_no_parent_mapping": skipped_no_parent_mapping,
+            "skipped_stale_contact_ref": skipped_stale_contact_ref,
+            "skipped_stale_parent_ref": skipped_stale_parent_ref,
+            "stale_ref_rows_contacts": stale_contact_refs,
+            "stale_ref_rows_families": stale_family_refs,
+            "stale_ref_rows_organizations": stale_org_refs,
             "dependency_ref_count_contacts": len(contact_refs),
             "dependency_ref_count_families": len(family_refs),
             "dependency_ref_count_organizations": len(org_refs),

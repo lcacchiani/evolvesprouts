@@ -60,9 +60,20 @@ def _ctx(
     )
 
 
+def _patch_identity_prune(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.imports.entities import link_contact_memberships as mod
+
+    monkeypatch.setattr(
+        mod,
+        "_prune_refs_to_existing",
+        lambda _session, ref_map, *, model: (dict(ref_map or {}), 0),
+    )
+
+
 def test_inserts_family_and_org_memberships(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.imports.entities import link_contact_memberships as mod
 
+    _patch_identity_prune(monkeypatch)
     monkeypatch.setattr(mod, "_family_membership_exists", lambda *a, **k: False)
     monkeypatch.setattr(mod, "_organization_membership_exists", lambda *a, **k: False)
 
@@ -111,6 +122,7 @@ def test_skips_deleted_missing_mappings_and_existing(
 ) -> None:
     from app.imports.entities import link_contact_memberships as mod
 
+    _patch_identity_prune(monkeypatch)
     monkeypatch.setattr(mod, "_family_membership_exists", lambda *a, **k: True)
     monkeypatch.setattr(mod, "_organization_membership_exists", lambda *a, **k: False)
 
@@ -146,12 +158,15 @@ def test_skips_deleted_missing_mappings_and_existing(
     assert stats.diagnostics["skipped_no_parent_mapping"] == 1
     assert stats.diagnostics["skipped_no_contact_mapping"] == 1
     assert stats.diagnostics["skipped_no_family_id"] == 1
+    assert stats.diagnostics["skipped_stale_contact_ref"] == 0
+    assert stats.diagnostics["skipped_stale_parent_ref"] == 0
     assert session.add.call_count == 0
 
 
 def test_dry_run_does_not_write(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.imports.entities import link_contact_memberships as mod
 
+    _patch_identity_prune(monkeypatch)
     monkeypatch.setattr(mod, "_family_membership_exists", lambda *a, **k: False)
     monkeypatch.setattr(mod, "_organization_membership_exists", lambda *a, **k: False)
 
@@ -179,6 +194,7 @@ def test_dry_run_does_not_write(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_skip_legacy_keys_excludes_persons(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.imports.entities import link_contact_memberships as mod
 
+    _patch_identity_prune(monkeypatch)
     monkeypatch.setattr(mod, "_family_membership_exists", lambda *a, **k: False)
     monkeypatch.setattr(mod, "_organization_membership_exists", lambda *a, **k: False)
 
@@ -199,6 +215,65 @@ def test_skip_legacy_keys_excludes_persons(monkeypatch: pytest.MonkeyPatch) -> N
     assert stats.inserted == 0
     assert stats.skipped_excluded_key == 1
     assert session.add.call_count == 0
+
+
+def test_stale_refs_are_pruned_and_counted(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rows in ``legacy_import_refs`` that point to deleted target rows must
+    be filtered before planning links, otherwise downstream inserts raise
+    ``ForeignKeyViolation``. The pruned maps + stale counters surface the drop."""
+    from app.db.models import Contact, Family, Organization
+    from app.imports.entities import link_contact_memberships as mod
+
+    live_contact = uuid.uuid4()
+    stale_contact = uuid.uuid4()
+    live_family = uuid.uuid4()
+    stale_family = uuid.uuid4()
+    live_org = uuid.uuid4()
+    stale_org = uuid.uuid4()
+
+    def _fake_prune(_session, ref_map, *, model):
+        if not ref_map:
+            return {}, 0
+        live_sets = {
+            Contact: {live_contact},
+            Family: {live_family},
+            Organization: {live_org},
+        }
+        live = live_sets[model]
+        pruned = {k: v for k, v in ref_map.items() if v in live}
+        return pruned, len(ref_map) - len(pruned)
+
+    monkeypatch.setattr(mod, "_prune_refs_to_existing", _fake_prune)
+    monkeypatch.setattr(mod, "_family_membership_exists", lambda *a, **k: False)
+    monkeypatch.setattr(mod, "_organization_membership_exists", lambda *a, **k: False)
+
+    session = MagicMock()
+    persons = [
+        _person(legacy_id=1, family_id=10, kind="parent"),
+        _person(legacy_id=2, family_id=10, kind="child"),
+        _person(legacy_id=3, family_id=20, kind="partner"),
+        _person(legacy_id=4, family_id=30, kind="partner"),
+    ]
+    ctx = _ctx(
+        contacts={"1": live_contact, "2": stale_contact, "3": live_contact, "4": live_contact},
+        families={"10": live_family, "20": stale_family},
+        organizations={"30": stale_org, "40": live_org},
+    )
+
+    importer = LinkContactMembershipsImporter()
+    stats = importer.apply(session, persons, ctx, dry_run=False)
+
+    assert stats.inserted == 1
+    assert stats.diagnostics["family_memberships_inserted"] == 1
+    assert stats.diagnostics["organization_memberships_inserted"] == 0
+    assert stats.diagnostics["skipped_stale_contact_ref"] == 1
+    assert stats.diagnostics["skipped_stale_parent_ref"] == 2
+    assert stats.diagnostics["skipped_no_contact_mapping"] == 0
+    assert stats.diagnostics["skipped_no_parent_mapping"] == 0
+    assert stats.diagnostics["stale_ref_rows_contacts"] == 1
+    assert stats.diagnostics["stale_ref_rows_families"] == 1
+    assert stats.diagnostics["stale_ref_rows_organizations"] == 1
+    assert session.add.call_count == 1
 
 
 def test_parse_delegates_to_legacy_person_parser() -> None:
