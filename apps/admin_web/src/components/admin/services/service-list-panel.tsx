@@ -87,6 +87,15 @@ export function ServiceListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 flex flex-wrap items-end gap-3'>
+            <div className='min-w-[200px] flex-1'>
+              <Label htmlFor='services-filter-search'>Search</Label>
+              <Input
+                id='services-filter-search'
+                value={filters.search}
+                onChange={(event) => onFilterChange('search', event.target.value)}
+                placeholder='Title or description'
+              />
+            </div>
             <div className='min-w-[140px]'>
               <Label htmlFor='services-filter-type'>Type</Label>
               <Select
@@ -118,15 +127,6 @@ export function ServiceListPanel({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div className='min-w-[200px] flex-1'>
-              <Label htmlFor='services-filter-search'>Search</Label>
-              <Input
-                id='services-filter-search'
-                value={filters.search}
-                onChange={(event) => onFilterChange('search', event.target.value)}
-                placeholder='Title or description'
-              />
             </div>
           </div>
         }
