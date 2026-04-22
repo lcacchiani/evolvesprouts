@@ -32,7 +32,14 @@ def _restore_importers() -> Iterator[None]:
 
 def test_known_entities_includes_expected_importers() -> None:
     expected = frozenset(
-        {"venues", "families", "organizations", "contacts", "notes"},
+        {
+            "venues",
+            "families",
+            "organizations",
+            "contacts",
+            "notes",
+            "link_contact_memberships",
+        },
     )
     assert expected.issubset(frozenset(known_entities()))
 
