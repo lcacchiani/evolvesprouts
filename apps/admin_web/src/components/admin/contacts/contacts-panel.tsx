@@ -635,6 +635,19 @@ export function ContactsPanel({
               />
             </div>
             <div>
+              <PhoneField
+                variant='compact'
+                combinedLabel='Phone number'
+                regionLabel='Phone country / region'
+                nationalLabel='Phone number (national digits)'
+                region={phoneRegion}
+                national={phoneNational}
+                onRegionChange={setPhoneRegion}
+                onNationalChange={setPhoneNational}
+                nationalInputId='crm-contact-phone-national'
+              />
+            </div>
+            <div>
               <Label htmlFor='crm-contact-ig'>Instagram</Label>
               <Input
                 id='crm-contact-ig'
@@ -653,16 +666,6 @@ export function ContactsPanel({
               />
             </div>
           </div>
-
-          <PhoneField
-            region={phoneRegion}
-            national={phoneNational}
-            onRegionChange={setPhoneRegion}
-            onNationalChange={setPhoneNational}
-            regionLabel='Phone country / region'
-            nationalLabel='Phone number (national digits)'
-            nationalInputId='crm-contact-phone-national'
-          />
 
           <div className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>
