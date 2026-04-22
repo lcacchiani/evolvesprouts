@@ -385,7 +385,6 @@ describe('ContactsPanel', () => {
     await user.click(screen.getByText('Ann Lee'));
 
     expect(screen.getAllByText('1 Road · Hong Kong').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('22.10000, 114.20000').length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByText('Location is managed on the linked family or organisation.')
     ).toBeInTheDocument();

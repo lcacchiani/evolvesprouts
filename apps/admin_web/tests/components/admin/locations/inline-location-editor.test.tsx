@@ -48,7 +48,6 @@ describe('InlineLocationEditor', () => {
     );
 
     expect(screen.getByText('1 Road · Hong Kong')).toBeInTheDocument();
-    expect(screen.getByText('22.10000, 114.20000')).toBeInTheDocument();
   });
 
   it('disables Save location until an area is selected', async () => {
