@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.admin_crm_helpers import parse_crm_limit
+from app.api.admin_crm_helpers import parse_limit
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.engine import get_engine
 from app.db.models import Family
@@ -49,7 +49,7 @@ def handle_admin_families_picker_request(
 
 
 def _list_family_picker(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT)
     with Session(get_engine()) as session:
         statement = (
             select(Family.id, Family.family_name)

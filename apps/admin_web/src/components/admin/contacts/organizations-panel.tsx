@@ -22,8 +22,8 @@ import { formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  CRM_ORGANIZATION_RELATIONSHIP_TYPES,
-  relationshipTypeForCrmEditor,
+  ORGANIZATION_RELATIONSHIP_TYPES,
+  relationshipTypeForEditor,
 } from '@/types/crm-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -94,7 +94,7 @@ export function OrganizationsPanel({
     addMember,
     removeMember,
     deleteOrganization,
-    crmRelationshipOptions,
+    relationshipOptions,
   } = organizations;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -309,7 +309,7 @@ export function OrganizationsPanel({
     setName(row.name);
     setOrganizationType(row.organization_type);
     setRelationshipType(
-      relationshipTypeForCrmEditor(row.relationship_type, CRM_ORGANIZATION_RELATIONSHIP_TYPES)
+      relationshipTypeForEditor(row.relationship_type, ORGANIZATION_RELATIONSHIP_TYPES)
     );
     setSlug(row.slug ?? '');
     setWebsite(row.website ?? '');
@@ -362,7 +362,7 @@ export function OrganizationsPanel({
                 }
               }}
             >
-              {crmRelationshipOptions.map((v) => (
+              {relationshipOptions.map((v) => (
                 <option key={v} value={v}>
                   {formatEnumLabel(v)}
                 </option>

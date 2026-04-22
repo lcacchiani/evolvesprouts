@@ -27,14 +27,14 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def parse_crm_limit(event: Mapping[str, Any], *, default: int = 25) -> int:
+def parse_limit(event: Mapping[str, Any], *, default: int = 25) -> int:
     raw = query_param(event, "limit")
     if raw is None or raw == "":
         return default
     try:
         parsed = int(raw)
     except (TypeError, ValueError) as exc:
-        logger.warning("Invalid CRM limit value", extra={"field": "limit"})
+        logger.warning("Invalid list limit value", extra={"field": "limit"})
         raise ValidationError("limit must be an integer", field="limit") from exc
     if parsed < 1 or parsed > 100:
         raise ValidationError("limit must be between 1 and 100", field="limit")
@@ -187,8 +187,8 @@ def list_all_tags_for_picker(session: Session) -> list[Tag]:
     return list(session.execute(statement).scalars().all())
 
 
-def crm_request_id(event: Mapping[str, Any]) -> str:
-    """API Gateway request id for audit context (shared by CRM admin handlers)."""
+def request_id(event: Mapping[str, Any]) -> str:
+    """API Gateway request id for audit context (shared by admin CRM handlers)."""
     request_context = event.get("requestContext")
     if isinstance(request_context, Mapping):
         request_id = request_context.get("requestId")
@@ -197,7 +197,7 @@ def crm_request_id(event: Mapping[str, Any]) -> str:
     return ""
 
 
-def parse_crm_relationship_type(
+def parse_relationship_type(
     value: Any,
     *,
     field: str,
@@ -223,7 +223,7 @@ def parse_crm_relationship_type(
     return parsed
 
 
-CRM_FAMILY_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
+FAMILY_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
     {
         RelationshipType.PROSPECT,
         RelationshipType.CLIENT,
@@ -231,6 +231,6 @@ CRM_FAMILY_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
     }
 )
 
-CRM_ORGANIZATION_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
+ORGANIZATION_RELATIONSHIP_TYPES: frozenset[RelationshipType] = frozenset(
     set(RelationshipType) - {RelationshipType.PAST_CLIENT}
 )

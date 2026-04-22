@@ -22,8 +22,8 @@ import { formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  CRM_FAMILY_RELATIONSHIP_TYPES,
-  relationshipTypeForCrmEditor,
+  FAMILY_RELATIONSHIP_TYPES,
+  relationshipTypeForEditor,
 } from '@/types/crm-relationship';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -93,7 +93,7 @@ export function FamiliesPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [familyName, setFamilyName] = useState('');
   const [relationshipType, setRelationshipType] =
-    useState<(typeof CRM_FAMILY_RELATIONSHIP_TYPES)[number]>('prospect');
+    useState<(typeof FAMILY_RELATIONSHIP_TYPES)[number]>('prospect');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
     useState<InlineLocationEmbeddedSummary | null>(null);
@@ -283,7 +283,7 @@ export function FamiliesPanel({
     setEditorMode('edit');
     setFamilyName(row.family_name);
     setRelationshipType(
-      relationshipTypeForCrmEditor(row.relationship_type, CRM_FAMILY_RELATIONSHIP_TYPES)
+      relationshipTypeForEditor(row.relationship_type, FAMILY_RELATIONSHIP_TYPES)
     );
     setPendingLocationId(row.location_id ?? null);
     setOptimisticLocationSummary(null);
@@ -331,10 +331,10 @@ export function FamiliesPanel({
               id='crm-family-rel'
               value={relationshipType}
               onChange={(e) =>
-                setRelationshipType(e.target.value as (typeof CRM_FAMILY_RELATIONSHIP_TYPES)[number])
+                setRelationshipType(e.target.value as (typeof FAMILY_RELATIONSHIP_TYPES)[number])
               }
             >
-              {CRM_FAMILY_RELATIONSHIP_TYPES.map((v) => (
+              {FAMILY_RELATIONSHIP_TYPES.map((v) => (
                 <option key={v} value={v}>
                   {formatEnumLabel(v)}
                 </option>

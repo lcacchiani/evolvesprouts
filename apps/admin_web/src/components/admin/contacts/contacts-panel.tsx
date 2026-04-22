@@ -31,8 +31,8 @@ import {
 import { formatEnumLabel } from '@/lib/format';
 import type { CrmListFilters } from '@/types/crm';
 import {
-  CRM_CONTACT_RELATIONSHIP_TYPES,
-  relationshipTypeForCrmEditor,
+  CONTACT_RELATIONSHIP_TYPES,
+  relationshipTypeForEditor,
 } from '@/types/crm-relationship';
 import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
@@ -144,7 +144,7 @@ export function ContactsPanel({
   const [phone, setPhone] = useState('');
   const [contactType, setContactType] = useState<ApiSchemas['CrmContactType']>('parent');
   const [relationshipType, setRelationshipType] =
-    useState<(typeof CRM_CONTACT_RELATIONSHIP_TYPES)[number]>('prospect');
+    useState<(typeof CONTACT_RELATIONSHIP_TYPES)[number]>('prospect');
   const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
   const [referralContactId, setReferralContactId] = useState('');
@@ -448,7 +448,7 @@ export function ContactsPanel({
     setInstagramHandle(row.instagram_handle ?? '');
     setPhone(row.phone ?? '');
     setContactType(row.contact_type);
-    setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
+    setRelationshipType(relationshipTypeForEditor(row.relationship_type));
     setSource(row.source);
     setSourceDetail(row.source_detail ?? '');
     setReferralContactId(row.referral_contact_id ?? '');
@@ -536,10 +536,10 @@ export function ContactsPanel({
                 id='crm-contact-rel'
                 value={relationshipType}
                 onChange={(e) =>
-                  setRelationshipType(e.target.value as (typeof CRM_CONTACT_RELATIONSHIP_TYPES)[number])
+                  setRelationshipType(e.target.value as (typeof CONTACT_RELATIONSHIP_TYPES)[number])
                 }
               >
-                {CRM_CONTACT_RELATIONSHIP_TYPES.map((v) => (
+                {CONTACT_RELATIONSHIP_TYPES.map((v) => (
                   <option key={v} value={v}>
                     {formatEnumLabel(v)}
                   </option>

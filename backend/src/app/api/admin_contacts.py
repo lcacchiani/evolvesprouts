@@ -23,7 +23,7 @@ from app.api.admin_crm_helpers import (
     list_all_tags_for_picker,
     parse_active_filter,
     parse_contact_type_filter,
-    parse_crm_limit,
+    parse_limit,
     serialize_tag_ref,
 )
 from app.api.admin_crm_serializers import (
@@ -132,7 +132,7 @@ def handle_admin_contacts_request(
 
 
 def _search_contacts_for_picker(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT)
     raw_query = validate_string_length(
         query_param(event, "query"),
         "query",
@@ -175,7 +175,7 @@ def _list_contact_tags(event: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT)
     cursor = parse_cursor(query_param(event, "cursor"))
     query = validate_string_length(
         query_param(event, "query"),

@@ -56,9 +56,9 @@ function buildOrgsHook(
     removeMember: vi.fn().mockResolvedValue(null),
     deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
-    crmRelationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
+    relationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
       typeof useAdminCrmOrganizations
-    >['crmRelationshipOptions'],
+    >['relationshipOptions'],
     ...overrides,
   };
 }

@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_crm_entity_deletes import delete_admin_crm_organization
 from app.api.admin_crm_helpers import (
-    CRM_ORGANIZATION_RELATIONSHIP_TYPES,
+    ORGANIZATION_RELATIONSHIP_TYPES,
     assert_contact_can_join_organization,
-    crm_request_id,
+    request_id,
     ensure_location_exists,
     parse_active_filter,
-    parse_crm_limit,
-    parse_crm_relationship_type,
+    parse_limit,
+    parse_relationship_type,
     parse_optional_bool_body,
     replace_organization_tags,
 )
@@ -190,7 +190,7 @@ def _is_organizations_partner_slug_unique_violation(exc: IntegrityError) -> bool
 
 
 def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT)
     cursor = parse_cursor(query_param(event, "cursor"))
     query = validate_string_length(
         query_param(event, "query"),
@@ -266,10 +266,10 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
     organization_type = _parse_organization_type(
         body.get("organization_type"), field="organization_type"
     )
-    relationship_type = parse_crm_relationship_type(
+    relationship_type = parse_relationship_type(
         body.get("relationship_type"),
         field="relationship_type",
-        allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
+        allowed=ORGANIZATION_RELATIONSHIP_TYPES,
     )
     website = validate_string_length(
         body.get("website"),
@@ -281,7 +281,7 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         ensure_location_exists(session, location_id)
         repository = OrganizationRepository(session)
         org = Organization(
@@ -339,7 +339,7 @@ def _update_organization(
     body = parse_body(event)
     now = datetime.now(UTC)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
@@ -360,10 +360,10 @@ def _update_organization(
                 body.get("organization_type"), field="organization_type"
             )
         if "relationship_type" in body:
-            org.relationship_type = parse_crm_relationship_type(
+            org.relationship_type = parse_relationship_type(
                 body.get("relationship_type"),
                 field="relationship_type",
-                allowed=CRM_ORGANIZATION_RELATIONSHIP_TYPES,
+                allowed=ORGANIZATION_RELATIONSHIP_TYPES,
             )
             if org.relationship_type != RelationshipType.PARTNER:
                 org.slug = None
@@ -427,7 +427,7 @@ def _add_organization_member(
     role = _parse_organization_role(body.get("role"), field="role")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
@@ -465,7 +465,7 @@ def _remove_organization_member(
     actor_sub: str,
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:

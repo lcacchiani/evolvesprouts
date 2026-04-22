@@ -16,7 +16,7 @@ export const DEFAULT_CRM_LIST_FILTERS: CrmListFilters = {
 };
 
 /** Default filters for the contacts table (Active contacts only). */
-export const DEFAULT_CRM_CONTACT_LIST_FILTERS: CrmListFilters = {
+export const DEFAULT_CONTACT_LIST_FILTERS: CrmListFilters = {
   query: '',
   active: 'true',
   contact_type: '',
