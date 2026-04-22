@@ -41,6 +41,7 @@ on:
           - organizations
           - contacts
           - notes
+          - link_contact_memberships
       sql_download_url:
         description: >
           HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL or
