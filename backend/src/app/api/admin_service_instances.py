@@ -10,6 +10,10 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_enrollments import handle_admin_enrollments_request
 from app.api.admin_request import parse_body, parse_uuid
+from app.api.admin_service_instance_partners import (
+    reconcile_instance_partner_organizations,
+    validate_partner_organization_ids,
+)
 from app.api.admin_services_common import (
     encode_instance_cursor,
     parse_create_instance_payload,
@@ -24,8 +28,10 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import (
     ConsultationInstanceDetails,
+    EventCategory,
     EventTicketTier,
     InstanceSessionSlot,
+    Service,
     ServiceInstance,
     ServiceType,
     TrainingFormat,
@@ -38,6 +44,153 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _event_category_name(service: Service) -> str:
+    if service.event_details is not None:
+        return service.event_details.event_category.value
+    return EventCategory.WORKSHOP.value
+
+
+def _resolve_event_ticket_tiers_for_persist(
+    service: Service, parsed_tiers: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Fill missing tier currency from service event defaults; default name from category.
+
+    Missing ``price`` uses the service-level ``default_price`` when set; otherwise
+    callers must supply an explicit price (no silent zero).
+    """
+    if not parsed_tiers:
+        parsed_tiers = [{}]
+    event_details = service.event_details
+    default_price = event_details.default_price if event_details is not None else None
+    default_currency = (
+        event_details.default_currency if event_details is not None else "HKD"
+    )
+    category_name = _event_category_name(service)
+    resolved: list[dict[str, Any]] = []
+    for idx, tier in enumerate(parsed_tiers):
+        price = tier.get("price")
+        if price is None:
+            if default_price is not None:
+                price = default_price
+            else:
+                raise ValidationError(
+                    "Each event_ticket_tiers entry must include price, or the service "
+                    "must define event_details.default_price",
+                    field="event_ticket_tiers",
+                )
+        currency = tier.get("currency") or default_currency
+        name = tier.get("name") or category_name
+        resolved.append(
+            {
+                "name": name,
+                "description": tier.get("description"),
+                "price": price,
+                "currency": currency,
+                "max_quantity": tier.get("max_quantity"),
+                "sort_order": tier.get("sort_order")
+                if tier.get("sort_order") is not None
+                else idx,
+            }
+        )
+    return resolved
+
+
+def _merge_event_ticket_tiers_with_existing(
+    service: Service,
+    instance: ServiceInstance | None,
+    resolved_tiers: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Preserve multi-tier rows and non-category tier metadata when the UI sends one tier.
+
+    When the instance already has ticket tiers and the client sends a single tier
+    object (admin Row D), merge price/currency into the tier whose ``name`` matches
+    the service event category, or the sole tier, and keep other tiers unchanged.
+    When the client sends N tiers for an instance with N tiers, zip-merge by
+    ``sort_order`` and preserve each existing tier's name, description, max_quantity,
+    and sort_order while applying payload price/currency per row.
+    """
+    if instance is None or not instance.ticket_tiers:
+        return resolved_tiers
+    existing = sorted(
+        instance.ticket_tiers,
+        key=lambda row: (row.sort_order, str(getattr(row, "id", ""))),
+    )
+    category_name = _event_category_name(service)
+
+    if len(resolved_tiers) == 1:
+        patch = resolved_tiers[0]
+        if len(existing) == 1:
+            t = existing[0]
+            return [
+                {
+                    **patch,
+                    "name": t.name,
+                    "description": t.description,
+                    "max_quantity": t.max_quantity,
+                    "sort_order": t.sort_order,
+                }
+            ]
+        match_index = next(
+            (i for i, t in enumerate(existing) if t.name == category_name), None
+        )
+        if match_index is None:
+            raise ValidationError(
+                "This instance has multiple ticket tiers; none matches the service "
+                f"event category ({category_name!r}). Send a full event_ticket_tiers "
+                "array with one entry per tier to update prices.",
+                field="event_ticket_tiers",
+            )
+        merged: list[dict[str, Any]] = []
+        for t in existing:
+            if t.name == category_name:
+                merged.append(
+                    {
+                        **patch,
+                        "name": t.name,
+                        "description": t.description,
+                        "max_quantity": t.max_quantity,
+                        "sort_order": t.sort_order,
+                    }
+                )
+            else:
+                merged.append(
+                    {
+                        "name": t.name,
+                        "description": t.description,
+                        "price": t.price,
+                        "currency": t.currency,
+                        "max_quantity": t.max_quantity,
+                        "sort_order": t.sort_order,
+                    }
+                )
+        return merged
+
+    if len(resolved_tiers) != len(existing):
+        raise ValidationError(
+            "event_ticket_tiers length must match the number of existing tiers "
+            f"({len(existing)}); send {len(existing)} tier objects or a single tier "
+            "for category-scoped price updates.",
+            field="event_ticket_tiers",
+        )
+    res_sorted = sorted(
+        resolved_tiers,
+        key=lambda row: row.get("sort_order", 0),
+    )
+    out: list[dict[str, Any]] = []
+    for t, p in zip(existing, res_sorted, strict=True):
+        out.append(
+            {
+                "name": t.name,
+                "description": t.description,
+                "price": p["price"],
+                "currency": p.get("currency") or t.currency,
+                "max_quantity": t.max_quantity,
+                "sort_order": t.sort_order,
+            }
+        )
+    return out
 
 
 def handle_admin_all_service_instances_request(
@@ -225,10 +378,11 @@ def _create_instance(
         service_repository = ServiceRepository(session)
         instance_repository = ServiceInstanceRepository(session)
 
-        service = service_repository.get_by_id(service_id)
+        service = service_repository.get_by_id_with_details(service_id)
         if service is None:
             raise NotFoundError("Service", str(service_id))
         payload = parse_create_instance_payload(body, service)
+        validate_partner_organization_ids(session, payload["partner_organization_ids"])
 
         instance = ServiceInstance(
             service_id=service_id,
@@ -244,10 +398,22 @@ def _create_instance(
             waitlist_enabled=payload["waitlist_enabled"],
             instructor_id=payload["instructor_id"],
             notes=payload["notes"],
+            external_url=payload["external_url"],
             created_by=actor_sub,
         )
+        type_details_raw = payload["type_details"]
+        if service.service_type == ServiceType.EVENT:
+            resolved = _resolve_event_ticket_tiers_for_persist(
+                service, type_details_raw["event_ticket_tiers"]
+            )
+            type_details_raw = {
+                **type_details_raw,
+                "event_ticket_tiers": _merge_event_ticket_tiers_with_existing(
+                    service, instance, resolved
+                ),
+            }
         type_details = _build_instance_type_details(
-            service.service_type, payload["type_details"]
+            service.service_type, type_details_raw
         )
         slots = [
             InstanceSessionSlot(
@@ -259,6 +425,11 @@ def _create_instance(
             for item in payload["session_slots"]
         ]
         created = instance_repository.create_instance(instance, type_details, slots)
+        reconcile_instance_partner_organizations(
+            session,
+            instance_id=created.id,
+            ordered_org_ids=payload["partner_organization_ids"],
+        )
         session.commit()
         if service.service_type == ServiceType.EVENT:
             enqueue_eventbrite_instance_sync_by_id(created.id)
@@ -311,13 +482,17 @@ def _update_instance(
         service_repository = ServiceRepository(session)
         instance_repository = ServiceInstanceRepository(session)
 
-        service = service_repository.get_by_id(service_id)
+        service = service_repository.get_by_id_with_details(service_id)
         if service is None:
             raise NotFoundError("Service", str(service_id))
         instance = instance_repository.get_by_id_with_details(instance_id)
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
         payload = parse_update_instance_payload(body, service)
+        if "partner_organization_ids" in payload:
+            validate_partner_organization_ids(
+                session, payload["partner_organization_ids"]
+            )
 
         if "title" in payload:
             instance.title = payload["title"]
@@ -343,6 +518,8 @@ def _update_instance(
             instance.instructor_id = payload["instructor_id"]
         if "notes" in payload:
             instance.notes = payload["notes"]
+        if "external_url" in payload:
+            instance.external_url = payload["external_url"]
         if "session_slots" in payload:
             instance.session_slots.clear()
             for item in payload["session_slots"]:
@@ -355,10 +532,24 @@ def _update_instance(
                     )
                 )
         if "type_details" in payload:
+            type_details_raw = payload["type_details"]
+            if service.service_type == ServiceType.EVENT:
+                type_details_raw = {
+                    **type_details_raw,
+                    "event_ticket_tiers": _resolve_event_ticket_tiers_for_persist(
+                        service, type_details_raw["event_ticket_tiers"]
+                    ),
+                }
             _apply_instance_type_details(
                 instance=instance,
                 service_type=service.service_type,
-                parsed_details=payload["type_details"],
+                parsed_details=type_details_raw,
+            )
+        if "partner_organization_ids" in payload:
+            reconcile_instance_partner_organizations(
+                session,
+                instance_id=instance.id,
+                ordered_org_ids=payload["partner_organization_ids"],
             )
 
         updated = instance_repository.update_instance(instance)
@@ -430,7 +621,6 @@ def _build_instance_type_details(
         price=parsed["price"],
         currency=parsed["currency"],
         package_sessions=parsed["package_sessions"],
-        calendly_event_url=parsed["calendly_event_url"],
     )
 
 
@@ -440,17 +630,48 @@ def _apply_instance_type_details(
     service_type: ServiceType,
     parsed_details: Mapping[str, Any],
 ) -> None:
+    if service_type == ServiceType.EVENT:
+        raw_tiers = parsed_details.get("event_ticket_tiers")
+        if not isinstance(raw_tiers, list):
+            raise ValidationError(
+                "event_ticket_tiers must be an array", field="event_ticket_tiers"
+            )
+        tiers_data: list[dict[str, Any]] = list(raw_tiers)
+        tiers_sorted = sorted(tiers_data, key=lambda d: d["sort_order"])
+        existing_sorted = sorted(
+            instance.ticket_tiers,
+            key=lambda t: (t.sort_order, str(t.id)),
+        )
+        if existing_sorted and len(tiers_sorted) == len(existing_sorted):
+            for tier_row, data in zip(existing_sorted, tiers_sorted, strict=True):
+                tier_row.name = data["name"]
+                tier_row.description = data.get("description")
+                tier_row.price = data["price"]
+                tier_row.currency = data["currency"]
+                tier_row.max_quantity = data.get("max_quantity")
+                tier_row.sort_order = data["sort_order"]
+        else:
+            instance.ticket_tiers.clear()
+            for data in tiers_sorted:
+                instance.ticket_tiers.append(
+                    EventTicketTier(
+                        name=data["name"],
+                        description=data.get("description"),
+                        price=data["price"],
+                        currency=data["currency"],
+                        max_quantity=data.get("max_quantity"),
+                        sort_order=data["sort_order"],
+                    )
+                )
+        instance.training_details = None
+        instance.consultation_details = None
+        return
+
     details = _build_instance_type_details(service_type, parsed_details)
     if service_type == ServiceType.TRAINING_COURSE:
         instance.training_details = details
         instance.consultation_details = None
         instance.ticket_tiers.clear()
-    elif service_type == ServiceType.EVENT:
-        instance.ticket_tiers.clear()
-        for tier in details:
-            instance.ticket_tiers.append(tier)
-        instance.training_details = None
-        instance.consultation_details = None
     else:
         instance.consultation_details = details
         instance.training_details = None

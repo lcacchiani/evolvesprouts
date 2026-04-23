@@ -39,7 +39,11 @@ def _event_details_summary(service: Service) -> dict[str, Any] | None:
     details = service.event_details
     if details is None:
         return None
-    return {"event_category": details.event_category.value}
+    return {
+        "event_category": details.event_category.value,
+        "default_price": _decimal_to_string(details.default_price),
+        "default_currency": details.default_currency,
+    }
 
 
 def serialize_service_summary(service: Service) -> dict[str, Any]:
@@ -75,7 +79,12 @@ def serialize_service_detail(service: Service) -> dict[str, Any]:
     if service.training_course_details is not None:
         detail["training_details"] = _training_details_summary(service)
     if service.event_details is not None:
-        detail["event_details"] = _event_details_summary(service)
+        ed = service.event_details
+        detail["event_details"] = {
+            "event_category": ed.event_category.value,
+            "default_price": _decimal_to_string(ed.default_price),
+            "default_currency": ed.default_currency,
+        }
     if service.consultation_details is not None:
         detail["consultation_details"] = {
             "consultation_format": service.consultation_details.consultation_format.value,
@@ -90,7 +99,6 @@ def serialize_service_detail(service: Service) -> dict[str, Any]:
             ),
             "default_package_sessions": service.consultation_details.default_package_sessions,
             "default_currency": service.consultation_details.default_currency,
-            "calendly_url": service.consultation_details.calendly_url,
         }
     return detail
 
@@ -131,6 +139,18 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         "location_id": str(instance.location_id) if instance.location_id else None,
         "max_capacity": instance.max_capacity,
         "waitlist_enabled": instance.waitlist_enabled,
+        "external_url": instance.external_url,
+        "partner_organizations": [
+            {
+                "id": str(link.organization_id),
+                "name": link.organization.name,
+                "archived": link.organization.archived_at is not None,
+            }
+            for link in sorted(
+                instance.partner_organization_links,
+                key=lambda row: row.sort_order,
+            )
+        ],
         "instructor_id": instance.instructor_id,
         "notes": instance.notes,
         "created_by": instance.created_by,
@@ -162,7 +182,6 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
                 "price": _decimal_to_string(instance.consultation_details.price),
                 "currency": instance.consultation_details.currency,
                 "package_sessions": instance.consultation_details.package_sessions,
-                "calendly_event_url": instance.consultation_details.calendly_event_url,
             }
             if instance.consultation_details is not None
             else None

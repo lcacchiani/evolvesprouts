@@ -2994,12 +2994,17 @@ export interface paths {
         };
         /**
          * List active CRM organisations for pickers
-         * @description Returns active non-vendor organisations ordered by name for admin UI dropdowns.
-         *     At most 100 rows unless `limit` is set lower.
+         * @description Returns active organisations ordered by name for admin UI dropdowns.
+         *     When `relationship_type` is omitted, vendor rows are excluded (same default as
+         *     organization list). When `relationship_type` is set (e.g. `partner`), only
+         *     organisations with that relationship type are returned. At most 100 rows unless
+         *     `limit` is set lower.
          */
         get: {
             parameters: {
                 query?: {
+                    /** @description When set, only organizations with this CRM relationship type are returned. When omitted, vendors are excluded (non-vendor default). */
+                    relationship_type?: components["schemas"]["EntityRelationshipType"];
                     limit?: number;
                 };
                 header?: never;
@@ -4062,6 +4067,10 @@ export interface components {
         };
         ServiceEventDetails: {
             event_category?: components["schemas"]["EventCategory"];
+            /** @description Optional default ticket price for new event instances. */
+            default_price?: string | null;
+            /** @description ISO 4217 currency code for default_price (defaults to HKD). */
+            default_currency?: string;
         };
         ServiceConsultationDetails: {
             consultation_format?: components["schemas"]["ConsultationFormat"];
@@ -4072,7 +4081,6 @@ export interface components {
             default_package_price?: string | null;
             default_package_sessions?: number | null;
             default_currency?: string | null;
-            calendly_url?: string | null;
         };
         DiscountCodeUsageSummaryResponse: {
             total_current_uses: number;
@@ -4187,12 +4195,19 @@ export interface components {
             id?: string | null;
             /** Format: uuid */
             instance_id?: string | null;
-            name?: string;
+            name?: string | null;
             description?: string | null;
-            price?: string;
-            currency?: string;
+            price?: string | null;
+            currency?: string | null;
             max_quantity?: number | null;
             sort_order?: number | null;
+        };
+        InstancePartnerOrganization: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description True when the organization is archived (omitted from active pickers). */
+            archived: boolean;
         };
         ServiceInstance: {
             /** Format: uuid */
@@ -4211,6 +4226,12 @@ export interface components {
             location_id?: string | null;
             max_capacity?: number | null;
             waitlist_enabled?: boolean;
+            /**
+             * Format: uri
+             * @description Optional external registration or info URL (http/https only). Distinct from Eventbrite sync URLs on the instance.
+             */
+            external_url?: string | null;
+            partner_organizations?: components["schemas"]["InstancePartnerOrganization"][];
             instructor_id?: string | null;
             notes?: string | null;
             created_by?: string;
@@ -4235,7 +4256,6 @@ export interface components {
                 price?: string | null;
                 currency?: string;
                 package_sessions?: number | null;
-                calendly_event_url?: string | null;
             } | null;
             /** @description Parent service title (present on cross-service list responses). */
             parent_service_title?: string | null;
@@ -4262,6 +4282,10 @@ export interface components {
             location_id?: string | null;
             max_capacity?: number | null;
             waitlist_enabled?: boolean;
+            /** Format: uri */
+            external_url?: string | null;
+            /** @description Ordered partner organization ids for event instances. Unknown ids return 400. */
+            partner_organization_ids?: string[];
             instructor_id?: string | null;
             notes?: string | null;
             session_slots?: components["schemas"]["SessionSlot"][];
@@ -4277,7 +4301,6 @@ export interface components {
                 price?: string | null;
                 currency?: string;
                 package_sessions?: number | null;
-                calendly_event_url?: string | null;
             } | null;
         };
         UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;

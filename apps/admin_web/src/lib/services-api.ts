@@ -18,6 +18,7 @@ import {
   type Enrollment,
   type EnrollmentListFilters,
   type EventTicketTier,
+  type PartnerOrgRef,
   type GeographicAreaSummary,
   type LocationSummary,
   type ServiceDetail,
@@ -84,6 +85,19 @@ function parseTicketTier(value: unknown): EventTicketTier {
   };
 }
 
+function parsePartnerOrganization(value: unknown): PartnerOrgRef | null {
+  const item = isRecord(value) ? value : {};
+  const id = asNullableString(item.id);
+  if (!id) {
+    return null;
+  }
+  return {
+    id,
+    name: asNullableString(item.name) ?? '',
+    active: !asBoolean(item.archived, false),
+  };
+}
+
 function parseLocationSummary(value: unknown): LocationSummary {
   const item = isRecord(value) ? value : {};
   return {
@@ -142,6 +156,8 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     eventDetails: eventRaw
       ? {
           eventCategory: normalizeEventCategoryFromApi(eventRaw.event_category),
+          defaultPrice: asNullableString(eventRaw.default_price),
+          defaultCurrency: asNullableString(eventRaw.default_currency) ?? 'HKD',
         }
       : null,
   };
@@ -161,6 +177,8 @@ function parseServiceDetail(value: unknown): ServiceDetail {
   const eventDetails = isRecord(item.event_details)
     ? {
         eventCategory: normalizeEventCategoryFromApi(item.event_details.event_category),
+        defaultPrice: asNullableString(item.event_details.default_price),
+        defaultCurrency: asNullableString(item.event_details.default_currency) ?? 'HKD',
       }
     : null;
   const consultationDetails = isRecord(item.consultation_details)
@@ -184,7 +202,6 @@ function parseServiceDetail(value: unknown): ServiceDetail {
             ? item.consultation_details.default_package_sessions
             : null,
         defaultCurrency: asNullableString(item.consultation_details.default_currency),
-        calendlyUrl: asNullableString(item.consultation_details.calendly_url),
       }
     : null;
   return {
@@ -221,6 +238,12 @@ function parseInstance(value: unknown): ServiceInstance {
     locationId: asNullableString(item.location_id),
     maxCapacity: typeof item.max_capacity === 'number' ? item.max_capacity : null,
     waitlistEnabled: asBoolean(item.waitlist_enabled, false),
+    externalUrl: asNullableString(item.external_url),
+    partnerOrganizations: Array.isArray(item.partner_organizations)
+      ? item.partner_organizations
+          .map((entry) => parsePartnerOrganization(entry))
+          .filter((row): row is PartnerOrgRef => row !== null)
+      : [],
     instructorId: asNullableString(item.instructor_id),
     notes: asNullableString(item.notes),
     createdBy: asNullableString(item.created_by) ?? '',
@@ -256,7 +279,6 @@ function parseInstance(value: unknown): ServiceInstance {
             typeof item.consultation_details.package_sessions === 'number'
               ? item.consultation_details.package_sessions
               : null,
-          calendlyEventUrl: asNullableString(item.consultation_details.calendly_event_url),
         }
       : null,
   };

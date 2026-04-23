@@ -3,7 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { InstanceDetailPanel } from '@/components/admin/services/instance-detail-panel';
+import * as entityApi from '@/lib/entity-api';
 import type { LocationSummary, ServiceSummary } from '@/types/services';
+
+vi.mock('@/lib/entity-api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/entity-api')>('@/lib/entity-api');
+  return {
+    ...actual,
+    listEntityPartnerOrganizationPicker: vi.fn().mockResolvedValue([]),
+  };
+});
 
 function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
   return {
@@ -42,6 +51,10 @@ function buildLocationSummary(overrides: Partial<LocationSummary> = {}): Locatio
 }
 
 describe('InstanceDetailPanel', () => {
+  beforeEach(() => {
+    vi.mocked(entityApi.listEntityPartnerOrganizationPicker).mockResolvedValue([]);
+  });
+
   it('renders service and location selectors in create mode', () => {
     render(
       <InstanceDetailPanel
@@ -64,6 +77,7 @@ describe('InstanceDetailPanel', () => {
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
     expect(screen.getByLabelText('Referral slug')).toBeDisabled();
     expect(screen.getByLabelText('Title')).toBeDisabled();
+    expect(screen.getByLabelText('Waitlist')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Add instance' })).not.toBeInTheDocument();
   });
 
@@ -94,6 +108,7 @@ describe('InstanceDetailPanel', () => {
       'service-1',
       expect.objectContaining({
         status: 'scheduled',
+        partner_organization_ids: [],
       })
     );
   });
@@ -187,7 +202,11 @@ describe('InstanceDetailPanel', () => {
             serviceType: 'event',
             title: 'Spring open house',
             trainingDetails: null,
-            eventDetails: { eventCategory: 'open_house' },
+            eventDetails: {
+              eventCategory: 'open_house',
+              defaultPrice: '50.00',
+              defaultCurrency: 'HKD',
+            },
           }),
         ]}
         locationOptions={[buildLocationSummary()]}
@@ -207,6 +226,10 @@ describe('InstanceDetailPanel', () => {
     });
     expect(screen.queryByRole('combobox', { name: 'Event category' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Instructor')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText('Price')).toHaveValue('50.00');
+    });
+    expect(screen.getByLabelText('External URL')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Add instance' }));
 
@@ -216,8 +239,11 @@ describe('InstanceDetailPanel', () => {
         event_ticket_tiers: [
           expect.objectContaining({
             name: 'open_house',
+            price: '50.00',
+            currency: 'HKD',
           }),
         ],
+        partner_organization_ids: [],
       })
     );
   });

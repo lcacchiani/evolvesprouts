@@ -116,6 +116,8 @@ export interface ServiceSummary {
   } | null;
   eventDetails: {
     eventCategory: EventCategory;
+    defaultPrice: string | null;
+    defaultCurrency: string;
   } | null;
 }
 
@@ -130,6 +132,8 @@ export interface ServiceDetail extends ServiceSummary {
   } | null;
   eventDetails: {
     eventCategory: EventCategory;
+    defaultPrice: string | null;
+    defaultCurrency: string;
   } | null;
   consultationDetails: {
     consultationFormat: ConsultationFormat;
@@ -140,7 +144,6 @@ export interface ServiceDetail extends ServiceSummary {
     defaultPackagePrice: string | null;
     defaultPackageSessions: number | null;
     defaultCurrency: string | null;
-    calendlyUrl: string | null;
   } | null;
 }
 
@@ -202,6 +205,13 @@ export interface EventTicketTier {
   sortOrder: number | null;
 }
 
+/** Partner org on an event instance (`active` is false when archived in CRM). */
+export interface PartnerOrgRef {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
 export interface ServiceInstance {
   id: string;
   serviceId: string;
@@ -217,6 +227,8 @@ export interface ServiceInstance {
   locationId: string | null;
   maxCapacity: number | null;
   waitlistEnabled: boolean;
+  externalUrl: string | null;
+  partnerOrganizations: PartnerOrgRef[];
   instructorId: string | null;
   notes: string | null;
   createdBy: string;
@@ -239,7 +251,6 @@ export interface ServiceInstance {
     price: string | null;
     currency: string;
     packageSessions: number | null;
-    calendlyEventUrl: string | null;
   } | null;
 }
 

@@ -106,7 +106,11 @@ describe('services-api', () => {
             created_at: '2026-03-01T00:00:00.000Z',
             updated_at: '2026-03-01T00:00:00.000Z',
             training_details: null,
-            event_details: { event_category: 'open_house' },
+            event_details: {
+              event_category: 'open_house',
+              default_price: '25.00',
+              default_currency: 'USD',
+            },
           },
         ],
         next_cursor: null,
@@ -125,7 +129,11 @@ describe('services-api', () => {
     expect(result.items[0]).toMatchObject({
       id: 'service-event-1',
       serviceType: 'event',
-      eventDetails: { eventCategory: 'open_house' },
+      eventDetails: {
+        eventCategory: 'open_house',
+        defaultPrice: '25.00',
+        defaultCurrency: 'USD',
+      },
     });
   });
 

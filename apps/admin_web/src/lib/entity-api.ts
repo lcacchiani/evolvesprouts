@@ -80,15 +80,27 @@ export async function listEntityFamilyPicker(
 }
 
 export async function listEntityOrganizationPicker(
+  params?: { relationshipType?: string },
   signal?: AbortSignal
 ): Promise<EntityPickerListItem[]> {
+  const query = new URLSearchParams();
+  query.set('limit', '100');
+  if (params?.relationshipType?.trim()) {
+    query.set('relationship_type', params.relationshipType.trim());
+  }
   const payload = await adminApiRequest<ApiEntityPickerList>({
-    endpointPath: '/v1/admin/organizations/picker?limit=100',
+    endpointPath: `/v1/admin/organizations/picker?${query.toString()}`,
     method: 'GET',
     signal,
   });
   const root = unwrapPayload(payload);
   return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function listEntityPartnerOrganizationPicker(
+  signal?: AbortSignal
+): Promise<EntityPickerListItem[]> {
+  return listEntityOrganizationPicker({ relationshipType: 'partner' }, signal);
 }
 
 export async function searchEntityContactsForPicker(

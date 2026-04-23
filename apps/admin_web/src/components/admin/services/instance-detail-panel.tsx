@@ -1,27 +1,44 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
-import { EventFormFields, type EventFormState } from './event-form-fields';
+import {
+  ConsultationInstanceRowDFields,
+  ConsultationInstanceRowEFields,
+  type ConsultationFormState,
+} from './consultation-form-fields';
+import {
+  EventCategoryControl,
+  EventDefaultCurrencyControl,
+  EventDefaultPriceControl,
+  type EventFormState,
+} from './event-form-fields';
 import {
   DEFAULT_CONSULTATION_FORM,
   DEFAULT_EVENT_FORM,
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
+import { EventInstancePartnersField } from './event-instance-partners-field';
 import {
   InstanceFormFields,
   InstanceInstructorField,
   type InstanceFormState,
 } from './instance-form-fields';
-import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
+import { SessionSlotEditor } from './session-slot-editor';
+import {
+  TrainingCurrencyControl,
+  TrainingPriceControl,
+  TrainingPricingUnitControl,
+  type TrainingFormState,
+} from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import {
   normalizeEventCategoryFromApi,
   type EventCategory,
   type LocationSummary,
+  type PartnerOrgRef,
   type ServiceInstance,
   type ServiceSummary,
   type ServiceType,
@@ -30,6 +47,9 @@ import {
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
@@ -68,13 +88,15 @@ function mergeServiceIntoInstanceForm(
   };
 }
 
-function mergeServiceIntoEventForm(prev: EventFormState, service: ServiceSummary): EventFormState {
+function mergeServiceIntoEventForm(_prev: EventFormState, service: ServiceSummary): EventFormState {
   if (service.serviceType !== 'event') {
-    return prev;
+    return DEFAULT_EVENT_FORM;
   }
+  const ed = service.eventDetails;
   return {
-    ...prev,
-    eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+    eventCategory: ed?.eventCategory ?? 'workshop',
+    defaultPrice: ed?.defaultPrice ?? '',
+    defaultCurrency: ed?.defaultCurrency ?? defaultCurrencyCode,
   };
 }
 
@@ -107,6 +129,14 @@ function mergeServiceIntoTrainingForm(
     defaultPrice: td.defaultPrice ?? '',
     defaultCurrency: td.defaultCurrency ?? defaultCurrencyCode,
   };
+}
+
+function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] {
+  return instance.partnerOrganizations.map((row) => ({
+    id: row.id,
+    name: row.name,
+    active: row.active,
+  }));
 }
 
 export function InstanceDetailPanel({
@@ -143,6 +173,8 @@ export function InstanceDetailPanel({
           waitlistEnabled: instance.waitlistEnabled,
           instructorId: instance.instructorId ?? '',
           notes: instance.notes ?? '',
+          externalUrl: instance.externalUrl ?? '',
+          partnerOrganizations: mapPartnerRefsFromInstance(instance),
           sessionSlots: instance.sessionSlots,
         }
       : DEFAULT_INSTANCE_FORM
@@ -160,6 +192,8 @@ export function InstanceDetailPanel({
     instance
       ? {
           eventCategory: 'workshop',
+          defaultPrice: instance.eventTicketTiers?.[0]?.price ?? '',
+          defaultCurrency: instance.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_EVENT_FORM
   );
@@ -173,9 +207,7 @@ export function InstanceDetailPanel({
           defaultHourlyRate: instance.consultationDetails?.price ?? '',
           defaultPackagePrice: '',
           defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
-          defaultCurrency:
-            instance.consultationDetails?.currency ?? defaultCurrencyCode,
-          calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
+          defaultCurrency: instance.consultationDetails?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_CONSULTATION_FORM
   );
@@ -235,6 +267,8 @@ export function InstanceDetailPanel({
         waitlistEnabled: instance.waitlistEnabled,
         instructorId: instance.instructorId ?? '',
         notes: instance.notes ?? '',
+        externalUrl: instance.externalUrl ?? '',
+        partnerOrganizations: mapPartnerRefsFromInstance(instance),
         sessionSlots: instance.sessionSlots,
       });
       setTrainingForm({
@@ -247,6 +281,8 @@ export function InstanceDetailPanel({
           serviceOptions.find((entry) => entry.id === instance.serviceId) ?? null,
           instance
         ),
+        defaultPrice: instance.eventTicketTiers?.[0]?.price ?? '',
+        defaultCurrency: instance.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
       });
       setConsultationForm({
         consultationFormat: 'one_on_one',
@@ -257,7 +293,6 @@ export function InstanceDetailPanel({
         defaultPackagePrice: '',
         defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
         defaultCurrency: instance.consultationDetails?.currency ?? defaultCurrencyCode,
-        calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
       });
     });
   }, [instance, serviceOptions]);
@@ -267,6 +302,11 @@ export function InstanceDetailPanel({
   const effectiveServiceType = serviceType ?? selectedService?.serviceType ?? 'training_course';
   const canSubmit = Boolean(selectedServiceId);
   const typeFieldsLocked = !selectedServiceId;
+
+  const resolvedEventCategory = useMemo(
+    () => resolveInheritedEventCategory(selectedService, instance),
+    [selectedService, instance]
+  );
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
@@ -281,6 +321,8 @@ export function InstanceDetailPanel({
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
       notes: instanceForm.notes.trim() || null,
+      external_url: instanceForm.externalUrl.trim() || null,
+      partner_organization_ids: instanceForm.partnerOrganizations.map((row) => row.id),
       session_slots: instanceForm.sessionSlots.map((slot, index) => ({
         location_id: slot.locationId,
         starts_at: slot.startsAt,
@@ -297,17 +339,48 @@ export function InstanceDetailPanel({
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (effectiveServiceType === 'event') {
-      const eventCategory = resolveInheritedEventCategory(selectedService, instance);
-      payload.event_ticket_tiers = [
-        {
-          name: eventCategory,
-          description: null,
-          price: '0',
-          currency: defaultCurrencyCode,
-          max_quantity: null,
-          sort_order: 0,
-        },
-      ];
+      const priceStr = eventForm.defaultPrice.trim();
+      const currencyStr = (eventForm.defaultCurrency || defaultCurrencyCode).trim();
+      const tiers = instance?.eventTicketTiers ?? [];
+      if (tiers.length > 1) {
+        payload.event_ticket_tiers = tiers.map((tier, index) => ({
+          name: tier.name,
+          description: tier.description,
+          price:
+            tier.name === resolvedEventCategory
+              ? priceStr
+              : (tier.price ?? '0'),
+          currency:
+            tier.name === resolvedEventCategory
+              ? (currencyStr || defaultCurrencyCode)
+              : (tier.currency ?? defaultCurrencyCode),
+          max_quantity: tier.maxQuantity,
+          sort_order: tier.sortOrder ?? index,
+        }));
+      } else if (tiers.length === 1) {
+        const t = tiers[0];
+        payload.event_ticket_tiers = [
+          {
+            name: t.name,
+            description: t.description,
+            price: priceStr,
+            currency: currencyStr || defaultCurrencyCode,
+            max_quantity: t.maxQuantity,
+            sort_order: t.sortOrder ?? 0,
+          },
+        ];
+      } else {
+        payload.event_ticket_tiers = [
+          {
+            name: resolvedEventCategory,
+            description: null,
+            price: priceStr,
+            currency: currencyStr || defaultCurrencyCode,
+            max_quantity: null,
+            sort_order: 0,
+          },
+        ];
+      }
     } else {
       payload.consultation_details = {
         pricing_model: consultationForm.pricingModel,
@@ -316,7 +389,6 @@ export function InstanceDetailPanel({
         package_sessions: consultationForm.defaultPackageSessions
           ? Number(consultationForm.defaultPackageSessions)
           : null,
-        calendly_event_url: consultationForm.calendlyUrl || null,
       };
     }
 
@@ -327,6 +399,14 @@ export function InstanceDetailPanel({
     ...buildCreatePayload(),
     status: instanceForm.status,
   });
+
+  const externalUrlInvalid =
+    effectiveServiceType === 'event' &&
+    Boolean(instanceForm.externalUrl.trim()) &&
+    !/^https?:\/\//i.test(instanceForm.externalUrl.trim());
+
+  const eventPriceMissing =
+    effectiveServiceType === 'event' && !eventForm.defaultPrice.trim();
 
   return (
     <AdminEditorCard
@@ -342,7 +422,7 @@ export function InstanceDetailPanel({
                 </Button>
                 <Button
                   type='button'
-                  disabled={isLoading || !instance}
+                  disabled={isLoading || !instance || externalUrlInvalid || eventPriceMissing}
                   onClick={() => {
                     if (!instance || !selectedServiceId) {
                       return;
@@ -356,7 +436,7 @@ export function InstanceDetailPanel({
             ) : (
               <Button
                 type='button'
-                disabled={isLoading || !selectedServiceId}
+                disabled={isLoading || !selectedServiceId || externalUrlInvalid || eventPriceMissing}
                 onClick={() => {
                   if (!selectedServiceId) {
                     return;
@@ -380,62 +460,131 @@ export function InstanceDetailPanel({
         serviceOptions={serviceOptions}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
-        hideInstructorField={
-          effectiveServiceType === 'training_course' || effectiveServiceType === 'event'
-        }
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
         onSelectService={handleSelectService}
         onChange={setInstanceForm}
       />
+
       {effectiveServiceType === 'training_course' ? (
-        <TrainingFormFields
-          disabled={typeFieldsLocked}
-          value={trainingForm}
-          onChange={setTrainingForm}
-          layout='service-detail'
-          prePricingUnitColumn={
-            <InstanceInstructorField
-              value={instanceForm.instructorId}
-              disabled={typeFieldsLocked}
-              instructorOptions={instructorUsers}
-              isLoadingInstructors={isLoadingInstructors}
-              onChange={(instructorId) =>
-                setInstanceForm((prev) => ({ ...prev, instructorId }))
-              }
-            />
-          }
-        />
-      ) : null}
-      {effectiveServiceType === 'event' ? (
-        <EventFormFields
-          disabled={typeFieldsLocked}
-          value={eventForm}
-          onChange={setEventForm}
-          categoryReadOnly
-          categoryFieldId='instance-event-category'
-          layout='instance-detail'
-          trailingSlot={
-            <InstanceInstructorField
-              value={instanceForm.instructorId}
-              disabled={typeFieldsLocked}
-              instructorOptions={instructorUsers}
-              isLoadingInstructors={isLoadingInstructors}
-              onChange={(instructorId) =>
-                setInstanceForm((prev) => ({ ...prev, instructorId }))
-              }
-            />
-          }
-        />
-      ) : null}
-      {effectiveServiceType === 'consultation' ? (
-        <ConsultationFormFields
-          disabled={typeFieldsLocked}
-          value={consultationForm}
-          onChange={setConsultationForm}
-        />
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+          <InstanceInstructorField
+            value={instanceForm.instructorId}
+            disabled={typeFieldsLocked}
+            instructorOptions={instructorUsers}
+            isLoadingInstructors={isLoadingInstructors}
+            onChange={(instructorId) => setInstanceForm((prev) => ({ ...prev, instructorId }))}
+          />
+          <TrainingPricingUnitControl value={trainingForm} disabled={typeFieldsLocked} onChange={setTrainingForm} />
+          <TrainingPriceControl value={trainingForm} disabled={typeFieldsLocked} onChange={setTrainingForm} />
+          <TrainingCurrencyControl value={trainingForm} disabled={typeFieldsLocked} onChange={setTrainingForm} />
+        </div>
       ) : null}
 
+      {effectiveServiceType === 'event' ? (
+        <>
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <InstanceInstructorField
+              value={instanceForm.instructorId}
+              disabled={typeFieldsLocked}
+              instructorOptions={instructorUsers}
+              isLoadingInstructors={isLoadingInstructors}
+              onChange={(instructorId) => setInstanceForm((prev) => ({ ...prev, instructorId }))}
+            />
+            <EventCategoryControl
+              value={{
+                ...eventForm,
+                eventCategory: resolvedEventCategory,
+              }}
+              disabled={typeFieldsLocked}
+              onChange={(next) =>
+                setEventForm({ ...next, eventCategory: resolvedEventCategory })
+              }
+              categoryReadOnly
+              categoryFieldId='instance-event-category'
+            />
+            <EventDefaultPriceControl
+              value={eventForm}
+              disabled={typeFieldsLocked}
+              onChange={setEventForm}
+              priceLabel='Price'
+            />
+            <EventDefaultCurrencyControl value={eventForm} disabled={typeFieldsLocked} onChange={setEventForm} />
+          </div>
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div className='md:col-span-2'>
+              <EventInstancePartnersField
+                value={instanceForm.partnerOrganizations}
+                disabled={typeFieldsLocked}
+                onChange={(next) => setInstanceForm((prev) => ({ ...prev, partnerOrganizations: next }))}
+              />
+            </div>
+            <div className='md:col-span-2'>
+              <Label htmlFor='instance-external-url'>External URL</Label>
+              <Input
+                id='instance-external-url'
+                value={instanceForm.externalUrl}
+                disabled={typeFieldsLocked}
+                onChange={(event) => setInstanceForm((prev) => ({ ...prev, externalUrl: event.target.value }))}
+                placeholder='https://…'
+                autoComplete='off'
+              />
+              {externalUrlInvalid ? (
+                <p className='mt-1 text-xs text-red-600'>URL must start with http:// or https://</p>
+              ) : null}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {effectiveServiceType === 'consultation' ? (
+        <>
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <InstanceInstructorField
+              value={instanceForm.instructorId}
+              disabled={typeFieldsLocked}
+              instructorOptions={instructorUsers}
+              isLoadingInstructors={isLoadingInstructors}
+              onChange={(instructorId) => setInstanceForm((prev) => ({ ...prev, instructorId }))}
+            />
+            <ConsultationInstanceRowDFields
+              value={consultationForm}
+              disabled={typeFieldsLocked}
+              onChange={setConsultationForm}
+            />
+          </div>
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <ConsultationInstanceRowEFields
+              value={consultationForm}
+              disabled={typeFieldsLocked}
+              onChange={setConsultationForm}
+            />
+          </div>
+        </>
+      ) : null}
+
+      <div>
+        <Label htmlFor='instance-notes'>Notes</Label>
+        <Textarea
+          id='instance-notes'
+          value={instanceForm.notes}
+          disabled={typeFieldsLocked}
+          onChange={(event) => setInstanceForm((prev) => ({ ...prev, notes: event.target.value }))}
+          rows={2}
+        />
+      </div>
+
+      <SessionSlotEditor
+        slots={instanceForm.sessionSlots}
+        disabled={typeFieldsLocked}
+        locationOptions={locationOptions}
+        isLoadingLocations={isLoadingLocations}
+        onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
+      />
+
+      {effectiveServiceType === 'event' && eventPriceMissing ? (
+        <AdminInlineError>Enter a price for this event instance.</AdminInlineError>
+      ) : null}
       {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
       {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>

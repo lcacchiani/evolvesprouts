@@ -499,6 +499,40 @@ and the legacy ``phone`` string is gone; downgrade cannot reconstruct them.
 match and anchored-prefix ``ILIKE``; substring ``ILIKE '%…%'`` remains a sequential
 scan at CRM scale (by design).
 
+## Partner organisations on event instances
+
+**Decision:** Store ordered partner organisation links for event-type
+`service_instances` in a dedicated junction table `service_instance_organizations`
+(`service_instance_id`, `organization_id`, `sort_order`). Admin create/update sends
+`partner_organization_ids` (UUID array); the API rejects unknown organisation ids with
+HTTP 400. The admin organisation picker may filter with `relationship_type=partner`
+while still listing only active (non-archived) organisations; already-linked partners
+remain visible in the UI when archived because the instance response includes
+`partner_organizations` with an `archived` flag.
+
+**Why:** Event instances need explicit partner attribution without overloading
+Eventbrite fields; a normalised M2M table supports ordering and future relationship
+metadata without schema churn today.
+
+## Drop Calendly integration from services schema
+
+**Decision:** Remove `consultation_details.calendly_url` and
+`consultation_instance_details.calendly_event_url` (migration `0034_drop_calendly_fields`)
+and strip the corresponding fields from the admin OpenAPI contract (version bump to
+0.3.0). Product no longer persists Calendly URLs in Aurora.
+
+**Why:** Calendly-specific columns coupled the data model to one vendor; dropping them
+simplifies consultation services/instances and avoids maintaining unused PII-adjacent
+URLs. **Data loss:** upgrade drops stored values; downgrade re-adds nullable columns only.
+
+**Same contract bump (0.3.0):** Admin instance ``event_ticket_tiers`` request entries may
+omit ``price`` / ``currency`` / ``name`` when the server fills from ``event_details``
+defaults; ``PUT`` updates that touch other fields on an event instance must still
+include ``event_ticket_tiers`` (or nested tier fields) so tier rows are not skipped
+silently. Multi-tier instances accept a single-tier payload only when one tier's
+``name`` matches the service event category (otherwise the client must send the full
+array, one object per tier).
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

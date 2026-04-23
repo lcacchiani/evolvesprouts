@@ -47,8 +47,6 @@ export function ServiceReferralSlugField({
   );
 }
 
-export type ServiceFormFieldsLayout = 'stacked' | 'service-detail';
-
 export interface ServiceFormState {
   title: string;
   description: string;
@@ -61,7 +59,6 @@ export interface ServiceFormFieldsProps {
   value: ServiceFormState;
   onChange: (value: ServiceFormState) => void;
   hideTitle?: boolean;
-  layout?: ServiceFormFieldsLayout;
   slugUsageLoadError?: string;
   slugConflictError?: string;
 }
@@ -70,25 +67,9 @@ export function ServiceFormFields({
   value,
   onChange,
   hideTitle = false,
-  layout = 'stacked',
   slugUsageLoadError,
   slugConflictError,
 }: ServiceFormFieldsProps) {
-  if (layout === 'service-detail') {
-    return (
-      <div>
-        <Label htmlFor='service-description'>Description</Label>
-        <Textarea
-          id='service-description'
-          value={value.description}
-          onChange={(event) => onChange({ ...value, description: event.target.value })}
-          rows={3}
-          placeholder='Optional description'
-        />
-      </div>
-    );
-  }
-
   return (
     <div className='space-y-3'>
       {!hideTitle ? (

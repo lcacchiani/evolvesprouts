@@ -9,6 +9,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
@@ -19,20 +20,31 @@ import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES } from '@/types
 import type { ServiceDeliveryMode } from '@/types/services';
 import type { ServiceDetail, ServiceType } from '@/types/services';
 
-import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
-import { EventFormFields, type EventFormState } from './event-form-fields';
+import {
+  ConsultationServiceFormatField,
+  ConsultationServiceRowDFields,
+  ConsultationServiceRowEFields,
+  type ConsultationFormState,
+} from './consultation-form-fields';
+import {
+  EventCategoryControl,
+  EventDefaultCurrencyControl,
+  EventDefaultPriceControl,
+  type EventFormState,
+} from './event-form-fields';
 import {
   DEFAULT_CONSULTATION_FORM,
   DEFAULT_EVENT_FORM,
   DEFAULT_SERVICE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
+import { ServiceReferralSlugField, type ServiceFormState } from './service-form-fields';
 import {
-  ServiceFormFields,
-  ServiceReferralSlugField,
-  type ServiceFormState,
-} from './service-form-fields';
-import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
+  TrainingCurrencyControl,
+  TrainingPriceControl,
+  TrainingPricingUnitControl,
+  type TrainingFormState,
+} from './training-form-fields';
 
 type ApiSchemas = components['schemas'];
 
@@ -86,6 +98,8 @@ export function ServiceDetailPanel({
     service
       ? {
           eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+          defaultPrice: service.eventDetails?.defaultPrice ?? '',
+          defaultCurrency: service.eventDetails?.defaultCurrency ?? 'HKD',
         }
       : DEFAULT_EVENT_FORM
   );
@@ -100,7 +114,6 @@ export function ServiceDetailPanel({
           defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
           defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
           defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
-          calendlyUrl: service.consultationDetails?.calendlyUrl ?? '',
         }
       : DEFAULT_CONSULTATION_FORM
   );
@@ -175,6 +188,8 @@ export function ServiceDetailPanel({
       });
       setEventForm({
         eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+        defaultPrice: service.eventDetails?.defaultPrice ?? '',
+        defaultCurrency: service.eventDetails?.defaultCurrency ?? 'HKD',
       });
       setConsultationForm({
         consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
@@ -185,7 +200,6 @@ export function ServiceDetailPanel({
         defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
         defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
         defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
-        calendlyUrl: service.consultationDetails?.calendlyUrl ?? '',
       });
       setSlugConflictError('');
       setConflictingSlugNormalized(null);
@@ -206,6 +220,52 @@ export function ServiceDetailPanel({
     conflictingSlugNormalized !== null &&
     normalizedSlugInput === conflictingSlugNormalized;
 
+  const deliveryModeSelect = (
+    <div>
+      <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
+      <Select
+        id='service-delivery-mode'
+        value={serviceForm.deliveryMode}
+        onChange={(event) =>
+          setServiceForm({
+            ...serviceForm,
+            deliveryMode: event.target.value as ServiceDeliveryMode,
+          })
+        }
+      >
+        {SERVICE_DELIVERY_MODES.map((entry) => (
+          <option key={entry} value={entry}>
+            {formatEnumLabel(entry)}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+
+  const bookingAndCover = (
+    <>
+      <div>
+        <Label htmlFor='service-booking-system'>Booking system</Label>
+        <Input
+          id='service-booking-system'
+          value={bookingSystem}
+          onChange={(event) => setBookingSystem(event.target.value)}
+          placeholder='Optional label'
+          maxLength={80}
+          autoComplete='off'
+        />
+      </div>
+      <div>
+        <Label htmlFor='service-detail-cover-file-name'>Cover file name</Label>
+        <Input
+          id='service-detail-cover-file-name'
+          value={coverFileName}
+          onChange={(event) => setCoverFileName(event.target.value)}
+        />
+      </div>
+    </>
+  );
+
   const buildTypeSpecificPayload = (
     currentServiceType: ServiceType
   ):
@@ -225,6 +285,8 @@ export function ServiceDetailPanel({
       return {
         event_details: {
           event_category: eventForm.eventCategory,
+          default_price: eventForm.defaultPrice.trim() || null,
+          default_currency: eventForm.defaultCurrency.trim() || 'HKD',
         },
       };
     }
@@ -242,7 +304,6 @@ export function ServiceDetailPanel({
           ? Number(consultationForm.defaultPackageSessions)
           : null,
         default_currency: consultationForm.defaultCurrency.trim() || 'HKD',
-        calendly_url: consultationForm.calendlyUrl.trim() || null,
       },
     };
   };
@@ -396,7 +457,7 @@ export function ServiceDetailPanel({
       >
         <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
           <div>
-            <Label htmlFor='service-type'>Service type</Label>
+            <Label htmlFor='service-type'>Type</Label>
             <Select
               id='service-type'
               value={serviceType}
@@ -453,159 +514,69 @@ export function ServiceDetailPanel({
           </div>
         </div>
 
-        <ServiceFormFields
-          value={serviceForm}
-          onChange={(next) => {
-            if (next.slug !== serviceForm.slug) {
-              setSlugConflictError('');
-              setConflictingSlugNormalized(null);
-            }
-            setServiceForm(next);
-          }}
-          hideTitle
-          layout='service-detail'
-        />
+        <div>
+          <Label htmlFor='service-description'>Description</Label>
+          <Textarea
+            id='service-description'
+            value={serviceForm.description}
+            onChange={(event) => setServiceForm({ ...serviceForm, description: event.target.value })}
+            rows={3}
+            placeholder='Optional description'
+          />
+        </div>
 
         {serviceType === 'training_course' ? (
-          <TrainingFormFields
-            value={trainingForm}
-            onChange={setTrainingForm}
-            layout='service-detail'
-            leadingColumn={
-              <>
-                <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
-                <Select
-                  id='service-delivery-mode'
-                  value={serviceForm.deliveryMode}
-                  onChange={(event) =>
-                    setServiceForm({
-                      ...serviceForm,
-                      deliveryMode: event.target.value as ServiceDeliveryMode,
-                    })
-                  }
-                >
-                  {SERVICE_DELIVERY_MODES.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {formatEnumLabel(entry)}
-                    </option>
-                  ))}
-                </Select>
-              </>
-            }
-          />
-        ) : serviceType === 'event' ? (
-          <EventFormFields
-            value={eventForm}
-            onChange={setEventForm}
-            layout='service-detail'
-            leadingColumn={
-              <>
-                <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
-                <Select
-                  id='service-delivery-mode'
-                  value={serviceForm.deliveryMode}
-                  onChange={(event) =>
-                    setServiceForm({
-                      ...serviceForm,
-                      deliveryMode: event.target.value as ServiceDeliveryMode,
-                    })
-                  }
-                >
-                  {SERVICE_DELIVERY_MODES.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {formatEnumLabel(entry)}
-                    </option>
-                  ))}
-                </Select>
-              </>
-            }
-            trailingSlot={
-              <>
-                <div>
-                  <Label htmlFor='service-booking-system'>Booking system</Label>
-                  <Input
-                    id='service-booking-system'
-                    value={bookingSystem}
-                    onChange={(event) => setBookingSystem(event.target.value)}
-                    placeholder='e.g. calendly'
-                    maxLength={80}
-                    autoComplete='off'
-                  />
-                </div>
-                <div>
-                  <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-                  <Input
-                    id='service-detail-cover-file-name'
-                    value={coverFileName}
-                    onChange={(event) => setCoverFileName(event.target.value)}
-                  />
-                </div>
-              </>
-            }
-          />
-        ) : (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <div>
-              <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
-              <Select
-                id='service-delivery-mode'
-                value={serviceForm.deliveryMode}
-                onChange={(event) =>
-                  setServiceForm({
-                    ...serviceForm,
-                    deliveryMode: event.target.value as ServiceDeliveryMode,
-                  })
-                }
-              >
-                {SERVICE_DELIVERY_MODES.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {formatEnumLabel(entry)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label className='text-slate-500'>Pricing unit</Label>
-              <p className='mt-2 text-sm text-slate-400'>—</p>
-            </div>
-            <div>
-              <Label className='text-slate-500'>Price</Label>
-              <p className='mt-2 text-sm text-slate-400'>—</p>
-            </div>
-            <div>
-              <Label className='text-slate-500'>Currency</Label>
-              <p className='mt-2 text-sm text-slate-400'>—</p>
-            </div>
+            {deliveryModeSelect}
+            <TrainingPricingUnitControl value={trainingForm} onChange={setTrainingForm} />
+            {bookingAndCover}
           </div>
-        )}
-        {serviceType === 'consultation' ? (
-          <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
         ) : null}
 
-        {serviceType === 'event' ? null : (
+        {serviceType === 'event' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <div>
-              <Label htmlFor='service-booking-system'>Booking system</Label>
-              <Input
-                id='service-booking-system'
-                value={bookingSystem}
-                onChange={(event) => setBookingSystem(event.target.value)}
-                placeholder='e.g. calendly'
-                maxLength={80}
-                autoComplete='off'
-              />
-            </div>
-            <div>
-              <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-              <Input
-                id='service-detail-cover-file-name'
-                value={coverFileName}
-                onChange={(event) => setCoverFileName(event.target.value)}
-              />
-            </div>
-            <div className='hidden md:block md:col-span-2' aria-hidden />
+            {deliveryModeSelect}
+            <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='service-event-category' />
+            {bookingAndCover}
           </div>
-        )}
+        ) : null}
+
+        {serviceType === 'consultation' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            {deliveryModeSelect}
+            <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
+            {bookingAndCover}
+          </div>
+        ) : null}
+
+        {serviceType === 'training_course' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div aria-hidden className='hidden md:block' />
+            <TrainingPriceControl value={trainingForm} onChange={setTrainingForm} />
+            <TrainingCurrencyControl value={trainingForm} onChange={setTrainingForm} />
+            <div aria-hidden className='hidden md:block' />
+          </div>
+        ) : null}
+
+        {serviceType === 'event' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <div aria-hidden className='hidden md:block' />
+            <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
+            <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
+            <div aria-hidden className='hidden md:block' />
+          </div>
+        ) : null}
+
+        {serviceType === 'consultation' ? (
+          <>
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <ConsultationServiceRowDFields value={consultationForm} onChange={setConsultationForm} />
+            </div>
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <ConsultationServiceRowEFields value={consultationForm} onChange={setConsultationForm} />
+            </div>
+          </>
+        ) : null}
 
         {error ? <AdminInlineError>{error}</AdminInlineError> : null}
       </AdminEditorCard>

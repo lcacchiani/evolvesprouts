@@ -446,8 +446,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   `booking_system` varchar(80) for an admin-visible booking-system label).
 - Type-specific one-to-one extension tables:
   - `training_course_details`
-  - `event_details`
-  - `consultation_details`
+  - `event_details` (includes optional `default_price` numeric(10,2) and
+    `default_currency` varchar(3), default `HKD`, for admin defaults on new event instances)
+  - `consultation_details` (Calendly URL column removed in migration `0034_drop_calendly_fields`)
 
 ### `service_instances` + schedule/detail tables
 
@@ -456,6 +457,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   `cover_image_s3_key`, `delivery_mode`).
 - Optional public-site fields: `slug` (unique when set), `landing_page`
   (marketing route key for the public website).
+- Optional `external_url` varchar(500): operator-provided external registration/info URL
+  (http/https), distinct from Eventbrite sync URLs.
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
   of truth while tracking downstream publish state:
   - `eventbrite_event_id`, `eventbrite_event_url`
@@ -467,7 +470,15 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   - `instance_session_slots` (time blocks + optional location)
   - `training_instance_details`
   - `event_ticket_tiers`
-  - `consultation_instance_details`
+  - `consultation_instance_details` (Calendly event URL column removed in migration
+    `0034_drop_calendly_fields`)
+
+### `service_instance_organizations`
+
+- Junction table linking event `service_instances` to partner `organizations`
+  (`service_instance_id`, `organization_id`, `sort_order`, `created_at`), added in
+  migration `0036_instance_partners_ext_url`. Used by the admin API for event instance
+  partner multi-select; ordering follows `sort_order`.
 
 ### `discount_codes`
 
