@@ -201,11 +201,6 @@ class ServiceInstance(Base):
         back_populates="instance",
         cascade="all, delete-orphan",
     )
-    tags: Mapped[list["Tag"]] = relationship(
-        "Tag",
-        secondary="service_instance_tags",
-        viewonly=True,
-    )
     partner_organization_links: Mapped[list[ServiceInstancePartnerOrganization]] = (
         relationship(
             "ServiceInstancePartnerOrganization",
@@ -220,10 +215,7 @@ class ServiceInstanceTag(Base):
     """Many-to-many link between service instances and CRM tags."""
 
     __tablename__ = "service_instance_tags"
-    __table_args__ = (
-        Index("svc_instance_tags_instance_idx", "service_instance_id"),
-        Index("svc_instance_tags_tag_idx", "tag_id"),
-    )
+    __table_args__ = (Index("svc_instance_tags_tag_idx", "tag_id"),)
 
     service_instance_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),

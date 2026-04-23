@@ -122,6 +122,42 @@ describe('InstanceDetailPanel', () => {
     );
   });
 
+  it('includes selected tag ids when Tags picker is used', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InstanceDetailPanel
+        entityTags={[{ id: 'tag-alpha', name: 'Alpha', color: null }]}
+        entityTagsLoading={false}
+        entityTagsError=''
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary()]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByText('Tags'));
+    await user.click(screen.getByRole('checkbox', { name: 'Alpha' }));
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+
+    expect(onCreate).toHaveBeenCalledWith(
+      'service-1',
+      expect.objectContaining({
+        tag_ids: ['tag-alpha'],
+      })
+    );
+  });
+
   it('forwards service dropdown changes', async () => {
     const user = userEvent.setup();
     const onSelectService = vi.fn();

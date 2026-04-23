@@ -194,7 +194,11 @@ def replace_service_instance_tags(
             ServiceInstanceTag.service_instance_id == instance_id
         )
     )
+    seen: set[UUID] = set()
     for tag_id in tag_ids:
+        if tag_id in seen:
+            continue
+        seen.add(tag_id)
         tag = session.get(Tag, tag_id)
         if tag is None:
             raise ValidationError("tag_id not found", field="tag_ids")

@@ -3941,6 +3941,10 @@ components:
           items:
             type: string
             format: uuid
+          description: >
+            Replaces all instance tag associations when present (including on PUT).
+            The admin web UI sends this on every instance save; omit the field only if
+            a non-UI client must patch other fields without changing tags.
         session_slots:
           type: array
           items:

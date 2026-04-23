@@ -4296,6 +4296,7 @@ export interface components {
             age_group?: string | null;
             cohort?: string | null;
             notes?: string | null;
+            /** @description Replaces all instance tag associations when present (including on PUT). The admin web UI sends this on every instance save; omit the field only if a non-UI client must patch other fields without changing tags. */
             tag_ids?: string[];
             session_slots?: components["schemas"]["SessionSlot"][];
             training_details?: {

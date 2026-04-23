@@ -488,6 +488,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - Junction table linking `service_instances` to CRM `tags` rows (`service_instance_id`,
   `tag_id`, `created_at`), added in migration `0037_instance_age_cohort_tags`. Used by
   the admin API for instance tag multi-select (same tag catalog as contacts).
+- Migration `0038_drop_inst_tag_inst_idx` drops the redundant btree index on
+  `service_instance_id` (the composite primary key already leads with that column);
+  the `tag_id` index remains for reverse lookups.
 
 ### `discount_codes`
 
