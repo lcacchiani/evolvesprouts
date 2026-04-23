@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SessionSlotEditor } from '@/components/admin/services/session-slot-editor';
 
 describe('SessionSlotEditor', () => {
-  it('renders a label above each control for every slot row', () => {
+  it('renders column labels only on the first slot row', () => {
     render(
       <SessionSlotEditor
         slots={[
@@ -33,9 +33,9 @@ describe('SessionSlotEditor', () => {
     const endLabels = screen.getAllByText('End time');
     const locationLabels = screen.getAllByText('Location');
     const sortLabels = screen.getAllByText('Sort order');
-    expect(startLabels).toHaveLength(2);
-    expect(endLabels).toHaveLength(2);
-    expect(locationLabels).toHaveLength(2);
-    expect(sortLabels).toHaveLength(2);
+    expect(startLabels).toHaveLength(1);
+    expect(endLabels).toHaveLength(1);
+    expect(locationLabels).toHaveLength(1);
+    expect(sortLabels).toHaveLength(1);
   });
 });
