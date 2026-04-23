@@ -197,11 +197,10 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         landing_page: str | None = None,
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services."""
-        types = (
-            service_types
-            if service_types is not None
-            else {ServiceType.EVENT, ServiceType.TRAINING_COURSE}
-        )
+        if not service_types:
+            types_tuple = (ServiceType.EVENT, ServiceType.TRAINING_COURSE)
+        else:
+            types_tuple = tuple(sorted(service_types, key=lambda t: t.value))
         earliest_upcoming_slot = (
             select(func.min(InstanceSessionSlot.starts_at))
             .where(InstanceSessionSlot.instance_id == ServiceInstance.id)
@@ -212,7 +211,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         statement = (
             select(ServiceInstance)
             .join(Service, ServiceInstance.service_id == Service.id)
-            .where(Service.service_type.in_(types))
+            .where(Service.service_type.in_(types_tuple))
             .where(Service.status == ServiceStatus.PUBLISHED)
             .where(ServiceInstance.status != InstanceStatus.CANCELLED)
             .where(
@@ -338,6 +337,21 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def get_enrollment_counts_for_instances(
+        self, instance_ids: list[UUID]
+    ) -> dict[UUID, int]:
+        """Return capacity enrollment counts keyed by instance (one query)."""
+        if not instance_ids:
+            return {}
+        statement = (
+            select(Enrollment.instance_id, func.count(Enrollment.id))
+            .where(Enrollment.instance_id.in_(instance_ids))
+            .where(Enrollment.status.in_(CAPACITY_ENROLLMENT_STATUSES))
+            .group_by(Enrollment.instance_id)
+        )
+        rows = self._session.execute(statement).all()
+        return {row[0]: int(row[1]) for row in rows}
 
     def get_waitlist_count(self, instance_id: UUID) -> int:
         """Return waitlist count for an instance."""

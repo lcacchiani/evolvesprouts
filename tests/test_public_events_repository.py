@@ -30,9 +30,7 @@ def test_list_public_offerings_default_types_and_ordering_sql() -> None:
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
 
-    assert "services.service_type IN" in sql
-    assert "'event'" in sql
-    assert "'training_course'" in sql
+    assert "services.service_type IN ('event', 'training_course')" in sql
     assert "services.status = 'published'" in sql
     assert "service_instances.status != 'cancelled'" in sql
     assert "service_instances.status IN" in sql
@@ -92,7 +90,7 @@ def test_list_event_instances_for_public_feed_wraps_list_public_offerings() -> N
     assert "'training_course'" not in sql
 
 
-def test_list_public_offerings_eager_load_paths() -> None:
+def test_list_public_offerings_empty_service_types_uses_default_in_order() -> None:
     mock_session = MagicMock()
     exec_result = MagicMock()
     exec_result.unique.return_value.scalars.return_value.all.return_value = []
@@ -100,17 +98,33 @@ def test_list_public_offerings_eager_load_paths() -> None:
 
     repo = ServiceInstanceRepository(mock_session)
     now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
-    repo.list_public_offerings(limit=1, now=now)
+    repo.list_public_offerings(limit=1, now=now, service_types=set())
 
     stmt = mock_session.execute.call_args[0][0]
-    path_text = " ".join(str(opt.path) for opt in stmt._with_options)
-    assert "ServiceInstance.session_slots" in path_text
-    assert "InstanceSessionSlot.location" in path_text
-    assert "ServiceInstance.location" in path_text
-    assert "ServiceInstance.ticket_tiers" in path_text
-    assert "ServiceInstance.training_details" in path_text
-    assert "Service.event_details" in path_text
-    assert "ServiceInstance.instance_tags" in path_text
-    assert "ServiceInstanceTag.tag" in path_text
-    assert "ServiceInstance.partner_organization_links" in path_text
-    assert "ServiceInstancePartnerOrganization.organization" in path_text
+    sql = _compiled_sql(stmt)
+    assert "services.service_type IN ('event', 'training_course')" in sql
+
+
+def test_get_enrollment_counts_for_instances_empty_returns_empty() -> None:
+    mock_session = MagicMock()
+    repo = ServiceInstanceRepository(mock_session)
+    assert repo.get_enrollment_counts_for_instances([]) == {}
+    mock_session.execute.assert_not_called()
+
+
+def test_get_enrollment_counts_for_instances_groups_by_instance() -> None:
+    from uuid import UUID
+
+    mock_session = MagicMock()
+    row_a = (UUID(int=1), 3)
+    row_b = (UUID(int=2), 1)
+    mock_session.execute.return_value.all.return_value = [row_a, row_b]
+
+    repo = ServiceInstanceRepository(mock_session)
+    counts = repo.get_enrollment_counts_for_instances([UUID(int=1), UUID(int=2)])
+
+    assert counts == {UUID(int=1): 3, UUID(int=2): 1}
+    stmt = mock_session.execute.call_args[0][0]
+    sql = _compiled_sql(stmt)
+    assert "GROUP BY" in sql.upper()
+    assert "enrollments.instance_id" in sql

@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from app.api import public_events
 from app.db.models.enums import InstanceStatus, ServiceType
@@ -21,14 +21,6 @@ def _partner_link(slug: str, sort_order: int) -> Any:
         sort_order=sort_order,
         organization=SimpleNamespace(slug=slug),
     )
-
-
-def _repo() -> Any:
-    class _R:
-        def get_enrollment_count(self, _instance_id: UUID) -> int:
-            return 2
-
-    return _R()
 
 
 def test_event_ticket_tier_price_and_booking_system_default() -> None:
@@ -84,7 +76,7 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
         instance_tags=[],
         partner_organization_links=[],
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["id"] == "my-event"
     assert out["service_instance_id"] == str(inst.id)
     assert out["service_type"] == "event"
@@ -112,7 +104,7 @@ def test_event_default_price_when_no_tiers() -> None:
         delivery_mode=SimpleNamespace(value="in_person"),
     )
     inst = _minimal_instance(service, ticket_tiers=[])
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["price"] == 10.5
     assert out["currency"] == "USD"
     assert "booking_system" in out
@@ -133,7 +125,7 @@ def test_event_no_price_when_no_tiers_and_no_default() -> None:
         delivery_mode=SimpleNamespace(value="in_person"),
     )
     inst = _minimal_instance(service, ticket_tiers=[])
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert "price" not in out
     assert "currency" not in out
 
@@ -145,7 +137,7 @@ def test_external_url_precedence() -> None:
         external_url="https://example.com/new",
         eventbrite_event_url="https://eventbrite.com/old",
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["external_url"] == "https://example.com/new"
 
 
@@ -156,7 +148,7 @@ def test_external_url_eventbrite_only() -> None:
         external_url=None,
         eventbrite_event_url="https://eventbrite.com/e/1",
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["external_url"] == "https://eventbrite.com/e/1"
 
 
@@ -170,7 +162,7 @@ def test_instance_tags_sorted_case_insensitive() -> None:
             _tag_link("beta"),
         ],
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["tags"] == ["Alpha", "beta", "zebra"]
 
 
@@ -183,7 +175,7 @@ def test_partners_follow_link_order() -> None:
             _partner_link("second", 1),
         ],
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["partners"] == ["first", "second"]
 
 
@@ -203,7 +195,7 @@ def test_training_mba_booking_and_category() -> None:
         cohort="May 2026",
         training_details=SimpleNamespace(price=Decimal("350"), currency="HKD"),
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["service_type"] == "training_course"
     assert out["booking_system"] == "my-best-auntie-booking"
     assert out["categories"] == ["Training Course"]
@@ -227,7 +219,7 @@ def test_training_non_mba_omits_booking_system() -> None:
         service,
         training_details=SimpleNamespace(price=Decimal("1"), currency="HKD"),
     )
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert "booking_system" not in out
 
 
@@ -248,7 +240,7 @@ def test_virtual_clears_location_and_url_even_with_coords() -> None:
     loc = SimpleNamespace(name="X", address="Y", lat=Decimal("1"), lng=Decimal("2"))
     inst = _minimal_instance(service, delivery_mode=SimpleNamespace(value="online"))
     inst.session_slots[0].location = loc
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["location"] == "virtual"
     assert out["location_name"] is None
     assert out["location_address"] is None
@@ -260,7 +252,7 @@ def test_physical_coord_location_url() -> None:
     loc = SimpleNamespace(name="V", address="A", lat=Decimal("22.3"), lng=Decimal("114.1"))
     inst = _minimal_instance(service)
     inst.session_slots[0].location = loc
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["location"] == "physical"
     assert out["location_url"].startswith("https://www.google.com/maps/dir/")
     assert "%2C" in out["location_url"]
@@ -276,7 +268,7 @@ def test_physical_address_only_location_url() -> None:
     loc = SimpleNamespace(name="V", address=addr, lat=None, lng=None)
     inst = _minimal_instance(service)
     inst.session_slots[0].location = loc
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["location_url"] == f"{_BASE}{quote_plus(addr)}"
 
 
@@ -285,14 +277,14 @@ def test_no_location_empty_url() -> None:
     inst = _minimal_instance(service)
     inst.session_slots[0].location = None
     inst.location = None
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["location_url"] == ""
 
 
 def test_max_capacity_none_omits_spaces() -> None:
     service = _event_service()
     inst = _minimal_instance(service, max_capacity=None)
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert "spaces_total" not in out
     assert "spaces_left" not in out
 
@@ -300,12 +292,9 @@ def test_max_capacity_none_omits_spaces() -> None:
 def test_max_capacity_with_enrollments() -> None:
     service = _event_service()
     inst = _minimal_instance(service, max_capacity=8)
-
-    class _R:
-        def get_enrollment_count(self, _instance_id: UUID) -> int:
-            return 10
-
-    out = public_events._serialize_public_event(_R(), inst)
+    out = public_events._serialize_public_event(
+        inst, enrollment_counts={inst.id: 10}
+    )
     assert out["spaces_total"] == 8
     assert out["spaces_left"] == 0
 
@@ -315,7 +304,7 @@ def test_id_uuid_when_no_slug() -> None:
     iid = uuid4()
     inst = _minimal_instance(service, slug=None)
     inst.id = iid
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["id"] == str(iid)
     assert out["service_instance_id"] == str(iid)
 
@@ -323,7 +312,7 @@ def test_id_uuid_when_no_slug() -> None:
 def test_fully_booked_flag() -> None:
     service = _event_service()
     inst = _minimal_instance(service, status=InstanceStatus.FULL)
-    out = public_events._serialize_public_event(_repo(), inst)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["booking_status"] == "fully_booked"
     assert out["is_fully_booked"] is True
 

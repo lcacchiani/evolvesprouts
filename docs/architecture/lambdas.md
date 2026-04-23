@@ -33,7 +33,8 @@ their primary responsibilities.
 - Trigger: API Gateway — currently wired for
   `/v1/assets/free/request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
-  `/v1/calendar/public`,
+  `/v1/calendar/public` (same public calendar feed and contract as
+  `/www/v1/calendar/public`; see that entry below for payload, ordering, and query filters),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,

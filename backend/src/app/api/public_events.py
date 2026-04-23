@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -87,18 +88,20 @@ def _fetch_public_offerings(
     service_types: set[ServiceType] | None,
     landing_page: str | None,
 ) -> list[dict[str, Any]]:
-    types = (
-        service_types
-        if service_types is not None
-        else {ServiceType.EVENT, ServiceType.TRAINING_COURSE}
-    )
     rows = repository.list_public_offerings(
         limit=100,
         now=now,
-        service_types=types,
+        service_types=service_types,
         landing_page=landing_page,
     )
-    return [_serialize_public_event(repository, instance) for instance in rows]
+    capacity_instance_ids = [row.id for row in rows if row.max_capacity is not None]
+    enrollment_counts = repository.get_enrollment_counts_for_instances(
+        capacity_instance_ids
+    )
+    return [
+        _serialize_public_event(instance, enrollment_counts=enrollment_counts)
+        for instance in rows
+    ]
 
 
 def _resolve_primary_location(
@@ -113,6 +116,8 @@ def _resolve_primary_location(
 def _resolve_primary_price(
     instance: ServiceInstance,
 ) -> tuple[float | None, str | None]:
+    # Consultation is not returned by list_public_offerings; if serialized elsewhere,
+    # price/currency are intentionally omitted (no training_details / ticket path).
     service = instance.service
     if service.service_type == ServiceType.EVENT:
         if instance.ticket_tiers:
@@ -176,8 +181,9 @@ def _resolve_external_url(instance: ServiceInstance) -> str | None:
 
 
 def _serialize_public_event(
-    repository: ServiceInstanceRepository,
     instance: ServiceInstance,
+    *,
+    enrollment_counts: dict[UUID, int],
 ) -> dict[str, Any]:
     service = instance.service
     title = instance.title or service.title
@@ -264,7 +270,7 @@ def _serialize_public_event(
         payload["cohort"] = instance.cohort
 
     if instance.max_capacity is not None:
-        filled = repository.get_enrollment_count(instance.id)
+        filled = enrollment_counts.get(instance.id, 0)
         payload["spaces_total"] = instance.max_capacity
         payload["spaces_left"] = max(0, instance.max_capacity - filled)
 

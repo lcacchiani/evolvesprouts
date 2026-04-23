@@ -938,12 +938,11 @@ components:
           description: Mirrors `booking_status == "fully_booked"`.
         booking_system:
           type: string
-          nullable: true
           description: >
             Resolved booking-system key. Derived from `services.booking_system` when
             set; otherwise defaults to `event-booking` for events and
             `my-best-auntie-booking` for the My Best Auntie training course service.
-            Omitted when no default applies.
+            Omitted from the JSON object when no default applies (not `null`).
         location:
           type: string
           enum: [virtual, physical]
@@ -985,7 +984,8 @@ components:
             type: string
           description: >
             Single-element for events (derived from `event_details.event_category`)
-            or `["Training Course"]` for training courses.
+            or `["Training Course"]` for training courses. May be an empty array for
+            events when `event_details` has not been set (unexpected in normal data).
         partners:
           type: array
           items:

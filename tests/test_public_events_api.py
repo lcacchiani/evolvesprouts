@@ -111,14 +111,15 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
             assert limit == 100
             assert isinstance(now, datetime)
             assert landing_page is None
-            assert service_types == {ServiceType.EVENT, ServiceType.TRAINING_COURSE}
+            assert service_types is None
             return [
                 _instance_row(status=public_events.InstanceStatus.OPEN, with_eventbrite_url=True),
                 _instance_row(status=public_events.InstanceStatus.FULL),
             ]
 
-        def get_enrollment_count(self, instance_id: Any) -> int:
-            return 1
+        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+            assert len(instance_ids) == 2
+            return {iid: 1 for iid in instance_ids}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
@@ -176,8 +177,9 @@ def test_handle_public_events_landing_page_filter(
             captured["service_types"] = service_types
             return [_instance_row(status=public_events.InstanceStatus.OPEN)]
 
-        def get_enrollment_count(self, _instance_id: Any) -> int:
-            return 0
+        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+            assert len(instance_ids) == 1
+            return {instance_ids[0]: 0}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
@@ -231,8 +233,8 @@ def test_handle_public_events_invalid_landing_page_ignored(
             captured["landing_page"] = landing_page
             return []
 
-        def get_enrollment_count(self, _instance_id: Any) -> int:
-            return 0
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
@@ -281,8 +283,8 @@ def test_handle_public_events_service_type_training_course(
             captured["service_types"] = service_types
             return []
 
-        def get_enrollment_count(self, _instance_id: Any) -> int:
-            return 0
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
@@ -331,8 +333,8 @@ def test_handle_public_events_invalid_service_type_defaults(
             captured["service_types"] = service_types
             return []
 
-        def get_enrollment_count(self, _instance_id: Any) -> int:
-            return 0
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
@@ -345,7 +347,4 @@ def test_handle_public_events_invalid_service_type_defaults(
         ),
         "GET",
     )
-    assert captured["service_types"] == {
-        ServiceType.EVENT,
-        ServiceType.TRAINING_COURSE,
-    }
+    assert captured["service_types"] is None
