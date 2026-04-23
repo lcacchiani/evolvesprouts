@@ -16,11 +16,9 @@ def _tag_link(name: str) -> Any:
     return SimpleNamespace(tag=SimpleNamespace(name=name))
 
 
-def _partner_link(slug: str, sort_order: int, org_id: UUID | None = None) -> Any:
-    oid = org_id or uuid4()
+def _partner_link(slug: str, sort_order: int) -> Any:
     return SimpleNamespace(
         sort_order=sort_order,
-        organization_id=oid,
         organization=SimpleNamespace(slug=slug),
     )
 
@@ -181,8 +179,8 @@ def test_partners_follow_link_order() -> None:
     inst = _minimal_instance(
         service,
         partner_organization_links=[
-            _partner_link("second", 1, uuid4()),
-            _partner_link("first", 0, uuid4()),
+            _partner_link("first", 0),
+            _partner_link("second", 1),
         ],
     )
     out = public_events._serialize_public_event(_repo(), inst)

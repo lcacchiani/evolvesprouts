@@ -164,13 +164,9 @@ def _resolve_tags(instance: ServiceInstance) -> list[str]:
 
 
 def _resolve_partners(instance: ServiceInstance) -> list[str]:
-    ordered = sorted(
-        instance.partner_organization_links,
-        key=lambda link: (link.sort_order, str(link.organization_id)),
-    )
     return [
         link.organization.slug
-        for link in ordered
+        for link in instance.partner_organization_links
         if link.organization is not None and link.organization.slug
     ]
 
