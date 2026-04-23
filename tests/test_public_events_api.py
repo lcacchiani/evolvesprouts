@@ -33,6 +33,8 @@ def _instance_row(
         booking_system=None,
         event_details=SimpleNamespace(event_category=SimpleNamespace(value="workshop")),
         delivery_mode=SimpleNamespace(value=delivery_mode_value),
+        service_tier=None,
+        location=None,
     )
     return SimpleNamespace(
         id=uuid4(),
@@ -66,7 +68,6 @@ def _instance_row(
         if with_eventbrite_url
         else None,
         external_url=None,
-        age_group=None,
         cohort=None,
         instance_tags=[],
         partner_organization_links=[],

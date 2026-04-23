@@ -238,7 +238,10 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 joinedload(ServiceInstance.location),
                 selectinload(ServiceInstance.ticket_tiers),
                 joinedload(ServiceInstance.training_details),
-                joinedload(ServiceInstance.service).joinedload(Service.event_details),
+                joinedload(ServiceInstance.service).options(
+                    joinedload(Service.event_details),
+                    selectinload(Service.location),
+                ),
                 selectinload(ServiceInstance.instance_tags).joinedload(
                     ServiceInstanceTag.tag
                 ),

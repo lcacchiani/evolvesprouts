@@ -17,6 +17,8 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     coverImageS3Key: null,
     deliveryMode: 'online',
     status: 'draft',
+    serviceTier: null,
+    locationId: null,
     createdBy: 'admin',
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-02T00:00:00Z',
@@ -235,5 +237,156 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Pricing model')).toBeInTheDocument();
     expect(screen.getByLabelText('Max group size')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Calendly/i)).not.toBeInTheDocument();
+  });
+
+  it('places service tier before default price for training and submits service_tier', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.type(screen.getByLabelText('Title'), 'T');
+    const tierInputs = screen.getAllByLabelText('Service tier');
+    await user.type(tierInputs[0], 'ages-3-5');
+    await user.type(screen.getByLabelText('Default price'), '100');
+    await user.click(screen.getByRole('button', { name: /Add service/i }));
+    expect(onCreate).toHaveBeenCalled();
+    const body = onCreate.mock.calls[0][0] as { service_tier?: string | null };
+    expect(body.service_tier).toBe('ages-3-5');
+    const defaultPrice = screen.getByLabelText('Default price');
+    expect(tierInputs[0].compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('places service tier before default price for event and submits service_tier', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'event');
+    await user.type(screen.getByLabelText('Title'), 'E');
+    const tierInputs = screen.getAllByLabelText('Service tier');
+    await user.type(tierInputs[0], 'spring-tier');
+    await user.type(screen.getByLabelText('Default price'), '50');
+    await user.click(screen.getByRole('button', { name: /Add service/i }));
+    expect(onCreate).toHaveBeenCalled();
+    const body = onCreate.mock.calls[0][0] as { service_tier?: string | null };
+    expect(body.service_tier).toBe('spring-tier');
+    const defaultPrice = screen.getByLabelText('Default price');
+    expect(tierInputs[0].compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('consultation tier row has tier, spacer column, default currency, spacer', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    const tierInputs = screen.getAllByLabelText('Service tier');
+    const currencyLabels = screen.getAllByLabelText('Default currency');
+    expect(tierInputs.length).toBeGreaterThan(0);
+    expect(currencyLabels.length).toBeGreaterThan(0);
+    const tier = tierInputs[tierInputs.length - 1];
+    const defaultCurrency = currencyLabels[currencyLabels.length - 1];
+    expect(tier.compareDocumentPosition(defaultCurrency) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('submits location_id when a default location is selected', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[
+          {
+            id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            name: 'Venue A',
+            areaId: 'a',
+            address: null,
+            lat: null,
+            lng: null,
+            createdAt: null,
+            updatedAt: null,
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
+          },
+        ]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.type(screen.getByLabelText('Title'), 'T');
+    await user.selectOptions(screen.getByLabelText('Default location'), '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+    await user.type(screen.getByLabelText('Default price'), '10');
+    await user.click(screen.getByRole('button', { name: /Add service/i }));
+    expect(onCreate).toHaveBeenCalled();
+    const body = onCreate.mock.calls[0][0] as { location_id?: string | null };
+    expect(body.location_id).toBe('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+  });
+
+  it('shows UUID input when location list is empty and not loading, submits typed location_id', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    const uuid = '550e8400-e29b-41d4-a716-446655440000';
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.type(screen.getByLabelText('Title'), 'T');
+    const locInput = screen.getByPlaceholderText('Location UUID');
+    expect(locInput).toBeInTheDocument();
+    await user.type(locInput, uuid);
+    await user.type(screen.getByLabelText('Default price'), '10');
+    await user.click(screen.getByRole('button', { name: /Add service/i }));
+    expect(onCreate).toHaveBeenCalled();
+    const body = onCreate.mock.calls[0][0] as { location_id?: string | null };
+    expect(body.location_id).toBe(uuid);
   });
 });

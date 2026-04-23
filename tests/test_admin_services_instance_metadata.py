@@ -1,4 +1,4 @@
-"""Tests for instance age_group, cohort, and tag_ids parsing."""
+"""Tests for instance cohort and tag_ids parsing."""
 
 from __future__ import annotations
 
@@ -45,10 +45,9 @@ def _minimal_training_service() -> Service:
     )
 
 
-def test_parse_create_instance_payload_persists_age_group_and_cohort() -> None:
+def test_parse_create_instance_payload_persists_cohort() -> None:
     service = _minimal_training_service()
     body = {
-        "age_group": "  Ages-3-5  ",
         "cohort": "Spring-2026",
         "training_details": {
             "training_format": "group",
@@ -58,14 +57,13 @@ def test_parse_create_instance_payload_persists_age_group_and_cohort() -> None:
         },
     }
     parsed = parse_create_instance_payload(body, service)
-    assert parsed["age_group"] == "ages-3-5"
     assert parsed["cohort"] == "spring-2026"
 
 
-def test_parse_create_instance_payload_rejects_invalid_age_group_field() -> None:
+def test_parse_create_instance_payload_rejects_invalid_cohort_field() -> None:
     service = _minimal_training_service()
     body = {
-        "age_group": "Bad_Slug",
+        "cohort": "Bad_Slug",
         "training_details": {
             "training_format": "group",
             "price": "10.00",
@@ -75,7 +73,7 @@ def test_parse_create_instance_payload_rejects_invalid_age_group_field() -> None
     }
     with pytest.raises(ValidationError) as exc:
         parse_create_instance_payload(body, service)
-    assert exc.value.field == "age_group"
+    assert exc.value.field == "cohort"
 
 
 def test_parse_create_instance_payload_accepts_tag_ids() -> None:
@@ -94,7 +92,7 @@ def test_parse_create_instance_payload_accepts_tag_ids() -> None:
     assert parsed["tag_ids"] == [t2, t1]
 
 
-def test_training_instance_round_trip_age_cohort_tags_in_memory() -> None:
+def test_training_instance_round_trip_cohort_tags_in_memory() -> None:
     """ORM-only check: fields map and serializer ordering matches tag name (case-insensitive)."""
     from app.api.admin_services_serializers import serialize_instance
 
@@ -128,7 +126,6 @@ def test_training_instance_round_trip_age_cohort_tags_in_memory() -> None:
         max_capacity=None,
         waitlist_enabled=False,
         instructor_id=None,
-        age_group="ages-3-5",
         cohort="spring-2026",
         notes=None,
         created_by="tester",
@@ -160,7 +157,7 @@ def test_training_instance_round_trip_age_cohort_tags_in_memory() -> None:
     instance.partner_organization_links = []
 
     payload = serialize_instance(instance)
-    assert payload["age_group"] == "ages-3-5"
+    assert "age_group" not in payload
     assert payload["cohort"] == "spring-2026"
     assert [t["name"] for t in payload["tags"]] == ["alpha", "Beta"]
     assert payload["tag_ids"] == [str(tag_aa.id), str(tag_ba.id)]

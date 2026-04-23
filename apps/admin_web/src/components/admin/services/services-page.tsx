@@ -81,6 +81,9 @@ export function ServicesPage() {
           <ServiceDetailPanel
             key={serviceDetailPanelKey}
             service={selectedServiceDetail}
+            locationOptions={state.locationList.locations}
+            isLoadingLocations={state.isLoadingLocations}
+            locationError={state.locationError || undefined}
             isLoading={state.serviceMutations.isLoading}
             error={state.serviceMutations.error}
             onCancelSelection={() => state.setSelectedServiceId(null)}

@@ -448,7 +448,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 
 - `services` stores reusable templates (title/description/cover image, type,
   delivery mode, status, optional `slug` for public referral URLs, optional
-  `booking_system` varchar(80) for an admin-visible booking-system label).
+  `booking_system` varchar(80) for an admin-visible booking-system label,
+  optional `service_tier` varchar(128) slug-like tier id shared by all instances,
+  optional `location_id` UUID FK to `locations.id` ON DELETE SET NULL as default venue).
 - Type-specific one-to-one extension tables:
   - `training_course_details`
   - `event_details` (includes optional `default_price` numeric(10,2) and
@@ -462,9 +464,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   `cover_image_s3_key`, `delivery_mode`).
 - Optional public-site fields: `slug` (unique when set), `landing_page`
   (marketing route key for the public website).
-- Optional `age_group` and `cohort` varchar(128): admin labels stored with the same
-  normalization rules as instance referral slugs (lowercase letters, digits, single
-  hyphens between segments).
+- Optional `cohort` varchar(128): admin label stored with the same normalization rules as
+  instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
   (http/https), distinct from Eventbrite sync URLs.
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
@@ -475,7 +476,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
     `eventbrite_retry_count`
 - Scheduling/detail tables:
-  - `instance_session_slots` (time blocks + optional location)
+  - `instance_session_slots` (time blocks + optional location; public calendar location
+    display prefers slot location, then instance `location_id`, then parent `services.location_id`)
   - `training_instance_details`
   - `event_ticket_tiers`
   - `consultation_instance_details` (Calendly event URL column removed in migration

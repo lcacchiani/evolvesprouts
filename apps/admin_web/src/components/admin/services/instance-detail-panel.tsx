@@ -184,7 +184,6 @@ export function InstanceDetailPanel({
           waitlistEnabled: instance.waitlistEnabled,
           instructorId: instance.instructorId ?? '',
           notes: instance.notes ?? '',
-          ageGroup: instance.ageGroup ?? '',
           cohort: instance.cohort ?? '',
           externalUrl: instance.externalUrl ?? '',
           partnerOrganizations: mapPartnerRefsFromInstance(instance),
@@ -284,7 +283,6 @@ export function InstanceDetailPanel({
         waitlistEnabled: instance.waitlistEnabled,
         instructorId: instance.instructorId ?? '',
         notes: instance.notes ?? '',
-        ageGroup: instance.ageGroup ?? '',
         cohort: instance.cohort ?? '',
         externalUrl: instance.externalUrl ?? '',
         partnerOrganizations: mapPartnerRefsFromInstance(instance),
@@ -329,7 +327,6 @@ export function InstanceDetailPanel({
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
-    const ageTrimmed = instanceForm.ageGroup.trim().toLowerCase();
     const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
@@ -341,7 +338,6 @@ export function InstanceDetailPanel({
       max_capacity: instanceForm.maxCapacity ? Number(instanceForm.maxCapacity) : null,
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
-      age_group: ageTrimmed || null,
       cohort: cohortTrimmed || null,
       notes: instanceForm.notes.trim() || null,
       external_url: instanceForm.externalUrl.trim() || null,
@@ -432,10 +428,7 @@ export function InstanceDetailPanel({
   const eventPriceMissing =
     effectiveServiceType === 'event' && !eventForm.defaultPrice.trim();
 
-  const ageGroupTrimmed = instanceForm.ageGroup.trim().toLowerCase();
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
-  const ageGroupInvalid =
-    Boolean(ageGroupTrimmed) && !INSTANCE_SLUG_PATTERN.test(ageGroupTrimmed);
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
   return (
@@ -457,7 +450,6 @@ export function InstanceDetailPanel({
                     !instance ||
                     externalUrlInvalid ||
                     eventPriceMissing ||
-                    ageGroupInvalid ||
                     cohortInvalid
                   }
                   onClick={() => {
@@ -478,7 +470,6 @@ export function InstanceDetailPanel({
                   !selectedServiceId ||
                   externalUrlInvalid ||
                   eventPriceMissing ||
-                  ageGroupInvalid ||
                   cohortInvalid
                 }
                 onClick={() => {
@@ -608,26 +599,6 @@ export function InstanceDetailPanel({
       ) : null}
 
       <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        <div>
-          <Label htmlFor='instance-age-group'>Age group</Label>
-          <Input
-            id='instance-age-group'
-            value={instanceForm.ageGroup}
-            disabled={typeFieldsLocked}
-            onChange={(event) => setInstanceForm((prev) => ({ ...prev, ageGroup: event.target.value }))}
-            onBlur={() =>
-              setInstanceForm((prev) => ({ ...prev, ageGroup: prev.ageGroup.trim().toLowerCase() }))
-            }
-            placeholder='e.g. ages-3-5'
-            autoComplete='off'
-          />
-          {ageGroupInvalid ? (
-            <p className='mt-1 text-xs text-red-600'>
-              Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
-              hyphen).
-            </p>
-          ) : null}
-        </div>
         <div>
           <Label htmlFor='instance-cohort'>Cohort</Label>
           <Input

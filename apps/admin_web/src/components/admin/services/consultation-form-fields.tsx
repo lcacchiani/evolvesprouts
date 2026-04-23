@@ -115,6 +115,32 @@ export function ConsultationServiceRowDFields({
   );
 }
 
+/** Single currency control for service-detail tier row (column-aligned with other service types). */
+export function ConsultationServiceDefaultCurrencyField({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  const currencyOptions = getCurrencyOptions();
+  return (
+    <div>
+      <Label htmlFor='service-consultation-tier-row-currency'>Default currency</Label>
+      <Select
+        id='service-consultation-tier-row-currency'
+        value={value.defaultCurrency}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
+      >
+        {currencyOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
 /** Row E: max group size, duration, package price, empty cell. */
 export function ConsultationServiceRowEFields({
   value,

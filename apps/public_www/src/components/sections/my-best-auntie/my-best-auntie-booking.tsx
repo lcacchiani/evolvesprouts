@@ -166,7 +166,7 @@ function findPreferredCohortId(
   ageGroupId: string,
 ): string {
   const ageGroupCohorts = cohorts.filter(
-    (cohort) => cohort.age_group === ageGroupId,
+    (cohort) => cohort.service_tier === ageGroupId,
   );
   const available = ageGroupCohorts.find((cohort) => !cohort.is_fully_booked);
   return available?.id ?? ageGroupCohorts[0]?.id ?? '';
@@ -238,7 +238,7 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
-    return cohort.age_group === selectedAgeId;
+    return cohort.service_tier === selectedAgeId;
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.id,
@@ -321,7 +321,7 @@ export function MyBestAuntieBooking({
         sectionId: 'my-best-auntie-booking',
         ctaLocation: 'query_param',
         params: {
-          age_group: selectedCohort.age_group,
+          age_group: selectedCohort.service_tier,
           cohort_label: selectedCohort.cohort,
           cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
         },
@@ -330,9 +330,9 @@ export function MyBestAuntieBooking({
       trackEcommerceEvent('begin_checkout', {
         value: selectedCohort.price,
         items: [{
-          item_id: `mba-${selectedCohort.age_group}`,
+          item_id: `mba-${selectedCohort.service_tier}`,
           item_name: 'My Best Auntie',
-          item_category: selectedCohort.age_group,
+          item_category: selectedCohort.service_tier,
           price: selectedCohort.price,
           quantity: 1,
         }],
@@ -600,9 +600,9 @@ export function MyBestAuntieBooking({
                   trackEcommerceEvent('begin_checkout', {
                     value: selectedCohort.price,
                     items: [{
-                      item_id: `mba-${selectedCohort.age_group}`,
+                      item_id: `mba-${selectedCohort.service_tier}`,
                       item_name: 'My Best Auntie',
-                      item_category: selectedCohort.age_group,
+                      item_category: selectedCohort.service_tier,
                       price: selectedCohort.price,
                       quantity: 1,
                     }],

@@ -36,7 +36,6 @@ export interface InstanceFormState {
   maxCapacity: string;
   waitlistEnabled: boolean;
   instructorId: string;
-  ageGroup: string;
   cohort: string;
   notes: string;
   externalUrl: string;
