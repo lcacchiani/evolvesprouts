@@ -24,8 +24,8 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
-    - `GET|POST /v1/admin/tags`
-    - `GET|PATCH|DELETE /v1/admin/tags/{id}`
+    - `GET|POST /v1/admin/tags` (optional `include_archived`, `archived_only`)
+    - `GET|PATCH|DELETE /v1/admin/tags/{id}` (DELETE returns JSON with `deleted` and `usage_count`)
     - `GET /v1/admin/contacts/tags`
     - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
@@ -1577,8 +1577,9 @@ paths:
     get:
       summary: List CRM tags for administration
       description: |
-        Returns tags sorted by name. By default only active (non-archived) tags are returned.
-        Pass `include_archived=true` to include archived tags (for example the Tags admin screen).
+        Returns tags sorted by name. Default: active tags only (`archived_at` is null).
+        Use `include_archived=true` for active and archived together, or `archived_only=true`
+        for archived rows only. Do not pass both `include_archived` and `archived_only`.
       security:
         - AdminBearerAuth: []
       parameters:
@@ -1589,6 +1590,13 @@ paths:
             type: boolean
             default: false
           description: When true, include tags with a non-null `archived_at`.
+        - name: archived_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: When true, return only archived tags (mutually exclusive with `include_archived`).
       responses:
         "200":
           description: Tag list with usage counts.
@@ -1653,6 +1661,10 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       summary: Update CRM tag
+      description: |
+        Set `archived` to `false` to restore an archived tag (clear `archived_at`).
+        System-managed tags (`expense_attachment`, `client_document`) cannot be renamed or archived;
+        they may be edited for color/description only.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -1683,21 +1695,24 @@ paths:
     delete:
       summary: Delete or archive CRM tag
       description: |
-        Hard-deletes the tag when it is not linked to any contact, family, organisation, asset,
-        service, or service instance. When the tag is in use, sets `archived_at` instead and
-        returns the updated tag (same response as PATCH); repeated deletes are idempotent for
-        in-use tags.
+        Always returns **200** with `usage_count` and `deleted`. System-managed tags
+        (`expense_attachment`, `client_document`) return **400** and must not be removed.
+        When `usage_count` is zero, the tag is **hard-deleted** (`deleted: true`), including
+        an archived tag with no remaining links. When `usage_count` is greater than zero,
+        the tag is **archived** (`deleted: false`, `tag` present); repeated calls are idempotent
+        for in-use tags. If the client predicted delete vs archive from a stale list, compare
+        `usage_count` to the prior value to detect a race.
       security:
         - AdminBearerAuth: []
       responses:
-        "204":
-          description: Tag removed (unused).
         "200":
-          description: Tag archived because it is still linked to at least one record.
+          description: Delete outcome (hard delete or archive).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminTagResponse"
+                $ref: "#/components/schemas/AdminTagDeleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
@@ -5150,6 +5165,7 @@ components:
             - description
             - archived_at
             - usage_count
+            - is_system
           properties:
             description:
               type: string
@@ -5166,6 +5182,28 @@ components:
               description: >
                 Count of junction rows across contacts, families, organisations, assets,
                 services, and service instances referencing this tag.
+            is_system:
+              type: boolean
+              description: >
+                True for reserved asset-pipeline tags (`expense_attachment`, `client_document`).
+                These cannot be renamed, archived, or deleted via the admin API.
+    AdminTagDeleteResponse:
+      type: object
+      required:
+        - deleted
+        - usage_count
+      properties:
+        deleted:
+          type: boolean
+          description: True when the tag row was removed from the database.
+        usage_count:
+          type: integer
+          minimum: 0
+          description: Junction usage count evaluated at delete time.
+        tag:
+          $ref: "#/components/schemas/AdminTagRef"
+          nullable: true
+          description: Present when `deleted` is false (archived in-use tag).
     AdminTagListResponse:
       type: object
       required:
@@ -5215,6 +5253,11 @@ components:
           type: string
           nullable: true
           maxLength: 255
+        archived:
+          type: boolean
+          description: >
+            When `false`, clears `archived_at` (restore). When `true`, sets `archived_at` unless
+            the tag is system-managed (those reject archive). Omit when not changing archive state.
     EntityTagListResponse:
       type: object
       required:

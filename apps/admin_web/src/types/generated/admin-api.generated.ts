@@ -2211,14 +2211,17 @@ export interface paths {
         };
         /**
          * List CRM tags for administration
-         * @description Returns tags sorted by name. By default only active (non-archived) tags are returned.
-         *     Pass `include_archived=true` to include archived tags (for example the Tags admin screen).
+         * @description Returns tags sorted by name. Default: active tags only (`archived_at` is null).
+         *     Use `include_archived=true` for active and archived together, or `archived_only=true`
+         *     for archived rows only. Do not pass both `include_archived` and `archived_only`.
          */
         get: {
             parameters: {
                 query?: {
                     /** @description When true, include tags with a non-null `archived_at`. */
                     include_archived?: boolean;
+                    /** @description When true, return only archived tags (mutually exclusive with `include_archived`). */
+                    archived_only?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -2320,10 +2323,13 @@ export interface paths {
         post?: never;
         /**
          * Delete or archive CRM tag
-         * @description Hard-deletes the tag when it is not linked to any contact, family, organisation, asset,
-         *     service, or service instance. When the tag is in use, sets `archived_at` instead and
-         *     returns the updated tag (same response as PATCH); repeated deletes are idempotent for
-         *     in-use tags.
+         * @description Always returns **200** with `usage_count` and `deleted`. System-managed tags
+         *     (`expense_attachment`, `client_document`) return **400** and must not be removed.
+         *     When `usage_count` is zero, the tag is **hard-deleted** (`deleted: true`), including
+         *     an archived tag with no remaining links. When `usage_count` is greater than zero,
+         *     the tag is **archived** (`deleted: false`, `tag` present); repeated calls are idempotent
+         *     for in-use tags. If the client predicted delete vs archive from a stale list, compare
+         *     `usage_count` to the prior value to detect a race.
          */
         delete: {
             parameters: {
@@ -2336,29 +2342,28 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Tag archived because it is still linked to at least one record. */
+                /** @description Delete outcome (hard delete or archive). */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AdminTagResponse"];
+                        "application/json": components["schemas"]["AdminTagDeleteResponse"];
                     };
                 };
-                /** @description Tag removed (unused). */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
             };
         };
         options?: never;
         head?: never;
-        /** Update CRM tag */
+        /**
+         * Update CRM tag
+         * @description Set `archived` to `false` to restore an archived tag (clear `archived_at`).
+         *     System-managed tags (`expense_attachment`, `client_document`) cannot be renamed or archived;
+         *     they may be edited for color/description only.
+         */
         patch: {
             parameters: {
                 query?: never;
@@ -4968,6 +4973,16 @@ export interface components {
             archived_at: string | null;
             /** @description Count of junction rows across contacts, families, organisations, assets, services, and service instances referencing this tag. */
             usage_count: number;
+            /** @description True for reserved asset-pipeline tags (`expense_attachment`, `client_document`). These cannot be renamed, archived, or deleted via the admin API. */
+            is_system: boolean;
+        };
+        AdminTagDeleteResponse: {
+            /** @description True when the tag row was removed from the database. */
+            deleted: boolean;
+            /** @description Junction usage count evaluated at delete time. */
+            usage_count: number;
+            /** @description Present when `deleted` is false (archived in-use tag). */
+            tag?: components["schemas"]["AdminTagRef"];
         };
         AdminTagListResponse: {
             items: components["schemas"]["AdminTagRef"][];
@@ -4985,6 +5000,8 @@ export interface components {
             name?: string;
             color?: string | null;
             description?: string | null;
+            /** @description When `false`, clears `archived_at` (restore). When `true`, sets `archived_at` unless the tag is system-managed (those reject archive). Omit when not changing archive state. */
+            archived?: boolean;
         };
         EntityTagListResponse: {
             items: components["schemas"]["EntityTagRef"][];

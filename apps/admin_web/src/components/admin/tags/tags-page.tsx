@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -20,6 +21,7 @@ import {
   deleteOrArchiveAdminTag,
   listAdminTags,
   updateAdminTag,
+  type AdminTagListFilter,
   type AdminTagRow,
 } from '@/lib/tags-api';
 
@@ -35,7 +37,7 @@ export function TagsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [saveError, setSaveError] = useState('');
-  const [showArchived, setShowArchived] = useState(false);
+  const [listFilter, setListFilter] = useState<AdminTagListFilter>('active');
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -43,12 +45,18 @@ export function TagsPage() {
   const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
+  const [restoreBusyId, setRestoreBusyId] = useState<string | null>(null);
+
+  const selectedRow = useMemo(
+    () => tags.find((row) => row.id === selectedTagId) ?? null,
+    [tags, selectedTagId]
+  );
 
   const loadTags = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
-      const rows = await listAdminTags({ includeArchived: showArchived });
+      const rows = await listAdminTags({ filter: listFilter });
       setTags(rows);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Failed to load tags.';
@@ -56,7 +64,7 @@ export function TagsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [showArchived]);
+  }, [listFilter]);
 
   useEffect(() => {
     void loadTags();
@@ -83,6 +91,23 @@ export function TagsPage() {
   const parseColorPayload = (): string | null => {
     const trimmed = color.trim();
     return trimmed === '' ? null : trimmed;
+  };
+
+  const handleRestore = async (row: AdminTagRow) => {
+    setRestoreBusyId(row.id);
+    setError('');
+    try {
+      const updated = await updateAdminTag(row.id, { archived: false });
+      await loadTags();
+      if (updated && selectedTagId === row.id) {
+        applyRowSelection(updated);
+      }
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Restore failed.';
+      setError(message);
+    } finally {
+      setRestoreBusyId(null);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -126,9 +151,12 @@ export function TagsPage() {
   };
 
   const handleDeleteRow = async (row: AdminTagRow) => {
-    const inUse = row.usage_count > 0;
+    if (row.is_system) {
+      return;
+    }
+    const predictedArchive = row.usage_count > 0;
     const confirmed = await requestConfirm(
-      inUse
+      predictedArchive
         ? {
             title: 'Archive tag?',
             description: `“${row.name}” is linked to ${row.usage_count} record(s). It will be hidden from pickers but stay on existing records.`,
@@ -149,10 +177,16 @@ export function TagsPage() {
     setError('');
     try {
       const outcome = await deleteOrArchiveAdminTag(row.id);
-      if (outcome.status === 204 && selectedTagId === row.id) {
+      const actualArchive = !outcome.deleted;
+      if (predictedArchive !== actualArchive) {
+        setError(
+          `The server ${actualArchive ? 'archived' : 'removed'} this tag based on current usage (${outcome.usage_count} link(s)). Refresh the list if the table looked stale.`
+        );
+      }
+      if (outcome.deleted && selectedTagId === row.id) {
         resetCreateForm();
       }
-      if (outcome.status === 200 && selectedTagId === row.id) {
+      if (!outcome.deleted && outcome.tag && selectedTagId === row.id) {
         applyRowSelection(outcome.tag);
       }
       await loadTags();
@@ -164,20 +198,38 @@ export function TagsPage() {
     }
   };
 
-  const editorIsBusy = isSaving || Boolean(deleteBusyId);
+  const editorIsBusy = isSaving || Boolean(deleteBusyId) || Boolean(restoreBusyId);
+
+  const isEditingSystemTag = editorMode === 'edit' && selectedRow?.is_system;
+  const showRestoreInEditor =
+    editorMode === 'edit' && selectedRow && Boolean(selectedRow.archived_at) && !selectedRow.is_system;
 
   return (
     <div className='space-y-6'>
       <AdminEditorCard
         title={editorMode === 'create' ? 'New tag' : 'Edit tag'}
-        description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers.'
+        description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers. Use Restore (below or in the table) to clear archive. System tags (expense_attachment, client_document) cannot be renamed, archived, or deleted.'
         actions={
           editorMode === 'edit' ? (
             <>
-              <Button type='button' variant='outline' disabled={editorIsBusy} onClick={resetCreateForm}>
+              {showRestoreInEditor ? (
+                <Button
+                  type='button'
+                  variant='secondary'
+                  disabled={editorIsBusy}
+                  onClick={() => selectedRow && void handleRestore(selectedRow)}
+                >
+                  {restoreBusyId === selectedTagId ? 'Restoring…' : 'Restore'}
+                </Button>
+              ) : null}
+              <Button type='button' variant='secondary' disabled={editorIsBusy} onClick={resetCreateForm}>
                 Cancel
               </Button>
-              <Button type='submit' form={EDITOR_FORM_ID} disabled={editorIsBusy || !name.trim()}>
+              <Button
+                type='submit'
+                form={EDITOR_FORM_ID}
+                disabled={editorIsBusy || !name.trim()}
+              >
                 {isSaving ? 'Saving…' : 'Save changes'}
               </Button>
             </>
@@ -198,7 +250,11 @@ export function TagsPage() {
               maxLength={100}
               required
               autoComplete='off'
+              disabled={Boolean(isEditingSystemTag)}
             />
+            {isEditingSystemTag ? (
+              <p className='mt-1 text-sm text-slate-600'>This system-managed tag name cannot be changed.</p>
+            ) : null}
           </div>
           <div>
             <Label htmlFor='tag-color'>Color (#RRGGBB)</Label>
@@ -235,22 +291,22 @@ export function TagsPage() {
         onLoadMore={() => {}}
         toolbar={
           <div className='mb-3 flex flex-wrap items-end gap-3'>
-            <div className='flex min-w-[180px] items-center gap-2 pt-6'>
-              <input
-                id='tags-show-archived'
-                type='checkbox'
-                className='h-4 w-4 rounded border-slate-300 text-slate-900'
-                checked={showArchived}
-                onChange={(event) => setShowArchived(event.target.checked)}
-              />
-              <Label htmlFor='tags-show-archived' className='cursor-pointer font-normal'>
-                Show archived
-              </Label>
+            <div className='min-w-[160px]'>
+              <Label htmlFor='tags-list-filter'>Status</Label>
+              <Select
+                id='tags-list-filter'
+                value={listFilter}
+                onChange={(event) => setListFilter(event.target.value as AdminTagListFilter)}
+              >
+                <option value='active'>Active</option>
+                <option value='archived'>Archived</option>
+                <option value='all'>All</option>
+              </Select>
             </div>
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[720px]'>
+        <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
@@ -269,8 +325,20 @@ export function TagsPage() {
                   selectedTagId === row.id ? 'bg-slate-100' : 'hover:bg-slate-50'
                 }`}
                 onClick={() => applyRowSelection(row)}
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    applyRowSelection(row);
+                  }
+                }}
               >
-                <td className='px-4 py-3 font-medium text-slate-900'>{row.name}</td>
+                <td className='px-4 py-3 font-medium text-slate-900'>
+                  {row.name}
+                  {row.is_system ? (
+                    <span className='ml-2 text-xs font-normal text-slate-500'>(system)</span>
+                  ) : null}
+                </td>
                 <td className='px-4 py-3 font-mono text-sm text-slate-700'>{row.color ?? '—'}</td>
                 <td className='px-4 py-3'>{row.usage_count}</td>
                 <td className='px-4 py-3 text-sm text-slate-700'>
@@ -280,17 +348,36 @@ export function TagsPage() {
                   {row.archived_at ? formatDate(row.archived_at) : '—'}
                 </td>
                 <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    disabled={editorIsBusy || deleteBusyId === row.id}
-                    onClick={() => void handleDeleteRow(row)}
-                    aria-label={row.usage_count > 0 ? 'Archive tag' : 'Delete tag'}
-                    title={row.usage_count > 0 ? 'Archive tag' : 'Delete tag'}
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
+                  <div className='flex justify-end gap-1'>
+                    {row.archived_at && !row.is_system ? (
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='secondary'
+                        disabled={editorIsBusy || restoreBusyId === row.id}
+                        onClick={() => void handleRestore(row)}
+                      >
+                        {restoreBusyId === row.id ? '…' : 'Restore'}
+                      </Button>
+                    ) : null}
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      disabled={editorIsBusy || deleteBusyId === row.id || row.is_system}
+                      onClick={() => void handleDeleteRow(row)}
+                      aria-label={row.is_system ? 'System tag' : row.usage_count > 0 ? 'Archive tag' : 'Delete tag'}
+                      title={
+                        row.is_system
+                          ? 'System-managed tags cannot be removed'
+                          : row.usage_count > 0
+                            ? 'Archive tag'
+                            : 'Delete tag'
+                      }
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

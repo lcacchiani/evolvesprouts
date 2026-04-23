@@ -8,11 +8,15 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, union_all
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.admin_entities_helpers import serialize_tag_ref
+from app.api.admin_entities_helpers import (
+    parse_optional_bool_body,
+    request_id,
+    serialize_tag_ref,
+)
 from app.api.admin_request import parse_body, parse_uuid, query_param
 from app.api.admin_validators import validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
@@ -28,12 +32,32 @@ from app.db.models import (
     Tag,
 )
 from app.exceptions import NotFoundError, ValidationError
+from app.services.asset_expense_tagging import (
+    CLIENT_DOCUMENT_TAG_NAME,
+    EXPENSE_ATTACHMENT_TAG_NAME,
+)
 from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 _HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+_SYSTEM_TAG_NAMES_LOWER: frozenset[str] = frozenset(
+    {
+        EXPENSE_ATTACHMENT_TAG_NAME.lower(),
+        CLIENT_DOCUMENT_TAG_NAME.lower(),
+    }
+)
+
+
+def _is_system_tag_name(name: str) -> bool:
+    return name.strip().lower() in _SYSTEM_TAG_NAMES_LOWER
+
+
+def _is_reserved_tag_name(name: str) -> bool:
+    """Reserved for asset pipeline behaviour; admins cannot create duplicates."""
+    return name.strip().lower() in _SYSTEM_TAG_NAMES_LOWER
 
 
 def handle_admin_tags_request(
@@ -74,30 +98,70 @@ def handle_admin_tags_request(
     return json_response(404, {"error": "Not found"}, event=event)
 
 
+def _usage_counts_by_tag_id(session: Session, tag_ids: list[UUID]) -> dict[UUID, int]:
+    """Single aggregated query per list of tag ids (avoids N×6 counts per row)."""
+    if not tag_ids:
+        return {}
+    s_contact = (
+        select(ContactTag.tag_id, func.count().label("cnt"))
+        .where(ContactTag.tag_id.in_(tag_ids))
+        .group_by(ContactTag.tag_id)
+    )
+    s_family = (
+        select(FamilyTag.tag_id, func.count().label("cnt"))
+        .where(FamilyTag.tag_id.in_(tag_ids))
+        .group_by(FamilyTag.tag_id)
+    )
+    s_org = (
+        select(OrganizationTag.tag_id, func.count().label("cnt"))
+        .where(OrganizationTag.tag_id.in_(tag_ids))
+        .group_by(OrganizationTag.tag_id)
+    )
+    s_asset = (
+        select(AssetTag.tag_id, func.count().label("cnt"))
+        .where(AssetTag.tag_id.in_(tag_ids))
+        .group_by(AssetTag.tag_id)
+    )
+    s_service = (
+        select(ServiceTag.tag_id, func.count().label("cnt"))
+        .where(ServiceTag.tag_id.in_(tag_ids))
+        .group_by(ServiceTag.tag_id)
+    )
+    s_instance = (
+        select(ServiceInstanceTag.tag_id, func.count().label("cnt"))
+        .where(ServiceInstanceTag.tag_id.in_(tag_ids))
+        .group_by(ServiceInstanceTag.tag_id)
+    )
+    combined = union_all(
+        s_contact, s_family, s_org, s_asset, s_service, s_instance
+    ).subquery()
+    stmt = select(combined.c.tag_id, func.sum(combined.c.cnt)).group_by(
+        combined.c.tag_id
+    )
+    rows = session.execute(stmt).all()
+    return {row[0]: int(row[1] or 0) for row in rows}
+
+
 def _tag_usage_count(session: Session, tag_id: UUID) -> int:
-    total = 0
-    for model in (
-        ContactTag,
-        FamilyTag,
-        OrganizationTag,
-        AssetTag,
-        ServiceTag,
-        ServiceInstanceTag,
-    ):
-        count = session.scalar(
-            select(func.count()).select_from(model).where(model.tag_id == tag_id)
-        )
-        total += int(count or 0)
-    return total
+    return _usage_counts_by_tag_id(session, [tag_id]).get(tag_id, 0)
 
 
-def _serialize_admin_tag(session: Session, tag: Tag) -> dict[str, Any]:
+def _serialize_admin_tag(
+    session: Session,
+    tag: Tag,
+    *,
+    usage_by_id: dict[UUID, int] | None = None,
+) -> dict[str, Any]:
     data = serialize_tag_ref(tag)
     data["description"] = tag.description
     data["archived_at"] = (
         tag.archived_at.isoformat() if tag.archived_at is not None else None
     )
-    data["usage_count"] = _tag_usage_count(session, tag.id)
+    data["is_system"] = _is_system_tag_name(tag.name)
+    if usage_by_id is not None:
+        data["usage_count"] = usage_by_id.get(tag.id, 0)
+    else:
+        data["usage_count"] = _tag_usage_count(session, tag.id)
     return data
 
 
@@ -113,6 +177,18 @@ def _parse_include_archived(event: Mapping[str, Any]) -> bool:
     raise ValidationError(
         "include_archived must be true or false", field="include_archived"
     )
+
+
+def _parse_archived_only(event: Mapping[str, Any]) -> bool:
+    raw = query_param(event, "archived_only")
+    if raw is None or raw.strip() == "":
+        return False
+    normalized = raw.strip().lower()
+    if normalized in {"true", "1"}:
+        return True
+    if normalized in {"false", "0"}:
+        return False
+    raise ValidationError("archived_only must be true or false", field="archived_only")
 
 
 def _parse_optional_hex_color(value: Any, *, field: str) -> str | None:
@@ -132,14 +208,29 @@ def _parse_optional_hex_color(value: Any, *, field: str) -> str | None:
 
 def _list_tags(event: Mapping[str, Any]) -> dict[str, Any]:
     include_archived = _parse_include_archived(event)
+    archived_only = _parse_archived_only(event)
+    if archived_only and include_archived:
+        raise ValidationError(
+            "use either archived_only or include_archived, not both",
+            field="archived_only",
+        )
     with Session(get_engine()) as session:
         stmt = select(Tag).order_by(func.lower(Tag.name))
-        if not include_archived:
+        if archived_only:
+            stmt = stmt.where(Tag.archived_at.is_not(None))
+        elif not include_archived:
             stmt = stmt.where(Tag.archived_at.is_(None))
         tags = list(session.execute(stmt).scalars().all())
+        tag_ids = [t.id for t in tags]
+        usage_map = _usage_counts_by_tag_id(session, tag_ids)
         return json_response(
             200,
-            {"items": [_serialize_admin_tag(session, t) for t in tags]},
+            {
+                "items": [
+                    _serialize_admin_tag(session, t, usage_by_id=usage_map)
+                    for t in tags
+                ]
+            },
             event=event,
         )
 
@@ -169,6 +260,12 @@ def _create_tag(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     name_stripped = name.strip()
     if not name_stripped:
         raise ValidationError("name must not be empty", field="name")
+    if _is_reserved_tag_name(name_stripped):
+        raise ValidationError(
+            "This tag name is reserved for system use",
+            field="name",
+            status_code=400,
+        )
     color = _parse_optional_hex_color(body.get("color"), field="color")
     description = validate_string_length(
         body.get("description"),
@@ -181,7 +278,7 @@ def _create_tag(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
         desc_stripped = None
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         tag = Tag(
             name=name_stripped,
             color=color,
@@ -214,10 +311,27 @@ def _update_tag(
 ) -> dict[str, Any]:
     body = parse_body(event)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         tag = session.get(Tag, tag_id)
         if tag is None:
             raise NotFoundError("Tag", str(tag_id))
+
+        if "archived" in body:
+            archived = parse_optional_bool_body(body.get("archived"), field="archived")
+            if archived is None:
+                raise ValidationError(
+                    "archived must be true or false", field="archived"
+                )
+            if archived is False:
+                tag.archived_at = None
+            elif _is_system_tag_name(tag.name):
+                raise ValidationError(
+                    "System-managed tags cannot be archived via PATCH; they stay active",
+                    field="archived",
+                    status_code=400,
+                )
+            else:
+                tag.archived_at = datetime.now(tz=UTC)
 
         if "name" in body:
             name = validate_string_length(
@@ -231,6 +345,24 @@ def _update_tag(
             name_stripped = name.strip()
             if not name_stripped:
                 raise ValidationError("name must not be empty", field="name")
+            if (
+                _is_system_tag_name(tag.name)
+                and name_stripped.lower() != tag.name.lower()
+            ):
+                raise ValidationError(
+                    "System-managed tags cannot be renamed",
+                    field="name",
+                    status_code=400,
+                )
+            if (
+                _is_reserved_tag_name(name_stripped)
+                and name_stripped.lower() != tag.name.lower()
+            ):
+                raise ValidationError(
+                    "This tag name is reserved for system use",
+                    field="name",
+                    status_code=400,
+                )
             tag.name = name_stripped
         if "color" in body:
             tag.color = _parse_optional_hex_color(body.get("color"), field="color")
@@ -270,31 +402,40 @@ def _delete_tag(
     actor_sub: str,
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         tag = session.get(Tag, tag_id)
         if tag is None:
             raise NotFoundError("Tag", str(tag_id))
+
+        if _is_system_tag_name(tag.name):
+            raise ValidationError(
+                "System-managed tags cannot be deleted or archived",
+                field="tag",
+                status_code=400,
+            )
 
         usage = _tag_usage_count(session, tag_id)
         if usage > 0:
             if tag.archived_at is None:
                 tag.archived_at = datetime.now(tz=UTC)
-                session.commit()
+            session.commit()
+            refreshed = session.get(Tag, tag_id)
+            if refreshed is None:
+                raise NotFoundError("Tag", str(tag_id))
             return json_response(
                 200,
-                {"tag": _serialize_admin_tag(session, tag)},
+                {
+                    "deleted": False,
+                    "usage_count": usage,
+                    "tag": _serialize_admin_tag(session, refreshed),
+                },
                 event=event,
             )
 
         session.delete(tag)
         session.commit()
-        return json_response(204, {}, event=event)
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        rid = request_context.get("requestId")
-        if isinstance(rid, str):
-            return rid.strip()
-    return ""
+        return json_response(
+            200,
+            {"deleted": True, "usage_count": 0},
+            event=event,
+        )
