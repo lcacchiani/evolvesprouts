@@ -329,7 +329,7 @@ deleting a `locations` row can orphan a ref — expected; cleanup is operator-dr
 
 Populated by the legacy CRM import Lambda (`ImportLegacyVenuesFunction` / shared
 `legacy_crm` handler) when importing venues, families, organizations, contacts,
-notes, or future registered entities.
+notes, labels, event-related entities, and other registered importers.
 
 Columns:
 
@@ -342,9 +342,11 @@ Indexes:
 
 - `legacy_import_refs_new_id_idx` on `new_id`
 
-Example `entity` values: `venues`, `families`, `organizations`, `contacts`, `notes`
-(see legacy CRM import registry). All use decimal string keys of the legacy integer
-primary key except `notes`, which maps legacy `note.id`.
+Example `entity` values: `venues`, `families`, `organizations`, `contacts`, `notes`,
+`link_contact_memberships`, `labels`, `event_services`, `event_instances`,
+`event_instance_tags`, `event_enrollments`, `event_discount_codes` (see legacy CRM
+import registry). All use decimal string keys of the legacy integer primary key except
+`notes`, which maps legacy `note.id`.
 
 ## Table: `notes`
 
