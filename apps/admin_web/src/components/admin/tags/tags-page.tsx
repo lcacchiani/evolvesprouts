@@ -216,7 +216,7 @@ export function TagsPage() {
   return (
     <div className='space-y-6'>
       <AdminEditorCard
-        title={editorMode === 'create' ? 'Tag' : 'Edit tag'}
+        title='Tag'
         description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers. Use Restore (below or in the table) to clear archive. System tags (expense_attachment, client_document) cannot be renamed, archived, or deleted.'
         actions={
           editorMode === 'edit' ? (

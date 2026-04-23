@@ -42,7 +42,7 @@ describe('TagsPage', () => {
     mockListAdminTags.mockResolvedValue([tagAlpha, tagBeta]);
   });
 
-  it('shows Tag as the create editor title and filters rows by name search', async () => {
+  it('shows Tag as the editor title and filters rows by name search', async () => {
     const user = userEvent.setup();
     render(<TagsPage />);
 
