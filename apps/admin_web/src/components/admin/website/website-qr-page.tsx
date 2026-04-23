@@ -13,6 +13,8 @@ import { PUBLIC_SITE_PAGE_PRESETS } from '@/lib/public-site-page-presets';
 import {
   buildLocalizedPublicPageUrl,
   normalizePublicSitePathInput,
+  normalizePublicSiteSrcValue,
+  sanitizePublicSiteSrcQueryInput,
 } from '@/lib/public-site-page-urls';
 import {
   MY_BEST_AUNTIE_REFERRAL_LOCALES,
@@ -36,8 +38,13 @@ export function WebsiteQrPage() {
   const [presetValue, setPresetValue] = useState<string>(PUBLIC_SITE_PAGE_PRESETS[0]?.pathInput ?? '/');
   const [customPathInput, setCustomPathInput] = useState('');
   const [appendSrcQuery, setAppendSrcQuery] = useState(false);
-  const [srcQueryValue, setSrcQueryValue] = useState('qr');
+  const [srcQueryValue, setSrcQueryValue] = useState('');
   const isCustom = presetValue === CUSTOM_PRESET_VALUE;
+
+  const normalizedSrcForQuery = useMemo(
+    () => (appendSrcQuery ? normalizePublicSiteSrcValue(srcQueryValue) : ''),
+    [appendSrcQuery, srcQueryValue],
+  );
 
   const normalizedPathResult = useMemo(() => {
     if (isCustom && !customPathInput.trim()) {
@@ -65,18 +72,17 @@ export function WebsiteQrPage() {
     if (!appendSrcQuery) {
       return builtUrl;
     }
-    const trimmed = srcQueryValue.trim();
-    if (!trimmed) {
+    if (!normalizedSrcForQuery) {
       return builtUrl;
     }
     try {
       const url = new URL(builtUrl);
-      url.searchParams.set('src', trimmed);
+      url.searchParams.set('src', normalizedSrcForQuery);
       return url.toString();
     } catch {
       return builtUrl;
     }
-  }, [appendSrcQuery, builtUrl, srcQueryValue]);
+  }, [appendSrcQuery, builtUrl, normalizedSrcForQuery]);
 
   const pathForAnalytics = normalizedPathResult.path || '';
 
@@ -96,7 +102,7 @@ export function WebsiteQrPage() {
 
   const pathError = normalizedPathResult.error;
 
-  const downloadBase = `public-page-${pathToDownloadBase(normalizedPathResult.path || '/')}-${locale}`;
+  const downloadBase = `${normalizedSrcForQuery ? `${normalizedSrcForQuery}-` : ''}page-${pathToDownloadBase(normalizedPathResult.path || '/')}-${locale}`;
 
   return (
     <div className='space-y-6'>
@@ -166,11 +172,7 @@ export function WebsiteQrPage() {
               className='h-4 w-4 rounded border-slate-300 text-slate-900'
               checked={appendSrcQuery}
               onChange={(event) => {
-                const next = event.target.checked;
-                setAppendSrcQuery(next);
-                if (next && !srcQueryValue.trim()) {
-                  setSrcQueryValue('qr');
-                }
+                setAppendSrcQuery(event.target.checked);
               }}
               disabled={Boolean(configError) || Boolean(pathError) || !builtUrl}
             />
@@ -185,7 +187,7 @@ export function WebsiteQrPage() {
               <Input
                 id='website-qr-src-value'
                 value={srcQueryValue}
-                onChange={(event) => setSrcQueryValue(event.target.value)}
+                onChange={(event) => setSrcQueryValue(sanitizePublicSiteSrcQueryInput(event.target.value))}
                 placeholder='e.g. qr'
                 disabled={Boolean(configError) || Boolean(pathError) || !builtUrl}
                 autoComplete='off'
@@ -193,7 +195,8 @@ export function WebsiteQrPage() {
               <p className='mt-1 text-xs text-slate-500'>
                 Adds <code className='rounded bg-slate-100 px-1'>?src=…</code> (or{' '}
                 <code className='rounded bg-slate-100 px-1'>&amp;src=…</code>) for attribution. Leave
-                blank to omit.
+                blank to omit. Use lowercase letters, numbers, and hyphens only (same slug rules as
+                site paths).
               </p>
             </div>
           ) : null}

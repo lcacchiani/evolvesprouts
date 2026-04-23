@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildLocalizedPublicPageUrl,
   normalizePublicSitePathInput,
+  normalizePublicSiteSrcValue,
+  sanitizePublicSiteSrcQueryInput,
 } from '@/lib/public-site-page-urls';
 
 describe('normalizePublicSitePathInput', () => {
@@ -33,6 +35,23 @@ describe('normalizePublicSitePathInput', () => {
 
   it('rejects uppercase segments', () => {
     expect(normalizePublicSitePathInput('/About-Us').error).toBeTruthy();
+  });
+});
+
+describe('normalizePublicSiteSrcValue', () => {
+  it('returns kebab-case slugs and empty for invalid', () => {
+    expect(normalizePublicSiteSrcValue('  QR_Poster  ')).toBe('qr-poster');
+    expect(normalizePublicSiteSrcValue('a--b')).toBe('a-b');
+    expect(normalizePublicSiteSrcValue('')).toBe('');
+    expect(normalizePublicSiteSrcValue('-')).toBe('');
+    expect(normalizePublicSiteSrcValue('Bad_Slug')).toBe('bad-slug');
+  });
+});
+
+describe('sanitizePublicSiteSrcQueryInput', () => {
+  it('lowercases and maps invalid characters to hyphens', () => {
+    expect(sanitizePublicSiteSrcQueryInput('Foo Bar')).toBe('foo-bar');
+    expect(sanitizePublicSiteSrcQueryInput('a--')).toBe('a-');
   });
 });
 
