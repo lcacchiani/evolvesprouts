@@ -29,6 +29,8 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/admin/leads/abc",
         "/v1/admin/leads/abc/notes",
         "/v1/admin/users",
+        "/v1/admin/tags",
+        "/v1/admin/tags/abc",
         "/v1/admin/contacts",
         "/v1/admin/contacts/tags",
         "/v1/admin/contacts/abc",

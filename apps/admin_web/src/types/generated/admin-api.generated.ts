@@ -2202,6 +2202,208 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List CRM tags for administration
+         * @description Returns tags sorted by name. Default: active tags only (`archived_at` is null).
+         *     Use `include_archived=true` for active and archived together, or `archived_only=true`
+         *     for archived rows only. Do not pass both `include_archived` and `archived_only`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description When true, include tags with a non-null `archived_at`. */
+                    include_archived?: boolean;
+                    /** @description When true, return only archived tags (mutually exclusive with `include_archived`). */
+                    archived_only?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag list with usage counts. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create CRM tag */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminTagRequest"];
+                };
+            };
+            responses: {
+                /** @description Tag created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                /** @description Duplicate tag name (case-insensitive uniqueness). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Get CRM tag by id */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete or archive CRM tag
+         * @description Always returns **200** with `usage_count` and `deleted`. System-managed tags
+         *     (`expense_attachment`, `client_document`) return **400** and must not be removed.
+         *     When `usage_count` is zero, the tag is **hard-deleted** (`deleted: true`), including
+         *     an archived tag with no remaining links. When `usage_count` is greater than zero,
+         *     the tag is **archived** (`deleted: false`, `tag` present); repeated calls are idempotent
+         *     for in-use tags. If the client predicted delete vs archive from a stale list, compare
+         *     `usage_count` to the prior value to detect a race.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Delete outcome (hard delete or archive). */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagDeleteResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update CRM tag
+         * @description Set `archived` to `false` to restore an archived tag (clear `archived_at`).
+         *     System-managed tags (`expense_attachment`, `client_document`) cannot be renamed or archived;
+         *     they may be edited for color/description only.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminTagRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated tag. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Duplicate tag name (case-insensitive uniqueness). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/v1/admin/contacts/tags": {
         parameters: {
             query?: never;
@@ -4761,6 +4963,45 @@ export interface components {
             id: string;
             name: string;
             color?: string | null;
+        };
+        AdminTagRef: components["schemas"]["EntityTagRef"] & {
+            description: string | null;
+            /**
+             * Format: date-time
+             * @description When set, the tag is archived and hidden from assignment pickers.
+             */
+            archived_at: string | null;
+            /** @description Count of junction rows across contacts, families, organisations, assets, services, and service instances referencing this tag. */
+            usage_count: number;
+            /** @description True for reserved asset-pipeline tags (`expense_attachment`, `client_document`). These cannot be renamed, archived, or deleted via the admin API. */
+            is_system: boolean;
+        };
+        AdminTagDeleteResponse: {
+            /** @description True when the tag row was removed from the database. */
+            deleted: boolean;
+            /** @description Junction usage count evaluated at delete time. */
+            usage_count: number;
+            /** @description Present when `deleted` is false (archived in-use tag). */
+            tag?: components["schemas"]["AdminTagRef"];
+        };
+        AdminTagListResponse: {
+            items: components["schemas"]["AdminTagRef"][];
+        };
+        AdminTagResponse: {
+            tag: components["schemas"]["AdminTagRef"];
+        };
+        CreateAdminTagRequest: {
+            name: string;
+            /** @description Optional UI color as `#RRGGBB`. */
+            color?: string | null;
+            description?: string | null;
+        };
+        UpdateAdminTagRequest: {
+            name?: string;
+            color?: string | null;
+            description?: string | null;
+            /** @description When `false`, clears `archived_at` (restore). When `true`, sets `archived_at` unless the tag is system-managed (those reject archive). Omit when not changing archive state. */
+            archived?: boolean;
         };
         EntityTagListResponse: {
             items: components["schemas"]["EntityTagRef"][];

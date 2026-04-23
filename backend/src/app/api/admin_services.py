@@ -26,6 +26,7 @@ from app.api.admin_services_common import (
     serialize_service_summary,
 )
 from app.api.admin_services_payload_utils import parse_service_type_details
+from app.api.admin_entities_helpers import require_assignable_tag
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -177,6 +178,8 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             parsed_details=payload["type_details"],
         )
         created = repository.create_service(service, details)
+        for tag_id in payload["tag_ids"]:
+            require_assignable_tag(session, tag_id, field="tag_ids")
         created.service_tags = [
             ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
         ]
@@ -258,6 +261,8 @@ def _update_service(
         if "status" in payload:
             service.status = payload["status"]
         if "tag_ids" in payload:
+            for tag_id in payload["tag_ids"]:
+                require_assignable_tag(session, tag_id, field="tag_ids")
             service.service_tags = [
                 ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
             ]

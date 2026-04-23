@@ -88,6 +88,21 @@ def serialize_tag_ref(tag: Tag) -> dict[str, Any]:
     }
 
 
+def require_assignable_tag(
+    session: Session,
+    tag_id: UUID,
+    *,
+    field: str = "tag_ids",
+) -> Tag:
+    """Return a tag row that may be linked to CRM entities or services; archived tags fail."""
+    tag = session.get(Tag, tag_id)
+    if tag is None:
+        raise ValidationError("tag_id not found", field=field)
+    if tag.archived_at is not None:
+        raise ValidationError("tag is archived", field=field)
+    return tag
+
+
 def assert_contact_can_join_family(
     session: Session,
     *,
@@ -142,9 +157,7 @@ def replace_contact_tags(
 ) -> None:
     session.execute(delete(ContactTag).where(ContactTag.contact_id == contact_id))
     for tag_id in tag_ids:
-        tag = session.get(Tag, tag_id)
-        if tag is None:
-            raise ValidationError("tag_id not found", field="tag_ids")
+        require_assignable_tag(session, tag_id, field="tag_ids")
         session.add(ContactTag(contact_id=contact_id, tag_id=tag_id))
     session.flush()
 
@@ -157,9 +170,7 @@ def replace_family_tags(
 ) -> None:
     session.execute(delete(FamilyTag).where(FamilyTag.family_id == family_id))
     for tag_id in tag_ids:
-        tag = session.get(Tag, tag_id)
-        if tag is None:
-            raise ValidationError("tag_id not found", field="tag_ids")
+        require_assignable_tag(session, tag_id, field="tag_ids")
         session.add(FamilyTag(family_id=family_id, tag_id=tag_id))
     session.flush()
 
@@ -176,9 +187,7 @@ def replace_organization_tags(
         )
     )
     for tag_id in tag_ids:
-        tag = session.get(Tag, tag_id)
-        if tag is None:
-            raise ValidationError("tag_id not found", field="tag_ids")
+        require_assignable_tag(session, tag_id, field="tag_ids")
         session.add(OrganizationTag(organization_id=organization_id, tag_id=tag_id))
     session.flush()
 
@@ -199,15 +208,15 @@ def replace_service_instance_tags(
         if tag_id in seen:
             continue
         seen.add(tag_id)
-        tag = session.get(Tag, tag_id)
-        if tag is None:
-            raise ValidationError("tag_id not found", field="tag_ids")
+        require_assignable_tag(session, tag_id, field="tag_ids")
         session.add(ServiceInstanceTag(service_instance_id=instance_id, tag_id=tag_id))
     session.flush()
 
 
 def list_all_tags_for_picker(session: Session) -> list[Tag]:
-    statement = select(Tag).order_by(func.lower(Tag.name))
+    statement = (
+        select(Tag).where(Tag.archived_at.is_(None)).order_by(func.lower(Tag.name))
+    )
     return list(session.execute(statement).scalars().all())
 
 

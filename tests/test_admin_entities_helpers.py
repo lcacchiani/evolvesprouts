@@ -11,6 +11,7 @@ from app.api.admin_entities_helpers import (
     FAMILY_RELATIONSHIP_TYPES,
     ORGANIZATION_RELATIONSHIP_TYPES,
     replace_service_instance_tags,
+    require_assignable_tag,
     request_id,
     parse_contact_type_filter,
     parse_relationship_type,
@@ -109,9 +110,9 @@ def test_replace_service_instance_tags_dedupes_preserving_order() -> None:
 
     def fake_get(_model: type, pk: object) -> object | None:
         if pk == t1:
-            return SimpleNamespace(id=t1)
+            return SimpleNamespace(id=t1, archived_at=None)
         if pk == t2:
-            return SimpleNamespace(id=t2)
+            return SimpleNamespace(id=t2, archived_at=None)
         return None
 
     session.get.side_effect = fake_get
@@ -141,7 +142,7 @@ def test_replace_service_instance_tags_unknown_id_sets_field() -> None:
 
     def fake_get(_model: type, pk: object) -> object | None:
         if pk == known:
-            return SimpleNamespace(id=known)
+            return SimpleNamespace(id=known, archived_at=None)
         return None
 
     session.get.side_effect = fake_get
@@ -153,3 +154,37 @@ def test_replace_service_instance_tags_unknown_id_sets_field() -> None:
             tag_ids=[known, missing],
         )
     assert exc.value.field == "tag_ids"
+
+
+@pytest.mark.filterwarnings("ignore::sqlalchemy.exc.SAWarning")
+def test_replace_service_instance_tags_rejects_archived_tag() -> None:
+    instance_id = uuid4()
+    active_id = uuid4()
+    archived_id = uuid4()
+    session = MagicMock()
+
+    def fake_get(_model: type, pk: object) -> object | None:
+        if pk == active_id:
+            return SimpleNamespace(id=active_id, archived_at=None)
+        if pk == archived_id:
+            return SimpleNamespace(id=archived_id, archived_at="2024-01-01")
+        return None
+
+    session.get.side_effect = fake_get
+
+    with pytest.raises(ValidationError, match="tag is archived") as exc:
+        replace_service_instance_tags(
+            session,
+            instance_id=instance_id,
+            tag_ids=[active_id, archived_id],
+        )
+    assert exc.value.field == "tag_ids"
+
+
+def test_require_assignable_tag_raises_for_archived() -> None:
+    tid = uuid4()
+    session = MagicMock()
+    session.get.return_value = SimpleNamespace(id=tid, archived_at="x")
+
+    with pytest.raises(ValidationError, match="tag is archived"):
+        require_assignable_tag(session, tid)

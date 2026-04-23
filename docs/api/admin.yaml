@@ -24,6 +24,8 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
+    - `GET|POST /v1/admin/tags` (optional `include_archived`, `archived_only`)
+    - `GET|PATCH|DELETE /v1/admin/tags/{id}` (DELETE returns JSON with `deleted` and `usage_count`)
     - `GET /v1/admin/contacts/tags`
     - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
@@ -1564,6 +1566,151 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DiscountCodeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/tags:
+    get:
+      summary: List CRM tags for administration
+      description: |
+        Returns tags sorted by name. Default: active tags only (`archived_at` is null).
+        Use `include_archived=true` for active and archived together, or `archived_only=true`
+        for archived rows only. Do not pass both `include_archived` and `archived_only`.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: include_archived
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: When true, include tags with a non-null `archived_at`.
+        - name: archived_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: When true, return only archived tags (mutually exclusive with `include_archived`).
+      responses:
+        "200":
+          description: Tag list with usage counts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create CRM tag
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminTagRequest"
+      responses:
+        "201":
+          description: Tag created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Duplicate tag name (case-insensitive uniqueness).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/admin/tags/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get CRM tag by id
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Tag detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update CRM tag
+      description: |
+        Set `archived` to `false` to restore an archived tag (clear `archived_at`).
+        System-managed tags (`expense_attachment`, `client_document`) cannot be renamed or archived;
+        they may be edited for color/description only.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminTagRequest"
+      responses:
+        "200":
+          description: Updated tag.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Duplicate tag name (case-insensitive uniqueness).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete or archive CRM tag
+      description: |
+        Always returns **200** with `usage_count` and `deleted`. System-managed tags
+        (`expense_attachment`, `client_document`) return **400** and must not be removed.
+        When `usage_count` is zero, the tag is **hard-deleted** (`deleted: true`), including
+        an archived tag with no remaining links. When `usage_count` is greater than zero,
+        the tag is **archived** (`deleted: false`, `tag` present); repeated calls are idempotent
+        for in-use tags. If the client predicted delete vs archive from a stale list, compare
+        `usage_count` to the prior value to detect a race.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Delete outcome (hard delete or archive).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagDeleteResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -5010,6 +5157,107 @@ components:
         color:
           type: string
           nullable: true
+    AdminTagRef:
+      allOf:
+        - $ref: "#/components/schemas/EntityTagRef"
+        - type: object
+          required:
+            - description
+            - archived_at
+            - usage_count
+            - is_system
+          properties:
+            description:
+              type: string
+              nullable: true
+              maxLength: 255
+            archived_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: When set, the tag is archived and hidden from assignment pickers.
+            usage_count:
+              type: integer
+              minimum: 0
+              description: >
+                Count of junction rows across contacts, families, organisations, assets,
+                services, and service instances referencing this tag.
+            is_system:
+              type: boolean
+              description: >
+                True for reserved asset-pipeline tags (`expense_attachment`, `client_document`).
+                These cannot be renamed, archived, or deleted via the admin API.
+    AdminTagDeleteResponse:
+      type: object
+      required:
+        - deleted
+        - usage_count
+      properties:
+        deleted:
+          type: boolean
+          description: True when the tag row was removed from the database.
+        usage_count:
+          type: integer
+          minimum: 0
+          description: Junction usage count evaluated at delete time.
+        tag:
+          $ref: "#/components/schemas/AdminTagRef"
+          nullable: true
+          description: Present when `deleted` is false (archived in-use tag).
+    AdminTagListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTagRef"
+    AdminTagResponse:
+      type: object
+      required:
+        - tag
+      properties:
+        tag:
+          $ref: "#/components/schemas/AdminTagRef"
+    CreateAdminTagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          description: Optional UI color as `#RRGGBB`.
+        description:
+          type: string
+          nullable: true
+          maxLength: 255
+    UpdateAdminTagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          pattern: "^#[0-9A-Fa-f]{6}$"
+        description:
+          type: string
+          nullable: true
+          maxLength: 255
+        archived:
+          type: boolean
+          description: >
+            When `false`, clears `archived_at` (restore). When `true`, sets `archived_at` unless
+            the tag is system-managed (those reject archive). Omit when not changing archive state.
     EntityTagListResponse:
       type: object
       required:

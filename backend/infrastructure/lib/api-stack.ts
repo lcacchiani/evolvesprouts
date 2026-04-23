@@ -3033,6 +3033,30 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    // Admin CRM tags catalog (shared across contacts, services, assets, etc.)
+    const adminTags = admin.addResource("tags");
+    adminTags.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTags.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminTagById = adminTags.addResource("{id}");
+    adminTagById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTagById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTagById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     // Admin CRM contacts / families / organizations (non-vendor)
     const adminContacts = admin.addResource("contacts");
     adminContacts.addMethod("GET", adminIntegration, {

@@ -9,6 +9,7 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/contacts')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance')).toBe('finance');
     expect(adminSectionKeyFromPathname('/services')).toBe('services');
+    expect(adminSectionKeyFromPathname('/tags')).toBe('tags');
     expect(adminSectionKeyFromPathname('/website')).toBe('website');
   });
 
@@ -18,6 +19,7 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/contacts/')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance/')).toBe('finance');
     expect(adminSectionKeyFromPathname('/services/')).toBe('services');
+    expect(adminSectionKeyFromPathname('/tags/')).toBe('tags');
     expect(adminSectionKeyFromPathname('/website/')).toBe('website');
   });
 

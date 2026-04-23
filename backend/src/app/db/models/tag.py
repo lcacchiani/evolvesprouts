@@ -47,6 +47,10 @@ class Tag(Base):
         nullable=False,
         server_default=text("now()"),
     )
+    archived_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
 
     contact_tags: Mapped[list[ContactTag]] = relationship(
         "ContactTag",

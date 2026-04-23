@@ -4,6 +4,7 @@ export const ADMIN_NAV_ITEMS = [
   { key: 'finance', label: 'Finance', href: '/finance' },
   { key: 'sales', label: 'Sales', href: '/sales' },
   { key: 'services', label: 'Services', href: '/services' },
+  { key: 'tags', label: 'Tags', href: '/tags' },
   { key: 'website', label: 'Website', href: '/website' },
 ] as const;
 
