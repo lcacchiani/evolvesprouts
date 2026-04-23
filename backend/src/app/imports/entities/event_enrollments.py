@@ -133,7 +133,11 @@ class EventEnrollmentsImporter:
                 contact_uuid = contact_refs.get(str(reg.person_id))
             if contact_uuid is None and reg.family_id is not None:
                 family_uuid = fam_refs.get(str(reg.family_id))
-            if contact_uuid is None and family_uuid is None and reg.organization_id is not None:
+            if (
+                contact_uuid is None
+                and family_uuid is None
+                and reg.organization_id is not None
+            ):
                 org_uuid = org_refs.get(str(reg.organization_id))
 
             if contact_uuid is None and family_uuid is None and org_uuid is None:

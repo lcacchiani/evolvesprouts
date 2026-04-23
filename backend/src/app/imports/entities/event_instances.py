@@ -38,7 +38,9 @@ def _allocate_instance_slug(session: Session, base: str) -> str | None:
         if len(candidate) > 128:
             return None
         exists_row = session.execute(
-            select(ServiceInstance.id).where(ServiceInstance.slug == candidate).limit(1),
+            select(ServiceInstance.id)
+            .where(ServiceInstance.slug == candidate)
+            .limit(1),
         ).first()
         if exists_row is None:
             return candidate
@@ -100,11 +102,7 @@ class EventInstancesImporter:
                 stats.skipped_no_dep += 1
                 continue
 
-            if (
-                ed.starts_at is None
-                or ed.ends_at is None
-                or ed.starts_at >= ed.ends_at
-            ):
+            if ed.starts_at is None or ed.ends_at is None or ed.starts_at >= ed.ends_at:
                 stats.skipped_invalid_range += 1
                 continue
 
@@ -165,9 +163,7 @@ class EventInstancesImporter:
                 age_group=None,
                 cohort=None,
                 notes=(str(ed.notes).strip() if ed.notes else None) or None,
-                external_url=(
-                    str(ed.external_url).strip() if ed.external_url else None
-                )
+                external_url=(str(ed.external_url).strip() if ed.external_url else None)
                 or None,
                 created_by=LEGACY_IMPORT_CREATED_BY,
                 eventbrite_sync_status=EventbriteSyncStatus.PENDING,

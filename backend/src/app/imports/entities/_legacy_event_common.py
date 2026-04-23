@@ -528,7 +528,7 @@ def parse_legacy_labels(sql_text: str) -> list[LegacyLabel]:
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
-        ent = (str(rd["entity"]).strip().lower() if rd.get("entity") else None)
+        ent = str(rd["entity"]).strip().lower() if rd.get("entity") else None
         if ent not in {"category", "tag"}:
             continue
         rows.append(

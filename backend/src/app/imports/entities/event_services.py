@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from decimal import Decimal
 from typing import Any
 from typing import ClassVar
 from uuid import UUID
@@ -14,7 +13,6 @@ from sqlalchemy.orm import Session
 
 from app.db.models import EventDetails
 from app.db.models import Service
-from app.db.models.enums import ServiceDeliveryMode
 from app.db.models.enums import ServiceStatus
 from app.db.models.enums import ServiceType
 from app.imports.base import ImportStats

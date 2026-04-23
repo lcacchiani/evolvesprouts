@@ -13,8 +13,6 @@ from app.imports.entities.event_instance_tags import EventInstanceTagsImporter
 
 
 def test_fan_out_by_event_id(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports.entities import event_instance_tags as mod
-
     session = MagicMock(spec=Session)
     i1, i2 = uuid.uuid4(), uuid.uuid4()
     tag = uuid.uuid4()
@@ -44,8 +42,6 @@ def test_fan_out_by_event_id(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_event_date_id_single(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.imports.entities import event_instance_tags as mod
-
     session = MagicMock(spec=Session)
     inst = uuid.uuid4()
     tag = uuid.uuid4()

@@ -187,8 +187,10 @@ class EventDiscountCodesImporter:
     def format_preview(self, row: object, mapped_id: UUID | None) -> str:
         if not isinstance(row, LegacyDiscount):
             return ""
-        c = (str(row.code).strip().upper() if row.code else "")
-        return preview_line(self, f"Would import discount id={row.legacy_id} code={c!r}")
+        c = str(row.code).strip().upper() if row.code else ""
+        return preview_line(
+            self, f"Would import discount id={row.legacy_id} code={c!r}"
+        )
 
 
 register(EventDiscountCodesImporter())
