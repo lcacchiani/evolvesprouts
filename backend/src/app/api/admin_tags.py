@@ -102,35 +102,43 @@ def _usage_counts_by_tag_id(session: Session, tag_ids: list[UUID]) -> dict[UUID,
     """Single aggregated query per list of tag ids (avoids N×6 counts per row)."""
     if not tag_ids:
         return {}
+    # Use mapped ``__table__`` columns so static type checkers accept ``tag_id``
+    # (ORM ``.tag_id`` attributes are not always inferred on declarative classes).
+    ct = ContactTag.__table__.c
+    ft = FamilyTag.__table__.c
+    ot = OrganizationTag.__table__.c
+    at = AssetTag.__table__.c
+    st = ServiceTag.__table__.c
+    sit = ServiceInstanceTag.__table__.c
     s_contact = (
-        select(ContactTag.tag_id, func.count().label("cnt"))
-        .where(ContactTag.tag_id.in_(tag_ids))
-        .group_by(ContactTag.tag_id)
+        select(ct.tag_id, func.count().label("cnt"))
+        .where(ct.tag_id.in_(tag_ids))
+        .group_by(ct.tag_id)
     )
     s_family = (
-        select(FamilyTag.tag_id, func.count().label("cnt"))
-        .where(FamilyTag.tag_id.in_(tag_ids))
-        .group_by(FamilyTag.tag_id)
+        select(ft.tag_id, func.count().label("cnt"))
+        .where(ft.tag_id.in_(tag_ids))
+        .group_by(ft.tag_id)
     )
     s_org = (
-        select(OrganizationTag.tag_id, func.count().label("cnt"))
-        .where(OrganizationTag.tag_id.in_(tag_ids))
-        .group_by(OrganizationTag.tag_id)
+        select(ot.tag_id, func.count().label("cnt"))
+        .where(ot.tag_id.in_(tag_ids))
+        .group_by(ot.tag_id)
     )
     s_asset = (
-        select(AssetTag.tag_id, func.count().label("cnt"))
-        .where(AssetTag.tag_id.in_(tag_ids))
-        .group_by(AssetTag.tag_id)
+        select(at.tag_id, func.count().label("cnt"))
+        .where(at.tag_id.in_(tag_ids))
+        .group_by(at.tag_id)
     )
     s_service = (
-        select(ServiceTag.tag_id, func.count().label("cnt"))
-        .where(ServiceTag.tag_id.in_(tag_ids))
-        .group_by(ServiceTag.tag_id)
+        select(st.tag_id, func.count().label("cnt"))
+        .where(st.tag_id.in_(tag_ids))
+        .group_by(st.tag_id)
     )
     s_instance = (
-        select(ServiceInstanceTag.tag_id, func.count().label("cnt"))
-        .where(ServiceInstanceTag.tag_id.in_(tag_ids))
-        .group_by(ServiceInstanceTag.tag_id)
+        select(sit.tag_id, func.count().label("cnt"))
+        .where(sit.tag_id.in_(tag_ids))
+        .group_by(sit.tag_id)
     )
     combined = union_all(
         s_contact, s_family, s_org, s_asset, s_service, s_instance
