@@ -14,13 +14,14 @@ import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
-export type ServicesView = 'catalog' | 'instances' | 'discount-codes' | 'venues';
+export type ServicesView = 'catalog' | 'instances' | 'discount-codes' | 'venues' | 'partners';
 
 export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
   'catalog',
   'instances',
   'discount-codes',
   'venues',
+  'partners',
 ];
 export const DEFAULT_SERVICES_VIEW: ServicesView = 'catalog';
 

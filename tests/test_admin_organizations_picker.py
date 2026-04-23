@@ -44,7 +44,7 @@ def picker_session(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     return session
 
 
-def test_picker_default_excludes_vendors(
+def test_picker_default_excludes_vendors_and_partners(
     api_gateway_event: Any,
     picker_session: MagicMock,
 ) -> None:

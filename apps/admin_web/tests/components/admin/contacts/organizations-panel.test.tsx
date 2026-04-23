@@ -21,6 +21,7 @@ vi.mock('@/lib/services-api', async () => {
 import { OrganizationsPanel } from '@/components/admin/contacts/organizations-panel';
 
 import type { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
+import { ORGANIZATION_RELATIONSHIP_TYPES } from '@/types/entity-relationship';
 import type { components } from '@/types/generated/admin-api.generated';
 
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
@@ -57,7 +58,7 @@ function buildOrgsHook(
     updateMember: vi.fn().mockResolvedValue(null),
     deleteOrganization: vi.fn().mockResolvedValue(undefined),
     refetch: vi.fn(),
-    relationshipOptions: ['prospect', 'customer', 'partner', 'vendor'] as unknown as ReturnType<
+    relationshipOptions: [...ORGANIZATION_RELATIONSHIP_TYPES] as ReturnType<
       typeof useAdminEntityOrganizations
     >['relationshipOptions'],
     ...overrides,
@@ -90,18 +91,59 @@ describe('OrganizationsPanel', () => {
       expect.objectContaining({
         name: 'Acme',
         organization_type: 'company',
+        relationship_type: 'prospect',
+        slug: null,
       })
     );
+  });
+
+  it('lists CRM relationship options without partner', () => {
+    render(
+      <OrganizationsPanel
+        organizations={buildOrgsHook()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    const rel = screen.getByLabelText('Relationship');
+    expect(rel).toBeInTheDocument();
+    const options = Array.from(rel.querySelectorAll('option')).map((o) => o.value);
+    expect(options).toEqual(['prospect', 'client', 'other']);
+  });
+
+  it('shows CRM organisations description including Services partners path', () => {
+    render(
+      <OrganizationsPanel
+        organizations={buildOrgsHook()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(/CRM organisations only\. Vendors are managed under Finance → Vendors; partners under Services → Partners\./)
+    ).toBeInTheDocument();
   });
 
   it('read-only when linked location is partner-org locked', async () => {
     const user = userEvent.setup();
     const row: components['schemas']['AdminOrganization'] = {
       id: 'org-1',
-      name: 'Partner Org',
+      name: 'Venue Org',
       organization_type: 'company',
-      relationship_type: 'partner',
-      slug: 'partner-org',
+      relationship_type: 'client',
+      slug: null,
       website: null,
       location_id: 'loc-1',
       location_summary: {
@@ -150,7 +192,7 @@ describe('OrganizationsPanel', () => {
       />
     );
 
-    await user.click(screen.getByText('Partner Org'));
+    await user.click(screen.getByText('Venue Org'));
 
     expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
@@ -167,7 +209,7 @@ describe('OrganizationsPanel', () => {
       id: 'org-2',
       name: 'School Co',
       organization_type: 'school',
-      relationship_type: 'customer',
+      relationship_type: 'client',
       slug: null,
       website: null,
       location_id: 'loc-2',
@@ -242,7 +284,7 @@ describe('OrganizationsPanel', () => {
       id: 'org-del',
       name: 'Delete Org',
       organization_type: 'company',
-      relationship_type: 'customer',
+      relationship_type: 'client',
       slug: null,
       website: null,
       location_id: null,

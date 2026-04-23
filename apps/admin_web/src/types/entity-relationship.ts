@@ -19,10 +19,11 @@ export const FAMILY_RELATIONSHIP_TYPES: readonly components['schemas']['EntityFa
 
 /**
  * Relationship values for the organization editor (excludes `vendor`,
- * which is managed from Finance; excludes `past_client`, which organizations cannot use).
+ * which is managed from Finance; excludes `partner`, which is managed under
+ * Services → Partners; excludes `past_client`, which organizations cannot use).
  */
 export const ORGANIZATION_RELATIONSHIP_TYPES: readonly components['schemas']['EntityOrganizationRelationshipType'][] =
-  ['prospect', 'client', 'partner', 'other'];
+  ['prospect', 'client', 'other'];
 
 /**
  * Map a stored relationship to a select value. Values outside `allowed` map to `other`

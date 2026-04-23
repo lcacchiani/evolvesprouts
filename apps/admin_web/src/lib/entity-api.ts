@@ -37,7 +37,7 @@ function parseFamily(value: unknown): AdminFamilyRow {
   return row as AdminFamilyRow;
 }
 
-function parseOrganization(value: unknown): AdminOrganizationRow {
+export function parseAdminOrganization(value: unknown): AdminOrganizationRow {
   const row = isRecord(value) ? value : {};
   return row as AdminOrganizationRow;
 }
@@ -358,7 +358,7 @@ export async function listAdminOrganizations(
   });
   const root = unwrapPayload(payload);
   return {
-    items: Array.isArray(root.items) ? root.items.map((e) => parseOrganization(e)) : [],
+    items: Array.isArray(root.items) ? root.items.map((e) => parseAdminOrganization(e)) : [],
     nextCursor: asNullableString(root.next_cursor),
     totalCount: asNumber(root.total_count, 0),
   };
@@ -374,7 +374,7 @@ export async function createAdminOrganization(
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function updateAdminOrganization(
@@ -387,7 +387,7 @@ export async function updateAdminOrganization(
     body,
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function deleteAdminOrganization(organizationId: string): Promise<void> {
@@ -409,7 +409,7 @@ export async function addAdminOrganizationMember(
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function removeAdminOrganizationMember(
@@ -421,7 +421,7 @@ export async function removeAdminOrganizationMember(
     method: 'DELETE',
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function patchAdminOrganizationMember(
@@ -435,5 +435,5 @@ export async function patchAdminOrganizationMember(
     body,
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }

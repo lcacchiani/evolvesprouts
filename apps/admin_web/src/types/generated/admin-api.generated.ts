@@ -2995,15 +2995,16 @@ export interface paths {
         /**
          * List active CRM organisations for pickers
          * @description Returns active organisations ordered by name for admin UI dropdowns.
-         *     When `relationship_type` is omitted, vendor rows are excluded (same default as
-         *     organization list). When `relationship_type` is set (e.g. `partner`), only
-         *     organisations with that relationship type are returned. At most 100 rows unless
-         *     `limit` is set lower.
+         *     When `relationship_type` is omitted, vendor and partner rows are both excluded
+         *     (Contacts default). Pass `relationship_type=partner` for Services → Partners or
+         *     `relationship_type=vendor` for Finance → Vendors. When `relationship_type` is set,
+         *     only organisations with that relationship type are returned. At most 100 rows
+         *     unless `limit` is set lower.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description When set, only organizations with this CRM relationship type are returned. When omitted, vendors are excluded (non-vendor default). */
+                    /** @description When set, only organizations with this CRM relationship type are returned. When omitted, vendor and partner rows are both excluded (Contacts default). */
                     relationship_type?: components["schemas"]["EntityRelationshipType"];
                     limit?: number;
                 };
@@ -3044,18 +3045,20 @@ export interface paths {
         /**
          * List CRM organizations
          * @description Lists organizations for CRM and Finance. When `relationship_type` is omitted,
-         *     vendor rows are excluded (Contacts → Organizations default). Pass
-         *     `relationship_type=vendor` for the Finance vendors list only.
-         *     List responses may omit related loads for performance when listing vendors
-         *     (`include_relationships=false` server-side); use `GET /v1/admin/organizations/{id}`
-         *     for full tags, members, and location summary.
+         *     vendor and partner rows are both excluded (Contacts default). Pass
+         *     `relationship_type=partner` for Services → Partners or `relationship_type=vendor`
+         *     for Finance → Vendors.
+         *     List responses may omit related loads for performance when listing vendors only
+         *     (`include_relationships=false` server-side); partner lists still include tags,
+         *     members, and location summary. Use `GET /v1/admin/organizations/{id}` for full
+         *     detail when needed.
          */
         get: {
             parameters: {
                 query?: {
                     query?: string;
                     active?: boolean;
-                    /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendors are excluded from the list (CRM default). */
+                    /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendor and partner rows are both excluded from the list (Contacts default). */
                     relationship_type?: components["schemas"]["EntityRelationshipType"];
                     cursor?: string;
                     limit?: number;

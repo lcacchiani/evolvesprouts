@@ -2,9 +2,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ServicesView } from '@/hooks/use-services-page';
+
 const { mockUseServicesPage, state } = vi.hoisted(() => {
   const state = {
-    activeView: 'catalog' as const,
+    activeView: 'catalog' as ServicesView,
     setActiveView: vi.fn(),
     selectedServiceId: null as string | null,
     setSelectedServiceId: vi.fn(),
@@ -121,6 +123,7 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       totalCount: 0,
       createVenue: vi.fn().mockResolvedValue(null),
       updateVenue: vi.fn().mockResolvedValue(null),
+      updateVenuePartial: vi.fn().mockResolvedValue(null),
       deleteVenue: vi.fn().mockResolvedValue(undefined),
     },
   };
@@ -132,6 +135,10 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
 
 vi.mock('@/hooks/use-services-page', () => ({
   useServicesPage: mockUseServicesPage,
+}));
+
+vi.mock('@/components/admin/services/partners-tab', () => ({
+  PartnersTab: () => <div data-testid='partners-tab-mock'>Partners</div>,
 }));
 
 import { ServicesPage } from '@/components/admin/services/services-page';
@@ -154,6 +161,14 @@ describe('ServicesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
     await user.click(screen.getByRole('button', { name: 'Venues' }));
     expect(state.setActiveView).toHaveBeenCalledWith('venues');
+    await user.click(screen.getByRole('button', { name: 'Partners' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('partners');
+  });
+
+  it('renders Partners panel when active view is partners', () => {
+    state.activeView = 'partners';
+    render(<ServicesPage />);
+    expect(screen.getByTestId('partners-tab-mock')).toBeInTheDocument();
   });
 
   it('renders service detail before the services list', () => {
