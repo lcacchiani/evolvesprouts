@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 
 import type { usePartners } from '@/hooks/use-partners';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -20,12 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import {
-  getAdminContact,
-  searchEntityContactsForPicker,
-  type EntityPickerListItem,
-  type EntityTagRef,
-} from '@/lib/entity-api';
+import { type EntityTagRef } from '@/lib/entity-api';
 import { formatEnumLabel } from '@/lib/format';
 import type { PartnerFilters } from '@/types/partners';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
@@ -40,11 +35,6 @@ const ORG_TYPES: ApiSchemas['EntityOrganizationType'][] = [
   'ngo',
   'other',
 ];
-
-function formatContactPickerLabel(c: ApiSchemas['AdminContact']): string {
-  const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
-  return name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
-}
 
 export interface PartnersPanelProps {
   partners: ReturnType<typeof usePartners>;
@@ -77,9 +67,6 @@ export function PartnersPanel({
     isSaving,
     createPartner,
     updatePartner,
-    addMember,
-    removeMember,
-    updateMember,
     deletePartner,
   } = partners;
 
@@ -98,15 +85,6 @@ export function PartnersPanel({
     useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
-
-  const [memberContactId, setMemberContactId] = useState('');
-  const [memberSearchInput, setMemberSearchInput] = useState('');
-  const [memberSearchResults, setMemberSearchResults] = useState<EntityPickerListItem[]>([]);
-  const [memberPinnedLabel, setMemberPinnedLabel] = useState('');
-
-  const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
-    null
-  );
 
   const selected = useMemo(
     () => rows.find((o) => o.id === selectedId) ?? null,
@@ -170,103 +148,6 @@ export function PartnersPanel({
 
   const locationLockedReadOnly = Boolean(resolvedLocation?.lockedFromPartnerOrg);
 
-  const memberSelectOptions = useMemo(() => {
-    const byId = new Map<string, string>();
-    for (const r of memberSearchResults) {
-      byId.set(r.id, r.label);
-    }
-    const cid = memberContactId.trim();
-    if (cid && memberPinnedLabel.trim() && !byId.has(cid)) {
-      byId.set(cid, memberPinnedLabel.trim());
-    }
-    return Array.from(byId.entries()).map(([id, label]) => ({ id, label }));
-  }, [memberSearchResults, memberContactId, memberPinnedLabel]);
-
-  useEffect(() => {
-    const q = memberSearchInput.trim();
-    if (q.length < 2) {
-      queueMicrotask(() => {
-        setMemberSearchResults([]);
-      });
-      return;
-    }
-    let cancelled = false;
-    const handle = setTimeout(() => {
-      void (async () => {
-        try {
-          const items = await searchEntityContactsForPicker({
-            query: q,
-            limit: 50,
-          });
-          if (!cancelled) {
-            setMemberSearchResults(Array.isArray(items) ? items : []);
-          }
-        } catch {
-          if (!cancelled) {
-            setMemberSearchResults([]);
-          }
-        }
-      })();
-    }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(handle);
-    };
-  }, [memberSearchInput]);
-
-  useEffect(() => {
-    const id = memberContactId.trim();
-    if (!id) {
-      queueMicrotask(() => {
-        setMemberPinnedLabel('');
-      });
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const c = await getAdminContact(id);
-        if (cancelled || !c) {
-          return;
-        }
-        setMemberPinnedLabel(formatContactPickerLabel(c));
-      } catch {
-        if (!cancelled) {
-          setMemberPinnedLabel('');
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [memberContactId]);
-
-  const primaryMemberLabel = useCallback((members: ApiSchemas['AdminOrganizationMember'][]) => {
-    const primary = members.find((m) => m.is_primary_contact);
-    return primary?.contact_label?.trim() || null;
-  }, []);
-
-  async function handlePrimaryMemberChange(
-    memberId: string,
-    nextChecked: boolean
-  ): Promise<void> {
-    if (!selected) {
-      return;
-    }
-    try {
-      await updateMember(selected.id, memberId, { is_primary_contact: nextChecked });
-    } catch {
-      // Retry preserved.
-    }
-  }
-
-  function clearMemberPickerState() {
-    setMemberContactId('');
-    setMemberSearchInput('');
-    setMemberSearchResults([]);
-    setMemberPinnedLabel('');
-  }
-
   function resetCreateForm() {
     if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
       const ok = window.confirm(
@@ -287,7 +168,6 @@ export function PartnersPanel({
     clearLocationSaveError();
     setTagIds([]);
     setActive(true);
-    clearMemberPickerState();
   }
 
   async function handleSubmit(): Promise<void> {
@@ -319,21 +199,6 @@ export function PartnersPanel({
         active,
         tag_ids: tagIds,
       });
-    } catch {
-      // Retry preserved.
-    }
-  }
-
-  async function handleAddMember(): Promise<void> {
-    if (!selected || !memberContactId.trim()) {
-      return;
-    }
-    try {
-      await addMember(selected.id, {
-        contact_id: memberContactId.trim(),
-        is_primary_contact: false,
-      });
-      clearMemberPickerState();
     } catch {
       // Retry preserved.
     }
@@ -381,7 +246,6 @@ export function PartnersPanel({
     clearLocationSaveError();
     setTagIds([...row.tag_ids]);
     setActive(row.active);
-    clearMemberPickerState();
   }
 
   const listError = error || deleteActionError;
@@ -526,100 +390,6 @@ export function PartnersPanel({
               />
             </div>
           </div>
-          {editorMode === 'edit' && selected ? (
-            <div className='lg:col-span-4'>
-              <AdminCollapsibleSection id='svc-partner-members' title='Members'>
-                <div className='space-y-3 pt-1'>
-                  <div className='min-w-[200px] flex-1'>
-                    <Label htmlFor='svc-partner-member-search'>Find contact</Label>
-                    <Input
-                      id='svc-partner-member-search'
-                      value={memberSearchInput}
-                      onChange={(e) => setMemberSearchInput(e.target.value)}
-                      autoComplete='off'
-                      placeholder='Type at least two characters to search'
-                    />
-                  </div>
-                  <div className='flex flex-wrap items-end gap-3'>
-                    <div className='min-w-[200px] flex-1'>
-                      <Label htmlFor='svc-partner-member-contact'>Contact</Label>
-                      <Select
-                        id='svc-partner-member-contact'
-                        value={memberContactId}
-                        onChange={(e) => setMemberContactId(e.target.value)}
-                      >
-                        <option value=''>Select contact</option>
-                        {memberSelectOptions.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <Button
-                      type='button'
-                      disabled={isSaving || !memberContactId}
-                      onClick={() => void handleAddMember()}
-                    >
-                      Add member
-                    </Button>
-                  </div>
-                  <p className='text-xs text-slate-600'>
-                    Role for each member follows the contact type set on the contact record.
-                  </p>
-                  <AdminDataTable tableClassName='min-w-[520px]'>
-                    <AdminDataTableHead>
-                      <tr>
-                        <th className='px-3 py-2 font-semibold'>Contact</th>
-                        <th className='px-3 py-2 font-semibold'>Role</th>
-                        <th className='px-3 py-2 font-semibold'>Primary contact</th>
-                        <th className='px-3 py-2 font-semibold text-right'>Operations</th>
-                      </tr>
-                    </AdminDataTableHead>
-                    <AdminDataTableBody>
-                      {selected.members.map((m) => (
-                        <tr key={m.id}>
-                          <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
-                          <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
-                          <td className='px-3 py-2'>
-                            <input
-                              type='checkbox'
-                              className='h-4 w-4 rounded border-slate-300'
-                              checked={m.is_primary_contact}
-                              disabled={isSaving}
-                              onChange={(e) => {
-                                void handlePrimaryMemberChange(m.id, e.target.checked);
-                              }}
-                              aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
-                            />
-                          </td>
-                          <td className='px-3 py-2 text-right'>
-                            <Button
-                              type='button'
-                              size='sm'
-                              variant='danger'
-                              className='h-8 min-w-8 px-0'
-                              disabled={isSaving}
-                              onClick={() =>
-                                setRemoveTarget({
-                                  memberId: m.id,
-                                  label: m.contact_label || m.contact_id,
-                                })
-                              }
-                              aria-label={`Remove ${m.contact_label || m.contact_id} from partner`}
-                              title='Remove member'
-                            >
-                              <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </AdminDataTableBody>
-                  </AdminDataTable>
-                </div>
-              </AdminCollapsibleSection>
-            </div>
-          ) : null}
         </div>
       </AdminEditorCard>
 
@@ -668,83 +438,45 @@ export function PartnersPanel({
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Members</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {rows.map((row) => {
-              const primaryLabel = primaryMemberLabel(row.members);
-              return (
-                <tr
-                  key={row.id}
-                  className={`cursor-pointer transition ${
-                    selectedId === row.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => selectRow(row.id)}
-                >
-                  <td className='px-4 py-3'>
-                    {row.name}
-                    {primaryLabel ? (
-                      <>
-                        <span aria-hidden> · </span>
-                        {primaryLabel}
-                      </>
-                    ) : null}
-                  </td>
-                  <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
-                  <td className='px-4 py-3'>{row.members.length}</td>
-                  <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <div className='flex flex-wrap justify-end gap-2'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='danger'
-                        className='h-8 min-w-8 px-0'
-                        onClick={(e) => {
-                          void handleDeletePartner(row, e);
-                        }}
-                        disabled={isSaving}
-                        aria-label='Delete partner'
-                        title='Delete partner'
-                      >
-                        <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {rows.map((row) => (
+              <tr
+                key={row.id}
+                className={`cursor-pointer transition ${
+                  selectedId === row.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                }`}
+                onClick={() => selectRow(row.id)}
+              >
+                <td className='px-4 py-3'>{row.name}</td>
+                <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
+                <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
+                <td className='px-4 py-3 text-right'>
+                  <div className='flex flex-wrap justify-end gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      className='h-8 min-w-8 px-0'
+                      onClick={(e) => {
+                        void handleDeletePartner(row, e);
+                      }}
+                      disabled={isSaving}
+                      aria-label='Delete partner'
+                      title='Delete partner'
+                    >
+                      <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>
-
-      <ConfirmDialog
-        open={removeTarget !== null}
-        title='Remove partner member'
-        description={
-          removeTarget ? `Remove ${removeTarget.label} from this partner?` : 'Remove this member?'
-        }
-        variant='danger'
-        confirmLabel='Remove'
-        confirmDisabled={isSaving}
-        onCancel={() => setRemoveTarget(null)}
-        onConfirm={() => {
-          if (!removeTarget || !selected) {
-            setRemoveTarget(null);
-            return;
-          }
-          void (async () => {
-            try {
-              await removeMember(selected.id, removeTarget.memberId);
-            } finally {
-              setRemoveTarget(null);
-            }
-          })();
-        }}
-      />
     </div>
   );
 }
