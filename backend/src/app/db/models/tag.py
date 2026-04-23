@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from app.db.models.contact import Contact
     from app.db.models.family import Family
     from app.db.models.organization import Organization
+    from app.db.models.service_instance import ServiceInstanceTag
 
 
 class Tag(Base):
