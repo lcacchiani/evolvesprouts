@@ -66,6 +66,9 @@
   "overrides": {
     "tmp": "^0.2.4",
     "yauzl": "^3.2.1",
-    "flatted": "^3.4.0"
+    "flatted": "^3.4.0",
+    "@lhci/cli": {
+      "uuid": "^14.0.0"
+    }
   }
 }
