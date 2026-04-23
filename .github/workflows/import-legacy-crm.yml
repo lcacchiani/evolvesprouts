@@ -42,6 +42,12 @@ on:
           - contacts
           - notes
           - link_contact_memberships
+          - labels
+          - event_services
+          - event_instances
+          - event_instance_tags
+          - event_enrollments
+          - event_discount_codes
       sql_download_url:
         description: >
           HTTPS URL to the MariaDB .sql backup (optional if secret IMPORT_LEGACY_CRM_SQL_URL or

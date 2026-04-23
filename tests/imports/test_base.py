@@ -88,6 +88,42 @@ def test_check_dependencies_organizations_optional_when_empty(monkeypatch: pytes
     check_dependencies(_ContactsLikeImporter(), MagicMock(spec=Session), dry_run=False)
 
 
+def test_check_dependencies_labels_optional_for_event_instance_tags(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.imports import refs
+
+    class _TagsImporter:
+        ENTITY: ClassVar[str] = "_labels_dep_test"
+        DEPENDS_ON: ClassVar[tuple[str, ...]] = ("event_instances", "labels")
+        PII: ClassVar[bool] = False
+
+        def parse(self, sql_text: str) -> Sequence[Any]:
+            return []
+
+        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+            return ImporterContext()
+
+        def apply(
+            self,
+            session: Session,
+            rows: Sequence[Any],
+            ctx: ImporterContext,
+            *,
+            dry_run: bool,
+        ) -> ImportStats:
+            return ImportStats(entity=self.ENTITY)
+
+        def format_preview(self, row: Any, mapped_id: UUID | None) -> str:
+            return ""
+
+    def _has_mapping(_s: Session, dep: str) -> bool:
+        return dep == "event_instances"
+
+    monkeypatch.setattr(refs, "has_mapping", _has_mapping)
+    check_dependencies(_TagsImporter(), MagicMock(spec=Session), dry_run=False)
+
+
 def test_check_dependencies_skips_check_during_dry_run(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

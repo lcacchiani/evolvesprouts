@@ -7,6 +7,7 @@ from datetime import date
 from datetime import datetime
 
 from app.imports import mysqldump
+from app.imports.entities._mysqldump_rows import iter_row_dicts
 from app.imports.entities.venues import parse_legacy_districts
 
 
@@ -178,78 +179,31 @@ def _require_dt(raw: str | None, *, field: str) -> datetime:
     return dt
 
 
-def _resolve_column_names(
-    sql_text: str,
-    table: str,
-    stmt: str,
-    fields: list[str | None],
-    positional: dict[int, str],
-) -> list[str] | None:
-    insert_cols = mysqldump.parse_insert_column_names(stmt)
-    if insert_cols is not None and len(insert_cols) == len(fields):
-        return insert_cols
-    create_cols = mysqldump.parse_create_table_column_names(sql_text, table)
-    if create_cols is not None and len(create_cols) == len(fields):
-        return create_cols
+def _table_iter_kwargs(table: str) -> tuple[dict[int, str], tuple[dict[int, str], ...]]:
     if table == "family":
-        if len(fields) == len(_FAMILY_POS):
-            return [_FAMILY_POS[i] for i in range(len(_FAMILY_POS))]
-        if len(fields) == len(_FAMILY_POS_LEGACY_TEST):
-            return [
-                _FAMILY_POS_LEGACY_TEST[i] for i in range(len(_FAMILY_POS_LEGACY_TEST))
-            ]
-    if len(fields) == len(positional):
-        return [positional[i] for i in range(len(fields))]
-    return None
-
-
-def _row_dict(
-    sql_text: str,
-    table: str,
-    stmt: str,
-    fields: list[str | None],
-    positional: dict[int, str],
-) -> dict[str, str | None]:
-    names = _resolve_column_names(sql_text, table, stmt, fields, positional)
-    if names is not None and len(names) == len(fields):
-        return {names[i]: fields[i] for i in range(len(fields))}
-    return mysqldump.row_dict_from_fields(None, fields, positional_fallback=positional)
-
-
-def _extract_insert(sql_text: str, table: str) -> str:
-    stmt = mysqldump.extract_insert_statement(sql_text, table)
-    if stmt is None:
-        msg = f"Could not find INSERT INTO `{table}` in dump."
-        raise ValueError(msg)
-    return stmt
-
-
-def _table_positional(table: str) -> dict[int, str]:
-    if table == "family":
-        return _FAMILY_POS
+        return _FAMILY_POS, (_FAMILY_POS_LEGACY_TEST,)
     if table == "person":
-        return _PERSON_POS
+        return _PERSON_POS, ()
     if table == "country":
-        return _COUNTRY_POS
+        return _COUNTRY_POS, ()
     if table == "note":
-        return _NOTE_POS
+        return _NOTE_POS, ()
     if table == "person_note":
-        return _PN_POS
-    return {}
+        return _PN_POS, ()
+    return {}, ()
 
 
 def _iter_row_dicts(
     sql_text: str,
     table: str,
 ) -> list[dict[str, str | None]]:
-    stmt = _extract_insert(sql_text, table)
-    pos = _table_positional(table)
-    values_sql = mysqldump.extract_values_sql_fragment(stmt)
-    out: list[dict[str, str | None]] = []
-    for g in mysqldump.iter_groups(values_sql):
-        fields = mysqldump.split_fields(g)
-        out.append(_row_dict(sql_text, table, stmt, fields, pos))
-    return out
+    pos, fallbacks = _table_iter_kwargs(table)
+    return iter_row_dicts(
+        sql_text,
+        table,
+        positional=pos,
+        positional_fallbacks=fallbacks,
+    )
 
 
 def parse_legacy_family_rows(sql_text: str) -> list[LegacyFamilyRow]:

@@ -39,6 +39,12 @@ def test_known_entities_includes_expected_importers() -> None:
             "contacts",
             "notes",
             "link_contact_memberships",
+            "labels",
+            "event_services",
+            "event_instances",
+            "event_instance_tags",
+            "event_enrollments",
+            "event_discount_codes",
         },
     )
     assert expected.issubset(frozenset(known_entities()))

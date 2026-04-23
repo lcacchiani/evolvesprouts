@@ -138,6 +138,11 @@ def _stats_to_json(
         "skipped_household_below_min_links": stats.skipped_household_below_min_links,
         "skipped_deleted": stats.skipped_deleted,
         "reused_existing_contact": stats.reused_existing_contact,
+        "skipped_invalid_title": stats.skipped_invalid_title,
+        "skipped_invalid_range": stats.skipped_invalid_range,
+        "skipped_invalid": stats.skipped_invalid,
+        "skipped_location_unmapped": stats.skipped_location_unmapped,
+        "reused_existing_enrollment": stats.reused_existing_enrollment,
         "dry_run": stats.dry_run,
         "preview_allowed": preview_allowed,
     }
@@ -192,7 +197,9 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         "Import complete entity=%s inserted=%s skipped_duplicate=%s "
         "skipped_excluded_key=%s skipped_no_area=%s skipped_location_no_area=%s "
         "skipped_no_dep=%s skipped_household_below_min_links=%s skipped_deleted=%s "
-        "reused_existing_contact=%s dry_run=%s",
+        "reused_existing_contact=%s skipped_invalid_title=%s skipped_invalid_range=%s "
+        "skipped_invalid=%s skipped_location_unmapped=%s reused_existing_enrollment=%s "
+        "dry_run=%s",
         stats.entity,
         stats.inserted,
         stats.skipped_duplicate,
@@ -203,6 +210,11 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         stats.skipped_household_below_min_links,
         stats.skipped_deleted,
         stats.reused_existing_contact,
+        stats.skipped_invalid_title,
+        stats.skipped_invalid_range,
+        stats.skipped_invalid,
+        stats.skipped_location_unmapped,
+        stats.reused_existing_enrollment,
         stats.dry_run,
         extra=log_extra,
     )

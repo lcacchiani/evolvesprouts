@@ -25,7 +25,11 @@ class DependencyNotMet(RuntimeError):
 
 # Dependency entities that may legitimately have zero imported rows (empty tenant).
 _OPTIONAL_LEGACY_IMPORT_DEPS: frozenset[str] = frozenset(
-    {"organizations", "families"},
+    {
+        "organizations",
+        "families",
+        "labels",
+    },
 )
 
 
@@ -77,6 +81,11 @@ class ImportStats:
     reused_existing_contact: int = 0
     #: Legacy ``family`` row skipped: fewer than two active persons link to it (household not imported).
     skipped_household_below_min_links: int = 0
+    skipped_invalid_title: int = 0
+    skipped_invalid_range: int = 0
+    skipped_invalid: int = 0
+    skipped_location_unmapped: int = 0
+    reused_existing_enrollment: int = 0
     dry_run: bool = False
     preview: list[str] = field(default_factory=list)
     #: Structured rows for logging / API (table, columns, values); capped per importer.
