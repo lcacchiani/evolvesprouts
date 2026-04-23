@@ -24,6 +24,8 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
+    - `GET|POST /v1/admin/tags`
+    - `GET|PATCH|DELETE /v1/admin/tags/{id}`
     - `GET /v1/admin/contacts/tags`
     - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
@@ -1566,6 +1568,136 @@ paths:
                 $ref: "#/components/schemas/DiscountCodeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/tags:
+    get:
+      summary: List CRM tags for administration
+      description: |
+        Returns tags sorted by name. By default only active (non-archived) tags are returned.
+        Pass `include_archived=true` to include archived tags (for example the Tags admin screen).
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: include_archived
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: When true, include tags with a non-null `archived_at`.
+      responses:
+        "200":
+          description: Tag list with usage counts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create CRM tag
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminTagRequest"
+      responses:
+        "201":
+          description: Tag created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Duplicate tag name (case-insensitive uniqueness).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/admin/tags/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get CRM tag by id
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Tag detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update CRM tag
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminTagRequest"
+      responses:
+        "200":
+          description: Updated tag.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Duplicate tag name (case-insensitive uniqueness).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete or archive CRM tag
+      description: |
+        Hard-deletes the tag when it is not linked to any contact, family, organisation, asset,
+        service, or service instance. When the tag is in use, sets `archived_at` instead and
+        returns the updated tag (same response as PATCH); repeated deletes are idempotent for
+        in-use tags.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Tag removed (unused).
+        "200":
+          description: Tag archived because it is still linked to at least one record.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
@@ -5010,6 +5142,79 @@ components:
         color:
           type: string
           nullable: true
+    AdminTagRef:
+      allOf:
+        - $ref: "#/components/schemas/EntityTagRef"
+        - type: object
+          required:
+            - description
+            - archived_at
+            - usage_count
+          properties:
+            description:
+              type: string
+              nullable: true
+              maxLength: 255
+            archived_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: When set, the tag is archived and hidden from assignment pickers.
+            usage_count:
+              type: integer
+              minimum: 0
+              description: >
+                Count of junction rows across contacts, families, organisations, assets,
+                services, and service instances referencing this tag.
+    AdminTagListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTagRef"
+    AdminTagResponse:
+      type: object
+      required:
+        - tag
+      properties:
+        tag:
+          $ref: "#/components/schemas/AdminTagRef"
+    CreateAdminTagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          description: Optional UI color as `#RRGGBB`.
+        description:
+          type: string
+          nullable: true
+          maxLength: 255
+    UpdateAdminTagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          pattern: "^#[0-9A-Fa-f]{6}$"
+        description:
+          type: string
+          nullable: true
+          maxLength: 255
     EntityTagListResponse:
       type: object
       required:

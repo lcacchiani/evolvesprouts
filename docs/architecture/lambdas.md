@@ -56,7 +56,9 @@ their primary responsibilities.
   `/v1/admin/contacts/*` (including `GET /v1/admin/contacts` optional `contact_type` filter;
   list and single-contact responses include read-only `family_location_summary` and
   `organization_location_summary` when the contact is linked to a family or organisation that has a venue location),
-  `GET /v1/admin/contacts/tags` for tag pickers,
+  `/v1/admin/tags/*` for CRM tag catalog administration (list with optional `include_archived`,
+  create, update, delete-or-archive when in use),
+  `GET /v1/admin/contacts/tags` for tag pickers (active tags only),
   `GET /v1/admin/contacts/search` for contact picker search,
   `GET|POST /v1/admin/contacts/{id}/notes` and `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
   for standalone CRM notes on a contact (not tied to a sales lead), and `DELETE /v1/admin/contacts/{id}`

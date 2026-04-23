@@ -457,6 +457,8 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/users` | GET | Admin Group | `EvolvesproutsAdminFunction` | Assignee lookup for sales lead workflows |
+| `/v1/admin/tags` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | CRM tag catalog list/create |
+| `/v1/admin/tags/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Tag detail/update; delete removes unused tags or archives in-use tags |
 | `/v1/admin/leads` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Lead list/create |
 | `/v1/admin/leads/analytics` | GET | Admin Group | `EvolvesproutsAdminFunction` | Funnel analytics and KPI summary |
 | `/v1/admin/leads/export` | GET | Admin Group | `EvolvesproutsAdminFunction` | CSV lead export |

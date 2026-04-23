@@ -2202,6 +2202,203 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List CRM tags for administration
+         * @description Returns tags sorted by name. By default only active (non-archived) tags are returned.
+         *     Pass `include_archived=true` to include archived tags (for example the Tags admin screen).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description When true, include tags with a non-null `archived_at`. */
+                    include_archived?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag list with usage counts. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create CRM tag */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminTagRequest"];
+                };
+            };
+            responses: {
+                /** @description Tag created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                /** @description Duplicate tag name (case-insensitive uniqueness). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Get CRM tag by id */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete or archive CRM tag
+         * @description Hard-deletes the tag when it is not linked to any contact, family, organisation, asset,
+         *     service, or service instance. When the tag is in use, sets `archived_at` instead and
+         *     returns the updated tag (same response as PATCH); repeated deletes are idempotent for
+         *     in-use tags.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tag archived because it is still linked to at least one record. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                /** @description Tag removed (unused). */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update CRM tag */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminTagRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated tag. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTagResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Duplicate tag name (case-insensitive uniqueness). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/v1/admin/contacts/tags": {
         parameters: {
             query?: never;
@@ -4761,6 +4958,33 @@ export interface components {
             id: string;
             name: string;
             color?: string | null;
+        };
+        AdminTagRef: components["schemas"]["EntityTagRef"] & {
+            description: string | null;
+            /**
+             * Format: date-time
+             * @description When set, the tag is archived and hidden from assignment pickers.
+             */
+            archived_at: string | null;
+            /** @description Count of junction rows across contacts, families, organisations, assets, services, and service instances referencing this tag. */
+            usage_count: number;
+        };
+        AdminTagListResponse: {
+            items: components["schemas"]["AdminTagRef"][];
+        };
+        AdminTagResponse: {
+            tag: components["schemas"]["AdminTagRef"];
+        };
+        CreateAdminTagRequest: {
+            name: string;
+            /** @description Optional UI color as `#RRGGBB`. */
+            color?: string | null;
+            description?: string | null;
+        };
+        UpdateAdminTagRequest: {
+            name?: string;
+            color?: string | null;
+            description?: string | null;
         };
         EntityTagListResponse: {
             items: components["schemas"]["EntityTagRef"][];

@@ -422,6 +422,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `tags`, `contact_tags`, `family_tags`, `organization_tags`, `asset_tags`
 
 - `tags` stores reusable labels.
+- `tags.archived_at` (timestamptz, nullable) soft-retires a tag: null means active; non-null
+  means archived (hidden from assignment pickers such as `GET /v1/admin/contacts/tags` while
+  existing junction rows remain valid).
 - Junction tables model many-to-many tagging across contacts/families/orgs/assets.
 - Junction rows use composite primary keys and cascade deletion.
 
@@ -491,6 +494,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - Migration `0038_drop_inst_tag_inst_idx` drops the redundant btree index on
   `service_instance_id` (the composite primary key already leads with that column);
   the `tag_id` index remains for reverse lookups.
+
+Migration `0039_tags_archived_at` adds nullable `tags.archived_at` for soft-retiring labels
+without breaking existing junction references.
 
 ### `discount_codes`
 
