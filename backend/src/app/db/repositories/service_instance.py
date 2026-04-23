@@ -188,17 +188,31 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
-    def list_event_instances_for_public_feed(
+    def list_public_offerings(
         self,
         *,
         limit: int,
         now: datetime,
+        service_types: set[ServiceType] | None = None,
+        landing_page: str | None = None,
     ) -> list[ServiceInstance]:
-        """List upcoming/past public event instances for calendar feed."""
+        """List public calendar rows for published event and training services."""
+        types_tuple: tuple[ServiceType, ...] = (
+            (ServiceType.EVENT, ServiceType.TRAINING_COURSE)
+            if not service_types
+            else tuple(sorted(service_types, key=lambda t: t.value))
+        )
+        earliest_upcoming_slot = (
+            select(func.min(InstanceSessionSlot.starts_at))
+            .where(InstanceSessionSlot.instance_id == ServiceInstance.id)
+            .where(InstanceSessionSlot.ends_at >= now - datetime.resolution)
+            .correlate(ServiceInstance)
+            .scalar_subquery()
+        )
         statement = (
             select(ServiceInstance)
             .join(Service, ServiceInstance.service_id == Service.id)
-            .where(Service.service_type == ServiceType.EVENT)
+            .where(Service.service_type.in_(types_tuple))
             .where(Service.status == ServiceStatus.PUBLISHED)
             .where(ServiceInstance.status != InstanceStatus.CANCELLED)
             .where(
@@ -218,15 +232,43 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 )
             )
             .options(
-                selectinload(ServiceInstance.session_slots),
-                selectinload(ServiceInstance.ticket_tiers),
+                selectinload(ServiceInstance.session_slots).joinedload(
+                    InstanceSessionSlot.location
+                ),
                 joinedload(ServiceInstance.location),
-                joinedload(ServiceInstance.service),
+                selectinload(ServiceInstance.ticket_tiers),
+                joinedload(ServiceInstance.training_details),
+                joinedload(ServiceInstance.service).joinedload(Service.event_details),
+                selectinload(ServiceInstance.instance_tags).joinedload(
+                    ServiceInstanceTag.tag
+                ),
+                selectinload(ServiceInstance.partner_organization_links).joinedload(
+                    ServiceInstancePartnerOrganization.organization
+                ),
             )
-            .order_by(ServiceInstance.created_at.desc(), ServiceInstance.id.desc())
+            .order_by(earliest_upcoming_slot.asc(), ServiceInstance.id.asc())
             .limit(limit)
         )
+        if landing_page:
+            statement = statement.where(ServiceInstance.landing_page == landing_page)
         return list(self._session.execute(statement).unique().scalars().all())
+
+    def list_event_instances_for_public_feed(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+    ) -> list[ServiceInstance]:
+        """List upcoming/past public event instances for calendar feed.
+
+        .. deprecated::
+            Use :meth:`list_public_offerings` with ``service_types={ServiceType.EVENT}``.
+        """
+        return self.list_public_offerings(
+            limit=limit,
+            now=now,
+            service_types={ServiceType.EVENT},
+        )
 
     def list_instances_pending_eventbrite_sync(
         self, *, limit: int
@@ -296,6 +338,21 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def get_enrollment_counts_for_instances(
+        self, instance_ids: list[UUID]
+    ) -> dict[UUID, int]:
+        """Return capacity enrollment counts keyed by instance (one query)."""
+        if not instance_ids:
+            return {}
+        statement = (
+            select(Enrollment.instance_id, func.count(Enrollment.id))
+            .where(Enrollment.instance_id.in_(instance_ids))
+            .where(Enrollment.status.in_(CAPACITY_ENROLLMENT_STATUSES))
+            .group_by(Enrollment.instance_id)
+        )
+        rows = self._session.execute(statement).all()
+        return {row[0]: int(row[1]) for row in rows}
 
     def get_waitlist_count(self, instance_id: UUID) -> int:
         """Return waitlist count for an instance."""
