@@ -164,7 +164,7 @@ class EventDiscountCodesImporter:
                 code=code,
                 description=None,
                 discount_type=dtype,
-                discount_value=val if val is not None else Decimal("0"),
+                discount_value=val,
                 currency=None,
                 valid_from=vf,
                 valid_until=vt,

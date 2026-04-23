@@ -7,7 +7,9 @@ from app.imports.entities._legacy_family_common import parse_legacy_family_rows
 from app.imports.entities._legacy_family_common import parse_legacy_notes
 from app.imports.entities._legacy_event_common import parse_legacy_discounts
 from app.imports.entities._legacy_event_common import parse_legacy_event_dates
+from app.imports.entities._legacy_event_common import parse_legacy_event_labels
 from app.imports.entities._legacy_event_common import parse_legacy_events
+from app.imports.entities._legacy_event_common import parse_legacy_labels
 from app.imports.entities._legacy_event_common import parse_legacy_registrations
 from app.imports.entities._legacy_family_common import parse_legacy_person_rows
 
@@ -255,6 +257,109 @@ def test_discount_positional() -> None:
     rows = parse_legacy_discounts(sql)
     assert len(rows) == 1
     assert rows[0].code == "SAVE10"
+
+
+INSERT_EVENT_AUDIT_ONLY = """
+INSERT INTO `event` VALUES
+(1,NULL,'2025-06-01 10:00:00',1,NULL,NULL,
+ 'Workshop','desc text','workshop',100.00,'HKD',5,7,NULL);
+"""
+
+
+def test_event_positional_audit_shape_without_create_table() -> None:
+    rows = parse_legacy_events(INSERT_EVENT_AUDIT_ONLY)
+    assert len(rows) == 1
+    assert rows[0].title == "Workshop"
+    assert rows[0].default_venue_id == 5
+    assert rows[0].organization_id == 7
+
+
+INSERT_EVENT_DATE_AUDIT_ONLY = """
+INSERT INTO `event_date` VALUES
+(10,NULL,'2025-06-01 10:00:00',1,NULL,NULL,
+ 77,'2025-06-01 10:00:00','2025-06-01 12:00:00',5,20,NULL,NULL,NULL,NULL);
+"""
+
+
+def test_event_date_positional_audit_shape_without_create_table() -> None:
+    rows = parse_legacy_event_dates(INSERT_EVENT_DATE_AUDIT_ONLY)
+    assert len(rows) == 1
+    assert rows[0].legacy_id == 10
+    assert rows[0].event_id == 77
+    assert rows[0].venue_id == 5
+
+
+INSERT_REGISTRATION_AUDIT_ONLY = """
+INSERT INTO `registration` VALUES
+(99,NULL,'2025-06-01 10:00:00',1,NULL,NULL,
+ 10,1,NULL,NULL,'paid',50.00,'HKD',NULL,NULL,'note',NULL,NULL,'2020-01-01 00:00:00');
+"""
+
+
+def test_registration_positional_audit_shape_without_create_table() -> None:
+    rows = parse_legacy_registrations(INSERT_REGISTRATION_AUDIT_ONLY)
+    assert len(rows) == 1
+    assert rows[0].legacy_id == 99
+    assert rows[0].event_date_id == 10
+    assert rows[0].status == "paid"
+
+
+INSERT_DISCOUNT_AUDIT_ONLY = """
+INSERT INTO `discount` VALUES
+(5,NULL,'2025-06-01 10:00:00',1,NULL,NULL,
+ 'SAVE10','percentage',10.00,NULL,NULL,NULL,1,NULL,NULL);
+"""
+
+
+def test_discount_positional_audit_shape_without_create_table() -> None:
+    rows = parse_legacy_discounts(INSERT_DISCOUNT_AUDIT_ONLY)
+    assert len(rows) == 1
+    assert rows[0].legacy_id == 5
+    assert rows[0].code == "SAVE10"
+
+
+INSERT_EVENT_LABEL_EVENT_FIRST = """
+INSERT INTO `event_label` VALUES (3, 9);
+"""
+
+
+def test_event_label_positional_event_id_first_without_create() -> None:
+    rows = parse_legacy_event_labels(INSERT_EVENT_LABEL_EVENT_FIRST)
+    assert len(rows) == 1
+    assert rows[0].event_id == 3
+    assert rows[0].event_date_id is None
+    assert rows[0].label_id == 9
+
+
+CREATE_EVENT_LABEL_DATE_FIRST = """
+CREATE TABLE `event_label` (
+  `event_date_id` int NOT NULL,
+  `label_id` int NOT NULL,
+  PRIMARY KEY (`event_date_id`,`label_id`)
+) ENGINE=InnoDB;
+INSERT INTO `event_label` VALUES (8, 2);
+"""
+
+
+def test_event_label_create_table_date_id_first() -> None:
+    rows = parse_legacy_event_labels(CREATE_EVENT_LABEL_DATE_FIRST)
+    assert len(rows) == 1
+    assert rows[0].event_date_id == 8
+    assert rows[0].event_id is None
+
+
+INSERT_LABEL_AUDIT_ONLY = """
+INSERT INTO `label` VALUES
+(100,NULL,'2020-01-01 00:00:00',1,NULL,NULL,'MyTag','status');
+"""
+
+
+def test_label_positional_audit_shape_without_create_table() -> None:
+    rows = parse_legacy_labels(INSERT_LABEL_AUDIT_ONLY)
+    assert len(rows) == 1
+    assert rows[0].legacy_id == 100
+    assert rows[0].name == "MyTag"
+    assert rows[0].entity == "status"
 
 
 def test_note_content_with_semicolon_in_string() -> None:

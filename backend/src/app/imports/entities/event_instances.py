@@ -49,7 +49,11 @@ def _allocate_instance_slug(session: Session, base: str) -> str | None:
 
 class EventInstancesImporter:
     ENTITY: ClassVar[str] = "event_instances"
-    DEPENDS_ON: ClassVar[tuple[str, ...]] = ("event_services", "venues")
+    DEPENDS_ON: ClassVar[tuple[str, ...]] = (
+        "event_services",
+        "venues",
+        "organizations",
+    )
     PII: ClassVar[bool] = False
     PREVIEW_MAX_ROWS: ClassVar[int] = 50
 
@@ -58,7 +62,21 @@ class EventInstancesImporter:
 
     def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
         del dry_run
-        return ImporterContext()
+        svc_ids: list[UUID] = []
+        if refs.has_mapping(session, "event_services"):
+            for _, sid in refs.load_mapping(session, "event_services").items():
+                svc_ids.append(sid if isinstance(sid, UUID) else UUID(str(sid)))
+        slug_by: dict[str, str] = {}
+        if not svc_ids:
+            return ImporterContext()
+        rows = session.execute(
+            select(Service.id, Service.slug).where(Service.id.in_(svc_ids)),
+        ).all()
+        for sid, slug in rows:
+            if slug:
+                key = str(sid if isinstance(sid, UUID) else UUID(str(sid)))
+                slug_by[key] = str(slug).strip()
+        return ImporterContext(event_service_slug_by_uuid=slug_by)
 
     def apply(
         self,
@@ -71,7 +89,22 @@ class EventInstancesImporter:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
         svc_refs = ctx.refs_by_entity.get("event_services", {})
         venue_refs = ctx.refs_by_entity.get("venues", {})
-        org_refs = ctx.refs_by_entity.get("organizations", {})
+        org_refs = dict(ctx.refs_by_entity.get("organizations", {}))
+        if not org_refs and refs.has_mapping(session, "organizations"):
+            org_refs = dict(refs.load_mapping(session, "organizations"))
+
+        slug_by_uuid = dict(ctx.event_service_slug_by_uuid)
+        if not slug_by_uuid and svc_refs and not dry_run:
+            svc_ids = [
+                v if isinstance(v, UUID) else UUID(str(v)) for v in svc_refs.values()
+            ]
+            if svc_ids:
+                for sid, slug in session.execute(
+                    select(Service.id, Service.slug).where(Service.id.in_(svc_ids)),
+                ).all():
+                    if slug:
+                        key = str(sid if isinstance(sid, UUID) else UUID(str(sid)))
+                        slug_by_uuid[key] = str(slug).strip()
 
         event_org: dict[int, int] = {}
         if ctx.source_sql_text:
@@ -123,27 +156,33 @@ class EventInstancesImporter:
             cap = ed.capacity
             max_cap = cap if cap is not None and cap > 0 else None
 
+            svc_key = str(
+                svc_uuid if isinstance(svc_uuid, UUID) else UUID(str(svc_uuid)),
+            )
+            base_slug = slug_by_uuid.get(svc_key, "")
             slug_out: str | None = None
-            if not dry_run:
-                svc_row = session.get(Service, svc_uuid)
-                base_slug = (
-                    (svc_row.slug or "").strip()
-                    if svc_row is not None and svc_row.slug
-                    else ""
-                )
-                if base_slug:
-                    ymd = ed.starts_at.strftime("%Y%m%d")
-                    slug_out = _allocate_instance_slug(
-                        session,
-                        f"{base_slug}-{ymd}",
-                    )
+            if base_slug and ed.starts_at is not None:
+                ymd = ed.starts_at.strftime("%Y%m%d")
+                base = f"{base_slug}-{ymd}"
+                if dry_run:
+                    slug_out = base
+                else:
+                    slug_out = _allocate_instance_slug(session, base)
+
+            legacy_org_id = event_org.get(ed.event_id)
+            partner_org_uuid: UUID | None = None
+            if legacy_org_id is not None:
+                partner_org_uuid = org_refs.get(str(legacy_org_id))
+                if partner_org_uuid is None:
+                    stats.partner_org_skipped_unmapped += 1
 
             title_preview = f"event_date {ed.legacy_id} for event {ed.event_id}"
             if dry_run:
                 if len(stats.preview) < self.PREVIEW_MAX_ROWS:
+                    slug_disp = slug_out or "null"
                     stats.preview.append(
                         f"Would import {title_preview} status={status.value} "
-                        f"location={'set' if loc_uuid else 'null'}",
+                        f"location={'set' if loc_uuid else 'null'} slug={slug_disp}",
                     )
                 stats.inserted += 1
                 continue
@@ -183,23 +222,25 @@ class EventInstancesImporter:
                 ),
             )
 
-            legacy_org_id = event_org.get(ed.event_id)
-            if legacy_org_id is not None:
-                org_uuid = org_refs.get(str(legacy_org_id))
-                if org_uuid is not None:
-                    session.add(
-                        ServiceInstancePartnerOrganization(
-                            service_instance_id=inst_uuid,
-                            organization_id=org_uuid,
-                            sort_order=0,
-                        ),
-                    )
+            if partner_org_uuid is not None:
+                session.add(
+                    ServiceInstancePartnerOrganization(
+                        service_instance_id=inst_uuid,
+                        organization_id=partner_org_uuid,
+                        sort_order=0,
+                    ),
+                )
+                stats.partner_org_links_inserted += 1
 
             refs.record_mapping(session, self.ENTITY, str(ed.legacy_id), inst_uuid)
             stats.inserted += 1
 
         if not dry_run:
             session.commit()
+        stats.diagnostics = {
+            "partner_org_links_inserted": stats.partner_org_links_inserted,
+            "partner_org_skipped_unmapped": stats.partner_org_skipped_unmapped,
+        }
         return stats
 
     def format_preview(self, row: Any, mapped_id: UUID | None) -> str:

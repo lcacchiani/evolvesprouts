@@ -186,6 +186,35 @@ def test_resolve_importer_context_skips_dependency_check_during_dry_run(
     assert called["has_mapping"] is False
 
 
+def test_resolve_importer_context_loads_all_event_instance_tags_deps(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression: DEPENDS_ON entities must be in refs_by_entity for Lambda path."""
+    from app.imports import refs
+    from app.imports.entities.event_instance_tags import EventInstanceTagsImporter
+
+    def _has_mapping(_s: Session, dep: str) -> bool:
+        return dep in {"event_instances", "labels", "event_services"}
+
+    def _load_mapping(_s: Session, dep: str) -> dict[str, UUID]:
+        if dep == "event_instances":
+            return {"1": UUID(int=1)}
+        return {}
+
+    monkeypatch.setattr(refs, "has_mapping", _has_mapping)
+    monkeypatch.setattr(refs, "load_mapping", _load_mapping)
+
+    importer = EventInstanceTagsImporter()
+    ctx = resolve_importer_context(
+        importer,
+        MagicMock(spec=Session),
+        dry_run=False,
+    )
+    assert "event_services" in ctx.refs_by_entity
+    assert "event_instances" in ctx.refs_by_entity
+    assert "labels" in ctx.refs_by_entity
+
+
 def test_resolve_importer_context_merges_skip_legacy_keys(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

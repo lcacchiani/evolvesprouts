@@ -69,7 +69,15 @@ class LabelsImporter:
                 stats.skipped_invalid += 1
                 continue
 
-            desc = "legacy category" if row.entity == "category" else None
+            ent_l = (row.entity or "").strip().lower()
+            if ent_l == "category":
+                desc = "legacy category"
+            elif ent_l == "tag":
+                desc = None
+            elif row.entity and str(row.entity).strip():
+                desc = f"legacy entity={str(row.entity).strip()}"
+            else:
+                desc = None
             lk = name.lower()
             existing = lower_to_id.get(lk)
 

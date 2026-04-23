@@ -67,3 +67,29 @@ def test_category_description_on_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     importer.apply(session, rows, ctx, dry_run=False)
     tag = session.add.call_args[0][0]
     assert tag.description == "legacy category"
+
+
+def test_unknown_entity_description(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.imports.entities import labels as mod
+
+    monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
+    session = MagicMock(spec=Session)
+    new_id = uuid.uuid4()
+
+    def _flush() -> None:
+        obj = session.add.call_args[0][0]
+        obj.id = new_id
+
+    session.flush.side_effect = _flush
+    session.execute.return_value.all.return_value = []
+
+    rows = [LegacyLabel(legacy_id=8, name="X", entity="age_band", deleted_at=None)]
+    importer = LabelsImporter()
+    from dataclasses import replace
+
+
+    base = importer.resolve_context(session, dry_run=False)
+    ctx = replace(base, existing_import_keys=frozenset())
+    importer.apply(session, rows, ctx, dry_run=False)
+    tag = session.add.call_args[0][0]
+    assert tag.description == "legacy entity=age_band"

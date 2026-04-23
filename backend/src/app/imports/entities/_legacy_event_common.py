@@ -346,13 +346,23 @@ class LegacyLabel:
     deleted_at: str | None
 
 
-# CREATE TABLE `label` (approximate column order for positional fallback — verify dump).
-# id, name, entity, … , deleted_at
+# Positional fallbacks: prefer audit-column-first layout (matches other legacy CRM tables);
+# shorter layouts remain as secondary fallbacks when INSERT has fewer columns.
 _LABEL_POS: dict[int, str] = {
     0: "id",
     1: "name",
     2: "entity",
     3: "deleted_at",
+}
+_LABEL_POS_AUDIT: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "audit_created_at",
+    3: "created_by",
+    4: "audit_deleted_at",
+    5: "deleted_by",
+    6: "name",
+    7: "entity",
 }
 
 
@@ -370,7 +380,7 @@ class LegacyEvent:
     deleted_at: str | None
 
 
-# CREATE TABLE `event` — verify column order in dump; used when INSERT omits column list.
+# Narrow row (tests / hand dumps); real mysqldump often has parent_id + audit columns first.
 _EVENT_POS: dict[int, str] = {
     0: "id",
     1: "name",
@@ -381,6 +391,22 @@ _EVENT_POS: dict[int, str] = {
     6: "default_venue_id",
     7: "organization_id",
     8: "deleted_at",
+}
+_EVENT_POS_AUDIT: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "audit_created_at",
+    3: "created_by",
+    4: "audit_deleted_at",
+    5: "deleted_by",
+    6: "name",
+    7: "description",
+    8: "category",
+    9: "default_price",
+    10: "default_currency",
+    11: "default_venue_id",
+    12: "organization_id",
+    13: "deleted_at",
 }
 
 
@@ -409,6 +435,23 @@ _EVENT_DATE_POS: dict[int, str] = {
     7: "deleted_at",
     8: "notes",
     9: "external_url",
+}
+_EVENT_DATE_POS_AUDIT: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "audit_created_at",
+    3: "created_by",
+    4: "audit_deleted_at",
+    5: "deleted_by",
+    6: "event_id",
+    7: "starts_at",
+    8: "ends_at",
+    9: "venue_id",
+    10: "capacity",
+    11: "cancelled_at",
+    12: "notes",
+    13: "external_url",
+    14: "deleted_at",
 }
 
 
@@ -463,6 +506,27 @@ _REGISTRATION_POS: dict[int, str] = {
     12: "discount_id",
     13: "created_at",
 }
+_REGISTRATION_POS_AUDIT: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "audit_created_at",
+    3: "created_by",
+    4: "audit_deleted_at",
+    5: "deleted_by",
+    6: "event_date_id",
+    7: "person_id",
+    8: "family_id",
+    9: "organization_id",
+    10: "status",
+    11: "price",
+    12: "currency",
+    13: "paid_at",
+    14: "cancelled_at",
+    15: "notes",
+    16: "deleted_at",
+    17: "discount_id",
+    18: "created_at",
+}
 
 
 @dataclass(frozen=True)
@@ -490,6 +554,23 @@ _DISCOUNT_POS: dict[int, str] = {
     7: "event_id",
     8: "event_date_id",
     9: "deleted_at",
+}
+_DISCOUNT_POS_AUDIT: dict[int, str] = {
+    0: "id",
+    1: "parent_id",
+    2: "audit_created_at",
+    3: "created_by",
+    4: "audit_deleted_at",
+    5: "deleted_by",
+    6: "code",
+    7: "type",
+    8: "value",
+    9: "valid_from",
+    10: "valid_to",
+    11: "max_uses",
+    12: "event_id",
+    13: "event_date_id",
+    14: "deleted_at",
 }
 
 
@@ -524,19 +605,23 @@ def parse_legacy_venue_id_to_name(sql_text: str) -> dict[int, str]:
 
 def parse_legacy_labels(sql_text: str) -> list[LegacyLabel]:
     rows: list[LegacyLabel] = []
-    for rd in iter_row_dicts(sql_text, "label", positional=_LABEL_POS):
+    for rd in iter_row_dicts(
+        sql_text,
+        "label",
+        positional=_LABEL_POS_AUDIT,
+        positional_fallbacks=(_LABEL_POS,),
+    ):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
-        ent = str(rd["entity"]).strip().lower() if rd.get("entity") else None
-        if ent not in {"category", "tag"}:
-            continue
+        ent = str(rd["entity"]).strip() if rd.get("entity") else None
+        deleted = rd.get("deleted_at")
         rows.append(
             LegacyLabel(
                 legacy_id=lid,
                 name=(str(rd["name"]).strip() if rd.get("name") else None) or None,
                 entity=ent,
-                deleted_at=rd.get("deleted_at"),
+                deleted_at=deleted,
             ),
         )
     return rows
@@ -545,7 +630,12 @@ def parse_legacy_labels(sql_text: str) -> list[LegacyLabel]:
 def parse_legacy_events(sql_text: str) -> list[LegacyEvent]:
     venue_names = parse_legacy_venue_id_to_name(sql_text)
     rows: list[LegacyEvent] = []
-    for rd in iter_row_dicts(sql_text, "event", positional=_EVENT_POS):
+    for rd in iter_row_dicts(
+        sql_text,
+        "event",
+        positional=_EVENT_POS_AUDIT,
+        positional_fallbacks=(_EVENT_POS,),
+    ):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -562,7 +652,7 @@ def parse_legacy_events(sql_text: str) -> list[LegacyEvent]:
                 default_venue_id=dv,
                 default_venue_name=vname,
                 organization_id=_parse_int(rd.get("organization_id")),
-                deleted_at=rd.get("deleted_at"),
+                deleted_at=rd.get("deleted_at") or rd.get("audit_deleted_at"),
             ),
         )
     return rows
@@ -570,7 +660,12 @@ def parse_legacy_events(sql_text: str) -> list[LegacyEvent]:
 
 def parse_legacy_event_dates(sql_text: str) -> list[LegacyEventDate]:
     rows: list[LegacyEventDate] = []
-    for rd in iter_row_dicts(sql_text, "event_date", positional=_EVENT_DATE_POS):
+    for rd in iter_row_dicts(
+        sql_text,
+        "event_date",
+        positional=_EVENT_DATE_POS_AUDIT,
+        positional_fallbacks=(_EVENT_DATE_POS,),
+    ):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -584,7 +679,7 @@ def parse_legacy_event_dates(sql_text: str) -> list[LegacyEventDate]:
                 venue_id=_parse_int(rd.get("venue_id")),
                 capacity=cap,
                 cancelled_at=rd.get("cancelled_at"),
-                deleted_at=rd.get("deleted_at"),
+                deleted_at=rd.get("deleted_at") or rd.get("audit_deleted_at"),
                 notes=rd.get("notes"),
                 external_url=rd.get("external_url"),
             ),
@@ -627,7 +722,12 @@ def parse_legacy_event_labels(sql_text: str) -> list[LegacyEventLabel]:
 
 def parse_legacy_registrations(sql_text: str) -> list[LegacyRegistration]:
     rows: list[LegacyRegistration] = []
-    for rd in iter_row_dicts(sql_text, "registration", positional=_REGISTRATION_POS):
+    for rd in iter_row_dicts(
+        sql_text,
+        "registration",
+        positional=_REGISTRATION_POS_AUDIT,
+        positional_fallbacks=(_REGISTRATION_POS,),
+    ):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -644,9 +744,11 @@ def parse_legacy_registrations(sql_text: str) -> list[LegacyRegistration]:
                 paid_at=rd.get("paid_at"),
                 cancelled_at=rd.get("cancelled_at"),
                 notes=rd.get("notes"),
-                deleted_at=rd.get("deleted_at"),
+                deleted_at=rd.get("deleted_at") or rd.get("audit_deleted_at"),
                 discount_id=_parse_int(rd.get("discount_id")),
-                created_at=_parse_dt_utc_assumed(rd.get("created_at")),
+                created_at=_parse_dt_utc_assumed(
+                    rd.get("created_at") or rd.get("audit_created_at"),
+                ),
             ),
         )
     return rows
@@ -654,7 +756,12 @@ def parse_legacy_registrations(sql_text: str) -> list[LegacyRegistration]:
 
 def parse_legacy_discounts(sql_text: str) -> list[LegacyDiscount]:
     rows: list[LegacyDiscount] = []
-    for rd in iter_row_dicts(sql_text, "discount", positional=_DISCOUNT_POS):
+    for rd in iter_row_dicts(
+        sql_text,
+        "discount",
+        positional=_DISCOUNT_POS_AUDIT,
+        positional_fallbacks=(_DISCOUNT_POS,),
+    ):
         lid = _parse_int(rd.get("id"))
         if lid is None:
             continue
@@ -669,7 +776,7 @@ def parse_legacy_discounts(sql_text: str) -> list[LegacyDiscount]:
                 max_uses=_parse_int(rd.get("max_uses")),
                 event_id=_parse_int(rd.get("event_id")),
                 event_date_id=_parse_int(rd.get("event_date_id")),
-                deleted_at=rd.get("deleted_at"),
+                deleted_at=rd.get("deleted_at") or rd.get("audit_deleted_at"),
             ),
         )
     return rows

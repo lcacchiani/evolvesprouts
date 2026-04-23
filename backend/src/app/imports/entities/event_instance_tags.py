@@ -19,11 +19,16 @@ from app.imports.base import preview_line
 from app.imports.entities._legacy_event_common import LegacyEventLabel
 from app.imports.entities._legacy_event_common import parse_legacy_event_labels
 from app.imports.registry import register
+from app.imports import refs
 
 
 class EventInstanceTagsImporter:
     ENTITY: ClassVar[str] = "event_instance_tags"
-    DEPENDS_ON: ClassVar[tuple[str, ...]] = ("event_instances", "labels")
+    DEPENDS_ON: ClassVar[tuple[str, ...]] = (
+        "event_instances",
+        "labels",
+        "event_services",
+    )
     PII: ClassVar[bool] = False
     PREVIEW_MAX_ROWS: ClassVar[int] = 50
 
@@ -45,6 +50,8 @@ class EventInstanceTagsImporter:
         stats = ImportStats(entity=self.ENTITY, dry_run=dry_run)
         inst_refs = ctx.refs_by_entity.get("event_instances", {})
         svc_refs = ctx.refs_by_entity.get("event_services", {})
+        if not svc_refs and refs.has_mapping(session, "event_services"):
+            svc_refs = refs.load_mapping(session, "event_services")
         label_refs = ctx.refs_by_entity.get("labels", {})
 
         for jl in rows:
