@@ -51,9 +51,11 @@ export function SessionSlotEditor({
           {slots.map((slot, index) => (
             <div key={`${slot.id ?? 'new'}-${index}`} className={slotGridClassName}>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-starts`}>
-                  Start time
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-starts`}>
+                    Start time
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-starts`}
                   type='datetime-local'
@@ -68,9 +70,11 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-ends`}>
-                  End time
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-ends`}>
+                    End time
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-ends`}
                   type='datetime-local'
@@ -85,9 +89,11 @@ export function SessionSlotEditor({
                 />
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-location`}>
-                  Location
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-location`}>
+                    Location
+                  </Label>
+                ) : null}
                 {hasLocationOptions || isLoadingLocations ? (
                   <Select
                     id={`slot-${index}-location`}
@@ -129,9 +135,11 @@ export function SessionSlotEditor({
                 )}
               </div>
               <div className='space-y-1'>
-                <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-sort`}>
-                  Sort order
-                </Label>
+                {index === 0 ? (
+                  <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-sort`}>
+                    Sort order
+                  </Label>
+                ) : null}
                 <Input
                   id={`slot-${index}-sort`}
                   type='number'
