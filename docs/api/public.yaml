@@ -243,11 +243,34 @@ paths:
     get:
       summary: List public calendar events
       description: |
-        Event feed for public consumers (direct API).
+        Calendar feed for public consumers (direct API).
         Source of truth is the backend `service_instances` projection for
-        `service_type=event` services.
+        published `event` and `training_course` services (consultation is never
+        included). Results are ordered by the earliest upcoming session slot,
+        then `service_instances.id` for a stable tie-break.
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: service_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [event, training_course]
+          description: >
+            Restrict feed to one service type. Omitted = both event and
+            training_course are returned. Consultation is never exposed.
+        - name: landing_page
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Filter results to at most one instance whose
+            `service_instances.landing_page` matches the provided slug.
+            Invalid or empty values are silently ignored.
       responses:
         "200":
           description: Event list response.
@@ -268,9 +291,32 @@ paths:
       description: |
         Same as `GET /v1/calendar/public` for same-origin calls from `public_www`.
         Source of truth is the backend `service_instances` projection for
-        `service_type=event` services.
+        published `event` and `training_course` services (consultation is never
+        included). Results are ordered by the earliest upcoming session slot,
+        then `service_instances.id` for a stable tie-break.
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: service_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [event, training_course]
+          description: >
+            Restrict feed to one service type. Omitted = both event and
+            training_course are returned. Consultation is never exposed.
+        - name: landing_page
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Filter results to at most one instance whose
+            `service_instances.landing_page` matches the provided slug.
+            Invalid or empty values are silently ignored.
       responses:
         "200":
           description: Event list response.
@@ -848,15 +894,31 @@ components:
       type: object
       required:
         - id
+        - service_instance_id
+        - service_type
         - title
         - status
         - booking_status
-        - booking_system
+        - is_fully_booked
         - location
+        - location_url
         - dates
+        - tags
+        - categories
+        - partners
       properties:
         id:
           type: string
+          description: >
+            Public slug when `service_instances.slug` is set, otherwise the
+            instance UUID as string.
+        service_instance_id:
+          type: string
+          format: uuid
+          description: Aurora `service_instances.id`. Stable even when the `id` alias changes.
+        service_type:
+          type: string
+          enum: [event, training_course]
         title:
           type: string
         summary:
@@ -871,8 +933,17 @@ components:
         booking_status:
           type: string
           enum: [open, fully_booked]
+        is_fully_booked:
+          type: boolean
+          description: Mirrors `booking_status == "fully_booked"`.
         booking_system:
           type: string
+          nullable: true
+          description: >
+            Resolved booking-system key. Derived from `services.booking_system` when
+            set; otherwise defaults to `event-booking` for events and
+            `my-best-auntie-booking` for the My Best Auntie training course service.
+            Omitted when no default applies.
         location:
           type: string
           enum: [virtual, physical]
@@ -884,9 +955,17 @@ components:
           nullable: true
         location_url:
           type: string
+          description: >
+            Google Maps directions URL derived server-side from venue coordinates
+            when available, otherwise from the URL-encoded address. Empty string
+            for virtual offerings or when no location metadata is on file.
         external_url:
           type: string
           nullable: true
+          description: >
+            Optional external registration URL. Uses
+            `service_instances.external_url` when set, falling back to
+            `service_instances.eventbrite_event_url` for backward compatibility.
         price:
           type: number
           nullable: true
@@ -897,14 +976,33 @@ components:
           type: array
           items:
             type: string
+          description: >
+            Alphabetically ordered display tag names from
+            `service_instance_tags`. Does not include service-level CRM tags.
         categories:
           type: array
           items:
             type: string
+          description: >
+            Single-element for events (derived from `event_details.event_category`)
+            or `["Training Course"]` for training courses.
+        partners:
+          type: array
+          items:
+            type: string
+          description: >
+            Partner organization slugs linked via
+            `service_instance_organizations`, ordered by `sort_order`.
         slug:
           type: string
           nullable: true
         landing_page:
+          type: string
+          nullable: true
+        age_group:
+          type: string
+          nullable: true
+        cohort:
           type: string
           nullable: true
         spaces_total:
@@ -924,6 +1022,13 @@ components:
       properties:
         events:
           type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarEvent"
+        items:
+          type: array
+          deprecated: true
+          description: >
+            Deprecated alias of `events` for older clients. Prefer `events`.
           items:
             $ref: "#/components/schemas/PublicCalendarEvent"
     DiscountValidationRequest:

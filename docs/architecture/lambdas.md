@@ -101,10 +101,19 @@ their primary responsibilities.
   `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
-  `/www/v1/calendar/public` (event instances include optional `slug` and
-  `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
-  when `max_capacity` is set, using the same enrollment statuses as capacity
-  checks: registered, confirmed, completed),
+  `/www/v1/calendar/public` (public calendar feed: returns **event** and
+  **training_course** `service_instances` for published services; consultation
+  is intentionally excluded. Each item includes `service_type`,
+  `service_instance_id`, `partners`, optional `age_group` / `cohort`,
+  `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
+  from `services.booking_system` or defaults from service type (MBA training
+  cohorts default to `my-best-auntie-booking` when `services.slug` is
+  `my-best-auntie`). Results order by earliest upcoming session slot ascending
+  with `service_instances.id` as tie-break. Optional query filters:
+  `landing_page`, `service_type`. Optional `slug` and `landing_page` echo from
+  `service_instances`; `spaces_total` / `spaces_left` when `max_capacity` is set,
+  using the same enrollment statuses as capacity checks: registered, confirmed,
+  completed),
   `/www/v1/assets/free` (lists public assets tagged `client_document`;
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
