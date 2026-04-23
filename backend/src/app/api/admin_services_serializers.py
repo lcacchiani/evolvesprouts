@@ -5,6 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 
+from app.api.admin_entities_helpers import serialize_tag_ref
+
 from app.db.models import (
     DiscountCode,
     Enrollment,
@@ -152,7 +154,21 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
             )
         ],
         "instructor_id": instance.instructor_id,
+        "age_group": instance.age_group,
+        "cohort": instance.cohort,
         "notes": instance.notes,
+        "tags": [
+            serialize_tag_ref(link.tag)
+            for link in sorted(
+                instance.instance_tags,
+                key=lambda row: (
+                    row.tag.name.lower() if row.tag else "",
+                    str(row.tag_id),
+                ),
+            )
+            if link.tag
+        ],
+        "tag_ids": [str(link.tag_id) for link in instance.instance_tags],
         "created_by": instance.created_by,
         "created_at": instance.created_at.isoformat() if instance.created_at else None,
         "updated_at": instance.updated_at.isoformat() if instance.updated_at else None,

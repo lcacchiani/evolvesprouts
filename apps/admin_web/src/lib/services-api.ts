@@ -245,7 +245,12 @@ function parseInstance(value: unknown): ServiceInstance {
           .filter((row): row is PartnerOrgRef => row !== null)
       : [],
     instructorId: asNullableString(item.instructor_id),
+    ageGroup: asNullableString(item.age_group),
+    cohort: asNullableString(item.cohort),
     notes: asNullableString(item.notes),
+    tagIds: Array.isArray(item.tag_ids)
+      ? item.tag_ids.filter((entry): entry is string => typeof entry === 'string')
+      : [],
     createdBy: asNullableString(item.created_by) ?? '',
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),

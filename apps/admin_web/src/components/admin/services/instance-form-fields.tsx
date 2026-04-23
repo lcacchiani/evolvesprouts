@@ -18,7 +18,7 @@ import type {
 import type { SessionSlot } from '@/types/services';
 
 /** Same pattern as service referral slugs; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
-const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface InstanceInstructorOption {
   sub: string;
@@ -36,6 +36,8 @@ export interface InstanceFormState {
   maxCapacity: string;
   waitlistEnabled: boolean;
   instructorId: string;
+  ageGroup: string;
+  cohort: string;
   notes: string;
   externalUrl: string;
   partnerOrganizations: PartnerOrgRef[];

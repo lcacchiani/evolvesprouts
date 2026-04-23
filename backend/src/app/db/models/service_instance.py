@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from app.db.models.location import Location
     from app.db.models.organization import Organization
     from app.db.models.service import Service
+    from app.db.models.tag import Tag
 
 
 def _enum_values(
@@ -116,6 +117,8 @@ class ServiceInstance(Base):
         server_default=text("false"),
     )
     instructor_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    age_group: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    cohort: Mapped[str | None] = mapped_column(String(128), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -193,6 +196,16 @@ class ServiceInstance(Base):
         "DiscountCode",
         back_populates="instance",
     )
+    instance_tags: Mapped[list[ServiceInstanceTag]] = relationship(
+        "ServiceInstanceTag",
+        back_populates="instance",
+        cascade="all, delete-orphan",
+    )
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag",
+        secondary="service_instance_tags",
+        viewonly=True,
+    )
     partner_organization_links: Mapped[list[ServiceInstancePartnerOrganization]] = (
         relationship(
             "ServiceInstancePartnerOrganization",
@@ -200,6 +213,41 @@ class ServiceInstance(Base):
             cascade="all, delete-orphan",
             order_by="ServiceInstancePartnerOrganization.sort_order.asc()",
         )
+    )
+
+
+class ServiceInstanceTag(Base):
+    """Many-to-many link between service instances and CRM tags."""
+
+    __tablename__ = "service_instance_tags"
+    __table_args__ = (
+        Index("svc_instance_tags_instance_idx", "service_instance_id"),
+        Index("svc_instance_tags_tag_idx", "tag_id"),
+    )
+
+    service_instance_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("service_instances.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    tag_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("tags.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+
+    instance: Mapped[ServiceInstance] = relationship(
+        "ServiceInstance",
+        back_populates="instance_tags",
+    )
+    tag: Mapped["Tag"] = relationship(
+        "Tag",
+        back_populates="service_instance_tags",
     )
 
 

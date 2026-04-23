@@ -108,6 +108,13 @@ def parse_optional_service_instance_slug(
     return trimmed
 
 
+def parse_optional_service_instance_slug_like_text(
+    value: Any, *, field: str
+) -> str | None:
+    """Same character rules and normalization as instance slug; for free-text labels."""
+    return parse_optional_service_instance_slug(value, field=field)
+
+
 def validate_string_length(
     value: Any,
     field_name: str,

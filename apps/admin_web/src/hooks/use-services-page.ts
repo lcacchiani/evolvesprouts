@@ -1,6 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { toErrorMessage } from '@/hooks/hook-errors';
+import { listEntityTags, type EntityTagRef } from '@/lib/entity-api';
 
 import { useDiscountCodes } from './use-discount-codes';
 import { useVenues } from './use-venues';
@@ -35,6 +38,9 @@ export function useServicesPage() {
   const [instancesServiceFilter, setInstancesServiceFilter] = useState<string>('');
   const [instancesServiceTypeFilter, setInstancesServiceTypeFilter] = useState<string>('');
   const [instancesSearchQuery, setInstancesSearchQuery] = useState<string>('');
+  const [entityTags, setEntityTags] = useState<EntityTagRef[]>([]);
+  const [entityTagsLoading, setEntityTagsLoading] = useState(false);
+  const [entityTagsError, setEntityTagsError] = useState('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -43,6 +49,34 @@ export function useServicesPage() {
     setSelectedServiceIdState(serviceId);
     setSelectedInstanceId(null);
   }, []);
+
+  useEffect(() => {
+    if (activeView !== 'instances') {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      setEntityTagsLoading(true);
+      try {
+        const tagList = await listEntityTags();
+        if (!cancelled) {
+          setEntityTags(tagList);
+          setEntityTagsError('');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setEntityTagsError(toErrorMessage(error, 'Failed to load tags.'));
+        }
+      } finally {
+        if (!cancelled) {
+          setEntityTagsLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView]);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
   const instanceList = useInstanceList(
@@ -125,6 +159,9 @@ export function useServicesPage() {
     setInstancesServiceTypeFilter,
     instancesSearchQuery,
     setInstancesSearchQuery,
+    entityTags,
+    entityTagsLoading,
+    entityTagsError,
     serviceList,
     serviceDetail,
     serviceMutations,

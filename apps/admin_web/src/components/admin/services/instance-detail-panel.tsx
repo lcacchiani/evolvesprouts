@@ -21,6 +21,7 @@ import {
 } from './form-defaults';
 import { EventInstancePartnersField } from './event-instance-partners-field';
 import {
+  INSTANCE_SLUG_PATTERN,
   InstanceFormFields,
   InstanceInstructorField,
   type InstanceFormState,
@@ -44,6 +45,7 @@ import {
   type ServiceType,
 } from '@/types/services';
 
+import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
@@ -52,12 +54,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import type { EntityTagRef } from '@/lib/entity-api';
 
 type ApiSchemas = components['schemas'];
 const defaultCurrencyCode = getAdminDefaultCurrencyCode();
 
 export interface InstanceDetailPanelProps {
   instance: ServiceInstance | null;
+  entityTags: EntityTagRef[];
+  entityTagsLoading: boolean;
+  entityTagsError: string;
   selectedServiceId: string | null;
   serviceOptions: ServiceSummary[];
   locationOptions: LocationSummary[];
@@ -141,6 +147,9 @@ function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] 
 
 export function InstanceDetailPanel({
   instance,
+  entityTags,
+  entityTagsLoading,
+  entityTagsError,
   selectedServiceId,
   serviceOptions,
   locationOptions,
@@ -160,6 +169,8 @@ export function InstanceDetailPanel({
     Boolean(selectedServiceId)
   );
 
+  const [tagIds, setTagIds] = useState<string[]>(() => instance?.tagIds ?? []);
+
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
     instance
       ? {
@@ -173,6 +184,8 @@ export function InstanceDetailPanel({
           waitlistEnabled: instance.waitlistEnabled,
           instructorId: instance.instructorId ?? '',
           notes: instance.notes ?? '',
+          ageGroup: instance.ageGroup ?? '',
+          cohort: instance.cohort ?? '',
           externalUrl: instance.externalUrl ?? '',
           partnerOrganizations: mapPartnerRefsFromInstance(instance),
           sessionSlots: instance.sessionSlots,
@@ -253,9 +266,13 @@ export function InstanceDetailPanel({
 
   useEffect(() => {
     if (!instance) {
+      queueMicrotask(() => {
+        setTagIds([]);
+      });
       return;
     }
     queueMicrotask(() => {
+      setTagIds(instance.tagIds);
       setInstanceForm({
         title: instance.title ?? '',
         slug: instance.slug ?? '',
@@ -267,6 +284,8 @@ export function InstanceDetailPanel({
         waitlistEnabled: instance.waitlistEnabled,
         instructorId: instance.instructorId ?? '',
         notes: instance.notes ?? '',
+        ageGroup: instance.ageGroup ?? '',
+        cohort: instance.cohort ?? '',
         externalUrl: instance.externalUrl ?? '',
         partnerOrganizations: mapPartnerRefsFromInstance(instance),
         sessionSlots: instance.sessionSlots,
@@ -310,6 +329,8 @@ export function InstanceDetailPanel({
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
+    const ageTrimmed = instanceForm.ageGroup.trim().toLowerCase();
+    const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
       slug: slugTrimmed || null,
@@ -320,9 +341,12 @@ export function InstanceDetailPanel({
       max_capacity: instanceForm.maxCapacity ? Number(instanceForm.maxCapacity) : null,
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
+      age_group: ageTrimmed || null,
+      cohort: cohortTrimmed || null,
       notes: instanceForm.notes.trim() || null,
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids: instanceForm.partnerOrganizations.map((row) => row.id),
+      tag_ids: tagIds,
       session_slots: instanceForm.sessionSlots.map((slot, index) => ({
         location_id: slot.locationId,
         starts_at: slot.startsAt,
@@ -408,6 +432,12 @@ export function InstanceDetailPanel({
   const eventPriceMissing =
     effectiveServiceType === 'event' && !eventForm.defaultPrice.trim();
 
+  const ageGroupTrimmed = instanceForm.ageGroup.trim().toLowerCase();
+  const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
+  const ageGroupInvalid =
+    Boolean(ageGroupTrimmed) && !INSTANCE_SLUG_PATTERN.test(ageGroupTrimmed);
+  const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
+
   return (
     <AdminEditorCard
       title='Instance'
@@ -422,7 +452,14 @@ export function InstanceDetailPanel({
                 </Button>
                 <Button
                   type='button'
-                  disabled={isLoading || !instance || externalUrlInvalid || eventPriceMissing}
+                  disabled={
+                    isLoading ||
+                    !instance ||
+                    externalUrlInvalid ||
+                    eventPriceMissing ||
+                    ageGroupInvalid ||
+                    cohortInvalid
+                  }
                   onClick={() => {
                     if (!instance || !selectedServiceId) {
                       return;
@@ -436,7 +473,14 @@ export function InstanceDetailPanel({
             ) : (
               <Button
                 type='button'
-                disabled={isLoading || !selectedServiceId || externalUrlInvalid || eventPriceMissing}
+                disabled={
+                  isLoading ||
+                  !selectedServiceId ||
+                  externalUrlInvalid ||
+                  eventPriceMissing ||
+                  ageGroupInvalid ||
+                  cohortInvalid
+                }
                 onClick={() => {
                   if (!selectedServiceId) {
                     return;
@@ -563,6 +607,49 @@ export function InstanceDetailPanel({
         </>
       ) : null}
 
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+        <div>
+          <Label htmlFor='instance-age-group'>Age group</Label>
+          <Input
+            id='instance-age-group'
+            value={instanceForm.ageGroup}
+            disabled={typeFieldsLocked}
+            onChange={(event) => setInstanceForm((prev) => ({ ...prev, ageGroup: event.target.value }))}
+            onBlur={() =>
+              setInstanceForm((prev) => ({ ...prev, ageGroup: prev.ageGroup.trim().toLowerCase() }))
+            }
+            placeholder='e.g. ages-3-5'
+            autoComplete='off'
+          />
+          {ageGroupInvalid ? (
+            <p className='mt-1 text-xs text-red-600'>
+              Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+              hyphen).
+            </p>
+          ) : null}
+        </div>
+        <div>
+          <Label htmlFor='instance-cohort'>Cohort</Label>
+          <Input
+            id='instance-cohort'
+            value={instanceForm.cohort}
+            disabled={typeFieldsLocked}
+            onChange={(event) => setInstanceForm((prev) => ({ ...prev, cohort: event.target.value }))}
+            onBlur={() =>
+              setInstanceForm((prev) => ({ ...prev, cohort: prev.cohort.trim().toLowerCase() }))
+            }
+            placeholder='e.g. spring-2026'
+            autoComplete='off'
+          />
+          {cohortInvalid ? (
+            <p className='mt-1 text-xs text-red-600'>
+              Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+              hyphen).
+            </p>
+          ) : null}
+        </div>
+      </div>
+
       <div>
         <Label htmlFor='instance-notes'>Notes</Label>
         <Textarea
@@ -573,6 +660,16 @@ export function InstanceDetailPanel({
           rows={2}
         />
       </div>
+
+      <EntityTagPicker
+        id='service-instance-tags'
+        label='Tags'
+        tags={entityTags}
+        selectedIds={tagIds}
+        onChange={setTagIds}
+        disabled={isLoading || entityTagsLoading || typeFieldsLocked}
+        variant='collapsible'
+      />
 
       <SessionSlotEditor
         slots={instanceForm.sessionSlots}
@@ -585,6 +682,7 @@ export function InstanceDetailPanel({
       {effectiveServiceType === 'event' && eventPriceMissing ? (
         <AdminInlineError>Enter a price for this event instance.</AdminInlineError>
       ) : null}
+      {entityTagsError ? <AdminInlineError>{entityTagsError}</AdminInlineError> : null}
       {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
       {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>

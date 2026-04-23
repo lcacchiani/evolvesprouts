@@ -14,6 +14,7 @@ from app.api.admin_service_instance_partners import (
     reconcile_instance_partner_organizations,
     validate_partner_organization_ids,
 )
+from app.api.admin_entities_helpers import replace_service_instance_tags
 from app.api.admin_services_common import (
     encode_instance_cursor,
     parse_create_instance_payload,
@@ -397,6 +398,8 @@ def _create_instance(
             max_capacity=payload["max_capacity"],
             waitlist_enabled=payload["waitlist_enabled"],
             instructor_id=payload["instructor_id"],
+            age_group=payload["age_group"],
+            cohort=payload["cohort"],
             notes=payload["notes"],
             external_url=payload["external_url"],
             created_by=actor_sub,
@@ -429,6 +432,11 @@ def _create_instance(
             session,
             instance_id=created.id,
             ordered_org_ids=payload["partner_organization_ids"],
+        )
+        replace_service_instance_tags(
+            session,
+            instance_id=created.id,
+            tag_ids=payload["tag_ids"],
         )
         session.commit()
         if service.service_type == ServiceType.EVENT:
@@ -516,6 +524,10 @@ def _update_instance(
             instance.waitlist_enabled = payload["waitlist_enabled"]
         if "instructor_id" in payload:
             instance.instructor_id = payload["instructor_id"]
+        if "age_group" in payload:
+            instance.age_group = payload["age_group"]
+        if "cohort" in payload:
+            instance.cohort = payload["cohort"]
         if "notes" in payload:
             instance.notes = payload["notes"]
         if "external_url" in payload:
@@ -550,6 +562,12 @@ def _update_instance(
                 session,
                 instance_id=instance.id,
                 ordered_org_ids=payload["partner_organization_ids"],
+            )
+        if "tag_ids" in payload:
+            replace_service_instance_tags(
+                session,
+                instance_id=instance.id,
+                tag_ids=payload["tag_ids"],
             )
 
         updated = instance_repository.update_instance(instance)

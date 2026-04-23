@@ -67,6 +67,11 @@ class Tag(Base):
         back_populates="tag",
         cascade="all, delete-orphan",
     )
+    service_instance_tags: Mapped[list["ServiceInstanceTag"]] = relationship(
+        "ServiceInstanceTag",
+        back_populates="tag",
+        cascade="all, delete-orphan",
+    )
 
 
 class ContactTag(Base):

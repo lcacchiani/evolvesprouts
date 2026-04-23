@@ -34,6 +34,12 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
   };
 }
 
+const defaultEntityTagProps = {
+  entityTags: [] as import('@/lib/entity-api').EntityTagRef[],
+  entityTagsLoading: false,
+  entityTagsError: '',
+};
+
 function buildLocationSummary(overrides: Partial<LocationSummary> = {}): LocationSummary {
   return {
     id: 'location-1',
@@ -58,6 +64,7 @@ describe('InstanceDetailPanel', () => {
   it('renders service and location selectors in create mode', () => {
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId={null}
         serviceOptions={[buildServiceSummary()]}
@@ -87,6 +94,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='service-1'
         serviceOptions={[buildServiceSummary()]}
@@ -109,6 +117,7 @@ describe('InstanceDetailPanel', () => {
       expect.objectContaining({
         status: 'scheduled',
         partner_organization_ids: [],
+        tag_ids: [],
       })
     );
   });
@@ -119,6 +128,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='service-1'
         serviceOptions={[
@@ -152,6 +162,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId={null}
         serviceOptions={[
@@ -194,6 +205,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='evt-svc'
         serviceOptions={[
@@ -244,6 +256,7 @@ describe('InstanceDetailPanel', () => {
           }),
         ],
         partner_organization_ids: [],
+        tag_ids: [],
       })
     );
   });

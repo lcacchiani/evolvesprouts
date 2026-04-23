@@ -457,6 +457,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   `cover_image_s3_key`, `delivery_mode`).
 - Optional public-site fields: `slug` (unique when set), `landing_page`
   (marketing route key for the public website).
+- Optional `age_group` and `cohort` varchar(128): admin labels stored with the same
+  normalization rules as instance referral slugs (lowercase letters, digits, single
+  hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
   (http/https), distinct from Eventbrite sync URLs.
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
@@ -479,6 +482,12 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   (`service_instance_id`, `organization_id`, `sort_order`, `created_at`), added in
   migration `0036_instance_partners_ext_url`. Used by the admin API for event instance
   partner multi-select; ordering follows `sort_order`.
+
+### `service_instance_tags`
+
+- Junction table linking `service_instances` to CRM `tags` rows (`service_instance_id`,
+  `tag_id`, `created_at`), added in migration `0037_instance_age_cohort_tags`. Used by
+  the admin API for instance tag multi-select (same tag catalog as contacts).
 
 ### `discount_codes`
 

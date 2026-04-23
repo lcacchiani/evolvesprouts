@@ -19,6 +19,7 @@ from app.db.models import (
     OrganizationMember,
     OrganizationTag,
     RelationshipType,
+    ServiceInstanceTag,
     Tag,
 )
 from app.db.models.enums import ContactType
@@ -179,6 +180,25 @@ def replace_organization_tags(
         if tag is None:
             raise ValidationError("tag_id not found", field="tag_ids")
         session.add(OrganizationTag(organization_id=organization_id, tag_id=tag_id))
+    session.flush()
+
+
+def replace_service_instance_tags(
+    session: Session,
+    *,
+    instance_id: UUID,
+    tag_ids: list[UUID],
+) -> None:
+    session.execute(
+        delete(ServiceInstanceTag).where(
+            ServiceInstanceTag.service_instance_id == instance_id
+        )
+    )
+    for tag_id in tag_ids:
+        tag = session.get(Tag, tag_id)
+        if tag is None:
+            raise ValidationError("tag_id not found", field="tag_ids")
+        session.add(ServiceInstanceTag(service_instance_id=instance_id, tag_id=tag_id))
     session.flush()
 
 
