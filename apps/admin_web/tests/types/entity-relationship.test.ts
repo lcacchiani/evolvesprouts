@@ -9,9 +9,11 @@ import {
 describe('relationshipTypeForEditor', () => {
   it('passes through values in the allowed list', () => {
     expect(relationshipTypeForEditor('client', FAMILY_RELATIONSHIP_TYPES)).toBe('client');
-    expect(relationshipTypeForEditor('partner', ORGANIZATION_RELATIONSHIP_TYPES)).toBe(
-      'partner'
-    );
+    expect(relationshipTypeForEditor('client', ORGANIZATION_RELATIONSHIP_TYPES)).toBe('client');
+  });
+
+  it('maps partner to other for CRM organisation editor (partner managed under Services)', () => {
+    expect(relationshipTypeForEditor('partner', ORGANIZATION_RELATIONSHIP_TYPES)).toBe('other');
   });
 
   it('maps disallowed stored values to other for family editor', () => {

@@ -121,7 +121,28 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       totalCount: 0,
       createVenue: vi.fn().mockResolvedValue(null),
       updateVenue: vi.fn().mockResolvedValue(null),
+      updateVenuePartial: vi.fn().mockResolvedValue(null),
       deleteVenue: vi.fn().mockResolvedValue(undefined),
+    },
+    partners: {
+      partners: [],
+      filters: { query: '', active: '' },
+      setFilter: vi.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: '',
+      loadMore: vi.fn(),
+      totalCount: 0,
+      isSaving: false,
+      createPartner: vi.fn().mockResolvedValue(null),
+      updatePartner: vi.fn().mockResolvedValue(null),
+      addMember: vi.fn().mockResolvedValue(null),
+      removeMember: vi.fn().mockResolvedValue(null),
+      updateMember: vi.fn().mockResolvedValue(null),
+      deletePartner: vi.fn().mockResolvedValue(undefined),
+      refetch: vi.fn().mockResolvedValue(undefined),
+      relationshipOptions: ['partner'] as const,
     },
   };
   return {
@@ -132,6 +153,10 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
 
 vi.mock('@/hooks/use-services-page', () => ({
   useServicesPage: mockUseServicesPage,
+}));
+
+vi.mock('@/components/admin/services/partners-section', () => ({
+  PartnersSection: () => <div data-testid='partners-section-mock'>Partners</div>,
 }));
 
 import { ServicesPage } from '@/components/admin/services/services-page';
@@ -154,6 +179,14 @@ describe('ServicesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
     await user.click(screen.getByRole('button', { name: 'Venues' }));
     expect(state.setActiveView).toHaveBeenCalledWith('venues');
+    await user.click(screen.getByRole('button', { name: 'Partners' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('partners');
+  });
+
+  it('renders Partners panel when active view is partners', () => {
+    state.activeView = 'partners';
+    render(<ServicesPage />);
+    expect(screen.getByTestId('partners-section-mock')).toBeInTheDocument();
   });
 
   it('renders service detail before the services list', () => {

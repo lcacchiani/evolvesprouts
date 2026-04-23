@@ -13,6 +13,7 @@ import { InstanceDetailPanel } from './instance-detail-panel';
 import { InstanceListPanel } from './instance-list-panel';
 import { ServiceDetailPanel } from './service-detail-panel';
 import { ServiceListPanel } from './service-list-panel';
+import { PartnersSection } from './partners-section';
 import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
@@ -63,7 +64,8 @@ export function ServicesPage() {
     state.enrollmentList.error ||
     state.enrollmentMutations.error ||
     state.discountCodes.error ||
-    state.venues.error;
+    state.venues.error ||
+    state.partners.error;
 
   return (
     <div className='space-y-4'>
@@ -255,7 +257,7 @@ export function ServicesPage() {
           onDelete={state.discountCodes.deleteCode}
           onDiscountCodesRefresh={state.discountCodes.refetch}
         />
-      ) : (
+      ) : state.activeView === 'venues' ? (
         <VenuesPanel
           venues={state.venues.venues}
           geographicAreas={state.venues.geographicAreas}
@@ -272,6 +274,16 @@ export function ServicesPage() {
           onUpdate={state.venues.updateVenue}
           onUpdatePartial={state.venues.updateVenuePartial}
           onDelete={state.venues.deleteVenue}
+        />
+      ) : (
+        <PartnersSection
+          partners={state.partners}
+          locations={state.locationList.locations}
+          geographicAreas={state.venues.geographicAreas}
+          areasLoading={state.venues.areasLoading}
+          refreshLocations={async () => {
+            await state.locationList.refetch();
+          }}
         />
       )}
     </div>

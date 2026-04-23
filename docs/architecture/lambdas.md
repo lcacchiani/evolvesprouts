@@ -66,9 +66,10 @@ their primary responsibilities.
   derives each member's role from the linked contact's `contact_type`; `PATCH /v1/admin/families/{id}/members/{memberId}`
   updates membership fields such as primary contact),
   `/v1/admin/organizations/picker` (optional `relationship_type` query mirrors organisation list
-  semantics; default still excludes vendors; pass `relationship_type=partner` for partner-only
-  admin pickers), `/v1/admin/organizations/*` (CRM organisations and vendor
-  rows share one resource; default list excludes vendors, Finance lists vendors with
+  semantics; default excludes both vendors and partners; pass `relationship_type=partner` for
+  partner-only admin pickers), `/v1/admin/organizations/*` (CRM organisations and vendor
+  rows share one resource; default list excludes vendors and partners; Services → Partners lists
+  partners with `GET /v1/admin/organizations?relationship_type=partner`; Finance lists vendors with
   `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates

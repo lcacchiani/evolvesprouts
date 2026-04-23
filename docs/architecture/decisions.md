@@ -468,9 +468,11 @@ legacy vendor-only API. The Finance vendors UI is expected to send only
 `active` for vendor rows; the backend does not enforce a narrower vendor-only
 subset for authenticated callers.
 
-**CRM default list:** Unfiltered `GET /v1/admin/organizations` excludes vendor
-rows so Contacts → Organizations matches picker and member-assignment rules;
-Finance passes `relationship_type=vendor` for the vendors table.
+**CRM default list:** Unfiltered `GET /v1/admin/organizations` (and the picker
+when `relationship_type` is omitted) excludes vendor and partner rows so
+Contacts → Organisations matches picker and member-assignment rules; Services
+passes `relationship_type=partner` for the Partners table; Finance passes
+`relationship_type=vendor` for the vendors table.
 
 ## Phone numbers on CRM contacts (region + national)
 

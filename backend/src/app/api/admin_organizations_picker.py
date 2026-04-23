@@ -64,7 +64,9 @@ def _list_organization_picker(event: Mapping[str, Any]) -> dict[str, Any]:
             statement = statement.where(Organization.relationship_type == rel_type)
         else:
             statement = statement.where(
-                Organization.relationship_type != RelationshipType.VENDOR
+                Organization.relationship_type.notin_(
+                    (RelationshipType.VENDOR, RelationshipType.PARTNER)
+                )
             )
         statement = statement.order_by(
             Organization.name.asc(), Organization.id.asc()

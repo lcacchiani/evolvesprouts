@@ -74,8 +74,10 @@ def _should_skip_vendor_fuzzy_match(normalized: str) -> bool:
     return False
 
 
-_NON_VENDOR_RELATIONSHIP_TYPES: tuple[RelationshipType, ...] = tuple(
-    rt for rt in RelationshipType if rt != RelationshipType.VENDOR
+_CRM_DEFAULT_RELATIONSHIP_TYPES: tuple[RelationshipType, ...] = tuple(
+    rt
+    for rt in RelationshipType
+    if rt not in (RelationshipType.VENDOR, RelationshipType.PARTNER)
 )
 
 
@@ -112,8 +114,9 @@ class OrganizationRepository(BaseRepository[Organization]):
     ) -> list[Organization]:
         """List organizations with optional relationship-type filter.
 
-        When ``relationship_types`` is omitted, vendor rows are excluded (CRM default).
-        Pass ``relationship_types=(RelationshipType.VENDOR,)`` to list vendors only.
+        When ``relationship_types`` is omitted, vendor and partner rows are excluded
+        (Contacts default). Pass ``relationship_types=(RelationshipType.PARTNER,)``
+        for Services, ``relationship_types=(RelationshipType.VENDOR,)`` for Finance.
         """
         statement = select(Organization)
         if relationship_types is not None:
@@ -122,7 +125,7 @@ class OrganizationRepository(BaseRepository[Organization]):
             )
         else:
             statement = statement.where(
-                Organization.relationship_type.in_(_NON_VENDOR_RELATIONSHIP_TYPES)
+                Organization.relationship_type.in_(_CRM_DEFAULT_RELATIONSHIP_TYPES)
             )
         if include_relationships:
             statement = statement.options(
@@ -183,7 +186,7 @@ class OrganizationRepository(BaseRepository[Organization]):
             )
         else:
             statement = statement.where(
-                Organization.relationship_type.in_(_NON_VENDOR_RELATIONSHIP_TYPES)
+                Organization.relationship_type.in_(_CRM_DEFAULT_RELATIONSHIP_TYPES)
             )
         if query:
             escaped = _escape_like_pattern(query.strip())
