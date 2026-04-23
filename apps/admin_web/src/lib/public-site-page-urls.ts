@@ -7,6 +7,38 @@ function trimTrailingSlashes(value: string): string {
 /** Segments are normalized to lowercase before validation. */
 const PATH_SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+const SLUG_SEGMENT = PATH_SEGMENT;
+
+/**
+ * Sanitizes typing/paste for the `src` field: lowercase, map disallowed characters to `-`,
+ * collapse repeated hyphens, trim leading hyphens only (trailing `-` is kept so users can
+ * compose multi-part slugs like `a-b`).
+ */
+export function sanitizePublicSiteSrcQueryInput(raw: string): string {
+  const lower = raw.toLowerCase();
+  const replaced = lower.replace(/[^a-z0-9-]+/g, '-');
+  return replaced.replace(/-+/g, '-').replace(/^-+/, '');
+}
+
+/**
+ * Normalizes a single `src` query token to the same kebab-case slug rules as public path
+ * segments (lowercase letters, numbers, hyphens; no leading/trailing or repeated hyphens).
+ * Returns empty when nothing valid remains.
+ */
+export function normalizePublicSiteSrcValue(raw: string): string {
+  const lower = raw.trim().toLowerCase();
+  if (!lower) {
+    return '';
+  }
+  const replaced = lower.replace(/[^a-z0-9-]+/g, '-');
+  const collapsed = replaced.replace(/-+/g, '-');
+  const trimmed = collapsed.replace(/^-+|-+$/g, '');
+  if (!trimmed || !SLUG_SEGMENT.test(trimmed)) {
+    return '';
+  }
+  return trimmed;
+}
+
 export interface NormalizePublicSitePathResult {
   /** Normalized path starting with `/`, ending with `/`, or `/` for site home. */
   path: string;
