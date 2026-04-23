@@ -2,9 +2,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ServicesView } from '@/hooks/use-services-page';
+
 const { mockUseServicesPage, state } = vi.hoisted(() => {
   const state = {
-    activeView: 'catalog' as const,
+    activeView: 'catalog' as ServicesView,
     setActiveView: vi.fn(),
     selectedServiceId: null as string | null,
     setSelectedServiceId: vi.fn(),
@@ -124,26 +126,6 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateVenuePartial: vi.fn().mockResolvedValue(null),
       deleteVenue: vi.fn().mockResolvedValue(undefined),
     },
-    partners: {
-      partners: [],
-      filters: { query: '', active: '' },
-      setFilter: vi.fn(),
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      error: '',
-      loadMore: vi.fn(),
-      totalCount: 0,
-      isSaving: false,
-      createPartner: vi.fn().mockResolvedValue(null),
-      updatePartner: vi.fn().mockResolvedValue(null),
-      addMember: vi.fn().mockResolvedValue(null),
-      removeMember: vi.fn().mockResolvedValue(null),
-      updateMember: vi.fn().mockResolvedValue(null),
-      deletePartner: vi.fn().mockResolvedValue(undefined),
-      refetch: vi.fn().mockResolvedValue(undefined),
-      relationshipOptions: ['partner'] as const,
-    },
   };
   return {
     state,
@@ -155,8 +137,8 @@ vi.mock('@/hooks/use-services-page', () => ({
   useServicesPage: mockUseServicesPage,
 }));
 
-vi.mock('@/components/admin/services/partners-section', () => ({
-  PartnersSection: () => <div data-testid='partners-section-mock'>Partners</div>,
+vi.mock('@/components/admin/services/partners-tab', () => ({
+  PartnersTab: () => <div data-testid='partners-tab-mock'>Partners</div>,
 }));
 
 import { ServicesPage } from '@/components/admin/services/services-page';
@@ -186,7 +168,7 @@ describe('ServicesPage', () => {
   it('renders Partners panel when active view is partners', () => {
     state.activeView = 'partners';
     render(<ServicesPage />);
-    expect(screen.getByTestId('partners-section-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('partners-tab-mock')).toBeInTheDocument();
   });
 
   it('renders service detail before the services list', () => {

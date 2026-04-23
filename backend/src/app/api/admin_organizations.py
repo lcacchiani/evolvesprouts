@@ -162,7 +162,8 @@ def _parse_relationship_type_filter(
 ) -> Sequence[RelationshipType] | None:
     """Parse optional relationship_type query.
 
-    When absent, the repository applies the CRM default (all types except ``vendor``).
+    When absent, the repository applies the CRM default (excludes ``vendor`` and
+    ``partner`` rows).
     When set, filters to that single relationship type (including ``vendor`` for Finance).
     """
     if raw is None or raw.strip() == "":

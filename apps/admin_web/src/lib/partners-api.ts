@@ -1,6 +1,9 @@
 import { adminApiRequest } from './api-admin-client';
 import { asNullableString, asNumber, unwrapPayload } from './api-payload';
-import { isRecord } from './type-guards';
+import {
+  parseAdminOrganization,
+  type AdminOrganizationRow,
+} from '@/lib/entity-api';
 
 import type { PartnerFilters } from '@/types/partners';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -9,12 +12,7 @@ type ApiSchemas = components['schemas'];
 type ApiOrganizationList = ApiSchemas['AdminOrganizationListResponse'];
 type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
 
-export type AdminOrganizationRow = ApiSchemas['AdminOrganization'];
-
-function parseOrganization(value: unknown): AdminOrganizationRow {
-  const row = isRecord(value) ? value : {};
-  return row as AdminOrganizationRow;
-}
+export type { AdminOrganizationRow };
 
 export async function listAdminPartners(
   params: Partial<PartnerFilters> & { cursor?: string | null; limit?: number },
@@ -34,7 +32,7 @@ export async function listAdminPartners(
   });
   const root = unwrapPayload(payload);
   return {
-    items: Array.isArray(root.items) ? root.items.map((e) => parseOrganization(e)) : [],
+    items: Array.isArray(root.items) ? root.items.map((e) => parseAdminOrganization(e)) : [],
     nextCursor: asNullableString(root.next_cursor),
     totalCount: asNumber(root.total_count, 0),
   };
@@ -50,7 +48,7 @@ export async function createAdminPartner(
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function updateAdminPartner(
@@ -63,7 +61,7 @@ export async function updateAdminPartner(
     body,
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function deleteAdminPartner(organizationId: string): Promise<void> {
@@ -85,7 +83,7 @@ export async function addPartnerMember(
     expectedSuccessStatuses: [200, 201],
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function removePartnerMember(
@@ -97,7 +95,7 @@ export async function removePartnerMember(
     method: 'DELETE',
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }
 
 export async function patchPartnerMember(
@@ -111,5 +109,5 @@ export async function patchPartnerMember(
     body,
   });
   const root = unwrapPayload(payload);
-  return root.organization ?? null;
+  return root.organization ? parseAdminOrganization(root.organization) : null;
 }

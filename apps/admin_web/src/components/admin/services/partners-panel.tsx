@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { usePartners } from '@/hooks/use-partners';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -20,8 +20,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
+import {
+  getAdminContact,
+  searchEntityContactsForPicker,
+  type EntityPickerListItem,
+  type EntityTagRef,
+} from '@/lib/entity-api';
 import { formatEnumLabel } from '@/lib/format';
-import type { EntityTagRef } from '@/lib/entity-api';
 import type { PartnerFilters } from '@/types/partners';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -36,14 +41,9 @@ const ORG_TYPES: ApiSchemas['EntityOrganizationType'][] = [
   'other',
 ];
 
-function contactEligibleForOrgMember(
-  contact: { id: string; family_ids: string[]; organization_ids: string[] },
-  selectedOrgId: string | null
-): boolean {
-  if (contact.organization_ids.length === 0) {
-    return true;
-  }
-  return Boolean(selectedOrgId && contact.organization_ids.includes(selectedOrgId));
+function formatContactPickerLabel(c: ApiSchemas['AdminContact']): string {
+  const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+  return name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
 }
 
 export interface PartnersPanelProps {
@@ -53,18 +53,6 @@ export interface PartnersPanelProps {
   geographicAreas: GeographicAreaSummary[];
   areasLoading: boolean;
   refreshLocations: () => Promise<void> | void;
-  contactOptions: { id: string; label: string }[];
-  contactsForMembership: {
-    id: string;
-    contact_type?: ApiSchemas['EntityContactType'];
-    family_ids: string[];
-    organization_ids: string[];
-  }[];
-  contactsListError: string;
-  contactsLoading: boolean;
-  contactsLoadMore: () => void;
-  contactsHasMore: boolean;
-  contactsIsLoadingMore: boolean;
   tagsLoadError: string;
 }
 
@@ -75,13 +63,6 @@ export function PartnersPanel({
   geographicAreas,
   areasLoading,
   refreshLocations,
-  contactOptions,
-  contactsForMembership,
-  contactsListError,
-  contactsLoading,
-  contactsLoadMore,
-  contactsHasMore,
-  contactsIsLoadingMore,
   tagsLoadError,
 }: PartnersPanelProps) {
   const {
@@ -119,6 +100,9 @@ export function PartnersPanel({
   const [active, setActive] = useState(true);
 
   const [memberContactId, setMemberContactId] = useState('');
+  const [memberSearchInput, setMemberSearchInput] = useState('');
+  const [memberSearchResults, setMemberSearchResults] = useState<EntityPickerListItem[]>([]);
+  const [memberPinnedLabel, setMemberPinnedLabel] = useState('');
 
   const [removeTarget, setRemoveTarget] = useState<{ memberId: string; label: string } | null>(
     null
@@ -186,15 +170,76 @@ export function PartnersPanel({
 
   const locationLockedReadOnly = Boolean(resolvedLocation?.lockedFromPartnerOrg);
 
-  const memberContactOptions = useMemo(() => {
-    return contactOptions.filter((c) => {
-      const row = contactsForMembership.find((x) => x.id === c.id);
-      if (!row) {
-        return true;
+  const memberSelectOptions = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const r of memberSearchResults) {
+      byId.set(r.id, r.label);
+    }
+    const cid = memberContactId.trim();
+    if (cid && memberPinnedLabel.trim() && !byId.has(cid)) {
+      byId.set(cid, memberPinnedLabel.trim());
+    }
+    return Array.from(byId.entries()).map(([id, label]) => ({ id, label }));
+  }, [memberSearchResults, memberContactId, memberPinnedLabel]);
+
+  useEffect(() => {
+    const q = memberSearchInput.trim();
+    if (q.length < 2) {
+      queueMicrotask(() => {
+        setMemberSearchResults([]);
+      });
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      void (async () => {
+        try {
+          const items = await searchEntityContactsForPicker({
+            query: q,
+            limit: 50,
+          });
+          if (!cancelled) {
+            setMemberSearchResults(Array.isArray(items) ? items : []);
+          }
+        } catch {
+          if (!cancelled) {
+            setMemberSearchResults([]);
+          }
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [memberSearchInput]);
+
+  useEffect(() => {
+    const id = memberContactId.trim();
+    if (!id) {
+      queueMicrotask(() => {
+        setMemberPinnedLabel('');
+      });
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const c = await getAdminContact(id);
+        if (cancelled || !c) {
+          return;
+        }
+        setMemberPinnedLabel(formatContactPickerLabel(c));
+      } catch {
+        if (!cancelled) {
+          setMemberPinnedLabel('');
+        }
       }
-      return contactEligibleForOrgMember(row, selectedId);
-    });
-  }, [contactOptions, contactsForMembership, selectedId]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [memberContactId]);
 
   const primaryMemberLabel = useCallback((members: ApiSchemas['AdminOrganizationMember'][]) => {
     const primary = members.find((m) => m.is_primary_contact);
@@ -213,6 +258,13 @@ export function PartnersPanel({
     } catch {
       // Retry preserved.
     }
+  }
+
+  function clearMemberPickerState() {
+    setMemberContactId('');
+    setMemberSearchInput('');
+    setMemberSearchResults([]);
+    setMemberPinnedLabel('');
   }
 
   function resetCreateForm() {
@@ -235,7 +287,7 @@ export function PartnersPanel({
     clearLocationSaveError();
     setTagIds([]);
     setActive(true);
-    setMemberContactId('');
+    clearMemberPickerState();
   }
 
   async function handleSubmit(): Promise<void> {
@@ -281,7 +333,7 @@ export function PartnersPanel({
         contact_id: memberContactId.trim(),
         is_primary_contact: false,
       });
-      setMemberContactId('');
+      clearMemberPickerState();
     } catch {
       // Retry preserved.
     }
@@ -329,10 +381,11 @@ export function PartnersPanel({
     clearLocationSaveError();
     setTagIds([...row.tag_ids]);
     setActive(row.active);
+    clearMemberPickerState();
   }
 
   const listError = error || deleteActionError;
-  const topBannerError = tagsLoadError || contactsListError;
+  const topBannerError = tagsLoadError;
 
   return (
     <div className='space-y-6'>
@@ -477,6 +530,16 @@ export function PartnersPanel({
             <div className='lg:col-span-4'>
               <AdminCollapsibleSection id='svc-partner-members' title='Members'>
                 <div className='space-y-3 pt-1'>
+                  <div className='min-w-[200px] flex-1'>
+                    <Label htmlFor='svc-partner-member-search'>Find contact</Label>
+                    <Input
+                      id='svc-partner-member-search'
+                      value={memberSearchInput}
+                      onChange={(e) => setMemberSearchInput(e.target.value)}
+                      autoComplete='off'
+                      placeholder='Type at least two characters to search'
+                    />
+                  </div>
                   <div className='flex flex-wrap items-end gap-3'>
                     <div className='min-w-[200px] flex-1'>
                       <Label htmlFor='svc-partner-member-contact'>Contact</Label>
@@ -486,7 +549,7 @@ export function PartnersPanel({
                         onChange={(e) => setMemberContactId(e.target.value)}
                       >
                         <option value=''>Select contact</option>
-                        {memberContactOptions.map((c) => (
+                        {memberSelectOptions.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.label}
                           </option>
@@ -596,19 +659,6 @@ export function PartnersPanel({
                 <option value='true'>Active</option>
                 <option value='false'>Archived</option>
               </Select>
-            </div>
-            <div className='flex min-w-[200px] flex-1 flex-col gap-1'>
-              <span className='text-sm font-medium text-slate-700'>Contacts directory</span>
-              <Button
-                type='button'
-                variant='secondary'
-                size='sm'
-                className='w-fit'
-                disabled={contactsLoading || !contactsHasMore}
-                onClick={() => contactsLoadMore()}
-              >
-                {contactsIsLoadingMore ? 'Loading contacts…' : 'Load more contacts for members'}
-              </Button>
             </div>
           </div>
         }

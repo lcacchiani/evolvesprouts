@@ -26,7 +26,10 @@ const { mockCreateAdminPartner, mockUpdateAdminPartner, mockRefetch, paginatedSt
 });
 
 vi.mock('@/hooks/use-paginated-list', () => ({
-  usePaginatedList: vi.fn(() => paginatedState),
+  usePaginatedList: vi.fn((opts: { fetchOnMount?: boolean }) => ({
+    ...paginatedState,
+    isLoading: opts?.fetchOnMount === false ? false : paginatedState.isLoading,
+  })),
 }));
 
 vi.mock('@/lib/partners-api', () => ({

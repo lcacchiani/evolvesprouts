@@ -2120,9 +2120,10 @@ paths:
         vendor and partner rows are both excluded (Contacts default). Pass
         `relationship_type=partner` for Services → Partners or `relationship_type=vendor`
         for Finance → Vendors.
-        List responses may omit related loads for performance when listing vendors
-        (`include_relationships=false` server-side); use `GET /v1/admin/organizations/{id}`
-        for full tags, members, and location summary.
+        List responses may omit related loads for performance when listing vendors only
+        (`include_relationships=false` server-side); partner lists still include tags,
+        members, and location summary. Use `GET /v1/admin/organizations/{id}` for full
+        detail when needed.
       security:
         - AdminBearerAuth: []
       parameters:

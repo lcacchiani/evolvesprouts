@@ -38,6 +38,7 @@ export function usePartners() {
     errorPrefix: 'Failed to load partners',
     debounceKeys: ['query'],
     limit: 50,
+    fetchOnMount: false,
   });
 
   const [isSaving, setIsSaving] = useState(false);

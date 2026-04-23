@@ -1,11 +1,16 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { createLocation, geocodeVenueAddress, updateLocationPartial } = vi.hoisted(() => ({
   createLocation: vi.fn(),
   geocodeVenueAddress: vi.fn(),
   updateLocationPartial: vi.fn().mockResolvedValue(null),
+}));
+
+const { mockSearchEntityContactsForPicker, mockGetAdminContact } = vi.hoisted(() => ({
+  mockSearchEntityContactsForPicker: vi.fn(),
+  mockGetAdminContact: vi.fn(),
 }));
 
 vi.mock('@/lib/services-api', async () => {
@@ -18,12 +23,30 @@ vi.mock('@/lib/services-api', async () => {
   };
 });
 
+vi.mock('@/lib/entity-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/entity-api')>();
+  return {
+    ...actual,
+    searchEntityContactsForPicker: mockSearchEntityContactsForPicker,
+    getAdminContact: mockGetAdminContact,
+  };
+});
+
 import { PartnersPanel } from '@/components/admin/services/partners-panel';
 
 import type { usePartners } from '@/hooks/use-partners';
 import type { components } from '@/types/generated/admin-api.generated';
 
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
+
+const panelShell = {
+  tags: [] as components['schemas']['EntityTagRef'][],
+  locations: [],
+  geographicAreas: [],
+  areasLoading: false,
+  refreshLocations: noopRefresh,
+  tagsLoadError: '',
+};
 
 function buildPartnersHook(
   overrides: Partial<ReturnType<typeof usePartners>> = {}
@@ -65,29 +88,18 @@ vi.mock('@/hooks/use-confirm-dialog', () => ({
 }));
 
 describe('PartnersPanel', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchEntityContactsForPicker.mockResolvedValue([]);
+    mockGetAdminContact.mockResolvedValue(null);
+  });
+
   it('always shows slug field and creates with relationship_type partner', async () => {
     const user = userEvent.setup();
     const createPartner = vi.fn().mockResolvedValue(null);
     const partners = buildPartnersHook({ createPartner });
 
-    render(
-      <PartnersPanel
-        partners={partners}
-        tags={[]}
-        locations={[]}
-        geographicAreas={[]}
-        areasLoading={false}
-        refreshLocations={noopRefresh}
-        contactOptions={[]}
-        contactsForMembership={[]}
-        contactsListError=''
-        contactsLoading={false}
-        contactsLoadMore={vi.fn()}
-        contactsHasMore={false}
-        contactsIsLoadingMore={false}
-        tagsLoadError=''
-      />
-    );
+    render(<PartnersPanel partners={partners} {...panelShell} />);
 
     expect(screen.getByLabelText('Slug')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Name'), 'Gamma');
@@ -108,24 +120,7 @@ describe('PartnersPanel', () => {
     const setFilter = vi.fn();
     const partners = buildPartnersHook({ setFilter });
 
-    render(
-      <PartnersPanel
-        partners={partners}
-        tags={[]}
-        locations={[]}
-        geographicAreas={[]}
-        areasLoading={false}
-        refreshLocations={noopRefresh}
-        contactOptions={[]}
-        contactsForMembership={[]}
-        contactsListError=''
-        contactsLoading={false}
-        contactsLoadMore={vi.fn()}
-        contactsHasMore={false}
-        contactsIsLoadingMore={false}
-        tagsLoadError=''
-      />
-    );
+    render(<PartnersPanel partners={partners} {...panelShell} />);
 
     const search = screen.getByLabelText('Search');
     await user.type(search, 'x');
@@ -156,24 +151,7 @@ describe('PartnersPanel', () => {
       updatePartner,
     });
 
-    render(
-      <PartnersPanel
-        partners={partners}
-        tags={[]}
-        locations={[]}
-        geographicAreas={[]}
-        areasLoading={false}
-        refreshLocations={noopRefresh}
-        contactOptions={[]}
-        contactsForMembership={[]}
-        contactsListError=''
-        contactsLoading={false}
-        contactsLoadMore={vi.fn()}
-        contactsHasMore={false}
-        contactsIsLoadingMore={false}
-        tagsLoadError=''
-      />
-    );
+    render(<PartnersPanel partners={partners} {...panelShell} />);
 
     await user.click(screen.getByText('Row Partner'));
     await user.clear(screen.getByLabelText('Name'));
@@ -190,9 +168,86 @@ describe('PartnersPanel', () => {
     );
   });
 
-  it('adds and removes a member', async () => {
+  it('searches contacts and adds a member', async () => {
     const user = userEvent.setup();
+    mockSearchEntityContactsForPicker.mockResolvedValue([{ id: 'c-new', label: 'New Person' }]);
+    mockGetAdminContact.mockResolvedValue({
+      id: 'c-new',
+      first_name: 'New',
+      last_name: 'Person',
+      email: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      source_detail: null,
+      instagram_handle: null,
+      phone_region: 'HK',
+      phone_national_number: null,
+      date_of_birth: null,
+      family_ids: [],
+      organization_ids: [],
+      tag_ids: [],
+      tags: [],
+      active: true,
+      standalone_note_count: 0,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    });
+
     const addMember = vi.fn().mockResolvedValue(null);
+    const row: components['schemas']['AdminOrganization'] = {
+      id: 'p-mem',
+      name: 'Mem Partner',
+      organization_type: 'company',
+      relationship_type: 'partner',
+      slug: 'mem',
+      website: null,
+      location_id: null,
+      location_summary: null,
+      tag_ids: [],
+      tags: [],
+      members: [
+        {
+          id: 'm1',
+          contact_id: 'c-old',
+          contact_label: 'Old Contact',
+          role: 'member',
+          is_primary_contact: false,
+        },
+      ],
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    };
+    const partners = buildPartnersHook({
+      partners: [row],
+      addMember,
+      removeMember: vi.fn().mockResolvedValue(null),
+    });
+
+    render(<PartnersPanel partners={partners} {...panelShell} />);
+
+    await user.click(screen.getByText('Mem Partner'));
+    await user.type(screen.getByLabelText('Find contact'), 'ne');
+
+    await waitFor(() => {
+      expect(mockSearchEntityContactsForPicker).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'New Person' })).toBeInTheDocument();
+    });
+
+    await user.selectOptions(screen.getByLabelText('Contact'), 'c-new');
+    await user.click(screen.getByRole('button', { name: 'Add member' }));
+    expect(addMember).toHaveBeenCalledWith('p-mem', {
+      contact_id: 'c-new',
+      is_primary_contact: false,
+    });
+  });
+
+  it('removes a member after confirmation', async () => {
+    const user = userEvent.setup();
     const removeMember = vi.fn().mockResolvedValue(null);
     const row: components['schemas']['AdminOrganization'] = {
       id: 'p-mem',
@@ -210,7 +265,7 @@ describe('PartnersPanel', () => {
           id: 'm1',
           contact_id: 'c-old',
           contact_label: 'Old Contact',
-          role: 'parent',
+          role: 'member',
           is_primary_contact: false,
         },
       ],
@@ -220,39 +275,12 @@ describe('PartnersPanel', () => {
     };
     const partners = buildPartnersHook({
       partners: [row],
-      addMember,
       removeMember,
     });
 
-    render(
-      <PartnersPanel
-        partners={partners}
-        tags={[]}
-        locations={[]}
-        geographicAreas={[]}
-        areasLoading={false}
-        refreshLocations={noopRefresh}
-        contactOptions={[{ id: 'c-new', label: 'New Person' }]}
-        contactsForMembership={[
-          { id: 'c-new', contact_type: 'parent', family_ids: [], organization_ids: [] },
-        ]}
-        contactsListError=''
-        contactsLoading={false}
-        contactsLoadMore={vi.fn()}
-        contactsHasMore={false}
-        contactsIsLoadingMore={false}
-        tagsLoadError=''
-      />
-    );
+    render(<PartnersPanel partners={partners} {...panelShell} />);
 
     await user.click(screen.getByText('Mem Partner'));
-    await user.selectOptions(screen.getByLabelText('Contact'), 'c-new');
-    await user.click(screen.getByRole('button', { name: 'Add member' }));
-    expect(addMember).toHaveBeenCalledWith('p-mem', {
-      contact_id: 'c-new',
-      is_primary_contact: false,
-    });
-
     await user.click(screen.getByRole('button', { name: 'Remove Old Contact from partner' }));
     await user.click(screen.getByRole('button', { name: 'Remove' }));
 
@@ -285,24 +313,7 @@ describe('PartnersPanel', () => {
       partners: [row],
     });
 
-    render(
-      <PartnersPanel
-        partners={partners}
-        tags={[]}
-        locations={[]}
-        geographicAreas={[]}
-        areasLoading={false}
-        refreshLocations={noopRefresh}
-        contactOptions={[]}
-        contactsForMembership={[]}
-        contactsListError=''
-        contactsLoading={false}
-        contactsLoadMore={vi.fn()}
-        contactsHasMore={false}
-        contactsIsLoadingMore={false}
-        tagsLoadError=''
-      />
-    );
+    render(<PartnersPanel partners={partners} {...panelShell} />);
 
     const table = screen.getByRole('table');
     await user.click(within(table).getByRole('button', { name: 'Delete partner' }));
