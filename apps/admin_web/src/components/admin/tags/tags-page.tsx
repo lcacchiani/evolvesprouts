@@ -46,11 +46,20 @@ export function TagsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
   const [restoreBusyId, setRestoreBusyId] = useState<string | null>(null);
+  const [listSearchQuery, setListSearchQuery] = useState('');
 
   const selectedRow = useMemo(
     () => tags.find((row) => row.id === selectedTagId) ?? null,
     [tags, selectedTagId]
   );
+
+  const filteredTags = useMemo(() => {
+    const q = listSearchQuery.trim().toLowerCase();
+    if (!q) {
+      return tags;
+    }
+    return tags.filter((row) => row.name.toLowerCase().includes(q));
+  }, [tags, listSearchQuery]);
 
   const loadTags = useCallback(async () => {
     setIsLoading(true);
@@ -207,7 +216,7 @@ export function TagsPage() {
   return (
     <div className='space-y-6'>
       <AdminEditorCard
-        title={editorMode === 'create' ? 'New tag' : 'Edit tag'}
+        title='Tag'
         description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers. Use Restore (below or in the table) to clear archive. System tags (expense_attachment, client_document) cannot be renamed, archived, or deleted.'
         actions={
           editorMode === 'edit' ? (
@@ -241,31 +250,33 @@ export function TagsPage() {
         }
       >
         <form id={EDITOR_FORM_ID} className='space-y-4' onSubmit={(event) => void handleSubmit(event)}>
-          <div>
-            <Label htmlFor='tag-name'>Name</Label>
-            <Input
-              id='tag-name'
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={100}
-              required
-              autoComplete='off'
-              disabled={Boolean(isEditingSystemTag)}
-            />
-            {isEditingSystemTag ? (
-              <p className='mt-1 text-sm text-slate-600'>This system-managed tag name cannot be changed.</p>
-            ) : null}
-          </div>
-          <div>
-            <Label htmlFor='tag-color'>Color (#RRGGBB)</Label>
-            <Input
-              id='tag-color'
-              value={color}
-              onChange={(event) => setColor(event.target.value)}
-              placeholder='#336699'
-              maxLength={7}
-              autoComplete='off'
-            />
+          <div className='flex flex-col gap-4 sm:flex-row sm:items-start'>
+            <div className='min-w-0 flex-1'>
+              <Label htmlFor='tag-name'>Name</Label>
+              <Input
+                id='tag-name'
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={100}
+                required
+                autoComplete='off'
+                disabled={Boolean(isEditingSystemTag)}
+              />
+              {isEditingSystemTag ? (
+                <p className='mt-1 text-sm text-slate-600'>This system-managed tag name cannot be changed.</p>
+              ) : null}
+            </div>
+            <div className='min-w-0 flex-1 sm:max-w-[220px]'>
+              <Label htmlFor='tag-color'>Color (#RRGGBB)</Label>
+              <Input
+                id='tag-color'
+                value={color}
+                onChange={(event) => setColor(event.target.value)}
+                placeholder='#336699'
+                maxLength={7}
+                autoComplete='off'
+              />
+            </div>
           </div>
           <div>
             <Label htmlFor='tag-description'>Description</Label>
@@ -291,6 +302,16 @@ export function TagsPage() {
         onLoadMore={() => {}}
         toolbar={
           <div className='mb-3 flex flex-wrap items-end gap-3'>
+            <div className='min-w-[200px] flex-1'>
+              <Label htmlFor='tags-list-search'>Search</Label>
+              <Input
+                id='tags-list-search'
+                value={listSearchQuery}
+                onChange={(event) => setListSearchQuery(event.target.value)}
+                placeholder='Name'
+                autoComplete='off'
+              />
+            </div>
             <div className='min-w-[160px]'>
               <Label htmlFor='tags-list-filter'>Status</Label>
               <Select
@@ -318,7 +339,7 @@ export function TagsPage() {
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {tags.map((row) => (
+            {filteredTags.map((row) => (
               <tr
                 key={row.id}
                 className={`cursor-pointer transition ${
