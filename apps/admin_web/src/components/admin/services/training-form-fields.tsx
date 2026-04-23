@@ -50,10 +50,11 @@ export function TrainingPriceControl({
   value,
   disabled = false,
   onChange,
-}: Pick<TrainingFormFieldsProps, 'value' | 'disabled' | 'onChange'>) {
+  priceLabel = 'Price',
+}: Pick<TrainingFormFieldsProps, 'value' | 'disabled' | 'onChange'> & { priceLabel?: string }) {
   return (
     <div>
-      <Label htmlFor='training-default-price'>Price</Label>
+      <Label htmlFor='training-default-price'>{priceLabel}</Label>
       <Input
         id='training-default-price'
         value={value.defaultPrice}

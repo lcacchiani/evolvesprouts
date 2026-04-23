@@ -198,6 +198,25 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Default price')).toBeInTheDocument();
   });
 
+  it('labels training course default amount as Default price', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+
+    expect(screen.getByLabelText('Default price')).toBeInTheDocument();
+  });
+
   it('shows consultation Row D/E fields without Calendly', async () => {
     const user = userEvent.setup();
     render(

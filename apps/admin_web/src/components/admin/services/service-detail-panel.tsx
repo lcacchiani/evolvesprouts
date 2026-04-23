@@ -552,7 +552,11 @@ export function ServiceDetailPanel({
         {serviceType === 'training_course' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <div aria-hidden className='hidden md:block' />
-            <TrainingPriceControl value={trainingForm} onChange={setTrainingForm} />
+            <TrainingPriceControl
+              value={trainingForm}
+              onChange={setTrainingForm}
+              priceLabel='Default price'
+            />
             <TrainingCurrencyControl value={trainingForm} onChange={setTrainingForm} />
             <div aria-hidden className='hidden md:block' />
           </div>
