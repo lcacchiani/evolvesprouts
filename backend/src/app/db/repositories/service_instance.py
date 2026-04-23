@@ -18,6 +18,7 @@ from app.db.models import (
     InstanceStatus,
     Service,
     ServiceInstancePartnerOrganization,
+    ServiceInstanceTag,
     ServiceStatus,
     ServiceInstance,
     ServiceType,
@@ -57,6 +58,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 selectinload(ServiceInstance.ticket_tiers),
                 selectinload(ServiceInstance.partner_organization_links).joinedload(
                     ServiceInstancePartnerOrganization.organization
+                ),
+                selectinload(ServiceInstance.instance_tags).selectinload(
+                    ServiceInstanceTag.tag
                 ),
             )
         )
@@ -110,6 +114,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             selectinload(ServiceInstance.ticket_tiers),
             selectinload(ServiceInstance.partner_organization_links).joinedload(
                 ServiceInstancePartnerOrganization.organization
+            ),
+            selectinload(ServiceInstance.instance_tags).selectinload(
+                ServiceInstanceTag.tag
             ),
             joinedload(ServiceInstance.service),
         )
@@ -172,6 +179,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 selectinload(ServiceInstance.ticket_tiers),
                 selectinload(ServiceInstance.partner_organization_links).joinedload(
                     ServiceInstancePartnerOrganization.organization
+                ),
+                selectinload(ServiceInstance.instance_tags).selectinload(
+                    ServiceInstanceTag.tag
                 ),
                 selectinload(ServiceInstance.enrollments),
             )

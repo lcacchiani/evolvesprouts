@@ -34,6 +34,12 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
   };
 }
 
+const defaultEntityTagProps = {
+  entityTags: [] as import('@/lib/entity-api').EntityTagRef[],
+  entityTagsLoading: false,
+  entityTagsError: '',
+};
+
 function buildLocationSummary(overrides: Partial<LocationSummary> = {}): LocationSummary {
   return {
     id: 'location-1',
@@ -58,6 +64,7 @@ describe('InstanceDetailPanel', () => {
   it('renders service and location selectors in create mode', () => {
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId={null}
         serviceOptions={[buildServiceSummary()]}
@@ -87,6 +94,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='service-1'
         serviceOptions={[buildServiceSummary()]}
@@ -109,6 +117,43 @@ describe('InstanceDetailPanel', () => {
       expect.objectContaining({
         status: 'scheduled',
         partner_organization_ids: [],
+        tag_ids: [],
+      })
+    );
+  });
+
+  it('includes selected tag ids when Tags picker is used', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InstanceDetailPanel
+        entityTags={[{ id: 'tag-alpha', name: 'Alpha', color: null }]}
+        entityTagsLoading={false}
+        entityTagsError=''
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary()]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByText('Tags'));
+    await user.click(screen.getByRole('checkbox', { name: 'Alpha' }));
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+
+    expect(onCreate).toHaveBeenCalledWith(
+      'service-1',
+      expect.objectContaining({
+        tag_ids: ['tag-alpha'],
       })
     );
   });
@@ -119,6 +164,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='service-1'
         serviceOptions={[
@@ -152,6 +198,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId={null}
         serviceOptions={[
@@ -194,6 +241,7 @@ describe('InstanceDetailPanel', () => {
 
     render(
       <InstanceDetailPanel
+        {...defaultEntityTagProps}
         instance={null}
         selectedServiceId='evt-svc'
         serviceOptions={[
@@ -244,6 +292,7 @@ describe('InstanceDetailPanel', () => {
           }),
         ],
         partner_organization_ids: [],
+        tag_ids: [],
       })
     );
   });

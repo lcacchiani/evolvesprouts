@@ -129,6 +129,9 @@ export function ServicesPage() {
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
+            entityTags={state.entityTags}
+            entityTagsLoading={state.entityTagsLoading}
+            entityTagsError={state.entityTagsError}
             selectedServiceId={instancesContextServiceId}
             serviceOptions={allServiceOptions}
             locationOptions={state.locationList.locations}

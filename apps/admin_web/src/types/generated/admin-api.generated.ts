@@ -4236,7 +4236,13 @@ export interface components {
             external_url?: string | null;
             partner_organizations?: components["schemas"]["InstancePartnerOrganization"][];
             instructor_id?: string | null;
+            /** @description Optional label using the same normalization rules as instance referral slugs (lowercase letters, digits, single hyphens between segments). */
+            age_group?: string | null;
+            /** @description Optional label using the same normalization rules as instance referral slugs (lowercase letters, digits, single hyphens between segments). */
+            cohort?: string | null;
             notes?: string | null;
+            tags?: components["schemas"]["EntityTagRef"][];
+            tag_ids?: string[];
             created_by?: string;
             /** Format: date-time */
             created_at?: string | null;
@@ -4290,7 +4296,11 @@ export interface components {
             /** @description Ordered partner organization ids for event instances. Unknown ids return 400. */
             partner_organization_ids?: string[];
             instructor_id?: string | null;
+            age_group?: string | null;
+            cohort?: string | null;
             notes?: string | null;
+            /** @description Replaces all instance tag associations when present (including on PUT). The admin web UI sends this on every instance save; omit the field only if a non-UI client must patch other fields without changing tags. */
+            tag_ids?: string[];
             session_slots?: components["schemas"]["SessionSlot"][];
             training_details?: {
                 training_format?: components["schemas"]["TrainingFormat"];

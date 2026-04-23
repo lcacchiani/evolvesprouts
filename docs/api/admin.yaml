@@ -3767,9 +3767,34 @@ components:
         instructor_id:
           type: string
           nullable: true
+        age_group:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional label using the same normalization rules as instance referral slugs
+            (lowercase letters, digits, single hyphens between segments).
+        cohort:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional label using the same normalization rules as instance referral slugs
+            (lowercase letters, digits, single hyphens between segments).
         notes:
           type: string
           nullable: true
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityTagRef"
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         created_by:
           type: string
         created_at:
@@ -3901,9 +3926,28 @@ components:
         instructor_id:
           type: string
           nullable: true
+        age_group:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        cohort:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
         notes:
           type: string
           nullable: true
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: >
+            Replaces all instance tag associations when present (including on PUT).
+            The admin web UI sends this on every instance save; omit the field only if
+            a non-UI client must patch other fields without changing tags.
         session_slots:
           type: array
           items:

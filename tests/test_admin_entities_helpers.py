@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
+from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
 
 from app.api.admin_entities_helpers import (
     FAMILY_RELATIONSHIP_TYPES,
     ORGANIZATION_RELATIONSHIP_TYPES,
+    replace_service_instance_tags,
     request_id,
     parse_contact_type_filter,
     parse_relationship_type,
 )
-from app.db.models import RelationshipType
+from app.db.models import RelationshipType, ServiceInstanceTag
 from app.db.models.enums import ContactType
 from app.exceptions import ValidationError
 
@@ -94,3 +98,58 @@ def test_parse_contact_type_filter_accepts_known_values() -> None:
 def test_parse_contact_type_filter_rejects_unknown() -> None:
     with pytest.raises(ValidationError, match="contact_type"):
         parse_contact_type_filter("not_a_type")
+
+
+@pytest.mark.filterwarnings("ignore::sqlalchemy.exc.SAWarning")
+def test_replace_service_instance_tags_dedupes_preserving_order() -> None:
+    instance_id = uuid4()
+    t1, t2 = uuid4(), uuid4()
+    session = MagicMock()
+    added: list[ServiceInstanceTag] = []
+
+    def fake_get(_model: type, pk: object) -> object | None:
+        if pk == t1:
+            return SimpleNamespace(id=t1)
+        if pk == t2:
+            return SimpleNamespace(id=t2)
+        return None
+
+    session.get.side_effect = fake_get
+    session.add.side_effect = lambda row: added.append(row)
+
+    replace_service_instance_tags(
+        session,
+        instance_id=instance_id,
+        tag_ids=[t2, t1, t2],
+    )
+
+    assert len(added) == 2
+    assert isinstance(added[0], ServiceInstanceTag)
+    assert added[0].service_instance_id == instance_id
+    assert added[0].tag_id == t2
+    assert added[1].tag_id == t1
+    session.execute.assert_called_once()
+    session.flush.assert_called_once()
+
+
+@pytest.mark.filterwarnings("ignore::sqlalchemy.exc.SAWarning")
+def test_replace_service_instance_tags_unknown_id_sets_field() -> None:
+    instance_id = uuid4()
+    known = uuid4()
+    missing = uuid4()
+    session = MagicMock()
+
+    def fake_get(_model: type, pk: object) -> object | None:
+        if pk == known:
+            return SimpleNamespace(id=known)
+        return None
+
+    session.get.side_effect = fake_get
+
+    with pytest.raises(ValidationError, match="tag_id not found") as exc:
+        replace_service_instance_tags(
+            session,
+            instance_id=instance_id,
+            tag_ids=[known, missing],
+        )
+    assert exc.value.field == "tag_ids"

@@ -230,7 +230,10 @@ export interface ServiceInstance {
   externalUrl: string | null;
   partnerOrganizations: PartnerOrgRef[];
   instructorId: string | null;
+  ageGroup: string | null;
+  cohort: string | null;
   notes: string | null;
+  tagIds: string[];
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;

@@ -12,6 +12,7 @@ from app.api.admin_request import query_param
 from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,
     parse_optional_service_instance_slug,
+    parse_optional_service_instance_slug_like_text,
 )
 from app.api.admin_services_cursor import parse_created_cursor
 from app.api.admin_service_instance_partners import parse_partner_organization_ids
@@ -350,6 +351,12 @@ def parse_create_instance_payload(
         )
         or False,
         "instructor_id": parse_optional_text(body.get("instructor_id"), max_length=128),
+        "age_group": parse_optional_service_instance_slug_like_text(
+            body.get("age_group"), field="age_group"
+        ),
+        "cohort": parse_optional_service_instance_slug_like_text(
+            body.get("cohort"), field="cohort"
+        ),
         "notes": parse_optional_text(
             body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -358,6 +365,7 @@ def parse_create_instance_payload(
         ),
         "partner_organization_ids": parse_partner_organization_ids(body),
         "session_slots": parse_session_slots(body.get("session_slots")),
+        "tag_ids": parse_uuid_list(body.get("tag_ids"), "tag_ids"),
         "type_details": parse_instance_type_details(service.service_type, body),
     }
 
@@ -412,6 +420,14 @@ def parse_update_instance_payload(
         payload["instructor_id"] = parse_optional_text(
             body.get("instructor_id"), max_length=128
         )
+    if has_field(body, "age_group"):
+        payload["age_group"] = parse_optional_service_instance_slug_like_text(
+            body.get("age_group"), field="age_group"
+        )
+    if has_field(body, "cohort"):
+        payload["cohort"] = parse_optional_service_instance_slug_like_text(
+            body.get("cohort"), field="cohort"
+        )
     if has_field(body, "notes"):
         payload["notes"] = parse_optional_text(
             body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
@@ -424,6 +440,8 @@ def parse_update_instance_payload(
         payload["partner_organization_ids"] = parse_partner_organization_ids(body)
     if has_field(body, "session_slots"):
         payload["session_slots"] = parse_session_slots(body.get("session_slots"))
+    if has_field(body, "tag_ids"):
+        payload["tag_ids"] = parse_uuid_list(body.get("tag_ids"), "tag_ids")
     if has_any_field(
         body,
         "training_details",

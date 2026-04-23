@@ -20,6 +20,9 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     setInstancesServiceTypeFilter: vi.fn(),
     instancesSearchQuery: '',
     setInstancesSearchQuery: vi.fn(),
+    entityTags: [],
+    entityTagsLoading: false,
+    entityTagsError: '',
     serviceList: {
       services: [],
       filters: { serviceType: '', status: 'published', search: '' },

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from app.db.models.contact import Contact
     from app.db.models.family import Family
     from app.db.models.organization import Organization
+    from app.db.models.service_instance import ServiceInstanceTag
 
 
 class Tag(Base):
@@ -64,6 +65,11 @@ class Tag(Base):
     )
     asset_tags: Mapped[list["AssetTag"]] = relationship(
         "AssetTag",
+        back_populates="tag",
+        cascade="all, delete-orphan",
+    )
+    service_instance_tags: Mapped[list["ServiceInstanceTag"]] = relationship(
+        "ServiceInstanceTag",
         back_populates="tag",
         cascade="all, delete-orphan",
     )

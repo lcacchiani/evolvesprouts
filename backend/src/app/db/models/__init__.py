@@ -58,6 +58,7 @@ from app.db.models.service_instance import (
     InstanceSessionSlot,
     ServiceInstance,
     ServiceInstancePartnerOrganization,
+    ServiceInstanceTag,
     TrainingInstanceDetails,
 )
 from app.db.models.tag import AssetTag, ContactTag, FamilyTag, OrganizationTag, Tag
@@ -120,6 +121,7 @@ __all__ = [
     "ServiceDeliveryMode",
     "ServiceInstance",
     "ServiceInstancePartnerOrganization",
+    "ServiceInstanceTag",
     "ServiceStatus",
     "ServiceTag",
     "ServiceType",

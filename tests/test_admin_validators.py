@@ -4,6 +4,7 @@ import pytest
 
 from app.api.admin_validators import (
     parse_optional_service_instance_slug,
+    parse_optional_service_instance_slug_like_text,
     validate_email,
     validate_string_length,
 )
@@ -35,3 +36,20 @@ def test_parse_optional_service_instance_slug_rejects_invalid() -> None:
         parse_optional_service_instance_slug("Bad_Slug")
     with pytest.raises(ValidationError, match="lowercase letters"):
         parse_optional_service_instance_slug("double--hyphen")
+
+
+def test_parse_optional_service_instance_slug_like_text_matches_slug_rules() -> None:
+    assert parse_optional_service_instance_slug_like_text(
+        "  Spring-Cohort  ", field="cohort"
+    ) == "spring-cohort"
+    assert parse_optional_service_instance_slug_like_text(None, field="age_group") is None
+    assert parse_optional_service_instance_slug_like_text("   ", field="age_group") is None
+
+
+def test_parse_optional_service_instance_slug_like_text_sets_field_on_error() -> None:
+    with pytest.raises(ValidationError, match="lowercase letters") as excinfo:
+        parse_optional_service_instance_slug_like_text("Bad_Slug", field="age_group")
+    assert excinfo.value.field == "age_group"
+    with pytest.raises(ValidationError, match="lowercase letters") as excinfo2:
+        parse_optional_service_instance_slug_like_text("a--b", field="cohort")
+    assert excinfo2.value.field == "cohort"
