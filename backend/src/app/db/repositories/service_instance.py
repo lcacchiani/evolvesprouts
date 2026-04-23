@@ -197,10 +197,11 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         landing_page: str | None = None,
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services."""
-        if not service_types:
-            types_tuple = (ServiceType.EVENT, ServiceType.TRAINING_COURSE)
-        else:
-            types_tuple = tuple(sorted(service_types, key=lambda t: t.value))
+        types_tuple: tuple[ServiceType, ...] = (
+            (ServiceType.EVENT, ServiceType.TRAINING_COURSE)
+            if not service_types
+            else tuple(sorted(service_types, key=lambda t: t.value))
+        )
         earliest_upcoming_slot = (
             select(func.min(InstanceSessionSlot.starts_at))
             .where(InstanceSessionSlot.instance_id == ServiceInstance.id)
