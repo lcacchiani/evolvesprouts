@@ -149,6 +149,7 @@ export function ServiceListPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
+              <th className='px-4 py-3 font-semibold'>Tier</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Price</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
@@ -170,6 +171,7 @@ export function ServiceListPanel({
                 aria-selected={selectedServiceId === service.id}
               >
                 <td className='px-4 py-3'>{service.title}</td>
+                <td className='px-4 py-3'>{service.serviceTier?.trim() ? service.serviceTier : '—'}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
                 <td className='px-4 py-3'>{formatServiceListPriceLabel(service)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>

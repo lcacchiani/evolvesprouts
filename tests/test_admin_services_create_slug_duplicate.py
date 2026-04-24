@@ -13,9 +13,9 @@ from app.db.models import Service, TrainingCourseDetails
 from app.exceptions import ValidationError
 
 
-def _make_services_slug_integrity_error() -> IntegrityError:
+def _make_services_slug_tier_integrity_error() -> IntegrityError:
     class _Diag:
-        constraint_name = "services_slug_unique_idx"
+        constraint_name = "services_slug_tier_unique_idx"
 
     class _Orig:
         diag = _Diag()
@@ -53,7 +53,7 @@ def test_create_service_duplicate_slug_maps_to_validation_error(
             pass
 
         def create_service(self, _service: Service, _details: TrainingCourseDetails) -> Service:
-            raise _make_services_slug_integrity_error()
+            raise _make_services_slug_tier_integrity_error()
 
     monkeypatch.setattr(admin_services, "Session", _SessionCtx)
     monkeypatch.setattr(admin_services, "get_engine", lambda: object())
@@ -65,6 +65,7 @@ def test_create_service_duplicate_slug_maps_to_validation_error(
         "service_type": "training_course",
         "title": "Another course",
         "slug": "existing-slug",
+        "service_tier": "shared-tier",
         "delivery_mode": "online",
         "status": "draft",
         "tag_ids": [],

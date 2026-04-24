@@ -205,11 +205,10 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_services_slug_unique_violation(exc):
-                raise ValidationError(
-                    "Referral slug already in use",
-                    field="slug",
-                    status_code=409,
+            if _is_services_slug_tier_unique_violation(exc):
+                raise _slug_tier_uniqueness_validation_error(
+                    slug=payload["slug"],
+                    service_tier=payload["service_tier"],
                 ) from exc
             raise
         with_details = repository.get_by_id_with_details(created.id)
@@ -303,11 +302,10 @@ def _update_service(
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_services_slug_unique_violation(exc):
-                raise ValidationError(
-                    "Referral slug already in use",
-                    field="slug",
-                    status_code=409,
+            if _is_services_slug_tier_unique_violation(exc):
+                raise _slug_tier_uniqueness_validation_error(
+                    slug=service.slug,
+                    service_tier=service.service_tier,
                 ) from exc
             raise
         with_details = repository.get_by_id_with_details(updated.id)
@@ -458,17 +456,39 @@ def _get_discount_code_usage_summary(
         )
 
 
-def _is_services_slug_unique_violation(exc: IntegrityError) -> bool:
+def _slug_tier_uniqueness_validation_error(
+    *, slug: str | None, service_tier: str | None
+) -> ValidationError:
+    """409 for duplicate (referral slug, service tier) pair."""
+    if slug:
+        if service_tier:
+            return ValidationError(
+                "Another service already uses this referral slug with the same tier. "
+                "Change the slug or use a different tier.",
+                field="slug",
+                status_code=409,
+            )
+        return ValidationError(
+            "Another service already uses this referral slug with an empty tier. "
+            "Set a tier or change the slug.",
+            field="service_tier",
+            status_code=409,
+        )
+    return ValidationError(
+        "Service slug and tier combination conflicts with an existing service.",
+        field="slug",
+        status_code=409,
+    )
+
+
+def _is_services_slug_tier_unique_violation(exc: IntegrityError) -> bool:
     orig = getattr(exc.orig, "__cause__", None) or exc.orig
     diag = getattr(orig, "diag", None)
     constraint = getattr(diag, "constraint_name", None) if diag else None
-    if constraint == "services_slug_unique_idx":
+    if constraint == "services_slug_tier_unique_idx":
         return True
     message = str(exc).lower()
-    # Prefer diag.constraint_name (above). Some drivers omit it; keep a narrow
-    # substring fallback so unrelated unique violations (e.g. instance slug) do
-    # not map to a services.slug 409.
-    if "services_slug_unique_idx" not in message:
+    if "services_slug_tier_unique_idx" not in message:
         return False
     if "svc_instances_slug" in message:
         return False

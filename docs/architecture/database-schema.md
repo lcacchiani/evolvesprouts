@@ -62,6 +62,11 @@ Migration `0023_services_add_slug` adds nullable `services.slug` (varchar(80)) w
 unique partial index `services_slug_unique_idx` on `lower(slug)` where `slug` is not
 null (case-insensitive uniqueness for public referral URLs).
 
+Migration `0041_slug_tier_unique` drops `services_slug_unique_idx` and creates
+`services_slug_tier_unique_idx` on `(lower(slug), lower(service_tier))` where `slug`
+is not null, so the same referral slug may exist on different tiers (and duplicate
+slug with empty tier remains disallowed).
+
 Migration `0032_services_booking` adds nullable `services.booking_system` (varchar(80))
 for an optional admin-visible booking-system label.
 
@@ -448,7 +453,8 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 
 - `services` stores reusable templates (title/description/cover image, type,
   delivery mode, status).
-- Optional `slug` for public referral URLs.
+- Optional `slug` for public referral URLs; uniqueness is case-insensitive on the
+  pair `(slug, service_tier)` when `slug` is set (see `services_slug_tier_unique_idx`).
 - Optional `booking_system` varchar(80) for an admin-visible booking-system label.
 - Optional `service_tier` varchar(128): slug-like tier id shared by all instances.
 - Optional `location_id` UUID FK to `locations.id` ON DELETE SET NULL: default venue for

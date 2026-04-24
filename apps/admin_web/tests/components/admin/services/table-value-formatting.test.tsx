@@ -137,7 +137,7 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Training Course')).toBeInTheDocument();
     expect(within(table).getByText('Published')).toBeInTheDocument();
     expect(within(table).getByText('In Person')).toBeInTheDocument();
-    expect(within(table).getByText('—')).toBeInTheDocument();
+    expect(within(table).getAllByText('—').length).toBeGreaterThanOrEqual(1);
   });
 
   it('disables delete when the service has instances', () => {

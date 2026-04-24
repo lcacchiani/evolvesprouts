@@ -1420,7 +1420,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug conflict. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1602,7 +1602,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug conflict. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1679,7 +1679,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug conflict. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
                 409: {
                     headers: {
                         [name: string]: unknown;
