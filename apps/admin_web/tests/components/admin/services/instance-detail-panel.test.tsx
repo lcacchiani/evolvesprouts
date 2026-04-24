@@ -6,6 +6,10 @@ import { InstanceDetailPanel } from '@/components/admin/services/instance-detail
 import * as entityApi from '@/lib/entity-api';
 import type { LocationSummary, ServiceInstance, ServiceSummary } from '@/types/services';
 
+vi.mock('@/hooks/use-instructor-users', () => ({
+  useInstructorUsers: () => ({ users: [], isLoading: false, error: '', refetch: vi.fn() }),
+}));
+
 vi.mock('@/lib/entity-api', async () => {
   const actual = await vi.importActual<typeof import('@/lib/entity-api')>('@/lib/entity-api');
   return {
@@ -61,6 +65,10 @@ function buildLocationSummary(overrides: Partial<LocationSummary> = {}): Locatio
 }
 
 describe('InstanceDetailPanel', () => {
+  beforeAll(() => {
+    process.env.TZ = 'UTC';
+  });
+
   beforeEach(() => {
     vi.mocked(entityApi.listEntityPartnerOrganizationPicker).mockResolvedValue([]);
   });
@@ -429,6 +437,167 @@ describe('InstanceDetailPanel', () => {
       expect.objectContaining({
         slug: null,
         cohort: 'spring-2026',
+      })
+    );
+  });
+
+  it('maps UTC session slots to local wall inputs and sends Z-suffixed instants on update', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const instance: ServiceInstance = {
+      id: 'inst-utc',
+      serviceId: 'service-1',
+      parentServiceTitle: null,
+      parentServiceType: 'training_course',
+      title: 'UTC slots',
+      slug: 'utc-slots',
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: 'online',
+      locationId: 'location-1',
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: '',
+      tagIds: [],
+      createdBy: 'admin',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: 'location-1',
+      sessionSlots: [
+        {
+          id: 'slot-a',
+          instanceId: 'inst-utc',
+          locationId: 'location-1',
+          startsAt: '2026-06-01T10:00:00Z',
+          endsAt: '2026-06-01T11:00:00Z',
+          sortOrder: 0,
+        },
+      ],
+      trainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      resolvedTrainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={instance}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary({ locationId: 'location-1' })]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+      />
+    );
+
+    await user.click(screen.getByText('Session slots'));
+    const startInput = await screen.findByLabelText('Start time');
+    expect(startInput).toHaveValue('2026-06-01T10:00');
+
+    await user.clear(startInput);
+    await user.type(startInput, '2026-06-01T12:00');
+    const endInput = screen.getByLabelText('End time');
+    await user.clear(endInput);
+    await user.type(endInput, '2026-06-01T14:00');
+
+    await user.click(screen.getByRole('button', { name: 'Update instance' }));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      'service-1',
+      'inst-utc',
+      expect.objectContaining({
+        session_slots: [
+          expect.objectContaining({
+            starts_at: '2026-06-01T12:00:00.000Z',
+            ends_at: '2026-06-01T14:00:00.000Z',
+          }),
+        ],
+      })
+    );
+  });
+
+  it('prefills new session slot location from service default when instance venue is empty', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const venueFromService = '99999999-9999-9999-9999-999999999999';
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[
+          buildServiceSummary({
+            locationId: venueFromService,
+          }),
+        ]}
+        locationOptions={[
+          buildLocationSummary({
+            id: venueFromService,
+            name: 'Service default venue',
+          }),
+        ]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByText('Session slots'));
+    await user.click(screen.getByRole('button', { name: /add slot/i }));
+    const startInput = screen.getByLabelText('Start time');
+    await user.type(startInput, '2026-08-20T09:00');
+
+    const locationSelects = screen.getAllByLabelText('Location');
+    const slotLocationSelect = locationSelects.find((el) => el.id === 'slot-0-location');
+    expect(slotLocationSelect).toBeDefined();
+    expect(slotLocationSelect).toHaveValue(venueFromService);
+
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+    expect(onCreate).toHaveBeenCalledWith(
+      'service-1',
+      expect.objectContaining({
+        session_slots: [
+          expect.objectContaining({
+            location_id: venueFromService,
+            starts_at: '2026-08-20T09:00:00.000Z',
+            ends_at: '2026-08-20T11:00:00.000Z',
+          }),
+        ],
       })
     );
   });

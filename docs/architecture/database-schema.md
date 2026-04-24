@@ -478,7 +478,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
     `eventbrite_retry_count`
 - Scheduling/detail tables:
-  - `instance_session_slots` (time blocks + optional location). The public calendar feed
+  - `instance_session_slots` (time blocks + optional location; `starts_at` / `ends_at`
+    are `timestamptz` in Aurora). The admin API rejects naive datetimes in
+    `session_slots` payloads so only explicit instants are stored. The public calendar feed
     eager-loads `Service.location` only in `list_public_offerings`; venue resolution is
     slot location, then instance `location_id`, then parent `services.location_id`.
   - `training_instance_details`
