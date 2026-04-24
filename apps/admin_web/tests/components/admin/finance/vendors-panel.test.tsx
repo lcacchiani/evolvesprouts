@@ -36,7 +36,7 @@ describe('VendorsPanel', () => {
 
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
     const columnHeaders = screen.getAllByRole('columnheader').map((el) => el.textContent?.trim() ?? '');
-    expect(columnHeaders).toEqual(['Name', 'Status', 'Total spend (HKD)', 'Operations']);
+    expect(columnHeaders).toEqual(['Name', 'Status', 'Total Spend', 'Operations']);
     expect(screen.getByText('HK$1,234.56')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Make vendor inactive' })).toBeInTheDocument();
   });
