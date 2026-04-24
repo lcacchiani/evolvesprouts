@@ -613,13 +613,13 @@ export function ServiceDetailPanel({
             slugConflictError={slugConflictError || undefined}
           />
           <div>
-            <div className='mb-1 flex min-h-[1.25rem] items-center gap-1.5'>
-              <Label htmlFor='service-status' className='mb-0'>
+            <div className='relative mb-1'>
+              <Label htmlFor='service-status' className='mb-0 block pr-7'>
                 Status
               </Label>
               {serviceForm.status === 'draft' ? (
                 <span
-                  className='inline-flex shrink-0 text-amber-600'
+                  className='absolute right-0 top-1/2 inline-flex -translate-y-1/2 text-amber-600'
                   role='img'
                   aria-label='Draft — not published to the website'
                   title='Draft — not published to the website'
