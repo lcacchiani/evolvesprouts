@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
+import { formatInstanceCohortDisplay } from '@/lib/format';
 import { getInstance, getService } from '@/lib/services-api';
 import type { ServiceDetail, ServiceInstance } from '@/types/services';
 
@@ -77,16 +78,18 @@ export function ServicesPage() {
   const filteredInstances =
     state.activeView === 'instances' && normalizedInstanceSearch
       ? state.instanceList.instances.filter((instance) => {
-          const searchable = [
+          const parts: string[] = [
             instance.resolvedTitle,
             instance.title,
             instance.parentServiceTitle,
             instance.instructorId,
             instance.status,
-          ]
-            .filter((value): value is string => Boolean(value))
-            .join(' ')
-            .toLowerCase();
+          ].filter((value): value is string => Boolean(value));
+          const cohortTrimmed = instance.cohort?.trim();
+          if (cohortTrimmed) {
+            parts.push(cohortTrimmed, formatInstanceCohortDisplay(instance.cohort));
+          }
+          const searchable = parts.join(' ').toLowerCase();
           return searchable.includes(normalizedInstanceSearch);
         })
       : state.instanceList.instances;
@@ -245,7 +248,6 @@ export function ServicesPage() {
             }}
             onLoadMore={state.instanceList.loadMore}
             showServiceColumn
-            showTypeColumn
             searchFilter={{
               value: state.instancesSearchQuery,
               onChange: state.setInstancesSearchQuery,
