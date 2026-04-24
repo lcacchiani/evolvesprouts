@@ -10,6 +10,7 @@ import type { DiscountCode, Enrollment, ServiceInstance, ServiceSummary } from '
 
 const SERVICE_FIXTURE: ServiceSummary = {
   id: 'service-1',
+  instancesCount: 0,
   serviceType: 'training_course',
   title: 'Service title',
   slug: null,
@@ -124,6 +125,28 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Published')).toBeInTheDocument();
     expect(within(table).getByText('In Person')).toBeInTheDocument();
     expect(within(table).getByText(formatDate(SERVICE_FIXTURE.createdAt))).toBeInTheDocument();
+  });
+
+  it('disables delete when the service has instances', () => {
+    const withInstances: ServiceSummary = { ...SERVICE_FIXTURE, instancesCount: 2 };
+    render(
+      <ServiceListPanel
+        services={[withInstances]}
+        selectedServiceId={null}
+        filters={{ serviceType: '', status: '', search: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectService={vi.fn()}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDeleteService={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /cannot delete service while it has instances/i })).toBeDisabled();
   });
 
   it('formats enum values in instance and discount tables', () => {

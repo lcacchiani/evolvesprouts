@@ -1267,6 +1267,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Service has instances and cannot be deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/services/{id}/cover-image:
     parameters:
@@ -3567,6 +3573,7 @@ components:
         - title
         - delivery_mode
         - status
+        - instances_count
       properties:
         id:
           type: string
@@ -3634,6 +3641,10 @@ components:
             - $ref: "#/components/schemas/ServiceEventDetails"
           nullable: true
           description: Present for event rows when details exist.
+        instances_count:
+          type: integer
+          minimum: 0
+          description: Number of service instances for this template (list and detail payloads).
     Service:
       allOf:
         - $ref: "#/components/schemas/ServiceSummary"
@@ -3649,8 +3660,6 @@ components:
               items:
                 type: string
                 format: uuid
-            instances_count:
-              type: integer
             training_details:
               $ref: "#/components/schemas/ServiceTrainingDetails"
             event_details:

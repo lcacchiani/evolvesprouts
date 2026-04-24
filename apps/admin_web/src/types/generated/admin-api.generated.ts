@@ -1632,6 +1632,15 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
+                /** @description Service has instances and cannot be deleted. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         options?: never;
@@ -4320,11 +4329,12 @@ export interface components {
             training_details?: components["schemas"]["ServiceTrainingDetails"] | null;
             /** @description Present for event rows when details exist. */
             event_details?: components["schemas"]["ServiceEventDetails"] | null;
+            /** @description Number of service instances for this template (list and detail payloads). */
+            instances_count: number;
         };
         Service: components["schemas"]["ServiceSummary"] & {
             tag_ids?: string[];
             asset_ids?: string[];
-            instances_count?: number;
             training_details?: components["schemas"]["ServiceTrainingDetails"];
             event_details?: components["schemas"]["ServiceEventDetails"];
             consultation_details?: components["schemas"]["ServiceConsultationDetails"];

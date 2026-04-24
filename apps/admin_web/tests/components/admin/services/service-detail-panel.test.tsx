@@ -9,6 +9,7 @@ import type { ServiceDetail } from '@/types/services';
 function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
   return {
     id: 'service-1',
+    instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
     slug: null,
@@ -24,7 +25,6 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     updatedAt: '2025-01-02T00:00:00Z',
     tagIds: [],
     assetIds: [],
-    instancesCount: 0,
     trainingDetails: {
       pricingUnit: 'per_person',
       defaultPrice: null,
