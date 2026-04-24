@@ -87,7 +87,7 @@ describe('TagsPage', () => {
     expect(
       within(betaRow as HTMLElement).getByRole('button', { name: 'Cannot delete tag while it is in use' })
     ).toBeDisabled();
-    expect(within(betaRow as HTMLElement).getByRole('button', { name: 'Archive' })).not.toBeDisabled();
+    expect(within(betaRow as HTMLElement).getByRole('button', { name: 'Archive tag' })).not.toBeDisabled();
 
     const alphaRow = within(tagsSection).getByRole('cell', { name: /Alpha/ }).closest('tr');
     expect(alphaRow).toBeTruthy();
@@ -105,7 +105,7 @@ describe('TagsPage', () => {
 
     const alphaRow = within(tagsSection).getByRole('cell', { name: /Alpha/ }).closest('tr');
     expect(alphaRow).toBeTruthy();
-    await user.click(within(alphaRow as HTMLElement).getByRole('button', { name: 'Archive' }));
+    await user.click(within(alphaRow as HTMLElement).getByRole('button', { name: 'Archive tag' }));
 
     const dialog = await screen.findByRole('alertdialog');
     await user.click(within(dialog).getByRole('button', { name: 'Archive' }));
