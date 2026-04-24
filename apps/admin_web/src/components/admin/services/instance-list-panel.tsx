@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
-import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
-import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -78,7 +76,6 @@ export function InstanceListPanel({
   showTypeColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
-  const { copiedKey: copiedInstanceId, markCopied: markInstanceIdCopied } = useCopyFeedback(1000);
   const { copiedKey: duplicateDraftFeedbackId, markCopied: markDuplicateDraftFeedback } = useCopyFeedback(1000);
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, instanceId: string) => {
@@ -115,20 +112,6 @@ export function InstanceListPanel({
       return;
     }
     await onDeleteInstance(instance.id, instance.serviceId);
-  };
-
-  const handleCopyInstanceId = async (
-    instance: ServiceInstance,
-    event: MouseEvent<HTMLButtonElement>,
-  ) => {
-    event.stopPropagation();
-    const copied = await tryCopyTextToClipboard(instance.id);
-    if (copied) {
-      markInstanceIdCopied(instance.id);
-      trackAdminAnalyticsEvent('admin_instance_uuid_copied', {
-        service_id: instance.serviceId,
-      });
-    }
   };
 
   return (
@@ -236,15 +219,6 @@ export function InstanceListPanel({
                 <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>
-                    <CopyFeedbackIconButton
-                      copied={copiedInstanceId === instance.id}
-                      idleVariant='outline'
-                      onClick={(event) => void handleCopyInstanceId(instance, event)}
-                      idleLabel='Copy instance UUID'
-                      copiedLabel='Instance UUID copied'
-                      idleTitle='Copy instance UUID'
-                      copiedTitle='Copied'
-                    />
                     <CopyFeedbackIconButton
                       copied={duplicateDraftFeedbackId === instance.id}
                       idleVariant='outline'

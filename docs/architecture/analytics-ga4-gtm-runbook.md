@@ -29,7 +29,6 @@ Stable **`admin_*` namespace** events used today:
 | `admin_referral_qr_downloaded` | Download referral PNG | `service_slug`, `png_size_px` |
 | `admin_public_page_qr_opened` | Website → public page QR screen: valid URL shown | `public_site_path`, `locale` |
 | `admin_public_page_qr_downloaded` | Download public page PNG | `public_site_path`, `locale`, `png_size_px` |
-| `admin_instance_uuid_copied` | Copy service instance UUID from Instances list | `service_id` |
 
 ## Tracking architecture
 
