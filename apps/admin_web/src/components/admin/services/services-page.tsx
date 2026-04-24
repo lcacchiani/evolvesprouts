@@ -32,12 +32,13 @@ export function ServicesPage() {
   const handleDuplicateService = useCallback(async (serviceId: string) => {
     const detail = await getService(serviceId);
     if (!detail) {
-      return;
+      return false;
     }
     setDuplicateInstanceTemplate(null);
     setDuplicateServiceTemplate(detail);
     state.setSelectedServiceId(null);
     bumpServicesEditorKey();
+    return true;
   }, [bumpServicesEditorKey, state]);
 
   const handleDuplicateInstance = useCallback(
@@ -48,6 +49,7 @@ export function ServicesPage() {
       setDuplicateInstanceTemplate(row);
       state.setSelectedServiceId(row.serviceId);
       bumpServicesEditorKey();
+      return true;
     },
     [bumpServicesEditorKey, state]
   );

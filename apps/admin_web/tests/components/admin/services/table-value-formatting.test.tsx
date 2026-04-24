@@ -143,6 +143,7 @@ describe('services tables value formatting', () => {
         onSelectService={vi.fn()}
         onFilterChange={vi.fn()}
         onLoadMore={vi.fn()}
+        onDuplicateService={vi.fn()}
         onDeleteService={vi.fn()}
       />
     );

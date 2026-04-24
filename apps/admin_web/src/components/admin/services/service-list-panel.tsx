@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { formatDate, formatEnumLabel } from '@/lib/format';
 
 import { SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
@@ -31,7 +33,8 @@ export interface ServiceListPanelProps {
     value: ServiceListFilters[TKey]
   ) => void;
   onLoadMore: () => Promise<void> | void;
-  onDuplicateService: (serviceId: string) => Promise<void> | void;
+  /** Resolve true when the draft flow started (e.g. service loaded); omit feedback on failure. */
+  onDuplicateService: (serviceId: string) => Promise<boolean> | boolean | void;
   onDeleteService: (serviceId: string) => Promise<void>;
 }
 
@@ -51,6 +54,7 @@ export function ServiceListPanel({
   onDeleteService,
 }: ServiceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const { copiedKey: duplicateDraftFeedbackId, markCopied: markDuplicateDraftFeedback } = useCopyFeedback(1000);
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, serviceId: string) => {
     if (event.target !== event.currentTarget) {
@@ -62,9 +66,12 @@ export function ServiceListPanel({
     }
   };
 
-  const handleDuplicateService = (service: ServiceSummary, event: MouseEvent<HTMLButtonElement>) => {
+  const handleDuplicateService = async (service: ServiceSummary, event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    void onDuplicateService(service.id);
+    const started = await onDuplicateService(service.id);
+    if (started === true) {
+      markDuplicateDraftFeedback(service.id);
+    }
   };
 
   const handleDeleteService = async (service: ServiceSummary, event: MouseEvent<HTMLButtonElement>) => {
@@ -169,17 +176,17 @@ export function ServiceListPanel({
                 <td className='px-4 py-3'>{formatDate(service.createdAt)}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='outline'
-                      onClick={(event) => handleDuplicateService(service, event)}
+                    <CopyFeedbackIconButton
+                      copied={duplicateDraftFeedbackId === service.id}
+                      idleVariant='outline'
+                      idleIcon={<DuplicateIcon className='h-4 w-4' />}
                       disabled={isMutating}
-                      aria-label='Duplicate service as new draft'
-                      title='Duplicate service as new draft'
-                    >
-                      <DuplicateIcon className='h-4 w-4' />
-                    </Button>
+                      onClick={(event) => void handleDuplicateService(service, event)}
+                      idleLabel='Duplicate service as new draft'
+                      copiedLabel='Draft copy ready'
+                      idleTitle='Duplicate service as new draft'
+                      copiedTitle='Copied'
+                    />
                     <Button
                       type='button'
                       size='sm'
