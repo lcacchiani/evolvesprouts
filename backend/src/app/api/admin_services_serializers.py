@@ -48,6 +48,23 @@ def _event_details_summary(service: Service) -> dict[str, Any] | None:
     }
 
 
+def _consultation_details_summary(service: Service) -> dict[str, Any] | None:
+    """Return consultation pricing fields for list/summary payloads when present."""
+    details = service.consultation_details
+    if details is None:
+        return None
+    return {
+        "consultation_format": details.consultation_format.value,
+        "max_group_size": details.max_group_size,
+        "duration_minutes": details.duration_minutes,
+        "pricing_model": details.pricing_model.value,
+        "default_hourly_rate": _decimal_to_string(details.default_hourly_rate),
+        "default_package_price": _decimal_to_string(details.default_package_price),
+        "default_package_sessions": details.default_package_sessions,
+        "default_currency": details.default_currency,
+    }
+
+
 def serialize_service_summary(
     service: Service, *, instances_count: int
 ) -> dict[str, Any]:
@@ -71,6 +88,7 @@ def serialize_service_summary(
         "instances_count": instances_count,
         "training_details": _training_details_summary(service),
         "event_details": _event_details_summary(service),
+        "consultation_details": _consultation_details_summary(service),
     }
 
 

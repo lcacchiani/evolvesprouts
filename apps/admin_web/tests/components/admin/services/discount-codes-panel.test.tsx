@@ -43,6 +43,7 @@ describe('DiscountCodesPanel', () => {
 
   const baseService = {
     id: 'svc-1',
+    instancesCount: 0,
     serviceType: 'training_course' as const,
     title: 'My Best Auntie',
     slug: 'my-best-auntie' as string | null,
@@ -60,6 +61,7 @@ describe('DiscountCodesPanel', () => {
       defaultCurrency: 'HKD',
     },
     eventDetails: null,
+    consultationDetails: null,
   };
 
   it('includes service and instance selects and sends scope in create payload', async () => {

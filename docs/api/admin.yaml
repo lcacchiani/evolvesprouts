@@ -3645,6 +3645,11 @@ components:
             - $ref: "#/components/schemas/ServiceEventDetails"
           nullable: true
           description: Present for event rows when details exist.
+        consultation_details:
+          allOf:
+            - $ref: "#/components/schemas/ServiceConsultationDetails"
+          nullable: true
+          description: Present for consultation rows when details exist.
         instances_count:
           type: integer
           minimum: 0

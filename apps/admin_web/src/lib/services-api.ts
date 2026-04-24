@@ -11,6 +11,7 @@ import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import {
+  normalizeConsultationPricingModelFromApi,
   normalizeDiscountTypeFromApi,
   normalizeEventCategoryFromApi,
   type DiscountCode,
@@ -132,6 +133,7 @@ function parseServiceSummary(value: unknown): ServiceSummary {
   const item = isRecord(value) ? value : {};
   const trainingRaw = isRecord(item.training_details) ? item.training_details : null;
   const eventRaw = isRecord(item.event_details) ? item.event_details : null;
+  const consultationRaw = isRecord(item.consultation_details) ? item.consultation_details : null;
   return {
     id: asNullableString(item.id) ?? '',
     instancesCount: asNumber(item.instances_count, 0),
@@ -161,6 +163,24 @@ function parseServiceSummary(value: unknown): ServiceSummary {
           eventCategory: normalizeEventCategoryFromApi(eventRaw.event_category),
           defaultPrice: asNullableString(eventRaw.default_price),
           defaultCurrency: asNullableString(eventRaw.default_currency) ?? 'HKD',
+        }
+      : null,
+    consultationDetails: consultationRaw
+      ? {
+          consultationFormat: (asNullableString(consultationRaw.consultation_format) ??
+            'one_on_one') as NonNullable<ServiceSummary['consultationDetails']>['consultationFormat'],
+          maxGroupSize:
+            typeof consultationRaw.max_group_size === 'number' ? consultationRaw.max_group_size : null,
+          durationMinutes:
+            typeof consultationRaw.duration_minutes === 'number' ? consultationRaw.duration_minutes : null,
+          pricingModel: normalizeConsultationPricingModelFromApi(consultationRaw.pricing_model),
+          defaultHourlyRate: asNullableString(consultationRaw.default_hourly_rate),
+          defaultPackagePrice: asNullableString(consultationRaw.default_package_price),
+          defaultPackageSessions:
+            typeof consultationRaw.default_package_sessions === 'number'
+              ? consultationRaw.default_package_sessions
+              : null,
+          defaultCurrency: asNullableString(consultationRaw.default_currency),
         }
       : null,
   };
@@ -196,8 +216,7 @@ function parseServiceDetail(value: unknown): ServiceDetail {
           typeof item.consultation_details.duration_minutes === 'number'
             ? item.consultation_details.duration_minutes
             : null,
-        pricingModel: (asNullableString(item.consultation_details.pricing_model) ??
-          'free') as NonNullable<ServiceDetail['consultationDetails']>['pricingModel'],
+        pricingModel: normalizeConsultationPricingModelFromApi(item.consultation_details.pricing_model),
         defaultHourlyRate: asNullableString(item.consultation_details.default_hourly_rate),
         defaultPackagePrice: asNullableString(item.consultation_details.default_package_price),
         defaultPackageSessions:

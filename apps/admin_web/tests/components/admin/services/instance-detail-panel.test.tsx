@@ -31,6 +31,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     updatedAt: '2026-01-01T00:00:00Z',
     trainingDetails: null,
     eventDetails: null,
+    consultationDetails: null,
     ...overrides,
   };
 }
