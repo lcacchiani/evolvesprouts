@@ -15,7 +15,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
-import { formatDate } from '@/lib/format';
 import {
   createAdminTag,
   deleteOrArchiveAdminTag,
@@ -45,6 +44,7 @@ export function TagsPage() {
   const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
+  const [archiveBusyId, setArchiveBusyId] = useState<string | null>(null);
   const [restoreBusyId, setRestoreBusyId] = useState<string | null>(null);
   const [listSearchQuery, setListSearchQuery] = useState('');
 
@@ -119,6 +119,35 @@ export function TagsPage() {
     }
   };
 
+  const handleArchiveRow = async (row: AdminTagRow) => {
+    if (row.is_system || row.archived_at) {
+      return;
+    }
+    const confirmed = await requestConfirm({
+      title: 'Archive tag?',
+      description: `“${row.name}” will be hidden from pickers but stay on existing records.`,
+      confirmLabel: 'Archive',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    setArchiveBusyId(row.id);
+    setError('');
+    try {
+      const updated = await updateAdminTag(row.id, { archived: true });
+      await loadTags();
+      if (updated && selectedTagId === row.id) {
+        applyRowSelection(updated);
+      }
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Archive failed.';
+      setError(message);
+    } finally {
+      setArchiveBusyId(null);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaveError('');
@@ -160,25 +189,15 @@ export function TagsPage() {
   };
 
   const handleDeleteRow = async (row: AdminTagRow) => {
-    if (row.is_system) {
+    if (row.is_system || row.usage_count > 0) {
       return;
     }
-    const predictedArchive = row.usage_count > 0;
-    const confirmed = await requestConfirm(
-      predictedArchive
-        ? {
-            title: 'Archive tag?',
-            description: `“${row.name}” is linked to ${row.usage_count} record(s). It will be hidden from pickers but stay on existing records.`,
-            confirmLabel: 'Archive',
-            variant: 'danger',
-          }
-        : {
-            title: 'Remove tag?',
-            description: `Permanently delete “${row.name}”? This cannot be undone.`,
-            confirmLabel: 'Delete',
-            variant: 'danger',
-          }
-    );
+    const confirmed = await requestConfirm({
+      title: 'Remove tag?',
+      description: `Permanently delete “${row.name}”? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
     if (!confirmed) {
       return;
     }
@@ -186,12 +205,6 @@ export function TagsPage() {
     setError('');
     try {
       const outcome = await deleteOrArchiveAdminTag(row.id);
-      const actualArchive = !outcome.deleted;
-      if (predictedArchive !== actualArchive) {
-        setError(
-          `The server ${actualArchive ? 'archived' : 'removed'} this tag based on current usage (${outcome.usage_count} link(s)). Refresh the list if the table looked stale.`
-        );
-      }
       if (outcome.deleted && selectedTagId === row.id) {
         resetCreateForm();
       }
@@ -207,7 +220,8 @@ export function TagsPage() {
     }
   };
 
-  const editorIsBusy = isSaving || Boolean(deleteBusyId) || Boolean(restoreBusyId);
+  const editorIsBusy =
+    isSaving || Boolean(deleteBusyId) || Boolean(archiveBusyId) || Boolean(restoreBusyId);
 
   const isEditingSystemTag = editorMode === 'edit' && selectedRow?.is_system;
   const showRestoreInEditor =
@@ -217,7 +231,7 @@ export function TagsPage() {
     <div className='space-y-6'>
       <AdminEditorCard
         title='Tag'
-        description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers. Use Restore (below or in the table) to clear archive. System tags (expense_attachment, client_document) cannot be renamed, archived, or deleted.'
+        description='Tags apply across contacts, families, organisations, services, instances, and assets. Archived tags stay on existing records but no longer appear in pickers. Use Archive or Restore in the table (or Restore in the editor) to change archive state. Tags in use cannot be deleted until usage is zero—archive them instead. System tags (expense_attachment, client_document) cannot be renamed, archived, or deleted.'
         actions={
           editorMode === 'edit' ? (
             <>
@@ -319,22 +333,21 @@ export function TagsPage() {
                 value={listFilter}
                 onChange={(event) => setListFilter(event.target.value as AdminTagListFilter)}
               >
+                <option value='all'>All</option>
                 <option value='active'>Active</option>
                 <option value='archived'>Archived</option>
-                <option value='all'>All</option>
               </Select>
             </div>
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[800px]'>
+        <AdminDataTable tableClassName='min-w-[720px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Color</th>
               <th className='px-4 py-3 font-semibold'>Uses</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Archived</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -365,9 +378,6 @@ export function TagsPage() {
                 <td className='px-4 py-3 text-sm text-slate-700'>
                   {row.archived_at ? 'Archived' : 'Active'}
                 </td>
-                <td className='px-4 py-3 text-sm text-slate-600'>
-                  {row.archived_at ? formatDate(row.archived_at) : '—'}
-                </td>
                 <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                   <div className='flex justify-end gap-1'>
                     {row.archived_at && !row.is_system ? (
@@ -381,18 +391,40 @@ export function TagsPage() {
                         {restoreBusyId === row.id ? '…' : 'Restore'}
                       </Button>
                     ) : null}
+                    {!row.archived_at && !row.is_system ? (
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='secondary'
+                        disabled={editorIsBusy || archiveBusyId === row.id}
+                        onClick={() => void handleArchiveRow(row)}
+                      >
+                        {archiveBusyId === row.id ? '…' : 'Archive'}
+                      </Button>
+                    ) : null}
                     <Button
                       type='button'
                       size='sm'
                       variant='danger'
-                      disabled={editorIsBusy || deleteBusyId === row.id || row.is_system}
+                      disabled={
+                        editorIsBusy ||
+                        deleteBusyId === row.id ||
+                        row.is_system ||
+                        row.usage_count > 0
+                      }
                       onClick={() => void handleDeleteRow(row)}
-                      aria-label={row.is_system ? 'System tag' : row.usage_count > 0 ? 'Archive tag' : 'Delete tag'}
+                      aria-label={
+                        row.is_system
+                          ? 'System tag'
+                          : row.usage_count > 0
+                            ? 'Cannot delete tag while it is in use'
+                            : 'Delete tag'
+                      }
                       title={
                         row.is_system
                           ? 'System-managed tags cannot be removed'
                           : row.usage_count > 0
-                            ? 'Archive tag'
+                            ? 'Remove all uses before deleting, or archive the tag'
                             : 'Delete tag'
                       }
                     >
