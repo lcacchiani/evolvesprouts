@@ -701,9 +701,6 @@ export function ServiceDetailPanel({
         {serviceType === 'consultation' ? (
           <>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
-            </div>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
               <ConsultationPricingModelControl value={consultationForm} onChange={setConsultationForm} />
               {consultationForm.pricingModel === 'hourly' ? (
                 <ConsultationHourlyRateControl value={consultationForm} onChange={setConsultationForm} />
@@ -717,6 +714,7 @@ export function ServiceDetailPanel({
               {defaultLocationField}
             </div>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
               <ConsultationDurationControl value={consultationForm} onChange={setConsultationForm} />
               {consultationForm.pricingModel === 'package' ? (
                 <ConsultationPackageSessionsControl value={consultationForm} onChange={setConsultationForm} />

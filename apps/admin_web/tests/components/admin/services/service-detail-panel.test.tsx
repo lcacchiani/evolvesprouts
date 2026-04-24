@@ -476,7 +476,7 @@ describe('ServiceDetailPanel', () => {
     expect(currency.compareDocumentPosition(location) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('lays out consultation Row1 with delivery, tier, booking, cover; format on next row', async () => {
+  it('lays out consultation Row1 with delivery, tier, booking, cover; format after pricing on row with duration', async () => {
     const user = userEvent.setup();
     render(
       <ServiceDetailPanel
@@ -500,10 +500,12 @@ describe('ServiceDetailPanel', () => {
     expect(tier!.compareDocumentPosition(booking) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(booking.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    const format = screen.getByLabelText('Consultation format');
     const pricingModel = screen.getByLabelText('Pricing model');
-    expect(cover.compareDocumentPosition(format) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(format.compareDocumentPosition(pricingModel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const format = screen.getByLabelText('Consultation format');
+    const duration = screen.getByLabelText('Duration (minutes)');
+    expect(cover.compareDocumentPosition(pricingModel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(pricingModel.compareDocumentPosition(format) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(format.compareDocumentPosition(duration) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('consultation pricing free hides price/currency/package sessions', async () => {
