@@ -108,11 +108,13 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
             now: datetime,
             service_types: Any,
             landing_page: str | None,
+            service_key: str | None,
         ) -> list[Any]:
             assert limit == 100
             assert isinstance(now, datetime)
             assert landing_page is None
             assert service_types is None
+            assert service_key is None
             return [
                 _instance_row(status=public_events.InstanceStatus.OPEN, with_eventbrite_url=True),
                 _instance_row(status=public_events.InstanceStatus.FULL),
@@ -173,9 +175,11 @@ def test_handle_public_events_landing_page_filter(
             now: datetime,
             service_types: Any,
             landing_page: str | None,
+            service_key: str | None,
         ) -> list[Any]:
             captured["landing_page"] = landing_page
             captured["service_types"] = service_types
+            captured["service_key"] = service_key
             return [_instance_row(status=public_events.InstanceStatus.OPEN)]
 
         def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
@@ -230,8 +234,10 @@ def test_handle_public_events_invalid_landing_page_ignored(
             now: datetime,
             service_types: Any,
             landing_page: str | None,
+            service_key: str | None,
         ) -> list[Any]:
             captured["landing_page"] = landing_page
+            captured["service_key"] = service_key
             return []
 
         def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
@@ -280,8 +286,10 @@ def test_handle_public_events_service_type_training_course(
             now: datetime,
             service_types: Any,
             landing_page: str | None,
+            service_key: str | None,
         ) -> list[Any]:
             captured["service_types"] = service_types
+            captured["service_key"] = service_key
             return []
 
         def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
@@ -299,6 +307,7 @@ def test_handle_public_events_service_type_training_course(
         "GET",
     )
     assert captured["service_types"] == {ServiceType.TRAINING_COURSE}
+    assert captured["service_key"] is None
 
 
 def test_handle_public_events_invalid_service_type_defaults(
@@ -330,8 +339,10 @@ def test_handle_public_events_invalid_service_type_defaults(
             now: datetime,
             service_types: Any,
             landing_page: str | None,
+            service_key: str | None,
         ) -> list[Any]:
             captured["service_types"] = service_types
+            captured["service_key"] = service_key
             return []
 
         def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
@@ -349,3 +360,405 @@ def test_handle_public_events_invalid_service_type_defaults(
         "GET",
     )
     assert captured["service_types"] is None
+    assert captured["service_key"] is None
+
+
+def test_handle_public_events_service_key_passthrough(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": "my-best-auntie"},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] == "my-best-auntie"
+
+
+def test_handle_public_events_service_key_trims_and_lowercases(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": "  My-Best-Auntie  "},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] == "my-best-auntie"
+
+
+def test_handle_public_events_service_key_invalid_ignored(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": "Invalid.Slug"},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] is None
+
+
+def test_handle_public_events_service_key_too_long_ignored(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+    long_slug = "a" * 81
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": long_slug},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] is None
+
+
+def test_handle_public_events_service_key_blank_ignored(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": ""},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] is None
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": "   "},
+        ),
+        "GET",
+    )
+    assert captured["service_key"] is None
+
+
+def test_handle_public_events_service_key_unknown_returns_empty(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            assert service_key == "unknown-service"
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    response = public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={"service_key": "unknown-service"},
+        ),
+        "GET",
+    )
+    assert response["statusCode"] == 200
+    body = json.loads(response["body"])
+    assert body == {"events": [], "items": []}
+
+
+def test_handle_public_events_combined_filters(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            captured["service_types"] = service_types
+            captured["landing_page"] = landing_page
+            captured["service_key"] = service_key
+            return []
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    public_events.handle_public_events(
+        api_gateway_event(
+            method="GET",
+            query_params={
+                "service_key": "my-best-auntie",
+                "service_type": "training_course",
+                "landing_page": "foo-bar",
+            },
+        ),
+        "GET",
+    )
+    assert captured["service_key"] == "my-best-auntie"
+    assert captured["service_types"] == {ServiceType.TRAINING_COURSE}
+    assert captured["landing_page"] == "foo-bar"
+
+
+def test_parse_service_key_none() -> None:
+    assert public_events._parse_service_key(None) is None
+
+
+def test_parse_service_key_trims_and_lowercases() -> None:
+    assert public_events._parse_service_key("  My-Best-Auntie  ") == "my-best-auntie"
+
+
+def test_parse_service_key_invalid_pattern() -> None:
+    assert public_events._parse_service_key("Invalid.Slug") is None
+
+
+def test_parse_service_key_too_long() -> None:
+    raw = "a" * 81
+    assert public_events._parse_service_key(raw) is None
+
+
+def test_parse_service_key_blank_and_whitespace_only() -> None:
+    assert public_events._parse_service_key("") is None
+    assert public_events._parse_service_key("   ") is None
+
+
+def test_parse_service_key_valid_slug() -> None:
+    assert public_events._parse_service_key("my-best-auntie") == "my-best-auntie"

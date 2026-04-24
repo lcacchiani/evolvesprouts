@@ -58,6 +58,61 @@ def test_list_public_offerings_service_type_event_only() -> None:
     assert "services.service_type IN ('event')" in sql
 
 
+def test_list_public_offerings_service_key_filter() -> None:
+    mock_session = MagicMock()
+    exec_result = MagicMock()
+    exec_result.unique.return_value.scalars.return_value.all.return_value = []
+    mock_session.execute.return_value = exec_result
+
+    repo = ServiceInstanceRepository(mock_session)
+    now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
+    repo.list_public_offerings(limit=5, now=now, service_key="my-best-auntie")
+
+    stmt = mock_session.execute.call_args[0][0]
+    sql = _compiled_sql(stmt)
+    assert "lower(services.slug) = 'my-best-auntie'" in sql
+    assert "services.service_type IN ('event', 'training_course')" in sql
+    assert "services.status = 'published'" in sql
+
+
+def test_list_public_offerings_service_key_combines_with_other_filters() -> None:
+    mock_session = MagicMock()
+    exec_result = MagicMock()
+    exec_result.unique.return_value.scalars.return_value.all.return_value = []
+    mock_session.execute.return_value = exec_result
+
+    repo = ServiceInstanceRepository(mock_session)
+    now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
+    repo.list_public_offerings(
+        limit=5,
+        now=now,
+        service_types={ServiceType.TRAINING_COURSE},
+        landing_page="foo-bar",
+        service_key="my-best-auntie",
+    )
+
+    stmt = mock_session.execute.call_args[0][0]
+    sql = _compiled_sql(stmt)
+    assert "lower(services.slug) = 'my-best-auntie'" in sql
+    assert "service_instances.landing_page = 'foo-bar'" in sql
+    assert "services.service_type IN ('training_course')" in sql
+
+
+def test_list_public_offerings_service_key_not_applied_when_none() -> None:
+    mock_session = MagicMock()
+    exec_result = MagicMock()
+    exec_result.unique.return_value.scalars.return_value.all.return_value = []
+    mock_session.execute.return_value = exec_result
+
+    repo = ServiceInstanceRepository(mock_session)
+    now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
+    repo.list_public_offerings(limit=5, now=now)
+
+    stmt = mock_session.execute.call_args[0][0]
+    sql = _compiled_sql(stmt)
+    assert "lower(services.slug)" not in sql
+
+
 def test_list_public_offerings_landing_page_filter() -> None:
     mock_session = MagicMock()
     exec_result = MagicMock()
