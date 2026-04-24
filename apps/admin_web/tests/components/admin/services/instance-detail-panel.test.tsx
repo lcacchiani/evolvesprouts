@@ -196,6 +196,36 @@ describe('InstanceDetailPanel', () => {
     expect(onSelectService).toHaveBeenCalledWith('service-2');
   });
 
+  it('defaults consultation instance pricing model to package when the service has no consultation details', async () => {
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[
+          buildServiceSummary({
+            serviceType: 'consultation',
+            trainingDetails: null,
+            consultationDetails: null,
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='consultation'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Pricing model')).toHaveValue('package');
+    });
+  });
+
   it('prefills title, description, delivery, and training pricing from the selected service', async () => {
     const user = userEvent.setup();
     const onSelectService = vi.fn();

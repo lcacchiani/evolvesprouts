@@ -14,7 +14,7 @@ import {
   type EventFormState,
 } from './event-form-fields';
 import {
-  DEFAULT_CONSULTATION_FORM,
+  DEFAULT_CONSULTATION_INSTANCE_FORM,
   DEFAULT_EVENT_FORM,
   DEFAULT_INSTANCE_FORM,
   DEFAULT_TRAINING_FORM,
@@ -146,8 +146,11 @@ function mergeServiceIntoConsultationForm(
   prev: ConsultationFormState,
   service: ServiceSummary
 ): ConsultationFormState {
-  if (service.serviceType !== 'consultation' || !service.consultationDetails) {
+  if (service.serviceType !== 'consultation') {
     return prev;
+  }
+  if (!service.consultationDetails) {
+    return DEFAULT_CONSULTATION_INSTANCE_FORM;
   }
   const cd = service.consultationDetails;
   const pm = cd.pricingModel;
@@ -164,7 +167,7 @@ function mergeServiceIntoConsultationForm(
 function consultationFormFromInstanceResolved(instance: ServiceInstance): ConsultationFormState {
   const r = instance.resolvedConsultationDetails;
   if (!r) {
-    return DEFAULT_CONSULTATION_FORM;
+    return DEFAULT_CONSULTATION_INSTANCE_FORM;
   }
   const pm = r.pricingModel;
   return {
@@ -279,7 +282,7 @@ export function InstanceDetailPanel({
       : DEFAULT_EVENT_FORM
   );
   const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
-    instance ? consultationFormFromInstanceResolved(instance) : DEFAULT_CONSULTATION_FORM
+    instance ? consultationFormFromInstanceResolved(instance) : DEFAULT_CONSULTATION_INSTANCE_FORM
   );
 
   useEffect(() => {

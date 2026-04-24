@@ -35,6 +35,12 @@ export const DEFAULT_CONSULTATION_FORM: ConsultationFormState = {
   defaultCurrency: 'HKD',
 };
 
+/** Instance create/edit panel: default new consultation instances to package pricing. */
+export const DEFAULT_CONSULTATION_INSTANCE_FORM: ConsultationFormState = {
+  ...DEFAULT_CONSULTATION_FORM,
+  pricingModel: 'package',
+};
+
 export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
   title: '',
   slug: '',
