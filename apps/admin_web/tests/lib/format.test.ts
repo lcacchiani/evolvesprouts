@@ -56,7 +56,7 @@ describe('format helpers', () => {
           },
         })
       )
-    ).toBe('100 HKD');
+    ).toBe('HK$100.00');
 
     expect(
       formatServiceListPriceLabel(
@@ -70,7 +70,7 @@ describe('format helpers', () => {
           },
         })
       )
-    ).toBe('50 USD');
+    ).toBe('US$50.00');
 
     expect(
       formatServiceListPriceLabel(
@@ -108,7 +108,7 @@ describe('format helpers', () => {
           },
         })
       )
-    ).toBe('200 HKD / hr');
+    ).toBe('HK$200.00 / hr');
 
     expect(
       formatServiceListPriceLabel(
@@ -127,7 +127,7 @@ describe('format helpers', () => {
           },
         })
       )
-    ).toBe('1200 HKD (6 sessions)');
+    ).toBe('HK$1,200.00 (6 sessions)');
   });
 
   it('exposes HKD, USD, EUR, GBP, CNY, and SGD in currency options with expected labels', () => {
