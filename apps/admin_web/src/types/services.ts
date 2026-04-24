@@ -187,6 +187,16 @@ export interface SessionSlot {
   sortOrder: number | null;
 }
 
+/** Session slot row in instance create/edit forms (`datetime-local` wall times, no offset). */
+export interface SessionSlotFormRow {
+  id: string | null;
+  instanceId: string | null;
+  locationId: string | null;
+  startsAtLocal: string | null;
+  endsAtLocal: string | null;
+  sortOrder: number | null;
+}
+
 export interface LocationSummary {
   id: string;
   name: string | null;

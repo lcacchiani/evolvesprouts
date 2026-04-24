@@ -45,6 +45,7 @@ import {
   type ServiceSummary,
   type ServiceType,
   type SessionSlot,
+  type SessionSlotFormRow,
 } from '@/types/services';
 
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
@@ -56,7 +57,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
-import { mapSessionSlotsFromApiToForm, sessionSlotsToUtcApiPayload } from '@/lib/format';
+import { buildSessionSlotsUtcPayload, mapSessionSlotsFromApiToForm } from '@/lib/format';
 import type { EntityTagRef } from '@/lib/entity-api';
 
 type ApiSchemas = components['schemas'];
@@ -191,14 +192,14 @@ function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] 
   }));
 }
 
-function cloneSessionSlotsForCreate(slots: SessionSlot[]): SessionSlot[] {
-  return mapSessionSlotsFromApiToForm(slots).map((slot) => ({
+function cloneSessionSlotsForCreate(slots: SessionSlot[]): SessionSlotFormRow[] {
+  return mapSessionSlotsFromApiToForm(slots).map((row) => ({
     id: null,
     instanceId: null,
-    locationId: slot.locationId,
-    startsAt: slot.startsAt,
-    endsAt: slot.endsAt,
-    sortOrder: slot.sortOrder,
+    locationId: row.locationId,
+    startsAtLocal: row.startsAtLocal,
+    endsAtLocal: row.endsAtLocal,
+    sortOrder: row.sortOrder,
   }));
 }
 
@@ -243,6 +244,7 @@ export function InstanceDetailPanel({
   );
 
   const [tagIds, setTagIds] = useState<string[]>(() => instance?.tagIds ?? []);
+  const [sessionSlotsError, setSessionSlotsError] = useState('');
 
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
     instance
@@ -443,7 +445,13 @@ export function InstanceDetailPanel({
     [selectedService, instance]
   );
 
-  const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
+  const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] | null => {
+    const slotsPayload = buildSessionSlotsUtcPayload(instanceForm.sessionSlots);
+    if (!slotsPayload.ok) {
+      setSessionSlotsError(slotsPayload.message);
+      return null;
+    }
+    setSessionSlotsError('');
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
@@ -461,7 +469,7 @@ export function InstanceDetailPanel({
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids: instanceForm.partnerOrganizations.map((row) => row.id),
       tag_ids: tagIds,
-      session_slots: sessionSlotsToUtcApiPayload(instanceForm.sessionSlots),
+      session_slots: slotsPayload.session_slots,
     };
 
     if (effectiveServiceType === 'training_course') {
@@ -532,10 +540,13 @@ export function InstanceDetailPanel({
     return payload;
   };
 
-  const buildUpdatePayload = (): ApiSchemas['UpdateInstanceRequest'] => ({
-    ...buildCreatePayload(),
-    status: instanceForm.status,
-  });
+  const buildUpdatePayload = (): ApiSchemas['UpdateInstanceRequest'] | null => {
+    const base = buildCreatePayload();
+    if (!base) {
+      return null;
+    }
+    return { ...base, status: instanceForm.status };
+  };
 
   const externalUrlInvalid =
     effectiveServiceType === 'event' &&
@@ -573,7 +584,11 @@ export function InstanceDetailPanel({
                     if (!instance || !selectedServiceId) {
                       return;
                     }
-                    void onUpdate(selectedServiceId, instance.id, buildUpdatePayload());
+                    const payload = buildUpdatePayload();
+                    if (!payload) {
+                      return;
+                    }
+                    void onUpdate(selectedServiceId, instance.id, payload);
                   }}
                 >
                   {isLoading ? 'Updating...' : 'Update instance'}
@@ -593,7 +608,11 @@ export function InstanceDetailPanel({
                   if (!selectedServiceId) {
                     return;
                   }
-                  void onCreate(selectedServiceId, buildCreatePayload());
+                  const payload = buildCreatePayload();
+                  if (!payload) {
+                    return;
+                  }
+                  void onCreate(selectedServiceId, payload);
                 }}
               >
                 {isLoading ? 'Adding...' : 'Add instance'}
@@ -743,8 +762,12 @@ export function InstanceDetailPanel({
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
         defaultLocationId={effectiveSessionSlotDefaultLocationId}
-        onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
+        onChange={(sessionSlots) => {
+          setSessionSlotsError('');
+          setInstanceForm((prev) => ({ ...prev, sessionSlots }));
+        }}
       />
+      {sessionSlotsError ? <AdminInlineError>{sessionSlotsError}</AdminInlineError> : null}
 
       {effectiveServiceType === 'event' && eventPriceMissing ? (
         <AdminInlineError>Enter a price for this event instance.</AdminInlineError>

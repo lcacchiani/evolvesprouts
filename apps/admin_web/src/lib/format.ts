@@ -1,7 +1,13 @@
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
-import type { LocationSummary, ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
+import type {
+  LocationSummary,
+  ServiceInstance,
+  ServiceSummary,
+  SessionSlot,
+  SessionSlotFormRow,
+} from '@/types/services';
 
 import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
 
@@ -456,11 +462,62 @@ export function formatIsoForDatetimeLocalInput(iso: string | null): string {
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
-/** Parse `datetime-local` string as local wall time and return UTC ISO for the API. */
+/** `YYYY-MM-DDTHH:mm` only (no offset, no seconds); used for `datetime-local` and strict parsing. */
+export const DATETIME_LOCAL_WALL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function parseWallDatetimeLocalToUtcDate(trimmed: string): Date | null {
+  if (!DATETIME_LOCAL_WALL_PATTERN.test(trimmed)) {
+    return null;
+  }
+  const [datePart, timePart] = trimmed.split('T');
+  const dateSegments = datePart.split('-').map(Number);
+  const timeSegments = timePart.split(':').map(Number);
+  if (
+    dateSegments.length !== 3 ||
+    timeSegments.length !== 2 ||
+    dateSegments.some((n) => !Number.isFinite(n)) ||
+    timeSegments.some((n) => !Number.isFinite(n))
+  ) {
+    return null;
+  }
+  const [y, mo, d] = dateSegments;
+  const [hh, mm] = timeSegments;
+  const parsed = new Date(y, mo - 1, d, hh, mm, 0, 0);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
+}
+
+/**
+ * Parse `datetime-local` wall time (`YYYY-MM-DDTHH:mm` only) and return UTC ISO for the API.
+ * Uses explicit `Date(year, monthIndex, …)` construction (no `new Date(string)` for this shape).
+ * Strings with offsets, `Z`, or seconds are rejected so callers do not double-shift instants.
+ */
 export function parseDatetimeLocalToIsoUtc(local: string): string | null {
   const trimmed = local.trim();
   if (!trimmed) {
     return null;
+  }
+  const wall = parseWallDatetimeLocalToUtcDate(trimmed);
+  if (!wall) {
+    return null;
+  }
+  return wall.toISOString();
+}
+
+/**
+ * Parse admin date-time input: `YYYY-MM-DDTHH:mm` wall time (explicit local calendar fields),
+ * or any other string accepted by `Date` (for example pasted RFC 3339 with `Z` or offset).
+ */
+export function parseAdminDateTimeInputToIsoUtc(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const wall = parseWallDatetimeLocalToUtcDate(trimmed);
+  if (wall) {
+    return wall.toISOString();
   }
   const parsed = new Date(trimmed);
   if (Number.isNaN(parsed.getTime())) {
@@ -469,16 +526,19 @@ export function parseDatetimeLocalToIsoUtc(local: string): string | null {
   return parsed.toISOString();
 }
 
-const DATETIME_LOCAL_WALL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+/** True if the string is exactly `YYYY-MM-DDTHH:mm` (not an offset ISO instant). */
+export function isDatetimeLocalWallString(value: string): boolean {
+  return DATETIME_LOCAL_WALL_PATTERN.test(value.trim());
+}
 
 /**
  * Normalize session slot times from the API (UTC ISO) into `datetime-local` wall strings
  * for editors. Values that are already `YYYY-MM-DDTHH:mm` are left unchanged.
  */
-export function sessionSlotTimesToDatetimeLocalForm(
+export function sessionSlotApiTimesToFormLocals(
   startsAt: string | null | undefined,
   endsAt: string | null | undefined
-): { startsAt: string | null; endsAt: string | null } {
+): { startsAtLocal: string | null; endsAtLocal: string | null } {
   const toLocal = (value: string | null | undefined): string | null => {
     if (!value?.trim()) {
       return null;
@@ -490,35 +550,88 @@ export function sessionSlotTimesToDatetimeLocalForm(
     const formatted = formatIsoForDatetimeLocalInput(t);
     return formatted || null;
   };
-  return { startsAt: toLocal(startsAt), endsAt: toLocal(endsAt) };
+  return { startsAtLocal: toLocal(startsAt), endsAtLocal: toLocal(endsAt) };
 }
 
-/** Map loaded session slots to form state so `datetime-local` inputs show correct local times. */
-export function mapSessionSlotsFromApiToForm(slots: SessionSlot[]): SessionSlot[] {
+/** Map API session slots to form rows (`startsAtLocal` / `endsAtLocal` are `datetime-local` wall times). */
+export function mapSessionSlotsFromApiToForm(slots: SessionSlot[]): SessionSlotFormRow[] {
   return slots.map((slot) => {
-    const { startsAt, endsAt } = sessionSlotTimesToDatetimeLocalForm(slot.startsAt, slot.endsAt);
-    return { ...slot, startsAt, endsAt };
+    const { startsAtLocal, endsAtLocal } = sessionSlotApiTimesToFormLocals(slot.startsAt, slot.endsAt);
+    return {
+      id: slot.id,
+      instanceId: slot.instanceId,
+      locationId: slot.locationId,
+      startsAtLocal,
+      endsAtLocal,
+      sortOrder: slot.sortOrder,
+    };
   });
 }
 
+export type SessionSlotApiRow = {
+  location_id: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  sort_order: number;
+};
+
+export type SessionSlotsUtcPayload =
+  | { ok: true; session_slots: SessionSlotApiRow[] }
+  | { ok: false; message: string };
+
 /**
- * Build `session_slots` for create/update API payloads: interpret stored values as
- * browser-local `datetime-local` and send UTC ISO instants.
+ * Build `session_slots` for create/update API payloads: only `YYYY-MM-DDTHH:mm` wall values
+ * are accepted (rejects offset/Z ISO in form state to avoid double-shifting).
  */
-export function sessionSlotsToUtcApiPayload(
-  slots: SessionSlot[]
-): { location_id: string | null; starts_at: string | null; ends_at: string | null; sort_order: number }[] {
-  return slots.map((slot, index) => {
-    const startsLocal = (slot.startsAt ?? '').slice(0, 16);
-    const endsLocal = (slot.endsAt ?? '').slice(0, 16);
-    const starts_at =
-      startsLocal.length === 16 ? parseDatetimeLocalToIsoUtc(startsLocal) : null;
-    const ends_at = endsLocal.length === 16 ? parseDatetimeLocalToIsoUtc(endsLocal) : null;
-    return {
+export function buildSessionSlotsUtcPayload(slots: SessionSlotFormRow[]): SessionSlotsUtcPayload {
+  const session_slots: SessionSlotApiRow[] = [];
+  for (let index = 0; index < slots.length; index += 1) {
+    const slot = slots[index];
+    const startsRaw = (slot.startsAtLocal ?? '').trim();
+    const endsRaw = (slot.endsAtLocal ?? '').trim();
+    if (!startsRaw && !endsRaw) {
+      session_slots.push({
+        location_id: slot.locationId,
+        starts_at: null,
+        ends_at: null,
+        sort_order: slot.sortOrder ?? index,
+      });
+      continue;
+    }
+    if (!startsRaw || !endsRaw) {
+      return {
+        ok: false,
+        message: 'Each session slot needs both a start time and an end time.',
+      };
+    }
+    if (!isDatetimeLocalWallString(startsRaw) || !isDatetimeLocalWallString(endsRaw)) {
+      return {
+        ok: false,
+        message:
+          'Session slot times must use the date and time pickers (local wall format). ' +
+          'Remove any pasted offset or Z suffix and pick the slot times again.',
+      };
+    }
+    const starts_at = parseDatetimeLocalToIsoUtc(startsRaw);
+    const ends_at = parseDatetimeLocalToIsoUtc(endsRaw);
+    if (!starts_at || !ends_at) {
+      return {
+        ok: false,
+        message: 'One or more session slot times are invalid. Check start and end times.',
+      };
+    }
+    if (new Date(starts_at).getTime() >= new Date(ends_at).getTime()) {
+      return {
+        ok: false,
+        message: 'Each session slot must end after it starts.',
+      };
+    }
+    session_slots.push({
       location_id: slot.locationId,
       starts_at,
       ends_at,
       sort_order: slot.sortOrder ?? index,
-    };
-  });
+    });
+  }
+  return { ok: true, session_slots };
 }

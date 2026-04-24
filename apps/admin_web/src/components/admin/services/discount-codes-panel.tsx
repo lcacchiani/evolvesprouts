@@ -34,7 +34,7 @@ import {
   formatEnumLabel,
   formatIsoForDatetimeLocalInput,
   getCurrencyOptions,
-  parseDatetimeLocalToIsoUtc,
+  parseAdminDateTimeInputToIsoUtc,
 } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -213,8 +213,8 @@ export function DiscountCodesPanel({
     }
     setValidityRangeError('');
     setSaveError('');
-    const validFromIso = parseDatetimeLocalToIsoUtc(validFromLocal);
-    const validUntilIso = parseDatetimeLocalToIsoUtc(validUntilLocal);
+    const validFromIso = parseAdminDateTimeInputToIsoUtc(validFromLocal);
+    const validUntilIso = parseAdminDateTimeInputToIsoUtc(validUntilLocal);
     const serviceUuid = serviceId.trim() || null;
     const instanceUuid = serviceUuid && instanceId.trim() ? instanceId.trim() : null;
     const createPayload: ApiSchemas['CreateDiscountCodeRequest'] = {

@@ -247,6 +247,29 @@ def parse_instance_type_details(
     }
 
 
+def parse_required_aware_datetime(value: Any, field: str) -> datetime:
+    """Parse a required datetime that must be timezone-aware (Z or numeric offset).
+
+    Naive ISO strings are rejected so callers cannot accidentally persist local
+    wall times as UTC.
+    """
+    if value is None or str(value).strip() == "":
+        raise ValidationError(f"{field} is required", field=field)
+    try:
+        parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValidationError(
+            f"{field} must be a valid ISO datetime", field=field
+        ) from exc
+    if parsed.tzinfo is None:
+        raise ValidationError(
+            f"{field} must include a timezone offset or Z (RFC 3339); "
+            "naive datetimes are not allowed",
+            field=field,
+        )
+    return normalize_datetime(parsed)
+
+
 def parse_session_slots(value: Any) -> list[dict[str, Any]]:
     """Parse and validate session-slot payload list."""
     if value is None:
@@ -260,13 +283,10 @@ def parse_session_slots(value: Any) -> list[dict[str, Any]]:
                 f"session_slots[{idx}] must be an object",
                 field="session_slots",
             )
-        starts_at = parse_optional_datetime(entry.get("starts_at"), "starts_at")
-        ends_at = parse_optional_datetime(entry.get("ends_at"), "ends_at")
-        if starts_at is None or ends_at is None:
-            raise ValidationError(
-                "starts_at and ends_at are required for each session slot",
-                field="session_slots",
-            )
+        starts_field = f"session_slots[{idx}].starts_at"
+        ends_field = f"session_slots[{idx}].ends_at"
+        starts_at = parse_required_aware_datetime(entry.get("starts_at"), starts_field)
+        ends_at = parse_required_aware_datetime(entry.get("ends_at"), ends_field)
         if ends_at <= starts_at:
             raise ValidationError(
                 "ends_at must be after starts_at", field="session_slots"
