@@ -25,6 +25,7 @@ const SERVICE_ROW: ServiceSummary = {
   updatedAt: '2026-03-01T10:00:00Z',
   trainingDetails: null,
   eventDetails: null,
+  consultationDetails: null,
 };
 
 const INSTANCE_ROW: ServiceInstance = {

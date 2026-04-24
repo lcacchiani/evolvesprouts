@@ -1,6 +1,6 @@
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
-import type { LocationSummary } from '@/types/services';
+import type { LocationSummary, ServiceSummary } from '@/types/services';
 
 import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
 
@@ -124,6 +124,70 @@ function getCurrencyName(code: string): string {
 
 export function formatEnumLabel(value: string): string {
   return toTitleCase(value.toLowerCase());
+}
+
+function appendCurrency(amount: string, currencyCode: string | null | undefined): string {
+  const cur = currencyCode?.trim() ?? '';
+  return cur ? `${amount} ${cur}` : amount;
+}
+
+/**
+ * One-line default pricing for the admin services list (training/event default price;
+ * consultation Free, hourly rate, or package price).
+ */
+export function formatServiceListPriceLabel(service: ServiceSummary): string {
+  if (service.serviceType === 'training_course') {
+    const d = service.trainingDetails;
+    if (!d) {
+      return '—';
+    }
+    const price = d.defaultPrice?.trim() ?? '';
+    if (!price) {
+      return '—';
+    }
+    return appendCurrency(price, d.defaultCurrency);
+  }
+  if (service.serviceType === 'event') {
+    const d = service.eventDetails;
+    if (!d) {
+      return '—';
+    }
+    const price = d.defaultPrice?.trim() ?? '';
+    if (!price) {
+      return '—';
+    }
+    return appendCurrency(price, d.defaultCurrency);
+  }
+  if (service.serviceType === 'consultation') {
+    const d = service.consultationDetails;
+    if (!d) {
+      return '—';
+    }
+    if (d.pricingModel === 'free') {
+      return 'Free';
+    }
+    if (d.pricingModel === 'hourly') {
+      const rate = d.defaultHourlyRate?.trim() ?? '';
+      if (!rate) {
+        return '—';
+      }
+      return `${appendCurrency(rate, d.defaultCurrency)} / hr`;
+    }
+    if (d.pricingModel === 'package') {
+      const pkg = d.defaultPackagePrice?.trim() ?? '';
+      if (!pkg) {
+        return '—';
+      }
+      const cur = d.defaultCurrency?.trim() ?? '';
+      const base = cur ? `${pkg} ${cur}` : pkg;
+      if (typeof d.defaultPackageSessions === 'number' && d.defaultPackageSessions > 0) {
+        return `${base} (${d.defaultPackageSessions} sessions)`;
+      }
+      return base;
+    }
+    return '—';
+  }
+  return '—';
 }
 
 export function getCurrencyOptions(): CurrencyOption[] {

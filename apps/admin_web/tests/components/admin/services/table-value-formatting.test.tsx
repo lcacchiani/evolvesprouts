@@ -26,6 +26,7 @@ const SERVICE_FIXTURE: ServiceSummary = {
   updatedAt: '2026-03-01T10:00:00Z',
   trainingDetails: null,
   eventDetails: null,
+  consultationDetails: null,
 };
 
 const INSTANCE_FIXTURE: ServiceInstance = {
@@ -127,6 +128,7 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Training Course')).toBeInTheDocument();
     expect(within(table).getByText('Published')).toBeInTheDocument();
     expect(within(table).getByText('In Person')).toBeInTheDocument();
+    expect(within(table).getByText('—')).toBeInTheDocument();
   });
 
   it('disables delete when the service has instances', () => {

@@ -13,7 +13,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatServiceListPriceLabel } from '@/lib/format';
 
 import { SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
 import type { ServiceListFilters, ServiceSummary } from '@/types/services';
@@ -145,11 +145,12 @@ export function ServiceListPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[720px]'>
+        <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
+              <th className='px-4 py-3 font-semibold'>Price</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Delivery</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
@@ -170,6 +171,7 @@ export function ServiceListPanel({
               >
                 <td className='px-4 py-3'>{service.title}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
+                <td className='px-4 py-3'>{formatServiceListPriceLabel(service)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
                 <td className='px-4 py-3 text-right'>

@@ -60,6 +60,22 @@ export const CONSULTATION_PRICING_MODELS = defineEnumValues<ConsultationPricingM
   ['free', 'hourly', 'package'] as const satisfies readonly ConsultationPricingModel[]
 );
 
+const CONSULTATION_PRICING_MODEL_SET = new Set<string>(CONSULTATION_PRICING_MODELS);
+
+/**
+ * Map API `pricing_model` to a known enum value for controlled selects and display.
+ * Unknown values fall back to `free`.
+ */
+export function normalizeConsultationPricingModelFromApi(raw: unknown): ConsultationPricingModel {
+  if (typeof raw !== 'string') {
+    return 'free';
+  }
+  const normalized = raw.trim().toLowerCase();
+  return CONSULTATION_PRICING_MODEL_SET.has(normalized)
+    ? (normalized as ConsultationPricingModel)
+    : 'free';
+}
+
 export type InstanceStatus = ApiSchemas['InstanceStatus'];
 export const INSTANCE_STATUSES = defineEnumValues<InstanceStatus>()(
   ['scheduled', 'open', 'full', 'in_progress', 'completed', 'cancelled'] as const satisfies readonly InstanceStatus[]
@@ -124,6 +140,16 @@ export interface ServiceSummary {
     eventCategory: EventCategory;
     defaultPrice: string | null;
     defaultCurrency: string;
+  } | null;
+  consultationDetails: {
+    consultationFormat: ConsultationFormat;
+    maxGroupSize: number | null;
+    durationMinutes: number | null;
+    pricingModel: ConsultationPricingModel;
+    defaultHourlyRate: string | null;
+    defaultPackagePrice: string | null;
+    defaultPackageSessions: number | null;
+    defaultCurrency: string | null;
   } | null;
 }
 

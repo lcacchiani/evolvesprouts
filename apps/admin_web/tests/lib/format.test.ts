@@ -6,16 +6,128 @@ import {
   formatDateOnly,
   formatEnumLabel,
   formatIsoForDatetimeLocalInput,
+  formatServiceListPriceLabel,
   getContentLanguageOptions,
   getCurrencyOptions,
   matchAdminSelectableContentLanguage,
   parseDatetimeLocalToIsoUtc,
 } from '@/lib/format';
+import type { ServiceSummary } from '@/types/services';
+
+function baseSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
+  return {
+    id: 's1',
+    instancesCount: 0,
+    serviceType: 'training_course',
+    title: 'T',
+    slug: null,
+    bookingSystem: null,
+    description: null,
+    coverImageS3Key: null,
+    deliveryMode: 'online',
+    status: 'draft',
+    serviceTier: null,
+    locationId: null,
+    createdBy: 'u',
+    createdAt: null,
+    updatedAt: null,
+    trainingDetails: null,
+    eventDetails: null,
+    consultationDetails: null,
+    ...overrides,
+  };
+}
 
 describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
     expect(formatEnumLabel('training_course')).toBe('Training Course');
     expect(formatEnumLabel('in_person')).toBe('In Person');
+  });
+
+  it('formats service list price labels by service type', () => {
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'training_course',
+          trainingDetails: {
+            pricingUnit: 'per_person',
+            defaultPrice: '100',
+            defaultCurrency: 'HKD',
+          },
+        })
+      )
+    ).toBe('100 HKD');
+
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'event',
+          trainingDetails: null,
+          eventDetails: {
+            eventCategory: 'workshop',
+            defaultPrice: '50',
+            defaultCurrency: 'USD',
+          },
+        })
+      )
+    ).toBe('50 USD');
+
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'consultation',
+          trainingDetails: null,
+          consultationDetails: {
+            consultationFormat: 'one_on_one',
+            maxGroupSize: null,
+            durationMinutes: 60,
+            pricingModel: 'free',
+            defaultHourlyRate: null,
+            defaultPackagePrice: null,
+            defaultPackageSessions: null,
+            defaultCurrency: 'HKD',
+          },
+        })
+      )
+    ).toBe('Free');
+
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'consultation',
+          trainingDetails: null,
+          consultationDetails: {
+            consultationFormat: 'one_on_one',
+            maxGroupSize: null,
+            durationMinutes: null,
+            pricingModel: 'hourly',
+            defaultHourlyRate: '200',
+            defaultPackagePrice: null,
+            defaultPackageSessions: null,
+            defaultCurrency: 'HKD',
+          },
+        })
+      )
+    ).toBe('200 HKD / hr');
+
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'consultation',
+          trainingDetails: null,
+          consultationDetails: {
+            consultationFormat: 'group',
+            maxGroupSize: 4,
+            durationMinutes: null,
+            pricingModel: 'package',
+            defaultHourlyRate: null,
+            defaultPackagePrice: '1200',
+            defaultPackageSessions: 6,
+            defaultCurrency: 'HKD',
+          },
+        })
+      )
+    ).toBe('1200 HKD (6 sessions)');
   });
 
   it('exposes HKD, USD, EUR, GBP, CNY, and SGD in currency options with expected labels', () => {

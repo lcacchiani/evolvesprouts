@@ -137,6 +137,60 @@ describe('services-api', () => {
     });
   });
 
+  it('maps consultation_details on service list rows when present', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'service-consult-1',
+            service_type: 'consultation',
+            title: 'Coaching',
+            description: null,
+            cover_image_s3_key: null,
+            delivery_mode: 'hybrid',
+            status: 'published',
+            created_by: 'admin-1',
+            created_at: '2026-03-01T00:00:00.000Z',
+            updated_at: '2026-03-01T00:00:00.000Z',
+            training_details: null,
+            event_details: null,
+            consultation_details: {
+              consultation_format: 'one_on_one',
+              max_group_size: null,
+              duration_minutes: 45,
+              pricing_model: 'hourly',
+              default_hourly_rate: '350',
+              default_package_price: null,
+              default_package_sessions: null,
+              default_currency: 'HKD',
+            },
+          },
+        ],
+        next_cursor: null,
+        total_count: 1,
+      },
+    });
+
+    const result = await listServices({
+      serviceType: 'consultation',
+      status: 'published',
+      search: '',
+      cursor: null,
+      limit: 20,
+    });
+
+    expect(result.items[0]).toMatchObject({
+      id: 'service-consult-1',
+      serviceType: 'consultation',
+      consultationDetails: {
+        consultationFormat: 'one_on_one',
+        pricingModel: 'hourly',
+        defaultHourlyRate: '350',
+        defaultCurrency: 'HKD',
+      },
+    });
+  });
+
   it('creates cover-image upload URL and maps response', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {

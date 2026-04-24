@@ -4334,6 +4334,8 @@ export interface components {
             training_details?: components["schemas"]["ServiceTrainingDetails"] | null;
             /** @description Present for event rows when details exist. */
             event_details?: components["schemas"]["ServiceEventDetails"] | null;
+            /** @description Present for consultation rows when details exist. */
+            consultation_details?: components["schemas"]["ServiceConsultationDetails"] | null;
             /** @description Number of service instances for this template (list and detail payloads). */
             instances_count: number;
         };
