@@ -181,5 +181,11 @@ pull requests for dependency updates:
 - API Gateway stage caching is disabled; allowlisted `GET` traffic on the
   `public_www` CloudFront distribution is edge-cached on the `www/*` behavior
   using origin `Cache-Control` headers (custom cache policy caps TTL at 15 minutes).
+- **Known limitation:** JSON responses still include CORS `Vary: Origin` while the
+  cache policy does not vary the cache key by `Origin`. Same-origin `public_www`
+  traffic is unaffected; cross-origin callers against `/www/*` could theoretically
+  see a mismatched `Access-Control-Allow-Origin` if that pattern is introduced.
+  Fixing this means either omitting CORS on these routes, or adding `Origin` to the
+  CloudFront cache key (lower hit rate).
 - Client-side caching with stale-while-revalidate in Flutter (planned).
 - Cloudflare proxies production public website and API traffic at the edge.

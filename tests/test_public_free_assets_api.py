@@ -11,10 +11,9 @@ import pytest
 from app.api import public_free_assets
 from app.db.models import AssetType
 from app.exceptions import ValidationError
+from app.utils import CACHE_CONTROL_EDGE_CACHEABLE_GET
 
-_EXPECTED_CACHE_CONTROL_SUCCESS = (
-    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
-)
+_EXPECTED_CACHE_CONTROL_SUCCESS = CACHE_CONTROL_EDGE_CACHEABLE_GET
 
 
 def _asset_row(*, content_language: str | None = "en") -> Any:
@@ -84,6 +83,7 @@ def test_handle_public_free_assets_list_accepts_www_prefixed_path(
     )
     assert response["statusCode"] == 200
     assert response["headers"]["Cache-Control"] == _EXPECTED_CACHE_CONTROL_SUCCESS
+    assert "Pragma" not in response["headers"]
 
 
 def test_handle_public_free_assets_list_invalid_language(
@@ -160,6 +160,7 @@ def test_handle_public_free_assets_list_lists_items(
     assert "s-maxage=300" in cc
     assert "stale-while-revalidate=600" in cc
     assert cc == _EXPECTED_CACHE_CONTROL_SUCCESS
+    assert "Pragma" not in response["headers"]
     assert "s3_key" not in item
     assert "id" not in item
     assert "file_name" not in item

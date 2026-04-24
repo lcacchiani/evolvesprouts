@@ -25,15 +25,14 @@ from app.api.assets.assets_common import (
 )
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
-from app.utils import json_response
+from app.utils import (
+    CACHE_CONTROL_EDGE_CACHEABLE_GET,
+    CACHE_CONTROL_NO_STORE,
+    json_response,
+)
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-_CACHE_CONTROL_PUBLIC_LIST = (
-    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
-)
-_CACHE_CONTROL_NO_STORE = "no-store"
 
 
 def _is_free_assets_list_path(path: str) -> bool:
@@ -61,7 +60,7 @@ def handle_public_free_assets_list_request(
         return json_response(
             404,
             {"error": "Not found"},
-            headers={"Cache-Control": _CACHE_CONTROL_NO_STORE},
+            headers={"Cache-Control": CACHE_CONTROL_NO_STORE},
             event=event,
         )
 
@@ -73,7 +72,7 @@ def handle_public_free_assets_list_request(
         return json_response(
             405,
             {"error": "Method not allowed"},
-            headers={"Cache-Control": _CACHE_CONTROL_NO_STORE},
+            headers={"Cache-Control": CACHE_CONTROL_NO_STORE},
             event=event,
         )
 
@@ -93,5 +92,5 @@ def handle_public_free_assets_list_request(
         limit=limit,
         event=event,
         serializer=serialize_public_free_asset,
-        headers={"Cache-Control": _CACHE_CONTROL_PUBLIC_LIST},
+        headers={"Cache-Control": CACHE_CONTROL_EDGE_CACHEABLE_GET},
     )

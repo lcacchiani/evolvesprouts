@@ -4,6 +4,9 @@ import { Template, Match } from "aws-cdk-lib/assertions";
 import { PublicWwwStack } from "../lib/public-www-stack";
 
 const CACHING_DISABLED_MANAGED_ID = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad";
+/** ALL_VIEWER_EXCEPT_HOST_HEADER */
+const ORIGIN_REQUEST_POLICY_ALL_VIEWER_EXCEPT_HOST =
+  "b689b0a8-53d0-40ab-baf2-68738e2966ac";
 
 function synthPublicWwwTemplate(): Template {
   const app = new cdk.App();
@@ -54,32 +57,89 @@ function assertApiProxyCachePolicies(template: Template): void {
   }
 }
 
-function assertWwwBehaviors(template: Template): void {
-  template.hasResourceProperties(
-    "AWS::CloudFront::Distribution",
-    Match.objectLike({
-      DistributionConfig: Match.objectLike({
-        CacheBehaviors: Match.arrayWith([
-          Match.objectLike({
-            PathPattern: "www/v1/assets/free/request",
-            CachePolicyId: CACHING_DISABLED_MANAGED_ID,
-            AllowedMethods: Match.arrayWith(["POST", "DELETE"]),
-          }),
-          Match.objectLike({
-            PathPattern: "www/*",
-            AllowedMethods: Match.arrayWith(["POST", "DELETE"]),
-            CachePolicyId: { Ref: Match.stringLikeRegexp("ApiProxyCachePolicy") },
-          }),
-        ]),
-      }),
-    }),
-  );
+function findWwwStarBehavior(
+  behaviors: Array<Record<string, unknown>>,
+): Record<string, unknown> | undefined {
+  return behaviors.find((b) => b.PathPattern === "www/*");
+}
+
+function assertEachDistributionWwwBehaviors(template: Template): void {
+  const distributions = template.findResources("AWS::CloudFront::Distribution");
+  const entries = Object.entries(distributions);
+  if (entries.length !== 2) {
+    throw new Error(
+      `Expected exactly 2 CloudFront distributions (prod + staging), found ${entries.length}`,
+    );
+  }
+  for (const [logicalId, resource] of entries) {
+    const behaviors: Array<Record<string, unknown>> =
+      resource.Properties?.DistributionConfig?.CacheBehaviors ?? [];
+    const freeRequest = behaviors.find(
+      (b) => b.PathPattern === "www/v1/assets/free/request",
+    );
+    if (!freeRequest) {
+      throw new Error(
+        `Distribution ${logicalId} missing www/v1/assets/free/request behavior`,
+      );
+    }
+    if (freeRequest.CachePolicyId !== CACHING_DISABLED_MANAGED_ID) {
+      throw new Error(
+        `Distribution ${logicalId}: free/request must use CACHING_DISABLED managed policy`,
+      );
+    }
+    const wwwStar = findWwwStarBehavior(behaviors);
+    if (!wwwStar) {
+      throw new Error(`Distribution ${logicalId} missing www/* behavior`);
+    }
+    if (
+      typeof wwwStar.CachePolicyId !== "object" ||
+      wwwStar.CachePolicyId === null ||
+      !("Ref" in wwwStar.CachePolicyId)
+    ) {
+      throw new Error(
+        `Distribution ${logicalId}: www/* must use Ref to custom ApiProxyCachePolicy`,
+      );
+    }
+    const ref = (wwwStar.CachePolicyId as { Ref: string }).Ref;
+    if (!/ApiProxyCachePolicy/.test(ref)) {
+      throw new Error(
+        `Distribution ${logicalId}: unexpected CachePolicyId Ref ${ref}`,
+      );
+    }
+    const methods = wwwStar.AllowedMethods as string[] | undefined;
+    if (!methods?.includes("POST") || !methods?.includes("DELETE")) {
+      throw new Error(
+        `Distribution ${logicalId}: www/* must allow POST/DELETE (ALLOW_ALL)`,
+      );
+    }
+    if (wwwStar.OriginRequestPolicyId !== ORIGIN_REQUEST_POLICY_ALL_VIEWER_EXCEPT_HOST) {
+      throw new Error(
+        `Distribution ${logicalId}: www/* must use ALL_VIEWER_EXCEPT_HOST_HEADER origin request policy`,
+      );
+    }
+    const fnAssoc = wwwStar.FunctionAssociations as
+      | Array<{ EventType?: string; FunctionARN?: unknown }>
+      | undefined;
+    if (!Array.isArray(fnAssoc) || fnAssoc.length !== 2) {
+      throw new Error(
+        `Distribution ${logicalId}: www/* must have exactly two FunctionAssociations`,
+      );
+    }
+    const events = new Set(
+      fnAssoc.map((a) => a.EventType).filter((e): e is string => typeof e === "string"),
+    );
+    if (!events.has("viewer-request") || !events.has("viewer-response")) {
+      throw new Error(
+        `Distribution ${logicalId}: www/* must associate viewer-request and viewer-response functions`,
+      );
+    }
+  }
 }
 
 function main(): void {
   const template = synthPublicWwwTemplate();
   assertApiProxyCachePolicies(template);
-  assertWwwBehaviors(template);
+  assertEachDistributionWwwBehaviors(template);
   // eslint-disable-next-line no-console
   console.log("public-www-stack CloudFront cache policy assertions passed.");
 }

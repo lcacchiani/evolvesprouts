@@ -115,7 +115,8 @@ their primary responsibilities.
   cohorts default to `my-best-auntie-booking` when `services.slug` is
   `my-best-auntie`). Results order by earliest upcoming session slot ascending
   with `service_instances.id` as tie-break. Optional query filters:
-  `landing_page`, `service_type`. Optional `slug` and `landing_page` echo from
+  `landing_page`, `service_type`, `service_key` (matched case-insensitively against
+  `services.slug`; invalid values ignored). Optional `slug` and `landing_page` echo from
   `service_instances`; `spaces_total` / `spaces_left` when `max_capacity` is set,
   using the same enrollment statuses as capacity checks: registered, confirmed,
   completed),
@@ -123,10 +124,11 @@ their primary responsibilities.
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
   `zh-CN`, or `zh-HK`; downloads
-  remain on `/v1/assets/public/{id}/download` with device attestation.
-  `GET /v1/calendar/public` and `GET /v1/assets/free` (and `/www/v1/...`) emit
-  `Cache-Control` on success and `no-store` on errors for CloudFront `/www/*`;
-  new allowlisted GETs must follow the same contract),
+  remain on `/v1/assets/public/{id}/download` with device attestation),
+  Allowlisted public GETs behind `/www/*` (`GET /v1/calendar/public`,
+  `GET /v1/assets/free`, and `/www/v1/...`) emit `Cache-Control` on success and
+  `no-store` on handler error paths; new allowlisted GETs must follow the same
+  contract,
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,

@@ -26,35 +26,15 @@ from app.db.models.service_instance import InstanceSessionSlot
 if TYPE_CHECKING:
     from app.db.models.location import Location
 from app.db.repositories.service_instance import ServiceInstanceRepository
-from app.utils import json_response
+from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 from app.utils.maps import build_google_maps_directions_url
 
 logger = get_logger(__name__)
 
 _LANDING_PAGE_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-
-_CACHE_CONTROL_PUBLIC_LIST = (
-    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
-)
-_CACHE_CONTROL_NO_STORE = "no-store"
-
-
-def _public_events_json_response(
-    status_code: int,
-    body: Any,
-    *,
-    event: Mapping[str, Any],
-) -> dict[str, Any]:
-    cache = (
-        _CACHE_CONTROL_PUBLIC_LIST if status_code == 200 else _CACHE_CONTROL_NO_STORE
-    )
-    return json_response(
-        status_code,
-        body,
-        headers={"Cache-Control": cache},
-        event=event,
-    )
+_SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_SERVICE_KEY_MAX_LEN = 80  # matches services.slug varchar(80)
 
 
 def handle_public_events(
@@ -62,15 +42,33 @@ def handle_public_events(
     method: str,
 ) -> dict[str, Any]:
     """Handle GET /v1/calendar/public and /www/v1/calendar/public."""
-    logger.info("Handling public events feed request", extra={"method": method})
     if method != "GET":
-        return _public_events_json_response(
+        logger.info(
+            "Handling public events feed request",
+            extra={"method": method},
+        )
+        return public_cacheable_json_response(
             405, {"error": "Method not allowed"}, event=event
         )
 
     query = event.get("queryStringParameters") or {}
     landing_page = _parse_landing_page(query.get("landing_page"))
     service_types = _parse_service_type_filter(query.get("service_type"))
+    service_key = _parse_service_key(query.get("service_key"))
+
+    logger.info(
+        "Handling public events feed request",
+        extra={
+            "method": method,
+            "filter.service_type": (
+                sorted(t.value for t in service_types)
+                if service_types is not None
+                else None
+            ),
+            "filter.landing_page": landing_page,
+            "filter.service_key": service_key,
+        },
+    )
 
     with Session(get_engine()) as session:
         repository = ServiceInstanceRepository(session)
@@ -79,9 +77,10 @@ def handle_public_events(
             now=datetime.now(UTC),
             service_types=service_types,
             landing_page=landing_page,
+            service_key=service_key,
         )
     # Keep a temporary alias for older consumers while "events" is canonical.
-    return _public_events_json_response(
+    return public_cacheable_json_response(
         200, {"events": items, "items": items}, event=event
     )
 
@@ -114,18 +113,42 @@ def _parse_service_type_filter(raw: str | None) -> set[ServiceType] | None:
     return None
 
 
+def _parse_service_key(raw: str | None) -> str | None:
+    """Normalize and validate the `service_key` query parameter.
+
+    Returns a lowercase slug ready for comparison against ``lower(services.slug)``
+    in the repository, or None when input is missing, blank, too long, or
+    malformed. Trims whitespace, then lowercases before pattern validation so
+    mixed-case slugs are accepted. Follows the silent-ignore policy used for
+    other public calendar query parameters.
+    """
+    if raw is None:
+        return None
+    trimmed = raw.strip()
+    if not trimmed or len(trimmed) > _SERVICE_KEY_MAX_LEN:
+        return None
+    # Lowercase before pattern match so mixed-case input (e.g. MY-BEST-AUNTIE)
+    # is accepted; the OpenAPI pattern is lowercase-only.
+    normalized = trimmed.lower()
+    if not _SERVICE_KEY_PATTERN.fullmatch(normalized):
+        return None
+    return normalized
+
+
 def _fetch_public_offerings(
     repository: ServiceInstanceRepository,
     *,
     now: datetime,
     service_types: set[ServiceType] | None,
     landing_page: str | None,
+    service_key: str | None,
 ) -> list[dict[str, Any]]:
     rows = repository.list_public_offerings(
         limit=100,
         now=now,
         service_types=service_types,
         landing_page=landing_page,
+        service_key=service_key,
     )
     capacity_instance_ids = [row.id for row in rows if row.max_capacity is not None]
     enrollment_counts = repository.get_enrollment_counts_for_instances(

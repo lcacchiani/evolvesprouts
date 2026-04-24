@@ -271,6 +271,9 @@ paths:
         published `event` and `training_course` services (consultation is never
         included). Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
+
+        Optional filters: `service_type`, `landing_page`, `service_key`. Filters
+        combine via logical AND; contradictory combinations return `events: []`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -294,6 +297,23 @@ paths:
             Filter results to at most one instance whose
             `service_instances.landing_page` matches the provided slug.
             Invalid or empty values are silently ignored.
+        - name: service_key
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 80
+            pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Restrict the feed to instances of a single service whose slug matches
+            `service_key` case-insensitively against `services.slug` in Aurora
+            (e.g. `my-best-auntie`). Combines with `service_type` and
+            `landing_page` via logical AND; contradictory combinations return
+            `events: []`. Unknown slugs return `events: []`. Invalid values
+            (wrong shape, too long) are silently ignored and the filter is not
+            applied, consistent with `service_type` and `landing_page`.
+            Same case-insensitive `services.slug` mapping as the `service_key` field
+            on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
           description: Event list response.
@@ -313,7 +333,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
@@ -326,6 +346,9 @@ paths:
         published `event` and `training_course` services (consultation is never
         included). Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
+
+        Optional filters: `service_type`, `landing_page`, `service_key`. Filters
+        combine via logical AND; contradictory combinations return `events: []`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -349,6 +372,23 @@ paths:
             Filter results to at most one instance whose
             `service_instances.landing_page` matches the provided slug.
             Invalid or empty values are silently ignored.
+        - name: service_key
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 80
+            pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Restrict the feed to instances of a single service whose slug matches
+            `service_key` case-insensitively against `services.slug` in Aurora
+            (e.g. `my-best-auntie`). Combines with `service_type` and
+            `landing_page` via logical AND; contradictory combinations return
+            `events: []`. Unknown slugs return `events: []`. Invalid values
+            (wrong shape, too long) are silently ignored and the filter is not
+            applied, consistent with `service_type` and `landing_page`.
+            Same case-insensitive `services.slug` mapping as the `service_key` field
+            on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
           description: Event list response.
@@ -368,7 +408,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 

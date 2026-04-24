@@ -69,6 +69,18 @@ def validate_content_type(
         )
 
 
+def _caller_supplies_shared_friendly_cache_control(cache_control: str) -> bool:
+    """True when caller overrides default no-store security caching for shared caches."""
+    lowered = cache_control.lower()
+    if "public" in lowered:
+        return True
+    if "no-store" in lowered or "no-cache" in lowered:
+        return False
+    if "max-age" in lowered or "s-maxage" in lowered:
+        return True
+    return False
+
+
 def get_security_headers() -> dict[str, str]:
     """Get security headers for all responses.
 
@@ -173,6 +185,12 @@ def json_response(
 
     if headers:
         response_headers.update(headers)
+        cc = headers.get("Cache-Control")
+        if isinstance(cc, str) and _caller_supplies_shared_friendly_cache_control(cc):
+            # Security defaults include Pragma: no-cache for sensitive JSON; strip it
+            # when the handler opts into shared edge caching so intermediaries are not
+            # confused by contradictory directives (see RFC 7234).
+            response_headers.pop("Pragma", None)
 
     payload = _serialize_body(body)
 
