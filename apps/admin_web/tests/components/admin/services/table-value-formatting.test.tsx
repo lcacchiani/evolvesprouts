@@ -150,7 +150,9 @@ describe('services tables value formatting', () => {
     );
 
     const table = screen.getByRole('table');
-    expect(within(table).getByRole('img', { name: 'Draft status' })).toBeInTheDocument();
+    expect(
+      within(table).getByRole('img', { name: 'Draft — not published to the website' })
+    ).toBeInTheDocument();
     expect(within(table).getByText('Draft')).toBeInTheDocument();
   });
 

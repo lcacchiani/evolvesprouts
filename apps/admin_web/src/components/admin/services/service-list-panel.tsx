@@ -171,13 +171,18 @@ export function ServiceListPanel({
                 <td className='px-4 py-3'>{service.title}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
                 <td className='px-4 py-3'>
-                  <span className='inline-flex items-center gap-1.5'>
-                    {formatEnumLabel(service.status)}
+                  <span className='inline-flex items-center gap-2'>
                     {service.status === 'draft' ? (
-                      <span className='inline-flex' role='img' aria-label='Draft status'>
-                        <WarningTriangleIcon className='h-4 w-4 shrink-0 text-amber-600' aria-hidden />
+                      <span
+                        className='inline-flex shrink-0 text-amber-600'
+                        role='img'
+                        aria-label='Draft — not published to the website'
+                        title='Draft — not published to the website'
+                      >
+                        <WarningTriangleIcon className='h-5 w-5' aria-hidden />
                       </span>
                     ) : null}
+                    {formatEnumLabel(service.status)}
                   </span>
                 </td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
