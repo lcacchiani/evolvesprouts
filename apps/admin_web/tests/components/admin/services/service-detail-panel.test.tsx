@@ -107,6 +107,11 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('');
     expect(screen.getByLabelText('Description')).toHaveValue('');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
+    expect(screen.getByLabelText('Cover file name')).toHaveValue('');
+    expect(screen.getByLabelText('Cover file name')).toHaveAttribute('title', 'e.g. cover-image.jpg');
+    expect(screen.getByLabelText('Booking system')).toHaveAttribute('title', 'e.g. training-booking');
+    expect(screen.getByLabelText('Title')).not.toHaveAttribute('placeholder');
+    expect(screen.getByLabelText('Description')).not.toHaveAttribute('placeholder');
 
     rerender(
       <ServiceDetailPanel
@@ -277,6 +282,8 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    expect(screen.getByLabelText('Duration (minutes)')).toHaveValue('');
+    expect(screen.getByLabelText('Duration (minutes)')).toHaveAttribute('title', 'e.g. 60');
     expect(screen.getByLabelText('Consultation format')).toBeInTheDocument();
     expect(screen.getByLabelText('Pricing model')).toBeInTheDocument();
     expect(screen.queryByLabelText('Max group size')).not.toBeInTheDocument();
@@ -469,7 +476,7 @@ describe('ServiceDetailPanel', () => {
     expect(currency.compareDocumentPosition(location) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('lays out consultation Row1 with delivery, tier, booking, cover', async () => {
+  it('lays out consultation Row1 with delivery, tier, booking, cover; format on next row', async () => {
     const user = userEvent.setup();
     render(
       <ServiceDetailPanel
@@ -492,6 +499,11 @@ describe('ServiceDetailPanel', () => {
     expect(delivery.compareDocumentPosition(tier!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(tier!.compareDocumentPosition(booking) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(booking.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const format = screen.getByLabelText('Consultation format');
+    const pricingModel = screen.getByLabelText('Pricing model');
+    expect(cover.compareDocumentPosition(format) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(format.compareDocumentPosition(pricingModel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('consultation pricing free hides price/currency/package sessions', async () => {
