@@ -38,11 +38,13 @@ import type { components } from '@/types/generated/admin-api.generated';
 import {
   normalizeEventCategoryFromApi,
   type EventCategory,
+  type EventTicketTier,
   type LocationSummary,
   type PartnerOrgRef,
   type ServiceInstance,
   type ServiceSummary,
   type ServiceType,
+  type SessionSlot,
 } from '@/types/services';
 
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
@@ -61,6 +63,8 @@ const defaultCurrencyCode = getAdminDefaultCurrencyCode();
 
 export interface InstanceDetailPanelProps {
   instance: ServiceInstance | null;
+  /** When set with `instance` null, seed the create form from this row (UI-only duplicate). */
+  createPrefillInstance?: ServiceInstance | null;
   entityTags: EntityTagRef[];
   entityTagsLoading: boolean;
   entityTagsError: string;
@@ -145,8 +149,33 @@ function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] 
   }));
 }
 
+function cloneSessionSlotsForCreate(slots: SessionSlot[]): SessionSlot[] {
+  return slots.map((slot) => ({
+    id: null,
+    instanceId: null,
+    locationId: slot.locationId,
+    startsAt: slot.startsAt,
+    endsAt: slot.endsAt,
+    sortOrder: slot.sortOrder,
+  }));
+}
+
+function cloneEventTiersForCreate(tiers: EventTicketTier[]): EventTicketTier[] {
+  return tiers.map((tier, index) => ({
+    id: null,
+    instanceId: null,
+    name: tier.name,
+    description: tier.description,
+    price: tier.price,
+    currency: tier.currency,
+    maxQuantity: tier.maxQuantity,
+    sortOrder: tier.sortOrder ?? index,
+  }));
+}
+
 export function InstanceDetailPanel({
   instance,
+  createPrefillInstance = null,
   entityTags,
   entityTagsLoading,
   entityTagsError,
@@ -165,6 +194,8 @@ export function InstanceDetailPanel({
 }: InstanceDetailPanelProps) {
   const isEditMode = Boolean(instance);
   const lastMergedServiceIdForCreateRef = useRef<string | null>(null);
+  const duplicateCreateHydratedRef = useRef(false);
+  const duplicateEventTiersTemplateRef = useRef<EventTicketTier[] | null>(null);
   const { users: instructorUsers, isLoading: isLoadingInstructors } = useInstructorUsers(
     Boolean(selectedServiceId)
   );
@@ -224,6 +255,71 @@ export function InstanceDetailPanel({
       : DEFAULT_CONSULTATION_FORM
   );
 
+  useEffect(() => {
+    if (!createPrefillInstance) {
+      duplicateCreateHydratedRef.current = false;
+      duplicateEventTiersTemplateRef.current = null;
+    }
+  }, [createPrefillInstance]);
+
+  useEffect(() => {
+    if (instance || !createPrefillInstance || !selectedServiceId) {
+      return;
+    }
+    if (selectedServiceId !== createPrefillInstance.serviceId) {
+      return;
+    }
+    if (duplicateCreateHydratedRef.current) {
+      return;
+    }
+    duplicateCreateHydratedRef.current = true;
+    lastMergedServiceIdForCreateRef.current = selectedServiceId;
+    duplicateEventTiersTemplateRef.current = cloneEventTiersForCreate(createPrefillInstance.eventTicketTiers);
+    const source = createPrefillInstance;
+    queueMicrotask(() => {
+      setTagIds([...source.tagIds]);
+      setInstanceForm({
+        title: source.title ?? '',
+        slug: '',
+        description: source.description ?? '',
+        status: source.status,
+        deliveryMode: source.deliveryMode ?? '',
+        locationId: source.locationId ?? '',
+        maxCapacity: source.maxCapacity?.toString() ?? '',
+        waitlistEnabled: source.waitlistEnabled,
+        instructorId: source.instructorId ?? '',
+        notes: source.notes ?? '',
+        cohort: source.cohort ?? '',
+        externalUrl: source.externalUrl ?? '',
+        partnerOrganizations: mapPartnerRefsFromInstance(source),
+        sessionSlots: cloneSessionSlotsForCreate(source.sessionSlots),
+      });
+      setTrainingForm({
+        pricingUnit: source.trainingDetails?.pricingUnit ?? 'per_person',
+        defaultPrice: source.trainingDetails?.price ?? '',
+        defaultCurrency: source.trainingDetails?.currency ?? defaultCurrencyCode,
+      });
+      setEventForm({
+        eventCategory: resolveInheritedEventCategory(
+          serviceOptions.find((entry) => entry.id === source.serviceId) ?? null,
+          source
+        ),
+        defaultPrice: source.eventTicketTiers?.[0]?.price ?? '',
+        defaultCurrency: source.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
+      });
+      setConsultationForm({
+        consultationFormat: 'one_on_one',
+        maxGroupSize: '',
+        durationMinutes: '60',
+        pricingModel: source.consultationDetails?.pricingModel ?? 'free',
+        defaultHourlyRate: source.consultationDetails?.price ?? '',
+        defaultPackagePrice: '',
+        defaultPackageSessions: source.consultationDetails?.packageSessions?.toString() ?? '',
+        defaultCurrency: source.consultationDetails?.currency ?? defaultCurrencyCode,
+      });
+    });
+  }, [instance, createPrefillInstance, selectedServiceId, serviceOptions]);
+
   const handleSelectService = useCallback(
     (serviceId: string | null) => {
       onSelectService(serviceId);
@@ -245,7 +341,11 @@ export function InstanceDetailPanel({
   );
 
   useEffect(() => {
-    if (instance || !selectedServiceId) {
+    if (
+      instance ||
+      !selectedServiceId ||
+      (createPrefillInstance && createPrefillInstance.serviceId === selectedServiceId)
+    ) {
       return;
     }
     const svc = serviceOptions.find((entry) => entry.id === selectedServiceId);
@@ -261,7 +361,7 @@ export function InstanceDetailPanel({
       setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
       setEventForm((prev) => mergeServiceIntoEventForm(prev, svc));
     });
-  }, [instance, selectedServiceId, serviceOptions]);
+  }, [instance, selectedServiceId, serviceOptions, createPrefillInstance]);
 
   useEffect(() => {
     if (!instance) {
@@ -361,7 +461,10 @@ export function InstanceDetailPanel({
     } else if (effectiveServiceType === 'event') {
       const priceStr = eventForm.defaultPrice.trim();
       const currencyStr = (eventForm.defaultCurrency || defaultCurrencyCode).trim();
-      const tiers = instance?.eventTicketTiers ?? [];
+      const tiers =
+        (instance?.eventTicketTiers?.length ? instance.eventTicketTiers : null) ??
+        duplicateEventTiersTemplateRef.current ??
+        [];
       if (tiers.length > 1) {
         payload.event_ticket_tiers = tiers.map((tier, index) => ({
           name: tier.name,

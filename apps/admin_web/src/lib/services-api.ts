@@ -134,6 +134,7 @@ function parseServiceSummary(value: unknown): ServiceSummary {
   const eventRaw = isRecord(item.event_details) ? item.event_details : null;
   return {
     id: asNullableString(item.id) ?? '',
+    instancesCount: asNumber(item.instances_count, 0),
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
     title: asNullableString(item.title) ?? '',
     slug: asNullableString(item.slug),
@@ -214,7 +215,6 @@ function parseServiceDetail(value: unknown): ServiceDetail {
     assetIds: Array.isArray(item.asset_ids)
       ? item.asset_ids.filter((entry): entry is string => typeof entry === 'string')
       : [],
-    instancesCount: asNumber(item.instances_count, 0),
     trainingDetails,
     eventDetails,
     consultationDetails,

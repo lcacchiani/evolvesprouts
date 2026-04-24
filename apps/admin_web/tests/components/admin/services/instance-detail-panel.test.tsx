@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { InstanceDetailPanel } from '@/components/admin/services/instance-detail-panel';
 import * as entityApi from '@/lib/entity-api';
-import type { LocationSummary, ServiceSummary } from '@/types/services';
+import type { LocationSummary, ServiceInstance, ServiceSummary } from '@/types/services';
 
 vi.mock('@/lib/entity-api', async () => {
   const actual = await vi.importActual<typeof import('@/lib/entity-api')>('@/lib/entity-api');
@@ -17,6 +17,7 @@ vi.mock('@/lib/entity-api', async () => {
 function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
   return {
     id: 'service-1',
+    instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
     slug: null,
@@ -295,5 +296,84 @@ describe('InstanceDetailPanel', () => {
         tag_ids: [],
       })
     );
+  });
+
+  it('prefills create form from createPrefillInstance with cleared slug', async () => {
+    const prefill: ServiceInstance = {
+      id: 'old-inst',
+      serviceId: 'service-1',
+      parentServiceTitle: null,
+      parentServiceType: 'training_course',
+      title: 'Workshop A',
+      slug: 'workshop-a',
+      description: 'Body',
+      coverImageS3Key: null,
+      status: 'open',
+      deliveryMode: 'hybrid',
+      locationId: 'location-1',
+      maxCapacity: 12,
+      waitlistEnabled: true,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: 'inst-1',
+      cohort: 'spring-2026',
+      notes: 'Note text',
+      tagIds: ['tag-1'],
+      createdBy: 'admin',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      resolvedTitle: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      sessionSlots: [
+        {
+          id: 'slot-1',
+          instanceId: 'old-inst',
+          locationId: 'location-1',
+          startsAt: '2026-06-01T10:00:00Z',
+          endsAt: '2026-06-01T11:00:00Z',
+          sortOrder: 0,
+        },
+      ],
+      trainingDetails: {
+        trainingFormat: 'group',
+        price: '99',
+        currency: 'USD',
+        pricingUnit: 'per_family',
+      },
+      eventTicketTiers: [],
+      consultationDetails: null,
+    };
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        createPrefillInstance={prefill}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary()]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
+    });
+    expect(screen.getByLabelText('Referral slug')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('Body');
+    expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
+    expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
+    expect(screen.getByLabelText('Price')).toHaveValue('99');
+    expect(screen.getByLabelText('Currency')).toHaveValue('USD');
+    expect(screen.getByLabelText('Cohort')).toHaveValue('spring-2026');
   });
 });

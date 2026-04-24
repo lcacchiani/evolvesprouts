@@ -12,6 +12,7 @@ from app.db.models import (
     ConsultationDetails,
     EventDetails,
     Service,
+    ServiceInstance,
     ServiceStatus,
     ServiceType,
     TrainingCourseDetails,
@@ -109,6 +110,23 @@ class ServiceRepository(BaseRepository[Service]):
             )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def count_instances_by_service_ids(
+        self, service_ids: list[UUID]
+    ) -> dict[UUID, int]:
+        """Return instance counts per service id (missing ids map to 0)."""
+        if not service_ids:
+            return {}
+        statement = (
+            select(ServiceInstance.service_id, func.count(ServiceInstance.id))
+            .where(ServiceInstance.service_id.in_(service_ids))
+            .group_by(ServiceInstance.service_id)
+        )
+        rows = self._session.execute(statement).all()
+        counts = {service_id: 0 for service_id in service_ids}
+        for sid, cnt in rows:
+            counts[sid] = int(cnt)
+        return counts
 
     def get_by_id_with_details(self, service_id: UUID) -> Service | None:
         """Return a service with type details, tags, assets, and instances."""

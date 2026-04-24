@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,6 +9,7 @@ import type { ServiceDetail } from '@/types/services';
 function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
   return {
     id: 'service-1',
+    instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
     slug: null,
@@ -24,7 +25,6 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     updatedAt: '2025-01-02T00:00:00Z',
     tagIds: [],
     assetIds: [],
-    instancesCount: 0,
     trainingDetails: {
       pricingUnit: 'per_person',
       defaultPrice: null,
@@ -42,6 +42,43 @@ describe('ServiceDetailPanel', () => {
       summary: { totalCurrentUses: 0, referencingCodeCount: 0 },
       error: null,
     });
+  });
+
+  it('prefills create form from createPrefillFromService with draft title suffix and empty slug', async () => {
+    const template = buildService({
+      title: 'Original',
+      slug: 'original-slug',
+      status: 'published',
+      serviceTier: 'tier-a',
+      trainingDetails: {
+        pricingUnit: 'per_family',
+        defaultPrice: '88',
+        defaultCurrency: 'USD',
+      },
+    });
+
+    render(
+      <ServiceDetailPanel
+        service={null}
+        createPrefillFromService={template}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Title')).toHaveValue('Original (copy)');
+    });
+    expect(screen.getByLabelText('Service tier')).toHaveValue('tier-a');
+    expect(screen.getByLabelText('Referral slug')).toHaveValue('');
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
+    expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
+    expect(screen.getByLabelText('Default price')).toHaveValue('88');
+    expect(screen.getByLabelText('Currency')).toHaveValue('USD');
   });
 
   afterEach(() => {
