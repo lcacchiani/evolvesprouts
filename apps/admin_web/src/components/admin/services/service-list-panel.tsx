@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
-import { DeleteIcon, DuplicateIcon, WarningTriangleIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { formatEnumLabel } from '@/lib/format';
@@ -128,21 +128,7 @@ export function ServiceListPanel({
               </Select>
             </div>
             <div className='min-w-[140px]'>
-              <div className='mb-1 flex min-h-[1.25rem] items-center gap-1.5'>
-                <Label htmlFor='services-filter-status' className='mb-0'>
-                  Status
-                </Label>
-                {filters.status === 'draft' ? (
-                  <span
-                    className='inline-flex shrink-0 text-amber-600'
-                    role='img'
-                    aria-label='Filtering by draft services'
-                    title='Filtering by draft services'
-                  >
-                    <WarningTriangleIcon className='h-4 w-4' aria-hidden />
-                  </span>
-                ) : null}
-              </div>
+              <Label htmlFor='services-filter-status'>Status</Label>
               <Select
                 id='services-filter-status'
                 value={filters.status}

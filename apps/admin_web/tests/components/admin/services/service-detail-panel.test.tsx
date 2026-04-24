@@ -85,6 +85,23 @@ describe('ServiceDetailPanel', () => {
     vi.restoreAllMocks();
   });
 
+  it('shows a draft warning icon next to the service status field label when status is draft', () => {
+    render(
+      <ServiceDetailPanel
+        service={buildService({ status: 'draft' })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('img', { name: 'Draft — not published to the website' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
+  });
+
   it('initializes form values from service props per mount', () => {
     const onUpdate = vi.fn();
     const onCreate = vi.fn();
