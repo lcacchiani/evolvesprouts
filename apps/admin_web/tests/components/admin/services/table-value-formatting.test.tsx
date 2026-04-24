@@ -53,6 +53,7 @@ const INSTANCE_FIXTURE: ServiceInstance = {
   createdAt: '2026-03-01T10:00:00Z',
   updatedAt: '2026-03-01T10:00:00Z',
   resolvedTitle: 'Resolved title',
+  cohort: 'spring-2024',
   resolvedSlug: null,
   resolvedDescription: null,
   resolvedCoverImageS3Key: null,
@@ -167,7 +168,7 @@ describe('services tables value formatting', () => {
     render(
       <>
         <InstanceListPanel
-          instances={[INSTANCE_FIXTURE]}
+          instances={[{ ...INSTANCE_FIXTURE, parentServiceTitle: 'Yoga' }]}
           selectedInstanceId={null}
           isLoading={false}
           isLoadingMore={false}
@@ -178,6 +179,7 @@ describe('services tables value formatting', () => {
           onLoadMore={vi.fn()}
           onDuplicateInstance={vi.fn()}
           onDeleteInstance={vi.fn()}
+          showServiceColumn
         />
         <DiscountCodesPanel
           codes={[DISCOUNT_CODE_FIXTURE, DISCOUNT_REFERRAL_FIXTURE]}
@@ -198,7 +200,9 @@ describe('services tables value formatting', () => {
     );
 
     const tables = screen.getAllByRole('table');
-    expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
+    const instanceTable = tables[0] as HTMLElement;
+    expect(within(instanceTable).getByText('In Progress')).toBeInTheDocument();
+    expect(within(instanceTable).getByText('Spring 2024')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('Referral')).toBeInTheDocument();

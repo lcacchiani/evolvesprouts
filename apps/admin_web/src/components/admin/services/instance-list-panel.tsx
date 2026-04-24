@@ -13,7 +13,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatInstanceCohortDisplay } from '@/lib/format';
 
 import type { ServiceInstance, ServiceType } from '@/types/services';
 import { SERVICE_TYPES } from '@/types/services';
@@ -53,8 +53,6 @@ export interface InstanceListPanelProps {
   };
   /** When true, add a Service column (e.g. cross-service instance list). */
   showServiceColumn?: boolean;
-  /** When true, add a Type column showing the parent service type. */
-  showTypeColumn?: boolean;
 }
 
 export function InstanceListPanel({
@@ -73,7 +71,6 @@ export function InstanceListPanel({
   serviceTypeFilter,
   searchFilter,
   showServiceColumn = false,
-  showTypeColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const { copiedKey: duplicateDraftFeedbackId, markCopied: markDuplicateDraftFeedback } = useCopyFeedback(1000);
@@ -168,7 +165,7 @@ export function InstanceListPanel({
                     id='instances-filter-search'
                     value={searchFilter.value}
                     onChange={(event) => searchFilter.onChange(event.target.value)}
-                    placeholder='Title, service, instructor, status'
+                    placeholder='Cohort, service, instructor, status'
                   />
                 </div>
               ) : null}
@@ -179,13 +176,12 @@ export function InstanceListPanel({
         <AdminDataTable tableClassName='min-w-[820px]'>
           <AdminDataTableHead>
             <tr>
-              {showTypeColumn ? (
-                <th className='px-4 py-3 font-semibold'>Type</th>
-              ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Service</th>
               ) : null}
-              <th className='px-4 py-3 font-semibold'>Title</th>
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Cohort</th>
+              ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
               <th className='px-4 py-3 font-semibold'>Instructor</th>
@@ -205,15 +201,12 @@ export function InstanceListPanel({
                 role='row'
                 aria-selected={selectedInstanceId === instance.id}
               >
-                {showTypeColumn ? (
-                  <td className='px-4 py-3'>
-                    {instance.parentServiceType ? formatEnumLabel(instance.parentServiceType) : '-'}
-                  </td>
-                ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{instance.parentServiceTitle ?? '-'}</td>
                 ) : null}
-                <td className='px-4 py-3'>{instance.resolvedTitle ?? '-'}</td>
+                {showServiceColumn ? (
+                  <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>
+                ) : null}
                 <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                 <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>
                 <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
