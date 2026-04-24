@@ -1265,7 +1265,6 @@ components:
         - attendeeName
         - attendeeEmail
         - attendeePhone
-        - childAgeGroup
         - paymentMethod
         - totalAmount
         - courseLabel
@@ -1292,6 +1291,9 @@ components:
         childAgeGroup:
           type: string
           maxLength: 200
+          description: >
+            Optional; event flows without an age selector may omit it. Age-gated flows
+            (for example My Best Auntie or consultation) should send the selected label.
         packageLabel:
           type: string
           maxLength: 200

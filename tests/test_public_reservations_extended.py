@@ -333,6 +333,91 @@ def test_handle_public_reservation_runs_hooks_after_persist(
     assert payload["payment_method"] == "bank_transfer"
 
 
+def test_handle_public_reservation_accepts_missing_child_age_group(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Event-style bookings omit childAgeGroup; persistence and hooks still succeed."""
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    hooks = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        hooks,
+    )
+
+    contact_id = uuid4()
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
+            return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+
+    body = _reservation_body()
+    del body["childAgeGroup"]
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    hooks.assert_called_once()
+    payload = hooks.call_args[0][0]
+    assert payload.get("child_age_group") is None
+
+
 def test_handle_public_reservation_validation_rejects_missing_terms(
     api_gateway_event: Any,
     monkeypatch: pytest.MonkeyPatch,
