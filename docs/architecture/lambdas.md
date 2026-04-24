@@ -81,7 +81,7 @@ their primary responsibilities.
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
-  filters; instance create/update accepts optional `age_group`, `cohort`, and
+  filters; instance create/update accepts optional `cohort`, and
   `tag_ids` with `tags` / `tag_ids` echoed on instance responses; and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service slug changes), `/v1/admin/discount-codes/*`
@@ -105,7 +105,7 @@ their primary responsibilities.
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
   **training_course** `service_instances` for published services; consultation
   is intentionally excluded. Each item includes `service_type`,
-  `service_instance_id`, `partners`, optional `age_group` / `cohort`,
+  `service_instance_id`, `partners`, optional `service_tier` (from parent service) / `cohort`,
   `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.slug` is

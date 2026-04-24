@@ -171,6 +171,8 @@ export function useServicesPage() {
     enrollmentList,
     enrollmentMutations,
     locationList,
+    isLoadingLocations: locationList.isLoading,
+    locationError: locationList.error,
     discountCodes,
     venues,
   };

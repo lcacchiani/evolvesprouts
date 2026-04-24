@@ -45,7 +45,6 @@ export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
   maxCapacity: '',
   waitlistEnabled: false,
   instructorId: '',
-  ageGroup: '',
   cohort: '',
   notes: '',
   externalUrl: '',

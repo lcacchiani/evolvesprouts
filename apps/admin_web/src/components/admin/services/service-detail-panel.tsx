@@ -11,14 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
 import type { ServiceDeliveryMode } from '@/types/services';
-import type { ServiceDetail, ServiceType } from '@/types/services';
+import type { LocationSummary, ServiceDetail, ServiceType } from '@/types/services';
 
 import {
   ConsultationServiceFormatField,
@@ -45,6 +45,7 @@ import {
   TrainingPricingUnitControl,
   type TrainingFormState,
 } from './training-form-fields';
+import { ServiceTierControl } from './service-tier-control';
 
 type ApiSchemas = components['schemas'];
 
@@ -52,6 +53,9 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
+  locationOptions?: LocationSummary[];
+  isLoadingLocations?: boolean;
+  locationError?: string | null;
   isLoading: boolean;
   error: string;
   onCancelSelection: () => void;
@@ -64,6 +68,9 @@ type DiscountUsageLoadState = 'idle' | 'loading' | 'ok' | 'error';
 
 export function ServiceDetailPanel({
   service,
+  locationOptions = [],
+  isLoadingLocations = false,
+  locationError = null,
   isLoading,
   error,
   onCancelSelection,
@@ -119,6 +126,8 @@ export function ServiceDetailPanel({
   );
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
   const [bookingSystem, setBookingSystem] = useState(service?.bookingSystem ?? '');
+  const [serviceTier, setServiceTier] = useState(service?.serviceTier ?? '');
+  const [locationId, setLocationId] = useState(service?.locationId ?? '');
   const [discountUsageSummary, setDiscountUsageSummary] = useState<{
     totalCurrentUses: number;
     referencingCodeCount: number;
@@ -168,12 +177,16 @@ export function ServiceDetailPanel({
         setEventForm(DEFAULT_EVENT_FORM);
         setConsultationForm(DEFAULT_CONSULTATION_FORM);
         setBookingSystem('');
+        setServiceTier('');
+        setLocationId('');
         setSlugConflictError('');
         setConflictingSlugNormalized(null);
         return;
       }
       setServiceType(service.serviceType);
       setBookingSystem(service.bookingSystem ?? '');
+      setServiceTier(service.serviceTier ?? '');
+      setLocationId(service.locationId ?? '');
       setServiceForm({
         title: service.title,
         description: service.description ?? '',
@@ -214,11 +227,18 @@ export function ServiceDetailPanel({
     return t.length ? t : null;
   }, [serviceForm.slug]);
 
+  const hasLocationOptions = locationOptions.length > 0;
+  const locationExists = locationOptions.some((entry) => entry.id === locationId);
+  const selectedLocationValue = locationExists ? locationId : locationId || '';
+
   const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
   const saveBlockedBySlugConflict =
     Boolean(slugConflictError) &&
     conflictingSlugNormalized !== null &&
     normalizedSlugInput === conflictingSlugNormalized;
+
+  const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
+  const tierInvalid = Boolean(tierTrimmedForValidation) && !SLUG_PATTERN.test(tierTrimmedForValidation);
 
   const deliveryModeSelect = (
     <div>
@@ -357,6 +377,8 @@ export function ServiceDetailPanel({
         description: serviceForm.description.trim() || null,
         slug: newSlug,
         booking_system: bookingSystem.trim() || null,
+        service_tier: serviceTier.trim() || null,
+        location_id: locationId.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(service.serviceType),
@@ -385,6 +407,8 @@ export function ServiceDetailPanel({
         description: serviceForm.description.trim() || null,
         slug: slugPayloadValue,
         booking_system: bookingSystem.trim() || null,
+        service_tier: serviceTier.trim() || null,
+        location_id: locationId.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(serviceType),
@@ -423,6 +447,7 @@ export function ServiceDetailPanel({
                     isLoading ||
                     !service ||
                     saveBlockedBySlugConflict ||
+                    tierInvalid ||
                     Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                   }
                   onClick={() => void submitUpdate()}
@@ -444,6 +469,7 @@ export function ServiceDetailPanel({
                 disabled={
                   isLoading ||
                   saveBlockedBySlugConflict ||
+                  tierInvalid ||
                   !serviceForm.title.trim() ||
                   Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                 }
@@ -525,6 +551,36 @@ export function ServiceDetailPanel({
           />
         </div>
 
+        <div>
+          <Label htmlFor='service-default-location'>Default location</Label>
+          {hasLocationOptions || isLoadingLocations ? (
+            <Select
+              id='service-default-location'
+              value={selectedLocationValue}
+              onChange={(event) => setLocationId(event.target.value)}
+            >
+              <option value=''>
+                {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
+              </option>
+              {locationId && !locationExists ? <option value={locationId}>{locationId}</option> : null}
+              {locationOptions.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {formatLocationLabel(location)}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input
+              id='service-default-location'
+              value={locationId}
+              onChange={(event) => setLocationId(event.target.value)}
+              placeholder='Location UUID'
+              autoComplete='off'
+            />
+          )}
+          {locationError ? <p className='mt-1 text-xs text-red-600'>{locationError}</p> : null}
+        </div>
+
         {serviceType === 'training_course' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             {deliveryModeSelect}
@@ -551,7 +607,12 @@ export function ServiceDetailPanel({
 
         {serviceType === 'training_course' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <div aria-hidden className='hidden md:block' />
+            <ServiceTierControl
+              value={serviceTier}
+              onChange={setServiceTier}
+              id='service-tier-training'
+              invalid={tierInvalid}
+            />
             <TrainingPriceControl
               value={trainingForm}
               onChange={setTrainingForm}
@@ -564,7 +625,12 @@ export function ServiceDetailPanel({
 
         {serviceType === 'event' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <div aria-hidden className='hidden md:block' />
+            <ServiceTierControl
+              value={serviceTier}
+              onChange={setServiceTier}
+              id='service-tier-event'
+              invalid={tierInvalid}
+            />
             <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
             <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
             <div aria-hidden className='hidden md:block' />
@@ -578,6 +644,17 @@ export function ServiceDetailPanel({
             </div>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
               <ConsultationServiceRowEFields value={consultationForm} onChange={setConsultationForm} />
+            </div>
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <ServiceTierControl
+                value={serviceTier}
+                onChange={setServiceTier}
+                id='service-tier-consultation'
+                invalid={tierInvalid}
+              />
+              <div aria-hidden className='hidden md:block' />
+              <div aria-hidden className='hidden md:block' />
+              <div aria-hidden className='hidden md:block' />
             </div>
           </>
         ) : null}

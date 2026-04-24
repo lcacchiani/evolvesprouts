@@ -416,7 +416,7 @@ describe('Events section', () => {
             id: 'my-best-auntie-booking-card',
             title: 'My Best Auntie booking card',
             booking_system: 'my-best-auntie-booking',
-            age_group: '1-3',
+            service_tier: '1-3',
             cohort: '04-26',
             location: 'physical',
             address: 'PMQ, Central',

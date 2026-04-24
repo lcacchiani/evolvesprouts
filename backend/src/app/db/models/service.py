@@ -28,6 +28,7 @@ from app.db.models.enums import (
 if TYPE_CHECKING:
     from app.db.models.asset import Asset
     from app.db.models.discount_code import DiscountCode
+    from app.db.models.location import Location
     from app.db.models.service_instance import ServiceInstance
     from app.db.models.tag import Tag
 
@@ -105,6 +106,12 @@ class Service(Base):
         nullable=False,
         server_default=text("now()"),
     )
+    service_tier: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    location_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("locations.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     training_course_details: Mapped[TrainingCourseDetails | None] = relationship(
         "TrainingCourseDetails",
@@ -124,6 +131,7 @@ class Service(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
+    location: Mapped["Location | None"] = relationship("Location")
     instances: Mapped[list[ServiceInstance]] = relationship(
         "ServiceInstance",
         back_populates="service",

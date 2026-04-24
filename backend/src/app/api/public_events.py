@@ -110,7 +110,13 @@ def _resolve_primary_location(
 ) -> Location | None:
     if slots and slots[0].location is not None:
         return slots[0].location
-    return instance.location
+    if instance.location is not None:
+        return instance.location
+    # Public calendar query eagerly loads ``instance.service`` (and ``Service.location``).
+    service = getattr(instance, "service", None)
+    if service is None:
+        return None
+    return service.location
 
 
 def _resolve_primary_price(
@@ -264,8 +270,8 @@ def _serialize_public_event(
         payload["slug"] = instance.slug
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
-    if instance.age_group is not None:
-        payload["age_group"] = instance.age_group
+    if service.service_tier is not None:
+        payload["service_tier"] = service.service_tier
     if instance.cohort is not None:
         payload["cohort"] = instance.cohort
 

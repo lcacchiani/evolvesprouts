@@ -36,6 +36,8 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
             default_currency="HKD",
         ),
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
     )
     starts = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
     ends = datetime(2026, 5, 1, 12, 0, tzinfo=UTC)
@@ -50,7 +52,6 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
         max_capacity=None,
         external_url=None,
         eventbrite_event_url=None,
-        age_group=None,
         cohort=None,
         delivery_mode=None,
         service=service,
@@ -102,6 +103,8 @@ def test_event_default_price_when_no_tiers() -> None:
             default_currency="USD",
         ),
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
     )
     inst = _minimal_instance(service, ticket_tiers=[])
     out = public_events._serialize_public_event(inst, enrollment_counts={})
@@ -123,6 +126,8 @@ def test_event_no_price_when_no_tiers_and_no_default() -> None:
             default_currency="HKD",
         ),
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
     )
     inst = _minimal_instance(service, ticket_tiers=[])
     out = public_events._serialize_public_event(inst, enrollment_counts={})
@@ -188,10 +193,11 @@ def test_training_mba_booking_and_category() -> None:
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier="0-1",
+        location=None,
     )
     inst = _minimal_instance(
         service,
-        age_group="0-1",
         cohort="May 2026",
         training_details=SimpleNamespace(price=Decimal("350"), currency="HKD"),
     )
@@ -201,7 +207,7 @@ def test_training_mba_booking_and_category() -> None:
     assert out["categories"] == ["Training Course"]
     assert out["price"] == 350.0
     assert out["currency"] == "HKD"
-    assert out["age_group"] == "0-1"
+    assert out["service_tier"] == "0-1"
     assert out["cohort"] == "May 2026"
 
 
@@ -214,6 +220,8 @@ def test_training_non_mba_omits_booking_system() -> None:
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
     )
     inst = _minimal_instance(
         service,
@@ -236,6 +244,8 @@ def test_virtual_clears_location_and_url_even_with_coords() -> None:
             default_currency="HKD",
         ),
         delivery_mode=SimpleNamespace(value="online"),
+        service_tier=None,
+        location=None,
     )
     loc = SimpleNamespace(name="X", address="Y", lat=Decimal("1"), lng=Decimal("2"))
     inst = _minimal_instance(service, delivery_mode=SimpleNamespace(value="online"))
@@ -274,11 +284,59 @@ def test_physical_address_only_location_url() -> None:
 
 def test_no_location_empty_url() -> None:
     service = _event_service()
+    service.location = None
     inst = _minimal_instance(service)
     inst.session_slots[0].location = None
     inst.location = None
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["location_url"] == ""
+
+
+def test_primary_location_prefers_slot_over_instance_and_service() -> None:
+    service = _event_service()
+    slot_loc = SimpleNamespace(name="SlotVenue", address="S1", lat=None, lng=None)
+    inst_loc = SimpleNamespace(name="InstVenue", address="I1", lat=None, lng=None)
+    svc_loc = SimpleNamespace(name="SvcVenue", address="V1", lat=None, lng=None)
+    service.location = svc_loc
+    inst = _minimal_instance(service)
+    inst.session_slots[0].location = slot_loc
+    inst.location = inst_loc
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] == "SlotVenue"
+
+
+def test_primary_location_falls_back_to_instance_when_slot_unset() -> None:
+    service = _event_service()
+    inst_loc = SimpleNamespace(name="InstVenue", address="I1", lat=None, lng=None)
+    svc_loc = SimpleNamespace(name="SvcVenue", address="V1", lat=None, lng=None)
+    service.location = svc_loc
+    inst = _minimal_instance(service)
+    inst.session_slots[0].location = None
+    inst.location = inst_loc
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] == "InstVenue"
+
+
+def test_primary_location_falls_back_to_service_when_slot_and_instance_unset() -> None:
+    service = _event_service()
+    svc_loc = SimpleNamespace(name="SvcVenue", address="V1", lat=None, lng=None)
+    service.location = svc_loc
+    inst = _minimal_instance(service)
+    inst.session_slots[0].location = None
+    inst.location = None
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] == "SvcVenue"
+
+
+def test_primary_location_all_null() -> None:
+    service = _event_service()
+    service.location = None
+    inst = _minimal_instance(service)
+    inst.session_slots[0].location = None
+    inst.location = None
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] is None
+    assert out["location_address"] is None
 
 
 def test_max_capacity_none_omits_spaces() -> None:
@@ -330,6 +388,8 @@ def _event_service() -> Any:
             default_currency="HKD",
         ),
         delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
     )
 
 
@@ -344,7 +404,6 @@ def _minimal_instance(
     external_url: str | None = None,
     eventbrite_event_url: str | None = None,
     max_capacity: int | None = 10,
-    age_group: str | None = None,
     cohort: str | None = None,
     training_details: Any = None,
     delivery_mode: Any = None,
@@ -362,7 +421,6 @@ def _minimal_instance(
         max_capacity=max_capacity,
         external_url=external_url,
         eventbrite_event_url=eventbrite_event_url,
-        age_group=age_group,
         cohort=cohort,
         delivery_mode=delivery_mode,
         service=service,

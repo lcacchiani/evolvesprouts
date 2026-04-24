@@ -42,14 +42,14 @@ def test_parse_optional_service_instance_slug_like_text_matches_slug_rules() -> 
     assert parse_optional_service_instance_slug_like_text(
         "  Spring-Cohort  ", field="cohort"
     ) == "spring-cohort"
-    assert parse_optional_service_instance_slug_like_text(None, field="age_group") is None
-    assert parse_optional_service_instance_slug_like_text("   ", field="age_group") is None
+    assert parse_optional_service_instance_slug_like_text(None, field="cohort") is None
+    assert parse_optional_service_instance_slug_like_text("   ", field="cohort") is None
 
 
 def test_parse_optional_service_instance_slug_like_text_sets_field_on_error() -> None:
     with pytest.raises(ValidationError, match="lowercase letters") as excinfo:
-        parse_optional_service_instance_slug_like_text("Bad_Slug", field="age_group")
-    assert excinfo.value.field == "age_group"
+        parse_optional_service_instance_slug_like_text("Bad_Slug", field="cohort")
+    assert excinfo.value.field == "cohort"
     with pytest.raises(ValidationError, match="lowercase letters") as excinfo2:
         parse_optional_service_instance_slug_like_text("a--b", field="cohort")
     assert excinfo2.value.field == "cohort"

@@ -171,6 +171,8 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             cover_image_s3_key=payload["cover_image_s3_key"],
             delivery_mode=payload["delivery_mode"],
             status=payload["status"],
+            service_tier=payload["service_tier"],
+            location_id=payload["location_id"],
             created_by=actor_sub,
         )
         details = _build_service_type_details(
@@ -260,6 +262,10 @@ def _update_service(
             service.delivery_mode = payload["delivery_mode"]
         if "status" in payload:
             service.status = payload["status"]
+        if "service_tier" in payload:
+            service.service_tier = payload["service_tier"]
+        if "location_id" in payload:
+            service.location_id = payload["location_id"]
         if "tag_ids" in payload:
             for tag_id in payload["tag_ids"]:
                 require_assignable_tag(session, tag_id, field="tag_ids")

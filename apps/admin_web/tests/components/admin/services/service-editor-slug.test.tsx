@@ -18,6 +18,8 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     coverImageS3Key: null,
     deliveryMode: 'online',
     status: 'draft',
+    serviceTier: null,
+    locationId: null,
     createdBy: 'admin',
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-02T00:00:00Z',

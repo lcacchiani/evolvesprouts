@@ -117,7 +117,6 @@ class ServiceInstance(Base):
         server_default=text("false"),
     )
     instructor_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    age_group: Mapped[str | None] = mapped_column(String(128), nullable=True)
     cohort: Mapped[str | None] = mapped_column(String(128), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)

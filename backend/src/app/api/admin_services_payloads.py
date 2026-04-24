@@ -63,6 +63,22 @@ REFERRAL_DEFAULT_DISCOUNT_VALUE = Decimal("0")
 REFERRAL_DEFAULT_CURRENCY = "HKD"
 
 
+def parse_optional_service_tier(
+    value: object, *, field: str = "service_tier"
+) -> str | None:
+    """Parse optional service tier slug; same rules as instance cohort-style labels."""
+    return parse_optional_service_instance_slug_like_text(value, field=field)
+
+
+def _reject_deprecated_instance_age_group(body: Mapping[str, Any]) -> None:
+    """Instance ``age_group`` was removed; tier lives on the parent service as ``service_tier``."""
+    if has_field(body, "age_group"):
+        raise ValidationError(
+            "age_group was removed; set service_tier on the parent service instead",
+            field="age_group",
+        )
+
+
 def parse_optional_service_slug(value: Any, field: str) -> str | None:
     """Parse optional referral slug: strip, lower, validate pattern; empty -> None."""
     if value is None:
@@ -243,6 +259,8 @@ def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         ),
         "status": parse_optional_enum(body.get("status"), ServiceStatus, "status")
         or ServiceStatus.DRAFT,
+        "service_tier": parse_optional_service_tier(body.get("service_tier")),
+        "location_id": parse_optional_uuid(body.get("location_id"), "location_id"),
         "tag_ids": parse_uuid_list(body.get("tag_ids"), "tag_ids"),
         "asset_ids": parse_uuid_list(body.get("asset_ids"), "asset_ids"),
         "type_details": parse_service_type_details(service_type, body),
@@ -289,6 +307,12 @@ def parse_update_service_payload(
             ServiceStatus,
             "status",
         )
+    if has_field(body, "service_tier"):
+        payload["service_tier"] = parse_optional_service_tier(body.get("service_tier"))
+    if has_field(body, "location_id"):
+        payload["location_id"] = parse_optional_uuid(
+            body.get("location_id"), "location_id"
+        )
     if has_field(body, "tag_ids"):
         payload["tag_ids"] = parse_uuid_list(body.get("tag_ids"), "tag_ids")
     if has_field(body, "asset_ids"):
@@ -325,6 +349,7 @@ def parse_create_instance_payload(
     body: Mapping[str, Any], service: Service
 ) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
+    _reject_deprecated_instance_age_group(body)
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
         "slug": parse_optional_service_instance_slug(body.get("slug")),
@@ -351,9 +376,6 @@ def parse_create_instance_payload(
         )
         or False,
         "instructor_id": parse_optional_text(body.get("instructor_id"), max_length=128),
-        "age_group": parse_optional_service_instance_slug_like_text(
-            body.get("age_group"), field="age_group"
-        ),
         "cohort": parse_optional_service_instance_slug_like_text(
             body.get("cohort"), field="cohort"
         ),
@@ -377,6 +399,7 @@ def parse_update_instance_payload(
     """Parse and validate service-instance update payload."""
     if not body:
         raise ValidationError("At least one field is required", field="body")
+    _reject_deprecated_instance_age_group(body)
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)
@@ -419,10 +442,6 @@ def parse_update_instance_payload(
     if has_field(body, "instructor_id"):
         payload["instructor_id"] = parse_optional_text(
             body.get("instructor_id"), max_length=128
-        )
-    if has_field(body, "age_group"):
-        payload["age_group"] = parse_optional_service_instance_slug_like_text(
-            body.get("age_group"), field="age_group"
         )
     if has_field(body, "cohort"):
         payload["cohort"] = parse_optional_service_instance_slug_like_text(

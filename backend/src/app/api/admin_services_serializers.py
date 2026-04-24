@@ -61,6 +61,8 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
         "cover_image_s3_key": service.cover_image_s3_key,
         "delivery_mode": service.delivery_mode.value,
         "status": service.status.value,
+        "service_tier": service.service_tier,
+        "location_id": str(service.location_id) if service.location_id else None,
         "created_by": service.created_by,
         "created_at": service.created_at.isoformat() if service.created_at else None,
         "updated_at": service.updated_at.isoformat() if service.updated_at else None,
@@ -161,7 +163,6 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
             )
         ],
         "instructor_id": instance.instructor_id,
-        "age_group": instance.age_group,
         "cohort": instance.cohort,
         "notes": instance.notes,
         "tags": [

@@ -106,6 +106,10 @@ export interface ServiceSummary {
   coverImageS3Key: string | null;
   deliveryMode: ServiceDeliveryMode;
   status: ServiceStatus;
+  /** Optional slug-like tier id on the service template (shared by instances). */
+  serviceTier: string | null;
+  /** Optional default venue id (FK locations). */
+  locationId: string | null;
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
@@ -230,7 +234,6 @@ export interface ServiceInstance {
   externalUrl: string | null;
   partnerOrganizations: PartnerOrgRef[];
   instructorId: string | null;
-  ageGroup: string | null;
   cohort: string | null;
   notes: string | null;
   tagIds: string[];

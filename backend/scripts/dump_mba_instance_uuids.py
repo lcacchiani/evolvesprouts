@@ -2,7 +2,7 @@
 """Print My Best Auntie service instance UUIDs for public content editing.
 
 Maps each training instance to a suggested content key
-``{age_group}::{cohort}`` (aligned with ``my-best-auntie-training-courses.json``)
+``{service_tier}::{cohort}`` (aligned with ``my-best-auntie-training-courses.json``)
 when title text matches the expected pattern; otherwise uses ``unparsed::<uuid>``.
 
 Local development only: refuses to connect unless ``ATTESTATION_FAIL_CLOSED``

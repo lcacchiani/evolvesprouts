@@ -100,7 +100,8 @@ interface MyBestAuntieEventCohortDate {
 
 export interface MyBestAuntieEventCohort {
   id: string;
-  age_group: string;
+  /** Tier slug from calendar/API JSON key `service_tier` (formerly `age_group`). */
+  service_tier: string;
   title: string;
   description: string;
   cohort: string;
@@ -453,7 +454,7 @@ function buildMyBestAuntieBookingModalPayload(
   locale: Locale,
 ): MyBestAuntieBookingModalPayload | null {
   const id = readCandidateText(record, ['id', 'eventId', 'slug']) ?? '';
-  const ageGroup = readCandidateText(record, ['age_group']) ?? '';
+  const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
   const cohortValue = readCandidateText(record, ['cohort']) ?? '';
   if (!id || !ageGroup || !cohortValue) {
     return null;
@@ -495,7 +496,7 @@ function buildMyBestAuntieBookingModalPayload(
 
   const selectedCohort: MyBestAuntieEventCohort = {
     id,
-    age_group: ageGroup,
+    service_tier: ageGroup,
     title,
     description,
     cohort: cohortValue,

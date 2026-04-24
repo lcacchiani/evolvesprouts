@@ -252,7 +252,7 @@ describe('events-data', () => {
           id: 'my-best-auntie-booking-event-1',
           title: 'My Best Auntie booking event',
           booking_system: 'my-best-auntie-booking',
-          age_group: '1-3',
+          service_tier: '1-3',
           cohort: '04-26',
           spaces_total: 8,
           spaces_left: 5,

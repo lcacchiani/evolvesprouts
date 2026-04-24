@@ -3600,6 +3600,20 @@ components:
           $ref: "#/components/schemas/ServiceDeliveryMode"
         status:
           $ref: "#/components/schemas/ServiceStatus"
+        service_tier:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional slug-like tier identifier for the service template, shared across all instances.
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Optional default venue UUID (FK to locations.id, ON DELETE SET NULL). Instances may
+            override via service_instances.location_id.
         created_by:
           type: string
         created_at:
@@ -3691,6 +3705,20 @@ components:
           $ref: "#/components/schemas/ServiceDeliveryMode"
         status:
           $ref: "#/components/schemas/ServiceStatus"
+        service_tier:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional slug-like tier identifier for the service template, shared across all instances.
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Optional default venue UUID (FK to locations.id, ON DELETE SET NULL). Instances may
+            override via service_instances.location_id.
         tag_ids:
           type: array
           items:
@@ -3735,6 +3763,20 @@ components:
           $ref: "#/components/schemas/ServiceDeliveryMode"
         status:
           $ref: "#/components/schemas/ServiceStatus"
+        service_tier:
+          type: string
+          nullable: true
+          maxLength: 128
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Optional slug-like tier identifier for the service template, shared across all instances.
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Optional default venue UUID (FK to locations.id, ON DELETE SET NULL). Instances may
+            override via service_instances.location_id.
         tag_ids:
           type: array
           items:
@@ -3914,14 +3956,6 @@ components:
         instructor_id:
           type: string
           nullable: true
-        age_group:
-          type: string
-          nullable: true
-          maxLength: 128
-          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
-          description: >
-            Optional label using the same normalization rules as instance referral slugs
-            (lowercase letters, digits, single hyphens between segments).
         cohort:
           type: string
           nullable: true
@@ -4073,11 +4107,6 @@ components:
         instructor_id:
           type: string
           nullable: true
-        age_group:
-          type: string
-          nullable: true
-          maxLength: 128
-          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
         cohort:
           type: string
           nullable: true

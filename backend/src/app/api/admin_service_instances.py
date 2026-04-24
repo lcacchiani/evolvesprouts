@@ -398,7 +398,6 @@ def _create_instance(
             max_capacity=payload["max_capacity"],
             waitlist_enabled=payload["waitlist_enabled"],
             instructor_id=payload["instructor_id"],
-            age_group=payload["age_group"],
             cohort=payload["cohort"],
             notes=payload["notes"],
             external_url=payload["external_url"],
@@ -524,8 +523,6 @@ def _update_instance(
             instance.waitlist_enabled = payload["waitlist_enabled"]
         if "instructor_id" in payload:
             instance.instructor_id = payload["instructor_id"]
-        if "age_group" in payload:
-            instance.age_group = payload["age_group"]
         if "cohort" in payload:
             instance.cohort = payload["cohort"]
         if "notes" in payload:

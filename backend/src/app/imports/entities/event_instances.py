@@ -199,7 +199,6 @@ class EventInstancesImporter:
                 max_capacity=max_cap,
                 waitlist_enabled=False,
                 instructor_id=None,
-                age_group=None,
                 cohort=None,
                 notes=(str(ed.notes).strip() if ed.notes else None) or None,
                 external_url=(str(ed.external_url).strip() if ed.external_url else None)

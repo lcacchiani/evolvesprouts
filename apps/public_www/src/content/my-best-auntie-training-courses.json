@@ -3,7 +3,7 @@
   "data": [
     {
       "id": "my-best-auntie-0-1-04-26",
-      "age_group": "0-1",
+      "service_tier": "0-1",
       "title": "My Best Auntie Training Course 0-1 - Apr 26",
       "description": "Nurturing the Foundations. In the first year, your helper learns to create a calm, responsive environment that supports your baby's natural development. We focus on respectful caregiving routines, safe spaces for exploration, and language-rich interactions that build secure attachment.",
       "cohort": "04-26",
@@ -45,7 +45,7 @@
     },
     {
       "id": "my-best-auntie-0-1-05-26",
-      "age_group": "0-1",
+      "service_tier": "0-1",
       "title": "My Best Auntie Training Course 0-1 - May 26",
       "description": "Nurturing the Foundations. In the first year, your helper learns to create a calm, responsive environment that supports your baby's natural development. We focus on respectful caregiving routines, safe spaces for exploration, and language-rich interactions that build secure attachment.",
       "cohort": "05-26",
@@ -87,7 +87,7 @@
     },
     {
       "id": "my-best-auntie-0-1-06-26",
-      "age_group": "0-1",
+      "service_tier": "0-1",
       "title": "My Best Auntie Training Course 0-1 - Jun 26",
       "description": "Nurturing the Foundations. In the first year, your helper learns to create a calm, responsive environment that supports your baby's natural development. We focus on respectful caregiving routines, safe spaces for exploration, and language-rich interactions that build secure attachment.",
       "cohort": "06-26",
@@ -129,7 +129,7 @@
     },
     {
       "id": "my-best-auntie-1-3-04-26",
-      "age_group": "1-3",
+      "service_tier": "1-3",
       "title": "My Best Auntie Training Course 1-3 - Apr 26",
       "description": "Fostering First Independence. Toddlers are wired to do things themselves - and your helper can nurture this beautifully. This track equips helpers with practical strategies for mealtimes, dressing, and daily routines that build your child's confidence, reduce power struggles, and make \"I do it myself!\" moments a joy, not a battle.",
       "cohort": "04-26",
@@ -171,7 +171,7 @@
     },
     {
       "id": "my-best-auntie-1-3-05-26",
-      "age_group": "1-3",
+      "service_tier": "1-3",
       "title": "My Best Auntie Training Course 1-3 - May 26",
       "description": "Fostering First Independence. Toddlers are wired to do things themselves - and your helper can nurture this beautifully. This track equips helpers with practical strategies for mealtimes, dressing, and daily routines that build your child's confidence, reduce power struggles, and make \"I do it myself!\" moments a joy, not a battle.",
       "cohort": "05-26",
@@ -213,7 +213,7 @@
     },
     {
       "id": "my-best-auntie-1-3-06-26",
-      "age_group": "1-3",
+      "service_tier": "1-3",
       "title": "My Best Auntie Training Course 1-3 - Jun 26",
       "description": "Fostering First Independence. Toddlers are wired to do things themselves - and your helper can nurture this beautifully. This track equips helpers with practical strategies for mealtimes, dressing, and daily routines that build your child's confidence, reduce power struggles, and make \"I do it myself!\" moments a joy, not a battle.",
       "cohort": "06-26",
@@ -255,7 +255,7 @@
     },
     {
       "id": "my-best-auntie-3-6-04-26",
-      "age_group": "3-6",
+      "service_tier": "3-6",
       "title": "My Best Auntie Training Course 3-6 - Apr 26",
       "description": "Building Capable, Confident Kids. At this stage, children are ready to take on real responsibility and thrive with clear boundaries. Your helper will learn how to guide without over-helping, set respectful limits, and create an environment where your child develops focus, independence, and a genuine love of learning.",
       "cohort": "04-26",
@@ -297,7 +297,7 @@
     },
     {
       "id": "my-best-auntie-3-6-05-26",
-      "age_group": "3-6",
+      "service_tier": "3-6",
       "title": "My Best Auntie Training Course 3-6 - May 26",
       "description": "Building Capable, Confident Kids. At this stage, children are ready to take on real responsibility and thrive with clear boundaries. Your helper will learn how to guide without over-helping, set respectful limits, and create an environment where your child develops focus, independence, and a genuine love of learning.",
       "cohort": "05-26",
@@ -339,7 +339,7 @@
     },
     {
       "id": "my-best-auntie-3-6-06-26",
-      "age_group": "3-6",
+      "service_tier": "3-6",
       "title": "My Best Auntie Training Course 3-6 - Jun 26",
       "description": "Building Capable, Confident Kids. At this stage, children are ready to take on real responsibility and thrive with clear boundaries. Your helper will learn how to guide without over-helping, set respectful limits, and create an environment where your child develops focus, independence, and a genuine love of learning.",
       "cohort": "06-26",

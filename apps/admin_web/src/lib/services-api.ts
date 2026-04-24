@@ -142,6 +142,8 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     deliveryMode: (asNullableString(item.delivery_mode) ?? 'online') as ServiceSummary['deliveryMode'],
     status: (asNullableString(item.status) ?? 'draft') as ServiceSummary['status'],
+    serviceTier: asNullableString(item.service_tier),
+    locationId: asNullableString(item.location_id),
     createdBy: asNullableString(item.created_by) ?? '',
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
@@ -245,7 +247,6 @@ function parseInstance(value: unknown): ServiceInstance {
           .filter((row): row is PartnerOrgRef => row !== null)
       : [],
     instructorId: asNullableString(item.instructor_id),
-    ageGroup: asNullableString(item.age_group),
     cohort: asNullableString(item.cohort),
     notes: asNullableString(item.notes),
     tagIds: Array.isArray(item.tag_ids)
