@@ -6,8 +6,7 @@ export type AdminAnalyticsEventName =
   | 'admin_referral_qr_opened'
   | 'admin_referral_qr_downloaded'
   | 'admin_public_page_qr_opened'
-  | 'admin_public_page_qr_downloaded'
-  | 'admin_instance_uuid_copied';
+  | 'admin_public_page_qr_downloaded';
 
 export type AdminAnalyticsEventParams = Record<
   string,
