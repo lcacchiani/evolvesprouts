@@ -224,7 +224,7 @@ export function InstanceListPanel({
                   <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>
                 ) : null}
                 <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
-                <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>
+                <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
                 <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>
