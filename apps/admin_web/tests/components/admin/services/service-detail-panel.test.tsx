@@ -108,7 +108,7 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Description')).toHaveValue('');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
     expect(screen.getByLabelText('Cover file name')).toHaveValue('');
-    expect(screen.getByLabelText('Cover file name')).toHaveAttribute('title', 'e.g. cover-image.jpg');
+    expect(screen.getByLabelText('Cover file name')).toHaveAttribute('title', 'e.g. media-cover.jpg');
     expect(screen.getByLabelText('Booking system')).toHaveAttribute('title', 'e.g. training-booking');
     expect(screen.getByLabelText('Title')).not.toHaveAttribute('placeholder');
     expect(screen.getByLabelText('Description')).not.toHaveAttribute('placeholder');

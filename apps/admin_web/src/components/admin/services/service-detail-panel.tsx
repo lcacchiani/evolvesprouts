@@ -338,7 +338,7 @@ export function ServiceDetailPanel({
           id='service-detail-cover-file-name'
           value={coverFileName}
           onChange={(event) => setCoverFileName(event.target.value)}
-          title='e.g. cover-image.jpg'
+          title='e.g. media-cover.jpg'
         />
       </div>
     </>
