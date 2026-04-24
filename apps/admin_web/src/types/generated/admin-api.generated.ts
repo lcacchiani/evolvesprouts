@@ -1379,7 +1379,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Service list response. */
+                /** @description Service list response. Each `ServiceSummary` item includes `service_tier` (nullable) for admin list display and filtering context. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1420,7 +1420,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1602,7 +1602,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1679,7 +1679,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier). Error body may use `field` `slug` or `service_tier` depending on the conflicting pair. */
+                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5367,6 +5367,8 @@ export interface components {
         ErrorResponse: {
             error: string;
             detail?: string | null;
+            /** @description Optional input field key for validation-style errors. Duplicate service slug+tier conflicts use the literal `slug_tier` (not `slug` or `service_tier`). */
+            field?: string | null;
         };
         HealthResponse: {
             healthy: boolean;

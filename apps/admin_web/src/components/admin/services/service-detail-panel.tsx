@@ -147,11 +147,11 @@ export function ServiceDetailPanel({
     referencingCodeCount: number;
   } | null>(null);
   const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
-  /** Last slug+tier 409: messages shown only while inputs still match this pair. */
+  /** Last slug+tier 409 (`field: slug_tier`); messages shown only while inputs match this pair. */
   const [slugTierConflict, setSlugTierConflict] = useState<{
     slug: string;
     tierNormalized: string;
-    conflictField: 'slug' | 'service_tier';
+    variant: 'slug_tier_same' | 'slug_tier_empty';
   } | null>(null);
 
   useEffect(() => {
@@ -305,14 +305,14 @@ export function ServiceDetailPanel({
   }, [slugTierConflict, normalizedSlugInput, tierTrimmedForValidation]);
 
   const slugConflictInline = useMemo(() => {
-    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.conflictField !== 'slug') {
+    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_same') {
       return undefined;
     }
     return SLUG_TIER_PAIR_CONFLICT_MSG;
   }, [slugTierConflictActive, slugTierConflict]);
 
   const tierConflictInline = useMemo(() => {
-    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.conflictField !== 'service_tier') {
+    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_empty') {
       return undefined;
     }
     return EMPTY_TIER_CONFLICT_MSG;
@@ -335,15 +335,16 @@ export function ServiceDetailPanel({
       return false;
     }
     const field = readAdminApiErrorField(caught);
-    if (field === 'service_tier' || field === 'slug') {
-      setSlugTierConflict({
-        slug: pair.slug ?? '',
-        tierNormalized: pair.tierNormalized ?? '',
-        conflictField: field === 'service_tier' ? 'service_tier' : 'slug',
-      });
-      return true;
+    if (field !== 'slug_tier') {
+      return false;
     }
-    return false;
+    const tierNorm = pair.tierNormalized ?? '';
+    setSlugTierConflict({
+      slug: pair.slug ?? '',
+      tierNormalized: tierNorm,
+      variant: tierNorm.length > 0 ? 'slug_tier_same' : 'slug_tier_empty',
+    });
+    return true;
   }
 
   const deliveryModeSelect = (
@@ -638,12 +639,7 @@ export function ServiceDetailPanel({
           </div>
           <ServiceReferralSlugField
             value={serviceForm.slug}
-            onChange={(next) => {
-              if (next !== serviceForm.slug) {
-                setSlugTierConflict(null);
-              }
-              setServiceForm({ ...serviceForm, slug: next });
-            }}
+            onChange={(next) => setServiceForm({ ...serviceForm, slug: next })}
             slugUsageLoadError={
               discountUsageLoadState === 'error'
                 ? 'Could not load discount code usage. Try again later.'
@@ -698,12 +694,7 @@ export function ServiceDetailPanel({
             {deliveryModeSelect}
             <ServiceTierControl
               value={serviceTier}
-              onChange={(next) => {
-                if (next !== serviceTier) {
-                  setSlugTierConflict(null);
-                }
-                setServiceTier(next);
-              }}
+              onChange={setServiceTier}
               id='service-tier-training'
               invalid={tierInvalid}
               tierConflictError={tierConflictInline}
@@ -730,12 +721,7 @@ export function ServiceDetailPanel({
             {deliveryModeSelect}
             <ServiceTierControl
               value={serviceTier}
-              onChange={(next) => {
-                if (next !== serviceTier) {
-                  setSlugTierConflict(null);
-                }
-                setServiceTier(next);
-              }}
+              onChange={setServiceTier}
               id='service-tier-event'
               invalid={tierInvalid}
               tierConflictError={tierConflictInline}
@@ -758,12 +744,7 @@ export function ServiceDetailPanel({
             {deliveryModeSelect}
             <ServiceTierControl
               value={serviceTier}
-              onChange={(next) => {
-                if (next !== serviceTier) {
-                  setSlugTierConflict(null);
-                }
-                setServiceTier(next);
-              }}
+              onChange={setServiceTier}
               id='service-tier-consultation'
               invalid={tierInvalid}
               tierConflictError={tierConflictInline}

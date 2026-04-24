@@ -86,5 +86,5 @@ def test_create_service_duplicate_slug_maps_to_validation_error(
     with pytest.raises(ValidationError) as exc_info:
         admin_services._create_service(event, actor_sub="actor")
     assert exc_info.value.status_code == 409
-    assert exc_info.value.field == "slug"
+    assert exc_info.value.field == "slug_tier"
     assert "slug" in exc_info.value.message.lower()

@@ -61,6 +61,7 @@ class Service(Base):
             text("lower(service_tier)"),
             unique=True,
             postgresql_where=text("slug IS NOT NULL"),
+            postgresql_nulls_not_distinct=True,
         ),
     )
 

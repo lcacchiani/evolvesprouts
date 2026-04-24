@@ -1060,7 +1060,9 @@ paths:
             type: string
       responses:
         "200":
-          description: Service list response.
+          description: >
+            Service list response. Each `ServiceSummary` item includes `service_tier`
+            (nullable) for admin list display and filtering context.
           content:
             application/json:
               schema:
@@ -1097,8 +1099,8 @@ paths:
         "409":
           description: >
             Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier). Error body may use `field` `slug` or
-            `service_tier` depending on the conflicting pair.
+            on case-insensitive slug and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -1229,8 +1231,8 @@ paths:
         "409":
           description: >
             Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier). Error body may use `field` `slug` or
-            `service_tier` depending on the conflicting pair.
+            on case-insensitive slug and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -1261,8 +1263,8 @@ paths:
         "409":
           description: >
             Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier). Error body may use `field` `slug` or
-            `service_tier` depending on the conflicting pair.
+            on case-insensitive slug and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -6109,6 +6111,12 @@ components:
         detail:
           type: string
           nullable: true
+        field:
+          type: string
+          nullable: true
+          description: >
+            Optional input field key for validation-style errors. Duplicate service
+            slug+tier conflicts use the literal `slug_tier` (not `slug` or `service_tier`).
     HealthResponse:
       type: object
       required:

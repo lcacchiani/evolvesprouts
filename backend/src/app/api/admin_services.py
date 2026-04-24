@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import os
 from collections.abc import Mapping
-from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -24,6 +22,11 @@ from app.api.admin_services_common import (
     request_id,
     serialize_service_detail,
     serialize_service_summary,
+)
+from app.api.admin_services_cover import create_cover_image_upload
+from app.api.admin_services_integrity import (
+    is_services_slug_tier_unique_violation,
+    slug_tier_uniqueness_validation_error,
 )
 from app.api.admin_services_payload_utils import parse_service_type_details
 from app.api.admin_entities_helpers import require_assignable_tag
@@ -47,8 +50,7 @@ from app.db.repositories import (
     ServiceRepository,
 )
 from app.exceptions import NotFoundError, ValidationError
-from app.services.aws_clients import get_s3_client
-from app.utils import json_response, require_env
+from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -111,7 +113,7 @@ def handle_admin_services_request(
     if len(parts) == 4 and parts[3] == "cover-image":
         if method != "POST":
             return json_response(405, {"error": "Method not allowed"}, event=event)
-        return _create_cover_image_upload(
+        return create_cover_image_upload(
             event, service_id=service_id, actor_sub=identity.user_sub
         )
 
@@ -205,8 +207,8 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_services_slug_tier_unique_violation(exc):
-                raise _slug_tier_uniqueness_validation_error(
+            if is_services_slug_tier_unique_violation(exc):
+                raise slug_tier_uniqueness_validation_error(
                     slug=payload["slug"],
                     service_tier=payload["service_tier"],
                 ) from exc
@@ -302,8 +304,8 @@ def _update_service(
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_services_slug_tier_unique_violation(exc):
-                raise _slug_tier_uniqueness_validation_error(
+            if is_services_slug_tier_unique_violation(exc):
+                raise slug_tier_uniqueness_validation_error(
                     slug=service.slug,
                     service_tier=service.service_tier,
                 ) from exc
@@ -344,65 +346,6 @@ def _delete_service(
         repository.delete(service)
         session.commit()
         return json_response(204, {}, event=event)
-
-
-def _create_cover_image_upload(
-    event: Mapping[str, Any],
-    *,
-    service_id: UUID,
-    actor_sub: str,
-) -> dict[str, Any]:
-    body = parse_body(event)
-    file_name = str(body.get("file_name") or "").strip()
-    if not file_name:
-        raise ValidationError("file_name is required", field="file_name")
-    content_type = (
-        str(body.get("content_type") or "").strip() or "application/octet-stream"
-    )
-    normalized_file_name = _sanitize_file_name(file_name)
-    s3_key = f"media/services/{service_id}/cover/{uuid4()}-{normalized_file_name}"
-    logger.info(
-        "Creating service cover image upload URL",
-        extra={"service_id": str(service_id), "actor_sub": actor_sub},
-    )
-
-    media_bucket = require_env("ASSETS_BUCKET_NAME")
-    ttl = _presign_ttl_seconds()
-    expires_at = datetime.now(UTC) + timedelta(seconds=ttl)
-    s3_client = get_s3_client()
-    upload_url = s3_client.generate_presigned_url(
-        "put_object",
-        Params={
-            "Bucket": media_bucket,
-            "Key": s3_key,
-            "ContentType": content_type,
-        },
-        ExpiresIn=ttl,
-        HttpMethod="PUT",
-    )
-
-    with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
-        repository = ServiceRepository(session)
-        service = repository.get_by_id(service_id)
-        if service is None:
-            raise NotFoundError("Service", str(service_id))
-        service.cover_image_s3_key = s3_key
-        repository.update_service(service)
-        session.commit()
-
-    return json_response(
-        200,
-        {
-            "upload_url": upload_url,
-            "upload_method": "PUT",
-            "upload_headers": {"Content-Type": content_type},
-            "s3_key": s3_key,
-            "expires_at": expires_at.isoformat(),
-            "service": {"id": str(service_id), "cover_image_s3_key": s3_key},
-        },
-        event=event,
-    )
 
 
 def _build_service_type_details(
@@ -456,45 +399,6 @@ def _get_discount_code_usage_summary(
         )
 
 
-def _slug_tier_uniqueness_validation_error(
-    *, slug: str | None, service_tier: str | None
-) -> ValidationError:
-    """409 for duplicate (referral slug, service tier) pair."""
-    if slug:
-        if service_tier:
-            return ValidationError(
-                "Another service already uses this referral slug with the same tier. "
-                "Change the slug or use a different tier.",
-                field="slug",
-                status_code=409,
-            )
-        return ValidationError(
-            "Another service already uses this referral slug with an empty tier. "
-            "Set a tier or change the slug.",
-            field="service_tier",
-            status_code=409,
-        )
-    return ValidationError(
-        "Service slug and tier combination conflicts with an existing service.",
-        field="slug",
-        status_code=409,
-    )
-
-
-def _is_services_slug_tier_unique_violation(exc: IntegrityError) -> bool:
-    orig = getattr(exc.orig, "__cause__", None) or exc.orig
-    diag = getattr(orig, "diag", None)
-    constraint = getattr(diag, "constraint_name", None) if diag else None
-    if constraint == "services_slug_tier_unique_idx":
-        return True
-    message = str(exc).lower()
-    if "services_slug_tier_unique_idx" not in message:
-        return False
-    if "svc_instances_slug" in message:
-        return False
-    return True
-
-
 def _apply_service_type_details(*, service: Service, details: Any) -> None:
     if isinstance(details, TrainingCourseDetails):
         if service.training_course_details is None:
@@ -531,21 +435,3 @@ def _apply_service_type_details(*, service: Service, details: Any) -> None:
             consultation_row.default_currency = details.default_currency
         service.training_course_details = None
         service.event_details = None
-
-
-def _sanitize_file_name(file_name: str) -> str:
-    safe = "".join(
-        char if char.isalnum() or char in {".", "-", "_"} else "-"
-        for char in file_name.strip()
-    )
-    safe = safe.strip("-")
-    return safe or "cover-image"
-
-
-def _presign_ttl_seconds() -> int:
-    raw = os.getenv("ASSET_PRESIGN_TTL_SECONDS", "900").strip()
-    try:
-        parsed = int(raw)
-    except ValueError as exc:
-        raise ValidationError("ASSET_PRESIGN_TTL_SECONDS must be an integer") from exc
-    return max(60, min(3600, parsed))

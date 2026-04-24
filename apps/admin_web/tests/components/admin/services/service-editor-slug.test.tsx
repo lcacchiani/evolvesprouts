@@ -166,7 +166,7 @@ describe('ServiceDetailPanel referral slug', () => {
           statusCode: 409,
           payload: {
             error: 'Another service already uses this referral slug with the same tier.',
-            field: 'slug',
+            field: 'slug_tier',
           },
           message: 'Conflict',
         }),
@@ -202,5 +202,38 @@ describe('ServiceDetailPanel referral slug', () => {
     await vi.waitFor(() => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('shows empty-tier conflict on tier field when API returns slug_tier 409 for blank tier', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockRejectedValueOnce(
+      new AdminApiError({
+        statusCode: 409,
+        payload: {
+          error: 'Another service already uses this referral slug with an empty tier.',
+          field: 'slug_tier',
+        },
+        message: 'Conflict',
+      }),
+    );
+
+    render(
+      <ServiceDetailPanel
+        service={buildService({ slug: 'shared-slug', serviceTier: '' })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+
+    expect(
+      await screen.findByText(/Another service uses this slug with an empty tier/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
   });
 });
