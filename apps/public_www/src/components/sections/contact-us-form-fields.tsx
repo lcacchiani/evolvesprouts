@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { PhoneRegionSelect } from '@/components/shared/phone-region-select';
+import { PhoneNumberInlineField } from '@/components/shared/phone-number-inline-field';
 import {
   SubmitButtonLoadingContent,
   submitButtonClassName,
@@ -28,6 +28,7 @@ const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 
 interface ContactFormFieldsProps {
   content: ContactUsContent['form'];
+  dialCodeOptionTemplate: string;
   formState: ContactUsFormState;
   hasEmailError: boolean;
   hasPhoneError: boolean;
@@ -52,6 +53,7 @@ interface ContactFormFieldsProps {
 
 export function ContactFormFields({
   content,
+  dialCodeOptionTemplate,
   formState,
   hasEmailError,
   hasPhoneError,
@@ -150,42 +152,38 @@ export function ContactFormFields({
         ) : null}
       </label>
 
-      <div className='grid gap-3 sm:grid-cols-2'>
-        <PhoneRegionSelect
-          id='contact-us-phone-country'
-          value={formState.phoneCountry}
-          onChange={(region) => onUpdateField('phoneCountry', region)}
-          label={content.phoneCountryLabel}
+      <div className='block'>
+        <span
+          id='contact-us-phone-field-label'
+          className='mb-1 block text-sm font-semibold es-text-heading'
+        >
+          {content.phoneLabel}
+        </span>
+        <PhoneNumberInlineField
+          countrySelectId='contact-us-phone-country'
+          nationalInputAriaLabelledBy='contact-us-phone-field-label'
+          phoneCountry={formState.phoneCountry}
+          phone={formState.phone}
+          onPhoneCountryChange={(region) => onUpdateField('phoneCountry', region)}
+          onPhoneChange={(value) => onUpdateField('phone', value)}
+          onPhoneBlur={onPhoneBlur}
+          countryAriaLabel={content.phoneCountryLabel}
+          dialCodeOptionTemplate={dialCodeOptionTemplate}
+          hasError={hasPhoneError}
+          errorMessageId={PHONE_ERROR_MESSAGE_ID}
+          inputId='contact-us-phone-national'
+          autoComplete='tel'
         />
-        <label className='block' htmlFor='contact-us-phone-national'>
-          <span className='mb-1 block text-sm font-semibold es-text-heading'>
-            {content.phoneLabel}
-          </span>
-          <input
-            id='contact-us-phone-national'
-            type='tel'
-            inputMode='numeric'
-            autoComplete='tel-national'
-            value={formState.phone}
-            onChange={(event) => {
-              onUpdateField('phone', event.target.value);
-            }}
-            onBlur={onPhoneBlur}
-            className={`es-focus-ring es-form-input ${hasPhoneError ? 'es-form-input-error' : ''}`}
-            aria-invalid={hasPhoneError}
-            aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
-          />
-          <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
-          {hasPhoneError ? (
-            <p
-              id={PHONE_ERROR_MESSAGE_ID}
-              className='es-form-field-error'
-              role='alert'
-            >
-              {content.phoneInvalidForCountry}
-            </p>
-          ) : null}
-        </label>
+        <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
+        {hasPhoneError ? (
+          <p
+            id={PHONE_ERROR_MESSAGE_ID}
+            className='es-form-field-error'
+            role='alert'
+          >
+            {content.phoneInvalidForCountry}
+          </p>
+        ) : null}
       </div>
 
       <label className='block'>

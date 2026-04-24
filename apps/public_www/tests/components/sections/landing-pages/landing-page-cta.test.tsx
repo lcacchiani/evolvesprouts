@@ -32,6 +32,7 @@ describe('LandingPageCta section', () => {
   const bookingPayload: EventBookingModalPayload = {
     variant: 'event',
     bookingSystem: 'event-booking',
+    service: 'event',
     serviceKey: 'easter-workshop-cta-test',
     title: 'Easter 2026 Montessori Play Coaching Workshop',
     subtitle: 'A practical workshop',

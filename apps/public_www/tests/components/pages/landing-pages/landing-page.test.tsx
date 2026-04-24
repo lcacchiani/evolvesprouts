@@ -21,6 +21,7 @@ vi.mock('@/lib/events-data', () => ({
     bookingPayload: {
       variant: 'event',
       bookingSystem: 'event-booking',
+      service: 'event',
       serviceKey: 'mock-event',
       title: 'Mock Event Title',
       subtitle: 'Mock subtitle',

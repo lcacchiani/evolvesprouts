@@ -104,6 +104,7 @@ export function EventBookingModal({
         eventTitle={bookingPayload.title}
         reservationServiceKey={bookingPayload.serviceKey ?? ''}
         courseSlug='event-booking'
+        serviceSlug={bookingPayload.service}
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={bookingPayload.dateParts.map((part) => {
           return {

@@ -1374,6 +1374,16 @@ components:
         courseSlug:
           type: string
           maxLength: 100
+        service:
+          type: string
+          maxLength: 100
+          enum:
+            - event
+            - training-course
+            - consultation
+          description: >
+            Optional high-level booking category for localized confirmation email copy.
+            When omitted, the booking confirmation email uses `courseLabel` for the Service row.
         locationName:
           type: string
           maxLength: 200

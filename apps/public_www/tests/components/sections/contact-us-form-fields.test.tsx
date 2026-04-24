@@ -58,6 +58,7 @@ describe('ContactFormFields', () => {
     render(
       <ContactFormFields
         content={enContent.contactUs.form}
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
         formState={formState}
         hasEmailError
         hasPhoneError
@@ -84,11 +85,20 @@ describe('ContactFormFields', () => {
     fireEvent.change(screen.getByLabelText(/Email/i), {
       target: { value: 'valid@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(/Phone Number/i), {
-      target: { value: '91234567' },
-    });
+    fireEvent.change(
+      screen.getByRole('textbox', {
+        name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
+      }),
+      {
+        target: { value: '91234567' },
+      },
+    );
     fireEvent.blur(screen.getByLabelText(/Email/i));
-    fireEvent.blur(screen.getByLabelText(/Phone Number/i));
+    fireEvent.blur(
+      screen.getByRole('textbox', {
+        name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
+      }),
+    );
     fireEvent.click(screen.getByTestId('captcha-solve'));
     fireEvent.click(screen.getByTestId('captcha-fail'));
 

@@ -24,6 +24,8 @@ export interface ReservationSummary {
   eventSubtitle?: string;
   /** Booking flow slug (e.g. my-best-auntie, consultation-booking, event-booking). */
   courseSlug?: string;
+  /** High-level service category for thank-you / email (event, training-course, consultation). */
+  serviceSlug?: string;
   locationName?: string;
   locationAddress?: string;
   /** Maps or venue URL for “Get directions” on the thank-you step. */

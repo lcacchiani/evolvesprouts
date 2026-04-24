@@ -215,5 +215,38 @@ BOOKING_ICS_PRODID: Final[str] = "-//Evolve Sprouts//Booking Confirmation//EN"
 BOOKING_ICS_ATTACHMENT_FILENAME: Final[str] = "evolvesprouts-booking.ics"
 
 
+_SERVICE_TYPE_LABELS: Final[dict[str, dict[str, str]]] = {
+    "en": {
+        "event": "Event",
+        "training-course": "Training Course",
+        "consultation": "Consultation",
+    },
+    "zh-CN": {
+        "event": "活动",
+        "training-course": "培训课程",
+        "consultation": "咨询",
+    },
+    "zh-HK": {
+        "event": "活動",
+        "training-course": "培訓課程",
+        "consultation": "諮詢",
+    },
+}
+
+
+def resolve_service_row_label(
+    loc: str, service_slug: str | None, course_label: str
+) -> str:
+    """Localized service row for confirmation templates; falls back to course_label."""
+    label = (course_label or "").strip()
+    raw = (service_slug or "").strip().lower()
+    if not raw:
+        return label
+    locale_key = normalize_booking_locale(loc)
+    row = _SERVICE_TYPE_LABELS.get(locale_key, _SERVICE_TYPE_LABELS["en"])
+    mapped = row.get(raw)
+    return mapped.strip() if isinstance(mapped, str) and mapped.strip() else label
+
+
 def normalize_booking_locale(locale: str) -> str:
     return locale if locale in HEADER_TITLE else "en"

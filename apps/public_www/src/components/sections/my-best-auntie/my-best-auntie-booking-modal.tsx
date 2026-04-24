@@ -180,6 +180,7 @@ export function MyBestAuntieBookingModal({
               reservationServiceKey={selectedCohort?.id ?? ''}
               cohortId={selectedCohort?.id ?? ''}
               courseSlug='my-best-auntie'
+              serviceSlug={selectedCohort?.service ?? 'training-course'}
               discountValidationServiceKey='my-best-auntie'
               serviceInstanceId={selectedCohort?.service_instance_id ?? null}
               prefilledDiscountCode={prefilledDiscountCode}

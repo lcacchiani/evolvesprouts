@@ -51,6 +51,8 @@ interface EventBookingDatePart {
 export interface EventCalendarBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof EVENT_BOOKING_SYSTEM;
+  /** High-level service type for confirmations (from event JSON `service`). */
+  service: string;
   /** Stable event id for reservation / Mailchimp tag; omitted when source record has no id/slug. */
   serviceKey?: string;
   title: string;
@@ -73,6 +75,8 @@ export interface ConsultationEventBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
   serviceKey: string;
+  /** High-level service type for confirmations (from family-consultations JSON). */
+  service: string;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -119,6 +123,8 @@ export interface MyBestAuntieEventCohort {
   location_url: string;
   /** Aurora `service_instances.id` when present on the source record; otherwise null. */
   service_instance_id: string | null;
+  /** High-level service type for confirmations (from cohort JSON `service`). */
+  service?: string;
   dates: MyBestAuntieEventCohortDate[];
 }
 
@@ -431,10 +437,12 @@ function buildEventBookingModalPayload(
   const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
 
   const serviceKey = readCandidateText(record, ['id', 'eventId', 'slug']);
+  const service = readCandidateText(record, ['service']) ?? 'event';
 
   return {
     variant: 'event',
     bookingSystem: EVENT_BOOKING_SYSTEM,
+    service,
     ...(serviceKey ? { serviceKey } : {}),
     title,
     subtitle: summary ?? '',
@@ -494,9 +502,12 @@ function buildMyBestAuntieBookingModalPayload(
     return null;
   }
 
+  const service = readCandidateText(record, ['service']) ?? 'training-course';
+
   const selectedCohort: MyBestAuntieEventCohort = {
     id,
     service_tier: ageGroup,
+    service,
     title,
     description,
     cohort: cohortValue,

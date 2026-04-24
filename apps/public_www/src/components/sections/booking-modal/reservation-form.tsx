@@ -55,6 +55,7 @@ import { trackMetaPixelEvent, type MetaPixelContentName } from '@/lib/meta-pixel
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
+import { getContent } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   createPublicApiClient,
@@ -89,6 +90,8 @@ interface BookingReservationFormProps {
   cohortId?: string;
   /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;
+  /** High-level service type for thank-you recap and confirmation email (event, training-course, consultation). */
+  serviceSlug?: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
   selectedAgeGroupLabel: string;
@@ -433,6 +436,7 @@ export function BookingReservationForm({
   reservationServiceKey,
   cohortId = '',
   courseSlug,
+  serviceSlug,
   eventSubtitle = '',
   courseSessions,
   selectedAgeGroupLabel,
@@ -459,6 +463,7 @@ export function BookingReservationForm({
   referralAppliedAnnouncement = '',
   onSubmitReservation,
 }: BookingReservationFormProps) {
+  const dialCodeOptionTemplate = getContent(locale).common.phoneDialCodeOptionTemplate;
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -1149,6 +1154,7 @@ export function BookingReservationForm({
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: submitPhoneDigits,
       attendeeCountry: phoneCountry,
+      serviceSlug: sanitizeSingleLineValue(serviceSlug ?? '') || undefined,
       ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: isFreeReservation
@@ -1237,10 +1243,12 @@ export function BookingReservationForm({
         const sanitizedServiceKey = sanitizeSingleLineValue(reservationServiceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
         const instanceUuid = sanitizeSingleLineValue(serviceInstanceId ?? '');
+        const sanitizedServiceSlug = sanitizeSingleLineValue(serviceSlug ?? '');
         return {
           ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
           ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
           ...(instanceUuid ? { serviceInstanceId: instanceUuid } : {}),
+          ...(sanitizedServiceSlug ? { service: sanitizedServiceSlug } : {}),
         };
       })(),
       scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
@@ -1423,6 +1431,7 @@ export function BookingReservationForm({
         >
           <ReservationFormFields
             content={content}
+            dialCodeOptionTemplate={dialCodeOptionTemplate}
             fullName={fullName}
             email={email}
             phoneCountry={phoneCountry}

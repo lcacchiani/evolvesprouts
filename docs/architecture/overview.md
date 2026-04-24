@@ -46,7 +46,9 @@ Flutter Mobile / Next.js Admin
   on locale-prefixed course URLs; the backend matches `service_key` to
   `services.slug` in Aurora for validate/redeem scope checks.
   Instance-scoped discount redemption requires `service_instance_id` to be populated on the
-  corresponding cohort in `my-best-auntie-training-courses.json`; use the local helper
+  corresponding cohort in `my-best-auntie-training-courses.json`; family consultation
+  venue copy for the booking modal lives in `apps/public_www/src/content/family-consultations.json`
+  (per tier). Use the local helper
   [`backend/scripts/dump_mba_instance_uuids.py`](../../backend/scripts/dump_mba_instance_uuids.py)
   to list Aurora instance UUIDs keyed for that content (human-edited JSON is not overwritten by the script).
 - Hosted on S3 + CloudFront in one stack with separate staging and

@@ -528,7 +528,9 @@ describe('my-best-auntie booking modals footer content', () => {
       new RegExp(bookingModalContent.fullNameLabel),
     );
     const emailField = screen.getByLabelText(new RegExp(bookingModalContent.emailLabel));
-    const phoneField = screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel));
+    const phoneField = screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    });
 
     const pendingAcknowledgement = screen.getByRole('checkbox', {
       name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
@@ -824,7 +826,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'u@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -852,6 +856,7 @@ describe('my-best-auntie booking modals footer content', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
+          service: 'training-course',
         }),
       }),
     );
@@ -901,7 +906,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'u@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -929,6 +936,7 @@ describe('my-best-auntie booking modals footer content', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
+          service: 'training-course',
         }),
       }),
     );
@@ -1087,7 +1095,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'ida@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -1141,7 +1151,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'not-an-email' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -1204,7 +1216,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'ida@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -1352,7 +1366,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'ida@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
@@ -1444,7 +1460,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
       target: { value: 'ida@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+    fireEvent.change(screen.getByRole('textbox', {
+      name: new RegExp(`^${bookingModalContent.phoneLabel}`),
+    }), {
       target: { value: '91234567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {

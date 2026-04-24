@@ -40,7 +40,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
     row_service = (
         f'<tr><td style="padding:8px 0;{border}"><strong>{labels["service"]}</strong></td>'
         '<td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">'
-        "{{course_label}}</td></tr>"
+        "{{service_row_label}}</td></tr>"
     )
     row_details = (
         "{{#if details_block_html}}"
@@ -135,7 +135,7 @@ def _inner_html_and_text_for_locale(loc: str) -> tuple[str, str]:
         greeting_plain
         + THANK_YOU_PLAIN[loc]
         + f"{labels['service']}{label_sep}"
-        + "{{course_label}}\n"
+        + "{{service_row_label}}\n"
         + "{{#if details_plain}}"
         + f"{labels['details']}{label_sep}\n"
         + "{{details_plain}}\n"

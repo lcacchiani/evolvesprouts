@@ -324,6 +324,54 @@
     border-color: var(--es-color-text-danger, #B42318);
   }
 
+  .es-phone-inline-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--es-color-border-input);
+    background-color: var(--es-color-surface-white);
+    overflow: hidden;
+  }
+
+  .es-phone-inline-group:focus-within {
+    outline: 2px solid rgba(0, 0, 0, 0.4);
+    outline-offset: 2px;
+  }
+
+  .es-phone-inline-group .es-phone-inline-dial:focus-visible,
+  .es-phone-inline-group .es-phone-inline-national:focus-visible {
+    outline: none;
+    outline-offset: 0;
+  }
+
+  .es-phone-inline-group.is-error {
+    border-color: var(--es-color-text-danger, #B42318);
+  }
+
+  .es-phone-inline-group.is-error .es-phone-inline-dial {
+    border-right-color: var(--es-color-text-danger, #B42318);
+  }
+
+  .es-phone-inline-dial,
+  .es-phone-inline-national {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .es-phone-inline-dial {
+    width: auto;
+    min-width: 5rem;
+    flex-shrink: 0;
+    border-right: 1px solid var(--es-color-border-input);
+  }
+
+  .es-phone-inline-national {
+    flex: 1;
+    min-width: 0;
+  }
+
   .es-form-input:disabled {
     background-color: var(--es-color-surface-disabled-field);
     color: var(--es-color-text-disabled);

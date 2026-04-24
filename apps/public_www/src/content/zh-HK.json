@@ -1149,6 +1149,7 @@
     "formActions": {
       "submittingLabel": "提交中…"
     },
+    "phoneDialCodeOptionTemplate": "+{dialCode}",
     "mediaDownload": {
       "invalidTitle": "下載連結無效",
       "invalidDescription": "此媒體連結缺少有效權杖。請重新申請媒體下載。",
@@ -1391,8 +1392,6 @@
         "modalFocusLabelTemplate": "{focus}方向",
         "upgradeToDeepDiveLabel": "升級到深入版，獲得實操指導",
         "selectedDateLabel": "諮詢套餐",
-        "locationName": "你屋企",
-        "locationAddress": "香港",
         "topicsField": {
           "label": "其他需要說明的資訊",
           "placeholder": "例如：孩子3歲、姨姨已工作2年，或者上門前想我哋知嘅背景",
@@ -1618,6 +1617,11 @@
       "title": "多謝！",
       "messageTemplate": "確認電郵已發送至 {email}",
       "courseLabel": "我的最佳姨姨培訓課程。",
+      "serviceLabels": {
+        "event": "活動",
+        "training-course": "培訓課程",
+        "consultation": "諮詢"
+      },
       "serviceLabel": "服務",
       "detailsLabel": "詳情",
       "dateTimeLabel": "日期及時間",
