@@ -84,7 +84,8 @@ their primary responsibilities.
   filters; instance create/update accepts optional `cohort`, and
   `tag_ids` with `tags` / `tag_ids` echoed on instance responses; and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
-  aggregate discount usage before service slug changes), `/v1/admin/discount-codes/*`
+  aggregate discount usage before service slug changes; `DELETE /v1/admin/services/{id}`
+  returns `409` when the service still has instances), `/v1/admin/discount-codes/*`
   (`POST` returns `409` with `field: code` when the code collides with the
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
   effective discount type after the update is `referral`, otherwise `discount_value`

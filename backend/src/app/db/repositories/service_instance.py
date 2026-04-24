@@ -38,6 +38,14 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
     def __init__(self, session: Session):
         super().__init__(session, ServiceInstance)
 
+    def count_for_service_id(self, service_id: UUID) -> int:
+        """Return how many instances exist for the given service template."""
+        statement = select(func.count(ServiceInstance.id)).where(
+            ServiceInstance.service_id == service_id
+        )
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
     def list_instances(
         self,
         *,

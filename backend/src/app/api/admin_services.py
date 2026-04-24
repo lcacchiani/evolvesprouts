@@ -41,7 +41,11 @@ from app.db.models import (
     ServiceType,
     TrainingCourseDetails,
 )
-from app.db.repositories import DiscountCodeRepository, ServiceRepository
+from app.db.repositories import (
+    DiscountCodeRepository,
+    ServiceInstanceRepository,
+    ServiceRepository,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.services.aws_clients import get_s3_client
 from app.utils import json_response, require_env
@@ -138,10 +142,18 @@ def _list_services(event: Mapping[str, Any]) -> dict[str, Any]:
             status=filters["status"],
             search=filters["search"],
         )
+        instance_counts = repository.count_instances_by_service_ids(
+            [row.id for row in page_rows]
+        )
         return json_response(
             200,
             {
-                "items": [serialize_service_summary(row) for row in page_rows],
+                "items": [
+                    serialize_service_summary(
+                        row, instances_count=instance_counts.get(row.id, 0)
+                    )
+                    for row in page_rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -324,6 +336,13 @@ def _delete_service(
         service = repository.get_by_id(service_id)
         if service is None:
             raise NotFoundError("Service", str(service_id))
+        instance_repo = ServiceInstanceRepository(session)
+        if instance_repo.count_for_service_id(service_id) > 0:
+            raise ValidationError(
+                "Cannot delete a service that has instances. Remove all instances first.",
+                field="service",
+                status_code=409,
+            )
         repository.delete(service)
         session.commit()
         return json_response(204, {}, event=event)
