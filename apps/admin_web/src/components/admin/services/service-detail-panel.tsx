@@ -287,6 +287,7 @@ export function ServiceDetailPanel({
   const hasLocationOptions = locationOptions.length > 0;
   const locationExists = locationOptions.some((entry) => entry.id === locationId);
   const selectedLocationValue = locationExists ? locationId : locationId || '';
+  const showDefaultLocationField = serviceForm.deliveryMode !== 'online';
 
   const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
   const saveBlockedBySlugConflict =
@@ -303,12 +304,13 @@ export function ServiceDetailPanel({
       <Select
         id='service-delivery-mode'
         value={serviceForm.deliveryMode}
-        onChange={(event) =>
-          setServiceForm({
-            ...serviceForm,
-            deliveryMode: event.target.value as ServiceDeliveryMode,
-          })
-        }
+        onChange={(event) => {
+          const nextMode = event.target.value as ServiceDeliveryMode;
+          setServiceForm({ ...serviceForm, deliveryMode: nextMode });
+          if (nextMode === 'online') {
+            setLocationId('');
+          }
+        }}
       >
         {SERVICE_DELIVERY_MODES.map((entry) => (
           <option key={entry} value={entry}>
@@ -466,7 +468,7 @@ export function ServiceDetailPanel({
         slug: newSlug,
         booking_system: bookingSystem.trim() || null,
         service_tier: serviceTier.trim() || null,
-        location_id: locationId.trim() || null,
+        location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(service.serviceType),
@@ -496,7 +498,7 @@ export function ServiceDetailPanel({
         slug: slugPayloadValue,
         booking_system: bookingSystem.trim() || null,
         service_tier: serviceTier.trim() || null,
-        location_id: locationId.trim() || null,
+        location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
         delivery_mode: serviceForm.deliveryMode,
         status: serviceForm.status,
         ...buildTypeSpecificPayload(serviceType),
@@ -659,7 +661,7 @@ export function ServiceDetailPanel({
               priceLabel='Default price'
             />
             <TrainingCurrencyControl value={trainingForm} onChange={setTrainingForm} />
-            {defaultLocationField}
+            {showDefaultLocationField ? defaultLocationField : null}
           </div>
         ) : null}
 
@@ -681,7 +683,7 @@ export function ServiceDetailPanel({
             <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='service-event-category' />
             <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
             <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
-            {defaultLocationField}
+            {showDefaultLocationField ? defaultLocationField : null}
           </div>
         ) : null}
 
@@ -711,7 +713,7 @@ export function ServiceDetailPanel({
               {consultationForm.pricingModel !== 'free' ? (
                 <ConsultationCurrencyControl value={consultationForm} onChange={setConsultationForm} />
               ) : null}
-              {defaultLocationField}
+              {showDefaultLocationField ? defaultLocationField : null}
             </div>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
               <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />

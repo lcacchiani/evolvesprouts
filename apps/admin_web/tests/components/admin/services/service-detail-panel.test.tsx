@@ -240,6 +240,7 @@ describe('ServiceDetailPanel', () => {
     const category = screen.getByLabelText('Event category');
     const defaultPrice = screen.getByLabelText('Default price');
     const currency = screen.getByLabelText('Currency');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     const location = screen.getByLabelText('Default location');
     expect(category.compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(defaultPrice.compareDocumentPosition(currency) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -313,6 +314,7 @@ describe('ServiceDetailPanel', () => {
     const tierInputs = screen.getAllByLabelText('Service tier');
     await user.type(tierInputs[0], 'ages-3-5');
     await user.type(screen.getByLabelText('Default price'), '100');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     await user.click(screen.getByRole('button', { name: /Add service/i }));
     expect(onCreate).toHaveBeenCalled();
     const body = onCreate.mock.calls[0][0] as { service_tier?: string | null };
@@ -344,6 +346,7 @@ describe('ServiceDetailPanel', () => {
     const tierInputs = screen.getAllByLabelText('Service tier');
     await user.type(tierInputs[0], 'spring-tier');
     await user.type(screen.getByLabelText('Default price'), '50');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     await user.click(screen.getByRole('button', { name: /Add service/i }));
     expect(onCreate).toHaveBeenCalled();
     const body = onCreate.mock.calls[0][0] as { service_tier?: string | null };
@@ -407,6 +410,7 @@ describe('ServiceDetailPanel', () => {
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
     await user.type(screen.getByLabelText('Title'), 'T');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     await user.selectOptions(screen.getByLabelText('Default location'), '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
     await user.type(screen.getByLabelText('Default price'), '10');
     await user.click(screen.getByRole('button', { name: /Add service/i }));
@@ -434,6 +438,7 @@ describe('ServiceDetailPanel', () => {
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
     await user.type(screen.getByLabelText('Title'), 'T');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     const locInput = screen.getByPlaceholderText('Location UUID');
     expect(locInput).toBeInTheDocument();
     await user.type(locInput, uuid);
@@ -458,6 +463,7 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
 
     const delivery = screen.getByLabelText('Delivery mode');
     const tier = screen.getByLabelText('Service tier');
@@ -571,6 +577,72 @@ describe('ServiceDetailPanel', () => {
     expect(screen.queryByLabelText('Hourly rate')).not.toBeInTheDocument();
   });
 
+  it('hides default location when delivery mode is Online for all service types', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[
+          {
+            id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            name: 'Venue A',
+            areaId: 'a',
+            address: null,
+            lat: null,
+            lng: null,
+            createdAt: null,
+            updatedAt: null,
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
+          },
+        ]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+
+    for (const typeLabel of ['training_course', 'event', 'consultation'] as const) {
+      await user.selectOptions(screen.getByLabelText('Type'), typeLabel);
+      await user.selectOptions(screen.getByLabelText('Delivery mode'), 'Online');
+      expect(screen.queryByLabelText('Default location')).not.toBeInTheDocument();
+      await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
+      expect(screen.getByLabelText('Default location')).toBeInTheDocument();
+    }
+  });
+
+  it('clears default location and submits null when switching to Online before save', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.type(screen.getByLabelText('Title'), 'T');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
+    await user.type(screen.getByPlaceholderText('Location UUID'), '550e8400-e29b-41d4-a716-446655440000');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'Online');
+    expect(screen.queryByLabelText('Default location')).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('Default price'), '10');
+    await user.click(screen.getByRole('button', { name: /Add service/i }));
+    const body = onCreate.mock.calls[0][0] as { location_id?: string | null };
+    expect(body.location_id).toBeNull();
+  });
+
   it('default location select uses Select location placeholder', async () => {
     const user = userEvent.setup();
     render(
@@ -600,6 +672,7 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    await user.selectOptions(screen.getByLabelText('Delivery mode'), 'In Person');
     const select = screen.getByLabelText('Default location') as HTMLSelectElement;
     const placeholder = Array.from(select.options).find((o) => o.value === '');
     expect(placeholder?.textContent).toBe('Select location');
