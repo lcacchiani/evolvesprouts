@@ -179,6 +179,7 @@ export function CreateInstanceDialog({
       <div className='mt-3'>
         <SessionSlotEditor
           slots={instanceForm.sessionSlots}
+          defaultLocationId={instanceForm.locationId.trim() || null}
           onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
         />
       </div>

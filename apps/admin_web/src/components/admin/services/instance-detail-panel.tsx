@@ -434,6 +434,9 @@ export function InstanceDetailPanel({
   const canSubmit = Boolean(selectedServiceId);
   const typeFieldsLocked = !selectedServiceId;
 
+  const effectiveSessionSlotDefaultLocationId =
+    instanceForm.locationId.trim() || selectedService?.locationId?.trim() || null;
+
   const resolvedEventCategory = useMemo(
     () => resolveInheritedEventCategory(selectedService, instance),
     [selectedService, instance]
@@ -743,6 +746,7 @@ export function InstanceDetailPanel({
         disabled={typeFieldsLocked}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
+        defaultLocationId={effectiveSessionSlotDefaultLocationId}
         onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
       />
 
