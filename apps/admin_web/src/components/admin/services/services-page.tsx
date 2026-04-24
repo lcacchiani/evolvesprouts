@@ -5,7 +5,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
-import { formatInstanceCohortDisplay } from '@/lib/format';
+import {
+  compareInstancesByFirstSlotStartsDesc,
+  formatInstanceCohortDisplay,
+} from '@/lib/format';
 import { getInstance, getService } from '@/lib/services-api';
 import type { ServiceDetail, ServiceInstance } from '@/types/services';
 
@@ -75,24 +78,32 @@ export function ServicesPage() {
     return allServiceOptionsIncludingArchived.filter((svc) => svc.status !== 'archived');
   }, [showArchivedDiscountServices, allServiceOptionsIncludingArchived]);
   const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
-  const filteredInstances =
-    state.activeView === 'instances' && normalizedInstanceSearch
-      ? state.instanceList.instances.filter((instance) => {
-          const parts: string[] = [
-            instance.resolvedTitle,
-            instance.title,
-            instance.parentServiceTitle,
-            instance.instructorId,
-            instance.status,
-          ].filter((value): value is string => Boolean(value));
-          const cohortTrimmed = instance.cohort?.trim();
-          if (cohortTrimmed) {
-            parts.push(cohortTrimmed, formatInstanceCohortDisplay(instance.cohort));
-          }
-          const searchable = parts.join(' ').toLowerCase();
-          return searchable.includes(normalizedInstanceSearch);
-        })
-      : state.instanceList.instances;
+  const filteredInstances = useMemo(() => {
+    if (state.activeView !== 'instances' || !normalizedInstanceSearch) {
+      return state.instanceList.instances;
+    }
+    return state.instanceList.instances.filter((instance) => {
+      const parts: string[] = [
+        instance.resolvedTitle,
+        instance.title,
+        instance.parentServiceTitle,
+        instance.instructorId,
+        instance.status,
+      ].filter((value): value is string => Boolean(value));
+      const cohortTrimmed = instance.cohort?.trim();
+      if (cohortTrimmed) {
+        parts.push(cohortTrimmed, formatInstanceCohortDisplay(instance.cohort));
+      }
+      const searchable = parts.join(' ').toLowerCase();
+      return searchable.includes(normalizedInstanceSearch);
+    });
+  }, [normalizedInstanceSearch, state.activeView, state.instanceList.instances]);
+  const instancesTableRows = useMemo(() => {
+    if (state.activeView !== 'instances') {
+      return filteredInstances;
+    }
+    return [...filteredInstances].sort(compareInstancesByFirstSlotStartsDesc);
+  }, [filteredInstances, state.activeView]);
   const instancesContextServiceId =
     state.activeView === 'instances'
       ? (state.selectedInstance?.serviceId ?? state.selectedServiceId)
@@ -235,7 +246,7 @@ export function ServicesPage() {
             }}
           />
           <InstanceListPanel
-            instances={filteredInstances}
+            instances={instancesTableRows}
             selectedInstanceId={state.selectedInstanceId}
             isLoading={state.instanceList.isLoading}
             isLoadingMore={state.instanceList.isLoadingMore}

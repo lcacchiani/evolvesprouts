@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  compareInstancesByFirstSlotStartsDesc,
   formatAssetContentLanguageLabel,
   formatDate,
   formatDateOnly,
@@ -8,12 +9,15 @@ import {
   formatInstanceCohortDisplay,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
+  formatSessionSlotStartsAtDisplay,
+  getFirstSessionSlotStartTimeMs,
   getContentLanguageOptions,
   getCurrencyOptions,
   matchAdminSelectableContentLanguage,
+  orderSessionSlotsForDisplay,
   parseDatetimeLocalToIsoUtc,
 } from '@/lib/format';
-import type { ServiceSummary } from '@/types/services';
+import type { ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
 
 function baseSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
   return {
@@ -50,6 +54,87 @@ describe('format helpers', () => {
     expect(formatInstanceCohortDisplay('')).toBe('-');
     expect(formatInstanceCohortDisplay('spring-2024')).toBe('Spring 2024');
     expect(formatInstanceCohortDisplay('MY-BEST-AUNTIE')).toBe('My Best Auntie');
+  });
+
+  it('formats session slot starts for instances table', () => {
+    expect(formatSessionSlotStartsAtDisplay(null)).toBe('-');
+    expect(formatSessionSlotStartsAtDisplay('')).toBe('-');
+    expect(formatSessionSlotStartsAtDisplay('not-a-date')).toBe('-');
+    const line = formatSessionSlotStartsAtDisplay('2026-06-15T14:30:00Z');
+    expect(line).toMatch(/^\d{2} \w+ @ \d{2}:\d{2}$/);
+  });
+
+  it('orders session slots by sort_order then starts_at', () => {
+    const slots: SessionSlot[] = [
+      { id: 'a', instanceId: null, locationId: null, startsAt: '2026-01-10T10:00:00Z', endsAt: null, sortOrder: 2 },
+      { id: 'b', instanceId: null, locationId: null, startsAt: '2026-01-05T10:00:00Z', endsAt: null, sortOrder: 1 },
+    ];
+    const ordered = orderSessionSlotsForDisplay(slots);
+    expect(ordered.map((s) => s.id)).toEqual(['b', 'a']);
+  });
+
+  it('uses earliest ordered slot time for instance sort key', () => {
+    const slots: SessionSlot[] = [
+      { id: 'late', instanceId: null, locationId: null, startsAt: '2026-02-01T10:00:00Z', endsAt: null, sortOrder: 2 },
+      { id: 'early', instanceId: null, locationId: null, startsAt: '2026-01-01T10:00:00Z', endsAt: null, sortOrder: 1 },
+    ];
+    expect(getFirstSessionSlotStartTimeMs(slots)).toBe(new Date('2026-01-01T10:00:00Z').getTime());
+  });
+
+  it('sorts instances by first slot start descending', () => {
+    const mk = (id: string, startsAt: string | null): ServiceInstance => ({
+      id,
+      serviceId: 'svc',
+      parentServiceTitle: null,
+      parentServiceType: null,
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: startsAt
+        ? [
+            {
+              id: 's',
+              instanceId: id,
+              locationId: null,
+              startsAt,
+              endsAt: null,
+              sortOrder: 0,
+            },
+          ]
+        : [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    });
+    const later = mk('b', '2026-06-01T12:00:00Z');
+    const earlier = mk('a', '2026-05-01T12:00:00Z');
+    const noSlots = mk('c', null);
+    const sorted = [earlier, noSlots, later].sort(compareInstancesByFirstSlotStartsDesc);
+    expect(sorted.map((i) => i.id)).toEqual(['b', 'a', 'c']);
   });
 
   it('formats service list price labels by service type', () => {

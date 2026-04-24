@@ -1,7 +1,7 @@
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
-import type { LocationSummary, ServiceSummary } from '@/types/services';
+import type { LocationSummary, ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
 
 import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
 
@@ -149,6 +149,113 @@ export function formatInstanceCohortDisplay(cohort: string | null | undefined): 
   return words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
+}
+
+const SESSION_SLOT_TABLE_DATETIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+/**
+ * Session slot start for instances table: `dd Mmm @ HH:mm` in local time (en-GB parts).
+ */
+export function formatSessionSlotStartsAtDisplay(iso: string | null | undefined): string {
+  if (iso == null) {
+    return '-';
+  }
+  const trimmed = iso.trim();
+  if (!trimmed) {
+    return '-';
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return '-';
+  }
+  const parts = SESSION_SLOT_TABLE_DATETIME_FORMATTER.formatToParts(parsed);
+  const day = parts.find((p) => p.type === 'day')?.value ?? '';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '';
+  const hour = parts.find((p) => p.type === 'hour')?.value ?? '';
+  const minute = parts.find((p) => p.type === 'minute')?.value ?? '';
+  if (!day || !month || !hour || !minute) {
+    return '-';
+  }
+  const monthNorm = month.replace(/\.$/, '');
+  return `${day} ${monthNorm} @ ${hour}:${minute}`;
+}
+
+function sessionSlotSortKey(slot: SessionSlot, index: number): number {
+  const o = slot.sortOrder;
+  if (typeof o === 'number' && Number.isFinite(o)) {
+    return o;
+  }
+  return index;
+}
+
+/** Same ordering as the instances table slot column: `sort_order`, then start time, then index. */
+export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[] {
+  return slots
+    .map((slot, index) => ({ slot, index }))
+    .sort((a, b) => {
+      const ko = sessionSlotSortKey(a.slot, a.index) - sessionSlotSortKey(b.slot, b.index);
+      if (ko !== 0) {
+        return ko;
+      }
+      const ra = a.slot.startsAt?.trim() ?? '';
+      const rb = b.slot.startsAt?.trim() ?? '';
+      const ta = ra ? new Date(ra).getTime() : NaN;
+      const tb = rb ? new Date(rb).getTime() : NaN;
+      const fa = Number.isFinite(ta);
+      const fb = Number.isFinite(tb);
+      if (fa && fb && ta !== tb) {
+        return ta - tb;
+      }
+      if (fa !== fb) {
+        return fa ? -1 : 1;
+      }
+      return a.index - b.index;
+    })
+    .map(({ slot }) => slot);
+}
+
+/** Timestamp of the earliest slot with a valid `startsAt`, or `null` if none. */
+export function getFirstSessionSlotStartTimeMs(slots: SessionSlot[]): number | null {
+  const ordered = orderSessionSlotsForDisplay(slots);
+  for (const slot of ordered) {
+    const raw = slot.startsAt?.trim() ?? '';
+    if (!raw) {
+      continue;
+    }
+    const ms = new Date(raw).getTime();
+    if (Number.isFinite(ms)) {
+      return ms;
+    }
+  }
+  return null;
+}
+
+/**
+ * Sort instances for the admin table: latest first session start first; instances
+ * without slot times last (stable tie-break on id).
+ */
+export function compareInstancesByFirstSlotStartsDesc(a: ServiceInstance, b: ServiceInstance): number {
+  const ta = getFirstSessionSlotStartTimeMs(a.sessionSlots);
+  const tb = getFirstSessionSlotStartTimeMs(b.sessionSlots);
+  if (ta == null && tb == null) {
+    return a.id.localeCompare(b.id);
+  }
+  if (ta == null) {
+    return 1;
+  }
+  if (tb == null) {
+    return -1;
+  }
+  if (tb !== ta) {
+    return tb - ta;
+  }
+  return a.id.localeCompare(b.id);
 }
 
 function parseDecimalAmountString(raw: string | null | undefined): number | null {

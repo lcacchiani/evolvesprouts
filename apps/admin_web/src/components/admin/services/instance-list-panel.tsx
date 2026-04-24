@@ -13,7 +13,12 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
-import { formatEnumLabel, formatInstanceCohortDisplay } from '@/lib/format';
+import {
+  formatEnumLabel,
+  formatInstanceCohortDisplay,
+  formatSessionSlotStartsAtDisplay,
+  orderSessionSlotsForDisplay,
+} from '@/lib/format';
 
 import type { ServiceInstance, ServiceType } from '@/types/services';
 import { SERVICE_TYPES } from '@/types/services';
@@ -177,7 +182,7 @@ export function InstanceListPanel({
           ) : undefined
         }
       >
-        <AdminDataTable tableClassName='min-w-[820px]'>
+        <AdminDataTable tableClassName='min-w-[960px]'>
           <AdminDataTableHead>
             <tr>
               {showServiceColumn ? (
@@ -185,6 +190,9 @@ export function InstanceListPanel({
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Cohort</th>
+              ) : null}
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Slots</th>
               ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
@@ -210,6 +218,21 @@ export function InstanceListPanel({
                 ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>
+                ) : null}
+                {showServiceColumn ? (
+                  <td className='px-4 py-3 align-top'>
+                    {instance.sessionSlots.length === 0 ? (
+                      '-'
+                    ) : (
+                      <ul className='m-0 max-w-[11rem] list-none space-y-0.5 p-0'>
+                        {orderSessionSlotsForDisplay(instance.sessionSlots).map((slot, slotIndex) => (
+                          <li key={slot.id ?? `${instance.id}-slot-${slotIndex}`}>
+                            {formatSessionSlotStartsAtDisplay(slot.startsAt)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </td>
                 ) : null}
                 <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                 <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
