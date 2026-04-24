@@ -95,6 +95,7 @@ function mergeServiceIntoInstanceForm(
     title: service.title,
     description: service.description ?? '',
     deliveryMode: service.deliveryMode,
+    locationId: service.locationId ?? '',
   };
 }
 
@@ -606,6 +607,7 @@ export function InstanceDetailPanel({
       <InstanceFormFields
         value={instanceForm}
         serviceId={selectedServiceId}
+        serviceLocationId={selectedService?.locationId ?? null}
         serviceOptions={serviceOptions}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
@@ -711,29 +713,6 @@ export function InstanceDetailPanel({
           </div>
         </>
       ) : null}
-
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        <div>
-          <Label htmlFor='instance-cohort'>Cohort</Label>
-          <Input
-            id='instance-cohort'
-            value={instanceForm.cohort}
-            disabled={typeFieldsLocked}
-            onChange={(event) => setInstanceForm((prev) => ({ ...prev, cohort: event.target.value }))}
-            onBlur={() =>
-              setInstanceForm((prev) => ({ ...prev, cohort: prev.cohort.trim().toLowerCase() }))
-            }
-            placeholder='e.g. spring-2026'
-            autoComplete='off'
-          />
-          {cohortInvalid ? (
-            <p className='mt-1 text-xs text-red-600'>
-              Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
-              hyphen).
-            </p>
-          ) : null}
-        </div>
-      </div>
 
       <div>
         <Label htmlFor='instance-notes'>Notes</Label>

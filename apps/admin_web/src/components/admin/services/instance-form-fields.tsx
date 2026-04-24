@@ -18,7 +18,7 @@ import type {
 
 import type { SessionSlot } from '@/types/services';
 
-/** Same pattern as service referral slugs; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
+/** Same pattern as service instance cohorts; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
 export const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface InstanceInstructorOption {
@@ -47,6 +47,8 @@ export interface InstanceFormState {
 export interface InstanceFormFieldsProps {
   value: InstanceFormState;
   serviceId?: string | null;
+  /** Service default location; used to show the correct option when the form `locationId` is still empty. */
+  serviceLocationId?: string | null;
   serviceOptions?: ServiceSummary[];
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
@@ -111,6 +113,7 @@ export function InstanceInstructorField({
 export function InstanceFormFields({
   value,
   serviceId = null,
+  serviceLocationId = null,
   serviceOptions = [],
   locationOptions = [],
   isLoadingLocations = false,
@@ -121,10 +124,13 @@ export function InstanceFormFields({
 }: InstanceFormFieldsProps) {
   const canSelectService = Boolean(onSelectService);
   const serviceExists = serviceOptions.some((entry) => entry.id === serviceId);
-  const locationExists = locationOptions.some((entry) => entry.id === value.locationId);
-  const selectedLocationValue = locationExists ? value.locationId : value.locationId || '';
+  const effectiveLocationId = value.locationId || (serviceLocationId ?? '');
+  const locationExists = locationOptions.some((entry) => entry.id === effectiveLocationId);
+  const selectedLocationValue = locationExists ? effectiveLocationId : effectiveLocationId || '';
   const hasLocationOptions = locationOptions.length > 0;
   const instanceFieldsLocked = canSelectService && !serviceId;
+  const cohortTrimmed = value.cohort.trim().toLowerCase();
+  const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
   const topRowClass =
     canSelectService && !instanceFieldsLocked
@@ -167,17 +173,17 @@ export function InstanceFormFields({
           />
         </div>
         <div>
-          <Label htmlFor='instance-slug'>Slug</Label>
+          <Label htmlFor='instance-cohort'>Cohort</Label>
           <Input
-            id='instance-slug'
-            value={value.slug}
+            id='instance-cohort'
+            value={value.cohort}
             disabled={instanceFieldsLocked}
-            onChange={(event) => onChange({ ...value, slug: event.target.value })}
-            onBlur={() => onChange({ ...value, slug: value.slug.trim().toLowerCase() })}
-            placeholder='e.g. spring-workshop'
+            onChange={(event) => onChange({ ...value, cohort: event.target.value })}
+            onBlur={() => onChange({ ...value, cohort: value.cohort.trim().toLowerCase() })}
+            placeholder='e.g. spring-2026'
             autoComplete='off'
           />
-          {value.slug.trim() && !INSTANCE_SLUG_PATTERN.test(value.slug.trim().toLowerCase()) ? (
+          {cohortInvalid ? (
             <p className='mt-1 text-xs text-red-600'>
               Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
               hyphen).
@@ -254,8 +260,8 @@ export function InstanceFormFields({
               <option value=''>
                 {isLoadingLocations ? 'Loading locations...' : 'Select location'}
               </option>
-              {value.locationId && !locationExists ? (
-                <option value={value.locationId}>{value.locationId}</option>
+              {effectiveLocationId && !locationExists ? (
+                <option value={effectiveLocationId}>{effectiveLocationId}</option>
               ) : null}
               {locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
@@ -266,7 +272,7 @@ export function InstanceFormFields({
           ) : (
             <Input
               id='instance-location-id'
-              value={value.locationId}
+              value={effectiveLocationId}
               disabled={instanceFieldsLocked}
               onChange={(event) => onChange({ ...value, locationId: event.target.value })}
               placeholder='Location UUID'

@@ -22,6 +22,7 @@ import {
 } from './form-defaults';
 import { EventInstancePartnersField } from './event-instance-partners-field';
 import {
+  INSTANCE_SLUG_PATTERN,
   InstanceFormFields,
   InstanceInstructorField,
   type InstanceFormState,
@@ -56,6 +57,8 @@ export function CreateInstanceDialog({
   );
 
   const eventPriceMissing = serviceType === 'event' && !eventForm.defaultPrice.trim();
+  const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
+  const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
   const handleSubmit = async () => {
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
@@ -69,6 +72,7 @@ export function CreateInstanceDialog({
       max_capacity: instanceForm.maxCapacity ? Number(instanceForm.maxCapacity) : null,
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
+      cohort: cohortTrimmed || null,
       notes: instanceForm.notes.trim() || null,
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids:
@@ -121,7 +125,7 @@ export function CreateInstanceDialog({
       isLoading={isLoading}
       error={error}
       submitLabel='Create instance'
-      submitDisabled={eventPriceMissing}
+      submitDisabled={eventPriceMissing || cohortInvalid}
       onClose={onClose}
       onSubmit={handleSubmit}
     >
