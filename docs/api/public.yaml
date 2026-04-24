@@ -933,7 +933,6 @@ components:
     PublicCalendarEvent:
       type: object
       required:
-        - id
         - service_instance_id
         - service_type
         - title
@@ -946,16 +945,12 @@ components:
         - tags
         - categories
         - partners
+        - service_tier
       properties:
-        id:
-          type: string
-          description: >
-            Public slug when `service_instances.slug` is set, otherwise the
-            instance UUID as string.
         service_instance_id:
           type: string
           format: uuid
-          description: Aurora `service_instances.id`. Stable even when the `id` alias changes.
+          description: Aurora `service_instances.id`. Stable public identifier for the offering.
         service_type:
           type: string
           enum: [event, training_course]
@@ -1010,8 +1005,11 @@ components:
             `service_instances.external_url` when set, falling back to
             `service_instances.eventbrite_event_url` for backward compatibility.
         price:
-          type: number
+          type: integer
           nullable: true
+          description: >
+            Whole currency units; fractional DB amounts are rounded half-up to the
+            nearest integer.
         currency:
           type: string
           nullable: true
@@ -1046,6 +1044,10 @@ components:
         service_tier:
           type: string
           nullable: true
+          description: >
+            From `services.service_tier` when set; for My Best Auntie training
+            cohorts, inferred from `service_instances.slug` (e.g. `my-best-auntie-1-3-04-26`)
+            when the parent service tier is unset. `null` when not applicable.
         cohort:
           type: string
           nullable: true

@@ -286,6 +286,49 @@ describe('events-data', () => {
     }
   });
 
+  it('resolves my-best-auntie cohort id from service_instance_id when id is absent', () => {
+    const payload = {
+      data: [
+        {
+          service_instance_id: 'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
+          title: 'My Best Auntie 1-3',
+          booking_system: 'my-best-auntie-booking',
+          service_tier: '1-3',
+          cohort: 'apr-26',
+          spaces_total: 8,
+          spaces_left: 8,
+          price: 9000,
+          currency: 'HKD',
+          location: 'physical',
+          location_name: 'Evolve Sprouts',
+          location_address: '507, 5/F',
+          location_url: 'https://www.google.com/maps/dir/?api=1&destination=22.286209%2C114.148303',
+          dates: [
+            {
+              id: 'da6bcd38-0a63-481b-830f-31de835b9369',
+              start_datetime: '2026-04-18T09:00:00+00:00',
+              end_datetime: '2026-04-18T11:00:00+00:00',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events, 'en');
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
+    if (events[0]?.bookingModalPayload?.variant === 'my-best-auntie') {
+      expect(events[0].bookingModalPayload.selectedCohort.id).toBe(
+        'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
+      );
+      expect(events[0].bookingModalPayload.selectedCohort.service_instance_id).toBe(
+        'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
+      );
+    }
+  });
+
   it('normalizes event-booking records with in-page modal payload', () => {
     const payload = {
       data: [
