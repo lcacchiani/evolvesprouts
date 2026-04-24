@@ -46,7 +46,6 @@ const INSTANCE_FIXTURE: ServiceInstance = {
   externalUrl: null,
   partnerOrganizations: [],
   instructorId: null,
-  cohort: null,
   notes: null,
   tagIds: [],
   createdBy: 'admin-sub',
