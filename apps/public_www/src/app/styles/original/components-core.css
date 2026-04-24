@@ -349,10 +349,6 @@
     border-color: var(--es-color-text-danger, #B42318);
   }
 
-  .es-phone-inline-group.is-error .es-phone-inline-dial {
-    border-right-color: var(--es-color-text-danger, #B42318);
-  }
-
   .es-phone-inline-dial,
   .es-phone-inline-national {
     border: none;
@@ -364,7 +360,6 @@
     width: auto;
     min-width: 5rem;
     flex-shrink: 0;
-    border-right: 1px solid var(--es-color-border-input);
   }
 
   .es-phone-inline-national {
