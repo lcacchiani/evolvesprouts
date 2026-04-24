@@ -877,7 +877,6 @@ def render_booking_confirmation_email(
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
-    esc_course = html.escape(course_label.strip())
     service_row_label = resolve_service_row_label(loc, service_slug, course_label)
     esc_service_row = html.escape(service_row_label)
     pm_display = resolve_payment_method_display(payment_method_code)
