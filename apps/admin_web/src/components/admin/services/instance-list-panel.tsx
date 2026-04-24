@@ -123,43 +123,15 @@ export function InstanceListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           serviceFilter || serviceTypeFilter || searchFilter ? (
-            <div className='mb-3 flex flex-wrap items-end gap-3'>
-              {serviceTypeFilter ? (
-                <div className='min-w-[180px] flex-1'>
-                  <Label htmlFor='instances-filter-service-type'>Type</Label>
-                  <Select
-                    id='instances-filter-service-type'
-                    value={serviceTypeFilter.value}
-                    onChange={(event) => serviceTypeFilter.onChange(event.target.value)}
-                  >
-                    <option value=''>All types</option>
-                    {SERVICE_TYPES.map((serviceType) => (
-                      <option key={serviceType} value={serviceType}>
-                        {formatEnumLabel(serviceType)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              ) : null}
-              {serviceFilter ? (
-                <div className='min-w-[220px] flex-1'>
-                  <Label htmlFor='instances-filter-service'>Service</Label>
-                  <Select
-                    id='instances-filter-service'
-                    value={serviceFilter.value}
-                    onChange={(event) => serviceFilter.onChange(event.target.value)}
-                  >
-                    <option value=''>All services</option>
-                    {serviceFilter.options.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {entry.title}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              ) : null}
+            <div className='mb-3 flex w-full flex-wrap items-end gap-3'>
               {searchFilter ? (
-                <div className='min-w-[220px] flex-1'>
+                <div
+                  className={
+                    serviceTypeFilter || serviceFilter
+                      ? 'min-w-0 basis-full sm:basis-0 sm:flex-[3]'
+                      : 'min-w-[220px] flex-1'
+                  }
+                >
                   <Label htmlFor='instances-filter-search'>Search instances</Label>
                   <Input
                     id='instances-filter-search'
@@ -167,6 +139,50 @@ export function InstanceListPanel({
                     onChange={(event) => searchFilter.onChange(event.target.value)}
                     placeholder='Cohort, service, instructor, status'
                   />
+                </div>
+              ) : null}
+              {serviceTypeFilter || serviceFilter ? (
+                <div
+                  className={
+                    searchFilter
+                      ? 'flex min-w-0 basis-full flex-wrap items-end gap-3 sm:basis-0 sm:flex-1'
+                      : 'contents'
+                  }
+                >
+                  {serviceTypeFilter ? (
+                    <div className='min-w-0 flex-1 sm:min-w-[180px]'>
+                      <Label htmlFor='instances-filter-service-type'>Type</Label>
+                      <Select
+                        id='instances-filter-service-type'
+                        value={serviceTypeFilter.value}
+                        onChange={(event) => serviceTypeFilter.onChange(event.target.value)}
+                      >
+                        <option value=''>All types</option>
+                        {SERVICE_TYPES.map((serviceType) => (
+                          <option key={serviceType} value={serviceType}>
+                            {formatEnumLabel(serviceType)}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  ) : null}
+                  {serviceFilter ? (
+                    <div className='min-w-0 flex-1 sm:min-w-[220px]'>
+                      <Label htmlFor='instances-filter-service'>Service</Label>
+                      <Select
+                        id='instances-filter-service'
+                        value={serviceFilter.value}
+                        onChange={(event) => serviceFilter.onChange(event.target.value)}
+                      >
+                        <option value=''>All services</option>
+                        {serviceFilter.options.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {entry.title}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
