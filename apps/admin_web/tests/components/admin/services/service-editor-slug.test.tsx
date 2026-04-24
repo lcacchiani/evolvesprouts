@@ -63,7 +63,7 @@ describe('ServiceDetailPanel referral slug', () => {
       />,
     );
 
-    const slugInput = screen.getByLabelText('Referral slug');
+    const slugInput = screen.getByLabelText('Slug');
     fireEvent.change(slugInput, { target: { value: 'My-Slug' } });
     fireEvent.blur(slugInput);
 
@@ -100,7 +100,7 @@ describe('ServiceDetailPanel referral slug', () => {
       expect(servicesApi.getServiceDiscountCodeUsageSummary).toHaveBeenCalledWith('service-1');
     });
 
-    const slugInput = screen.getByLabelText('Referral slug');
+    const slugInput = screen.getByLabelText('Slug');
     fireEvent.change(slugInput, { target: { value: 'new-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
@@ -143,7 +143,7 @@ describe('ServiceDetailPanel referral slug', () => {
       await screen.findByText(/Could not load discount code usage/),
     ).toBeInTheDocument();
 
-    const slugInput = screen.getByLabelText('Referral slug');
+    const slugInput = screen.getByLabelText('Slug');
     fireEvent.change(slugInput, { target: { value: 'new-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
@@ -182,7 +182,7 @@ describe('ServiceDetailPanel referral slug', () => {
       />,
     );
 
-    const slugInput = screen.getByLabelText('Referral slug');
+    const slugInput = screen.getByLabelText('Slug');
     fireEvent.change(slugInput, { target: { value: 'taken-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 

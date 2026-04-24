@@ -15,6 +15,7 @@ from app.db.models import (
     Service,
     ServiceInstance,
 )
+from app.db.models.enums import ConsultationPricingModel, ServiceType
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -128,10 +129,95 @@ def serialize_service_detail(service: Service) -> dict[str, Any]:
     return detail
 
 
+def _consultation_service_price_for_model(
+    service: Service, *, pricing_model: ConsultationPricingModel
+) -> Decimal | None:
+    """Pick the service-template price field that matches the pricing model."""
+    cd = service.consultation_details
+    if cd is None:
+        return None
+    if pricing_model == ConsultationPricingModel.HOURLY:
+        return cd.default_hourly_rate
+    if pricing_model == ConsultationPricingModel.PACKAGE:
+        return cd.default_package_price
+    return None
+
+
+def _resolved_training_details(
+    instance: ServiceInstance, service: Service
+) -> dict[str, Any] | None:
+    if instance.training_details is not None:
+        td = instance.training_details
+        return {
+            "training_format": td.training_format.value,
+            "price": _decimal_to_string(td.price),
+            "currency": td.currency,
+            "pricing_unit": td.pricing_unit.value,
+        }
+    std = service.training_course_details
+    if service.service_type != ServiceType.TRAINING_COURSE or std is None:
+        return None
+    return {
+        "training_format": "group",
+        "price": _decimal_to_string(std.default_price),
+        "currency": std.default_currency,
+        "pricing_unit": std.pricing_unit.value,
+    }
+
+
+def _resolved_consultation_details(
+    instance: ServiceInstance, service: Service
+) -> dict[str, Any] | None:
+    if instance.consultation_details is not None:
+        cd = instance.consultation_details
+        return {
+            "pricing_model": cd.pricing_model.value,
+            "price": _decimal_to_string(cd.price),
+            "currency": cd.currency,
+            "package_sessions": cd.package_sessions,
+        }
+    scd = service.consultation_details
+    if service.service_type != ServiceType.CONSULTATION or scd is None:
+        return None
+    pm = scd.pricing_model
+    resolved_price = _decimal_to_string(
+        _consultation_service_price_for_model(service, pricing_model=pm)
+    )
+    return {
+        "pricing_model": pm.value,
+        "price": resolved_price,
+        "currency": scd.default_currency,
+        "package_sessions": scd.default_package_sessions,
+    }
+
+
+def _resolved_event_ticket_tiers(
+    instance: ServiceInstance, service: Service
+) -> list[dict[str, Any]]:
+    if instance.ticket_tiers:
+        return [serialize_event_ticket_tier(tier) for tier in instance.ticket_tiers]
+    ed = service.event_details
+    if service.service_type != ServiceType.EVENT or ed is None:
+        return []
+    return [
+        {
+            "id": None,
+            "instance_id": str(instance.id),
+            "name": ed.event_category.value,
+            "description": None,
+            "price": _decimal_to_string(ed.default_price) or "0.00",
+            "currency": ed.default_currency,
+            "max_quantity": None,
+            "sort_order": 0,
+        }
+    ]
+
+
 def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
     """Serialize service instance payload."""
     service = instance.service
     resolved_title = instance.title if instance.title is not None else service.title
+    resolved_slug = instance.slug if instance.slug is not None else service.slug
     resolved_description = (
         instance.description
         if instance.description is not None
@@ -146,6 +232,11 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         instance.delivery_mode.value
         if instance.delivery_mode is not None
         else service.delivery_mode.value
+    )
+    resolved_location_id = (
+        str(instance.location_id)
+        if instance.location_id is not None
+        else (str(service.location_id) if service.location_id else None)
     )
     sorted_instance_tags = sorted(
         instance.instance_tags,
@@ -194,9 +285,11 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         "created_at": instance.created_at.isoformat() if instance.created_at else None,
         "updated_at": instance.updated_at.isoformat() if instance.updated_at else None,
         "resolved_title": resolved_title,
+        "resolved_slug": resolved_slug,
         "resolved_description": resolved_description,
         "resolved_cover_image_s3_key": resolved_cover_image_s3_key,
         "resolved_delivery_mode": resolved_delivery_mode,
+        "resolved_location_id": resolved_location_id,
         "session_slots": [
             serialize_session_slot(slot) for slot in instance.session_slots
         ],
@@ -210,9 +303,11 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
             if instance.training_details is not None
             else None
         ),
+        "resolved_training_details": _resolved_training_details(instance, service),
         "event_ticket_tiers": [
             serialize_event_ticket_tier(tier) for tier in instance.ticket_tiers
         ],
+        "resolved_event_ticket_tiers": _resolved_event_ticket_tiers(instance, service),
         "consultation_details": (
             {
                 "pricing_model": instance.consultation_details.pricing_model.value,
@@ -222,6 +317,9 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
             }
             if instance.consultation_details is not None
             else None
+        ),
+        "resolved_consultation_details": _resolved_consultation_details(
+            instance, service
         ),
     }
 

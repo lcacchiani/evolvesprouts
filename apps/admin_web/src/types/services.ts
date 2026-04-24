@@ -268,24 +268,36 @@ export interface ServiceInstance {
   createdAt: string | null;
   updatedAt: string | null;
   resolvedTitle: string | null;
+  resolvedSlug: string | null;
   resolvedDescription: string | null;
   resolvedCoverImageS3Key: string | null;
   resolvedDeliveryMode: string | null;
+  resolvedLocationId: string | null;
   sessionSlots: SessionSlot[];
-  trainingDetails: {
-    trainingFormat: TrainingFormat;
-    price: string;
-    currency: string;
-    pricingUnit: TrainingPricingUnit;
-  } | null;
+  trainingDetails: TrainingInstanceDetailsRow | null;
+  /** Effective training pricing including parent service defaults. */
+  resolvedTrainingDetails: TrainingInstanceDetailsRow | null;
   eventTicketTiers: EventTicketTier[];
-  consultationDetails: {
-    pricingModel: ConsultationPricingModel;
-    price: string | null;
-    currency: string;
-    packageSessions: number | null;
-  } | null;
+  /** Effective event tiers for display including parent service defaults. */
+  resolvedEventTicketTiers: EventTicketTier[];
+  consultationDetails: ConsultationInstanceDetailsRow | null;
+  /** Effective consultation pricing including parent service defaults. */
+  resolvedConsultationDetails: ConsultationInstanceDetailsRow | null;
 }
+
+export type TrainingInstanceDetailsRow = {
+  trainingFormat: TrainingFormat;
+  price: string;
+  currency: string;
+  pricingUnit: TrainingPricingUnit;
+};
+
+export type ConsultationInstanceDetailsRow = {
+  pricingModel: ConsultationPricingModel;
+  price: string | null;
+  currency: string;
+  packageSessions: number | null;
+};
 
 export interface Enrollment {
   id: string;

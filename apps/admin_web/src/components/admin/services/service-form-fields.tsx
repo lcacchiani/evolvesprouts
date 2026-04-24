@@ -27,7 +27,7 @@ export function ServiceReferralSlugField({
 }: ServiceReferralSlugFieldProps) {
   return (
     <div>
-      <Label htmlFor='service-slug'>Referral slug</Label>
+      <Label htmlFor='service-slug'>Slug</Label>
       <Input
         id='service-slug'
         value={value}

@@ -29,6 +29,8 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     createdBy: 'admin-sub',
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    serviceTier: null,
+    locationId: null,
     trainingDetails: null,
     eventDetails: null,
     consultationDetails: null,
@@ -84,7 +86,7 @@ describe('InstanceDetailPanel', () => {
 
     expect(screen.getByLabelText('Service')).toBeInTheDocument();
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
-    expect(screen.getByLabelText('Referral slug')).toBeDisabled();
+    expect(screen.getByLabelText('Slug')).toBeDisabled();
     expect(screen.getByLabelText('Title')).toBeDisabled();
     expect(screen.getByLabelText('Waitlist')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Add instance' })).not.toBeInTheDocument();
@@ -324,9 +326,11 @@ describe('InstanceDetailPanel', () => {
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
       resolvedTitle: null,
+      resolvedSlug: null,
       resolvedDescription: null,
       resolvedCoverImageS3Key: null,
       resolvedDeliveryMode: null,
+      resolvedLocationId: 'location-1',
       sessionSlots: [
         {
           id: 'slot-1',
@@ -343,8 +347,16 @@ describe('InstanceDetailPanel', () => {
         currency: 'USD',
         pricingUnit: 'per_family',
       },
+      resolvedTrainingDetails: {
+        trainingFormat: 'group',
+        price: '99',
+        currency: 'USD',
+        pricingUnit: 'per_family',
+      },
       eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
       consultationDetails: null,
+      resolvedConsultationDetails: null,
     };
 
     render(
@@ -369,7 +381,7 @@ describe('InstanceDetailPanel', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
     });
-    expect(screen.getByLabelText('Referral slug')).toHaveValue('');
+    expect(screen.getByLabelText('Slug')).toHaveValue('');
     expect(screen.getByLabelText('Description')).toHaveValue('Body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');

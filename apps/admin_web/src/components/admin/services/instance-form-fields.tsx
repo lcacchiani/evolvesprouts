@@ -1,5 +1,6 @@
 'use client';
 
+import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -166,7 +167,7 @@ export function InstanceFormFields({
           />
         </div>
         <div>
-          <Label htmlFor='instance-slug'>Referral slug</Label>
+          <Label htmlFor='instance-slug'>Slug</Label>
           <Input
             id='instance-slug'
             value={value.slug}
@@ -184,7 +185,21 @@ export function InstanceFormFields({
           ) : null}
         </div>
         <div>
-          <Label htmlFor='instance-status'>Status</Label>
+          <div className='relative mb-1'>
+            <Label htmlFor='instance-status' className='mb-0 block pr-7'>
+              Status
+            </Label>
+            {value.status === 'scheduled' ? (
+              <span
+                className='absolute right-0 top-1/2 inline-flex -translate-y-1/2 text-amber-600'
+                role='img'
+                aria-label='Scheduled — not yet open for booking'
+                title='Scheduled — not yet open for booking'
+              >
+                <WarningTriangleIcon className='h-4 w-4' aria-hidden />
+              </span>
+            ) : null}
+          </div>
           <Select
             id='instance-status'
             value={value.status}
@@ -237,7 +252,7 @@ export function InstanceFormFields({
               onChange={(event) => onChange({ ...value, locationId: event.target.value })}
             >
               <option value=''>
-                {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
+                {isLoadingLocations ? 'Loading locations...' : 'Select location'}
               </option>
               {value.locationId && !locationExists ? (
                 <option value={value.locationId}>{value.locationId}</option>
