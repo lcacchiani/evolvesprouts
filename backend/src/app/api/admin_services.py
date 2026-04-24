@@ -191,17 +191,17 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             service_type=payload["service_type"],
             parsed_details=payload["type_details"],
         )
-        created = repository.create_service(service, details)
-        for tag_id in payload["tag_ids"]:
-            require_assignable_tag(session, tag_id, field="tag_ids")
-        created.service_tags = [
-            ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
-        ]
-        created.service_assets = [
-            ServiceAsset(asset_id=asset_id) for asset_id in payload["asset_ids"]
-        ]
-        repository.update_service(created)
         try:
+            created = repository.create_service(service, details)
+            for tag_id in payload["tag_ids"]:
+                require_assignable_tag(session, tag_id, field="tag_ids")
+            created.service_tags = [
+                ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
+            ]
+            created.service_assets = [
+                ServiceAsset(asset_id=asset_id) for asset_id in payload["asset_ids"]
+            ]
+            repository.update_service(created)
             session.commit()
         except IntegrityError as exc:
             session.rollback()
@@ -298,8 +298,8 @@ def _update_service(
             )
             _apply_service_type_details(service=service, details=parsed_details)
 
-        updated = repository.update_service(service)
         try:
+            updated = repository.update_service(service)
             session.commit()
         except IntegrityError as exc:
             session.rollback()
