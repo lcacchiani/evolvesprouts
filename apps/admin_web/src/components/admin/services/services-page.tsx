@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { StatusBanner } from '@/components/status-banner';
 
-import { useServicesPage } from '@/hooks/use-services-page';
+import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
+import { getInstance, getService } from '@/lib/services-api';
+import type { ServiceDetail, ServiceInstance } from '@/types/services';
 
 import { DiscountCodesPanel } from './discount-codes-panel';
 import { VenuesPanel } from './venues-panel';
@@ -19,6 +21,49 @@ import { ServicesHeader } from './services-header';
 export function ServicesPage() {
   const state = useServicesPage();
   const [showArchivedDiscountServices, setShowArchivedDiscountServices] = useState(false);
+  const [duplicateServiceTemplate, setDuplicateServiceTemplate] = useState<ServiceDetail | null>(null);
+  const [duplicateInstanceTemplate, setDuplicateInstanceTemplate] = useState<ServiceInstance | null>(null);
+  const [servicesEditorRemountKey, setServicesEditorRemountKey] = useState(0);
+
+  const bumpServicesEditorKey = useCallback(() => {
+    setServicesEditorRemountKey((key) => key + 1);
+  }, []);
+
+  const handleDuplicateService = useCallback(async (serviceId: string) => {
+    const detail = await getService(serviceId);
+    if (!detail) {
+      return;
+    }
+    setDuplicateInstanceTemplate(null);
+    setDuplicateServiceTemplate(detail);
+    state.setSelectedServiceId(null);
+    bumpServicesEditorKey();
+  }, [bumpServicesEditorKey, state]);
+
+  const handleDuplicateInstance = useCallback(
+    async (instance: ServiceInstance) => {
+      const full = await getInstance(instance.serviceId, instance.id);
+      const row = full ?? instance;
+      setDuplicateServiceTemplate(null);
+      setDuplicateInstanceTemplate(row);
+      state.setSelectedServiceId(row.serviceId);
+      bumpServicesEditorKey();
+    },
+    [bumpServicesEditorKey, state]
+  );
+
+  const handleSetActiveView = useCallback(
+    (view: ServicesView) => {
+      if (view !== 'catalog') {
+        setDuplicateServiceTemplate(null);
+      }
+      if (view !== 'instances') {
+        setDuplicateInstanceTemplate(null);
+      }
+      state.setActiveView(view);
+    },
+    [state]
+  );
   const allServiceOptionsIncludingArchived = state.serviceList.services;
   const pickerServiceOptions = useMemo(() => {
     if (showArchivedDiscountServices) {
@@ -54,7 +99,10 @@ export function ServicesPage() {
       : null;
   const serviceDetailPanelKey = `${state.selectedServiceId ?? 'create-service'}-${
     selectedServiceDetail ? 'loaded' : 'empty'
-  }`;
+  }-${servicesEditorRemountKey}-${duplicateServiceTemplate?.id ?? ''}`;
+  const instanceDetailPanelKey = `${state.selectedInstanceId ?? 'create-instance'}-${
+    state.selectedService?.serviceType ?? 'none'
+  }-${servicesEditorRemountKey}-${duplicateInstanceTemplate?.id ?? ''}`;
   const hasAnyError =
     state.serviceList.error ||
     state.serviceDetail.error ||
@@ -74,21 +122,26 @@ export function ServicesPage() {
         </StatusBanner>
       ) : null}
 
-      <ServicesHeader activeView={state.activeView} onSetView={state.setActiveView} />
+      <ServicesHeader activeView={state.activeView} onSetView={handleSetActiveView} />
 
       {state.activeView === 'catalog' ? (
         <>
           <ServiceDetailPanel
             key={serviceDetailPanelKey}
             service={selectedServiceDetail}
+            createPrefillFromService={duplicateServiceTemplate}
             locationOptions={state.locationList.locations}
             isLoadingLocations={state.isLoadingLocations}
             locationError={state.locationError || undefined}
             isLoading={state.serviceMutations.isLoading}
             error={state.serviceMutations.error}
-            onCancelSelection={() => state.setSelectedServiceId(null)}
+            onCancelSelection={() => {
+              setDuplicateServiceTemplate(null);
+              state.setSelectedServiceId(null);
+            }}
             onCreate={async (payload) => {
               await state.serviceMutations.createServiceEntry(payload);
+              setDuplicateServiceTemplate(null);
               state.setSelectedServiceId(null);
             }}
             onUpdate={async (payload) => {
@@ -116,11 +169,16 @@ export function ServicesPage() {
             hasMore={state.serviceList.hasMore}
             error={state.serviceList.error}
             isMutating={state.serviceMutations.isLoading}
-            onSelectService={state.setSelectedServiceId}
+            onSelectService={(serviceId) => {
+              setDuplicateServiceTemplate(null);
+              state.setSelectedServiceId(serviceId);
+            }}
             onFilterChange={state.serviceList.setFilter}
             onLoadMore={state.serviceList.loadMore}
+            onDuplicateService={handleDuplicateService}
             onDeleteService={async (serviceId) => {
               if (state.selectedServiceId === serviceId) {
+                setDuplicateServiceTemplate(null);
                 state.setSelectedServiceId(null);
               }
               await state.serviceMutations.deleteServiceEntry(serviceId);
@@ -130,8 +188,9 @@ export function ServicesPage() {
       ) : state.activeView === 'instances' ? (
         <>
           <InstanceDetailPanel
-            key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
+            key={instanceDetailPanelKey}
             instance={state.selectedInstance}
+            createPrefillInstance={duplicateInstanceTemplate}
             entityTags={state.entityTags}
             entityTagsLoading={state.entityTagsLoading}
             entityTagsError={state.entityTagsError}
@@ -147,13 +206,20 @@ export function ServicesPage() {
             isLoading={state.instanceMutations.isLoading}
             error={state.instanceMutations.error}
             locationError={state.locationList.error}
-            onSelectService={state.setSelectedServiceId}
-            onCancelSelection={() => state.setSelectedInstanceId(null)}
+            onSelectService={(serviceId) => {
+              setDuplicateInstanceTemplate(null);
+              state.setSelectedServiceId(serviceId);
+            }}
+            onCancelSelection={() => {
+              setDuplicateInstanceTemplate(null);
+              state.setSelectedInstanceId(null);
+            }}
             onCreate={async (serviceId, payload) => {
               if (!serviceId) {
                 return;
               }
               await state.instanceMutations.createInstanceEntry(serviceId, payload);
+              setDuplicateInstanceTemplate(null);
               state.setSelectedInstanceId(null);
             }}
             onUpdate={async (serviceId, instanceId, payload) => {
@@ -171,7 +237,10 @@ export function ServicesPage() {
             hasMore={state.instanceList.hasMore}
             error={state.instanceList.error}
             isMutating={state.instanceMutations.isLoading}
-            onSelectInstance={state.setSelectedInstanceId}
+            onSelectInstance={(instanceId) => {
+              setDuplicateInstanceTemplate(null);
+              state.setSelectedInstanceId(instanceId);
+            }}
             onLoadMore={state.instanceList.loadMore}
             showServiceColumn
             showTypeColumn
@@ -188,8 +257,10 @@ export function ServicesPage() {
               options: allServiceOptions.map((s) => ({ id: s.id, title: s.title })),
               onChange: state.setInstancesServiceFilter,
             }}
+            onDuplicateInstance={handleDuplicateInstance}
             onDeleteInstance={async (instanceId, serviceId) => {
               if (state.selectedInstanceId === instanceId) {
+                setDuplicateInstanceTemplate(null);
                 state.setSelectedInstanceId(null);
               }
               await state.instanceMutations.deleteInstanceEntry(serviceId, instanceId);

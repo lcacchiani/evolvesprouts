@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
-import { DeleteIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatDate, formatEnumLabel } from '@/lib/format';
 
@@ -31,6 +31,7 @@ export interface ServiceListPanelProps {
     value: ServiceListFilters[TKey]
   ) => void;
   onLoadMore: () => Promise<void> | void;
+  onDuplicateService: (serviceId: string) => Promise<void> | void;
   onDeleteService: (serviceId: string) => Promise<void>;
 }
 
@@ -46,6 +47,7 @@ export function ServiceListPanel({
   onSelectService,
   onFilterChange,
   onLoadMore,
+  onDuplicateService,
   onDeleteService,
 }: ServiceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -58,6 +60,11 @@ export function ServiceListPanel({
       event.preventDefault();
       onSelectService(serviceId);
     }
+  };
+
+  const handleDuplicateService = (service: ServiceSummary, event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onDuplicateService(service.id);
   };
 
   const handleDeleteService = async (service: ServiceSummary, event: MouseEvent<HTMLButtonElement>) => {
@@ -161,25 +168,38 @@ export function ServiceListPanel({
                 <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
                 <td className='px-4 py-3'>{formatDate(service.createdAt)}</td>
                 <td className='px-4 py-3 text-right'>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    onClick={(event) => void handleDeleteService(service, event)}
-                    disabled={isMutating || service.instancesCount > 0}
-                    aria-label={
-                      service.instancesCount > 0
-                        ? 'Cannot delete service while it has instances'
-                        : 'Delete service'
-                    }
-                    title={
-                      service.instancesCount > 0
-                        ? 'Remove all instances before deleting this service'
-                        : 'Delete service'
-                    }
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
+                  <div className='flex justify-end gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      onClick={(event) => handleDuplicateService(service, event)}
+                      disabled={isMutating}
+                      aria-label='Duplicate service as new draft'
+                      title='Duplicate service as new draft'
+                    >
+                      <DuplicateIcon className='h-4 w-4' />
+                    </Button>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      onClick={(event) => void handleDeleteService(service, event)}
+                      disabled={isMutating || service.instancesCount > 0}
+                      aria-label={
+                        service.instancesCount > 0
+                          ? 'Cannot delete service while it has instances'
+                          : 'Delete service'
+                      }
+                      title={
+                        service.instancesCount > 0
+                          ? 'Remove all instances before deleting this service'
+                          : 'Delete service'
+                      }
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
