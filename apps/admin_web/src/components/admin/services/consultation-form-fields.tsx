@@ -52,106 +52,144 @@ export function ConsultationServiceFormatField({
   );
 }
 
-/** Row D: pricing model, hourly rate, currency, package sessions. */
-export function ConsultationServiceRowDFields({
+export function ConsultationPricingModelControl({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  return (
+    <div>
+      <Label htmlFor='consultation-pricing-model'>Pricing model</Label>
+      <Select
+        id='consultation-pricing-model'
+        value={value.pricingModel}
+        disabled={disabled}
+        onChange={(event) =>
+          onChange({ ...value, pricingModel: event.target.value as ConsultationPricingModel })
+        }
+      >
+        {CONSULTATION_PRICING_MODELS.map((entry) => (
+          <option key={entry} value={entry}>
+            {formatEnumLabel(entry)}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
+export function ConsultationHourlyRateControl({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  return (
+    <div>
+      <Label htmlFor='consultation-hourly-rate'>Hourly rate</Label>
+      <Input
+        id='consultation-hourly-rate'
+        value={value.defaultHourlyRate}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultHourlyRate: event.target.value })}
+      />
+    </div>
+  );
+}
+
+export function ConsultationPackagePriceControl({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  return (
+    <div>
+      <Label htmlFor='consultation-package-price'>Package price</Label>
+      <Input
+        id='consultation-package-price'
+        value={value.defaultPackagePrice}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultPackagePrice: event.target.value })}
+      />
+    </div>
+  );
+}
+
+export function ConsultationPackageSessionsControl({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  return (
+    <div>
+      <Label htmlFor='consultation-package-sessions'>Package sessions</Label>
+      <Input
+        id='consultation-package-sessions'
+        value={value.defaultPackageSessions}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultPackageSessions: event.target.value })}
+      />
+    </div>
+  );
+}
+
+export function ConsultationCurrencyControl({
   value,
   disabled = false,
   onChange,
 }: ConsultationServicePanelFieldsProps) {
   const currencyOptions = getCurrencyOptions();
   return (
-    <>
-      <div>
-        <Label htmlFor='consultation-pricing-model'>Pricing model</Label>
-        <Select
-          id='consultation-pricing-model'
-          value={value.pricingModel}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange({ ...value, pricingModel: event.target.value as ConsultationPricingModel })
-          }
-        >
-          {CONSULTATION_PRICING_MODELS.map((entry) => (
-            <option key={entry} value={entry}>
-              {formatEnumLabel(entry)}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor='consultation-hourly-rate'>Hourly rate</Label>
-        <Input
-          id='consultation-hourly-rate'
-          value={value.defaultHourlyRate}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, defaultHourlyRate: event.target.value })}
-        />
-      </div>
-      <div>
-        <Label htmlFor='consultation-currency'>Currency</Label>
-        <Select
-          id='consultation-currency'
-          value={value.defaultCurrency}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
-        >
-          {currencyOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor='consultation-package-sessions'>Package sessions</Label>
-        <Input
-          id='consultation-package-sessions'
-          value={value.defaultPackageSessions}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, defaultPackageSessions: event.target.value })}
-        />
-      </div>
-    </>
+    <div>
+      <Label htmlFor='consultation-currency'>Currency</Label>
+      <Select
+        id='consultation-currency'
+        value={value.defaultCurrency}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
+      >
+        {currencyOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
+    </div>
   );
 }
 
-/** Row E: max group size, duration, package price, empty cell. */
-export function ConsultationServiceRowEFields({
+export function ConsultationDurationControl({
   value,
   disabled = false,
   onChange,
 }: ConsultationServicePanelFieldsProps) {
   return (
-    <>
-      <div>
-        <Label htmlFor='consultation-max-group-size'>Max group size</Label>
-        <Input
-          id='consultation-max-group-size'
-          value={value.maxGroupSize}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, maxGroupSize: event.target.value })}
-        />
-      </div>
-      <div>
-        <Label htmlFor='consultation-duration-minutes'>Duration (minutes)</Label>
-        <Input
-          id='consultation-duration-minutes'
-          value={value.durationMinutes}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, durationMinutes: event.target.value })}
-        />
-      </div>
-      <div>
-        <Label htmlFor='consultation-package-price'>Package price</Label>
-        <Input
-          id='consultation-package-price'
-          value={value.defaultPackagePrice}
-          disabled={disabled}
-          onChange={(event) => onChange({ ...value, defaultPackagePrice: event.target.value })}
-        />
-      </div>
-      <div aria-hidden className='hidden md:block' />
-    </>
+    <div>
+      <Label htmlFor='consultation-duration-minutes'>Duration (minutes)</Label>
+      <Input
+        id='consultation-duration-minutes'
+        value={value.durationMinutes}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, durationMinutes: event.target.value })}
+      />
+    </div>
+  );
+}
+
+export function ConsultationMaxGroupSizeControl({
+  value,
+  disabled = false,
+  onChange,
+}: ConsultationServicePanelFieldsProps) {
+  return (
+    <div>
+      <Label htmlFor='consultation-max-group-size'>Max group size</Label>
+      <Input
+        id='consultation-max-group-size'
+        value={value.maxGroupSize}
+        disabled={disabled}
+        onChange={(event) => onChange({ ...value, maxGroupSize: event.target.value })}
+      />
+    </div>
   );
 }
 
@@ -163,10 +201,16 @@ export function ConsultationServicePanelFields(props: ConsultationServicePanelFi
         <ConsultationServiceFormatField {...props} />
       </div>
       <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        <ConsultationServiceRowDFields {...props} />
+        <ConsultationPricingModelControl {...props} />
+        <ConsultationHourlyRateControl {...props} />
+        <ConsultationCurrencyControl {...props} />
+        <ConsultationPackageSessionsControl {...props} />
       </div>
       <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        <ConsultationServiceRowEFields {...props} />
+        <ConsultationMaxGroupSizeControl {...props} />
+        <ConsultationDurationControl {...props} />
+        <ConsultationPackagePriceControl {...props} />
+        <div aria-hidden className='hidden md:block' />
       </div>
     </div>
   );
