@@ -174,7 +174,6 @@ export function ContactFormFields({
           inputId='contact-us-phone-national'
           autoComplete='tel'
         />
-        <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
         {hasPhoneError ? (
           <p
             id={PHONE_ERROR_MESSAGE_ID}

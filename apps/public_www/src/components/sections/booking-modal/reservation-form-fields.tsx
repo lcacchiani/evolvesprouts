@@ -157,7 +157,6 @@ export function ReservationFormFields({
           autoComplete='tel'
           required
         />
-        <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
         {hasPhoneError ? (
           <p
             id={BOOKING_PHONE_ERROR_MESSAGE_ID}

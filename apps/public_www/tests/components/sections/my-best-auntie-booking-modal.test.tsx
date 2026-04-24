@@ -1219,7 +1219,7 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.change(screen.getByRole('textbox', {
       name: new RegExp(`^${bookingModalContent.phoneLabel}`),
     }), {
-      target: { value: '91234567' },
+      target: { value: '9123 4567' },
     });
     fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
       target: { value: 'Need details' },
