@@ -56,6 +56,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { mapSessionSlotsFromApiToForm, sessionSlotsToUtcApiPayload } from '@/lib/format';
 import type { EntityTagRef } from '@/lib/entity-api';
 
 type ApiSchemas = components['schemas'];
@@ -191,7 +192,7 @@ function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] 
 }
 
 function cloneSessionSlotsForCreate(slots: SessionSlot[]): SessionSlot[] {
-  return slots.map((slot) => ({
+  return mapSessionSlotsFromApiToForm(slots).map((slot) => ({
     id: null,
     instanceId: null,
     locationId: slot.locationId,
@@ -259,7 +260,7 @@ export function InstanceDetailPanel({
           cohort: instance.cohort ?? '',
           externalUrl: instance.externalUrl ?? '',
           partnerOrganizations: mapPartnerRefsFromInstance(instance),
-          sessionSlots: instance.sessionSlots,
+          sessionSlots: mapSessionSlotsFromApiToForm(instance.sessionSlots),
         }
       : DEFAULT_INSTANCE_FORM
   );
@@ -409,7 +410,7 @@ export function InstanceDetailPanel({
         cohort: instance.cohort ?? '',
         externalUrl: instance.externalUrl ?? '',
         partnerOrganizations: mapPartnerRefsFromInstance(instance),
-        sessionSlots: instance.sessionSlots,
+        sessionSlots: mapSessionSlotsFromApiToForm(instance.sessionSlots),
       });
       setTrainingForm({
         pricingUnit: instance.resolvedTrainingDetails?.pricingUnit ?? 'per_person',
@@ -460,12 +461,7 @@ export function InstanceDetailPanel({
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids: instanceForm.partnerOrganizations.map((row) => row.id),
       tag_ids: tagIds,
-      session_slots: instanceForm.sessionSlots.map((slot, index) => ({
-        location_id: slot.locationId,
-        starts_at: slot.startsAt,
-        ends_at: slot.endsAt,
-        sort_order: slot.sortOrder ?? index,
-      })),
+      session_slots: sessionSlotsToUtcApiPayload(instanceForm.sessionSlots),
     };
 
     if (effectiveServiceType === 'training_course') {

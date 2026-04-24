@@ -468,3 +468,57 @@ export function parseDatetimeLocalToIsoUtc(local: string): string | null {
   }
   return parsed.toISOString();
 }
+
+const DATETIME_LOCAL_WALL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+/**
+ * Normalize session slot times from the API (UTC ISO) into `datetime-local` wall strings
+ * for editors. Values that are already `YYYY-MM-DDTHH:mm` are left unchanged.
+ */
+export function sessionSlotTimesToDatetimeLocalForm(
+  startsAt: string | null | undefined,
+  endsAt: string | null | undefined
+): { startsAt: string | null; endsAt: string | null } {
+  const toLocal = (value: string | null | undefined): string | null => {
+    if (!value?.trim()) {
+      return null;
+    }
+    const t = value.trim();
+    if (DATETIME_LOCAL_WALL_PATTERN.test(t)) {
+      return t;
+    }
+    const formatted = formatIsoForDatetimeLocalInput(t);
+    return formatted || null;
+  };
+  return { startsAt: toLocal(startsAt), endsAt: toLocal(endsAt) };
+}
+
+/** Map loaded session slots to form state so `datetime-local` inputs show correct local times. */
+export function mapSessionSlotsFromApiToForm(slots: SessionSlot[]): SessionSlot[] {
+  return slots.map((slot) => {
+    const { startsAt, endsAt } = sessionSlotTimesToDatetimeLocalForm(slot.startsAt, slot.endsAt);
+    return { ...slot, startsAt, endsAt };
+  });
+}
+
+/**
+ * Build `session_slots` for create/update API payloads: interpret stored values as
+ * browser-local `datetime-local` and send UTC ISO instants.
+ */
+export function sessionSlotsToUtcApiPayload(
+  slots: SessionSlot[]
+): { location_id: string | null; starts_at: string | null; ends_at: string | null; sort_order: number }[] {
+  return slots.map((slot, index) => {
+    const startsLocal = (slot.startsAt ?? '').slice(0, 16);
+    const endsLocal = (slot.endsAt ?? '').slice(0, 16);
+    const starts_at =
+      startsLocal.length === 16 ? parseDatetimeLocalToIsoUtc(startsLocal) : null;
+    const ends_at = endsLocal.length === 16 ? parseDatetimeLocalToIsoUtc(endsLocal) : null;
+    return {
+      location_id: slot.locationId,
+      starts_at,
+      ends_at,
+      sort_order: slot.sortOrder ?? index,
+    };
+  });
+}

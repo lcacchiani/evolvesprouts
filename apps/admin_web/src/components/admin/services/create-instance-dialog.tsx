@@ -30,6 +30,8 @@ import {
 import { SessionSlotEditor } from './session-slot-editor';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
+import { sessionSlotsToUtcApiPayload } from '@/lib/format';
+
 type ApiSchemas = components['schemas'];
 
 export interface CreateInstanceDialogProps {
@@ -77,12 +79,7 @@ export function CreateInstanceDialog({
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids:
         serviceType === 'event' ? instanceForm.partnerOrganizations.map((row) => row.id) : [],
-      session_slots: instanceForm.sessionSlots.map((slot, index) => ({
-        location_id: slot.locationId,
-        starts_at: slot.startsAt,
-        ends_at: slot.endsAt,
-        sort_order: slot.sortOrder ?? index,
-      })),
+      session_slots: sessionSlotsToUtcApiPayload(instanceForm.sessionSlots),
     };
 
     if (serviceType === 'training_course') {

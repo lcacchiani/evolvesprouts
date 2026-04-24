@@ -14,8 +14,11 @@ import {
   getContentLanguageOptions,
   getCurrencyOptions,
   matchAdminSelectableContentLanguage,
+  mapSessionSlotsFromApiToForm,
   orderSessionSlotsForDisplay,
   parseDatetimeLocalToIsoUtc,
+  sessionSlotsToUtcApiPayload,
+  sessionSlotTimesToDatetimeLocalForm,
 } from '@/lib/format';
 import type { ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
 
@@ -287,5 +290,50 @@ describe('format helpers', () => {
   it('returns null for empty datetime-local input', () => {
     expect(parseDatetimeLocalToIsoUtc('')).toBeNull();
     expect(parseDatetimeLocalToIsoUtc('   ')).toBeNull();
+  });
+
+  it('sessionSlotTimesToDatetimeLocalForm keeps wall-clock strings and maps UTC ISO to local input', () => {
+    expect(sessionSlotTimesToDatetimeLocalForm('2026-06-15T14:30', '2026-06-15T16:30')).toEqual({
+      startsAt: '2026-06-15T14:30',
+      endsAt: '2026-06-15T16:30',
+    });
+    const iso = '2026-06-01T08:30:00.000Z';
+    const expectedLocal = formatIsoForDatetimeLocalInput(iso);
+    expect(sessionSlotTimesToDatetimeLocalForm(iso, null).startsAt).toBe(expectedLocal);
+  });
+
+  it('mapSessionSlotsFromApiToForm converts API instants to datetime-local wall strings', () => {
+    const iso = '2026-06-01T08:30:00.000Z';
+    const slots: SessionSlot[] = [
+      {
+        id: 'a',
+        instanceId: 'b',
+        locationId: null,
+        startsAt: iso,
+        endsAt: iso,
+        sortOrder: 0,
+      },
+    ];
+    const local = formatIsoForDatetimeLocalInput(iso);
+    const mapped = mapSessionSlotsFromApiToForm(slots)[0];
+    expect(mapped.startsAt).toBe(local);
+    expect(mapped.endsAt).toBe(local);
+  });
+
+  it('sessionSlotsToUtcApiPayload sends UTC ISO derived from datetime-local via parseDatetimeLocalToIsoUtc', () => {
+    const startsLocal = '2026-06-10T09:15';
+    const endsLocal = '2026-06-10T11:15';
+    const payload = sessionSlotsToUtcApiPayload([
+      {
+        id: null,
+        instanceId: null,
+        locationId: null,
+        startsAt: startsLocal,
+        endsAt: endsLocal,
+        sortOrder: 0,
+      },
+    ]);
+    expect(payload[0].starts_at).toBe(parseDatetimeLocalToIsoUtc(startsLocal));
+    expect(payload[0].ends_at).toBe(parseDatetimeLocalToIsoUtc(endsLocal));
   });
 });
