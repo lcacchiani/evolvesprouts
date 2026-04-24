@@ -1149,6 +1149,7 @@
     "formActions": {
       "submittingLabel": "提交中…"
     },
+    "phoneDialCodeOptionTemplate": "+{dialCode}",
     "mediaDownload": {
       "invalidTitle": "下载链接无效",
       "invalidDescription": "此媒体链接缺少有效令牌。请重新申请媒体下载。",
@@ -1391,8 +1392,6 @@
         "modalFocusLabelTemplate": "{focus}方向",
         "upgradeToDeepDiveLabel": "升级到深入版，获得实操指导",
         "selectedDateLabel": "咨询套餐",
-        "locationName": "您的家",
-        "locationAddress": "香港",
         "topicsField": {
           "label": "其他需要说明的信息",
           "placeholder": "例如：孩子3岁、阿姨已工作2年，或上门前希望我们知道的背景",
@@ -1618,6 +1617,11 @@
       "title": "谢谢！",
       "messageTemplate": "确认邮件已发送至 {email}",
       "courseLabel": "我的最佳阿姨培训课程。",
+      "serviceLabels": {
+        "event": "活动",
+        "training-course": "培训课程",
+        "consultation": "咨询"
+      },
       "serviceLabel": "服务",
       "detailsLabel": "详情",
       "dateTimeLabel": "日期及时间",

@@ -2,6 +2,7 @@ import type { ConsultationEventBookingModalPayload } from '@/lib/events-data';
 import { CONSULTATION_BOOKING_SYSTEM } from '@/lib/events-data';
 import type { ConsultationsBookingReservationContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
+import { resolveFamilyConsultationTier } from '@/lib/family-consultations-data';
 
 export type ConsultationsBookingModalTierId = 'essentials' | 'deepDive';
 
@@ -13,15 +14,17 @@ export function buildConsultationsBookingModalPayload(
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
+  const familyTier = resolveFamilyConsultationTier(tierId);
   const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
     serviceKey: `consultation-${tierId}`,
+    service: familyTier?.service ?? 'consultation',
     title: reservation.modalTitle,
     subtitle: reservation.modalSubtitle,
     originalAmount: tier.priceHkd,
-    locationName: reservation.locationName,
-    locationAddress: reservation.locationAddress,
+    locationName: familyTier?.location_name?.trim() ?? '',
+    locationAddress: familyTier?.location_address?.trim() ?? '',
     dateParts: tier.dateParts.map((part) => ({
       id: part.id,
       startDateTime: part.startDateTime,

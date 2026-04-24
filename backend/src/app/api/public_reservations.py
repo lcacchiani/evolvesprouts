@@ -79,6 +79,7 @@ _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
 _STRIPE_PAYMENT_INTENT_ID_PATTERN = re.compile(r"^pi_[A-Za-z0-9]+$")
 _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
+_ALLOWED_SERVICE_SLUGS = frozenset({"event", "training-course", "consultation"})
 
 
 def _handle_public_reservation(
@@ -154,6 +155,8 @@ def _handle_public_reservation(
                 lead_metadata["service_key"] = reservation_payload["service_key"]
             if reservation_payload.get("course_slug"):
                 lead_metadata["course_slug"] = reservation_payload["course_slug"]
+            if reservation_payload.get("service"):
+                lead_metadata["service"] = reservation_payload["service"]
             lead = SalesLead(
                 contact_id=contact.id,
                 lead_type=LeadType.PROGRAM_ENROLLMENT,
@@ -209,6 +212,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
     primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
     course_slug = _optional_str(payload.get("course_slug"))
+    service_slug = _optional_str(payload.get("service"))
     age_group_label = _optional_str(payload.get("child_age_group"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
@@ -231,6 +235,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 to_email=email,
                 full_name=full_name,
                 course_label=course_label,
+                service_slug=service_slug,
                 schedule_date_label=schedule_date,
                 schedule_time_label=schedule_time,
                 location_name=location_name,
@@ -417,6 +422,20 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "courseSlug",
         _MAX_SLUG_KEY_LENGTH,
     )
+    service_raw = _optional_text(
+        body.get("service"),
+        "service",
+        _MAX_SLUG_KEY_LENGTH,
+    )
+    service_slug: str | None = None
+    if service_raw is not None:
+        normalized_service = service_raw.strip().lower()
+        if normalized_service not in _ALLOWED_SERVICE_SLUGS:
+            raise ValidationError(
+                "service must be one of: event, training-course, consultation",
+                field="service",
+            )
+        service_slug = normalized_service
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -504,6 +523,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "cohort_date": cohort_date,
         "service_key": service_key,
         "course_slug": course_slug,
+        "service": service_slug,
         "location_name": location_name,
         "location_address": location_address,
         "location_url": location_url,

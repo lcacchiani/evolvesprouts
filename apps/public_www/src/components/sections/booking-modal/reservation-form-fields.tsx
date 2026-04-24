@@ -1,9 +1,10 @@
 import type { BookingPaymentModalContent } from '@/content';
 import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
-import { PhoneRegionSelect } from '@/components/shared/phone-region-select';
+import { PhoneNumberInlineField } from '@/components/shared/phone-number-inline-field';
 
 interface ReservationFormFieldsProps {
   content: BookingPaymentModalContent;
+  dialCodeOptionTemplate: string;
   fullName: string;
   email: string;
   phoneCountry: string;
@@ -35,6 +36,7 @@ export const BOOKING_TOPICS_ERROR_MESSAGE_ID = 'booking-modal-topics-error-messa
 
 export function ReservationFormFields({
   content,
+  dialCodeOptionTemplate,
   fullName,
   email,
   phoneCountry,
@@ -123,40 +125,37 @@ export function ReservationFormFields({
           </p>
         ) : null}
       </label>
-      <PhoneRegionSelect
-        id='booking-reservation-phone-country'
-        value={phoneCountry}
-        onChange={onPhoneCountryChange}
-        label={content.phoneCountryLabel}
-      />
-      <label className='block'>
-        <span className='mb-1 block text-sm font-semibold es-text-heading'>
+      <div className='block'>
+        <span
+          id='booking-reservation-phone-field-label'
+          className='mb-1 block text-sm font-semibold es-text-heading'
+        >
           {content.phoneLabel}
           <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
             *
           </span>
         </span>
-        <input
-          type='tel'
-          inputMode='numeric'
-          required
-          autoComplete='tel'
-          value={phone}
-          onChange={(event) => {
-            onPhoneChange(event.target.value);
-          }}
-          onBlur={onPhoneBlur}
-          className={`es-focus-ring es-form-input ${
-            hasPhoneError || hasPhoneInvalidForCountry ? 'es-form-input-error' : ''
-          }`}
-          aria-invalid={hasPhoneError || hasPhoneInvalidForCountry}
-          aria-describedby={
+        <PhoneNumberInlineField
+          countrySelectId='booking-reservation-phone-country'
+          nationalInputAriaLabelledBy='booking-reservation-phone-field-label'
+          phoneCountry={phoneCountry}
+          phone={phone}
+          onPhoneCountryChange={onPhoneCountryChange}
+          onPhoneChange={onPhoneChange}
+          onPhoneBlur={onPhoneBlur}
+          countryAriaLabel={content.phoneCountryLabel}
+          dialCodeOptionTemplate={dialCodeOptionTemplate}
+          hasError={hasPhoneError || hasPhoneInvalidForCountry}
+          errorMessageId={
             hasPhoneError
               ? BOOKING_PHONE_ERROR_MESSAGE_ID
               : hasPhoneInvalidForCountry
                 ? BOOKING_PHONE_INVALID_COUNTRY_ERROR_MESSAGE_ID
                 : undefined
           }
+          inputId='booking-reservation-phone-national'
+          autoComplete='tel'
+          required
         />
         <p className='mt-1 text-xs text-slate-600'>{content.phoneNationalHelper}</p>
         {hasPhoneError ? (
@@ -177,7 +176,7 @@ export function ReservationFormFields({
             {content.phoneInvalidForCountry}
           </p>
         ) : null}
-      </label>
+      </div>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
           {topicsFieldLabel}

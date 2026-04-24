@@ -1,0 +1,19 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "tier_id": "essentials",
+      "service": "consultation",
+      "location_name": "Your Home",
+      "location_address": "Hong Kong",
+      "dates": []
+    },
+    {
+      "tier_id": "deep_dive",
+      "service": "consultation",
+      "location_name": "Your Home",
+      "location_address": "Hong Kong",
+      "dates": []
+    }
+  ]
+}

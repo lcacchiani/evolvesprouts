@@ -202,7 +202,9 @@ their primary responsibilities.
   transactional flows (contact, media download link, booking confirmation).
   Pending FPS bookings may instead send booking confirmation via
   `SendRawEmail` (multipart HTML + inline PNG) when the client supplies a valid
-  PNG data URL.
+  PNG data URL. Stored booking-confirmation templates expose `{{service_row_label}}`
+  for the Service table row (localized from optional reservation `service` when present;
+  otherwise the course title).
 - VPC: **No**
 - Permissions: SES `CreateTemplate`, `UpdateTemplate`, `DeleteTemplate`, `GetTemplate`
 

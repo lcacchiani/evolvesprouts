@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.templates.booking_confirmation_content import resolve_service_row_label
 from app.templates.booking_confirmation_render import (
     booking_confirmation_template_merge_data,
     format_schedule_datetime_line,
@@ -21,6 +22,10 @@ def test_resolve_payment_method_display() -> None:
     assert resolve_payment_method_display("other") == "other"
 
 
+def test_resolve_service_row_label_falls_back_for_unknown_slug() -> None:
+    assert resolve_service_row_label("en", "unknown", "My Title") == "My Title"
+
+
 def test_booking_confirmation_template_merge_data_consultation_details() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
@@ -37,6 +42,7 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
         consultation_writing_focus_label="College essays",
         consultation_level_label="Essentials",
     )
+    assert data["service_row_label"] == "Consultation"
     assert data["schedule_datetime_label_html"] == "12 April in the morning"
     assert data["payment_method"] == "FPS"
     assert data["include_fps_instructions"] is True
@@ -126,3 +132,20 @@ def test_booking_confirmation_template_merge_data_free_omits_payment() -> None:
     assert data["is_free"] is True
     assert data["is_pending_payment"] is False
     assert data["include_fps_instructions"] is False
+
+
+def test_booking_confirmation_template_merge_data_service_row_label_from_slug() -> None:
+    data = booking_confirmation_template_merge_data(
+        locale="zh-CN",
+        full_name="A",
+        course_label="家庭咨询预约",
+        service_slug="consultation",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        payment_method_code="free",
+        total_amount="HK$0.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        is_free=True,
+    )
+    assert data["service_row_label"] == "咨询"

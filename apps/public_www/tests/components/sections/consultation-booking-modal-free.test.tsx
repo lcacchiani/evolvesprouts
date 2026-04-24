@@ -212,9 +212,12 @@ describe('ConsultationBookingModal free price', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
       target: { value: 'u@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '91234567' },
-    });
+    fireEvent.change(
+      screen.getByRole('textbox', { name: new RegExp(`^${paymentModal.phoneLabel}`) }),
+      {
+        target: { value: '91234567' },
+      },
+    );
     fireEvent.change(screen.getByLabelText(new RegExp(topicsLabel)), {
       target: { value: 'Note' },
     });
@@ -240,6 +243,7 @@ describe('ConsultationBookingModal free price', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
+          service: 'consultation',
         }),
       }),
     );

@@ -1149,6 +1149,7 @@
     "formActions": {
       "submittingLabel": "Submitting…"
     },
+    "phoneDialCodeOptionTemplate": "+{dialCode}",
     "mediaDownload": {
       "invalidTitle": "Invalid download link",
       "invalidDescription": "This media link is missing a valid token. Please request the media again.",
@@ -1391,8 +1392,6 @@
         "modalFocusLabelTemplate": "{focus} focus",
         "upgradeToDeepDiveLabel": "Upgrade to Deep Dive for hands-on implementation",
         "selectedDateLabel": "Consultation package",
-        "locationName": "Your Home",
-        "locationAddress": "Hong Kong",
         "topicsField": {
           "label": "Anything we should know",
           "placeholder": "i.e. child is 3, helper has been with us 2 years, or any context for the visit",
@@ -1618,6 +1617,11 @@
       "title": "Thank you!",
       "messageTemplate": "A confirmation email has been sent to {email}",
       "courseLabel": "My Best Auntie Training Course.",
+      "serviceLabels": {
+        "event": "Event",
+        "training-course": "Training Course",
+        "consultation": "Consultation"
+      },
       "serviceLabel": "Service",
       "detailsLabel": "Details",
       "dateTimeLabel": "Date & time",

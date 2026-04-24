@@ -216,4 +216,31 @@ describe('BookingThankYouModal', () => {
     expect(freeTotal.className).toContain('es-text-success');
     expect(screen.queryByText(thankYouEn.fpsReservationPendingNote)).not.toBeInTheDocument();
   });
+
+  it('shows localized service label from serviceSlug in the recap service row', () => {
+    const summary: ReservationSummary = {
+      attendeeName: 'Pat',
+      attendeeEmail: 'pat@example.com',
+      attendeePhone: '123',
+      paymentMethod: 'Credit Card',
+      paymentMethodCode: 'stripe',
+      totalAmount: 100,
+      eventTitle: 'Family Consultation — long title',
+      courseSlug: 'consultation-booking',
+      serviceSlug: 'consultation',
+    };
+
+    render(
+      <BookingThankYouModal
+        locale='en'
+        content={thankYouEn}
+        summary={summary}
+        analyticsSectionId='test'
+        onClose={() => {}}
+      />,
+    );
+
+    expect(screen.getByText(thankYouEn.serviceLabels.consultation)).toBeInTheDocument();
+    expect(screen.queryByText('Family Consultation — long title')).not.toBeInTheDocument();
+  });
 });

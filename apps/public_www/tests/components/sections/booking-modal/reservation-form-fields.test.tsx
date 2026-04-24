@@ -16,6 +16,7 @@ describe('ReservationFormFields', () => {
     render(
       <ReservationFormFields
         content={enContent.bookingModal.paymentModal}
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
         fullName='Ada'
         email='bad-email'
         phoneCountry='HK'
@@ -40,10 +41,12 @@ describe('ReservationFormFields', () => {
 
     const nameInput = screen.getByLabelText(/Full Name/i);
     const emailInput = screen.getByLabelText(/Email/i);
-    const countrySelect = screen.getByLabelText(
-      enContent.bookingModal.paymentModal.phoneCountryLabel,
-    );
-    const phoneInput = screen.getByLabelText(/Phone Number/i);
+    const countrySelect = screen.getByRole('combobox', {
+      name: enContent.bookingModal.paymentModal.phoneCountryLabel,
+    });
+    const phoneInput = screen.getByRole('textbox', {
+      name: new RegExp(`^${enContent.bookingModal.paymentModal.phoneLabel}`),
+    });
     const topicsInput = screen.getByLabelText(
       /Anything you'd like me to know about your child or helper before we start\?/i,
     );
@@ -70,6 +73,7 @@ describe('ReservationFormFields', () => {
     render(
       <ReservationFormFields
         content={enContent.bookingModal.paymentModal}
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
         fullName=''
         email=''
         phoneCountry='HK'

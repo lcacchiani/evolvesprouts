@@ -207,9 +207,9 @@ describe('ContactUsForm section', () => {
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
-    const phoneInput = screen.getByLabelText(
-      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
-    );
+    const phoneInput = screen.getByRole('textbox', {
+      name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
+    });
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
     );
@@ -255,9 +255,9 @@ describe('ContactUsForm section', () => {
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
-    const phoneInput = screen.getByLabelText(
-      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
-    );
+    const phoneInput = screen.getByRole('textbox', {
+      name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
+    });
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
     );
@@ -464,9 +464,9 @@ describe('ContactUsForm section', () => {
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
-    const phoneInput = screen.getByLabelText(
-      new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
-    );
+    const phoneInput = screen.getByRole('textbox', {
+      name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
+    });
     const messageInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.form.messageLabel),
     );

@@ -471,6 +471,7 @@ export function ConsultationBookingModal({
         eventTitle={bookingPayload.title}
         reservationServiceKey={bookingPayload.serviceKey}
         courseSlug='consultation-booking'
+        serviceSlug={bookingPayload.service}
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={rebasedParts.map((part) => {
           return {

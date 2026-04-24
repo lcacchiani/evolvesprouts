@@ -21,6 +21,7 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent, Locale } from '@/content';
+import { getContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
@@ -50,6 +51,7 @@ function sanitizeMultilineValue(value: string): string {
 }
 
 export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormProps) {
+  const dialCodeOptionTemplate = getContent(locale).common.phoneDialCodeOptionTemplate;
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<ContactUsFormState>({
@@ -359,6 +361,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
 
               <ContactFormFields
                 content={content}
+                dialCodeOptionTemplate={dialCodeOptionTemplate}
                 formState={formState}
                 hasEmailError={hasEmailError}
                 hasPhoneError={hasPhoneError}

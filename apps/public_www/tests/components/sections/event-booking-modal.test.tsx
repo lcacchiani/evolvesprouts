@@ -141,6 +141,7 @@ const mapsUrl = 'https://maps.example.com/dir?q=venue';
 const eventPayload: EventCalendarBookingModalPayload = {
   variant: 'event',
   bookingSystem: 'event-booking',
+  service: 'event',
   serviceKey: 'test-event-1',
   title: 'Test Event',
   subtitle: 'Event subtitle',
@@ -206,9 +207,12 @@ describe('EventBookingModal', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
       target: { value: 'u@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '91234567' },
-    });
+    fireEvent.change(
+      screen.getByRole('textbox', { name: new RegExp(`^${paymentModal.phoneLabel}`) }),
+      {
+        target: { value: '91234567' },
+      },
+    );
     fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
       target: { value: 'Note' },
     });
@@ -248,6 +252,7 @@ describe('EventBookingModal', () => {
         body: expect.objectContaining({
           locationUrl: mapsUrl,
           courseSlug: 'event-booking',
+          service: 'event',
         }),
       }),
     );
@@ -286,9 +291,12 @@ describe('EventBookingModal', () => {
     fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.emailLabel)), {
       target: { value: 'u@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(new RegExp(paymentModal.phoneLabel)), {
-      target: { value: '91234567' },
-    });
+    fireEvent.change(
+      screen.getByRole('textbox', { name: new RegExp(`^${paymentModal.phoneLabel}`) }),
+      {
+        target: { value: '91234567' },
+      },
+    );
     fireEvent.change(screen.getByLabelText(paymentModal.topicsInterestLabel), {
       target: { value: 'Note' },
     });
@@ -314,6 +322,7 @@ describe('EventBookingModal', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
+          service: 'event',
         }),
       }),
     );

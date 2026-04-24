@@ -53,6 +53,20 @@ export interface BookingThankYouModalProps {
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
+export function resolveThankYouServiceDisplayLabel(
+  summary: ReservationSummary | null,
+  serviceLabels: BookingThankYouModalContent['serviceLabels'] | undefined,
+): string {
+  const title = summary?.eventTitle?.trim() ?? '';
+  const slug = (summary?.serviceSlug ?? '').trim().toLowerCase();
+  if (!slug || !serviceLabels) {
+    return title;
+  }
+  const mapped = serviceLabels[slug as keyof typeof serviceLabels];
+  const label = typeof mapped === 'string' ? mapped.trim() : '';
+  return label || title;
+}
+
 function resolveThankYouLocationDisplay(
   summary: ReservationSummary | null,
   virtualFallback: string,
@@ -179,6 +193,7 @@ export function BookingThankYouModal({
 
   const attendeeEmail = summary?.attendeeEmail ?? '';
   const eventTitle = summary?.eventTitle ?? content.courseLabel;
+  const serviceDisplayLabel = resolveThankYouServiceDisplayLabel(summary, content.serviceLabels);
   const thankYouSessions = useMemo(
     () => resolveThankYouCourseSessions(summary),
     [summary],
@@ -325,7 +340,7 @@ export function BookingThankYouModal({
                     {content.serviceLabel}
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
-                    {eventTitle}
+                    {serviceDisplayLabel}
                   </dd>
                 </div>
               </div>

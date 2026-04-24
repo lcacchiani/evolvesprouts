@@ -317,6 +317,7 @@ describe('events-data', () => {
     expect(events[0]?.bookingModalPayload).toMatchObject({
       variant: 'event',
       bookingSystem: 'event-booking',
+      service: 'event',
       serviceKey: 'event-booking-demo',
       title: 'Event booking demo',
       subtitle: 'Simple booking modal flow',
@@ -488,6 +489,7 @@ describe('events-data', () => {
       ctaPriceLabel: 'HK$350',
       bookingPayload: {
         variant: 'event',
+        service: 'event',
         serviceKey: 'easter-2026-montessori-play-coaching-workshop-2026-04-06',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
         locationName: 'Baumhaus',
@@ -546,6 +548,7 @@ describe('events-data', () => {
       ctaPriceLabel: 'HK$150',
       bookingPayload: {
         variant: 'event',
+        service: 'event',
         serviceKey: 'the-missing-piece-2026-05-16',
         title: 'The Missing Piece',
         locationName: 'Acorn Playhouse',

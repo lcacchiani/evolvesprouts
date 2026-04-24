@@ -35,6 +35,8 @@ export interface ReservationSubmissionPayload {
   serviceKey?: string;
   /** Stable slug when serviceKey is not used (e.g. product line). */
   courseSlug?: string;
+  /** Optional high-level service type for confirmation email (event, training-course, consultation). */
+  service?: string;
   /** Aurora service_instances.id for instance-scoped discount redemption. */
   serviceInstanceId?: string;
   scheduleDateLabel?: string;
