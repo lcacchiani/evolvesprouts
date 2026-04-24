@@ -245,7 +245,7 @@ export function InstanceDetailPanel({
       ? {
           consultationFormat: 'one_on_one',
           maxGroupSize: '',
-          durationMinutes: '60',
+          durationMinutes: '',
           pricingModel: instance.consultationDetails?.pricingModel ?? 'free',
           defaultHourlyRate: instance.consultationDetails?.price ?? '',
           defaultPackagePrice: '',
@@ -310,7 +310,7 @@ export function InstanceDetailPanel({
       setConsultationForm({
         consultationFormat: 'one_on_one',
         maxGroupSize: '',
-        durationMinutes: '60',
+        durationMinutes: '',
         pricingModel: source.consultationDetails?.pricingModel ?? 'free',
         defaultHourlyRate: source.consultationDetails?.price ?? '',
         defaultPackagePrice: '',
@@ -404,7 +404,7 @@ export function InstanceDetailPanel({
       setConsultationForm({
         consultationFormat: 'one_on_one',
         maxGroupSize: '',
-        durationMinutes: '60',
+        durationMinutes: '',
         pricingModel: instance.consultationDetails?.pricingModel ?? 'free',
         defaultHourlyRate: instance.consultationDetails?.price ?? '',
         defaultPackagePrice: '',

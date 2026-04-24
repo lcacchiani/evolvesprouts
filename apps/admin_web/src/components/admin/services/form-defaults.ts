@@ -27,7 +27,7 @@ export const DEFAULT_EVENT_FORM: EventFormState = {
 export const DEFAULT_CONSULTATION_FORM: ConsultationFormState = {
   consultationFormat: 'one_on_one',
   maxGroupSize: '',
-  durationMinutes: '60',
+  durationMinutes: '',
   pricingModel: 'free',
   defaultHourlyRate: '',
   defaultPackagePrice: '',

@@ -107,6 +107,11 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('');
     expect(screen.getByLabelText('Description')).toHaveValue('');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
+    expect(screen.getByLabelText('Cover file name')).toHaveValue('');
+    expect(screen.getByLabelText('Cover file name')).toHaveAttribute('title', 'e.g. cover-image.jpg');
+    expect(screen.getByLabelText('Booking system')).toHaveAttribute('title', 'e.g. training-booking');
+    expect(screen.getByLabelText('Title')).not.toHaveAttribute('placeholder');
+    expect(screen.getByLabelText('Description')).not.toHaveAttribute('placeholder');
 
     rerender(
       <ServiceDetailPanel
@@ -277,6 +282,8 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    expect(screen.getByLabelText('Duration (minutes)')).toHaveValue('');
+    expect(screen.getByLabelText('Duration (minutes)')).toHaveAttribute('title', 'e.g. 60');
     expect(screen.getByLabelText('Consultation format')).toBeInTheDocument();
     expect(screen.getByLabelText('Pricing model')).toBeInTheDocument();
     expect(screen.queryByLabelText('Max group size')).not.toBeInTheDocument();

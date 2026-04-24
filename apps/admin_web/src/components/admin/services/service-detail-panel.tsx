@@ -123,7 +123,7 @@ export function ServiceDetailPanel({
       ? {
           consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
           maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
-          durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '60',
+          durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '',
           pricingModel: service.consultationDetails?.pricingModel ?? 'free',
           defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
           defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
@@ -132,7 +132,7 @@ export function ServiceDetailPanel({
         }
       : DEFAULT_CONSULTATION_FORM
   );
-  const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
+  const [coverFileName, setCoverFileName] = useState('');
   const [bookingSystem, setBookingSystem] = useState(service?.bookingSystem ?? '');
   const [serviceTier, setServiceTier] = useState(service?.serviceTier ?? '');
   const [locationId, setLocationId] = useState(service?.locationId ?? '');
@@ -214,7 +214,7 @@ export function ServiceDetailPanel({
             ? {
                 consultationFormat: p.consultationDetails.consultationFormat,
                 maxGroupSize: p.consultationDetails.maxGroupSize?.toString() ?? '',
-                durationMinutes: p.consultationDetails.durationMinutes?.toString() ?? '60',
+                durationMinutes: p.consultationDetails.durationMinutes?.toString() ?? '',
                 pricingModel: p.consultationDetails.pricingModel,
                 defaultHourlyRate: p.consultationDetails.defaultHourlyRate ?? '',
                 defaultPackagePrice: p.consultationDetails.defaultPackagePrice ?? '',
@@ -264,7 +264,7 @@ export function ServiceDetailPanel({
       setConsultationForm({
         consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
         maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
-        durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '60',
+        durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '',
         pricingModel: service.consultationDetails?.pricingModel ?? 'free',
         defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
         defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
@@ -327,7 +327,7 @@ export function ServiceDetailPanel({
           id='service-booking-system'
           value={bookingSystem}
           onChange={(event) => setBookingSystem(event.target.value)}
-          placeholder='Optional label'
+          title='e.g. training-booking'
           maxLength={80}
           autoComplete='off'
         />
@@ -338,6 +338,7 @@ export function ServiceDetailPanel({
           id='service-detail-cover-file-name'
           value={coverFileName}
           onChange={(event) => setCoverFileName(event.target.value)}
+          title='e.g. cover-image.jpg'
         />
       </div>
     </>
@@ -590,7 +591,6 @@ export function ServiceDetailPanel({
               id='service-title'
               value={serviceForm.title}
               onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
-              placeholder='Service title'
             />
           </div>
           <ServiceReferralSlugField
@@ -634,7 +634,6 @@ export function ServiceDetailPanel({
             value={serviceForm.description}
             onChange={(event) => setServiceForm({ ...serviceForm, description: event.target.value })}
             rows={3}
-            placeholder='Optional description'
           />
         </div>
 
