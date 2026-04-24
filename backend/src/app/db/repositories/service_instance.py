@@ -203,6 +203,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         now: datetime,
         service_types: set[ServiceType] | None = None,
         landing_page: str | None = None,
+        service_key: str | None = None,
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services."""
         types_tuple: tuple[ServiceType, ...] = (
@@ -262,6 +263,8 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         if landing_page:
             statement = statement.where(ServiceInstance.landing_page == landing_page)
+        if service_key:
+            statement = statement.where(func.lower(Service.slug) == service_key)
         return list(self._session.execute(statement).unique().scalars().all())
 
     def list_event_instances_for_public_feed(
