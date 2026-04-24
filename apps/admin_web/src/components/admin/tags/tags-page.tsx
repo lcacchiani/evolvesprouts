@@ -333,9 +333,9 @@ export function TagsPage() {
                 value={listFilter}
                 onChange={(event) => setListFilter(event.target.value as AdminTagListFilter)}
               >
+                <option value='all'>All</option>
                 <option value='active'>Active</option>
                 <option value='archived'>Archived</option>
-                <option value='all'>All</option>
               </Select>
             </div>
           </div>
