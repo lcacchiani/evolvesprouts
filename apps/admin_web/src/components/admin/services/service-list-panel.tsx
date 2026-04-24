@@ -128,7 +128,21 @@ export function ServiceListPanel({
               </Select>
             </div>
             <div className='min-w-[140px]'>
-              <Label htmlFor='services-filter-status'>Status</Label>
+              <div className='mb-1 flex min-h-[1.25rem] items-center gap-1.5'>
+                <Label htmlFor='services-filter-status' className='mb-0'>
+                  Status
+                </Label>
+                {filters.status === 'draft' ? (
+                  <span
+                    className='inline-flex shrink-0 text-amber-600'
+                    role='img'
+                    aria-label='Filtering by draft services'
+                    title='Filtering by draft services'
+                  >
+                    <WarningTriangleIcon className='h-4 w-4' aria-hidden />
+                  </span>
+                ) : null}
+              </div>
               <Select
                 id='services-filter-status'
                 value={filters.status}
@@ -170,21 +184,7 @@ export function ServiceListPanel({
               >
                 <td className='px-4 py-3'>{service.title}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
-                <td className='px-4 py-3'>
-                  <span className='inline-flex items-center gap-2'>
-                    {service.status === 'draft' ? (
-                      <span
-                        className='inline-flex shrink-0 text-amber-600'
-                        role='img'
-                        aria-label='Draft — not published to the website'
-                        title='Draft — not published to the website'
-                      >
-                        <WarningTriangleIcon className='h-5 w-5' aria-hidden />
-                      </span>
-                    ) : null}
-                    {formatEnumLabel(service.status)}
-                  </span>
-                </td>
+                <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>

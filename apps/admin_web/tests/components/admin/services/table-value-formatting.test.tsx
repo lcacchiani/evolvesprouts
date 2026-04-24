@@ -129,13 +129,12 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('In Person')).toBeInTheDocument();
   });
 
-  it('shows a warning icon next to status when the service is a draft', () => {
-    const draft: ServiceSummary = { ...SERVICE_FIXTURE, status: 'draft' };
+  it('shows a warning icon next to the status filter label when filtering by draft', () => {
     render(
       <ServiceListPanel
-        services={[draft]}
+        services={[SERVICE_FIXTURE]}
         selectedServiceId={null}
-        filters={{ serviceType: '', status: '', search: '' }}
+        filters={{ serviceType: '', status: 'draft', search: '' }}
         isLoading={false}
         isLoadingMore={false}
         hasMore={false}
@@ -149,11 +148,8 @@ describe('services tables value formatting', () => {
       />
     );
 
-    const table = screen.getByRole('table');
-    expect(
-      within(table).getByRole('img', { name: 'Draft — not published to the website' })
-    ).toBeInTheDocument();
-    expect(within(table).getByText('Draft')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Filtering by draft services' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Status')).toBeInTheDocument();
   });
 
   it('disables delete when the service has instances', () => {
