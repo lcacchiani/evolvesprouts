@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { formatLocationLabel } from '@/lib/format';
+import { addHoursToDatetimeLocal } from '@/lib/session-slot-datetime';
 
 import type { LocationSummary, SessionSlot } from '@/types/services';
 
@@ -15,14 +16,17 @@ export interface SessionSlotEditorProps {
   disabled?: boolean;
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
+  /** Instance (or inherited service) venue id used to prefill slot locations. */
+  defaultLocationId?: string | null;
   onChange: (slots: SessionSlot[]) => void;
 }
 
-function emptySlot(sortOrder: number): SessionSlot {
+function emptySlot(sortOrder: number, defaultLocationId?: string | null): SessionSlot {
+  const locationId = defaultLocationId?.trim() || null;
   return {
     id: null,
     instanceId: null,
-    locationId: null,
+    locationId,
     startsAt: null,
     endsAt: null,
     sortOrder,
@@ -34,9 +38,11 @@ export function SessionSlotEditor({
   disabled = false,
   locationOptions = [],
   isLoadingLocations = false,
+  defaultLocationId = null,
   onChange,
 }: SessionSlotEditorProps) {
   const hasLocationOptions = locationOptions.length > 0;
+  const trimmedDefaultLocation = defaultLocationId?.trim() || null;
 
   const slotGridClassName =
     'grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-[1fr_1fr_1fr_minmax(0,5.5rem)_auto] sm:items-end';
@@ -64,7 +70,20 @@ export function SessionSlotEditor({
                   value={(slot.startsAt ?? '').slice(0, 16)}
                   onChange={(event) => {
                     const next = [...slots];
-                    next[index] = { ...slot, startsAt: event.target.value || null };
+                    const startsAt = event.target.value || null;
+                    const startComplete = Boolean(startsAt && startsAt.length === 16);
+                    let { endsAt } = slot;
+                    if (!startsAt) {
+                      endsAt = null;
+                    } else if (startComplete) {
+                      const computedEnd = addHoursToDatetimeLocal(startsAt, 2);
+                      endsAt = computedEnd ?? endsAt;
+                    }
+                    let { locationId } = slot;
+                    if (startComplete && trimmedDefaultLocation && !locationId?.trim()) {
+                      locationId = trimmedDefaultLocation;
+                    }
+                    next[index] = { ...slot, startsAt, endsAt, locationId };
                     onChange(next);
                   }}
                 />
@@ -176,7 +195,7 @@ export function SessionSlotEditor({
             variant='secondary'
             size='sm'
             disabled={disabled}
-            onClick={() => onChange([...slots, emptySlot(slots.length)])}
+            onClick={() => onChange([...slots, emptySlot(slots.length, trimmedDefaultLocation)])}
           >
             Add slot
           </Button>
