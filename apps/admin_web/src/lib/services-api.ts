@@ -23,10 +23,12 @@ import {
   type GeographicAreaSummary,
   type LocationSummary,
   type ServiceDetail,
+  type ConsultationInstanceDetailsRow,
   type ServiceInstance,
   type ServiceListFilters,
   type ServiceSummary,
   type SessionSlot,
+  type TrainingInstanceDetailsRow,
   type VenueFilters,
 } from '@/types/services';
 
@@ -83,6 +85,38 @@ function parseTicketTier(value: unknown): EventTicketTier {
     currency: asNullableString(item.currency) ?? 'HKD',
     maxQuantity: typeof item.max_quantity === 'number' ? item.max_quantity : null,
     sortOrder: typeof item.sort_order === 'number' ? item.sort_order : null,
+  };
+}
+
+function parseTrainingInstanceDetailsRow(
+  value: unknown
+): TrainingInstanceDetailsRow | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  return {
+    trainingFormat: (asNullableString(value.training_format) ??
+      'group') as TrainingInstanceDetailsRow['trainingFormat'],
+    price: asNullableString(value.price) ?? '0',
+    currency: asNullableString(value.currency) ?? 'HKD',
+    pricingUnit: (asNullableString(value.pricing_unit) ??
+      'per_person') as TrainingInstanceDetailsRow['pricingUnit'],
+  };
+}
+
+function parseConsultationInstanceDetailsRow(
+  value: unknown
+): ConsultationInstanceDetailsRow | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  return {
+    pricingModel: (asNullableString(value.pricing_model) ??
+      'free') as ConsultationInstanceDetailsRow['pricingModel'],
+    price: asNullableString(value.price),
+    currency: asNullableString(value.currency) ?? 'HKD',
+    packageSessions:
+      typeof value.package_sessions === 'number' ? value.package_sessions : null,
   };
 }
 
@@ -275,37 +309,32 @@ function parseInstance(value: unknown): ServiceInstance {
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
     resolvedTitle: asNullableString(item.resolved_title),
+    resolvedSlug: asNullableString(item.resolved_slug),
     resolvedDescription: asNullableString(item.resolved_description),
     resolvedCoverImageS3Key: asNullableString(item.resolved_cover_image_s3_key),
     resolvedDeliveryMode: asNullableString(item.resolved_delivery_mode),
+    resolvedLocationId: asNullableString(item.resolved_location_id),
     sessionSlots: Array.isArray(item.session_slots)
       ? item.session_slots.map((entry) => parseSessionSlot(entry))
       : [],
-    trainingDetails: isRecord(item.training_details)
-      ? {
-          trainingFormat: (asNullableString(item.training_details.training_format) ??
-            'group') as NonNullable<ServiceInstance['trainingDetails']>['trainingFormat'],
-          price: asNullableString(item.training_details.price) ?? '0',
-          currency: asNullableString(item.training_details.currency) ?? 'HKD',
-          pricingUnit: (asNullableString(item.training_details.pricing_unit) ??
-            'per_person') as NonNullable<ServiceInstance['trainingDetails']>['pricingUnit'],
-        }
-      : null,
+    trainingDetails: parseTrainingInstanceDetailsRow(item.training_details),
+    resolvedTrainingDetails:
+      parseTrainingInstanceDetailsRow(item.resolved_training_details) ??
+      parseTrainingInstanceDetailsRow(item.training_details),
     eventTicketTiers: Array.isArray(item.event_ticket_tiers)
       ? item.event_ticket_tiers.map((entry) => parseTicketTier(entry))
       : [],
-    consultationDetails: isRecord(item.consultation_details)
-      ? {
-          pricingModel: (asNullableString(item.consultation_details.pricing_model) ??
-            'free') as NonNullable<ServiceInstance['consultationDetails']>['pricingModel'],
-          price: asNullableString(item.consultation_details.price),
-          currency: asNullableString(item.consultation_details.currency) ?? 'HKD',
-          packageSessions:
-            typeof item.consultation_details.package_sessions === 'number'
-              ? item.consultation_details.package_sessions
-              : null,
-        }
-      : null,
+    resolvedEventTicketTiers:
+      Array.isArray(item.resolved_event_ticket_tiers) &&
+      item.resolved_event_ticket_tiers.length > 0
+        ? item.resolved_event_ticket_tiers.map((entry) => parseTicketTier(entry))
+        : Array.isArray(item.event_ticket_tiers)
+          ? item.event_ticket_tiers.map((entry) => parseTicketTier(entry))
+          : [],
+    consultationDetails: parseConsultationInstanceDetailsRow(item.consultation_details),
+    resolvedConsultationDetails:
+      parseConsultationInstanceDetailsRow(item.resolved_consultation_details) ??
+      parseConsultationInstanceDetailsRow(item.consultation_details),
   };
 }
 

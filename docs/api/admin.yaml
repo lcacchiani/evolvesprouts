@@ -4016,6 +4016,58 @@ components:
         resolved_delivery_mode:
           type: string
           nullable: true
+        resolved_slug:
+          type: string
+          nullable: true
+          description: >
+            Effective referral slug: instance slug when set, otherwise the parent
+            service slug.
+        resolved_location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Effective venue: instance location_id when set, otherwise the parent
+            service default location_id.
+        resolved_training_details:
+          type: object
+          nullable: true
+          description: >
+            Effective training pricing: instance row when present, otherwise the
+            parent service training_course_details defaults.
+          properties:
+            training_format:
+              $ref: "#/components/schemas/TrainingFormat"
+            price:
+              type: string
+            currency:
+              type: string
+            pricing_unit:
+              $ref: "#/components/schemas/TrainingPricingUnit"
+        resolved_event_ticket_tiers:
+          type: array
+          description: >
+            Effective event tiers for display: instance tiers when present,
+            otherwise a synthetic tier from the parent service event defaults.
+          items:
+            $ref: "#/components/schemas/EventTicketTier"
+        resolved_consultation_details:
+          type: object
+          nullable: true
+          description: >
+            Effective consultation pricing: instance row when present, otherwise
+            the parent service consultation_details defaults.
+          properties:
+            pricing_model:
+              $ref: "#/components/schemas/ConsultationPricingModel"
+            price:
+              type: string
+              nullable: true
+            currency:
+              type: string
+            package_sessions:
+              type: integer
+              nullable: true
         session_slots:
           type: array
           items:

@@ -74,7 +74,7 @@ describe('ServiceDetailPanel', () => {
       expect(screen.getByLabelText('Title')).toHaveValue('Original (copy)');
     });
     expect(screen.getByLabelText('Service tier')).toHaveValue('tier-a');
-    expect(screen.getByLabelText('Referral slug')).toHaveValue('original-slug');
+    expect(screen.getByLabelText('Slug')).toHaveValue('original-slug');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Default price')).toHaveValue('88');

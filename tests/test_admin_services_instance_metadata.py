@@ -13,13 +13,19 @@ from app.api.admin_services_payloads import (
     parse_update_instance_payload,
 )
 from app.db.models import (
+    ConsultationDetails,
+    EventDetails,
     Service,
     ServiceInstance,
     ServiceInstanceTag,
     Tag,
+    TrainingCourseDetails,
     TrainingInstanceDetails,
 )
 from app.db.models.enums import (
+    ConsultationFormat,
+    ConsultationPricingModel,
+    EventCategory,
     InstanceStatus,
     ServiceDeliveryMode,
     ServiceStatus,
@@ -188,3 +194,187 @@ def test_training_instance_round_trip_cohort_tags_in_memory() -> None:
     assert payload["cohort"] == "spring-2026"
     assert [t["name"] for t in payload["tags"]] == ["alpha", "Beta"]
     assert payload["tag_ids"] == [str(tag_aa.id), str(tag_ba.id)]
+
+
+def test_serialize_instance_resolves_from_parent_service_when_missing() -> None:
+    """Effective fields fall back to the parent service template."""
+    from app.api.admin_services_serializers import serialize_instance
+
+    sid = uuid4()
+    loc_id = uuid4()
+    service = Service(
+        id=sid,
+        service_type=ServiceType.TRAINING_COURSE,
+        title="Parent title",
+        slug="parent-slug",
+        booking_system=None,
+        description="Parent body",
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.IN_PERSON,
+        status=ServiceStatus.PUBLISHED,
+        created_by="tester",
+        location_id=loc_id,
+    )
+    service.training_course_details = TrainingCourseDetails(
+        service_id=sid,
+        pricing_unit=TrainingPricingUnit.PER_FAMILY,
+        default_price=Decimal("88.50"),
+        default_currency="USD",
+    )
+
+    inst_id = uuid4()
+    instance = ServiceInstance(
+        id=inst_id,
+        service_id=sid,
+        title=None,
+        slug=None,
+        landing_page=None,
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.SCHEDULED,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=None,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="tester",
+        external_url=None,
+    )
+    instance.service = service
+    instance.instance_tags = []
+    instance.session_slots = []
+    instance.ticket_tiers = []
+    instance.partner_organization_links = []
+
+    payload = serialize_instance(instance)
+    assert payload["resolved_title"] == "Parent title"
+    assert payload["resolved_slug"] == "parent-slug"
+    assert payload["resolved_description"] == "Parent body"
+    assert payload["resolved_delivery_mode"] == "in_person"
+    assert payload["resolved_location_id"] == str(loc_id)
+    assert payload["training_details"] is None
+    assert payload["resolved_training_details"] == {
+        "training_format": "group",
+        "price": "88.50",
+        "currency": "USD",
+        "pricing_unit": "per_family",
+    }
+
+
+def test_serialize_instance_resolves_event_and_consultation_from_service() -> None:
+    from app.api.admin_services_serializers import serialize_instance
+
+    sid = uuid4()
+    inst_id = uuid4()
+
+    event_service = Service(
+        id=sid,
+        service_type=ServiceType.EVENT,
+        title="Evt",
+        slug=None,
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="t",
+    )
+    event_service.event_details = EventDetails(
+        service_id=sid,
+        event_category=EventCategory.OPEN_HOUSE,
+        default_price=Decimal("25.00"),
+        default_currency="HKD",
+    )
+    ev_instance = ServiceInstance(
+        id=inst_id,
+        service_id=sid,
+        title="Inst",
+        slug=None,
+        landing_page=None,
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.SCHEDULED,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=None,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="t",
+        external_url=None,
+    )
+    ev_instance.service = event_service
+    ev_instance.instance_tags = []
+    ev_instance.session_slots = []
+    ev_instance.ticket_tiers = []
+    ev_instance.partner_organization_links = []
+
+    ev_payload = serialize_instance(ev_instance)
+    assert ev_payload["event_ticket_tiers"] == []
+    assert len(ev_payload["resolved_event_ticket_tiers"]) == 1
+    tier0 = ev_payload["resolved_event_ticket_tiers"][0]
+    assert tier0["name"] == "open_house"
+    assert tier0["price"] == "25.00"
+    assert tier0["currency"] == "HKD"
+
+    csid = uuid4()
+    cinst = uuid4()
+    cons_service = Service(
+        id=csid,
+        service_type=ServiceType.CONSULTATION,
+        title="Cons",
+        slug=None,
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="t",
+    )
+    cons_service.consultation_details = ConsultationDetails(
+        service_id=csid,
+        consultation_format=ConsultationFormat.ONE_ON_ONE,
+        max_group_size=None,
+        duration_minutes=60,
+        pricing_model=ConsultationPricingModel.HOURLY,
+        default_hourly_rate=Decimal("120.00"),
+        default_package_price=None,
+        default_package_sessions=None,
+        default_currency="HKD",
+    )
+    cons_instance = ServiceInstance(
+        id=cinst,
+        service_id=csid,
+        title="C",
+        slug=None,
+        landing_page=None,
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.SCHEDULED,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=None,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="t",
+        external_url=None,
+    )
+    cons_instance.service = cons_service
+    cons_instance.instance_tags = []
+    cons_instance.session_slots = []
+    cons_instance.ticket_tiers = []
+    cons_instance.partner_organization_links = []
+
+    c_payload = serialize_instance(cons_instance)
+    assert c_payload["consultation_details"] is None
+    assert c_payload["resolved_consultation_details"] == {
+        "pricing_model": "hourly",
+        "price": "120.00",
+        "currency": "HKD",
+        "package_sessions": None,
+    }

@@ -141,6 +141,43 @@ function mergeServiceIntoTrainingForm(
   };
 }
 
+function mergeServiceIntoConsultationForm(
+  prev: ConsultationFormState,
+  service: ServiceSummary
+): ConsultationFormState {
+  if (service.serviceType !== 'consultation' || !service.consultationDetails) {
+    return prev;
+  }
+  const cd = service.consultationDetails;
+  const pm = cd.pricingModel;
+  return {
+    ...prev,
+    pricingModel: pm,
+    defaultHourlyRate: pm === 'hourly' ? (cd.defaultHourlyRate ?? '') : '',
+    defaultPackagePrice: pm === 'package' ? (cd.defaultPackagePrice ?? '') : '',
+    defaultPackageSessions: cd.defaultPackageSessions?.toString() ?? '',
+    defaultCurrency: cd.defaultCurrency ?? defaultCurrencyCode,
+  };
+}
+
+function consultationFormFromInstanceResolved(instance: ServiceInstance): ConsultationFormState {
+  const r = instance.resolvedConsultationDetails;
+  if (!r) {
+    return DEFAULT_CONSULTATION_FORM;
+  }
+  const pm = r.pricingModel;
+  return {
+    consultationFormat: 'one_on_one',
+    maxGroupSize: '',
+    durationMinutes: '',
+    pricingModel: pm,
+    defaultHourlyRate: pm === 'hourly' ? (r.price ?? '') : '',
+    defaultPackagePrice: pm === 'package' ? (r.price ?? '') : '',
+    defaultPackageSessions: r.packageSessions?.toString() ?? '',
+    defaultCurrency: r.currency ?? defaultCurrencyCode,
+  };
+}
+
 function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] {
   return instance.partnerOrganizations.map((row) => ({
     id: row.id,
@@ -210,7 +247,7 @@ export function InstanceDetailPanel({
           description: instance.description ?? '',
           status: instance.status,
           deliveryMode: instance.deliveryMode ?? '',
-          locationId: instance.locationId ?? '',
+          locationId: instance.locationId ?? instance.resolvedLocationId ?? '',
           maxCapacity: instance.maxCapacity?.toString() ?? '',
           waitlistEnabled: instance.waitlistEnabled,
           instructorId: instance.instructorId ?? '',
@@ -225,9 +262,9 @@ export function InstanceDetailPanel({
   const [trainingForm, setTrainingForm] = useState<TrainingFormState>(
     instance
       ? {
-          pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
-          defaultPrice: instance.trainingDetails?.price ?? '',
-          defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
+          pricingUnit: instance.resolvedTrainingDetails?.pricingUnit ?? 'per_person',
+          defaultPrice: instance.resolvedTrainingDetails?.price ?? '',
+          defaultCurrency: instance.resolvedTrainingDetails?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_TRAINING_FORM
   );
@@ -235,24 +272,13 @@ export function InstanceDetailPanel({
     instance
       ? {
           eventCategory: 'workshop',
-          defaultPrice: instance.eventTicketTiers?.[0]?.price ?? '',
-          defaultCurrency: instance.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
+          defaultPrice: instance.resolvedEventTicketTiers?.[0]?.price ?? '',
+          defaultCurrency: instance.resolvedEventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_EVENT_FORM
   );
   const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
-    instance
-      ? {
-          consultationFormat: 'one_on_one',
-          maxGroupSize: '',
-          durationMinutes: '',
-          pricingModel: instance.consultationDetails?.pricingModel ?? 'free',
-          defaultHourlyRate: instance.consultationDetails?.price ?? '',
-          defaultPackagePrice: '',
-          defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
-          defaultCurrency: instance.consultationDetails?.currency ?? defaultCurrencyCode,
-        }
-      : DEFAULT_CONSULTATION_FORM
+    instance ? consultationFormFromInstanceResolved(instance) : DEFAULT_CONSULTATION_FORM
   );
 
   useEffect(() => {
@@ -284,7 +310,7 @@ export function InstanceDetailPanel({
         description: source.description ?? '',
         status: source.status,
         deliveryMode: source.deliveryMode ?? '',
-        locationId: source.locationId ?? '',
+        locationId: source.locationId ?? source.resolvedLocationId ?? '',
         maxCapacity: source.maxCapacity?.toString() ?? '',
         waitlistEnabled: source.waitlistEnabled,
         instructorId: source.instructorId ?? '',
@@ -295,28 +321,19 @@ export function InstanceDetailPanel({
         sessionSlots: cloneSessionSlotsForCreate(source.sessionSlots),
       });
       setTrainingForm({
-        pricingUnit: source.trainingDetails?.pricingUnit ?? 'per_person',
-        defaultPrice: source.trainingDetails?.price ?? '',
-        defaultCurrency: source.trainingDetails?.currency ?? defaultCurrencyCode,
+        pricingUnit: source.resolvedTrainingDetails?.pricingUnit ?? 'per_person',
+        defaultPrice: source.resolvedTrainingDetails?.price ?? '',
+        defaultCurrency: source.resolvedTrainingDetails?.currency ?? defaultCurrencyCode,
       });
       setEventForm({
         eventCategory: resolveInheritedEventCategory(
           serviceOptions.find((entry) => entry.id === source.serviceId) ?? null,
           source
         ),
-        defaultPrice: source.eventTicketTiers?.[0]?.price ?? '',
-        defaultCurrency: source.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
+        defaultPrice: source.resolvedEventTicketTiers?.[0]?.price ?? '',
+        defaultCurrency: source.resolvedEventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
       });
-      setConsultationForm({
-        consultationFormat: 'one_on_one',
-        maxGroupSize: '',
-        durationMinutes: '',
-        pricingModel: source.consultationDetails?.pricingModel ?? 'free',
-        defaultHourlyRate: source.consultationDetails?.price ?? '',
-        defaultPackagePrice: '',
-        defaultPackageSessions: source.consultationDetails?.packageSessions?.toString() ?? '',
-        defaultCurrency: source.consultationDetails?.currency ?? defaultCurrencyCode,
-      });
+      setConsultationForm(consultationFormFromInstanceResolved(source));
     });
   }, [instance, createPrefillInstance, selectedServiceId, serviceOptions]);
 
@@ -336,6 +353,7 @@ export function InstanceDetailPanel({
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
       setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
       setEventForm((prev) => mergeServiceIntoEventForm(prev, svc));
+      setConsultationForm((prev) => mergeServiceIntoConsultationForm(prev, svc));
     },
     [onSelectService, serviceOptions]
   );
@@ -360,6 +378,7 @@ export function InstanceDetailPanel({
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
       setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
       setEventForm((prev) => mergeServiceIntoEventForm(prev, svc));
+      setConsultationForm((prev) => mergeServiceIntoConsultationForm(prev, svc));
     });
   }, [instance, selectedServiceId, serviceOptions, createPrefillInstance]);
 
@@ -378,7 +397,7 @@ export function InstanceDetailPanel({
         description: instance.description ?? '',
         status: instance.status,
         deliveryMode: instance.deliveryMode ?? '',
-        locationId: instance.locationId ?? '',
+        locationId: instance.locationId ?? instance.resolvedLocationId ?? '',
         maxCapacity: instance.maxCapacity?.toString() ?? '',
         waitlistEnabled: instance.waitlistEnabled,
         instructorId: instance.instructorId ?? '',
@@ -389,28 +408,19 @@ export function InstanceDetailPanel({
         sessionSlots: instance.sessionSlots,
       });
       setTrainingForm({
-        pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
-        defaultPrice: instance.trainingDetails?.price ?? '',
-        defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
+        pricingUnit: instance.resolvedTrainingDetails?.pricingUnit ?? 'per_person',
+        defaultPrice: instance.resolvedTrainingDetails?.price ?? '',
+        defaultCurrency: instance.resolvedTrainingDetails?.currency ?? defaultCurrencyCode,
       });
       setEventForm({
         eventCategory: resolveInheritedEventCategory(
           serviceOptions.find((entry) => entry.id === instance.serviceId) ?? null,
           instance
         ),
-        defaultPrice: instance.eventTicketTiers?.[0]?.price ?? '',
-        defaultCurrency: instance.eventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
+        defaultPrice: instance.resolvedEventTicketTiers?.[0]?.price ?? '',
+        defaultCurrency: instance.resolvedEventTicketTiers?.[0]?.currency ?? defaultCurrencyCode,
       });
-      setConsultationForm({
-        consultationFormat: 'one_on_one',
-        maxGroupSize: '',
-        durationMinutes: '',
-        pricingModel: instance.consultationDetails?.pricingModel ?? 'free',
-        defaultHourlyRate: instance.consultationDetails?.price ?? '',
-        defaultPackagePrice: '',
-        defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
-        defaultCurrency: instance.consultationDetails?.currency ?? defaultCurrencyCode,
-      });
+      setConsultationForm(consultationFormFromInstanceResolved(instance));
     });
   }, [instance, serviceOptions]);
 
@@ -463,6 +473,7 @@ export function InstanceDetailPanel({
       const currencyStr = (eventForm.defaultCurrency || defaultCurrencyCode).trim();
       const tiers =
         (instance?.eventTicketTiers?.length ? instance.eventTicketTiers : null) ??
+        (instance?.resolvedEventTicketTiers?.length ? instance.resolvedEventTicketTiers : null) ??
         duplicateEventTiersTemplateRef.current ??
         [];
       if (tiers.length > 1) {

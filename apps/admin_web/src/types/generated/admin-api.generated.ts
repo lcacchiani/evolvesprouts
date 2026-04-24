@@ -4490,6 +4490,29 @@ export interface components {
             resolved_description?: string | null;
             resolved_cover_image_s3_key?: string | null;
             resolved_delivery_mode?: string | null;
+            /** @description Effective referral slug: instance slug when set, otherwise the parent service slug. */
+            resolved_slug?: string | null;
+            /**
+             * Format: uuid
+             * @description Effective venue: instance location_id when set, otherwise the parent service default location_id.
+             */
+            resolved_location_id?: string | null;
+            /** @description Effective training pricing: instance row when present, otherwise the parent service training_course_details defaults. */
+            resolved_training_details?: {
+                training_format?: components["schemas"]["TrainingFormat"];
+                price?: string;
+                currency?: string;
+                pricing_unit?: components["schemas"]["TrainingPricingUnit"];
+            } | null;
+            /** @description Effective event tiers for display: instance tiers when present, otherwise a synthetic tier from the parent service event defaults. */
+            resolved_event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
+            /** @description Effective consultation pricing: instance row when present, otherwise the parent service consultation_details defaults. */
+            resolved_consultation_details?: {
+                pricing_model?: components["schemas"]["ConsultationPricingModel"];
+                price?: string | null;
+                currency?: string;
+                package_sessions?: number | null;
+            } | null;
             session_slots?: components["schemas"]["SessionSlot"][];
             training_details?: {
                 training_format?: components["schemas"]["TrainingFormat"];

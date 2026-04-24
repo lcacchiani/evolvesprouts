@@ -82,7 +82,10 @@ their primary responsibilities.
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
   filters; instance create/update accepts optional `cohort`, and
-  `tag_ids` with `tags` / `tag_ids` echoed on instance responses; and
+  `tag_ids` with `tags` / `tag_ids` echoed on instance responses; instance JSON
+  includes `resolved_*` fields (title, slug, description, delivery mode, location,
+  and type-specific pricing/tiers) when the instance omits a value and the parent
+  service supplies the effective default; and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service slug changes; `DELETE /v1/admin/services/{id}`
   returns `409` when the service still has instances), `/v1/admin/discount-codes/*`
