@@ -442,6 +442,24 @@ function handler(event) {
       });
     }
 
+    const apiProxyCachePolicy = new cloudfront.CachePolicy(
+      this,
+      `${config.idPrefix}ApiProxyCachePolicy`,
+      {
+        cachePolicyName: `${config.idPrefix.toLowerCase()}-api-proxy-cache`,
+        comment:
+          "Edge cache for allowlisted /www/* GETs; TTL from origin Cache-Control (cap 15m).",
+        defaultTtl: cdk.Duration.minutes(5),
+        minTtl: cdk.Duration.seconds(0),
+        maxTtl: cdk.Duration.minutes(15),
+        queryStringBehavior: cloudfront.CacheQueryStringBehavior.all(),
+        headerBehavior: cloudfront.CacheHeaderBehavior.none(),
+        cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+        enableAcceptEncodingGzip: true,
+        enableAcceptEncodingBrotli: true,
+      },
+    );
+
     const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(
       this,
       `${config.idPrefix}ResponseHeadersPolicy`,
@@ -551,7 +569,7 @@ function handler(event) {
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-            cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+            cachePolicy: apiProxyCachePolicy,
             originRequestPolicy:
               cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
             functionAssociations: [

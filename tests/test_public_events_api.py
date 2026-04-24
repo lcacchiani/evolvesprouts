@@ -10,6 +10,10 @@ from uuid import uuid4
 from app.api import public_events
 from app.db.models import ServiceType
 
+_EXPECTED_CACHE_CONTROL_SUCCESS = (
+    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+)
+
 
 def _instance_row(
     *,
@@ -81,6 +85,7 @@ def test_handle_public_events_rejects_non_get(api_gateway_event: Any) -> None:
         "POST",
     )
     assert response["statusCode"] == 405
+    assert response["headers"]["Cache-Control"] == "no-store"
 
 
 def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event: Any) -> None:
@@ -131,7 +136,14 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
         "GET",
     )
     assert response["statusCode"] == 200
+    cc = response["headers"]["Cache-Control"]
+    assert "public" in cc
+    assert "max-age=60" in cc
+    assert "s-maxage=300" in cc
+    assert "stale-while-revalidate=600" in cc
+    assert cc == _EXPECTED_CACHE_CONTROL_SUCCESS
     body = json.loads(response["body"])
+    assert set(body.keys()) == {"events", "items"}
     assert "items" in body
     assert len(body["items"]) == 2
     assert body["items"][0]["external_url"] == "https://www.eventbrite.com/e/demo"
@@ -199,6 +211,7 @@ def test_handle_public_events_landing_page_filter(
     assert captured["landing_page"] == slug
     body = json.loads(response["body"])
     assert len(body["events"]) == 1
+    assert response["headers"]["Cache-Control"] == _EXPECTED_CACHE_CONTROL_SUCCESS
 
 
 def test_handle_public_events_invalid_landing_page_ignored(

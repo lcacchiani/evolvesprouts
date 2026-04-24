@@ -111,8 +111,9 @@ drops the old polymorphic tables, renames `crm_notes` → `notes`, and adds null
 - Hosted UI uses OAuth code flow with callback/logout URLs supplied via CDK
   parameters.
 - API keys are rotated every 90 days by a scheduled Lambda.
-- API Gateway method caching enabled for public asset listing (`/v1/assets/public`,
-  5-minute TTL).
+- API Gateway stage caching is disabled; public website cacheability is driven
+  by Lambda `Cache-Control` headers and the `public_www` CloudFront `www/*`
+  cache policy (see architecture overview).
 - See the OpenAPI specs for per-endpoint authentication requirements:
   [`docs/api/admin.yaml`](../api/admin.yaml).
 

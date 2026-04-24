@@ -1,4 +1,11 @@
-"""Public calendar events feed handlers."""
+"""Public calendar events feed handlers.
+
+GET responses for routes reachable via the public website CloudFront ``/www/*``
+proxy must include a ``Cache-Control`` header: use a shared-cache friendly value
+on success (200) and ``no-store`` on errors (for example 405) so CloudFront never
+retains unsafe responses. Any new allowlisted GET handler must follow the same
+contract.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +34,28 @@ logger = get_logger(__name__)
 
 _LANDING_PAGE_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
+_CACHE_CONTROL_PUBLIC_LIST = (
+    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+)
+_CACHE_CONTROL_NO_STORE = "no-store"
+
+
+def _public_events_json_response(
+    status_code: int,
+    body: Any,
+    *,
+    event: Mapping[str, Any],
+) -> dict[str, Any]:
+    cache = (
+        _CACHE_CONTROL_PUBLIC_LIST if status_code == 200 else _CACHE_CONTROL_NO_STORE
+    )
+    return json_response(
+        status_code,
+        body,
+        headers={"Cache-Control": cache},
+        event=event,
+    )
+
 
 def handle_public_events(
     event: Mapping[str, Any],
@@ -35,7 +64,9 @@ def handle_public_events(
     """Handle GET /v1/calendar/public and /www/v1/calendar/public."""
     logger.info("Handling public events feed request", extra={"method": method})
     if method != "GET":
-        return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _public_events_json_response(
+            405, {"error": "Method not allowed"}, event=event
+        )
 
     query = event.get("queryStringParameters") or {}
     landing_page = _parse_landing_page(query.get("landing_page"))
@@ -50,7 +81,9 @@ def handle_public_events(
             landing_page=landing_page,
         )
     # Keep a temporary alias for older consumers while "events" is canonical.
-    return json_response(200, {"events": items, "items": items}, event=event)
+    return _public_events_json_response(
+        200, {"events": items, "items": items}, event=event
+    )
 
 
 def handle_public_calendar_events_request(

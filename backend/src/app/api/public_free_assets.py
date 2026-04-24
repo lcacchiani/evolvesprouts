@@ -1,4 +1,11 @@
-"""Public free-asset listing (GET /v1/assets/free) for the website."""
+"""Public free-asset listing (GET /v1/assets/free) for the website.
+
+GET responses for routes reachable via the public website CloudFront ``/www/*``
+proxy must include a ``Cache-Control`` header: use a shared-cache friendly value
+on success (200) and ``no-store`` on errors (404, 405, validation failures) so
+the edge never retains unsafe responses. Any new allowlisted GET handler must
+follow the same contract.
+"""
 
 from __future__ import annotations
 
@@ -23,6 +30,11 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+_CACHE_CONTROL_PUBLIC_LIST = (
+    "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+)
+_CACHE_CONTROL_NO_STORE = "no-store"
+
 
 def _is_free_assets_list_path(path: str) -> bool:
     """True for /v1/assets/free and /www/v1/assets/free (normalized path)."""
@@ -46,14 +58,24 @@ def handle_public_free_assets_list_request(
 ) -> dict[str, Any]:
     """Handle GET /v1/assets/free and /www/v1/assets/free."""
     if not _is_free_assets_list_path(path):
-        return json_response(404, {"error": "Not found"}, event=event)
+        return json_response(
+            404,
+            {"error": "Not found"},
+            headers={"Cache-Control": _CACHE_CONTROL_NO_STORE},
+            event=event,
+        )
 
     logger.info(
         "Handling public free assets list request",
         extra={"method": method, "path": path},
     )
     if method != "GET":
-        return json_response(405, {"error": "Method not allowed"}, event=event)
+        return json_response(
+            405,
+            {"error": "Method not allowed"},
+            headers={"Cache-Control": _CACHE_CONTROL_NO_STORE},
+            event=event,
+        )
 
     limit = parse_limit(event)
     cursor = parse_cursor(event)
@@ -71,4 +93,5 @@ def handle_public_free_assets_list_request(
         limit=limit,
         event=event,
         serializer=serialize_public_free_asset,
+        headers={"Cache-Control": _CACHE_CONTROL_PUBLIC_LIST},
     )

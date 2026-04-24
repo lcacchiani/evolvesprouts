@@ -432,8 +432,7 @@ For each function above, the following resources are created:
 - Logging Level: INFO
 - Data Trace: Disabled
 - X-Ray Tracing: Enabled
-- Caching: Enabled (0.5 GB cache cluster, encrypted)
-- Cache TTL: 5 minutes for `/v1/assets/public/GET`
+- Caching: Disabled (edge caching on `public_www` CloudFront for `/www/*` GETs)
 
 **CORS Configuration:**
 - Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or CDK context (`corsAllowedOrigins`), always merged with required origins derived from `PublicWwwDomainName`, `PublicWwwStagingDomainName`, and `AdminWebDomainName`

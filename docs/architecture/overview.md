@@ -178,7 +178,8 @@ pull requests for dependency updates:
 
 ## Caching
 
-- API Gateway method caching enabled for `GET /v1/assets/public` (5-minute TTL).
-- Cache keys include all query parameters for the cached method.
+- API Gateway stage caching is disabled; allowlisted `GET` traffic on the
+  `public_www` CloudFront distribution is edge-cached on the `www/*` behavior
+  using origin `Cache-Control` headers (custom cache policy caps TTL at 15 minutes).
 - Client-side caching with stale-while-revalidate in Flutter (planned).
 - Cloudflare proxies production public website and API traffic at the edge.

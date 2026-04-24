@@ -123,7 +123,10 @@ their primary responsibilities.
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
   `zh-CN`, or `zh-HK`; downloads
-  remain on `/v1/assets/public/{id}/download` with device attestation)
+  remain on `/v1/assets/public/{id}/download` with device attestation.
+  `GET /v1/calendar/public` and `GET /v1/assets/free` (and `/www/v1/...`) emit
+  `Cache-Control` on success and `no-store` on errors for CloudFront `/www/*`;
+  new allowlisted GETs must follow the same contract),
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
