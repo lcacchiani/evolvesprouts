@@ -327,7 +327,7 @@ export function ServiceDetailPanel({
           id='service-booking-system'
           value={bookingSystem}
           onChange={(event) => setBookingSystem(event.target.value)}
-          title='e.g. training-booking'
+          placeholder='e.g. training-booking'
           maxLength={80}
           autoComplete='off'
         />
@@ -338,7 +338,7 @@ export function ServiceDetailPanel({
           id='service-detail-cover-file-name'
           value={coverFileName}
           onChange={(event) => setCoverFileName(event.target.value)}
-          title='e.g. media-cover.jpg'
+          placeholder='e.g. media-cover.jpg'
         />
       </div>
     </>

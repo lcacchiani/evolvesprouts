@@ -170,7 +170,7 @@ export function ConsultationDurationControl({
         value={value.durationMinutes}
         disabled={disabled}
         onChange={(event) => onChange({ ...value, durationMinutes: event.target.value })}
-        title='e.g. 60'
+        placeholder='e.g. 60'
       />
     </div>
   );
@@ -260,7 +260,7 @@ export function ConsultationFormFieldsStacked({
           value={value.durationMinutes}
           disabled={disabled}
           onChange={(event) => onChange({ ...value, durationMinutes: event.target.value })}
-          title='e.g. 60'
+          placeholder='e.g. 60'
         />
       </div>
       <div>
