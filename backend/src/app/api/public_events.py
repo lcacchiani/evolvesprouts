@@ -52,7 +52,9 @@ def handle_public_events(
         extra={
             "method": method,
             "filter.service_type": (
-                sorted(t.value for t in service_types) if service_types else None
+                sorted(t.value for t in service_types)
+                if service_types is not None
+                else None
             ),
             "filter.landing_page": landing_page,
             "filter.service_key": service_key,
@@ -114,6 +116,8 @@ def _parse_service_key(raw: str | None) -> str | None:
     trimmed = raw.strip()
     if not trimmed or len(trimmed) > _SERVICE_KEY_MAX_LEN:
         return None
+    # Lowercase before pattern match so mixed-case input (e.g. MY-BEST-AUNTIE)
+    # is accepted; the OpenAPI pattern is lowercase-only.
     normalized = trimmed.lower()
     if not _SERVICE_KEY_PATTERN.fullmatch(normalized):
         return None

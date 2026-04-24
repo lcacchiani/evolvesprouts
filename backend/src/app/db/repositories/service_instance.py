@@ -205,7 +205,12 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         landing_page: str | None = None,
         service_key: str | None = None,
     ) -> list[ServiceInstance]:
-        """List public calendar rows for published event and training services."""
+        """List public calendar rows for published event and training services.
+
+        When ``service_key`` is set, it is compared to ``lower(services.slug)``; the
+        public handler passes a pre-normalized lowercase slug, and callers that
+        pass mixed case are still matched defensively via ``lower()`` on the value.
+        """
         types_tuple: tuple[ServiceType, ...] = (
             (ServiceType.EVENT, ServiceType.TRAINING_COURSE)
             if not service_types
@@ -264,7 +269,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         if landing_page:
             statement = statement.where(ServiceInstance.landing_page == landing_page)
         if service_key:
-            statement = statement.where(func.lower(Service.slug) == service_key)
+            statement = statement.where(func.lower(Service.slug) == service_key.lower())
         return list(self._session.execute(statement).unique().scalars().all())
 
     def list_event_instances_for_public_feed(

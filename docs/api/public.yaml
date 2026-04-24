@@ -289,7 +289,8 @@ paths:
             `events: []`. Unknown slugs return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
             applied, consistent with `service_type` and `landing_page`.
-            Uses the same `services.slug` mapping as `POST /v1/discounts/validate`.
+            Same case-insensitive `services.slug` mapping as the `service_key` field
+            on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
           description: Event list response.
@@ -354,7 +355,8 @@ paths:
             `events: []`. Unknown slugs return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
             applied, consistent with `service_type` and `landing_page`.
-            Uses the same `services.slug` mapping as `POST /v1/discounts/validate`.
+            Same case-insensitive `services.slug` mapping as the `service_key` field
+            on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
           description: Event list response.
