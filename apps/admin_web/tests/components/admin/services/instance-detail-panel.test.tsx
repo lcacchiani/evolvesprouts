@@ -86,7 +86,7 @@ describe('InstanceDetailPanel', () => {
 
     expect(screen.getByLabelText('Service')).toBeInTheDocument();
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
-    expect(screen.getByLabelText('Slug')).toBeDisabled();
+    expect(screen.getByLabelText('Cohort')).toBeDisabled();
     expect(screen.getByLabelText('Title')).toBeDisabled();
     expect(screen.getByLabelText('Waitlist')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Add instance' })).not.toBeInTheDocument();
@@ -209,6 +209,7 @@ describe('InstanceDetailPanel', () => {
           buildServiceSummary({
             description: 'Service body',
             deliveryMode: 'hybrid',
+            locationId: 'location-1',
             trainingDetails: {
               pricingUnit: 'per_family',
               defaultPrice: '199.00',
@@ -237,6 +238,7 @@ describe('InstanceDetailPanel', () => {
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Price')).toHaveValue('199.00');
     expect(screen.getByLabelText('Currency')).toHaveValue('USD');
+    expect(screen.getByLabelText('Location')).toHaveValue('location-1');
   });
 
   it('inherits event category from the selected service and omits category select for event instances', async () => {
@@ -301,7 +303,9 @@ describe('InstanceDetailPanel', () => {
     );
   });
 
-  it('prefills create form from createPrefillInstance with cleared slug', async () => {
+  it('prefills duplicate create from createPrefillInstance and sends null slug with cohort', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
     const prefill: ServiceInstance = {
       id: 'old-inst',
       serviceId: 'service-1',
@@ -373,7 +377,7 @@ describe('InstanceDetailPanel', () => {
         error=''
         onSelectService={vi.fn()}
         onCancelSelection={vi.fn()}
-        onCreate={vi.fn()}
+        onCreate={onCreate}
         onUpdate={vi.fn()}
       />
     );
@@ -381,12 +385,21 @@ describe('InstanceDetailPanel', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
     });
-    expect(screen.getByLabelText('Slug')).toHaveValue('');
+    expect(screen.queryByLabelText('Slug')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toHaveValue('Body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Price')).toHaveValue('99');
     expect(screen.getByLabelText('Currency')).toHaveValue('USD');
     expect(screen.getByLabelText('Cohort')).toHaveValue('spring-2026');
+
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+    expect(onCreate).toHaveBeenCalledWith(
+      'service-1',
+      expect.objectContaining({
+        slug: null,
+        cohort: 'spring-2026',
+      })
+    );
   });
 });
