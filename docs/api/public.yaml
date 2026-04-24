@@ -5,6 +5,11 @@ info:
   description: |
     Public endpoint contract.
 
+    Public GET responses that are intended for CloudFront edge caching on the
+    public website ``/www/*`` proxy emit ``Cache-Control`` headers (success: shared
+    cache TTL; errors: ``no-store``). Handlers must keep this contract when new
+    allowlisted GET routes are added.
+
     This spec covers:
     - Public asset endpoints exposed by the backend API stack
       (`/v1/assets/public*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
@@ -204,6 +209,13 @@ paths:
       responses:
         "200":
           description: Client resource list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
           content:
             application/json:
               schema:
@@ -213,7 +225,9 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
   /www/v1/assets/free:
     get:
@@ -228,6 +242,13 @@ paths:
       responses:
         "200":
           description: Client resource list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
           content:
             application/json:
               schema:
@@ -237,7 +258,9 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
   /v1/calendar/public:
     get:
@@ -294,6 +317,13 @@ paths:
       responses:
         "200":
           description: Event list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
           content:
             application/json:
               schema:
@@ -303,7 +333,9 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
   /www/v1/calendar/public:
     get:
@@ -360,6 +392,13 @@ paths:
       responses:
         "200":
           description: Event list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
           content:
             application/json:
               schema:
@@ -369,7 +408,9 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
   /v1/discounts/validate:
     post:
@@ -802,6 +843,28 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
       description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    PublicWebsiteCacheableGetMethodNotAllowed:
+      description: Method not allowed; must not be cached at the edge.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum: [no-store]
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    PublicWebsiteCacheableGetNotFound:
+      description: Not found; must not be cached at the edge.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum: [no-store]
       content:
         application/json:
           schema:

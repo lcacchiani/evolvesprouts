@@ -191,7 +191,7 @@ API Gateway (evolvesprouts-api)
 | Stage | `prod` |
 | Tracing | X-Ray enabled |
 | Access logging | JSON format to CloudWatch |
-| Caching | 0.5 GB, 5-min TTL on `GET /v1/assets/public` |
+| Caching | Disabled at stage; edge-cached at CloudFront for `/www/*` GETs |
 | Custom domain | `api.evolvesprouts.com` (param: `ApiCustomDomainName`) |
 
 ### CORS

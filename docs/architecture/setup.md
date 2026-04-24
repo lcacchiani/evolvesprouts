@@ -333,6 +333,11 @@ Using `npm ci` keeps dependency installation aligned to committed lockfiles
 The `--cache-only` bundle step pre-builds a deterministic Python dependency cache
 from `backend/requirements.txt` so later `npm run synth` executions can reuse
 cached Lambda dependencies instead of reinstalling them every run.
+
+`npm run test:infra` under `backend/infrastructure` synthesizes the full API stack
+and requires a full local bundle at `backend/.lambda-build/base` (not only the
+dependency cache). Run `python3 backend/scripts/build_lambda_bundle.py` from the
+repo root first, or rely on the CI workflow that does this before infrastructure tests.
 The cache keeps only the most recent entries (default: 3) and automatically
 prunes older keys; override with
 `python3 backend/scripts/build_lambda_bundle.py --max-cache-entries <N>`.

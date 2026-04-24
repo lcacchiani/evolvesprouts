@@ -3,7 +3,8 @@ from __future__ import annotations
 import pytest
 
 from app.exceptions import ValidationError
-from app.utils.responses import validate_content_type
+from app.utils import CACHE_CONTROL_EDGE_CACHEABLE_GET
+from app.utils.responses import json_response, validate_content_type
 
 
 def test_validate_content_type_allows_bodyless_post() -> None:
@@ -27,6 +28,27 @@ def test_validate_content_type_requires_header_for_post_with_body() -> None:
         ValidationError, match="Content-Type header is required for requests with a body"
     ):
         validate_content_type(event)
+
+
+def test_json_response_strips_pragma_when_cache_control_is_edge_cacheable() -> None:
+    response = json_response(
+        200,
+        {"ok": True},
+        headers={"Cache-Control": CACHE_CONTROL_EDGE_CACHEABLE_GET},
+        event={"headers": {}},
+    )
+    assert "Pragma" not in response["headers"]
+    assert response["headers"]["Cache-Control"] == CACHE_CONTROL_EDGE_CACHEABLE_GET
+
+
+def test_json_response_keeps_pragma_when_cache_control_is_no_store() -> None:
+    response = json_response(
+        404,
+        {"error": "x"},
+        headers={"Cache-Control": "no-store"},
+        event={"headers": {}},
+    )
+    assert response["headers"].get("Pragma") == "no-cache"
 
 
 def test_validate_content_type_rejects_non_json_content_type() -> None:

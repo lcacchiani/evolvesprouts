@@ -87,6 +87,18 @@ def test_paginate_response_merges_extra_fields() -> None:
     assert body["linked_tag_names"] == ["alpha", "beta"]
 
 
+def test_paginate_response_forwards_optional_headers() -> None:
+    items = [_DummyAsset(id=uuid4(), title="one")]
+    response = paginate_response(
+        items=items,
+        limit=2,
+        event={"headers": {}},
+        serializer=_serialize_dummy_asset,
+        headers={"Cache-Control": "public, max-age=1"},
+    )
+    assert response["headers"]["Cache-Control"] == "public, max-age=1"
+
+
 def test_parse_partial_update_asset_payload_requires_updatable_field() -> None:
     event = {
         "body": "{}",

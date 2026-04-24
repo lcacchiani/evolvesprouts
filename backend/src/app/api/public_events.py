@@ -1,4 +1,11 @@
-"""Public calendar events feed handlers."""
+"""Public calendar events feed handlers.
+
+GET responses for routes reachable via the public website CloudFront ``/www/*``
+proxy must include a ``Cache-Control`` header: use a shared-cache friendly value
+on success (200) and ``no-store`` on errors (for example 405) so CloudFront never
+retains unsafe responses. Any new allowlisted GET handler must follow the same
+contract.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +26,7 @@ from app.db.models.service_instance import InstanceSessionSlot
 if TYPE_CHECKING:
     from app.db.models.location import Location
 from app.db.repositories.service_instance import ServiceInstanceRepository
-from app.utils import json_response
+from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 from app.utils.maps import build_google_maps_directions_url
 
@@ -40,7 +47,9 @@ def handle_public_events(
             "Handling public events feed request",
             extra={"method": method},
         )
-        return json_response(405, {"error": "Method not allowed"}, event=event)
+        return public_cacheable_json_response(
+            405, {"error": "Method not allowed"}, event=event
+        )
 
     query = event.get("queryStringParameters") or {}
     landing_page = _parse_landing_page(query.get("landing_page"))
@@ -71,7 +80,9 @@ def handle_public_events(
             service_key=service_key,
         )
     # Keep a temporary alias for older consumers while "events" is canonical.
-    return json_response(200, {"events": items, "items": items}, event=event)
+    return public_cacheable_json_response(
+        200, {"events": items, "items": items}, event=event
+    )
 
 
 def handle_public_calendar_events_request(

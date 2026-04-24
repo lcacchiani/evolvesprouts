@@ -347,8 +347,9 @@ Requirements:
 - Download URLs returned to clients are CloudFront-signed URLs generated on
   demand by Lambda.
 - Share-token redirects and download-link JSON responses set strict no-store
-  cache headers, and API Gateway stage caching is explicitly disabled for
-  share/download GET routes to avoid stale signed-link responses.
+  cache headers. API Gateway stage caching is disabled for all routes; the
+  asset download CloudFront behaviors for share and email-download paths use
+  `CACHING_DISABLED` so freshly signed URLs are never served from an edge cache.
 - Share-token resolution on `/v1/assets/share/{token}` requires a request
   Referer/Origin domain that matches the share link's `allowed_domains` policy,
   blocking direct address-bar opens when no allowed source-domain signal is

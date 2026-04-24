@@ -9,7 +9,7 @@
     "cdk": "cdk",
     "synth": "cdk synth",
     "deploy": "cdk deploy",
-    "test:infra": "ts-node scripts/assert-existing-db.ts",
+    "test:infra": "ts-node --prefer-ts-exts scripts/assert-existing-db.ts && ts-node --prefer-ts-exts test/public-www-stack.test.ts && ts-node --prefer-ts-exts test/api-stack.test.ts",
     "test:admin-web-stack": "ts-node --prefer-ts-exts test/admin-web-stack.test.ts",
     "postinstall": "node scripts/patch-bundled-aws-cdk-lib-deps.js"
   },

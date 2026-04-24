@@ -444,6 +444,7 @@ def paginate_response(
     event: Mapping[str, Any],
     serializer: Callable[[Any], dict[str, Any]],
     extra_fields: Mapping[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build a standard paginated API response payload."""
     page_items = list(items[:limit])
@@ -460,6 +461,7 @@ def paginate_response(
         200,
         body,
         event=event,
+        headers=dict(headers) if headers is not None else None,
     )
 
 
