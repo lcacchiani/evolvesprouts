@@ -44,7 +44,7 @@ describe('ServiceDetailPanel', () => {
     });
   });
 
-  it('prefills create form from createPrefillFromService with draft title suffix and empty slug', async () => {
+  it('prefills create form from createPrefillFromService with draft title suffix and copied slug', async () => {
     const template = buildService({
       title: 'Original',
       slug: 'original-slug',
@@ -74,7 +74,7 @@ describe('ServiceDetailPanel', () => {
       expect(screen.getByLabelText('Title')).toHaveValue('Original (copy)');
     });
     expect(screen.getByLabelText('Service tier')).toHaveValue('tier-a');
-    expect(screen.getByLabelText('Referral slug')).toHaveValue('');
+    expect(screen.getByLabelText('Referral slug')).toHaveValue('original-slug');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Default price')).toHaveValue('88');

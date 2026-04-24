@@ -187,7 +187,7 @@ export function ServiceDetailPanel({
         setServiceForm({
           title: `${p.title} (copy)`,
           description: p.description ?? '',
-          slug: '',
+          slug: p.slug ?? '',
           deliveryMode: p.deliveryMode,
           status: 'draft',
         });
