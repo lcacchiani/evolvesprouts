@@ -1037,6 +1037,10 @@ paths:
         - name: cursor
           in: query
           required: false
+          description: |
+            Opaque continuation token from `next_cursor` on the previous page.
+            Service list results are ordered by title ascending, then id ascending;
+            the cursor encodes the last row's title and id for that ordering.
           schema:
             type: string
         - name: service_type

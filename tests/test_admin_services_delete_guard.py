@@ -115,7 +115,7 @@ def test_list_services_includes_instance_counts(monkeypatch: Any, api_gateway_ev
             "service_type": None,
             "status": None,
             "search": None,
-            "cursor_created_at": None,
+            "cursor_title": None,
             "cursor_id": None,
         },
     )

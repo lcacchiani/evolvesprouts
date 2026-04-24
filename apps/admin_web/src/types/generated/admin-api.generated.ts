@@ -1363,6 +1363,11 @@ export interface paths {
             parameters: {
                 query?: {
                     limit?: number;
+                    /**
+                     * @description Opaque continuation token from `next_cursor` on the previous page.
+                     *     Service list results are ordered by title ascending, then id ascending;
+                     *     the cursor encodes the last row's title and id for that ordering.
+                     */
                     cursor?: string;
                     service_type?: components["schemas"]["ServiceType"];
                     status?: components["schemas"]["ServiceStatus"];

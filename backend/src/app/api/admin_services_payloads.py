@@ -14,7 +14,10 @@ from app.api.admin_validators import (
     parse_optional_service_instance_slug,
     parse_optional_service_instance_slug_like_text,
 )
-from app.api.admin_services_cursor import parse_created_cursor
+from app.api.admin_services_cursor import (
+    parse_created_cursor,
+    parse_service_list_cursor,
+)
 from app.api.admin_service_instance_partners import parse_partner_organization_ids
 from app.api.admin_services_payload_utils import (
     has_any_field,
@@ -122,10 +125,10 @@ def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for service list endpoint."""
     logger.debug("Parsing service list filters")
     limit = _parse_limit(query_param(event, "limit"))
-    cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    cursor_title, cursor_id = parse_service_list_cursor(query_param(event, "cursor"))
     return {
         "limit": limit,
-        "cursor_created_at": cursor_created_at,
+        "cursor_title": cursor_title,
         "cursor_id": cursor_id,
         "service_type": parse_optional_enum(
             query_param(event, "service_type"),

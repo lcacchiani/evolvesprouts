@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
@@ -48,10 +47,10 @@ class ServiceRepository(BaseRepository[Service]):
         service_type: ServiceType | None = None,
         status: ServiceStatus | None = None,
         search: str | None = None,
-        cursor_created_at: datetime | None = None,
+        cursor_title: str | None = None,
         cursor_id: UUID | None = None,
     ) -> list[Service]:
-        """List services with filters and stable cursor pagination."""
+        """List services with filters and stable cursor pagination (title asc, id asc)."""
         statement = select(Service).options(
             joinedload(Service.training_course_details),
             joinedload(Service.event_details),
@@ -71,19 +70,16 @@ class ServiceRepository(BaseRepository[Service]):
                     Service.description.ilike(pattern, escape="\\"),
                 )
             )
-        if cursor_created_at is not None and cursor_id is not None:
+        if cursor_title is not None and cursor_id is not None:
             statement = statement.where(
                 or_(
-                    Service.created_at < cursor_created_at,
-                    and_(
-                        Service.created_at == cursor_created_at,
-                        Service.id < cursor_id,
-                    ),
+                    Service.title > cursor_title,
+                    and_(Service.title == cursor_title, Service.id > cursor_id),
                 )
             )
-        statement = statement.order_by(
-            Service.created_at.desc(), Service.id.desc()
-        ).limit(limit)
+        statement = statement.order_by(Service.title.asc(), Service.id.asc()).limit(
+            limit
+        )
         return list(self._session.execute(statement).unique().scalars().all())
 
     def count_services(
