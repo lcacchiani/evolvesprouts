@@ -10,7 +10,8 @@ export function buildConsultationsBookingModalPayload(
   reservation: ConsultationsBookingReservationContent,
   locale: Locale,
 ): ConsultationEventBookingModalPayload {
-  const tierId = reservation.bookingTier;
+  const tierId: ConsultationsBookingModalTierId =
+    reservation.bookingTier === 'deepDive' ? 'deepDive' : 'essentials';
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
