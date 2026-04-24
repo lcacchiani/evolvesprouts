@@ -68,14 +68,27 @@ export async function computeVendorSpendInDefaultCurrencyByVendorId(
   return totals;
 }
 
+const CURRENCY_AMOUNT_FORMAT_OPTIONS: Intl.NumberFormatOptions = {
+  style: 'currency',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+};
+
+/**
+ * Format a numeric amount as currency (symbol + grouped integer part + two fraction digits).
+ * HKD uses `en-HK` like the Vendors "Total spend" column; other ISO 4217 codes use `en-GB`
+ * so USD is shown as `US$` rather than ambiguous `$` under default locale.
+ */
+export function formatAmountInCurrency(value: number, currencyCode: string): string {
+  const code = currencyCode.trim().toUpperCase();
+  const locale = code === 'HKD' ? 'en-HK' : 'en-GB';
+  return new Intl.NumberFormat(locale, {
+    ...CURRENCY_AMOUNT_FORMAT_OPTIONS,
+    currency: code,
+  }).format(value);
+}
+
 /** Format a numeric amount using the admin default display currency. */
 export function formatAmountInDefaultCurrency(value: number): string {
-  const code = getAdminDefaultCurrencyCode();
-  const locale = code === 'HKD' ? 'en-HK' : undefined;
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: code,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  return formatAmountInCurrency(value, getAdminDefaultCurrencyCode());
 }

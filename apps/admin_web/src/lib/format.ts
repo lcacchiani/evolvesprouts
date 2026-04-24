@@ -1,4 +1,5 @@
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { formatAmountInCurrency } from '@/lib/vendor-spend';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 import type { LocationSummary, ServiceSummary } from '@/types/services';
 
@@ -126,14 +127,27 @@ export function formatEnumLabel(value: string): string {
   return toTitleCase(value.toLowerCase());
 }
 
-function appendCurrency(amount: string, currencyCode: string | null | undefined): string {
-  const cur = currencyCode?.trim() ?? '';
-  return cur ? `${amount} ${cur}` : amount;
+function parseDecimalAmountString(raw: string | null | undefined): number | null {
+  if (raw == null) {
+    return null;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const n = Number.parseFloat(trimmed);
+  return Number.isFinite(n) ? n : null;
+}
+
+function resolveIsoCurrencyCode(code: string | null | undefined): string {
+  const trimmed = code?.trim().toUpperCase() ?? '';
+  return trimmed.length === 3 ? trimmed : getAdminDefaultCurrencyCode();
 }
 
 /**
  * One-line default pricing for the admin services list (training/event default price;
- * consultation Free, hourly rate, or package price).
+ * consultation Free, hourly rate, or package price). Amounts use the same currency
+ * formatting as the Vendors total spend column ({@link formatAmountInCurrency}).
  */
 export function formatServiceListPriceLabel(service: ServiceSummary): string {
   if (service.serviceType === 'training_course') {
@@ -141,22 +155,22 @@ export function formatServiceListPriceLabel(service: ServiceSummary): string {
     if (!d) {
       return '—';
     }
-    const price = d.defaultPrice?.trim() ?? '';
-    if (!price) {
+    const amount = parseDecimalAmountString(d.defaultPrice);
+    if (amount == null) {
       return '—';
     }
-    return appendCurrency(price, d.defaultCurrency);
+    return formatAmountInCurrency(amount, resolveIsoCurrencyCode(d.defaultCurrency));
   }
   if (service.serviceType === 'event') {
     const d = service.eventDetails;
     if (!d) {
       return '—';
     }
-    const price = d.defaultPrice?.trim() ?? '';
-    if (!price) {
+    const amount = parseDecimalAmountString(d.defaultPrice);
+    if (amount == null) {
       return '—';
     }
-    return appendCurrency(price, d.defaultCurrency);
+    return formatAmountInCurrency(amount, resolveIsoCurrencyCode(d.defaultCurrency));
   }
   if (service.serviceType === 'consultation') {
     const d = service.consultationDetails;
@@ -167,23 +181,23 @@ export function formatServiceListPriceLabel(service: ServiceSummary): string {
       return 'Free';
     }
     if (d.pricingModel === 'hourly') {
-      const rate = d.defaultHourlyRate?.trim() ?? '';
-      if (!rate) {
+      const amount = parseDecimalAmountString(d.defaultHourlyRate);
+      if (amount == null) {
         return '—';
       }
-      return `${appendCurrency(rate, d.defaultCurrency)} / hr`;
+      const formatted = formatAmountInCurrency(amount, resolveIsoCurrencyCode(d.defaultCurrency));
+      return `${formatted} / hr`;
     }
     if (d.pricingModel === 'package') {
-      const pkg = d.defaultPackagePrice?.trim() ?? '';
-      if (!pkg) {
+      const amount = parseDecimalAmountString(d.defaultPackagePrice);
+      if (amount == null) {
         return '—';
       }
-      const cur = d.defaultCurrency?.trim() ?? '';
-      const base = cur ? `${pkg} ${cur}` : pkg;
+      const formatted = formatAmountInCurrency(amount, resolveIsoCurrencyCode(d.defaultCurrency));
       if (typeof d.defaultPackageSessions === 'number' && d.defaultPackageSessions > 0) {
-        return `${base} (${d.defaultPackageSessions} sessions)`;
+        return `${formatted} (${d.defaultPackageSessions} sessions)`;
       }
-      return base;
+      return formatted;
     }
     return '—';
   }

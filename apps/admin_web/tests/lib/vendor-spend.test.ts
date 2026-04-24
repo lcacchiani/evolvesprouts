@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { clearCurrencyConversionRateCacheForTests } from '@/lib/currency-converter';
-import { computeVendorSpendInDefaultCurrencyByVendorId } from '@/lib/vendor-spend';
+import {
+  computeVendorSpendInDefaultCurrencyByVendorId,
+  formatAmountInCurrency,
+  formatAmountInDefaultCurrency,
+} from '@/lib/vendor-spend';
 import type { Expense } from '@/types/expenses';
 
 function baseExpense(overrides: Partial<Expense>): Expense {
@@ -34,6 +38,22 @@ function baseExpense(overrides: Partial<Expense>): Expense {
     ...overrides,
   };
 }
+
+describe('formatAmountInCurrency', () => {
+  it('matches HKD vendor spend style (en-HK, thousands, two decimals)', () => {
+    expect(formatAmountInCurrency(1234.56, 'HKD')).toBe('HK$1,234.56');
+  });
+
+  it('formats non-HKD ISO codes with en-GB (e.g. USD as US$)', () => {
+    expect(formatAmountInCurrency(50, 'USD')).toBe('US$50.00');
+  });
+});
+
+describe('formatAmountInDefaultCurrency', () => {
+  it('delegates to admin default currency', () => {
+    expect(formatAmountInDefaultCurrency(1234.56)).toBe('HK$1,234.56');
+  });
+});
 
 describe('computeVendorSpendInDefaultCurrencyByVendorId', () => {
   beforeEach(() => {
