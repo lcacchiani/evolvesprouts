@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -177,7 +177,7 @@ def _resolve_primary_location(
 
 def _resolve_primary_price(
     instance: ServiceInstance,
-) -> tuple[float | None, str | None]:
+) -> tuple[int | None, str | None]:
     # Consultation is not returned by list_public_offerings; if serialized elsewhere,
     # price/currency are intentionally omitted (no training_details / ticket path).
     service = instance.service
@@ -188,15 +188,17 @@ def _resolve_primary_price(
                 key=lambda tier: (tier.sort_order, tier.created_at, tier.id),
             )
             selected = sorted_tiers[0]
-            return _decimal_to_float(selected.price), selected.currency
+            return _decimal_to_int_price(selected.price), selected.currency
         details = service.event_details
         if details is not None and details.default_price is not None:
-            return _decimal_to_float(details.default_price), details.default_currency
+            return _decimal_to_int_price(
+                details.default_price
+            ), details.default_currency
         return None, None
     if service.service_type == ServiceType.TRAINING_COURSE:
         td = instance.training_details
         if td is not None:
-            return _decimal_to_float(td.price), td.currency
+            return _decimal_to_int_price(td.price), td.currency
         return None, None
     return None, None
 
@@ -240,6 +242,33 @@ def _resolve_partners(instance: ServiceInstance) -> list[str]:
 
 def _resolve_external_url(instance: ServiceInstance) -> str | None:
     return instance.external_url or instance.eventbrite_event_url or None
+
+
+def _derive_training_service_tier_from_instance_slug(
+    instance_slug: str | None,
+    service_slug: str | None,
+) -> str | None:
+    """Infer age tier from instance slug when parent ``services.service_tier`` is unset."""
+    if not instance_slug or service_slug != "my-best-auntie":
+        return None
+    prefix = "my-best-auntie-"
+    if not instance_slug.startswith(prefix):
+        return None
+    rest = instance_slug[len(prefix) :]
+    for tier in ("0-1", "1-3", "3-6"):
+        if rest.startswith(f"{tier}-"):
+            return tier
+    return None
+
+
+def _resolve_public_calendar_service_tier(instance: ServiceInstance) -> str | None:
+    service = instance.service
+    if service.service_tier is not None:
+        return service.service_tier
+    return _derive_training_service_tier_from_instance_slug(
+        instance.slug,
+        getattr(service, "slug", None),
+    )
 
 
 def _serialize_public_event(
@@ -290,7 +319,6 @@ def _serialize_public_event(
     )
 
     payload: dict[str, Any] = {
-        "id": instance.slug or str(instance.id),
         "service_instance_id": str(instance.id),
         "service_type": service.service_type.value,
         "title": title,
@@ -326,8 +354,7 @@ def _serialize_public_event(
         payload["slug"] = instance.slug
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
-    if service.service_tier is not None:
-        payload["service_tier"] = service.service_tier
+    payload["service_tier"] = _resolve_public_calendar_service_tier(instance)
     if instance.cohort is not None:
         payload["cohort"] = instance.cohort
 
@@ -339,10 +366,11 @@ def _serialize_public_event(
     return payload
 
 
-def _decimal_to_float(value: Decimal | None) -> float | None:
+def _decimal_to_int_price(value: Decimal | None) -> int | None:
     if value is None:
         return None
-    return float(value)
+    quantized = value.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return int(quantized)
 
 
 def _clean_text(value: str | None) -> str | None:

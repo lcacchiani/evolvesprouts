@@ -461,7 +461,10 @@ function buildMyBestAuntieBookingModalPayload(
   record: Record<string, unknown>,
   locale: Locale,
 ): MyBestAuntieBookingModalPayload | null {
-  const id = readCandidateText(record, ['id', 'eventId', 'slug']) ?? '';
+  const id =
+    readCandidateText(record, ['id', 'eventId', 'slug']) ??
+    readCandidateText(record, ['service_instance_id', 'service_instance_uuid']) ??
+    '';
   const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
   const cohortValue = readCandidateText(record, ['cohort']) ?? '';
   if (!id || !ageGroup || !cohortValue) {

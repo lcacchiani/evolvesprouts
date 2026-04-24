@@ -109,7 +109,8 @@ their primary responsibilities.
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
   **training_course** `service_instances` for published services; consultation
   is intentionally excluded. Each item includes `service_type`,
-  `service_instance_id`, `partners`, optional `service_tier` (from parent service) / `cohort`,
+  `service_instance_id` (stable id; no separate `id` field), `partners`, `service_tier`
+  (from parent service, or inferred from instance slug for My Best Auntie) / `cohort`,
   `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.slug` is
