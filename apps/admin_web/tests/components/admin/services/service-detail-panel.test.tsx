@@ -207,34 +207,41 @@ describe('ServiceDetailPanel', () => {
     expect(editModeServiceType).toHaveValue('consultation');
   });
 
-  it('lays out event fields in one row with delivery mode and omits placeholder pricing', async () => {
+  it('lays out event fields: Row1 delivery/tier/booking/cover; Row2 category/price/currency/location', async () => {
     const user = userEvent.setup();
-    const onUpdate = vi.fn();
-    const onCreate = vi.fn();
-    const onUploadCover = vi.fn();
-    const onCancelSelection = vi.fn();
 
     render(
       <ServiceDetailPanel
         service={null}
         isLoading={false}
         error=''
-        onCancelSelection={onCancelSelection}
-        onCreate={onCreate}
-        onUpdate={onUpdate}
-        onUploadCover={onUploadCover}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
       />
     );
 
     await user.selectOptions(screen.getByLabelText('Type'), 'event');
 
-    expect(screen.getByLabelText('Delivery mode')).toBeInTheDocument();
-    expect(screen.getByLabelText('Event category')).toBeInTheDocument();
-    expect(screen.getByLabelText('Booking system')).toBeInTheDocument();
-    expect(screen.getByLabelText('Cover file name')).toBeInTheDocument();
+    const delivery = screen.getByLabelText('Delivery mode');
+    const tier = screen.getByLabelText('Service tier');
+    const booking = screen.getByLabelText('Booking system');
+    const cover = screen.getByLabelText('Cover file name');
+    expect(delivery.compareDocumentPosition(tier) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tier.compareDocumentPosition(booking) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(booking.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const category = screen.getByLabelText('Event category');
+    const defaultPrice = screen.getByLabelText('Default price');
+    const currency = screen.getByLabelText('Currency');
+    const location = screen.getByLabelText('Default location');
+    expect(category.compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(defaultPrice.compareDocumentPosition(currency) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(currency.compareDocumentPosition(location) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
     expect(screen.queryAllByLabelText('Booking system')).toHaveLength(1);
     expect(screen.queryByText('Pricing unit')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Default price')).toBeInTheDocument();
   });
 
   it('labels training course default amount as Default price', async () => {
@@ -256,7 +263,7 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Default price')).toBeInTheDocument();
   });
 
-  it('shows consultation Row D/E fields without Calendly', async () => {
+  it('shows consultation fields without Calendly; max group size after group format', async () => {
     const user = userEvent.setup();
     render(
       <ServiceDetailPanel
@@ -272,6 +279,8 @@ describe('ServiceDetailPanel', () => {
     await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
     expect(screen.getByLabelText('Consultation format')).toBeInTheDocument();
     expect(screen.getByLabelText('Pricing model')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Max group size')).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('Consultation format'), 'group');
     expect(screen.getByLabelText('Max group size')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Calendly/i)).not.toBeInTheDocument();
   });
@@ -303,6 +312,8 @@ describe('ServiceDetailPanel', () => {
     expect(body.service_tier).toBe('ages-3-5');
     const defaultPrice = screen.getByLabelText('Default price');
     expect(tierInputs[0].compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const defaultLocation = screen.getByLabelText('Default location');
+    expect(defaultPrice.compareDocumentPosition(defaultLocation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('places service tier before default price for event and submits service_tier', async () => {
@@ -332,9 +343,11 @@ describe('ServiceDetailPanel', () => {
     expect(body.service_tier).toBe('spring-tier');
     const defaultPrice = screen.getByLabelText('Default price');
     expect(tierInputs[0].compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const defaultLocation = screen.getByLabelText('Default location');
+    expect(defaultPrice.compareDocumentPosition(defaultLocation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('consultation shows one currency control (Row D) and a service tier field', async () => {
+  it('consultation shows currency when hourly and a service tier field in Row1', async () => {
     const user = userEvent.setup();
     render(
       <ServiceDetailPanel
@@ -350,6 +363,8 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    expect(screen.queryByLabelText('Currency')).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('Pricing model'), 'hourly');
     expect(screen.getByLabelText('Currency')).toBeInTheDocument();
     expect(document.getElementById('service-tier-consultation')).not.toBeNull();
   });
@@ -420,5 +435,160 @@ describe('ServiceDetailPanel', () => {
     expect(onCreate).toHaveBeenCalled();
     const body = onCreate.mock.calls[0][0] as { location_id?: string | null };
     expect(body.location_id).toBe(uuid);
+  });
+
+  it('lays out training Row1/Row2 with expected fields and order', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+
+    const delivery = screen.getByLabelText('Delivery mode');
+    const tier = screen.getByLabelText('Service tier');
+    const booking = screen.getByLabelText('Booking system');
+    const cover = screen.getByLabelText('Cover file name');
+    expect(delivery.compareDocumentPosition(tier) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tier.compareDocumentPosition(booking) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(booking.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const pricingUnit = screen.getByLabelText('Pricing unit');
+    const defaultPrice = screen.getByLabelText('Default price');
+    const currency = screen.getByLabelText('Currency');
+    const location = screen.getByLabelText('Default location');
+    expect(pricingUnit.compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(defaultPrice.compareDocumentPosition(currency) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(currency.compareDocumentPosition(location) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('lays out consultation Row1 with delivery, tier, booking, cover', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+
+    const delivery = screen.getByLabelText('Delivery mode');
+    const tier = document.getElementById('service-tier-consultation');
+    expect(tier).not.toBeNull();
+    const booking = screen.getByLabelText('Booking system');
+    const cover = screen.getByLabelText('Cover file name');
+    expect(delivery.compareDocumentPosition(tier!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tier!.compareDocumentPosition(booking) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(booking.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('consultation pricing free hides price/currency/package sessions', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    await user.selectOptions(screen.getByLabelText('Pricing model'), 'free');
+    expect(screen.queryByLabelText('Hourly rate')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Package price')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Currency')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Package sessions')).not.toBeInTheDocument();
+  });
+
+  it('consultation pricing hourly shows hourly rate and currency; hides package fields', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    await user.selectOptions(screen.getByLabelText('Pricing model'), 'hourly');
+    expect(screen.getByLabelText('Hourly rate')).toBeInTheDocument();
+    expect(screen.getByLabelText('Currency')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Package price')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Package sessions')).not.toBeInTheDocument();
+  });
+
+  it('consultation pricing package shows package price, currency, sessions; hides hourly', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
+    await user.selectOptions(screen.getByLabelText('Pricing model'), 'package');
+    expect(screen.getByLabelText('Package price')).toBeInTheDocument();
+    expect(screen.getByLabelText('Currency')).toBeInTheDocument();
+    expect(screen.getByLabelText('Package sessions')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Hourly rate')).not.toBeInTheDocument();
+  });
+
+  it('default location select uses Select location placeholder', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={null}
+        locationOptions={[
+          {
+            id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            name: 'Venue A',
+            areaId: 'a',
+            address: null,
+            lat: null,
+            lng: null,
+            createdAt: null,
+            updatedAt: null,
+            lockedFromPartnerOrg: false,
+            partnerOrganizationLabels: [],
+          },
+        ]}
+        isLoadingLocations={false}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />
+    );
+    await user.selectOptions(screen.getByLabelText('Type'), 'training_course');
+    const select = screen.getByLabelText('Default location') as HTMLSelectElement;
+    const placeholder = Array.from(select.options).find((o) => o.value === '');
+    expect(placeholder?.textContent).toBe('Select location');
+    expect(placeholder?.textContent).not.toContain('optional');
   });
 });

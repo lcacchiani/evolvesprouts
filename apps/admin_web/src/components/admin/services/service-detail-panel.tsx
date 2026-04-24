@@ -21,9 +21,14 @@ import type { ServiceDeliveryMode } from '@/types/services';
 import type { LocationSummary, ServiceDetail, ServiceType } from '@/types/services';
 
 import {
+  ConsultationCurrencyControl,
+  ConsultationDurationControl,
+  ConsultationHourlyRateControl,
+  ConsultationMaxGroupSizeControl,
+  ConsultationPackagePriceControl,
+  ConsultationPackageSessionsControl,
+  ConsultationPricingModelControl,
   ConsultationServiceFormatField,
-  ConsultationServiceRowDFields,
-  ConsultationServiceRowEFields,
   type ConsultationFormState,
 } from './consultation-form-fields';
 import {
@@ -338,6 +343,36 @@ export function ServiceDetailPanel({
     </>
   );
 
+  const defaultLocationField = (
+    <div>
+      <Label htmlFor='service-default-location'>Default location</Label>
+      {hasLocationOptions || isLoadingLocations ? (
+        <Select
+          id='service-default-location'
+          value={selectedLocationValue}
+          onChange={(event) => setLocationId(event.target.value)}
+        >
+          <option value=''>{isLoadingLocations ? 'Loading locations...' : 'Select location'}</option>
+          {locationId && !locationExists ? <option value={locationId}>{locationId}</option> : null}
+          {locationOptions.map((location) => (
+            <option key={location.id} value={location.id}>
+              {formatLocationLabel(location)}
+            </option>
+          ))}
+        </Select>
+      ) : (
+        <Input
+          id='service-default-location'
+          value={locationId}
+          onChange={(event) => setLocationId(event.target.value)}
+          placeholder='Location UUID'
+          autoComplete='off'
+        />
+      )}
+      {locationError ? <p className='mt-1 text-xs text-red-600'>{locationError}</p> : null}
+    </div>
+  );
+
   const buildTypeSpecificPayload = (
     currentServiceType: ServiceType
   ):
@@ -603,110 +638,91 @@ export function ServiceDetailPanel({
           />
         </div>
 
-        <div>
-          <Label htmlFor='service-default-location'>Default location</Label>
-          {hasLocationOptions || isLoadingLocations ? (
-            <Select
-              id='service-default-location'
-              value={selectedLocationValue}
-              onChange={(event) => setLocationId(event.target.value)}
-            >
-              <option value=''>
-                {isLoadingLocations ? 'Loading locations...' : 'Select location (optional)'}
-              </option>
-              {locationId && !locationExists ? <option value={locationId}>{locationId}</option> : null}
-              {locationOptions.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {formatLocationLabel(location)}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <Input
-              id='service-default-location'
-              value={locationId}
-              onChange={(event) => setLocationId(event.target.value)}
-              placeholder='Location UUID'
-              autoComplete='off'
-            />
-          )}
-          {locationError ? <p className='mt-1 text-xs text-red-600'>{locationError}</p> : null}
-        </div>
-
         {serviceType === 'training_course' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             {deliveryModeSelect}
-            <TrainingPricingUnitControl value={trainingForm} onChange={setTrainingForm} />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {serviceType === 'event' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            {deliveryModeSelect}
-            <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='service-event-category' />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {serviceType === 'consultation' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            {deliveryModeSelect}
-            <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {serviceType === 'training_course' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <ServiceTierControl
               value={serviceTier}
               onChange={setServiceTier}
               id='service-tier-training'
               invalid={tierInvalid}
             />
+            {bookingAndCover}
+          </div>
+        ) : null}
+
+        {serviceType === 'training_course' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <TrainingPricingUnitControl value={trainingForm} onChange={setTrainingForm} />
             <TrainingPriceControl
               value={trainingForm}
               onChange={setTrainingForm}
               priceLabel='Default price'
             />
             <TrainingCurrencyControl value={trainingForm} onChange={setTrainingForm} />
-            <div aria-hidden className='hidden md:block' />
+            {defaultLocationField}
           </div>
         ) : null}
 
         {serviceType === 'event' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            {deliveryModeSelect}
             <ServiceTierControl
               value={serviceTier}
               onChange={setServiceTier}
               id='service-tier-event'
               invalid={tierInvalid}
             />
+            {bookingAndCover}
+          </div>
+        ) : null}
+
+        {serviceType === 'event' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='service-event-category' />
             <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
             <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
-            <div aria-hidden className='hidden md:block' />
+            {defaultLocationField}
+          </div>
+        ) : null}
+
+        {serviceType === 'consultation' ? (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+            {deliveryModeSelect}
+            <ServiceTierControl
+              value={serviceTier}
+              onChange={setServiceTier}
+              id='service-tier-consultation'
+              invalid={tierInvalid}
+            />
+            {bookingAndCover}
           </div>
         ) : null}
 
         {serviceType === 'consultation' ? (
           <>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationServiceRowDFields value={consultationForm} onChange={setConsultationForm} />
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-5'>
+              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
+              <ConsultationPricingModelControl value={consultationForm} onChange={setConsultationForm} />
+              {consultationForm.pricingModel === 'hourly' ? (
+                <ConsultationHourlyRateControl value={consultationForm} onChange={setConsultationForm} />
+              ) : null}
+              {consultationForm.pricingModel === 'package' ? (
+                <ConsultationPackagePriceControl value={consultationForm} onChange={setConsultationForm} />
+              ) : null}
+              {consultationForm.pricingModel !== 'free' ? (
+                <ConsultationCurrencyControl value={consultationForm} onChange={setConsultationForm} />
+              ) : null}
+              {defaultLocationField}
             </div>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationServiceRowEFields value={consultationForm} onChange={setConsultationForm} />
-            </div>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ServiceTierControl
-                value={serviceTier}
-                onChange={setServiceTier}
-                id='service-tier-consultation'
-                invalid={tierInvalid}
-              />
-              <div aria-hidden className='hidden md:block' />
-              <div aria-hidden className='hidden md:block' />
-              <div aria-hidden className='hidden md:block' />
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
+              <ConsultationDurationControl value={consultationForm} onChange={setConsultationForm} />
+              {consultationForm.pricingModel === 'package' ? (
+                <ConsultationPackageSessionsControl value={consultationForm} onChange={setConsultationForm} />
+              ) : null}
+              {consultationForm.consultationFormat !== 'one_on_one' ? (
+                <ConsultationMaxGroupSizeControl value={consultationForm} onChange={setConsultationForm} />
+              ) : null}
             </div>
           </>
         ) : null}
