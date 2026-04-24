@@ -14,3 +14,4 @@ export { default as PencilIcon } from './svg/pencil-icon.svg';
 export { default as ArrowRightIcon } from './svg/arrow-right-icon.svg';
 export { default as VendorInactiveIcon } from './svg/vendor-inactive-icon.svg';
 export { default as QrLinkIcon } from './svg/qr-link-icon.svg';
+export { default as WarningTriangleIcon } from './svg/warning-triangle-icon.svg';

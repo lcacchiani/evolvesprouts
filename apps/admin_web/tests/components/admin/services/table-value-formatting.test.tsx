@@ -19,6 +19,8 @@ const SERVICE_FIXTURE: ServiceSummary = {
   coverImageS3Key: null,
   deliveryMode: 'in_person',
   status: 'published',
+  serviceTier: null,
+  locationId: null,
   createdBy: 'admin-sub',
   createdAt: '2026-03-01T10:00:00Z',
   updatedAt: '2026-03-01T10:00:00Z',
@@ -102,7 +104,7 @@ const DISCOUNT_REFERRAL_FIXTURE: DiscountCode = {
 };
 
 describe('services tables value formatting', () => {
-  it('formats enum and date values in service list table rows', () => {
+  it('formats enum values in service list table rows', () => {
     render(
       <ServiceListPanel
         services={[SERVICE_FIXTURE]}
@@ -125,7 +127,31 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Training Course')).toBeInTheDocument();
     expect(within(table).getByText('Published')).toBeInTheDocument();
     expect(within(table).getByText('In Person')).toBeInTheDocument();
-    expect(within(table).getByText(formatDate(SERVICE_FIXTURE.createdAt))).toBeInTheDocument();
+  });
+
+  it('shows a warning icon next to status when the service is a draft', () => {
+    const draft: ServiceSummary = { ...SERVICE_FIXTURE, status: 'draft' };
+    render(
+      <ServiceListPanel
+        services={[draft]}
+        selectedServiceId={null}
+        filters={{ serviceType: '', status: '', search: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectService={vi.fn()}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDuplicateService={vi.fn()}
+        onDeleteService={vi.fn()}
+      />
+    );
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByRole('img', { name: 'Draft status' })).toBeInTheDocument();
+    expect(within(table).getByText('Draft')).toBeInTheDocument();
   });
 
   it('disables delete when the service has instances', () => {

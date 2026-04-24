@@ -129,7 +129,7 @@ def _list_services(event: Mapping[str, Any]) -> dict[str, Any]:
             service_type=filters["service_type"],
             status=filters["status"],
             search=filters["search"],
-            cursor_created_at=filters["cursor_created_at"],
+            cursor_title=filters["cursor_title"],
             cursor_id=filters["cursor_id"],
         )
         has_more = len(rows) > limit
