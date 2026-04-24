@@ -179,3 +179,46 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
     )
 
     assert captured["is_free"] is False
+
+
+def test_run_reservation_post_success_hooks_accepts_null_child_age_group(
+    monkeypatch: Any,
+) -> None:
+    """Confirmation email path accepts optional age group (event bookings)."""
+    from decimal import Decimal
+
+    from app.api import public_reservations as pr
+
+    captured: dict[str, object] = {}
+
+    def _fake_send(**kwargs: object) -> None:
+        captured.update(kwargs)
+
+    monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_booking_confirmation_email",
+        _fake_send,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.send_sales_form_recap_email",
+        MagicMock(),
+    )
+
+    pr._run_reservation_post_success_hooks(
+        {
+            "attendee_email": "j@example.com",
+            "attendee_name": "Jane Doe",
+            "child_age_group": None,
+            "payment_method": "bank_transfer",
+            "total_amount": Decimal("100"),
+            "course_label": "Course",
+            "locale": "en",
+            "stripe_payment_intent_id": None,
+        }
+    )
+
+    assert captured.get("age_group_label") is None

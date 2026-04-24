@@ -1217,7 +1217,9 @@ export function BookingReservationForm({
       attendeeEmail: reservationSummary.attendeeEmail,
       attendeePhone: reservationSummary.attendeePhone,
       attendeeCountry: reservationSummary.attendeeCountry,
-      childAgeGroup: reservationSummary.ageGroup ?? '',
+      ...(reservationSummary.ageGroup
+        ? { childAgeGroup: reservationSummary.ageGroup }
+        : {}),
       cohortDate: normalizedCohortDate,
       interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
       discountCode: discountRule?.code || undefined,

@@ -45,4 +45,26 @@ describe('reservations-data', () => {
       expectedSuccessStatuses: [200, 202],
     });
   });
+
+  it('submits reservation without childAgeGroup when omitted from payload', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ status: 'ok' });
+    const client = { request: requestSpy };
+
+    await submitReservation(client, {
+      payload: {
+        attendeeName: 'Test User',
+        attendeeEmail: 'test@example.com',
+        attendeePhone: '91234567',
+        cohortDate: '2026-04-08',
+        totalAmount: 100,
+        reservationPendingUntilPaymentConfirmed: false,
+        agreedToTermsAndConditions: true,
+        paymentMethod: 'free',
+      },
+      turnstileToken: 'mock-turnstile-token',
+    });
+
+    const call = requestSpy.mock.calls[0]?.[0] as { body: Record<string, unknown> };
+    expect(call.body).not.toHaveProperty('childAgeGroup');
+  });
 });

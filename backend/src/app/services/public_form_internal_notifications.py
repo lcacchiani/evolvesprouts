@@ -340,13 +340,19 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Attendee name: {payload.get('attendee_name', '')}",
         f"Attendee email: {payload.get('attendee_email', '')}",
         f"Telephone: {phone_display or '(not provided)'}",
-        f"Child age group: {payload.get('child_age_group', '')}",
-        f"Package: {payload.get('package_label', '') or '(not set)'}",
-        f"Month: {payload.get('month_label', '') or '(not set)'}",
-        f"Course: {payload.get('course_label', '')}",
-        f"Payment method: {payment_recap}",
-        f"Total amount: {total_recap}",
     ]
+    child_age_recap = str(payload.get("child_age_group") or "").strip()
+    if child_age_recap:
+        lines.append(f"Child age group: {child_age_recap}")
+    lines.extend(
+        [
+            f"Package: {payload.get('package_label', '') or '(not set)'}",
+            f"Month: {payload.get('month_label', '') or '(not set)'}",
+            f"Course: {payload.get('course_label', '')}",
+            f"Payment method: {payment_recap}",
+            f"Total amount: {total_recap}",
+        ]
+    )
     if payload.get("cohort_date"):
         lines.append(f"Cohort date: {payload['cohort_date']}")
     if payload.get("discount_code"):

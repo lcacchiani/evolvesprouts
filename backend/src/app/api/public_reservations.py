@@ -343,7 +343,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     phone_region, phone_national_number = validate_phone_fields(
         parse_region, attendee_phone
     )
-    child_age_group = _require_text(
+    child_age_group = _optional_text(
         body.get("childAgeGroup"),
         "childAgeGroup",
         _MAX_LABEL_LENGTH,

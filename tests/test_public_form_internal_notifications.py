@@ -226,6 +226,24 @@ def test_sales_recap_display_timezone_invalid_env_falls_back(
     assert "Submitted at: 2026-03-03 11:14:00 HKT" in "\n".join(lines)
 
 
+def test_build_reservation_recap_lines_omits_child_age_group_when_empty() -> None:
+    lines = n.build_reservation_recap_lines(
+        payload={
+            "attendee_name": "N",
+            "attendee_email": "n@example.com",
+            "attendee_phone": "1",
+            "child_age_group": None,
+            "package_label": "P",
+            "month_label": "M",
+            "course_label": "C",
+            "payment_method": "fps",
+            "total_amount": "100",
+        }
+    )
+    body = "\n".join(lines)
+    assert "Child age group" not in body
+
+
 def test_build_reservation_recap_lines_optional_fields() -> None:
     lines = n.build_reservation_recap_lines(
         payload={
