@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Tracks which item key was last copied successfully, clearing after `durationMs`.
- * Use with row-scoped copy buttons that show a brief success state.
+ * Tracks which item key last completed a brief-success action (copy, draft duplicate, etc.),
+ * clearing after `durationMs`. Use with row-scoped icon buttons that show a brief success state.
  */
 export function useCopyFeedback(durationMs = 1000) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

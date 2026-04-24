@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 import { CheckIcon, CopyIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,13 @@ export interface CopyFeedbackIconButtonProps {
   copiedTitle?: string;
   /** Visual variant when not showing success (default `secondary`). */
   idleVariant?: 'secondary' | 'outline';
+  /** Replaces the copy icon while idle (success still shows a check). */
+  idleIcon?: ReactNode;
   className?: string;
 }
 
 /**
- * Icon-only copy control: shows a green check briefly after `copied` is true,
+ * Icon-only control: shows a green check briefly after `copied` is true,
  * then callers clear via {@link useCopyFeedback}.
  */
 export function CopyFeedbackIconButton({
@@ -31,6 +33,7 @@ export function CopyFeedbackIconButton({
   idleTitle,
   copiedTitle,
   idleVariant = 'secondary',
+  idleIcon,
   className,
 }: CopyFeedbackIconButtonProps) {
   return (
@@ -48,7 +51,7 @@ export function CopyFeedbackIconButton({
       title={copied ? (copiedTitle ?? copiedLabel) : (idleTitle ?? idleLabel)}
       onClick={onClick}
     >
-      {copied ? <CheckIcon className='h-4 w-4' /> : <CopyIcon className='h-4 w-4' />}
+      {copied ? <CheckIcon className='h-4 w-4' /> : (idleIcon ?? <CopyIcon className='h-4 w-4' />)}
     </Button>
   );
 }

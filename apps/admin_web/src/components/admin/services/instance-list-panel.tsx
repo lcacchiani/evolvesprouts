@@ -35,7 +35,8 @@ export interface InstanceListPanelProps {
   isMutating: boolean;
   onSelectInstance: (instanceId: string) => void;
   onLoadMore: () => Promise<void> | void;
-  onDuplicateInstance: (instance: ServiceInstance) => Promise<void> | void;
+  /** Resolve true when the draft flow started (e.g. instance loaded); omit feedback on failure. */
+  onDuplicateInstance: (instance: ServiceInstance) => Promise<boolean> | boolean | void;
   onDeleteInstance: (instanceId: string, serviceId: string) => Promise<void>;
   /** When set, show a service filter above the table (empty value = all services). */
   serviceFilter?: {
@@ -78,6 +79,7 @@ export function InstanceListPanel({
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const { copiedKey: copiedInstanceId, markCopied: markInstanceIdCopied } = useCopyFeedback(1000);
+  const { copiedKey: duplicateDraftFeedbackId, markCopied: markDuplicateDraftFeedback } = useCopyFeedback(1000);
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, instanceId: string) => {
     if (event.target !== event.currentTarget) {
@@ -89,9 +91,12 @@ export function InstanceListPanel({
     }
   };
 
-  const handleDuplicateInstance = (instance: ServiceInstance, event: MouseEvent<HTMLButtonElement>) => {
+  const handleDuplicateInstance = async (instance: ServiceInstance, event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    void onDuplicateInstance(instance);
+    const started = await onDuplicateInstance(instance);
+    if (started === true) {
+      markDuplicateDraftFeedback(instance.id);
+    }
   };
 
   const handleDeleteInstance = async (
@@ -240,17 +245,17 @@ export function InstanceListPanel({
                       idleTitle='Copy instance UUID'
                       copiedTitle='Copied'
                     />
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='outline'
-                      onClick={(event) => handleDuplicateInstance(instance, event)}
+                    <CopyFeedbackIconButton
+                      copied={duplicateDraftFeedbackId === instance.id}
+                      idleVariant='outline'
+                      idleIcon={<DuplicateIcon className='h-4 w-4' />}
                       disabled={isMutating}
-                      aria-label='Duplicate instance as new row'
-                      title='Duplicate instance as new row'
-                    >
-                      <DuplicateIcon className='h-4 w-4' />
-                    </Button>
+                      onClick={(event) => void handleDuplicateInstance(instance, event)}
+                      idleLabel='Duplicate instance as new row'
+                      copiedLabel='Draft copy ready'
+                      idleTitle='Duplicate instance as new row'
+                      copiedTitle='Copied'
+                    />
                     <Button
                       type='button'
                       size='sm'
