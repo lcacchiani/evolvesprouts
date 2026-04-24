@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatAmountInDefaultCurrency } from '@/lib/vendor-spend';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -51,7 +50,6 @@ export function VendorsPanel({
   isVendorSpendLoading,
   vendorSpendError,
 }: VendorsPanelProps) {
-  const spendColumnLabel = `Total spend (${getAdminDefaultCurrencyCode()})`;
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -196,7 +194,7 @@ export function VendorsPanel({
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold text-right'>{spendColumnLabel}</th>
+              <th className='px-4 py-3 font-semibold text-right'>Total Spend</th>
               <th className='px-4 py-3 font-semibold text-right'>Operations</th>
             </tr>
           </AdminDataTableHead>
