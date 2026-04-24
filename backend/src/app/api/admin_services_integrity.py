@@ -28,7 +28,9 @@ def slug_tier_uniqueness_validation_error(
         message = (
             "Service slug and tier combination conflicts with an existing service."
         )
-    return ValidationError(message, field=SERVICE_SLUG_TIER_UNIQUE_FIELD, status_code=409)
+    return ValidationError(
+        message, field=SERVICE_SLUG_TIER_UNIQUE_FIELD, status_code=409
+    )
 
 
 def is_services_slug_tier_unique_violation(exc: IntegrityError) -> bool:
