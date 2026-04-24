@@ -48,7 +48,9 @@ def _event_details_summary(service: Service) -> dict[str, Any] | None:
     }
 
 
-def serialize_service_summary(service: Service) -> dict[str, Any]:
+def serialize_service_summary(
+    service: Service, *, instances_count: int
+) -> dict[str, Any]:
     """Serialize service list row payload."""
     logger.debug("Serializing service summary", extra={"service_id": str(service.id)})
     return {
@@ -66,6 +68,7 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
         "created_by": service.created_by,
         "created_at": service.created_at.isoformat() if service.created_at else None,
         "updated_at": service.updated_at.isoformat() if service.updated_at else None,
+        "instances_count": instances_count,
         "training_details": _training_details_summary(service),
         "event_details": _event_details_summary(service),
     }
@@ -73,7 +76,7 @@ def serialize_service_summary(service: Service) -> dict[str, Any]:
 
 def serialize_service_detail(service: Service) -> dict[str, Any]:
     """Serialize service detail payload with type-specific details."""
-    detail = serialize_service_summary(service)
+    detail = serialize_service_summary(service, instances_count=len(service.instances))
     detail["tag_ids"] = [str(tag.id) for tag in service.tags]
     detail["asset_ids"] = [str(asset.id) for asset in service.assets]
     detail["instances_count"] = len(service.instances)

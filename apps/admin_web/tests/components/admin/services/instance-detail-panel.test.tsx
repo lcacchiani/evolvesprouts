@@ -17,6 +17,7 @@ vi.mock('@/lib/entity-api', async () => {
 function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
   return {
     id: 'service-1',
+    instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
     slug: null,

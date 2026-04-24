@@ -96,6 +96,8 @@ export const ENROLLMENT_STATUSES = defineEnumValues<EnrollmentStatus>()(
 
 export interface ServiceSummary {
   id: string;
+  /** Number of instances for this service template (from API `instances_count`). */
+  instancesCount: number;
   serviceType: ServiceType;
   title: string;
   /** Lowercase referral slug from Aurora; null when unset. */
@@ -128,7 +130,6 @@ export interface ServiceSummary {
 export interface ServiceDetail extends ServiceSummary {
   tagIds: string[];
   assetIds: string[];
-  instancesCount: number;
   trainingDetails: {
     pricingUnit: TrainingPricingUnit;
     defaultPrice: string | null;

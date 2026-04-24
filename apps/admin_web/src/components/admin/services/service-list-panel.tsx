@@ -185,9 +185,17 @@ export function ServiceListPanel({
                       size='sm'
                       variant='danger'
                       onClick={(event) => void handleDeleteService(service, event)}
-                      disabled={isMutating}
-                      aria-label='Delete service'
-                      title='Delete service'
+                      disabled={isMutating || service.instancesCount > 0}
+                      aria-label={
+                        service.instancesCount > 0
+                          ? 'Cannot delete service while it has instances'
+                          : 'Delete service'
+                      }
+                      title={
+                        service.instancesCount > 0
+                          ? 'Remove all instances before deleting this service'
+                          : 'Delete service'
+                      }
                     >
                       <DeleteIcon className='h-4 w-4' />
                     </Button>
