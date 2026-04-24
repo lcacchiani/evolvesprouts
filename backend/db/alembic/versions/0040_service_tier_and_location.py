@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "0041_service_tier_location"
+revision = "0040_service_tier_location"
 down_revision = "0039_tags_archived_at"
 branch_labels = None
 depends_on = None

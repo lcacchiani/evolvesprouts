@@ -64,10 +64,19 @@ REFERRAL_DEFAULT_CURRENCY = "HKD"
 
 
 def parse_optional_service_tier(
-    value: object, *, field_name: str = "service_tier"
+    value: object, *, field: str = "service_tier"
 ) -> str | None:
     """Parse optional service tier slug; same rules as instance cohort-style labels."""
-    return parse_optional_service_instance_slug_like_text(value, field=field_name)
+    return parse_optional_service_instance_slug_like_text(value, field=field)
+
+
+def _reject_deprecated_instance_age_group(body: Mapping[str, Any]) -> None:
+    """Instance ``age_group`` was removed; tier lives on the parent service as ``service_tier``."""
+    if has_field(body, "age_group"):
+        raise ValidationError(
+            "age_group was removed; set service_tier on the parent service instead",
+            field="age_group",
+        )
 
 
 def parse_optional_service_slug(value: Any, field: str) -> str | None:
@@ -340,6 +349,7 @@ def parse_create_instance_payload(
     body: Mapping[str, Any], service: Service
 ) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
+    _reject_deprecated_instance_age_group(body)
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
         "slug": parse_optional_service_instance_slug(body.get("slug")),
@@ -389,6 +399,7 @@ def parse_update_instance_payload(
     """Parse and validate service-instance update payload."""
     if not body:
         raise ValidationError("At least one field is required", field="body")
+    _reject_deprecated_instance_age_group(body)
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)

@@ -112,8 +112,11 @@ def _resolve_primary_location(
         return slots[0].location
     if instance.location is not None:
         return instance.location
-    service = instance.service
-    return service.location if service is not None else None
+    # Public calendar query eagerly loads ``instance.service`` (and ``Service.location``).
+    service = getattr(instance, "service", None)
+    if service is None:
+        return None
+    return service.location
 
 
 def _resolve_primary_price(

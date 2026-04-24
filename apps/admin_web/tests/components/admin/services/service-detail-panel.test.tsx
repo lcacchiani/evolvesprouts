@@ -297,7 +297,7 @@ describe('ServiceDetailPanel', () => {
     expect(tierInputs[0].compareDocumentPosition(defaultPrice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('consultation tier row has tier, spacer column, default currency, spacer', async () => {
+  it('consultation shows one currency control (Row D) and a service tier field', async () => {
     const user = userEvent.setup();
     render(
       <ServiceDetailPanel
@@ -313,13 +313,8 @@ describe('ServiceDetailPanel', () => {
       />
     );
     await user.selectOptions(screen.getByLabelText('Type'), 'consultation');
-    const tierInputs = screen.getAllByLabelText('Service tier');
-    const currencyLabels = screen.getAllByLabelText('Default currency');
-    expect(tierInputs.length).toBeGreaterThan(0);
-    expect(currencyLabels.length).toBeGreaterThan(0);
-    const tier = tierInputs[tierInputs.length - 1];
-    const defaultCurrency = currencyLabels[currencyLabels.length - 1];
-    expect(tier.compareDocumentPosition(defaultCurrency) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByLabelText('Currency')).toBeInTheDocument();
+    expect(document.getElementById('service-tier-consultation')).not.toBeNull();
   });
 
   it('submits location_id when a default location is selected', async () => {

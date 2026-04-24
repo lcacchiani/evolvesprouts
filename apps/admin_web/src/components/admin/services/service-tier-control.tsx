@@ -8,9 +8,16 @@ export interface ServiceTierControlProps {
   onChange: (value: string) => void;
   id?: string;
   disabled?: boolean;
+  invalid?: boolean;
 }
 
-export function ServiceTierControl({ value, onChange, id = 'service-tier', disabled = false }: ServiceTierControlProps) {
+export function ServiceTierControl({
+  value,
+  onChange,
+  id = 'service-tier',
+  disabled = false,
+  invalid = false,
+}: ServiceTierControlProps) {
   return (
     <div>
       <Label htmlFor={id}>Service tier</Label>
@@ -25,6 +32,11 @@ export function ServiceTierControl({ value, onChange, id = 'service-tier', disab
         autoComplete='off'
       />
       <p className='mt-1 text-xs text-slate-500'>Lowercase letters, digits, and hyphens. Max 128 characters.</p>
+      {invalid ? (
+        <p className='mt-1 text-xs text-red-600'>
+          Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing hyphen).
+        </p>
+      ) : null}
     </div>
   );
 }

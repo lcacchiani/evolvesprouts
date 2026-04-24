@@ -8,7 +8,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.api.admin_services_payloads import parse_create_instance_payload
+from app.api.admin_services_payloads import (
+    parse_create_instance_payload,
+    parse_update_instance_payload,
+)
 from app.db.models import (
     Service,
     ServiceInstance,
@@ -74,6 +77,30 @@ def test_parse_create_instance_payload_rejects_invalid_cohort_field() -> None:
     with pytest.raises(ValidationError) as exc:
         parse_create_instance_payload(body, service)
     assert exc.value.field == "cohort"
+
+
+def test_parse_create_instance_payload_rejects_deprecated_age_group() -> None:
+    service = _minimal_training_service()
+    body = {
+        "age_group": "0-1",
+        "training_details": {
+            "training_format": "group",
+            "price": "10.00",
+            "currency": "HKD",
+            "pricing_unit": "per_person",
+        },
+    }
+    with pytest.raises(ValidationError) as exc:
+        parse_create_instance_payload(body, service)
+    assert exc.value.field == "age_group"
+
+
+def test_parse_update_instance_payload_rejects_deprecated_age_group() -> None:
+    service = _minimal_training_service()
+    body = {"status": "scheduled", "age_group": "0-1"}
+    with pytest.raises(ValidationError) as exc:
+        parse_update_instance_payload(body, service)
+    assert exc.value.field == "age_group"
 
 
 def test_parse_create_instance_payload_accepts_tag_ids() -> None:

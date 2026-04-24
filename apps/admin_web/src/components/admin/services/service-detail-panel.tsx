@@ -21,7 +21,6 @@ import type { ServiceDeliveryMode } from '@/types/services';
 import type { LocationSummary, ServiceDetail, ServiceType } from '@/types/services';
 
 import {
-  ConsultationServiceDefaultCurrencyField,
   ConsultationServiceFormatField,
   ConsultationServiceRowDFields,
   ConsultationServiceRowEFields,
@@ -238,6 +237,9 @@ export function ServiceDetailPanel({
     conflictingSlugNormalized !== null &&
     normalizedSlugInput === conflictingSlugNormalized;
 
+  const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
+  const tierInvalid = Boolean(tierTrimmedForValidation) && !SLUG_PATTERN.test(tierTrimmedForValidation);
+
   const deliveryModeSelect = (
     <div>
       <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
@@ -445,6 +447,7 @@ export function ServiceDetailPanel({
                     isLoading ||
                     !service ||
                     saveBlockedBySlugConflict ||
+                    tierInvalid ||
                     Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                   }
                   onClick={() => void submitUpdate()}
@@ -466,6 +469,7 @@ export function ServiceDetailPanel({
                 disabled={
                   isLoading ||
                   saveBlockedBySlugConflict ||
+                  tierInvalid ||
                   !serviceForm.title.trim() ||
                   Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                 }
@@ -603,7 +607,12 @@ export function ServiceDetailPanel({
 
         {serviceType === 'training_course' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <ServiceTierControl value={serviceTier} onChange={setServiceTier} id='service-tier-training' />
+            <ServiceTierControl
+              value={serviceTier}
+              onChange={setServiceTier}
+              id='service-tier-training'
+              invalid={tierInvalid}
+            />
             <TrainingPriceControl
               value={trainingForm}
               onChange={setTrainingForm}
@@ -616,7 +625,12 @@ export function ServiceDetailPanel({
 
         {serviceType === 'event' ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <ServiceTierControl value={serviceTier} onChange={setServiceTier} id='service-tier-event' />
+            <ServiceTierControl
+              value={serviceTier}
+              onChange={setServiceTier}
+              id='service-tier-event'
+              invalid={tierInvalid}
+            />
             <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
             <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
             <div aria-hidden className='hidden md:block' />
@@ -632,9 +646,14 @@ export function ServiceDetailPanel({
               <ConsultationServiceRowEFields value={consultationForm} onChange={setConsultationForm} />
             </div>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ServiceTierControl value={serviceTier} onChange={setServiceTier} id='service-tier-consultation' />
+              <ServiceTierControl
+                value={serviceTier}
+                onChange={setServiceTier}
+                id='service-tier-consultation'
+                invalid={tierInvalid}
+              />
               <div aria-hidden className='hidden md:block' />
-              <ConsultationServiceDefaultCurrencyField value={consultationForm} onChange={setConsultationForm} />
+              <div aria-hidden className='hidden md:block' />
               <div aria-hidden className='hidden md:block' />
             </div>
           </>

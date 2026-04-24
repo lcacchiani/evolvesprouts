@@ -447,10 +447,12 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 ### `services` + type-detail tables
 
 - `services` stores reusable templates (title/description/cover image, type,
-  delivery mode, status, optional `slug` for public referral URLs, optional
-  `booking_system` varchar(80) for an admin-visible booking-system label,
-  optional `service_tier` varchar(128) slug-like tier id shared by all instances,
-  optional `location_id` UUID FK to `locations.id` ON DELETE SET NULL as default venue).
+  delivery mode, status).
+- Optional `slug` for public referral URLs.
+- Optional `booking_system` varchar(80) for an admin-visible booking-system label.
+- Optional `service_tier` varchar(128): slug-like tier id shared by all instances.
+- Optional `location_id` UUID FK to `locations.id` ON DELETE SET NULL: default venue for
+  the template (instances and session slots may override).
 - Type-specific one-to-one extension tables:
   - `training_course_details`
   - `event_details` (includes optional `default_price` numeric(10,2) and
@@ -476,8 +478,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
     `eventbrite_retry_count`
 - Scheduling/detail tables:
-  - `instance_session_slots` (time blocks + optional location; public calendar location
-    display prefers slot location, then instance `location_id`, then parent `services.location_id`)
+  - `instance_session_slots` (time blocks + optional location). The public calendar feed
+    eager-loads `Service.location` only in `list_public_offerings`; venue resolution is
+    slot location, then instance `location_id`, then parent `services.location_id`.
   - `training_instance_details`
   - `event_ticket_tiers`
   - `consultation_instance_details` (Calendly event URL column removed in migration
