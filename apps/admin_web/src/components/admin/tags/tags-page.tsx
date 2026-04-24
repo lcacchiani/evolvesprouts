@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { DeleteIcon } from '@/components/icons/action-icons';
+import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import {
@@ -395,17 +395,21 @@ export function TagsPage() {
                       <Button
                         type='button'
                         size='sm'
-                        variant='secondary'
+                        variant='outline'
+                        className='h-8 min-w-8 px-0'
                         disabled={editorIsBusy || archiveBusyId === row.id}
                         onClick={() => void handleArchiveRow(row)}
+                        aria-label='Archive tag'
+                        title='Archive'
                       >
-                        {archiveBusyId === row.id ? '…' : 'Archive'}
+                        <ArchiveIcon className='h-4 w-4 shrink-0' aria-hidden />
                       </Button>
                     ) : null}
                     <Button
                       type='button'
                       size='sm'
                       variant='danger'
+                      className='h-8 min-w-8 px-0'
                       disabled={
                         editorIsBusy ||
                         deleteBusyId === row.id ||
@@ -428,7 +432,7 @@ export function TagsPage() {
                             : 'Delete tag'
                       }
                     >
-                      <DeleteIcon className='h-4 w-4' />
+                      <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                     </Button>
                   </div>
                 </td>
