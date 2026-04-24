@@ -53,6 +53,8 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
+  /** When set with `service` null, seed the create form from this template (UI-only duplicate). */
+  createPrefillFromService?: ServiceDetail | null;
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
   locationError?: string | null;
@@ -68,6 +70,7 @@ type DiscountUsageLoadState = 'idle' | 'loading' | 'ok' | 'error';
 
 export function ServiceDetailPanel({
   service,
+  createPrefillFromService = null,
   locationOptions = [],
   isLoadingLocations = false,
   locationError = null,
@@ -170,6 +173,55 @@ export function ServiceDetailPanel({
       if (cancelled) {
         return;
       }
+      if (!service && createPrefillFromService) {
+        const p = createPrefillFromService;
+        setServiceType(p.serviceType);
+        setBookingSystem(p.bookingSystem ?? '');
+        setServiceTier(p.serviceTier ?? '');
+        setLocationId(p.locationId ?? '');
+        setServiceForm({
+          title: `${p.title} (copy)`,
+          description: p.description ?? '',
+          slug: '',
+          deliveryMode: p.deliveryMode,
+          status: 'draft',
+        });
+        setTrainingForm(
+          p.trainingDetails
+            ? {
+                pricingUnit: p.trainingDetails.pricingUnit,
+                defaultPrice: p.trainingDetails.defaultPrice ?? '',
+                defaultCurrency: p.trainingDetails.defaultCurrency ?? 'HKD',
+              }
+            : DEFAULT_TRAINING_FORM
+        );
+        setEventForm(
+          p.eventDetails
+            ? {
+                eventCategory: p.eventDetails.eventCategory,
+                defaultPrice: p.eventDetails.defaultPrice ?? '',
+                defaultCurrency: p.eventDetails.defaultCurrency ?? 'HKD',
+              }
+            : DEFAULT_EVENT_FORM
+        );
+        setConsultationForm(
+          p.consultationDetails
+            ? {
+                consultationFormat: p.consultationDetails.consultationFormat,
+                maxGroupSize: p.consultationDetails.maxGroupSize?.toString() ?? '',
+                durationMinutes: p.consultationDetails.durationMinutes?.toString() ?? '60',
+                pricingModel: p.consultationDetails.pricingModel,
+                defaultHourlyRate: p.consultationDetails.defaultHourlyRate ?? '',
+                defaultPackagePrice: p.consultationDetails.defaultPackagePrice ?? '',
+                defaultPackageSessions: p.consultationDetails.defaultPackageSessions?.toString() ?? '',
+                defaultCurrency: p.consultationDetails.defaultCurrency ?? 'HKD',
+              }
+            : DEFAULT_CONSULTATION_FORM
+        );
+        setSlugConflictError('');
+        setConflictingSlugNormalized(null);
+        return;
+      }
       if (!service) {
         setServiceType('training_course');
         setServiceForm(DEFAULT_SERVICE_FORM);
@@ -220,7 +272,7 @@ export function ServiceDetailPanel({
     return () => {
       cancelled = true;
     };
-  }, [service]);
+  }, [service, createPrefillFromService]);
 
   const slugPayloadValue = useMemo(() => {
     const t = serviceForm.slug.trim().toLowerCase();

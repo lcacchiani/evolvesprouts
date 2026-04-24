@@ -115,6 +115,7 @@ describe('services tables value formatting', () => {
         onSelectService={vi.fn()}
         onFilterChange={vi.fn()}
         onLoadMore={vi.fn()}
+        onDuplicateService={vi.fn()}
         onDeleteService={vi.fn()}
       />
     );
@@ -139,6 +140,7 @@ describe('services tables value formatting', () => {
           isMutating={false}
           onSelectInstance={vi.fn()}
           onLoadMore={vi.fn()}
+          onDuplicateInstance={vi.fn()}
           onDeleteInstance={vi.fn()}
         />
         <DiscountCodesPanel

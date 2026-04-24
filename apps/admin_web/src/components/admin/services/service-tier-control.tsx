@@ -31,7 +31,6 @@ export function ServiceTierControl({
         maxLength={128}
         autoComplete='off'
       />
-      <p className='mt-1 text-xs text-slate-500'>Lowercase letters, digits, and hyphens. Max 128 characters.</p>
       {invalid ? (
         <p className='mt-1 text-xs text-red-600'>
           Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing hyphen).

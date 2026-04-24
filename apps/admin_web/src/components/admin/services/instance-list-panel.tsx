@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { DeleteIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { trackAdminAnalyticsEvent } from '@/lib/admin-analytics';
 import { tryCopyTextToClipboard } from '@/lib/clipboard';
@@ -35,6 +35,7 @@ export interface InstanceListPanelProps {
   isMutating: boolean;
   onSelectInstance: (instanceId: string) => void;
   onLoadMore: () => Promise<void> | void;
+  onDuplicateInstance: (instance: ServiceInstance) => Promise<void> | void;
   onDeleteInstance: (instanceId: string, serviceId: string) => Promise<void>;
   /** When set, show a service filter above the table (empty value = all services). */
   serviceFilter?: {
@@ -67,6 +68,7 @@ export function InstanceListPanel({
   isMutating,
   onSelectInstance,
   onLoadMore,
+  onDuplicateInstance,
   onDeleteInstance,
   serviceFilter,
   serviceTypeFilter,
@@ -85,6 +87,11 @@ export function InstanceListPanel({
       event.preventDefault();
       onSelectInstance(instanceId);
     }
+  };
+
+  const handleDuplicateInstance = (instance: ServiceInstance, event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onDuplicateInstance(instance);
   };
 
   const handleDeleteInstance = async (
@@ -233,6 +240,17 @@ export function InstanceListPanel({
                       idleTitle='Copy instance UUID'
                       copiedTitle='Copied'
                     />
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      onClick={(event) => handleDuplicateInstance(instance, event)}
+                      disabled={isMutating}
+                      aria-label='Duplicate instance as new row'
+                      title='Duplicate instance as new row'
+                    >
+                      <DuplicateIcon className='h-4 w-4' />
+                    </Button>
                     <Button
                       type='button'
                       size='sm'
