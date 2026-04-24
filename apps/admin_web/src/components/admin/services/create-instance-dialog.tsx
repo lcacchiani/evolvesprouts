@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { FormDialog } from '@/components/ui/form-dialog';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -30,11 +31,15 @@ import {
 import { SessionSlotEditor } from './session-slot-editor';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
+import { buildSessionSlotsUtcPayload } from '@/lib/format';
+
 type ApiSchemas = components['schemas'];
 
 export interface CreateInstanceDialogProps {
   open: boolean;
   serviceType: ServiceType;
+  /** Parent service default venue when the instance row has no location yet (matches instance panel). */
+  serviceDefaultLocationId?: string | null;
   isLoading: boolean;
   error: string;
   onClose: () => void;
@@ -44,6 +49,7 @@ export interface CreateInstanceDialogProps {
 export function CreateInstanceDialog({
   open,
   serviceType,
+  serviceDefaultLocationId = null,
   isLoading,
   error,
   onClose,
@@ -55,12 +61,24 @@ export function CreateInstanceDialog({
   const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
     DEFAULT_CONSULTATION_FORM
   );
+  const [sessionSlotsError, setSessionSlotsError] = useState('');
+
+  const effectiveSessionSlotDefaultLocationId = useMemo(
+    () => instanceForm.locationId.trim() || serviceDefaultLocationId?.trim() || null,
+    [instanceForm.locationId, serviceDefaultLocationId]
+  );
 
   const eventPriceMissing = serviceType === 'event' && !eventForm.defaultPrice.trim();
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
   const handleSubmit = async () => {
+    const slotsPayload = buildSessionSlotsUtcPayload(instanceForm.sessionSlots);
+    if (!slotsPayload.ok) {
+      setSessionSlotsError(slotsPayload.message);
+      return;
+    }
+    setSessionSlotsError('');
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
@@ -77,12 +95,7 @@ export function CreateInstanceDialog({
       external_url: instanceForm.externalUrl.trim() || null,
       partner_organization_ids:
         serviceType === 'event' ? instanceForm.partnerOrganizations.map((row) => row.id) : [],
-      session_slots: instanceForm.sessionSlots.map((slot, index) => ({
-        location_id: slot.locationId,
-        starts_at: slot.startsAt,
-        ends_at: slot.endsAt,
-        sort_order: slot.sortOrder ?? index,
-      })),
+      session_slots: slotsPayload.session_slots,
     };
 
     if (serviceType === 'training_course') {
@@ -179,9 +192,13 @@ export function CreateInstanceDialog({
       <div className='mt-3'>
         <SessionSlotEditor
           slots={instanceForm.sessionSlots}
-          defaultLocationId={instanceForm.locationId.trim() || null}
-          onChange={(sessionSlots) => setInstanceForm((prev) => ({ ...prev, sessionSlots }))}
+          defaultLocationId={effectiveSessionSlotDefaultLocationId}
+          onChange={(sessionSlots) => {
+            setSessionSlotsError('');
+            setInstanceForm((prev) => ({ ...prev, sessionSlots }));
+          }}
         />
+        {sessionSlotsError ? <AdminInlineError>{sessionSlotsError}</AdminInlineError> : null}
       </div>
     </FormDialog>
   );

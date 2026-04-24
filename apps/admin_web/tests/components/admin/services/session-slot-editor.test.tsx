@@ -13,16 +13,16 @@ describe('SessionSlotEditor', () => {
             id: null,
             instanceId: null,
             locationId: null,
-            startsAt: null,
-            endsAt: null,
+            startsAtLocal: null,
+            endsAtLocal: null,
             sortOrder: 0,
           },
           {
             id: null,
             instanceId: null,
             locationId: null,
-            startsAt: null,
-            endsAt: null,
+            startsAtLocal: null,
+            endsAtLocal: null,
             sortOrder: 1,
           },
         ]}
@@ -50,8 +50,8 @@ describe('SessionSlotEditor', () => {
             id: null,
             instanceId: null,
             locationId: null,
-            startsAt: null,
-            endsAt: null,
+            startsAtLocal: null,
+            endsAtLocal: null,
             sortOrder: 0,
           },
         ]}
@@ -64,8 +64,8 @@ describe('SessionSlotEditor', () => {
 
     expect(onChange).toHaveBeenCalled();
     const last = onChange.mock.calls.at(-1)?.[0]?.[0];
-    expect(last?.startsAt).toBe('2026-04-24T10:00');
-    expect(last?.endsAt).toBe('2026-04-24T12:00');
+    expect(last?.startsAtLocal).toBe('2026-04-24T10:00');
+    expect(last?.endsAtLocal).toBe('2026-04-24T12:00');
   });
 
   it('prefills slot location from defaultLocationId when start is set and slot has no location', async () => {
@@ -80,8 +80,8 @@ describe('SessionSlotEditor', () => {
             id: null,
             instanceId: null,
             locationId: null,
-            startsAt: null,
-            endsAt: null,
+            startsAtLocal: null,
+            endsAtLocal: null,
             sortOrder: 0,
           },
         ]}
@@ -94,7 +94,7 @@ describe('SessionSlotEditor', () => {
 
     const last = onChange.mock.calls.at(-1)?.[0]?.[0];
     expect(last?.locationId).toBe(venueId);
-    expect(last?.endsAt).toBe('2026-04-24T11:00');
+    expect(last?.endsAtLocal).toBe('2026-04-24T11:00');
   });
 
   it('add slot uses defaultLocationId for new row location', async () => {
@@ -116,8 +116,8 @@ describe('SessionSlotEditor', () => {
         id: null,
         instanceId: null,
         locationId: venueId,
-        startsAt: null,
-        endsAt: null,
+        startsAtLocal: null,
+        endsAtLocal: null,
         sortOrder: 0,
       },
     ]);

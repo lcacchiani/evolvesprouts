@@ -14,8 +14,12 @@ import {
   getContentLanguageOptions,
   getCurrencyOptions,
   matchAdminSelectableContentLanguage,
+  buildSessionSlotsUtcPayload,
+  mapSessionSlotsFromApiToForm,
   orderSessionSlotsForDisplay,
+  parseAdminDateTimeInputToIsoUtc,
   parseDatetimeLocalToIsoUtc,
+  sessionSlotApiTimesToFormLocals,
 } from '@/lib/format';
 import type { ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
 
@@ -287,5 +291,105 @@ describe('format helpers', () => {
   it('returns null for empty datetime-local input', () => {
     expect(parseDatetimeLocalToIsoUtc('')).toBeNull();
     expect(parseDatetimeLocalToIsoUtc('   ')).toBeNull();
+  });
+
+  it('parseDatetimeLocalToIsoUtc accepts only YYYY-MM-DDTHH:mm (rejects Z, offset, seconds)', () => {
+    expect(parseDatetimeLocalToIsoUtc('2026-06-10T09:15:00.000Z')).toBeNull();
+    expect(parseDatetimeLocalToIsoUtc('2026-06-10T09:15:00+08:00')).toBeNull();
+    expect(parseDatetimeLocalToIsoUtc('2026-06-10T09:15:30')).toBeNull();
+  });
+
+  it('parseAdminDateTimeInputToIsoUtc accepts wall format and RFC3339 with Z', () => {
+    const wall = '2026-06-10T09:15';
+    expect(parseAdminDateTimeInputToIsoUtc(wall)).toBe(parseDatetimeLocalToIsoUtc(wall));
+    expect(parseAdminDateTimeInputToIsoUtc('2026-06-10T09:15:00.000Z')).toMatch(/Z$/);
+  });
+
+  it('sessionSlotApiTimesToFormLocals keeps wall-clock strings and maps UTC ISO to local input', () => {
+    expect(sessionSlotApiTimesToFormLocals('2026-06-15T14:30', '2026-06-15T16:30')).toEqual({
+      startsAtLocal: '2026-06-15T14:30',
+      endsAtLocal: '2026-06-15T16:30',
+    });
+    const iso = '2026-06-01T08:30:00.000Z';
+    const expectedLocal = formatIsoForDatetimeLocalInput(iso);
+    expect(sessionSlotApiTimesToFormLocals(iso, null).startsAtLocal).toBe(expectedLocal);
+  });
+
+  it('mapSessionSlotsFromApiToForm converts API instants to datetime-local wall strings', () => {
+    const iso = '2026-06-01T08:30:00.000Z';
+    const slots: SessionSlot[] = [
+      {
+        id: 'a',
+        instanceId: 'b',
+        locationId: null,
+        startsAt: iso,
+        endsAt: iso,
+        sortOrder: 0,
+      },
+    ];
+    const local = formatIsoForDatetimeLocalInput(iso);
+    const mapped = mapSessionSlotsFromApiToForm(slots)[0];
+    expect(mapped.startsAtLocal).toBe(local);
+    expect(mapped.endsAtLocal).toBe(local);
+  });
+
+  it('buildSessionSlotsUtcPayload sends UTC ISO for wall-format rows and rejects offset ISO in form state', () => {
+    const startsLocal = '2026-06-10T09:15';
+    const endsLocal = '2026-06-10T11:15';
+    const ok = buildSessionSlotsUtcPayload([
+      {
+        id: null,
+        instanceId: null,
+        locationId: null,
+        startsAtLocal: startsLocal,
+        endsAtLocal: endsLocal,
+        sortOrder: 0,
+      },
+    ]);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) {
+      expect(ok.session_slots[0].starts_at).toBe(parseDatetimeLocalToIsoUtc(startsLocal));
+      expect(ok.session_slots[0].ends_at).toBe(parseDatetimeLocalToIsoUtc(endsLocal));
+    }
+    const bad = buildSessionSlotsUtcPayload([
+      {
+        id: null,
+        instanceId: null,
+        locationId: null,
+        startsAtLocal: '2026-06-10T06:30:00.000Z',
+        endsAtLocal: '2026-06-10T08:30:00.000Z',
+        sortOrder: 0,
+      },
+    ]);
+    expect(bad.ok).toBe(false);
+  });
+
+  it('buildSessionSlotsUtcPayload allows empty slot rows and rejects partial times', () => {
+    const empty = buildSessionSlotsUtcPayload([
+      {
+        id: null,
+        instanceId: null,
+        locationId: null,
+        startsAtLocal: null,
+        endsAtLocal: null,
+        sortOrder: 0,
+      },
+    ]);
+    expect(empty.ok).toBe(true);
+    if (empty.ok) {
+      expect(empty.session_slots[0].starts_at).toBeNull();
+      expect(empty.session_slots[0].ends_at).toBeNull();
+    }
+    const partial = buildSessionSlotsUtcPayload([
+      {
+        id: null,
+        instanceId: null,
+        locationId: null,
+        startsAtLocal: '2026-06-10T09:15',
+        endsAtLocal: null,
+        sortOrder: 0,
+      },
+    ]);
+    expect(partial.ok).toBe(false);
   });
 });

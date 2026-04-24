@@ -16,7 +16,7 @@ import type {
   ServiceSummary,
 } from '@/types/services';
 
-import type { SessionSlot } from '@/types/services';
+import type { SessionSlotFormRow } from '@/types/services';
 
 /** Same pattern as service instance cohorts; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
 export const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -41,7 +41,7 @@ export interface InstanceFormState {
   notes: string;
   externalUrl: string;
   partnerOrganizations: PartnerOrgRef[];
-  sessionSlots: SessionSlot[];
+  sessionSlots: SessionSlotFormRow[];
 }
 
 export interface InstanceFormFieldsProps {

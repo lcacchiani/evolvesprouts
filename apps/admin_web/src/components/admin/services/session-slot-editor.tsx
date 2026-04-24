@@ -9,26 +9,26 @@ import { Select } from '@/components/ui/select';
 import { formatLocationLabel } from '@/lib/format';
 import { addHoursToDatetimeLocal } from '@/lib/session-slot-datetime';
 
-import type { LocationSummary, SessionSlot } from '@/types/services';
+import type { LocationSummary, SessionSlotFormRow } from '@/types/services';
 
 export interface SessionSlotEditorProps {
-  slots: SessionSlot[];
+  slots: SessionSlotFormRow[];
   disabled?: boolean;
   locationOptions?: LocationSummary[];
   isLoadingLocations?: boolean;
   /** Instance (or inherited service) venue id used to prefill slot locations. */
   defaultLocationId?: string | null;
-  onChange: (slots: SessionSlot[]) => void;
+  onChange: (slots: SessionSlotFormRow[]) => void;
 }
 
-function emptySlot(sortOrder: number, defaultLocationId?: string | null): SessionSlot {
+function emptySlot(sortOrder: number, defaultLocationId?: string | null): SessionSlotFormRow {
   const locationId = defaultLocationId?.trim() || null;
   return {
     id: null,
     instanceId: null,
     locationId,
-    startsAt: null,
-    endsAt: null,
+    startsAtLocal: null,
+    endsAtLocal: null,
     sortOrder,
   };
 }
@@ -67,23 +67,23 @@ export function SessionSlotEditor({
                   type='datetime-local'
                   disabled={disabled}
                   aria-label='Start time'
-                  value={(slot.startsAt ?? '').slice(0, 16)}
+                  value={(slot.startsAtLocal ?? '').slice(0, 16)}
                   onChange={(event) => {
                     const next = [...slots];
-                    const startsAt = event.target.value || null;
-                    const startComplete = Boolean(startsAt && startsAt.length === 16);
-                    let { endsAt } = slot;
-                    if (!startsAt) {
-                      endsAt = null;
+                    const startsAtLocal = event.target.value || null;
+                    const startComplete = Boolean(startsAtLocal && startsAtLocal.length === 16);
+                    let { endsAtLocal } = slot;
+                    if (!startsAtLocal) {
+                      endsAtLocal = null;
                     } else if (startComplete) {
-                      const computedEnd = addHoursToDatetimeLocal(startsAt, 2);
-                      endsAt = computedEnd ?? endsAt;
+                      const computedEnd = addHoursToDatetimeLocal(startsAtLocal, 2);
+                      endsAtLocal = computedEnd ?? endsAtLocal;
                     }
                     let { locationId } = slot;
                     if (startComplete && trimmedDefaultLocation && !locationId?.trim()) {
                       locationId = trimmedDefaultLocation;
                     }
-                    next[index] = { ...slot, startsAt, endsAt, locationId };
+                    next[index] = { ...slot, startsAtLocal, endsAtLocal, locationId };
                     onChange(next);
                   }}
                 />
@@ -99,10 +99,10 @@ export function SessionSlotEditor({
                   type='datetime-local'
                   disabled={disabled}
                   aria-label='End time'
-                  value={(slot.endsAt ?? '').slice(0, 16)}
+                  value={(slot.endsAtLocal ?? '').slice(0, 16)}
                   onChange={(event) => {
                     const next = [...slots];
-                    next[index] = { ...slot, endsAt: event.target.value || null };
+                    next[index] = { ...slot, endsAtLocal: event.target.value || null };
                     onChange(next);
                   }}
                 />

@@ -3865,10 +3865,17 @@ components:
           type: string
           format: date-time
           nullable: true
+          description: >
+            Instant in UTC or with a numeric timezone offset (RFC 3339). On create/update
+            requests, each value must be timezone-aware (Z suffix or ±HH:MM offset); naive
+            date-time strings are rejected.
         ends_at:
           type: string
           format: date-time
           nullable: true
+          description: >
+            Same rules as starts_at. On create/update requests, must be timezone-aware
+            and strictly after starts_at.
         sort_order:
           type: integer
           nullable: true

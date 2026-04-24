@@ -4427,9 +4427,15 @@ export interface components {
             instance_id?: string | null;
             /** Format: uuid */
             location_id?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Instant in UTC or with a numeric timezone offset (RFC 3339). On create/update requests, each value must be timezone-aware (Z suffix or ±HH:MM offset); naive date-time strings are rejected.
+             */
             starts_at?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Same rules as starts_at. On create/update requests, must be timezone-aware and strictly after starts_at.
+             */
             ends_at?: string | null;
             sort_order?: number | null;
         };
