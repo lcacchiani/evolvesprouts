@@ -327,7 +327,7 @@ export function ServiceDetailPanel({
           id='service-booking-system'
           value={bookingSystem}
           onChange={(event) => setBookingSystem(event.target.value)}
-          title='e.g. training-booking'
+          placeholder='e.g. training-booking'
           maxLength={80}
           autoComplete='off'
         />
@@ -338,7 +338,7 @@ export function ServiceDetailPanel({
           id='service-detail-cover-file-name'
           value={coverFileName}
           onChange={(event) => setCoverFileName(event.target.value)}
-          title='e.g. cover-image.jpg'
+          placeholder='e.g. media-cover.jpg'
         />
       </div>
     </>
@@ -701,9 +701,6 @@ export function ServiceDetailPanel({
         {serviceType === 'consultation' ? (
           <>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
-            </div>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
               <ConsultationPricingModelControl value={consultationForm} onChange={setConsultationForm} />
               {consultationForm.pricingModel === 'hourly' ? (
                 <ConsultationHourlyRateControl value={consultationForm} onChange={setConsultationForm} />
@@ -717,6 +714,7 @@ export function ServiceDetailPanel({
               {defaultLocationField}
             </div>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
               <ConsultationDurationControl value={consultationForm} onChange={setConsultationForm} />
               {consultationForm.pricingModel === 'package' ? (
                 <ConsultationPackageSessionsControl value={consultationForm} onChange={setConsultationForm} />
