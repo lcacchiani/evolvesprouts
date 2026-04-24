@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
-import { DeleteIcon, DuplicateIcon, WarningTriangleIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { formatEnumLabel } from '@/lib/format';
@@ -170,16 +170,7 @@ export function ServiceListPanel({
               >
                 <td className='px-4 py-3'>{service.title}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
-                <td className='px-4 py-3'>
-                  <span className='inline-flex items-center gap-1.5'>
-                    {formatEnumLabel(service.status)}
-                    {service.status === 'draft' ? (
-                      <span className='inline-flex' role='img' aria-label='Draft status'>
-                        <WarningTriangleIcon className='h-4 w-4 shrink-0 text-amber-600' aria-hidden />
-                      </span>
-                    ) : null}
-                  </span>
-                </td>
+                <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
                 <td className='px-4 py-3 text-right'>
                   <div className='flex justify-end gap-2'>

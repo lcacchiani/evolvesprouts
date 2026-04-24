@@ -129,31 +129,6 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('In Person')).toBeInTheDocument();
   });
 
-  it('shows a warning icon next to status when the service is a draft', () => {
-    const draft: ServiceSummary = { ...SERVICE_FIXTURE, status: 'draft' };
-    render(
-      <ServiceListPanel
-        services={[draft]}
-        selectedServiceId={null}
-        filters={{ serviceType: '', status: '', search: '' }}
-        isLoading={false}
-        isLoadingMore={false}
-        hasMore={false}
-        error=''
-        isMutating={false}
-        onSelectService={vi.fn()}
-        onFilterChange={vi.fn()}
-        onLoadMore={vi.fn()}
-        onDuplicateService={vi.fn()}
-        onDeleteService={vi.fn()}
-      />
-    );
-
-    const table = screen.getByRole('table');
-    expect(within(table).getByRole('img', { name: 'Draft status' })).toBeInTheDocument();
-    expect(within(table).getByText('Draft')).toBeInTheDocument();
-  });
-
   it('disables delete when the service has instances', () => {
     const withInstances: ServiceSummary = { ...SERVICE_FIXTURE, instancesCount: 2 };
     render(

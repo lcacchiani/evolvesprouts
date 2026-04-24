@@ -1,5 +1,6 @@
 'use client';
 
+import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -117,7 +118,21 @@ export function ServiceFormFields({
           </Select>
         </div>
         <div>
-          <Label htmlFor='service-status'>Status</Label>
+          <div className='mb-1 flex min-h-[1.25rem] items-center gap-1.5'>
+            <Label htmlFor='service-status' className='mb-0'>
+              Status
+            </Label>
+            {value.status === 'draft' ? (
+              <span
+                className='inline-flex shrink-0 text-amber-600'
+                role='img'
+                aria-label='Draft — not published to the website'
+                title='Draft — not published to the website'
+              >
+                <WarningTriangleIcon className='h-4 w-4' aria-hidden />
+              </span>
+            ) : null}
+          </div>
           <Select
             id='service-status'
             value={value.status}
