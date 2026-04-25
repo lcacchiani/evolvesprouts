@@ -9,6 +9,7 @@ export interface ServiceTierControlProps {
   id?: string;
   disabled?: boolean;
   invalid?: boolean;
+  tierConflictError?: string;
 }
 
 export function ServiceTierControl({
@@ -17,6 +18,7 @@ export function ServiceTierControl({
   id = 'service-tier',
   disabled = false,
   invalid = false,
+  tierConflictError,
 }: ServiceTierControlProps) {
   return (
     <div>
@@ -36,6 +38,7 @@ export function ServiceTierControl({
           Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing hyphen).
         </p>
       ) : null}
+      {tierConflictError ? <p className='mt-1 text-xs text-red-600'>{tierConflictError}</p> : null}
     </div>
   );
 }

@@ -55,6 +55,14 @@ class Service(Base):
     __table_args__ = (
         Index("services_type_idx", "service_type"),
         Index("services_status_idx", "status"),
+        Index(
+            "services_slug_tier_unique_idx",
+            text("lower(slug)"),
+            text("lower(service_tier)"),
+            unique=True,
+            postgresql_where=text("slug IS NOT NULL"),
+            postgresql_nulls_not_distinct=True,
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(

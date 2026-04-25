@@ -57,6 +57,11 @@ type ApiSchemas = components['schemas'];
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+const SLUG_TIER_PAIR_CONFLICT_MSG =
+  'This slug and tier are already used by another service. Change the slug or tier.';
+const EMPTY_TIER_CONFLICT_MSG =
+  'Another service uses this slug with an empty tier. Add a tier or use a different slug.';
+
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
   /** When set with `service` null, seed the create form from this template (UI-only duplicate). */
@@ -142,8 +147,12 @@ export function ServiceDetailPanel({
     referencingCodeCount: number;
   } | null>(null);
   const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
-  const [slugConflictError, setSlugConflictError] = useState('');
-  const [conflictingSlugNormalized, setConflictingSlugNormalized] = useState<string | null>(null);
+  /** Last slug+tier 409 (`field: slug_tier`); messages shown only while inputs match this pair. */
+  const [slugTierConflict, setSlugTierConflict] = useState<{
+    slug: string;
+    tierNormalized: string;
+    variant: 'slug_tier_same' | 'slug_tier_empty';
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,8 +233,7 @@ export function ServiceDetailPanel({
               }
             : DEFAULT_CONSULTATION_FORM
         );
-        setSlugConflictError('');
-        setConflictingSlugNormalized(null);
+        setSlugTierConflict(null);
         return;
       }
       if (!service) {
@@ -237,8 +245,7 @@ export function ServiceDetailPanel({
         setBookingSystem('');
         setServiceTier('');
         setLocationId('');
-        setSlugConflictError('');
-        setConflictingSlugNormalized(null);
+        setSlugTierConflict(null);
         return;
       }
       setServiceType(service.serviceType);
@@ -272,8 +279,7 @@ export function ServiceDetailPanel({
         defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
         defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
       });
-      setSlugConflictError('');
-      setConflictingSlugNormalized(null);
+      setSlugTierConflict(null);
     });
     return () => {
       cancelled = true;
@@ -285,19 +291,61 @@ export function ServiceDetailPanel({
     return t.length ? t : null;
   }, [serviceForm.slug]);
 
+  const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
+  const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
+
+  const slugTierConflictActive = useMemo(() => {
+    if (!slugTierConflict) {
+      return false;
+    }
+    return (
+      normalizedSlugInput === slugTierConflict.slug &&
+      tierTrimmedForValidation === slugTierConflict.tierNormalized
+    );
+  }, [slugTierConflict, normalizedSlugInput, tierTrimmedForValidation]);
+
+  const slugConflictInline = useMemo(() => {
+    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_same') {
+      return undefined;
+    }
+    return SLUG_TIER_PAIR_CONFLICT_MSG;
+  }, [slugTierConflictActive, slugTierConflict]);
+
+  const tierConflictInline = useMemo(() => {
+    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_empty') {
+      return undefined;
+    }
+    return EMPTY_TIER_CONFLICT_MSG;
+  }, [slugTierConflictActive, slugTierConflict]);
+
   const hasLocationOptions = locationOptions.length > 0;
   const locationExists = locationOptions.some((entry) => entry.id === locationId);
   const selectedLocationValue = locationExists ? locationId : locationId || '';
   const showDefaultLocationField = serviceForm.deliveryMode !== 'online';
 
-  const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
-  const saveBlockedBySlugConflict =
-    Boolean(slugConflictError) &&
-    conflictingSlugNormalized !== null &&
-    normalizedSlugInput === conflictingSlugNormalized;
+  const saveBlockedByPairConflict = slugTierConflictActive;
 
-  const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
   const tierInvalid = Boolean(tierTrimmedForValidation) && !SLUG_PATTERN.test(tierTrimmedForValidation);
+
+  function applySlugTierConflictFromApiError(
+    caught: unknown,
+    pair: { slug: string | null; tierNormalized: string | null },
+  ): boolean {
+    if (!(caught instanceof AdminApiError) || caught.statusCode !== 409) {
+      return false;
+    }
+    const field = readAdminApiErrorField(caught);
+    if (field !== 'slug_tier') {
+      return false;
+    }
+    const tierNorm = pair.tierNormalized ?? '';
+    setSlugTierConflict({
+      slug: pair.slug ?? '',
+      tierNormalized: tierNorm,
+      variant: tierNorm.length > 0 ? 'slug_tier_same' : 'slug_tier_empty',
+    });
+    return true;
+  }
 
   const deliveryModeSelect = (
     <div>
@@ -457,6 +505,7 @@ export function ServiceDetailPanel({
       return;
     }
     const newSlug = slugTrimmed.toLowerCase() || null;
+    const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
     const oldSlug = (service.slug ?? '').trim().toLowerCase() || null;
     const ok = await confirmSlugChangeIfNeeded(newSlug, oldSlug);
     if (!ok) {
@@ -474,16 +523,9 @@ export function ServiceDetailPanel({
         status: serviceForm.status,
         ...buildTypeSpecificPayload(service.serviceType),
       });
-      setSlugConflictError('');
-      setConflictingSlugNormalized(null);
+      setSlugTierConflict(null);
     } catch (caught) {
-      if (
-        caught instanceof AdminApiError &&
-        caught.statusCode === 409 &&
-        readAdminApiErrorField(caught) === 'slug'
-      ) {
-        setSlugConflictError('Referral slug already in use. Choose another.');
-        setConflictingSlugNormalized(newSlug ?? '');
+      if (applySlugTierConflictFromApiError(caught, { slug: newSlug, tierNormalized: tierPayloadNormalized })) {
         return;
       }
       throw caught;
@@ -491,6 +533,7 @@ export function ServiceDetailPanel({
   }
 
   async function submitCreate() {
+    const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
     try {
       await onCreate({
         service_type: serviceType,
@@ -504,16 +547,14 @@ export function ServiceDetailPanel({
         status: serviceForm.status,
         ...buildTypeSpecificPayload(serviceType),
       });
-      setSlugConflictError('');
-      setConflictingSlugNormalized(null);
+      setSlugTierConflict(null);
     } catch (caught) {
       if (
-        caught instanceof AdminApiError &&
-        caught.statusCode === 409 &&
-        readAdminApiErrorField(caught) === 'slug'
+        applySlugTierConflictFromApiError(caught, {
+          slug: slugPayloadValue,
+          tierNormalized: tierPayloadNormalized,
+        })
       ) {
-        setSlugConflictError('Referral slug already in use. Choose another.');
-        setConflictingSlugNormalized(slugPayloadValue ?? '');
         return;
       }
       throw caught;
@@ -537,7 +578,7 @@ export function ServiceDetailPanel({
                   disabled={
                     isLoading ||
                     !service ||
-                    saveBlockedBySlugConflict ||
+                    saveBlockedByPairConflict ||
                     tierInvalid ||
                     Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
                   }
@@ -559,7 +600,7 @@ export function ServiceDetailPanel({
                 type='button'
                 disabled={
                   isLoading ||
-                  saveBlockedBySlugConflict ||
+                  saveBlockedByPairConflict ||
                   tierInvalid ||
                   !serviceForm.title.trim() ||
                   Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
@@ -598,19 +639,13 @@ export function ServiceDetailPanel({
           </div>
           <ServiceReferralSlugField
             value={serviceForm.slug}
-            onChange={(next) => {
-              if (next !== serviceForm.slug) {
-                setSlugConflictError('');
-                setConflictingSlugNormalized(null);
-              }
-              setServiceForm({ ...serviceForm, slug: next });
-            }}
+            onChange={(next) => setServiceForm({ ...serviceForm, slug: next })}
             slugUsageLoadError={
               discountUsageLoadState === 'error'
                 ? 'Could not load discount code usage. Try again later.'
                 : undefined
             }
-            slugConflictError={slugConflictError || undefined}
+            slugConflictError={slugConflictInline}
           />
           <div>
             <div className='relative mb-1'>
@@ -662,6 +697,7 @@ export function ServiceDetailPanel({
               onChange={setServiceTier}
               id='service-tier-training'
               invalid={tierInvalid}
+              tierConflictError={tierConflictInline}
             />
             {bookingAndCover}
           </div>
@@ -688,6 +724,7 @@ export function ServiceDetailPanel({
               onChange={setServiceTier}
               id='service-tier-event'
               invalid={tierInvalid}
+              tierConflictError={tierConflictInline}
             />
             {bookingAndCover}
           </div>
@@ -710,6 +747,7 @@ export function ServiceDetailPanel({
               onChange={setServiceTier}
               id='service-tier-consultation'
               invalid={tierInvalid}
+              tierConflictError={tierConflictInline}
             />
             {bookingAndCover}
           </div>

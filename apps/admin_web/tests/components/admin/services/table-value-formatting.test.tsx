@@ -137,7 +137,45 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Training Course')).toBeInTheDocument();
     expect(within(table).getByText('Published')).toBeInTheDocument();
     expect(within(table).getByText('In Person')).toBeInTheDocument();
-    expect(within(table).getByText('—')).toBeInTheDocument();
+    expect(within(table).getAllByText('—').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders Tier column after Title with tier value or em dash', () => {
+    const withTier: ServiceSummary = { ...SERVICE_FIXTURE, serviceTier: 'cohort-a' };
+    render(
+      <ServiceListPanel
+        services={[withTier]}
+        selectedServiceId={null}
+        filters={{ serviceType: '', status: '', search: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectService={vi.fn()}
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDuplicateService={vi.fn()}
+        onDeleteService={vi.fn()}
+      />
+    );
+
+    const headers = screen.getAllByRole('columnheader');
+    expect(headers.map((el) => el.textContent?.trim())).toEqual([
+      'Title',
+      'Tier',
+      'Type',
+      'Price',
+      'Status',
+      'Delivery',
+      'Operations',
+    ]);
+
+    const table = screen.getByRole('table');
+    const dataRow = screen.getByText('Service title').closest('tr');
+    expect(dataRow).toBeTruthy();
+    expect(within(dataRow as HTMLElement).getByText('cohort-a')).toBeInTheDocument();
+    expect(within(dataRow as HTMLElement).getAllByText('—').length).toBeGreaterThanOrEqual(1);
   });
 
   it('disables delete when the service has instances', () => {

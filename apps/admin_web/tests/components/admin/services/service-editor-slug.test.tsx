@@ -157,22 +157,25 @@ describe('ServiceDetailPanel referral slug', () => {
     });
   });
 
-  it('shows inline slug conflict error and blocks save until slug changes after 409', async () => {
+  it('shows inline slug+tier conflict error and blocks save until slug or tier changes after 409', async () => {
     const user = userEvent.setup();
     const onUpdate = vi
       .fn()
       .mockRejectedValueOnce(
         new AdminApiError({
           statusCode: 409,
-          payload: { error: 'Referral slug already in use', field: 'slug' },
-          message: 'Referral slug already in use',
+          payload: {
+            error: 'Another service already uses this referral slug with the same tier.',
+            field: 'slug_tier',
+          },
+          message: 'Conflict',
         }),
       )
       .mockResolvedValueOnce(undefined);
 
     render(
       <ServiceDetailPanel
-        service={buildService({ slug: 'old-slug' })}
+        service={buildService({ slug: 'old-slug', serviceTier: 'cohort-a' })}
         isLoading={false}
         error=''
         onCancelSelection={vi.fn()}
@@ -187,16 +190,50 @@ describe('ServiceDetailPanel referral slug', () => {
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
     expect(
-      await screen.findByText('Referral slug already in use. Choose another.'),
+      await screen.findByText(/This slug and tier are already used by another service/),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
 
-    fireEvent.change(slugInput, { target: { value: 'taken-slug-x' } });
+    const tierInput = screen.getByLabelText('Service tier');
+    fireEvent.change(tierInput, { target: { value: 'cohort-b' } });
     expect(screen.getByRole('button', { name: 'Update service' })).not.toBeDisabled();
 
     await user.click(screen.getByRole('button', { name: 'Update service' }));
     await vi.waitFor(() => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('shows empty-tier conflict on tier field when API returns slug_tier 409 for blank tier', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockRejectedValueOnce(
+      new AdminApiError({
+        statusCode: 409,
+        payload: {
+          error: 'Another service already uses this referral slug with an empty tier.',
+          field: 'slug_tier',
+        },
+        message: 'Conflict',
+      }),
+    );
+
+    render(
+      <ServiceDetailPanel
+        service={buildService({ slug: 'shared-slug', serviceTier: '' })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Update service' }));
+
+    expect(
+      await screen.findByText(/Another service uses this slug with an empty tier/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
   });
 });

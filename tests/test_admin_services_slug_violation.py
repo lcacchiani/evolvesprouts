@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from sqlalchemy.exc import IntegrityError
 
-from app.api.admin_services import _is_services_slug_unique_violation
+from app.api.admin_services_integrity import is_services_slug_tier_unique_violation
 
 
 def _make_integrity_error(*, constraint_name: str | None, message: str) -> IntegrityError:
@@ -19,31 +19,31 @@ def _make_integrity_error(*, constraint_name: str | None, message: str) -> Integ
     return IntegrityError(message, None, orig)
 
 
-def test_slug_violation_true_when_constraint_name_matches() -> None:
+def test_slug_tier_violation_true_when_constraint_name_matches() -> None:
     exc = _make_integrity_error(
-        constraint_name="services_slug_unique_idx",
+        constraint_name="services_slug_tier_unique_idx",
         message="duplicate key",
     )
-    assert _is_services_slug_unique_violation(exc) is True
+    assert is_services_slug_tier_unique_violation(exc) is True
 
 
-def test_slug_violation_false_for_other_unique_constraint() -> None:
+def test_slug_tier_violation_false_for_other_unique_constraint() -> None:
     exc = _make_integrity_error(
         constraint_name="svc_instances_slug_uq",
         message="duplicate key value violates unique constraint svc_instances_slug_uq",
     )
-    assert _is_services_slug_unique_violation(exc) is False
+    assert is_services_slug_tier_unique_violation(exc) is False
 
 
-def test_slug_violation_message_fallback_rejects_instance_slug_constraint() -> None:
+def test_slug_tier_violation_message_fallback_rejects_instance_slug_constraint() -> None:
     exc_instance = _make_integrity_error(
         constraint_name=None,
         message='duplicate key value violates unique constraint "svc_instances_slug_uq"',
     )
-    assert _is_services_slug_unique_violation(exc_instance) is False
+    assert is_services_slug_tier_unique_violation(exc_instance) is False
 
     exc_ok = _make_integrity_error(
         constraint_name=None,
-        message='duplicate key value violates unique constraint "services_slug_unique_idx"',
+        message='duplicate key value violates unique constraint "services_slug_tier_unique_idx"',
     )
-    assert _is_services_slug_unique_violation(exc_ok) is True
+    assert is_services_slug_tier_unique_violation(exc_ok) is True
