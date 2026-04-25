@@ -34,6 +34,7 @@ const INSTANCE_ROW: ServiceInstance = {
   id: 'instance-1',
   serviceId: 'service-1',
   parentServiceTitle: null,
+  parentServiceTier: null,
   parentServiceType: null,
   title: null,
   slug: null,

@@ -16,6 +16,7 @@ import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
   formatInstanceCohortDisplay,
+  formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   orderSessionSlotsForDisplay,
 } from '@/lib/format';
@@ -214,7 +215,14 @@ export function InstanceListPanel({
                 aria-selected={selectedInstanceId === instance.id}
               >
                 {showServiceColumn ? (
-                  <td className='px-4 py-3'>{instance.parentServiceTitle ?? '-'}</td>
+                  <td className='px-4 py-3'>
+                    {instance.parentServiceTitle
+                      ? formatServiceTitleWithTier(
+                          instance.parentServiceTitle,
+                          instance.parentServiceTier
+                        )
+                      : '-'}
+                  </td>
                 ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>

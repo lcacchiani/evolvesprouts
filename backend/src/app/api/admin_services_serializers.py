@@ -249,6 +249,7 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         "id": str(instance.id),
         "service_id": str(instance.service_id),
         "parent_service_title": service.title,
+        "parent_service_tier": service.service_tier,
         "parent_service_type": service.service_type.value,
         "title": instance.title,
         "slug": instance.slug,

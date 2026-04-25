@@ -9,6 +9,7 @@ import {
   formatInstanceCohortDisplay,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
+  formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   getFirstSessionSlotStartTimeMs,
   getContentLanguageOptions,
@@ -77,6 +78,12 @@ describe('format helpers', () => {
     expect(ordered.map((s) => s.id)).toEqual(['b', 'a']);
   });
 
+  it('formats service title with tier using interpunct when tier is set', () => {
+    expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga·adults');
+    expect(formatServiceTitleWithTier('Yoga', null)).toBe('Yoga');
+    expect(formatServiceTitleWithTier('Yoga', '  ')).toBe('Yoga');
+  });
+
   it('uses earliest ordered slot time for instance sort key', () => {
     const slots: SessionSlot[] = [
       { id: 'late', instanceId: null, locationId: null, startsAt: '2026-02-01T10:00:00Z', endsAt: null, sortOrder: 2 },
@@ -90,6 +97,7 @@ describe('format helpers', () => {
       id,
       serviceId: 'svc',
       parentServiceTitle: null,
+      parentServiceTier: null,
       parentServiceType: null,
       title: null,
       slug: null,

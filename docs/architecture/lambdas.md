@@ -87,7 +87,9 @@ their primary responsibilities.
   `Z` or a numeric offset; naive strings are rejected); instance JSON
   includes `resolved_*` fields (title, slug, description, delivery mode, location,
   and type-specific pricing/tiers) when the instance omits a value and the parent
-  service supplies the effective default; and
+  service supplies the effective default; instance payloads also include
+  `parent_service_title` / `parent_service_tier` / `parent_service_type` for
+  cross-service lists; and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service slug changes; `DELETE /v1/admin/services/{id}`
   returns `409` when the service still has instances), `/v1/admin/discount-codes/*`

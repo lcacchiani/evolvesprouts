@@ -11,6 +11,17 @@ import type {
 
 import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
 
+const SERVICE_TITLE_TIER_SEP = '\u00b7';
+
+/** Service list label: title, then interpunct, then tier when tier is set. */
+export function formatServiceTitleWithTier(title: string, serviceTier: string | null): string {
+  const tier = serviceTier?.trim();
+  if (tier) {
+    return `${title}${SERVICE_TITLE_TIER_SEP}${tier}`;
+  }
+  return title;
+}
+
 /** Short user-visible label for a location (venue name, address, or id). */
 export function formatLocationLabel(location: LocationSummary): string {
   const name = location.name?.trim();

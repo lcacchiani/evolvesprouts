@@ -33,6 +33,7 @@ const INSTANCE_FIXTURE: ServiceInstance = {
   id: 'instance-1',
   serviceId: 'service-1',
   parentServiceTitle: null,
+  parentServiceTier: null,
   parentServiceType: null,
   title: null,
   slug: null,
@@ -205,7 +206,9 @@ describe('services tables value formatting', () => {
     render(
       <>
         <InstanceListPanel
-          instances={[{ ...INSTANCE_FIXTURE, parentServiceTitle: 'Yoga' }]}
+          instances={[
+            { ...INSTANCE_FIXTURE, parentServiceTitle: 'Yoga', parentServiceTier: 'adults' },
+          ]}
           selectedInstanceId={null}
           isLoading={false}
           isLoadingMore={false}
@@ -238,6 +241,7 @@ describe('services tables value formatting', () => {
 
     const tables = screen.getAllByRole('table');
     const instanceTable = tables[0] as HTMLElement;
+    expect(within(instanceTable).getByText('Yoga·adults')).toBeInTheDocument();
     expect(within(instanceTable).getByText('In Progress')).toBeInTheDocument();
     expect(within(instanceTable).getByText('Spring 2024')).toBeInTheDocument();
     expect(within(instanceTable).getByText('Unlimited')).toBeInTheDocument();

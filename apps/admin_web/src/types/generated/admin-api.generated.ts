@@ -4535,6 +4535,8 @@ export interface components {
             } | null;
             /** @description Parent service title (present on cross-service list responses). */
             parent_service_title?: string | null;
+            /** @description Parent service tier slug (present on cross-service list responses; same column as services.service_tier). */
+            parent_service_tier?: string | null;
             /** @description Parent service type (present on cross-service list responses). */
             parent_service_type?: components["schemas"]["ServiceType"] | null;
         };
