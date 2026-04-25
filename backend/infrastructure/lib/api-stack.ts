@@ -2520,6 +2520,27 @@ export class ApiStack extends cdk.Stack {
     api.deploymentStage.node.addDependency(apiAccessLogGroupRetention);
     api.deploymentStage.node.addDependency(apiAccessLogGroupKey);
 
+    const cfnApiStage = api.deploymentStage.node
+      .defaultChild as apigateway.CfnStage | undefined;
+    if (!cfnApiStage) {
+      throw new Error(
+        "ApiStack: expected api.deploymentStage.node.defaultChild to be apigateway.CfnStage so Checkov CKV_AWS_120 suppression can be attached",
+      );
+    }
+    cfnApiStage.addMetadata("checkov", {
+      skip: [
+        {
+          id: "CKV_AWS_120",
+          comment: [
+            "Stage caching is intentionally disabled: no method opts into cachingEnabled: true; any historical cache cluster would have been idle.",
+            "Public-website cacheable GETs are edge-cached on the public_www CloudFront distribution via ApiProxyCachePolicy (see backend/infrastructure/lib/public-www-stack.ts).",
+            'Architectural decision: docs/architecture/decisions.md and docs/architecture/overview.md under "Caching".',
+            "Re-enabling stage cache requires removing this suppression and setting cachingEnabled: true on each cacheable method.",
+          ].join("\n"),
+        },
+      ],
+    });
+
     // -------------------------------------------------------------------------
     // Gateway Responses – add CORS headers to API Gateway error responses
     //

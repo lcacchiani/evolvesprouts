@@ -114,6 +114,10 @@ drops the old polymorphic tables, renames `crm_notes` → `notes`, and adds null
 - API Gateway stage caching is disabled; public website cacheability is driven
   by Lambda `Cache-Control` headers and the `public_www` CloudFront `www/*`
   cache policy (see architecture overview).
+  Checkov rule CKV_AWS_120 ("API Gateway caching enabled") is suppressed at the
+  stage level via CDK template metadata with a justified comment; re-enabling a
+  cache cluster would require removing that suppression and opting individual
+  methods into `cachingEnabled: true`.
 - See the OpenAPI specs for per-endpoint authentication requirements:
   [`docs/api/admin.yaml`](../api/admin.yaml).
 
