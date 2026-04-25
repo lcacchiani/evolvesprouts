@@ -4124,6 +4124,12 @@ components:
           type: string
           nullable: true
           description: Parent service title (present on cross-service list responses).
+        parent_service_tier:
+          type: string
+          nullable: true
+          description: >
+            Parent service tier slug (present on cross-service list responses;
+            same column as services.service_tier).
         parent_service_type:
           nullable: true
           description: Parent service type (present on cross-service list responses).

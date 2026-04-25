@@ -8,6 +8,7 @@ import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
 import {
   compareInstancesByFirstSlotStartsDesc,
   formatInstanceCohortDisplay,
+  formatServiceTitleWithTier,
 } from '@/lib/format';
 import { getInstance, getService } from '@/lib/services-api';
 import type { ServiceDetail, ServiceInstance } from '@/types/services';
@@ -87,6 +88,10 @@ export function ServicesPage() {
         instance.resolvedTitle,
         instance.title,
         instance.parentServiceTitle,
+        instance.parentServiceTier,
+        instance.parentServiceTitle
+          ? formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier)
+          : null,
         instance.instructorId,
         instance.status,
       ].filter((value): value is string => Boolean(value));
@@ -269,7 +274,10 @@ export function ServicesPage() {
             }}
             serviceFilter={{
               value: state.instancesServiceFilter,
-              options: allServiceOptions.map((s) => ({ id: s.id, title: s.title })),
+              options: allServiceOptions.map((s) => ({
+                id: s.id,
+                title: formatServiceTitleWithTier(s.title, s.serviceTier),
+              })),
               onChange: state.setInstancesServiceFilter,
             }}
             onDuplicateInstance={handleDuplicateInstance}

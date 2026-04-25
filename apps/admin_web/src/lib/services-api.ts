@@ -281,6 +281,7 @@ function parseInstance(value: unknown): ServiceInstance {
     id: asNullableString(item.id) ?? '',
     serviceId: asNullableString(item.service_id) ?? '',
     parentServiceTitle: asNullableString(item.parent_service_title),
+    parentServiceTier: asNullableString(item.parent_service_tier),
     parentServiceType: parentTypeRaw
       ? (parentTypeRaw as ServiceInstance['parentServiceType'])
       : null,
