@@ -125,7 +125,20 @@ describe('format helpers', () => {
         title: null,
         parentServiceTitle: null,
       })
-    ).toBe('-');
+    ).toBe('');
+    expect(formatInstanceTableTitle({ ...base(), title: 'My run', cohort: 'spring-2024' })).toBe(
+      'My run · spring-2024'
+    );
+    expect(formatInstanceTableTitle({ ...base(), cohort: 'spring-2024' })).toBe('Parent · tier-a · spring-2024');
+    expect(
+      formatInstanceTableTitle({
+        ...base(),
+        title: null,
+        parentServiceTitle: null,
+        parentServiceTier: null,
+        cohort: 'spring-2024',
+      })
+    ).toBe('spring-2024');
   });
 
   it('summarizes instance locations including partner org venues', () => {

@@ -91,7 +91,7 @@ export function ServicesPage() {
     return state.instanceList.instances.filter((instance) => {
       const tableTitle = formatInstanceTableTitle(instance);
       const parts: string[] = [
-        tableTitle !== '-' ? tableTitle : null,
+        tableTitle.trim() !== '' ? tableTitle : null,
         instance.resolvedTitle,
         instance.title,
         instance.parentServiceTitle,

@@ -58,7 +58,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, cohort, locations, slots) before status. */
+  /** When true, add cross-service columns (title with cohort, locations, slots) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -115,7 +115,7 @@ export function InstanceListPanel({
     const deleteLabel = formatInstanceTableTitle(instance);
     const confirmed = await requestConfirm({
       title: 'Delete instance',
-      description: `Delete "${deleteLabel !== '-' ? deleteLabel : 'this instance'}"? This action cannot be undone.`,
+      description: `Delete "${deleteLabel.trim() !== '' ? deleteLabel : 'this instance'}"? This action cannot be undone.`,
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       variant: 'danger',
@@ -199,9 +199,6 @@ export function InstanceListPanel({
                 <th className='px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Cohort</th>
-              ) : null}
-              {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
@@ -214,77 +211,77 @@ export function InstanceListPanel({
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {instances.map((instance) => (
-              <tr
-                key={instance.id}
-                className={`cursor-pointer transition ${
-                  selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                }`}
-                onClick={() => onSelectInstance(instance.id)}
-                onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
-                tabIndex={0}
-                role='row'
-                aria-selected={selectedInstanceId === instance.id}
-              >
-                {showServiceColumn ? (
-                  <td className='px-4 py-3'>{formatInstanceTableTitle(instance)}</td>
-                ) : null}
-                {showServiceColumn ? (
-                  <td className='px-4 py-3'>
-                    {instance.cohort != null && instance.cohort.trim() !== '' ? instance.cohort : '-'}
+            {instances.map((instance) => {
+              const instanceTableTitle = formatInstanceTableTitle(instance);
+              return (
+                <tr
+                  key={instance.id}
+                  className={`cursor-pointer transition ${
+                    selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                  onClick={() => onSelectInstance(instance.id)}
+                  onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
+                  tabIndex={0}
+                  role='row'
+                  aria-selected={selectedInstanceId === instance.id}
+                >
+                  {showServiceColumn ? (
+                    <td className='px-4 py-3'>
+                      {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
+                    </td>
+                  ) : null}
+                  {showServiceColumn ? (
+                    <td className='max-w-[14rem] px-4 py-3 text-sm'>
+                      {formatInstanceSlotLocationSummary(instance, locationById)}
+                    </td>
+                  ) : null}
+                  {showServiceColumn ? (
+                    <td className='px-4 py-3 align-top'>
+                      {instance.sessionSlots.length === 0 ? (
+                        '-'
+                      ) : (
+                        <ul className='m-0 max-w-[11rem] list-none space-y-0.5 p-0'>
+                          {orderSessionSlotsForDisplay(instance.sessionSlots).map((slot, slotIndex) => (
+                            <li key={slot.id ?? `${instance.id}-slot-${slotIndex}`}>
+                              {formatSessionSlotStartsAtDisplay(slot.startsAt)}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                  ) : null}
+                  <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
+                  <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
+                  <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <div className='flex justify-end gap-2'>
+                      <CopyFeedbackIconButton
+                        copied={duplicateDraftFeedbackId === instance.id}
+                        idleVariant='outline'
+                        idleIcon={<DuplicateIcon className='h-4 w-4' />}
+                        disabled={isMutating}
+                        onClick={(event) => void handleDuplicateInstance(instance, event)}
+                        idleLabel='Duplicate instance as new row'
+                        copiedLabel='Draft copy ready'
+                        idleTitle='Duplicate instance as new row'
+                        copiedTitle='Copied'
+                      />
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='danger'
+                        onClick={(event) => void handleDeleteInstance(instance, event)}
+                        disabled={isMutating}
+                        aria-label='Delete instance'
+                        title='Delete instance'
+                      >
+                        <DeleteIcon className='h-4 w-4' />
+                      </Button>
+                    </div>
                   </td>
-                ) : null}
-                {showServiceColumn ? (
-                  <td className='max-w-[14rem] px-4 py-3 text-sm'>
-                    {formatInstanceSlotLocationSummary(instance, locationById)}
-                  </td>
-                ) : null}
-                {showServiceColumn ? (
-                  <td className='px-4 py-3 align-top'>
-                    {instance.sessionSlots.length === 0 ? (
-                      '-'
-                    ) : (
-                      <ul className='m-0 max-w-[11rem] list-none space-y-0.5 p-0'>
-                        {orderSessionSlotsForDisplay(instance.sessionSlots).map((slot, slotIndex) => (
-                          <li key={slot.id ?? `${instance.id}-slot-${slotIndex}`}>
-                            {formatSessionSlotStartsAtDisplay(slot.startsAt)}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </td>
-                ) : null}
-                <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
-                <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
-                <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
-                <td className='px-4 py-3 text-right'>
-                  <div className='flex justify-end gap-2'>
-                    <CopyFeedbackIconButton
-                      copied={duplicateDraftFeedbackId === instance.id}
-                      idleVariant='outline'
-                      idleIcon={<DuplicateIcon className='h-4 w-4' />}
-                      disabled={isMutating}
-                      onClick={(event) => void handleDuplicateInstance(instance, event)}
-                      idleLabel='Duplicate instance as new row'
-                      copiedLabel='Draft copy ready'
-                      idleTitle='Duplicate instance as new row'
-                      copiedTitle='Copied'
-                    />
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='danger'
-                      onClick={(event) => void handleDeleteInstance(instance, event)}
-                      disabled={isMutating}
-                      aria-label='Delete instance'
-                      title='Delete instance'
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>
