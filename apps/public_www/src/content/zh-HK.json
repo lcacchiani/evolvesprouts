@@ -1245,7 +1245,9 @@
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",
       "scrollDatesLeftAriaLabel": "向左捲動日期",
       "scrollDatesRightAriaLabel": "向右捲動日期",
-      "referralAppliedNote": "已透過你的推薦連結套用。"
+      "referralAppliedNote": "已透過你的推薦連結套用。",
+      "cohortsLoadingLabel": "正在載入班期…",
+      "cohortsErrorLabel": "無法重新整理班期資料，顯示上次可用嘅內容。"
     },
     "modal": {
       "title": "我的最佳姨姨培訓課程",

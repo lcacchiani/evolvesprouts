@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { EventsLoadingState } from '@/components/sections/shared/events-shared';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -225,8 +226,11 @@ export function MyBestAuntieBooking({
   thankYouWhatsappCtaLabel,
   privateProgrammeWhatsappHref,
 }: MyBestAuntieBookingProps) {
-  const { cohorts: cohortsFromHook } = useMyBestAuntieCohorts({
-    locale,
+  const {
+    cohorts: cohortsFromHook,
+    isLoading: isCohortsLoading,
+    hasRequestError: hasCohortsRequestError,
+  } = useMyBestAuntieCohorts({
     initialCohorts,
     serviceKey: MY_BEST_AUNTIE_SERVICE_KEY,
     serviceType: 'training_course',
@@ -269,7 +273,8 @@ export function MyBestAuntieBooking({
       ? pendingDateSelectionSlug
       : preferredDateId;
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const hasHandledAutoOpenModalRef = useRef(false);
+  const hasHandledReferralPrefillRef = useRef(false);
+  const hasOpenedBookingModalFromQueryRef = useRef(false);
   const {
     carouselRef: dateCarouselRef,
     hasNavigation: hasDateNavigation,
@@ -312,26 +317,31 @@ export function MyBestAuntieBooking({
   }, [scrollItemIntoView, selectedDateId]);
 
   useEffect(() => {
-    if (hasHandledAutoOpenModalRef.current) {
-      return;
-    }
-    hasHandledAutoOpenModalRef.current = true;
-
     if (typeof window === 'undefined') {
       return;
     }
-    const referral = readReferralCodeFromSearch(window.location.search);
-    if (referral) {
-      queueMicrotask(() => {
-        setPrefilledDiscountCode(referral);
-      });
+
+    if (!hasHandledReferralPrefillRef.current) {
+      hasHandledReferralPrefillRef.current = true;
+      const referral = readReferralCodeFromSearch(window.location.search);
+      if (referral) {
+        queueMicrotask(() => {
+          setPrefilledDiscountCode(referral);
+        });
+      }
     }
+
     if (!shouldAutoOpenMyBestAuntieBookingModal(window.location.search)) {
+      return;
+    }
+    if (hasOpenedBookingModalFromQueryRef.current) {
       return;
     }
     if (!selectedCohort || selectedCohort.is_fully_booked) {
       return;
     }
+
+    hasOpenedBookingModalFromQueryRef.current = true;
 
     const openModalTimerId = window.setTimeout(() => {
       trackAnalyticsEvent('booking_modal_open', {
@@ -431,6 +441,21 @@ export function MyBestAuntieBooking({
             <h2 className='text-[1.6rem] font-semibold es-text-heading'>
               {content.eyebrow}
             </h2>
+
+            <div
+              className='mt-4'
+              aria-live={isCohortsLoading || hasCohortsRequestError ? 'polite' : undefined}
+            >
+              {isCohortsLoading ? (
+                <EventsLoadingState
+                  label={content.cohortsLoadingLabel}
+                  testId='my-best-auntie-cohorts-loading'
+                />
+              ) : null}
+              {hasCohortsRequestError && !isCohortsLoading ? (
+                <p className='text-sm text-black/60'>{content.cohortsErrorLabel}</p>
+              ) : null}
+            </div>
 
             <div className='mt-6'>
               <h3 className='text-sm font-semibold es-text-neutral-strong'>

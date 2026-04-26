@@ -5,6 +5,7 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
+  CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
   type MyBestAuntieEventCohort,
   fetchEventsPayload,
   normalizeMyBestAuntieCohortsFromPayload,
@@ -26,8 +27,6 @@ import {
 } from '@/lib/structured-data';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
-
-const MBA_CALENDAR_FETCH_TIMEOUT_MS = 5000;
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
@@ -64,13 +63,13 @@ export default async function MyBestAuntieRoutePage({
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
-    }, MBA_CALENDAR_FETCH_TIMEOUT_MS);
+    }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
     try {
       const payload = await fetchEventsPayload(crmApiClient, controller.signal, {
         serviceKey: 'my-best-auntie',
         serviceType: 'training_course',
       });
-      cohorts = normalizeMyBestAuntieCohortsFromPayload(payload, locale);
+      cohorts = normalizeMyBestAuntieCohortsFromPayload(payload);
     } catch (error) {
       if (!isAbortRequestError(error)) {
         reportInternalError({
@@ -83,6 +82,12 @@ export default async function MyBestAuntieRoutePage({
     } finally {
       clearTimeout(timeout);
     }
+  } else {
+    reportInternalError({
+      context: 'my-best-auntie-training-course-calendar-fetch',
+      error: new Error('CRM API client is not configured'),
+      metadata: { locale, reason: 'missing_public_crm_client' },
+    });
   }
 
   return (

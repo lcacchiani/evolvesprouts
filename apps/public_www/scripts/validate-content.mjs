@@ -23,8 +23,6 @@ const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
 const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
-const UUID_V4_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
 const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =

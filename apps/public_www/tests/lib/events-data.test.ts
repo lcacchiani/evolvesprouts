@@ -659,7 +659,7 @@ describe('events-data', () => {
   });
 
   it('normalizes My Best Auntie training_course cohorts with alpha cohort labels', () => {
-    const cohorts = normalizeMyBestAuntieCohortsFromPayload(publicCalendarFixture, 'en');
+    const cohorts = normalizeMyBestAuntieCohortsFromPayload(publicCalendarFixture);
     expect(cohorts).toHaveLength(2);
     const apr = cohorts.find((c) => c.cohort === 'apr-26');
     expect(apr).toBeDefined();

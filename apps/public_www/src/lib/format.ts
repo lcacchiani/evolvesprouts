@@ -22,7 +22,7 @@ const COHORT_MONTH_ABBREV_TO_INDEX: Record<string, number> = {
 };
 
 const COHORT_NUMERIC_PATTERN = /^(\d{2})-(\d{2})$/;
-const COHORT_ALPHA_PATTERN = /^([A-Za-z]{2,3})-(\d{2})$/;
+const COHORT_ALPHA_PATTERN = /^([A-Za-z]{3})-(\d{2})$/;
 
 function normalizeLocale(locale?: string): string {
   const trimmedLocale = locale?.trim();
@@ -62,10 +62,10 @@ export function formatCurrencyHkd(value: number, locale?: string): string {
 }
 
 /**
- * Broad cohort token shape: two or three letters or two digits, hyphen, two-digit year suffix.
- * Month validity is enforced in {@link parseCohortValue} (e.g. `xx-26` / `xyz-26` may match here but parse to null).
+ * Broad cohort token shape: three letters or two digits, hyphen, two-digit year suffix.
+ * Month validity is enforced in {@link parseCohortValue} (invalid month abbreviations parse to null).
  */
-export const COHORT_VALUE_PATTERN = /^(?:[A-Za-z]{2,3}|\d{2})-\d{2}$/;
+export const COHORT_VALUE_PATTERN = /^(?:[A-Za-z]{3}|\d{2})-\d{2}$/;
 
 /**
  * Parses a cohort string from the public calendar API.

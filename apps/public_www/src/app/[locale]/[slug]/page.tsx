@@ -16,6 +16,7 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
+  CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
   fetchEventsPayload,
   getLandingPageBookingEventContentFromPayload,
   getLandingPageHeroEventContentFromPayload,
@@ -38,8 +39,6 @@ import {
 interface LandingPageRouteProps {
   params: Promise<{ locale: string; slug: string }>;
 }
-
-const LANDING_PAGE_EVENTS_FETCH_TIMEOUT_MS = 5000;
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.flatMap((locale) =>
@@ -93,7 +92,7 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
-    }, LANDING_PAGE_EVENTS_FETCH_TIMEOUT_MS);
+    }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
     try {
       calendarPayload = await fetchEventsPayload(crmApiClient, controller.signal, {
         landingPage: resolvedParams.slug,
@@ -109,6 +108,12 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     } finally {
       clearTimeout(timeout);
     }
+  } else {
+    reportInternalError({
+      context: 'landing-page-calendar-fetch',
+      error: new Error('CRM API client is not configured'),
+      metadata: { locale, slug: resolvedParams.slug, reason: 'missing_public_crm_client' },
+    });
   }
 
   const heroEventContent = getLandingPageHeroEventContentFromPayload(

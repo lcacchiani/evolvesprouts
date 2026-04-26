@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { Locale } from '@/content';
 import {
   createPublicCrmApiClient,
   isAbortRequestError,
@@ -15,7 +14,6 @@ import {
 } from '@/lib/events-data';
 
 export interface UseMyBestAuntieCohortsOptions {
-  locale: Locale;
   initialCohorts: MyBestAuntieEventCohort[];
   serviceKey: string;
   serviceType: EventsFetchParams['serviceType'];
@@ -28,26 +26,25 @@ export interface UseMyBestAuntieCohortsResult {
 }
 
 export function useMyBestAuntieCohorts({
-  locale,
   initialCohorts,
   serviceKey,
   serviceType,
 }: UseMyBestAuntieCohortsOptions): UseMyBestAuntieCohortsResult {
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const shouldFetch = crmApiClient !== null;
+  const initialCohortsRef = useRef(initialCohorts);
   const [cohorts, setCohorts] = useState<MyBestAuntieEventCohort[]>(initialCohorts);
   const [isLoading, setIsLoading] = useState(() => shouldFetch);
   const [hasRequestError, setHasRequestError] = useState(false);
 
   useEffect(() => {
-    setCohorts(initialCohorts);
+    initialCohortsRef.current = initialCohorts;
   }, [initialCohorts]);
 
   useEffect(() => {
     const controller = new AbortController();
 
     if (!shouldFetch || !crmApiClient) {
-      setIsLoading(false);
       return () => {
         controller.abort();
       };
@@ -58,7 +55,7 @@ export function useMyBestAuntieCohorts({
       serviceType,
     })
       .then((payload) => {
-        const normalized = normalizeMyBestAuntieCohortsFromPayload(payload, locale);
+        const normalized = normalizeMyBestAuntieCohortsFromPayload(payload);
         setHasRequestError(false);
         setCohorts(normalized);
       })
@@ -67,7 +64,7 @@ export function useMyBestAuntieCohorts({
           return;
         }
         setHasRequestError(true);
-        setCohorts(initialCohorts);
+        setCohorts(initialCohortsRef.current);
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -78,7 +75,7 @@ export function useMyBestAuntieCohorts({
     return () => {
       controller.abort();
     };
-  }, [crmApiClient, initialCohorts, locale, serviceKey, serviceType, shouldFetch]);
+  }, [crmApiClient, serviceKey, serviceType, shouldFetch]);
 
   const effectiveCohorts =
     isLoading || hasRequestError ? initialCohorts : cohorts;

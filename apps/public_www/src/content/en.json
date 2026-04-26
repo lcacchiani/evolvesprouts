@@ -1245,7 +1245,9 @@
       "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
       "scrollDatesLeftAriaLabel": "Scroll dates left",
       "scrollDatesRightAriaLabel": "Scroll dates right",
-      "referralAppliedNote": "Applied from your referral link."
+      "referralAppliedNote": "Applied from your referral link.",
+      "cohortsLoadingLabel": "Loading cohorts...",
+      "cohortsErrorLabel": "We could not refresh cohorts. Showing the last available information."
     },
     "modal": {
       "title": "My Best Auntie Training Course",

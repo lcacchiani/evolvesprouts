@@ -1245,7 +1245,9 @@
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}岁组）",
       "scrollDatesLeftAriaLabel": "向左滚动日期",
       "scrollDatesRightAriaLabel": "向右滚动日期",
-      "referralAppliedNote": "已通过你的推荐链接应用。"
+      "referralAppliedNote": "已通过你的推荐链接应用。",
+      "cohortsLoadingLabel": "正在加载班期…",
+      "cohortsErrorLabel": "无法刷新班期信息，显示上次可用的内容。"
     },
     "modal": {
       "title": "我的最佳阿姨培训课程",

@@ -44,7 +44,7 @@ describe('cohort value helpers', () => {
     expect(COHORT_VALUE_PATTERN.test('apr-26')).toBe(true);
     expect(COHORT_VALUE_PATTERN.test('Apr-26')).toBe(true);
     expect(COHORT_VALUE_PATTERN.test('april-26')).toBe(false);
-    expect(COHORT_VALUE_PATTERN.test('xx-26')).toBe(true);
+    expect(COHORT_VALUE_PATTERN.test('xx-26')).toBe(false);
     expect(COHORT_VALUE_PATTERN.test('4-26')).toBe(false);
   });
 

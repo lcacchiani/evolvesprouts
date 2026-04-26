@@ -27,6 +27,8 @@ import { isHttpHref } from '@/lib/url-utils';
 type EventStatus = 'open' | 'fully_booked';
 
 export const EVENTS_API_PATH = '/v1/calendar/public';
+/** Shared timeout for server-side calendar fetches (events, MBA, landing pages). */
+export const CALENDAR_PUBLIC_FETCH_TIMEOUT_MS = 5000;
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
@@ -1614,7 +1616,6 @@ function recordToMyBestAuntieEventCohort(
  */
 export function normalizeMyBestAuntieCohortsFromPayload(
   payload: unknown,
-  _locale?: string,
 ): MyBestAuntieEventCohort[] {
   const cohorts: MyBestAuntieEventCohort[] = [];
 
