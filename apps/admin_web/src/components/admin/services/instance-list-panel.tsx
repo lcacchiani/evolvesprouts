@@ -58,7 +58,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, cohort, locations, slots) before status. */
+  /** When true, add cross-service columns (title with cohort, locations, slots) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -199,9 +199,6 @@ export function InstanceListPanel({
                 <th className='px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Cohort</th>
-              ) : null}
-              {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
@@ -228,11 +225,6 @@ export function InstanceListPanel({
               >
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{formatInstanceTableTitle(instance)}</td>
-                ) : null}
-                {showServiceColumn ? (
-                  <td className='px-4 py-3'>
-                    {instance.cohort != null && instance.cohort.trim() !== '' ? instance.cohort : '-'}
-                  </td>
                 ) : null}
                 {showServiceColumn ? (
                   <td className='max-w-[14rem] px-4 py-3 text-sm'>

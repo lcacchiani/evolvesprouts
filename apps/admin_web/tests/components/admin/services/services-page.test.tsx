@@ -255,7 +255,7 @@ describe('ServicesPage', () => {
 
     state.instancesSearchQuery = 'spring-2024';
     rerender(<ServicesPage />);
-    expect(screen.getByText('spring-2024')).toBeInTheDocument();
+    expect(screen.getByText('Yoga · spring-2024')).toBeInTheDocument();
 
     unmount();
   });
