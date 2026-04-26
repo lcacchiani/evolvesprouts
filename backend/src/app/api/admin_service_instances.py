@@ -567,13 +567,13 @@ def _update_instance(
                 tag_ids=payload["tag_ids"],
             )
 
-        updated = instance_repository.update_instance(instance)
+        session.flush()
         session.commit()
         if service.service_type == ServiceType.EVENT:
-            enqueue_eventbrite_instance_sync_by_id(updated.id)
-        with_details = instance_repository.get_by_id_with_details(updated.id)
+            enqueue_eventbrite_instance_sync_by_id(instance.id)
+        with_details = instance_repository.get_by_id_with_details(instance.id)
         if with_details is None:
-            raise NotFoundError("ServiceInstance", str(updated.id))
+            raise NotFoundError("ServiceInstance", str(instance.id))
         return json_response(
             200, {"instance": serialize_instance(with_details)}, event=event
         )
