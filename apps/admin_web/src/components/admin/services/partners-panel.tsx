@@ -99,6 +99,7 @@ export function PartnersPanel({
   );
 
   const inlineLocationStateKey = editorMode === 'create' ? 'partner-new' : `partner:${selectedId ?? 'none'}`;
+  const ownerPartnerOrganizationId = editorMode === 'edit' ? selectedId : null;
 
   const resolvedLocation = useMemo(() => {
     if (!pendingLocationId) {
@@ -152,8 +153,6 @@ export function PartnersPanel({
     clearError: clearLocationSaveError,
   } = useInlineLocationSave(refreshLocations);
   const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
-
-  const locationLockedReadOnly = Boolean(resolvedLocation?.lockedFromPartnerOrg);
 
   function resetCreateForm() {
     if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
@@ -352,12 +351,7 @@ export function PartnersPanel({
                 areas={geographicAreas}
                 areasLoading={areasLoading}
                 canModify
-                allowClearWhenLocked={locationLockedReadOnly}
-                lockedSummaryExtra={
-                  locationLockedReadOnly
-                    ? 'To change the venue name or switch to a different address, use Services → Venues or update the partner organisation record.'
-                    : null
-                }
+                allowEditWhenOwnerPartnerOrganizationId={ownerPartnerOrganizationId}
                 isSaving={isSaving || locationSaveStatus.isSaving}
                 isGeocoding={locationGeocoding}
                 saveError={locationSaveStatus.error}

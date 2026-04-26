@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatLocationLabel } from '@/lib/format';
+import { formatInstanceLocationOptionLabel } from '@/lib/instance-location-options';
 import { addHoursToDatetimeLocal } from '@/lib/session-slot-datetime';
 
 import type { LocationSummary, SessionSlotFormRow } from '@/types/services';
@@ -134,7 +134,7 @@ export function SessionSlotEditor({
                     ) : null}
                     {locationOptions.map((location) => (
                       <option key={location.id} value={location.id}>
-                        {formatLocationLabel(location)}
+                        {formatInstanceLocationOptionLabel(location)}
                       </option>
                     ))}
                   </Select>
