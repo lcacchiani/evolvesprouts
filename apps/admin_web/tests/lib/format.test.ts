@@ -125,7 +125,7 @@ describe('format helpers', () => {
         title: null,
         parentServiceTitle: null,
       })
-    ).toBe('-');
+    ).toBe('');
     expect(formatInstanceTableTitle({ ...base(), title: 'My run', cohort: 'spring-2024' })).toBe(
       'My run · spring-2024'
     );

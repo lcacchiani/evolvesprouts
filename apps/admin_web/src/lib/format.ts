@@ -35,7 +35,7 @@ export function formatLocationLabel(location: LocationSummary): string {
   return location.id;
 }
 
-/** Instances table: own title when set, otherwise parent service title (with tier); cohort appended when set. */
+/** Instances table: own title when set, otherwise parent service title (with tier); cohort appended when set. Empty when nothing to show. */
 export function formatInstanceTableTitle(instance: ServiceInstance): string {
   const own = instance.title?.trim();
   let base: string;
@@ -44,13 +44,13 @@ export function formatInstanceTableTitle(instance: ServiceInstance): string {
   } else if (instance.parentServiceTitle) {
     base = formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier);
   } else {
-    base = '-';
+    base = '';
   }
   const cohort = instance.cohort?.trim();
   if (!cohort) {
     return base;
   }
-  if (base === '-') {
+  if (!base) {
     return cohort;
   }
   return `${base} ${SERVICE_TITLE_TIER_SEP} ${cohort}`;
