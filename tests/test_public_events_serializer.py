@@ -79,7 +79,8 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
     )
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert "id" not in out
-    assert out["service_instance_id"] == str(inst.id)
+    assert "service_instance_id" not in out
+    assert out["slug"] == "my-event"
     assert out["service_type"] == "event"
     assert out["booking_system"] == "event-booking"
     assert out["categories"] == ["workshop"]
@@ -381,14 +382,50 @@ def test_max_capacity_with_enrollments() -> None:
     assert out["spaces_left"] == 0
 
 
-def test_omits_id_when_no_slug() -> None:
+def test_slug_empty_string_still_emitted_for_defense_in_depth() -> None:
     service = _event_service()
-    iid = uuid4()
-    inst = _minimal_instance(service, slug=None)
-    inst.id = iid
+    inst = _minimal_instance(service, slug="")
     out = public_events._serialize_public_event(inst, enrollment_counts={})
-    assert "id" not in out
-    assert out["service_instance_id"] == str(iid)
+    assert out["slug"] == ""
+
+
+def test_dates_use_dense_part_after_sort_order() -> None:
+    service = _event_service()
+    s1 = datetime(2026, 5, 2, 10, 0, tzinfo=UTC)
+    e1 = datetime(2026, 5, 2, 11, 0, tzinfo=UTC)
+    s2 = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
+    e2 = datetime(2026, 5, 1, 11, 0, tzinfo=UTC)
+    loc = SimpleNamespace(name="V", address="1 St", lat=None, lng=None)
+    inst = _minimal_instance(service)
+    inst.session_slots = [
+        SimpleNamespace(
+            id=uuid4(),
+            sort_order=1,
+            starts_at=s1,
+            ends_at=e1,
+            location=loc,
+        ),
+        SimpleNamespace(
+            id=uuid4(),
+            sort_order=0,
+            starts_at=s2,
+            ends_at=e2,
+            location=loc,
+        ),
+    ]
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["dates"] == [
+        {
+            "part": 1,
+            "start_datetime": s2.isoformat(),
+            "end_datetime": e2.isoformat(),
+        },
+        {
+            "part": 2,
+            "start_datetime": s1.isoformat(),
+            "end_datetime": e1.isoformat(),
+        },
+    ]
 
 
 def test_fully_booked_flag() -> None:

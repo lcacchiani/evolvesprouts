@@ -127,7 +127,7 @@ export function buildDiscountValidationApiUrl(crmApiBaseUrl: string): string {
 export interface ValidateDiscountCodeOptions {
   code: string;
   serviceKey?: string;
-  serviceInstanceId?: string;
+  serviceInstanceSlug?: string;
   signal?: AbortSignal;
 }
 
@@ -147,9 +147,9 @@ export async function validateDiscountCode(
   if (scopedKey) {
     body.service_key = scopedKey;
   }
-  const instanceId = readRequiredText(options.serviceInstanceId ?? '');
-  if (instanceId) {
-    body.service_instance_id = instanceId;
+  const instanceSlug = readRequiredText(options.serviceInstanceSlug ?? '');
+  if (instanceSlug) {
+    body.service_instance_slug = instanceSlug;
   }
 
   const payload = await crmApiClient.request({

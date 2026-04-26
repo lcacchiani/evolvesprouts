@@ -475,6 +475,18 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         _FakeServiceRepo,
     )
 
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_id_by_slug(self, _slug: str) -> object | None:
+            return None
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
+
     payload = {
         "discount_code": "SAVE",
         "service_key": "my-best-auntie",
@@ -484,7 +496,7 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         _validate_discount_code_redemption_scope(object(), payload)
 
 
-def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
+def test_discount_redemption_requires_instance_slug_for_instance_scoped_code(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.exceptions import ValidationError
@@ -514,6 +526,13 @@ def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
         def get_by_slug(self, slug: str) -> object | None:
             return None
 
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_id_by_slug(self, _slug: str) -> object | None:
+            return None
+
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
         _FakeDiscountRepo,
@@ -522,7 +541,12 @@ def test_discount_redemption_requires_instance_id_for_instance_scoped_code(
         "app.api.public_reservations.ServiceRepository",
         _FakeServiceRepo,
     )
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
 
     payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         _validate_discount_code_redemption_scope(object(), payload)
+    assert getattr(excinfo.value, "field", None) == "serviceInstanceSlug"

@@ -155,7 +155,8 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert body["items"][0]["spaces_left"] == 9
     assert body["items"][1]["booking_status"] == "fully_booked"
     assert body["items"][0]["service_type"] == "event"
-    assert "service_instance_id" in body["items"][0]
+    assert "service_instance_id" not in body["items"][0]
+    assert body["items"][0]["slug"] == "spring-workshop"
 
 
 def test_handle_public_events_landing_page_filter(

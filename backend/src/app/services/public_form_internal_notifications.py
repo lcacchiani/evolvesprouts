@@ -361,6 +361,8 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         lines.append(f"Service key: {payload['service_key']}")
     if payload.get("course_slug"):
         lines.append(f"Course slug: {payload['course_slug']}")
+    if payload.get("service_instance_slug"):
+        lines.append(f"Service instance slug: {payload['service_instance_slug']}")
     loc_name = str(payload.get("location_name") or "").strip()
     loc_addr = str(payload.get("location_address") or "").strip()
     if loc_name or loc_addr:

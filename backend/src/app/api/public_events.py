@@ -154,10 +154,18 @@ def _fetch_public_offerings(
     enrollment_counts = repository.get_enrollment_counts_for_instances(
         capacity_instance_ids
     )
-    return [
-        _serialize_public_event(instance, enrollment_counts=enrollment_counts)
-        for instance in rows
-    ]
+    out: list[dict[str, Any]] = []
+    for instance in rows:
+        if not instance.slug:
+            logger.warning(
+                "Public calendar feed skipped instance without slug",
+                extra={"instance_id": str(instance.id)},
+            )
+            continue
+        out.append(
+            _serialize_public_event(instance, enrollment_counts=enrollment_counts)
+        )
+    return out
 
 
 def _resolve_primary_location(
@@ -283,11 +291,11 @@ def _serialize_public_event(
     slots = sorted(instance.session_slots, key=lambda s: (s.sort_order, s.starts_at))
     dates = [
         {
-            "id": str(s.id),
+            "part": idx + 1,
             "start_datetime": _iso(s.starts_at),
             "end_datetime": _iso(s.ends_at),
         }
-        for s in slots
+        for idx, s in enumerate(slots)
     ]
 
     primary_location = _resolve_primary_location(instance, slots)
@@ -318,8 +326,14 @@ def _serialize_public_event(
         "fully_booked" if instance.status == InstanceStatus.FULL else "open"
     )
 
+    if not instance.slug:
+        logger.warning(
+            "Serialized public calendar event without instance slug",
+            extra={"instance_id": str(instance.id)},
+        )
+
     payload: dict[str, Any] = {
-        "service_instance_id": str(instance.id),
+        "slug": instance.slug or "",
         "service_type": service.service_type.value,
         "title": title,
         "summary": summary,
@@ -350,8 +364,6 @@ def _serialize_public_event(
     if external_url:
         payload["external_url"] = external_url
 
-    if instance.slug is not None:
-        payload["slug"] = instance.slug
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
     payload["service_tier"] = _resolve_public_calendar_service_tier(instance)

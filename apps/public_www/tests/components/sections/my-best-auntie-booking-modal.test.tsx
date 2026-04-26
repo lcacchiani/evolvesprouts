@@ -272,13 +272,17 @@ const expectedMbaMarketingFields = {
   locale: 'en' as const,
   courseLabel: myBestAuntieModalContent.title,
   courseSlug: 'my-best-auntie',
-  serviceKey: selectedCohort.id,
+  service: 'training-course',
+  serviceKey: selectedCohort.slug,
+  serviceInstanceSlug: selectedCohort.slug,
   scheduleDateLabel: 'Apr, 2026',
   scheduleTimeLabel: expectedMbaScheduleTimeLabel,
   locationName: selectedCohort.location_name,
   locationAddress: selectedCohort.location_address,
   locationUrl: selectedCohort.location_url,
   primarySessionStartIso: primarySessionPart?.start_datetime,
+  primarySessionEndIso: primarySessionPart?.end_datetime,
+  commentsFieldLabel: bookingModalContent.topicsInterestLabel,
   courseSessions: selectedCohort.dates.map((part) => {
     return {
       startIso: part.start_datetime,
@@ -763,7 +767,7 @@ describe('my-best-auntie booking modals footer content', () => {
         {
           code: 'SAVE10',
           serviceKey: 'my-best-auntie',
-          serviceInstanceId: selectedCohort.service_instance_id ?? undefined,
+          serviceInstanceSlug: selectedCohort.slug ?? undefined,
         },
       );
       expect(
@@ -1449,7 +1453,7 @@ describe('my-best-auntie booking modals footer content', () => {
       expect.objectContaining({
         payload: expect.objectContaining({
           service_key: 'my-best-auntie',
-          cohort_id: selectedCohort.id,
+          cohort_id: selectedCohort.slug,
         }),
       }),
     );
@@ -2033,7 +2037,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
       code: 'REFSAVE',
       serviceKey: 'my-best-auntie',
-      serviceInstanceId: selectedCohort.service_instance_id ?? undefined,
+      serviceInstanceSlug: selectedCohort.slug ?? undefined,
     });
 
     await waitFor(() => {
@@ -2049,7 +2053,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toHaveLength(1);
   });
 
-  it('forwards service_instance_id to discount validate when cohort provides one', async () => {
+  it('forwards service_instance_slug to discount validate when cohort provides slug', async () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
@@ -2062,13 +2066,13 @@ describe('my-best-auntie booking modals footer content', () => {
       value: 5,
     });
 
-    const cohortWithInstance = {
+    const cohortWithSlug = {
       ...selectedCohort,
-      service_instance_id: '22222222-2222-4222-8222-222222222222',
+      slug: 'mba-test-cohort-slug',
     };
 
     renderBookingModal({
-      selectedCohort: cohortWithInstance,
+      selectedCohort: cohortWithSlug,
       prefilledDiscountCode: 'refsave',
     });
 
@@ -2078,7 +2082,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
       code: 'REFSAVE',
       serviceKey: 'my-best-auntie',
-      serviceInstanceId: '22222222-2222-4222-8222-222222222222',
+      serviceInstanceSlug: 'mba-test-cohort-slug',
     });
   });
 

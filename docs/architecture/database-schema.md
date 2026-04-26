@@ -476,7 +476,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - `service_instances` stores dated offerings linked to a `services` template.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
-- Optional public-site fields: `slug` (unique when set), `landing_page`
+- Optional public-site fields: `slug` (unique when set; **canonical public identifier**
+  for calendar/discount/reservation instance scope—must be set for rows included in the
+  public calendar feed), `landing_page`
   (marketing route key for the public website).
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).

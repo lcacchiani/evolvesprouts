@@ -540,6 +540,18 @@ silently. Multi-tier instances accept a single-tier payload only when one tier's
 ``name`` matches the service event category (otherwise the client must send the full
 array, one object per tier).
 
+## Public calendar and booking use instance slugs, not instance UUIDs
+
+**Decision:** The public calendar feed (`GET /v1/calendar/public`) exposes each offering’s
+stable **`slug`** from `service_instances.slug` (required on emitted rows; UUIDs are not
+returned). Session slots use dense 1-based **`part`** ordinals after `(sort_order, starts_at)`
+ordering. Public discount validation accepts **`service_instance_slug`** (not
+`service_instance_id` or `service_id`); public reservations accept **`serviceInstanceSlug`**
+for the same instance scope check (resolved server-side to the instance UUID).
+
+**Why:** Public clients should not handle Aurora primary keys; slugs are human-meaningful
+and align static content fixtures with the API contract.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes
