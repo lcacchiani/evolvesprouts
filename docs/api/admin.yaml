@@ -4625,6 +4625,7 @@ components:
         - area_id
         - locked_from_partner_org
         - partner_organization_labels
+        - partner_organization_ids
       properties:
         id:
           type: string
@@ -4667,6 +4668,14 @@ components:
             Names of active partner organisations linked to this venue (for display).
           items:
             type: string
+        partner_organization_ids:
+          type: array
+          description: >
+            UUIDs of active partner organisations linked to this venue, in the same
+            order as ``partner_organization_labels`` (sorted by partner name).
+          items:
+            type: string
+            format: uuid
     LocationResponse:
       type: object
       required:
