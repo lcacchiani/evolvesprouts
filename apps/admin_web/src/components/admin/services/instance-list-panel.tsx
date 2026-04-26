@@ -18,7 +18,6 @@ import {
   formatEnumLabel,
   formatInstanceSlotLocationSummary,
   formatInstanceTableTitle,
-  formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   orderSessionSlotsForDisplay,
 } from '@/lib/format';
@@ -59,7 +58,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, cohort, locations, slots). */
+  /** When true, add cross-service columns (title, cohort, locations, slots) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -200,9 +199,6 @@ export function InstanceListPanel({
                 <th className='px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Service</th>
-              ) : null}
-              {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Cohort</th>
               ) : null}
               {showServiceColumn ? (
@@ -232,16 +228,6 @@ export function InstanceListPanel({
               >
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{formatInstanceTableTitle(instance)}</td>
-                ) : null}
-                {showServiceColumn ? (
-                  <td className='px-4 py-3'>
-                    {instance.parentServiceTitle
-                      ? formatServiceTitleWithTier(
-                          instance.parentServiceTitle,
-                          instance.parentServiceTier
-                        )
-                      : '-'}
-                  </td>
                 ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>
