@@ -58,6 +58,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { buildSessionSlotsUtcPayload, mapSessionSlotsFromApiToForm } from '@/lib/format';
+import { filterLocationsForInstance } from '@/lib/instance-location-options';
 import type { EntityTagRef } from '@/lib/entity-api';
 
 type ApiSchemas = components['schemas'];
@@ -441,6 +442,35 @@ export function InstanceDetailPanel({
   const effectiveSessionSlotDefaultLocationId =
     instanceForm.locationId.trim() || selectedService?.locationId?.trim() || null;
 
+  const extraSelectedLocationIds = useMemo(() => {
+    const ids = new Set<string>();
+    const add = (v: string | null | undefined) => {
+      const t = v?.trim();
+      if (t) {
+        ids.add(t);
+      }
+    };
+    add(instanceForm.locationId);
+    add(selectedService?.locationId ?? null);
+    for (const slot of instanceForm.sessionSlots) {
+      add(slot.locationId);
+    }
+    for (const p of instanceForm.partnerOrganizations) {
+      add(p.locationId);
+    }
+    return ids;
+  }, [instanceForm.locationId, instanceForm.sessionSlots, instanceForm.partnerOrganizations, selectedService?.locationId]);
+
+  const filteredLocationOptions = useMemo(
+    () =>
+      filterLocationsForInstance(
+        locationOptions,
+        instanceForm.partnerOrganizations,
+        extraSelectedLocationIds
+      ),
+    [locationOptions, instanceForm.partnerOrganizations, extraSelectedLocationIds]
+  );
+
   const resolvedEventCategory = useMemo(
     () => resolveInheritedEventCategory(selectedService, instance),
     [selectedService, instance]
@@ -631,7 +661,7 @@ export function InstanceDetailPanel({
         serviceId={selectedServiceId}
         serviceLocationId={selectedService?.locationId ?? null}
         serviceOptions={serviceOptions}
-        locationOptions={locationOptions}
+        locationOptions={filteredLocationOptions}
         isLoadingLocations={isLoadingLocations}
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
@@ -760,7 +790,7 @@ export function InstanceDetailPanel({
       <SessionSlotEditor
         slots={instanceForm.sessionSlots}
         disabled={typeFieldsLocked}
-        locationOptions={locationOptions}
+        locationOptions={filteredLocationOptions}
         isLoadingLocations={isLoadingLocations}
         defaultLocationId={effectiveSessionSlotDefaultLocationId}
         onChange={(sessionSlots) => {

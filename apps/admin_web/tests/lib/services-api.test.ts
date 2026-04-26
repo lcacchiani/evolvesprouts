@@ -320,6 +320,34 @@ describe('services-api', () => {
     expect(result.items[1].lng).toBe(55.5);
   });
 
+  it('maps partner_organization_ids on location list items', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'loc-ids',
+            name: null,
+            area_id: '00000000-0000-0000-0000-000000000001',
+            address: '1 Rd',
+            lat: null,
+            lng: null,
+            created_at: null,
+            updated_at: null,
+            locked_from_partner_org: true,
+            partner_organization_labels: ['Alpha'],
+            partner_organization_ids: ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+          },
+        ],
+        next_cursor: null,
+        total_count: 1,
+      },
+    });
+
+    const result = await listLocations({ limit: 50 });
+    expect(result.items[0].partnerOrganizationIds).toEqual(['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa']);
+    expect(result.items[0].partnerOrganizationLabels).toEqual(['Alpha']);
+  });
+
   it('adds exclude_addresses when listLocations requests family/org address exclusion', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
@@ -351,6 +379,7 @@ describe('services-api', () => {
       updated_at: null,
       locked_from_partner_org: false,
       partner_organization_labels: [],
+      partner_organization_ids: [],
     };
     const partnerOnlyRow = {
       id: '00000000-0000-0000-0000-000000000003',
@@ -363,6 +392,7 @@ describe('services-api', () => {
       updated_at: null,
       locked_from_partner_org: true,
       partner_organization_labels: ['Acme Partner'],
+      partner_organization_ids: ['bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'],
     };
 
     mockAdminApiRequest

@@ -357,10 +357,6 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         self._session.refresh(instance)
         return instance
 
-    def update_instance(self, instance: ServiceInstance) -> ServiceInstance:
-        """Update and refresh an instance."""
-        return self.update(instance)
-
     def get_enrollment_count(self, instance_id: UUID) -> int:
         """Return enrollment count for capacity (same statuses as EnrollmentRepository)."""
         statement = (

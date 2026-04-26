@@ -156,6 +156,7 @@ describe('format helpers', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         },
       ],
       [
@@ -169,8 +170,9 @@ describe('format helpers', () => {
           lng: null,
           createdAt: null,
           updatedAt: null,
-          lockedFromPartnerOrg: false,
-          partnerOrganizationLabels: [],
+          lockedFromPartnerOrg: true,
+          partnerOrganizationLabels: ['Co'],
+          partnerOrganizationIds: ['org-1'],
         },
       ],
     ]);
@@ -223,7 +225,7 @@ describe('format helpers', () => {
       consultationDetails: null,
       resolvedConsultationDetails: null,
     };
-    expect(formatInstanceSlotLocationSummary(instance, locById)).toBe('Hall A · Partner venue');
+    expect(formatInstanceSlotLocationSummary(instance, locById)).toBe('Hall A · Co');
   });
 
   it('uses earliest ordered slot time for instance sort key', () => {

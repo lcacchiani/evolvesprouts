@@ -159,6 +159,7 @@ describe('FamiliesPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         geographicAreas={[hkArea]}

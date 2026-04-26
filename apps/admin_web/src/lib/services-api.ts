@@ -147,6 +147,7 @@ function parseLocationSummary(value: unknown): LocationSummary {
     updatedAt: asNullableString(item.updated_at),
     lockedFromPartnerOrg: asBoolean(item.locked_from_partner_org, false),
     partnerOrganizationLabels: asStringArray(item.partner_organization_labels),
+    partnerOrganizationIds: asStringArray(item.partner_organization_ids),
   };
 }
 

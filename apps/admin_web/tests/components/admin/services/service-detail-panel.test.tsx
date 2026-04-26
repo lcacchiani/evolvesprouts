@@ -414,6 +414,7 @@ describe('ServiceDetailPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         isLoadingLocations={false}
@@ -611,6 +612,7 @@ describe('ServiceDetailPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         isLoadingLocations={false}
@@ -677,6 +679,7 @@ describe('ServiceDetailPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         isLoadingLocations={false}

@@ -182,6 +182,7 @@ describe('OrganizationsPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: true,
             partnerOrganizationLabels: ['Partner Org'],
+            partnerOrganizationIds: [],
           },
         ]}
         geographicAreas={[hkArea]}
@@ -250,6 +251,7 @@ describe('OrganizationsPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         geographicAreas={[hkArea]}

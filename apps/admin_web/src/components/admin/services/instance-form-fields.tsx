@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel, formatLocationLabel, formatServiceTitleWithTier } from '@/lib/format';
+import { formatEnumLabel, formatServiceTitleWithTier } from '@/lib/format';
+import { formatInstanceLocationOptionLabel } from '@/lib/instance-location-options';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
 import type {
@@ -265,7 +266,7 @@ export function InstanceFormFields({
               ) : null}
               {locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
-                  {formatLocationLabel(location)}
+                  {formatInstanceLocationOptionLabel(location)}
                 </option>
               ))}
             </Select>

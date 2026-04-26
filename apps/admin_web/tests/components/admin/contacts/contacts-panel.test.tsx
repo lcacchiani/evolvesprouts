@@ -421,6 +421,7 @@ describe('ContactsPanel', () => {
       updatedAt: null,
       lockedFromPartnerOrg: false,
       partnerOrganizationLabels: [],
+      partnerOrganizationIds: [],
     });
     geocodeVenueAddress.mockResolvedValue({
       lat: 22.3193,
@@ -517,6 +518,7 @@ describe('ContactsPanel', () => {
             updatedAt: null,
             lockedFromPartnerOrg: false,
             partnerOrganizationLabels: [],
+            partnerOrganizationIds: [],
           },
         ]}
         geographicAreas={[hkArea]}

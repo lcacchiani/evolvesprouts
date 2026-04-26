@@ -52,6 +52,11 @@ export interface InlineLocationEditorProps {
   /** Extra line under the partner-managed copy when the location is partner-locked (for example orgs screen). */
   lockedSummaryExtra?: string | null;
   /**
+   * When set, a partner org with this id may edit a venue that is otherwise partner-locked
+   * (same row in ``partnerOrganizationIds``).
+   */
+  allowEditWhenOwnerPartnerOrganizationId?: string | null;
+  /**
    * When `canModify` is false and there is no contact-level location to show, render these
    * lines instead of an em dash (for example family/org venue summaries on a linked contact).
    */
@@ -141,6 +146,7 @@ function InlineLocationEditorInner({
   saveError = '',
   allowClearWhenLocked = false,
   lockedSummaryExtra,
+  allowEditWhenOwnerPartnerOrganizationId = null,
   readOnlyLockedLines = null,
 }: InnerProps) {
   const initial = deriveInitialDraft(canModify, location, embeddedSummary);
@@ -181,7 +187,11 @@ function InlineLocationEditorInner({
 
   const areaNameForLocation = location ? areaById.get(location.areaId)?.name ?? '' : '';
 
-  const lockedFromPartner = Boolean(location?.lockedFromPartnerOrg);
+  const ownerPartnerId = allowEditWhenOwnerPartnerOrganizationId ?? '';
+  const ownerCanEditLockedVenue =
+    Boolean(ownerPartnerId) &&
+    Boolean(location?.partnerOrganizationIds?.includes(ownerPartnerId));
+  const lockedFromPartner = Boolean(location?.lockedFromPartnerOrg) && !ownerCanEditLockedVenue;
   const effectiveReadOnly = !canModify || lockedFromPartner;
 
   const {
@@ -474,6 +484,9 @@ function InlineLocationEditorInner({
             </div>
             {location || embeddedSummary ? (
               <p className='text-sm text-slate-600'>Editing updates this location wherever it is used.</p>
+            ) : null}
+            {location && location.partnerOrganizationLabels.length > 1 ? (
+              <p className='text-sm text-slate-600'>Editing updates this address everywhere it is shown.</p>
             ) : null}
             {saveError ? <AdminInlineError>{saveError}</AdminInlineError> : null}
             {geocodeError ? <AdminInlineError>{geocodeError}</AdminInlineError> : null}

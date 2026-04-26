@@ -35,6 +35,14 @@ export function formatLocationLabel(location: LocationSummary): string {
   return location.id;
 }
 
+/** Partner-org name(s) in selects when present; otherwise venue/address label. */
+export function formatInstanceLocationOptionLabel(location: LocationSummary): string {
+  if (location.partnerOrganizationLabels.length > 0) {
+    return location.partnerOrganizationLabels.join(', ');
+  }
+  return formatLocationLabel(location);
+}
+
 /** Instances table: own title when set, otherwise parent service title (with tier); cohort appended when set. Empty when nothing to show. */
 export function formatInstanceTableTitle(instance: ServiceInstance): string {
   const own = instance.title?.trim();
@@ -245,7 +253,7 @@ function collectDistinctLocationLabels(
       continue;
     }
     const loc = locationById.get(id);
-    labels.set(id, loc ? formatLocationLabel(loc) : id);
+    labels.set(id, loc ? formatInstanceLocationOptionLabel(loc) : id);
   }
   return [...labels.values()];
 }

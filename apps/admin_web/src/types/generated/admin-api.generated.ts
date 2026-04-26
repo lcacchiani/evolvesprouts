@@ -4769,6 +4769,8 @@ export interface components {
             locked_from_partner_org: boolean;
             /** @description Names of active partner organisations linked to this venue (for display). */
             partner_organization_labels: string[];
+            /** @description UUIDs of active partner organisations linked to this venue, in the same order as ``partner_organization_labels`` (sorted by partner name). */
+            partner_organization_ids: string[];
         };
         LocationResponse: {
             location: components["schemas"]["Location"];

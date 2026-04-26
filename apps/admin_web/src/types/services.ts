@@ -210,6 +210,8 @@ export interface LocationSummary {
   lockedFromPartnerOrg: boolean;
   /** Display labels for linked partner organisations (same venue address). */
   partnerOrganizationLabels: string[];
+  /** Partner organisation UUIDs for this venue (same order as labels). */
+  partnerOrganizationIds: string[];
 }
 
 export type GeographicAreaLevel = ApiSchemas['GeographicArea']['level'];

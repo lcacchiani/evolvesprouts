@@ -94,6 +94,7 @@ def test_serialize_location_emits_float_coordinates_for_json() -> None:
     payload = admin_locations._serialize_location(location)  # type: ignore[arg-type]
     assert payload["locked_from_partner_org"] is False
     assert payload["partner_organization_labels"] == []
+    assert payload["partner_organization_ids"] == []
     assert payload["lat"] == 22.3193
     assert payload["lng"] == 114.1694
     assert isinstance(payload["lat"], float)
@@ -131,9 +132,15 @@ def test_serialize_location_partner_metadata() -> None:
         created_at=None,
         updated_at=None,
     )
+    org_a = uuid4()
+    org_b = uuid4()
     payload = admin_locations._serialize_location(
         location,
-        partner_organization_names=["Alpha Partners", "Beta Co"],
+        partner_organization_id_label_pairs=[
+            (org_a, "Alpha Partners"),
+            (org_b, "Beta Co"),
+        ],
     )
     assert payload["locked_from_partner_org"] is True
     assert payload["partner_organization_labels"] == ["Alpha Partners", "Beta Co"]
+    assert payload["partner_organization_ids"] == [str(org_a), str(org_b)]

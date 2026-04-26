@@ -111,15 +111,19 @@ class LocationRepository(BaseRepository[Location]):
         )
         return self._session.execute(query).scalar_one_or_none()
 
-    def active_partner_organization_names_by_location_ids(
+    def active_partner_organization_id_label_pairs_by_location_ids(
         self,
         location_ids: Sequence[UUID],
-    ) -> dict[UUID, list[str]]:
-        """Map location ids to sorted names of active partner CRM organizations."""
+    ) -> dict[UUID, list[tuple[UUID, str]]]:
+        """Map location ids to (org id, display label) for active partner organisations.
+
+        Labels are sorted by organisation name. Duplicate organisation ids per
+        location are omitted.
+        """
         if not location_ids:
             return {}
         stmt = (
-            select(Organization.location_id, Organization.name)
+            select(Organization.id, Organization.location_id, Organization.name)
             .where(
                 Organization.location_id.in_(location_ids),
                 Organization.relationship_type == RelationshipType.PARTNER,
@@ -128,10 +132,27 @@ class LocationRepository(BaseRepository[Location]):
             .order_by(Organization.name.asc())
         )
         rows = self._session.execute(stmt).all()
-        by_loc: dict[UUID, list[str]] = defaultdict(list)
-        for loc_id, name in rows:
+        by_loc: dict[UUID, list[tuple[UUID, str]]] = defaultdict(list)
+        seen_org_by_loc: dict[UUID, set[UUID]] = defaultdict(set)
+        for org_id, loc_id, name in rows:
             if loc_id is None:
                 continue
+            if org_id in seen_org_by_loc[loc_id]:
+                continue
+            seen_org_by_loc[loc_id].add(org_id)
             label = (name or "").strip() or "Partner organisation"
-            by_loc[loc_id].append(label)
+            by_loc[loc_id].append((org_id, label))
         return dict(by_loc)
+
+    def active_partner_organization_names_by_location_ids(
+        self,
+        location_ids: Sequence[UUID],
+    ) -> dict[UUID, list[str]]:
+        """Map location ids to sorted names of active partner CRM organizations."""
+        pairs_by_loc = self.active_partner_organization_id_label_pairs_by_location_ids(
+            location_ids
+        )
+        return {
+            loc_id: [label for _org_id, label in pairs]
+            for loc_id, pairs in pairs_by_loc.items()
+        }
