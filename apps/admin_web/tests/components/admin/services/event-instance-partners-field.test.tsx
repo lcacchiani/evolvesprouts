@@ -26,7 +26,7 @@ describe('EventInstancePartnersField', () => {
 
     render(
       <EventInstancePartnersField
-        value={[{ id: 'arch-1', name: 'Archived Co', active: false }]}
+        value={[{ id: 'arch-1', name: 'Archived Co', active: false, locationId: null }]}
         onChange={onChange}
       />
     );

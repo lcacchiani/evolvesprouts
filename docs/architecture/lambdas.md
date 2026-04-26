@@ -89,7 +89,8 @@ their primary responsibilities.
   and type-specific pricing/tiers) when the instance omits a value and the parent
   service supplies the effective default; instance payloads also include
   `parent_service_title` / `parent_service_tier` / `parent_service_type` for
-  cross-service lists; and
+  cross-service lists; `partner_organizations` entries include optional
+  `location_id` (partner venue); and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service slug changes; `DELETE /v1/admin/services/{id}`
   returns `409` when the service still has instances), `/v1/admin/discount-codes/*`

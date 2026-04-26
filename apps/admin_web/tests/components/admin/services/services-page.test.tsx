@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServicesView } from '@/hooks/use-services-page';
+import type { ServiceInstance } from '@/types/services';
 
 const { mockUseServicesPage, state } = vi.hoisted(() => {
   const state = {
@@ -146,9 +147,50 @@ vi.mock('@/components/admin/services/partners-tab', () => ({
 
 import { ServicesPage } from '@/components/admin/services/services-page';
 
+const INSTANCE_FOR_SEARCH: ServiceInstance = {
+  id: 'instance-search-1',
+  serviceId: 'service-1',
+  parentServiceTitle: 'Yoga',
+  parentServiceTier: null,
+  parentServiceType: 'training_course',
+  title: null,
+  slug: null,
+  description: null,
+  coverImageS3Key: null,
+  status: 'in_progress',
+  deliveryMode: null,
+  locationId: null,
+  maxCapacity: null,
+  waitlistEnabled: false,
+  externalUrl: null,
+  partnerOrganizations: [],
+  instructorId: null,
+  notes: null,
+  tagIds: [],
+  createdBy: 'admin-sub',
+  createdAt: '2026-03-01T10:00:00Z',
+  updatedAt: '2026-03-01T10:00:00Z',
+  resolvedTitle: 'Yoga cohort run',
+  cohort: 'spring-2024',
+  resolvedSlug: null,
+  resolvedDescription: null,
+  resolvedCoverImageS3Key: null,
+  resolvedDeliveryMode: null,
+  resolvedLocationId: null,
+  sessionSlots: [],
+  trainingDetails: null,
+  resolvedTrainingDetails: null,
+  eventTicketTiers: [],
+  resolvedEventTicketTiers: [],
+  consultationDetails: null,
+  resolvedConsultationDetails: null,
+};
+
 describe('ServicesPage', () => {
   beforeEach(() => {
     state.activeView = 'catalog';
+    state.instanceList.instances = [];
+    state.instancesSearchQuery = '';
   });
 
   it('renders tabs-only header and switches views', async () => {
@@ -201,5 +243,20 @@ describe('ServicesPage', () => {
     await user.type(screen.getByLabelText('Search instances'), 'yoga');
 
     expect(state.setInstancesSearchQuery).toHaveBeenCalled();
+  });
+
+  it('filters instances by cohort using the raw stored value only', () => {
+    state.activeView = 'instances';
+    state.instanceList.instances = [INSTANCE_FOR_SEARCH];
+
+    state.instancesSearchQuery = 'spring 2024';
+    const { rerender, unmount } = render(<ServicesPage />);
+    expect(screen.queryByText('spring-2024')).not.toBeInTheDocument();
+
+    state.instancesSearchQuery = 'spring-2024';
+    rerender(<ServicesPage />);
+    expect(screen.getByText('spring-2024')).toBeInTheDocument();
+
+    unmount();
   });
 });

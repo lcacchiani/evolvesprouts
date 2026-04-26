@@ -1,6 +1,7 @@
 'use client';
 
 import type { KeyboardEvent, MouseEvent } from 'react';
+import { useMemo } from 'react';
 
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
@@ -15,13 +16,14 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
-  formatInstanceCohortDisplay,
+  formatInstanceSlotLocationSummary,
+  formatInstanceTableTitle,
   formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   orderSessionSlotsForDisplay,
 } from '@/lib/format';
 
-import type { ServiceInstance, ServiceType } from '@/types/services';
+import type { LocationSummary, ServiceInstance, ServiceType } from '@/types/services';
 import { SERVICE_TYPES } from '@/types/services';
 
 export interface InstanceServiceFilterOption {
@@ -57,8 +59,10 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add a Service column (e.g. cross-service instance list). */
+  /** When true, add cross-service columns (title, cohort, locations, slots). */
   showServiceColumn?: boolean;
+  /** Resolve location ids for the locations column (optional; ids shown when unknown). */
+  locationOptions?: LocationSummary[];
 }
 
 export function InstanceListPanel({
@@ -77,9 +81,14 @@ export function InstanceListPanel({
   serviceTypeFilter,
   searchFilter,
   showServiceColumn = false,
+  locationOptions = [],
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const { copiedKey: duplicateDraftFeedbackId, markCopied: markDuplicateDraftFeedback } = useCopyFeedback(1000);
+  const locationById = useMemo(
+    () => new Map(locationOptions.map((loc) => [loc.id, loc])),
+    [locationOptions]
+  );
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, instanceId: string) => {
     if (event.target !== event.currentTarget) {
@@ -104,9 +113,10 @@ export function InstanceListPanel({
     event: MouseEvent<HTMLButtonElement>
   ) => {
     event.stopPropagation();
+    const deleteLabel = formatInstanceTableTitle(instance);
     const confirmed = await requestConfirm({
       title: 'Delete instance',
-      description: `Delete "${instance.resolvedTitle ?? instance.title ?? 'this instance'}"? This action cannot be undone.`,
+      description: `Delete "${deleteLabel !== '-' ? deleteLabel : 'this instance'}"? This action cannot be undone.`,
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       variant: 'danger',
@@ -187,10 +197,16 @@ export function InstanceListPanel({
           <AdminDataTableHead>
             <tr>
               {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Title</th>
+              ) : null}
+              {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Service</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Cohort</th>
+              ) : null}
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Slots</th>
@@ -215,6 +231,9 @@ export function InstanceListPanel({
                 aria-selected={selectedInstanceId === instance.id}
               >
                 {showServiceColumn ? (
+                  <td className='px-4 py-3'>{formatInstanceTableTitle(instance)}</td>
+                ) : null}
+                {showServiceColumn ? (
                   <td className='px-4 py-3'>
                     {instance.parentServiceTitle
                       ? formatServiceTitleWithTier(
@@ -225,7 +244,14 @@ export function InstanceListPanel({
                   </td>
                 ) : null}
                 {showServiceColumn ? (
-                  <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>
+                  <td className='px-4 py-3'>
+                    {instance.cohort != null && instance.cohort.trim() !== '' ? instance.cohort : '-'}
+                  </td>
+                ) : null}
+                {showServiceColumn ? (
+                  <td className='max-w-[14rem] px-4 py-3 text-sm'>
+                    {formatInstanceSlotLocationSummary(instance, locationById)}
+                  </td>
                 ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3 align-top'>

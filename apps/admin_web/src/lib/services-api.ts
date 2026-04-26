@@ -130,6 +130,7 @@ function parsePartnerOrganization(value: unknown): PartnerOrgRef | null {
     id,
     name: asNullableString(item.name) ?? '',
     active: !asBoolean(item.archived, false),
+    locationId: asNullableString(item.location_id),
   };
 }
 

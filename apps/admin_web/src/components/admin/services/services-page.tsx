@@ -7,7 +7,8 @@ import { StatusBanner } from '@/components/status-banner';
 import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
 import {
   compareInstancesByFirstSlotStartsDesc,
-  formatInstanceCohortDisplay,
+  formatInstanceSlotLocationSummary,
+  formatInstanceTableTitle,
   formatServiceTitleWithTier,
 } from '@/lib/format';
 import { getInstance, getService } from '@/lib/services-api';
@@ -79,12 +80,18 @@ export function ServicesPage() {
     return allServiceOptionsIncludingArchived.filter((svc) => svc.status !== 'archived');
   }, [showArchivedDiscountServices, allServiceOptionsIncludingArchived]);
   const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
+  const instanceSearchLocationById = useMemo(
+    () => new Map(state.locationList.locations.map((loc) => [loc.id, loc])),
+    [state.locationList.locations]
+  );
   const filteredInstances = useMemo(() => {
     if (state.activeView !== 'instances' || !normalizedInstanceSearch) {
       return state.instanceList.instances;
     }
     return state.instanceList.instances.filter((instance) => {
+      const tableTitle = formatInstanceTableTitle(instance);
       const parts: string[] = [
+        tableTitle !== '-' ? tableTitle : null,
         instance.resolvedTitle,
         instance.title,
         instance.parentServiceTitle,
@@ -94,15 +101,38 @@ export function ServicesPage() {
           : null,
         instance.instructorId,
         instance.status,
+        formatInstanceSlotLocationSummary(instance, instanceSearchLocationById),
       ].filter((value): value is string => Boolean(value));
       const cohortTrimmed = instance.cohort?.trim();
       if (cohortTrimmed) {
-        parts.push(cohortTrimmed, formatInstanceCohortDisplay(instance.cohort));
+        parts.push(cohortTrimmed);
+      }
+      const locResolved = instance.locationId ?? instance.resolvedLocationId;
+      if (locResolved?.trim()) {
+        parts.push(locResolved);
+      }
+      for (const slot of instance.sessionSlots) {
+        if (slot.locationId?.trim()) {
+          parts.push(slot.locationId);
+        }
+      }
+      for (const partner of instance.partnerOrganizations) {
+        if (partner.name?.trim()) {
+          parts.push(partner.name);
+        }
+        if (partner.locationId?.trim()) {
+          parts.push(partner.locationId);
+        }
       }
       const searchable = parts.join(' ').toLowerCase();
       return searchable.includes(normalizedInstanceSearch);
     });
-  }, [normalizedInstanceSearch, state.activeView, state.instanceList.instances]);
+  }, [
+    normalizedInstanceSearch,
+    state.activeView,
+    state.instanceList.instances,
+    instanceSearchLocationById,
+  ]);
   const instancesTableRows = useMemo(() => {
     if (state.activeView !== 'instances') {
       return filteredInstances;
@@ -264,6 +294,7 @@ export function ServicesPage() {
             }}
             onLoadMore={state.instanceList.loadMore}
             showServiceColumn
+            locationOptions={state.locationList.locations}
             searchFilter={{
               value: state.instancesSearchQuery,
               onChange: state.setInstancesSearchQuery,

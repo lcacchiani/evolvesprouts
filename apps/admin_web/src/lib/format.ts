@@ -35,6 +35,18 @@ export function formatLocationLabel(location: LocationSummary): string {
   return location.id;
 }
 
+/** Instances table: own title when set, otherwise parent service title (with tier). */
+export function formatInstanceTableTitle(instance: ServiceInstance): string {
+  const own = instance.title?.trim();
+  if (own) {
+    return own;
+  }
+  if (instance.parentServiceTitle) {
+    return formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier);
+  }
+  return '-';
+}
+
 /** Full venue label: address (when present) plus geographic area name. */
 export function formatEntityVenueLocationLabel(location: {
   name?: string | null;
@@ -144,30 +156,6 @@ export function formatEnumLabel(value: string): string {
   return toTitleCase(value.toLowerCase());
 }
 
-/**
- * Service instance cohort slugs use hyphens (e.g. `spring-2024`); show each segment
- * as a word with a capitalized first letter.
- */
-export function formatInstanceCohortDisplay(cohort: string | null | undefined): string {
-  if (cohort == null) {
-    return '-';
-  }
-  const trimmed = cohort.trim();
-  if (!trimmed) {
-    return '-';
-  }
-  const words = trimmed
-    .split('-')
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0);
-  if (words.length === 0) {
-    return '-';
-  }
-  return words
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
 const SESSION_SLOT_TABLE_DATETIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',
@@ -235,6 +223,51 @@ export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[]
       return a.index - b.index;
     })
     .map(({ slot }) => slot);
+}
+
+function collectDistinctLocationLabels(
+  locationById: Map<string, LocationSummary>,
+  ids: Iterable<string | null | undefined>
+): string[] {
+  const labels = new Map<string, string>();
+  for (const raw of ids) {
+    const id = raw?.trim();
+    if (!id || labels.has(id)) {
+      continue;
+    }
+    const loc = locationById.get(id);
+    labels.set(id, loc ? formatLocationLabel(loc) : id);
+  }
+  return [...labels.values()];
+}
+
+/**
+ * Distinct venue labels for instance default, session slots, and partner org venues.
+ */
+export function formatInstanceSlotLocationSummary(
+  instance: ServiceInstance,
+  locationById: Map<string, LocationSummary>
+): string {
+  const idSequence: string[] = [];
+  const resolved = instance.locationId ?? instance.resolvedLocationId;
+  if (resolved?.trim()) {
+    idSequence.push(resolved);
+  }
+  for (const slot of orderSessionSlotsForDisplay(instance.sessionSlots)) {
+    if (slot.locationId?.trim()) {
+      idSequence.push(slot.locationId);
+    }
+  }
+  for (const partner of instance.partnerOrganizations) {
+    if (partner.locationId?.trim()) {
+      idSequence.push(partner.locationId);
+    }
+  }
+  const labels = collectDistinctLocationLabels(locationById, idSequence);
+  if (labels.length === 0) {
+    return '-';
+  }
+  return labels.join(' · ');
 }
 
 /** Timestamp of the earliest slot with a valid `startsAt`, or `null` if none. */
