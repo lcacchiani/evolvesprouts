@@ -68,7 +68,6 @@ def sync_instance_to_eventbrite(
     config = _load_config()
     instance.eventbrite_sync_status = EventbriteSyncStatus.SYNCING
     instance.eventbrite_last_error = None
-    repository.update_instance(instance)
     session.commit()
 
     try:
@@ -76,7 +75,6 @@ def sync_instance_to_eventbrite(
             created_event_id, created_event_url = _create_event(instance, config=config)
             instance.eventbrite_event_id = created_event_id
             instance.eventbrite_event_url = created_event_url
-            repository.update_instance(instance)
             session.commit()
 
         if instance.eventbrite_event_id is None:
@@ -92,7 +90,6 @@ def sync_instance_to_eventbrite(
         instance.eventbrite_last_error = None
         instance.eventbrite_retry_count = 0
         instance.eventbrite_sync_status = EventbriteSyncStatus.SYNCED
-        repository.update_instance(instance)
         session.commit()
         logger.info(
             "Eventbrite sync succeeded",
@@ -110,7 +107,6 @@ def sync_instance_to_eventbrite(
         instance.eventbrite_sync_status = EventbriteSyncStatus.FAILED
         instance.eventbrite_last_error = str(exc)
         instance.eventbrite_retry_count = int(instance.eventbrite_retry_count or 0) + 1
-        repository.update_instance(instance)
         session.commit()
         logger.exception(
             "Eventbrite sync failed",

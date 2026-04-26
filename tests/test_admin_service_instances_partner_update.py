@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -66,7 +67,7 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
-    """Avoid session.add(instance) after bulk DELETE on partner links (stale ORM)."""
+    """Commit path does not call repository update (no session.add on instance)."""
     service_id = uuid4()
     instance_id = uuid4()
     org_a = uuid4()
@@ -98,9 +99,6 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
     captured: dict[str, Any] = {}
 
     class _FakeSession:
-        def flush(self) -> None:
-            captured["flushed"] = True
-
         def commit(self) -> None:
             captured["committed"] = True
 
@@ -129,10 +127,6 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
         def get_by_id_with_details(self, iid: Any) -> ServiceInstance:
             assert iid == instance_id
             return instance
-
-        def update_instance(self, inst: ServiceInstance) -> ServiceInstance:
-            captured["update_instance_called"] = True
-            return inst
 
         def get_by_id_with_details_after(self, iid: Any) -> ServiceInstance | None:
             assert iid == instance_id
@@ -167,7 +161,18 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
         "parse_update_instance_payload",
         lambda body, svc: {
             "status": InstanceStatus.SCHEDULED,
-            "type_details": {"event_ticket_tiers": [{"price": "10", "currency": "HKD"}]},
+            "type_details": {
+                "event_ticket_tiers": [
+                    {
+                        "name": "workshop",
+                        "description": None,
+                        "price": Decimal("10.00"),
+                        "currency": "HKD",
+                        "max_quantity": None,
+                        "sort_order": 0,
+                    }
+                ]
+            },
             "partner_organization_ids": [org_b, org_a],
         },
     )
@@ -175,11 +180,6 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
         admin_service_instances,
         "validate_partner_organization_ids",
         lambda *_a, **_k: None,
-    )
-    monkeypatch.setattr(
-        admin_service_instances,
-        "_apply_instance_type_details",
-        lambda **_k: None,
     )
     monkeypatch.setattr(
         admin_service_instances,
@@ -221,8 +221,6 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
     )
 
     assert response["statusCode"] == 200
-    assert captured.get("update_instance_called") is None
-    assert captured.get("flushed") is True
     assert captured.get("committed") is True
     assert captured.get("reconcile_ids") == [org_b, org_a]
     assert captured.get("sync_id") == instance_id

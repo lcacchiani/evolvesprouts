@@ -555,6 +555,13 @@ def _update_instance(
                 parsed_details=type_details_raw,
             )
         if "partner_organization_ids" in payload:
+            # Partner M2M rows are reconciled with bulk DELETE + INSERT (see
+            # reconcile_instance_partner_organizations), not via the ORM collection,
+            # because selectinload-loaded link objects would stay in deleted state in
+            # the session while instance.partner_organization_links still references
+            # them — session.add(instance) would then cascade and raise
+            # InvalidRequestError. Session-tracked instance + commit() persists
+            # scalar changes without re-adding the instance.
             reconcile_instance_partner_organizations(
                 session,
                 instance_id=instance.id,
@@ -567,7 +574,6 @@ def _update_instance(
                 tag_ids=payload["tag_ids"],
             )
 
-        session.flush()
         session.commit()
         if service.service_type == ServiceType.EVENT:
             enqueue_eventbrite_instance_sync_by_id(instance.id)
