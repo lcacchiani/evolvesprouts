@@ -3,8 +3,6 @@ import type {
   EventsContent,
   Locale,
 } from '@/content';
-import temporaryEventsPayload from '@/content/events.json';
-import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import {
   readCandidateText,
   readOptionalText,
@@ -27,11 +25,8 @@ import {
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
-type EventsSource = 'content' | 'api';
 
 export const EVENTS_API_PATH = '/v1/calendar/public';
-const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
-const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
@@ -39,6 +34,13 @@ const EVENT_BOOKING_SYSTEM = 'event-booking';
 export const CONSULTATION_BOOKING_SYSTEM = 'consultation-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
+
+/** Query keys for `GET /v1/calendar/public` (OpenAPI: `service_type`, `landing_page`, `service_key`). */
+export interface EventsFetchParams {
+  serviceType?: 'event' | 'training_course';
+  landingPage?: string;
+  serviceKey?: string;
+}
 
 interface EventBookingDatePart {
   id: string;
@@ -111,6 +113,10 @@ export interface MyBestAuntieEventCohort {
   service_tier: string;
   title: string;
   description: string;
+  /**
+   * Cohort month-year token from the API. Accepts legacy numeric month form (`04-26`)
+   * or canonical three-letter English month abbreviations (`apr-26`, case-insensitive).
+   */
   cohort: string;
   spaces_total: number;
   spaces_left: number;
@@ -725,17 +731,28 @@ function buildEventsApiUrl(crmApiBaseUrl: string): string {
   return buildCrmApiUrl(crmApiBaseUrl, EVENTS_API_PATH);
 }
 
-function resolveEventsSource(): EventsSource {
-  const configuredSource = process.env[EVENTS_SOURCE_ENV_NAME]?.trim().toLowerCase() ?? '';
-  if (configuredSource === EVENTS_SOURCE_CONTENT) {
-    return EVENTS_SOURCE_CONTENT;
+/**
+ * Builds the calendar public endpoint path including optional filters
+ * (`service_type`, `landing_page`, `service_key`).
+ */
+export function buildEventsApiPath(params?: EventsFetchParams): string {
+  if (!params) {
+    return EVENTS_API_PATH;
   }
 
-  return 'api';
-}
+  const search = new URLSearchParams();
+  if (params.serviceType) {
+    search.set('service_type', params.serviceType);
+  }
+  if (params.landingPage?.trim()) {
+    search.set('landing_page', params.landingPage.trim());
+  }
+  if (params.serviceKey?.trim()) {
+    search.set('service_key', params.serviceKey.trim());
+  }
 
-export function shouldUseTemporaryEventsContentSource(): boolean {
-  return resolveEventsSource() === EVENTS_SOURCE_CONTENT;
+  const query = search.toString();
+  return query ? `${EVENTS_API_PATH}?${query}` : EVENTS_API_PATH;
 }
 
 function normalizeLocationLabel(
@@ -931,16 +948,14 @@ function formatLandingPageEventCtaPriceLabel(
 export async function fetchEventsPayload(
   crmApiClient: CrmApiClient | null,
   signal: AbortSignal,
+  params?: EventsFetchParams,
 ): Promise<unknown> {
-  if (shouldUseTemporaryEventsContentSource()) {
-    return temporaryEventsPayload;
-  }
   if (!crmApiClient) {
     throw new Error('CRM API client is not configured');
   }
 
   return crmApiClient.request({
-    endpointPath: EVENTS_API_PATH,
+    endpointPath: buildEventsApiPath(params),
     method: 'GET',
     signal,
   });
@@ -985,13 +1000,16 @@ function findEventsArray(payload: unknown, depth = 0): unknown[] {
   return [];
 }
 
-function findLandingPageEventRecord(slug: string): Record<string, unknown> | null {
+export function findLandingPageEventInPayload(
+  payload: unknown,
+  slug: string,
+): Record<string, unknown> | null {
   const normalizedSlug = slug.trim().toLowerCase();
   if (!normalizedSlug) {
     return null;
   }
 
-  for (const entry of findEventsArray(temporaryEventsPayload)) {
+  for (const entry of findEventsArray(payload)) {
     const record = toRecord(entry);
     if (!record) {
       continue;
@@ -1027,17 +1045,6 @@ function normalizeEventsFromArray(
   return eventsArray
     .map((item, index) => normalizeEventCard(item, index, content, locale))
     .filter((item): item is EventCardData => item !== null);
-}
-
-function resolveEventsArrayForEventsPage(payload: unknown): unknown[] {
-  if (!shouldUseTemporaryEventsContentSource()) {
-    return findEventsArray(payload);
-  }
-
-  return [
-    ...findEventsArray(payload),
-    ...findEventsArray(myBestAuntieTrainingCourseContent),
-  ];
 }
 
 function readTagList(record: Record<string, unknown>): string[] {
@@ -1303,21 +1310,11 @@ export function normalizeEvents(
   return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
 }
 
-export function normalizeEventsForEventsPage(
+export function getLandingPageHeroEventContentFromPayload(
   payload: unknown,
-  content: EventsContent,
-  locale?: string,
-): EventCardData[] {
-  const normalizedLocale = resolveEventsLocale(locale);
-  const eventsArray = resolveEventsArrayForEventsPage(payload);
-
-  return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
-}
-
-export function getLandingPageHeroEventContent(
   slug: string,
 ): LandingPageHeroEventContent | null {
-  const eventRecord = findLandingPageEventRecord(slug);
+  const eventRecord = findLandingPageEventInPayload(payload, slug);
   if (!eventRecord) {
     return null;
   }
@@ -1357,11 +1354,12 @@ export function getLandingPageHeroEventContent(
   };
 }
 
-export function getLandingPageBookingEventContent(
+export function getLandingPageBookingEventContentFromPayload(
+  payload: unknown,
   slug: string,
   locale?: string,
 ): LandingPageBookingEventContent | null {
-  const eventRecord = findLandingPageEventRecord(slug);
+  const eventRecord = findLandingPageEventInPayload(payload, slug);
   if (!eventRecord) {
     return null;
   }
@@ -1432,10 +1430,11 @@ export function getLandingPageBookingEventContent(
   };
 }
 
-export function getLandingPageStructuredDataContent(
+export function getLandingPageStructuredDataContentFromPayload(
+  payload: unknown,
   slug: string,
 ): LandingPageStructuredDataContent | null {
-  const eventRecord = findLandingPageEventRecord(slug);
+  const eventRecord = findLandingPageEventInPayload(payload, slug);
   if (!eventRecord) {
     return null;
   }
@@ -1521,6 +1520,141 @@ export function getLandingPageStructuredDataContent(
     offerAvailability:
       resolveEventStatus(eventRecord) === 'fully_booked' ? 'SoldOut' : 'InStock',
   };
+}
+
+function resolveServiceTypeForCalendarRecord(
+  record: Record<string, unknown>,
+): string {
+  const fromServiceType = readCandidateText(record, ['service_type', 'serviceType']);
+  if (fromServiceType) {
+    return fromServiceType.trim().toLowerCase();
+  }
+
+  const fromService = readCandidateText(record, ['service'])?.trim().toLowerCase() ?? '';
+  if (fromService === 'training-course' || fromService === 'training_course') {
+    return 'training_course';
+  }
+
+  return '';
+}
+
+function recordToMyBestAuntieEventCohort(
+  record: Record<string, unknown>,
+): MyBestAuntieEventCohort | null {
+  const slug =
+    readCandidateText(record, ['slug', 'id', 'eventId'])?.trim() ?? '';
+  const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
+  const cohortValue = readCandidateText(record, ['cohort']) ?? '';
+  if (!slug || !ageGroup || !cohortValue) {
+    return null;
+  }
+
+  const title = readCandidateText(record, ['title']) ?? '';
+  const description = readCandidateText(record, ['description']) ?? '';
+  const spacesTotal = resolveNumericCandidate(record, ['spaces_total']) ?? 0;
+  const spacesLeft = resolveNumericCandidate(record, ['spaces_left']) ?? 0;
+  const price = resolveNumericCandidate(record, ['price']) ?? 0;
+  const currency = readCandidateText(record, ['currency']) ?? 'HKD';
+  const location = readCandidateText(record, ['location']) ?? 'physical';
+  const locationAddress = readCandidateText(record, [
+    'location_address',
+    'locationAddress',
+    'address',
+  ]) ?? '';
+  const locationName = readCandidateText(record, [
+    'location_name',
+    'locationName',
+    'venue',
+  ]) ?? locationAddress;
+  const locationUrl = sanitizeGoogleMapsHref(
+    readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
+  );
+  const dates = resolveBookingDateParts(record, '').map((partRow, idx) => {
+    const part =
+      typeof partRow.sessionPart === 'number' && partRow.sessionPart > 0
+        ? partRow.sessionPart
+        : idx + 1;
+    return {
+      part,
+      start_datetime: partRow.startDateTime,
+      end_datetime: partRow.endDateTime,
+    };
+  });
+  if (dates.length === 0) {
+    return null;
+  }
+
+  const service = readCandidateText(record, ['service']) ?? 'training-course';
+
+  return {
+    slug,
+    service_tier: ageGroup,
+    service,
+    title,
+    description,
+    cohort: cohortValue,
+    spaces_total: spacesTotal,
+    spaces_left: spacesLeft,
+    is_fully_booked: resolveEventStatus(record) === 'fully_booked',
+    price,
+    currency,
+    location,
+    booking_system: MY_BEST_AUNTIE_BOOKING_SYSTEM,
+    tags: resolveStringList(record.tags),
+    categories: resolveStringList(record.categories),
+    location_name: locationName,
+    location_address: locationAddress,
+    location_url: locationUrl,
+    dates,
+  };
+}
+
+/**
+ * MBA training-course cohort rows from a calendar public payload (API shape).
+ */
+export function normalizeMyBestAuntieCohortsFromPayload(
+  payload: unknown,
+  _locale?: string,
+): MyBestAuntieEventCohort[] {
+  const cohorts: MyBestAuntieEventCohort[] = [];
+
+  for (const entry of findEventsArray(payload)) {
+    const record = toRecord(entry);
+    if (!record) {
+      continue;
+    }
+
+    const bookingSystem = readOptionalText(record.booking_system) ?? '';
+    if (bookingSystem !== MY_BEST_AUNTIE_BOOKING_SYSTEM) {
+      continue;
+    }
+
+    if (resolveServiceTypeForCalendarRecord(record) !== 'training_course') {
+      continue;
+    }
+
+    const cohort = recordToMyBestAuntieEventCohort(record);
+    if (!cohort) {
+      continue;
+    }
+
+    cohorts.push(cohort);
+  }
+
+  cohorts.sort((left, right) => {
+    const leftStart = left.dates[0]?.start_datetime?.trim() ?? '';
+    const rightStart = right.dates[0]?.start_datetime?.trim() ?? '';
+    const leftParsed = leftStart ? Date.parse(leftStart) : Number.NaN;
+    const rightParsed = rightStart ? Date.parse(rightStart) : Number.NaN;
+    const leftValue = Number.isNaN(leftParsed) ? Number.POSITIVE_INFINITY : leftParsed;
+    const rightValue = Number.isNaN(rightParsed) ? Number.POSITIVE_INFINITY : rightParsed;
+    if (leftValue !== rightValue) {
+      return leftValue - rightValue;
+    }
+    return left.slug.localeCompare(right.slug);
+  });
+
+  return cohorts;
 }
 
 export function sortUpcomingEvents(

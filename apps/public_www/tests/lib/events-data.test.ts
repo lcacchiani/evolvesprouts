@@ -2,22 +2,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
-import temporaryEventsPayload from '@/content/events.json';
 import easterWorkshopLandingContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import missingPieceLandingContent from '@/content/landing-pages/may-2026-the-missing-piece.json';
-import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
+import { publicCalendarFixture } from '../fixtures/public-calendar';
 import { createCrmApiClient } from '@/lib/crm-api-client';
+import { formatCohortValue } from '@/lib/format';
 import {
   PUBLIC_SITE_IANA_TIMEZONE,
   formatHeroFullDateLine,
 } from '@/lib/site-datetime';
 import {
+  buildEventsApiPath,
   fetchEventsPayload,
-  getLandingPageBookingEventContent,
-  getLandingPageHeroEventContent,
-  getLandingPageStructuredDataContent,
+  findLandingPageEventInPayload,
+  getLandingPageBookingEventContentFromPayload,
+  getLandingPageHeroEventContentFromPayload,
+  getLandingPageStructuredDataContentFromPayload,
   normalizeEvents,
-  normalizeEventsForEventsPage,
+  normalizeMyBestAuntieCohortsFromPayload,
   resolveEventsApiUrl,
   sortPastEvents,
   sortEvents,
@@ -500,8 +502,9 @@ describe('events-data', () => {
     expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
   });
 
-  it('resolves landing page hero content from events.json using landing_page slug', () => {
-    const heroEventContent = getLandingPageHeroEventContent(
+  it('resolves landing page hero content from calendar payload using landing_page slug', () => {
+    const heroEventContent = getLandingPageHeroEventContentFromPayload(
+      publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
     );
 
@@ -516,8 +519,9 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page booking payload from events.json using landing_page slug', () => {
-    const bookingEventContent = getLandingPageBookingEventContent(
+  it('resolves landing page booking payload from calendar payload using landing_page slug', () => {
+    const bookingEventContent = getLandingPageBookingEventContentFromPayload(
+      publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
       'en',
     );
@@ -541,8 +545,9 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page structured data content from events.json using landing_page slug', () => {
-    const structuredDataContent = getLandingPageStructuredDataContent(
+  it('resolves landing page structured data content from calendar payload using landing_page slug', () => {
+    const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
+      publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
     );
 
@@ -561,8 +566,9 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves May 2026 The Missing Piece landing page content from events.json', () => {
-    const heroEventContent = getLandingPageHeroEventContent(
+  it('resolves May 2026 The Missing Piece landing page content from calendar payload', () => {
+    const heroEventContent = getLandingPageHeroEventContentFromPayload(
+      publicCalendarFixture,
       'may-2026-the-missing-piece',
     );
 
@@ -576,7 +582,8 @@ describe('events-data', () => {
       categoryChips: ['Workshop'],
     });
 
-    const bookingEventContent = getLandingPageBookingEventContent(
+    const bookingEventContent = getLandingPageBookingEventContentFromPayload(
+      publicCalendarFixture,
       'may-2026-the-missing-piece',
       'en',
     );
@@ -602,7 +609,8 @@ describe('events-data', () => {
       topicsFieldConfig: missingPieceLandingContent.en.cta.bookingTopicsField,
     });
 
-    const structuredDataContent = getLandingPageStructuredDataContent(
+    const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
+      publicCalendarFixture,
       'may-2026-the-missing-piece',
     );
 
@@ -622,40 +630,53 @@ describe('events-data', () => {
   });
 
   it('returns null when landing page slug has no matching event', () => {
-    expect(getLandingPageHeroEventContent('unknown-landing-page-slug')).toBeNull();
-    expect(getLandingPageBookingEventContent('unknown-landing-page-slug')).toBeNull();
-    expect(getLandingPageStructuredDataContent('unknown-landing-page-slug')).toBeNull();
+    expect(
+      getLandingPageHeroEventContentFromPayload(publicCalendarFixture, 'unknown-landing-page-slug'),
+    ).toBeNull();
+    expect(
+      getLandingPageBookingEventContentFromPayload(
+        publicCalendarFixture,
+        'unknown-landing-page-slug',
+      ),
+    ).toBeNull();
+    expect(
+      getLandingPageStructuredDataContentFromPayload(
+        publicCalendarFixture,
+        'unknown-landing-page-slug',
+      ),
+    ).toBeNull();
   });
 
-  it('merges events and course content for events page when source is content', () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
-
-    const events = normalizeEventsForEventsPage(temporaryEventsPayload, enContent.events);
-    const expectedMergedLength =
-      temporaryEventsPayload.data.length + myBestAuntieTrainingCourseContent.data.length;
-
-    expect(events).toHaveLength(expectedMergedLength);
-    expect(events.some((event) => event.id === 'bimbo-concept-weaning-2026-03-20')).toBe(true);
-    expect(events.some((event) => event.id === 'my-best-auntie-0-1-04-26')).toBe(true);
+  it('finds landing page event record in payload', () => {
+    const record = findLandingPageEventInPayload(
+      publicCalendarFixture,
+      'easter-2026-montessori-play-coaching-workshop',
+    );
+    expect(record).not.toBeNull();
+    expect((record as { title?: string }).title).toBe(
+      'Easter 2026 Montessori Play Coaching Workshop',
+    );
   });
 
-  it('keeps events page normalization unchanged for API source', () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+  it('normalizes My Best Auntie training_course cohorts with alpha cohort labels', () => {
+    const cohorts = normalizeMyBestAuntieCohortsFromPayload(publicCalendarFixture, 'en');
+    expect(cohorts).toHaveLength(2);
+    const apr = cohorts.find((c) => c.cohort === 'apr-26');
+    expect(apr).toBeDefined();
+    expect(apr?.service_tier).toBe('1-3');
+    expect(apr?.slug).toBe('my-best-auntie-1-3-apr-26');
+    expect(apr?.dates).toHaveLength(3);
+    expect(apr?.dates[0]?.part).toBe(1);
+    expect(formatCohortValue(apr!.cohort, 'en')).toBe('Apr, 2026');
+  });
 
-    const payload = {
-      data: [
-        {
-          id: 'api-event-1',
-          title: 'API-only event',
-          dates: [{ start_datetime: '2026-08-01T09:00:00Z' }],
-        },
-      ],
-    };
-
-    const events = normalizeEventsForEventsPage(payload, enContent.events);
-
-    expect(events).toHaveLength(1);
-    expect(events[0]?.id).toBe('api-event-1');
+  it('builds filtered calendar API path with service_key and service_type', () => {
+    expect(
+      buildEventsApiPath({
+        serviceKey: 'my-best-auntie',
+        serviceType: 'training_course',
+      }),
+    ).toBe('/v1/calendar/public?service_type=training_course&service_key=my-best-auntie');
   });
 
   it('returns upcoming events in chronological order and limits past events to most recent 5', () => {
@@ -775,7 +796,6 @@ describe('events-data', () => {
   });
 
   it('fetches events payload with x-api-key', async () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -818,20 +838,34 @@ describe('events-data', () => {
     });
   });
 
-  it('returns temporary content events when content source is enabled', async () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
-
-    const payload = await fetchEventsPayload(
-      null,
-      new AbortController().signal,
+  it('fetches calendar with service_key and service_type query params', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ status: 'success', data: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
     );
+    vi.stubGlobal('fetch', fetchSpy);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-crm-key',
+    });
+    if (!crmApiClient) {
+      throw new Error('Expected CRM API client configuration to be valid');
+    }
 
-    expect(payload).toEqual(temporaryEventsPayload);
+    await fetchEventsPayload(crmApiClient, new AbortController().signal, {
+      serviceKey: 'my-best-auntie',
+      serviceType: 'training_course',
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.evolvesprouts.com/www/v1/calendar/public?service_type=training_course&service_key=my-best-auntie',
+      expect.anything(),
+    );
   });
 
-  it('throws when API source is active and CRM client is missing', async () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
-
+  it('throws when CRM client is missing', async () => {
     await expect(
       fetchEventsPayload(null, new AbortController().signal),
     ).rejects.toThrow('CRM API client is not configured');

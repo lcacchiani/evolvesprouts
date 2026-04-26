@@ -6,42 +6,41 @@ import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
-vi.mock('@/lib/events-data', () => ({
-  getLandingPageHeroEventContent: () => ({
+const mockHeroEventContent = {
+  title: 'Mock Event Title',
+  startDateTime: '2026-04-06T02:00:00Z',
+  endDateTime: '2026-04-06T03:00:00Z',
+  locationLabel: 'Wan Chai',
+  categoryChips: ['Workshop'],
+};
+
+const mockBookingEventContent = {
+  status: 'open' as const,
+  spacesLeft: 6,
+  eyebrowDateLabel: 'Monday 6 April',
+  bookingPayload: {
+    variant: 'event' as const,
+    bookingSystem: 'event-booking' as const,
+    service: 'event',
+    serviceKey: 'mock-event',
     title: 'Mock Event Title',
-    startDateTime: '2026-04-06T02:00:00Z',
-    endDateTime: '2026-04-06T03:00:00Z',
-    locationLabel: 'Wan Chai',
-    categoryChips: ['Workshop'],
-  }),
-  getLandingPageBookingEventContent: () => ({
-    status: 'open',
-    spacesLeft: 6,
-    eyebrowDateLabel: 'Monday 6 April',
-    bookingPayload: {
-      variant: 'event',
-      bookingSystem: 'event-booking',
-      service: 'event',
-      serviceKey: 'mock-event',
-      title: 'Mock Event Title',
-      subtitle: 'Mock subtitle',
-      originalAmount: 350,
-      locationName: 'Mock Venue',
-      locationAddress: 'Mock Address',
-      directionHref: 'https://www.google.com/maps',
-      dateParts: [
-        {
-          id: 'part-1',
-          startDateTime: '2026-04-06T02:00:00Z',
-          endDateTime: '2026-04-06T03:00:00Z',
-          description: 'Mock subtitle',
-        },
-      ],
-      selectedDateLabel: '06 Apr 2026',
-      selectedDateStartTime: '2026-04-06T02:00:00Z',
-    },
-  }),
-}));
+    subtitle: 'Mock subtitle',
+    originalAmount: 350,
+    locationName: 'Mock Venue',
+    locationAddress: 'Mock Address',
+    directionHref: 'https://www.google.com/maps',
+    dateParts: [
+      {
+        id: 'part-1',
+        startDateTime: '2026-04-06T02:00:00Z',
+        endDateTime: '2026-04-06T03:00:00Z',
+        description: 'Mock subtitle',
+      },
+    ],
+    selectedDateLabel: '06 Apr 2026',
+    selectedDateStartTime: '2026-04-06T02:00:00Z',
+  },
+};
 
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
@@ -156,6 +155,8 @@ describe('LandingPage composition', () => {
         slug='easter-2026-montessori-play-coaching-workshop'
         siteContent={enContent}
         pageContent={easterWorkshopContent.en}
+        heroEventContent={mockHeroEventContent}
+        bookingEventContent={mockBookingEventContent}
       />,
     );
 

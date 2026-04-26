@@ -8,8 +8,7 @@ import {
 import {
   type EventCardData,
   fetchEventsPayload,
-  normalizeEventsForEventsPage,
-  shouldUseTemporaryEventsContentSource,
+  normalizeEvents,
 } from '@/lib/events-data';
 import {
   getMenuLabel,
@@ -31,9 +30,8 @@ async function resolveServerSideEvents(
   locale: string,
   content: SiteContent,
 ): Promise<EventCardData[]> {
-  const useTemporaryEventsSource = shouldUseTemporaryEventsContentSource();
   const crmApiClient = createPublicCrmApiClient();
-  if (!crmApiClient && !useTemporaryEventsSource) {
+  if (!crmApiClient) {
     return [];
   }
 
@@ -44,7 +42,7 @@ async function resolveServerSideEvents(
 
   try {
     const payload = await fetchEventsPayload(crmApiClient, controller.signal);
-    return normalizeEventsForEventsPage(payload, content.events, locale);
+    return normalizeEvents(payload, content.events, locale);
   } catch (error) {
     if (isAbortRequestError(error)) {
       return [];

@@ -44,9 +44,10 @@ import { MyBestAuntieThankYouModal } from '@/components/sections/my-best-auntie/
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
+import trainingCoursesFixture from '../../fixtures/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent, trackPublicFormOutcome } from '@/lib/analytics';
 import { createPublicApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
 import { submitReservation } from '@/lib/reservations-data';
@@ -194,15 +195,13 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
-const bookingSectionContent = {
-  ...enContent.myBestAuntie.booking,
-  cohorts: trainingCoursesContent.data,
-};
+const bookingSectionContent = enContent.myBestAuntie.booking;
+const testMbaCohorts = trainingCoursesFixture.data as MyBestAuntieEventCohort[];
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
 const bookingModalStripeEnabledContent = bookingModalContent;
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
-const selectedCohort = bookingSectionContent.cohorts[0];
+const selectedCohort = testMbaCohorts[0];
 if (!selectedCohort) {
   throw new Error('Test content must include at least one cohort.');
 }

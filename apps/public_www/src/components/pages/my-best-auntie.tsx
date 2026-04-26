@@ -1,4 +1,5 @@
 import type { Locale, SiteContent } from '@/content';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 import { formatCohortValue } from '@/lib/format';
 import { PageLayout } from '@/components/shared/page-layout';
@@ -14,10 +15,11 @@ import { FreeResourcesForGentleParenting } from '@/components/sections/free-reso
 interface MyBestAuntiePageProps {
   locale: Locale;
   content: SiteContent;
+  cohorts: MyBestAuntieEventCohort[];
 }
 
 function resolveHeroCohortSummary(
-  cohorts: SiteContent['myBestAuntie']['booking']['cohorts'] | undefined,
+  cohorts: MyBestAuntieEventCohort[] | undefined,
   locale: string,
 ): { lowestPrice: number | undefined; nextCohortLabel: string | undefined } {
   if (!cohorts || cohorts.length === 0) {
@@ -41,7 +43,7 @@ function resolveHeroCohortSummary(
   return { lowestPrice, nextCohortLabel };
 }
 
-export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
+export function MyBestAuntiePage({ locale, content, cohorts }: MyBestAuntiePageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
   const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
     content.freeIntroSession.ctaHref,
@@ -49,10 +51,7 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
     content.freeIntroSession.phoneNumber,
   ) || content.freeIntroSession.ctaHref;
 
-  const { lowestPrice, nextCohortLabel } = resolveHeroCohortSummary(
-    content.myBestAuntie.booking.cohorts,
-    locale,
-  );
+  const { lowestPrice, nextCohortLabel } = resolveHeroCohortSummary(cohorts, locale);
 
   return (
     <PageLayout
@@ -79,6 +78,7 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
       <MyBestAuntieBooking
         locale={locale}
         content={content.myBestAuntie.booking}
+        initialCohorts={cohorts}
         modalContent={content.myBestAuntie.modal}
         bookingModalContent={content.bookingModal}
         commonAccessibility={content.common.accessibility}

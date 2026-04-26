@@ -28,7 +28,6 @@ import type {
 import type {
   BookingPaymentModalContent,
   Locale,
-  MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
 import type { MyBestAuntieEventCohort } from '@/lib/events-data';
@@ -45,10 +44,7 @@ interface MyBestAuntieBookingModalProps {
   locale?: Locale;
   modalContent: MyBestAuntieModalContent;
   paymentModalContent: BookingPaymentModalContent;
-  selectedCohort:
-    | MyBestAuntieBookingContent['cohorts'][number]
-    | MyBestAuntieEventCohort
-    | null;
+  selectedCohort: MyBestAuntieEventCohort | null;
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
   prefilledDiscountCode?: string;

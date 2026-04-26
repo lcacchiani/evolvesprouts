@@ -64,13 +64,11 @@ describe('Events section', () => {
   }
 
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -417,7 +415,7 @@ describe('Events section', () => {
             title: 'My Best Auntie booking card',
             booking_system: 'my-best-auntie-booking',
             service_tier: '1-3',
-            cohort: '04-26',
+            cohort: 'apr-26',
             location: 'physical',
             address: 'PMQ, Central',
             address_url: 'https://maps.google.com/?q=PMQ+Central',

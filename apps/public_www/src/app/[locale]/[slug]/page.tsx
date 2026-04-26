@@ -12,11 +12,22 @@ import {
   resolveLocalePageContext,
 } from '@/lib/locale-page';
 import {
+  createPublicCrmApiClient,
+  isAbortRequestError,
+} from '@/lib/crm-api-client';
+import {
+  fetchEventsPayload,
+  getLandingPageBookingEventContentFromPayload,
+  getLandingPageHeroEventContentFromPayload,
+  getLandingPageStructuredDataContentFromPayload,
+} from '@/lib/events-data';
+import {
   buildLandingPagePath,
   getAllLandingPageSlugs,
   getLandingPageContent,
   isValidLandingPageSlug,
 } from '@/lib/landing-pages';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 import {
@@ -27,6 +38,8 @@ import {
 interface LandingPageRouteProps {
   params: Promise<{ locale: string; slug: string }>;
 }
+
+const LANDING_PAGE_EVENTS_FETCH_TIMEOUT_MS = 5000;
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.flatMap((locale) =>
@@ -73,10 +86,49 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
   }
 
   const pagePath = buildLandingPagePath(resolvedParams.slug);
+
+  const crmApiClient = createPublicCrmApiClient();
+  let calendarPayload: unknown = null;
+  if (crmApiClient) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, LANDING_PAGE_EVENTS_FETCH_TIMEOUT_MS);
+    try {
+      calendarPayload = await fetchEventsPayload(crmApiClient, controller.signal, {
+        landingPage: resolvedParams.slug,
+      });
+    } catch (error) {
+      if (!isAbortRequestError(error)) {
+        reportInternalError({
+          context: 'landing-page-calendar-fetch',
+          error,
+          metadata: { locale, slug: resolvedParams.slug },
+        });
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  const heroEventContent = getLandingPageHeroEventContentFromPayload(
+    calendarPayload,
+    resolvedParams.slug,
+  );
+  const bookingEventContent = getLandingPageBookingEventContentFromPayload(
+    calendarPayload,
+    resolvedParams.slug,
+    locale,
+  );
+  const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
+    calendarPayload,
+    resolvedParams.slug,
+  );
+
   const eventSchema = buildLandingPageEventSchema({
     locale,
-    landingPageSlug: resolvedParams.slug,
     pagePath,
+    structuredDataContent,
   });
 
   return (
@@ -86,6 +138,8 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
         slug={resolvedParams.slug}
         siteContent={siteContent}
         pageContent={pageContent}
+        heroEventContent={heroEventContent}
+        bookingEventContent={bookingEventContent}
       />
       <StructuredDataScript
         id={`landing-page-breadcrumb-jsonld-${locale}`}

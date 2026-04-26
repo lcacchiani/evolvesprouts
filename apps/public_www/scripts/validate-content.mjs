@@ -25,7 +25,6 @@ const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
 const UUID_V4_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const INSTANCE_SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
 const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
@@ -444,134 +443,6 @@ async function loadJson(filePath) {
   return JSON.parse(raw);
 }
 
-function validateEventsJsonFeed(filePath, data, errors) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    errors.push(`${filePath}: root must be an object`);
-    return;
-  }
-  if (data.status !== 'success') {
-    errors.push(`${filePath}: expected status "success"`);
-  }
-  if (!Array.isArray(data.data)) {
-    errors.push(`${filePath}: expected data array`);
-    return;
-  }
-  for (let index = 0; index < data.data.length; index += 1) {
-    const event = data.data[index];
-    const prefix = `${filePath}: data[${index}]`;
-    if (!event || typeof event !== 'object' || Array.isArray(event)) {
-      errors.push(`${prefix}: event must be an object`);
-      continue;
-    }
-    const slug = event.slug;
-    if (typeof slug !== 'string' || !slug.trim()) {
-      errors.push(`${prefix}: slug must be a non-empty string`);
-      continue;
-    }
-    if (!INSTANCE_SLUG_REGEX.test(slug.trim())) {
-      errors.push(`${prefix}: slug must match the public instance slug pattern`);
-    }
-    const dates = event.dates;
-    if (!Array.isArray(dates) || dates.length === 0) {
-      errors.push(`${prefix}: dates must be a non-empty array`);
-      continue;
-    }
-    const parts = [];
-    for (let d = 0; d < dates.length; d += 1) {
-      const slot = dates[d];
-      const slotPrefix = `${prefix}.dates[${d}]`;
-      if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
-        errors.push(`${slotPrefix}: must be an object`);
-        continue;
-      }
-      const part = slot.part;
-      if (typeof part !== 'number' || !Number.isInteger(part) || part < 1) {
-        errors.push(`${slotPrefix}: part must be an integer >= 1`);
-      } else {
-        parts.push(part);
-      }
-      for (const key of ['start_datetime', 'end_datetime']) {
-        if (typeof slot[key] !== 'string' || !slot[key].trim()) {
-          errors.push(`${slotPrefix}: ${key} must be a non-empty string`);
-        }
-      }
-    }
-    const sorted = [...parts].sort((a, b) => a - b);
-    const expected = Array.from({ length: sorted.length }, (_, i) => i + 1);
-    const matches =
-      sorted.length === expected.length && sorted.every((v, i) => v === expected[i]);
-    if (!matches) {
-      errors.push(
-        `${prefix}: dates[].part values must be the dense sequence 1..N with no gaps or duplicates`,
-      );
-    }
-  }
-}
-
-function validateMyBestAuntieTrainingCourses(filePath, data, errors) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    errors.push(`${filePath}: root must be an object`);
-    return;
-  }
-  if (data.status !== 'success') {
-    errors.push(`${filePath}: expected status "success"`);
-  }
-  if (!Array.isArray(data.data)) {
-    errors.push(`${filePath}: expected data array`);
-    return;
-  }
-  for (let index = 0; index < data.data.length; index += 1) {
-    const cohort = data.data[index];
-    const prefix = `${filePath}: data[${index}]`;
-    if (!cohort || typeof cohort !== 'object' || Array.isArray(cohort)) {
-      errors.push(`${prefix}: cohort must be an object`);
-      continue;
-    }
-    const slug = cohort.slug;
-    if (typeof slug !== 'string' || !slug.trim()) {
-      errors.push(`${prefix}: slug must be a non-empty string`);
-      continue;
-    }
-    if (!INSTANCE_SLUG_REGEX.test(slug.trim())) {
-      errors.push(`${prefix}: slug must match the public instance slug pattern`);
-    }
-    const dates = cohort.dates;
-    if (!Array.isArray(dates) || dates.length === 0) {
-      errors.push(`${prefix}: dates must be a non-empty array`);
-      continue;
-    }
-    const parts = [];
-    for (let d = 0; d < dates.length; d += 1) {
-      const slot = dates[d];
-      const slotPrefix = `${prefix}.dates[${d}]`;
-      if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
-        errors.push(`${slotPrefix}: must be an object`);
-        continue;
-      }
-      const part = slot.part;
-      if (typeof part !== 'number' || !Number.isInteger(part) || part < 1) {
-        errors.push(`${slotPrefix}: part must be an integer >= 1`);
-      } else {
-        parts.push(part);
-      }
-      for (const key of ['start_datetime', 'end_datetime']) {
-        if (typeof slot[key] !== 'string' || !slot[key].trim()) {
-          errors.push(`${slotPrefix}: ${key} must be a non-empty string`);
-        }
-      }
-    }
-    const sorted = [...parts].sort((a, b) => a - b);
-    const expected = Array.from({ length: sorted.length }, (_, i) => i + 1);
-    const matches =
-      sorted.length === expected.length && sorted.every((v, i) => v === expected[i]);
-    if (!matches) {
-      errors.push(
-        `${prefix}: dates[].part values must be the dense sequence 1..N with no gaps or duplicates`,
-      );
-    }
-  }
-}
-
 async function main() {
   const localeRoutePaths = await collectLocaleRoutePaths();
   const loadedEntries = await Promise.all(
@@ -588,14 +459,6 @@ async function main() {
 
   validateConfiguredContactEmail(errors);
   validateConfiguredStripePublishableKey(errors);
-
-  const mbaCoursesPath = path.join(CONTENT_DIR, 'my-best-auntie-training-courses.json');
-  const mbaCourses = await loadJson(mbaCoursesPath);
-  validateMyBestAuntieTrainingCourses('my-best-auntie-training-courses.json', mbaCourses, errors);
-
-  const eventsPath = path.join(CONTENT_DIR, 'events.json');
-  const eventsData = await loadJson(eventsPath);
-  validateEventsJsonFeed('events.json', eventsData, errors);
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];

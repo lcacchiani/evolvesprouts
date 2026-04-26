@@ -18,13 +18,11 @@ describe('PastEvents section', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
