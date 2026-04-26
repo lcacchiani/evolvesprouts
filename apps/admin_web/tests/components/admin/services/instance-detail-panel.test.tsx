@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -60,6 +60,7 @@ function buildLocationSummary(overrides: Partial<LocationSummary> = {}): Locatio
     updatedAt: '2026-01-01T00:00:00Z',
     lockedFromPartnerOrg: false,
     partnerOrganizationLabels: [],
+    partnerOrganizationIds: [],
     ...overrides,
   };
 }
@@ -339,6 +340,72 @@ describe('InstanceDetailPanel', () => {
         tag_ids: [],
       })
     );
+  });
+
+  it('filters instance location dropdown to pure and assigned partner venues for events', async () => {
+    const user = userEvent.setup();
+    vi.mocked(entityApi.listEntityPartnerOrganizationPicker).mockResolvedValue([
+      { id: 'org-p', label: 'Partner P' },
+      { id: 'org-x', label: 'Other partner' },
+    ]);
+
+    const pure = buildLocationSummary({ id: 'loc-pure', address: 'Pure hall' });
+    const partnerVenue = buildLocationSummary({
+      id: 'loc-partner',
+      address: 'Shared street',
+      lockedFromPartnerOrg: true,
+      partnerOrganizationLabels: ['Partner P'],
+      partnerOrganizationIds: ['org-p'],
+    });
+    const foreignVenue = buildLocationSummary({
+      id: 'loc-foreign',
+      address: 'Secret block',
+      lockedFromPartnerOrg: true,
+      partnerOrganizationLabels: ['Other partner'],
+      partnerOrganizationIds: ['org-x'],
+    });
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='evt-svc'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'evt-svc',
+            serviceType: 'event',
+            title: 'Spring open house',
+            trainingDetails: null,
+            eventDetails: {
+              eventCategory: 'open_house',
+              defaultPrice: '50.00',
+              defaultCurrency: 'HKD',
+            },
+          }),
+        ]}
+        locationOptions={[pure, partnerVenue, foreignVenue]}
+        isLoadingLocations={false}
+        serviceType='event'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    const partnerSelect = screen.getByLabelText('Partner organisations');
+    await waitFor(() => {
+      expect(within(partnerSelect).getByRole('option', { name: 'Partner P' })).toBeInTheDocument();
+    });
+    await user.selectOptions(partnerSelect, 'org-p');
+
+    const locationSelect = screen.getByLabelText('Location') as HTMLSelectElement;
+    const optionTexts = Array.from(locationSelect.options).map((o) => o.textContent?.trim() ?? '');
+    expect(optionTexts).toContain('Pure hall');
+    expect(optionTexts).toContain('Partner P');
+    expect(optionTexts.some((t) => t.includes('Secret'))).toBe(false);
   });
 
   it('prefills duplicate create from createPrefillInstance and sends null slug with cohort', async () => {

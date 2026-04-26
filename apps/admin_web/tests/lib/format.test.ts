@@ -156,6 +156,7 @@ describe('format helpers', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         },
       ],
       [
@@ -171,6 +172,7 @@ describe('format helpers', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         },
       ],
     ]);

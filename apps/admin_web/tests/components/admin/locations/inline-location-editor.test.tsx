@@ -33,6 +33,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         }}
         areas={[baseArea]}
         areasLoading={false}
@@ -188,6 +189,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         }}
         areas={[baseArea]}
         areasLoading={false}
@@ -236,6 +238,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: true,
           partnerOrganizationLabels: ['X'],
+          partnerOrganizationIds: ['org-x'],
         }}
         areas={[baseArea]}
         areasLoading={false}
@@ -271,6 +274,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: true,
           partnerOrganizationLabels: ['Partner Co'],
+          partnerOrganizationIds: ['org-partner'],
         }}
         areas={[baseArea]}
         areasLoading={false}
@@ -287,6 +291,88 @@ describe('InlineLocationEditor', () => {
 
     expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Managed from the partner organisation \(Partner Co\)/)).toBeInTheDocument();
+  });
+
+  it('owner partner id unlocks Change when venue is partner-locked', async () => {
+    const user = userEvent.setup();
+    const onSaveUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InlineLocationEditor
+        stateKey='own1'
+        location={{
+          id: 'loc-1',
+          name: null,
+          areaId: 'area-1',
+          address: 'Shared addr',
+          lat: null,
+          lng: null,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: true,
+          partnerOrganizationLabels: ['Me', 'Other'],
+          partnerOrganizationIds: ['org-me', 'org-other'],
+        }}
+        areas={[baseArea]}
+        areasLoading={false}
+        canModify
+        allowEditWhenOwnerPartnerOrganizationId='org-me'
+        isSaving={false}
+        onRequestEdit={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onSaveCreate={vi.fn()}
+        onSaveUpdate={onSaveUpdate}
+        onClear={vi.fn()}
+        onGeocode={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText(/Managed from the partner organisation/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Change' }));
+    expect(
+      screen.getByText('Editing updates this address everywhere it is shown.')
+    ).toBeInTheDocument();
+    await user.clear(screen.getByLabelText('Address'));
+    await user.type(screen.getByLabelText('Address'), 'New addr');
+    await user.click(screen.getByRole('button', { name: 'Update location' }));
+    await waitFor(() => {
+      expect(onSaveUpdate).toHaveBeenCalled();
+    });
+  });
+
+  it('partner-locked stays locked when owner prop does not match partner ids', () => {
+    render(
+      <InlineLocationEditor
+        stateKey='mismatch'
+        location={{
+          id: 'loc-1',
+          name: null,
+          areaId: 'area-1',
+          address: 'A',
+          lat: null,
+          lng: null,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: true,
+          partnerOrganizationLabels: ['Partner Co'],
+          partnerOrganizationIds: ['org-partner'],
+        }}
+        areas={[baseArea]}
+        areasLoading={false}
+        canModify
+        allowEditWhenOwnerPartnerOrganizationId='wrong-org'
+        isSaving={false}
+        onRequestEdit={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onSaveCreate={vi.fn()}
+        onSaveUpdate={vi.fn()}
+        onClear={vi.fn()}
+        onGeocode={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
     expect(screen.getByText(/Managed from the partner organisation \(Partner Co\)/)).toBeInTheDocument();
   });
 
@@ -309,6 +395,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         }}
         areas={[baseArea]}
         areasLoading={false}
@@ -347,6 +434,7 @@ describe('InlineLocationEditor', () => {
           updatedAt: null,
           lockedFromPartnerOrg: false,
           partnerOrganizationLabels: [],
+          partnerOrganizationIds: [],
         }}
         areas={[baseArea]}
         areasLoading={false}

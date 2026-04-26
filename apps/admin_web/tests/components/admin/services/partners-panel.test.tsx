@@ -73,9 +73,28 @@ vi.mock('@/hooks/use-confirm-dialog', () => ({
   ],
 }));
 
+const { mockUseInlineLocationSave } = vi.hoisted(() => ({
+  mockUseInlineLocationSave: vi.fn(() => ({
+    status: { isSaving: false, error: '' },
+    createSharedLocation: vi.fn(),
+    updateSharedLocation: vi.fn().mockResolvedValue(undefined),
+    clearError: vi.fn(),
+  })),
+}));
+
+vi.mock('@/hooks/use-inline-location-save', () => ({
+  useInlineLocationSave: mockUseInlineLocationSave,
+}));
+
 describe('PartnersPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseInlineLocationSave.mockReturnValue({
+      status: { isSaving: false, error: '' },
+      createSharedLocation: vi.fn(),
+      updateSharedLocation: vi.fn().mockResolvedValue(undefined),
+      clearError: vi.fn(),
+    });
   });
 
   it('always shows slug field and creates with relationship_type partner', async () => {
@@ -184,6 +203,86 @@ describe('PartnersPanel', () => {
         slug: 'row-slug',
       })
     );
+  });
+
+  it('partner owning locked venue can Change and save via updateSharedLocation', async () => {
+    const user = userEvent.setup();
+    const updateSharedLocation = vi.fn().mockResolvedValue(undefined);
+    mockUseInlineLocationSave.mockReturnValue({
+      status: { isSaving: false, error: '' },
+      createSharedLocation: vi.fn(),
+      updateSharedLocation,
+      clearError: vi.fn(),
+    });
+
+    const locId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+    const partnerId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    const row: components['schemas']['AdminOrganization'] = {
+      id: partnerId,
+      name: 'Venue Owner',
+      organization_type: 'company',
+      relationship_type: 'partner',
+      slug: null,
+      website: null,
+      location_id: locId,
+      location_summary: null,
+      tag_ids: [],
+      tags: [],
+      members: [],
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    };
+    const partners = buildPartnersHook({ partners: [row] });
+    const locations = [
+      {
+        id: locId,
+        name: 'Ignored name',
+        areaId: 'area-1',
+        address: '1 Test St',
+        lat: null,
+        lng: null,
+        createdAt: null,
+        updatedAt: null,
+        lockedFromPartnerOrg: true,
+        partnerOrganizationLabels: ['Venue Owner'],
+        partnerOrganizationIds: [partnerId],
+      },
+    ];
+    const areas = [
+      {
+        id: 'area-1',
+        parentId: null,
+        name: 'Hong Kong',
+        level: 'country' as const,
+        code: 'HK',
+        sovereignCountryId: null,
+        active: true,
+        displayOrder: 0,
+      },
+    ];
+
+    render(
+      <PartnersPanel
+        partners={partners}
+        {...panelShell}
+        locations={locations}
+        geographicAreas={areas}
+      />
+    );
+
+    await user.click(screen.getByText('Venue Owner'));
+    await user.click(screen.getByRole('button', { name: 'Change' }));
+    await user.clear(screen.getByLabelText('Address'));
+    await user.type(screen.getByLabelText('Address'), '2 Test St');
+    await user.click(screen.getByRole('button', { name: 'Update location' }));
+
+    await waitFor(() => {
+      expect(updateSharedLocation).toHaveBeenCalledWith(
+        locId,
+        expect.objectContaining({ address: '2 Test St' })
+      );
+    });
   });
 
   it('deletes partner after confirmation from table', async () => {
