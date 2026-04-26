@@ -42,6 +42,8 @@ const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
 interface EventBookingDatePart {
   id: string;
+  /** 1-based session ordinal when known from API/content `part` (for MBA cohort dates). */
+  sessionPart?: number;
   startDateTime: string;
   endDateTime: string;
   description: string;
@@ -97,13 +99,14 @@ export type EventBookingModalPayload =
   | ConsultationEventBookingModalPayload;
 
 interface MyBestAuntieEventCohortDate {
-  id: string;
+  part: number;
   start_datetime: string;
   end_datetime: string;
 }
 
 export interface MyBestAuntieEventCohort {
-  id: string;
+  /** Public instance slug (`service_instances.slug` from API; content `slug`). */
+  slug: string;
   /** Tier slug from calendar/API JSON key `service_tier` (formerly `age_group`). */
   service_tier: string;
   title: string;
@@ -121,8 +124,6 @@ export interface MyBestAuntieEventCohort {
   location_name: string;
   location_address: string;
   location_url: string;
-  /** Aurora `service_instances.id` when present on the source record; otherwise null. */
-  service_instance_id: string | null;
   /** High-level service type for confirmations (from cohort JSON `service`). */
   service?: string;
   dates: MyBestAuntieEventCohortDate[];
@@ -380,36 +381,53 @@ function resolveBookingDateParts(
 ): EventBookingDatePart[] {
   const dateEntries = Array.isArray(record.dates) ? record.dates : [];
 
-  return dateEntries
-    .map((entry, index) => {
-      const dateRecord = toRecord(entry);
-      if (!dateRecord) {
-        return null;
-      }
+  return dateEntries.flatMap((entry, index): EventBookingDatePart[] => {
+    const dateRecord = toRecord(entry);
+    if (!dateRecord) {
+      return [];
+    }
 
-      const startDateTime = readCandidateText(dateRecord, [
-        'start_datetime',
-        'startDateTime',
-        'start',
-      ]) ?? '';
-      const endDateTime = readCandidateText(dateRecord, [
-        'end_datetime',
-        'endDateTime',
-        'end',
-      ]) ?? '';
-      const id = readCandidateText(dateRecord, ['id']) ?? `part-${index + 1}`;
-      if (!startDateTime) {
-        return null;
+    const startDateTime = readCandidateText(dateRecord, [
+      'start_datetime',
+      'startDateTime',
+      'start',
+    ]) ?? '';
+    const endDateTime = readCandidateText(dateRecord, [
+      'end_datetime',
+      'endDateTime',
+      'end',
+    ]) ?? '';
+    const partRaw = readFirstCandidateValue(dateRecord, ['part', 'Part']);
+    let part: number | null = null;
+    if (typeof partRaw === 'number' && Number.isInteger(partRaw) && partRaw > 0) {
+      part = partRaw;
+    } else {
+      const partText = readOptionalText(partRaw);
+      if (partText) {
+        const parsed = Number.parseInt(partText, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+          part = parsed;
+        }
       }
+    }
+    if (part === null) {
+      part = index + 1;
+    }
+    const id = `part-${part}`;
+    if (!startDateTime) {
+      return [];
+    }
 
-      return {
+    return [
+      {
         id,
+        sessionPart: part,
         startDateTime,
         endDateTime,
         description: index === 0 ? defaultDescription : '',
-      };
-    })
-    .filter((entry): entry is EventBookingDatePart => entry !== null);
+      },
+    ];
+  });
 }
 
 function buildEventBookingModalPayload(
@@ -436,7 +454,7 @@ function buildEventBookingModalPayload(
 
   const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
 
-  const serviceKey = readCandidateText(record, ['id', 'eventId', 'slug']);
+  const serviceKey = readCandidateText(record, ['slug', 'id', 'eventId']);
   const service = readCandidateText(record, ['service']) ?? 'event';
 
   return {
@@ -461,13 +479,11 @@ function buildMyBestAuntieBookingModalPayload(
   record: Record<string, unknown>,
   locale: Locale,
 ): MyBestAuntieBookingModalPayload | null {
-  const id =
-    readCandidateText(record, ['id', 'eventId', 'slug']) ??
-    readCandidateText(record, ['service_instance_id', 'service_instance_uuid']) ??
-    '';
+  const slug =
+    readCandidateText(record, ['slug', 'id', 'eventId'])?.trim() ?? '';
   const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
   const cohortValue = readCandidateText(record, ['cohort']) ?? '';
-  if (!id || !ageGroup || !cohortValue) {
+  if (!slug || !ageGroup || !cohortValue) {
     return null;
   }
 
@@ -491,16 +507,17 @@ function buildMyBestAuntieBookingModalPayload(
   const locationUrl = sanitizeGoogleMapsHref(
     readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
   );
-  const serviceInstanceId =
-    readCandidateText(record, ['service_instance_id', 'service_instance_uuid']) ?? null;
-  const dates = resolveBookingDateParts(record, '')
-    .map((part) => {
-      return {
-        id: part.id,
-        start_datetime: part.startDateTime,
-        end_datetime: part.endDateTime,
-      };
-    });
+  const dates = resolveBookingDateParts(record, '').map((partRow, idx) => {
+    const part =
+      typeof partRow.sessionPart === 'number' && partRow.sessionPart > 0
+        ? partRow.sessionPart
+        : idx + 1;
+    return {
+      part,
+      start_datetime: partRow.startDateTime,
+      end_datetime: partRow.endDateTime,
+    };
+  });
   if (dates.length === 0) {
     return null;
   }
@@ -508,7 +525,7 @@ function buildMyBestAuntieBookingModalPayload(
   const service = readCandidateText(record, ['service']) ?? 'training-course';
 
   const selectedCohort: MyBestAuntieEventCohort = {
-    id,
+    slug,
     service_tier: ageGroup,
     service,
     title,
@@ -526,7 +543,6 @@ function buildMyBestAuntieBookingModalPayload(
     location_name: locationName,
     location_address: locationAddress,
     location_url: locationUrl,
-    service_instance_id: serviceInstanceId,
     dates,
   };
 
@@ -1227,7 +1243,7 @@ function normalizeEventCard(
     readCandidateText(record, ['ctaLabel', 'buttonLabel', 'actionLabel']) ??
     content.card.ctaLabel;
 
-  const rawId = readCandidateText(record, ['id', 'eventId', 'slug']) ?? '';
+  const rawId = readCandidateText(record, ['slug', 'id', 'eventId']) ?? '';
   const fallbackId = `${title}-${dateLabel ?? ''}-${index}`;
   const status = resolveEventStatus(record);
   const tags = readTagList(record);

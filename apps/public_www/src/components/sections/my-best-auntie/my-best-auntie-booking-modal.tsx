@@ -177,12 +177,12 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
-              reservationServiceKey={selectedCohort?.id ?? ''}
-              cohortId={selectedCohort?.id ?? ''}
+              reservationServiceKey='my-best-auntie'
+              cohortId={selectedCohort?.slug ?? ''}
               courseSlug='my-best-auntie'
               serviceSlug={selectedCohort?.service ?? 'training-course'}
               discountValidationServiceKey='my-best-auntie'
-              serviceInstanceId={selectedCohort?.service_instance_id ?? null}
+              serviceInstanceSlug={selectedCohort?.slug ?? null}
               prefilledDiscountCode={prefilledDiscountCode}
               referralAppliedNote={referralAppliedNote}
               referralAppliedAnnouncement={referralAppliedAnnouncement}

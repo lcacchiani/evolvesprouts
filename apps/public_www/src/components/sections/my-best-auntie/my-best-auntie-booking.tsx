@@ -158,7 +158,7 @@ function sortCohortsByPrimarySession(
     return cohortDifference;
   }
 
-  return leftCohort.id.localeCompare(rightCohort.id);
+  return leftCohort.slug.localeCompare(rightCohort.slug);
 }
 
 function findPreferredCohortId(
@@ -169,7 +169,7 @@ function findPreferredCohortId(
     (cohort) => cohort.service_tier === ageGroupId,
   );
   const available = ageGroupCohorts.find((cohort) => !cohort.is_fully_booked);
-  return available?.id ?? ageGroupCohorts[0]?.id ?? '';
+  return available?.slug ?? ageGroupCohorts[0]?.slug ?? '';
 }
 
 function getPrimarySessionDateTimeLabel(
@@ -241,7 +241,7 @@ export function MyBestAuntieBooking({
     return cohort.service_tier === selectedAgeId;
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
-    id: cohort.id,
+    id: cohort.slug,
     label: formatCohortValue(cohort.cohort, locale),
     availabilityLabel: formatSpacesLeftLabel(
       cohort.spaces_left,

@@ -33,6 +33,7 @@ from app.api.public_form_hooks import (
 )
 from app.db.engine import get_engine
 from app.db.repositories import DiscountCodeRepository, ServiceRepository
+from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.db.models.enums import (
     ContactSource,
     ContactType,
@@ -58,6 +59,7 @@ from app.services.turnstile import (
 from app.utils import json_response
 from app.utils.fps_qr_png import optional_fps_qr_data_url_from_payload
 from app.utils.logging import get_logger, mask_email, mask_pii
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -73,7 +75,7 @@ _MAX_LOCATION_URL = 500
 _MAX_ISO_FIELD = 50
 _MAX_COHORT_DATE = 100
 _MAX_DISCOUNT_CODE = 100
-_MAX_INSTANCE_ID_LENGTH = 36
+_MAX_INSTANCE_SLUG_LENGTH = 128
 _MAX_FPS_DATA_URL_BYTES = 120_000
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
@@ -470,11 +472,19 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "discountCode",
         _MAX_DISCOUNT_CODE,
     )
-    service_instance_id = _optional_text(
-        body.get("serviceInstanceId"),
-        "serviceInstanceId",
-        _MAX_INSTANCE_ID_LENGTH,
+    service_instance_slug = _optional_text(
+        body.get("serviceInstanceSlug"),
+        "serviceInstanceSlug",
+        _MAX_INSTANCE_SLUG_LENGTH,
     )
+    if service_instance_slug:
+        normalized_instance_slug = service_instance_slug.strip().lower()
+        if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(normalized_instance_slug):
+            raise ValidationError(
+                "serviceInstanceSlug must match the public slug pattern",
+                field="serviceInstanceSlug",
+            )
+        service_instance_slug = normalized_instance_slug
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
@@ -534,7 +544,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "marketing_opt_in": marketing_opt_in,
         "locale": locale,
         "discount_code": discount_code,
-        "service_instance_id": service_instance_id,
+        "service_instance_slug": service_instance_slug,
         "agreed_to_terms_and_conditions": True,
         "reservation_pending_until_payment_confirmed": reservation_pending,
     }
@@ -573,19 +583,20 @@ def _validate_discount_code_redemption_scope(
         raise ValidationError("Invalid discount code", field="discountCode")
 
     if row.instance_id is not None:
-        raw_instance = payload.get("service_instance_id")
-        if not raw_instance:
+        raw_slug = payload.get("service_instance_slug")
+        if not raw_slug or not str(raw_slug).strip():
             raise ValidationError(
-                "serviceInstanceId is required for this discount code",
-                field="serviceInstanceId",
+                "serviceInstanceSlug is required for this discount code",
+                field="serviceInstanceSlug",
             )
-        try:
-            request_instance_id = UUID(str(raw_instance).strip())
-        except ValueError as exc:
+        slug = str(raw_slug).strip()
+        instance_repo = ServiceInstanceRepository(session)
+        request_instance_id = instance_repo.get_id_by_slug(slug)
+        if request_instance_id is None:
             raise ValidationError(
-                "serviceInstanceId must be a UUID",
-                field="serviceInstanceId",
-            ) from exc
+                "Discount code is not valid for this booking",
+                field="discountCode",
+            )
         if request_instance_id != row.instance_id:
             raise ValidationError(
                 "Discount code is not valid for this booking",

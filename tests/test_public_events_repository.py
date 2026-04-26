@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from unittest.mock import MagicMock
+from uuid import UUID
 
 from sqlalchemy.dialects import postgresql
 
@@ -38,6 +39,8 @@ def test_list_public_offerings_default_types_and_ordering_sql() -> None:
     assert "instance_session_slots.ends_at >=" in sql
     assert "ORDER BY" in sql.upper()
     assert "service_instances.id ASC" in sql
+    assert "service_instances.slug IS NOT NULL" in sql
+    assert "service_instances.slug != ''" in sql
 
 
 def test_list_public_offerings_service_type_event_only() -> None:
@@ -183,3 +186,19 @@ def test_get_enrollment_counts_for_instances_groups_by_instance() -> None:
     sql = _compiled_sql(stmt)
     assert "GROUP BY" in sql.upper()
     assert "enrollments.instance_id" in sql
+
+
+def test_get_id_by_slug_compiles_lower_match() -> None:
+    mock_session = MagicMock()
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = UUID(int=99)
+    mock_session.execute.return_value = exec_result
+
+    repo = ServiceInstanceRepository(mock_session)
+    resolved = repo.get_id_by_slug("My-Cohort-Slug")
+
+    assert resolved == UUID(int=99)
+    stmt = mock_session.execute.call_args[0][0]
+    sql = _compiled_sql(stmt).lower()
+    assert "lower(service_instances.slug)" in sql
+    assert "my-cohort-slug" in sql

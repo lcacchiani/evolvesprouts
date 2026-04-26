@@ -270,7 +270,20 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             statement = statement.where(ServiceInstance.landing_page == landing_page)
         if service_key:
             statement = statement.where(func.lower(Service.slug) == service_key.lower())
+        statement = statement.where(ServiceInstance.slug.is_not(None)).where(
+            ServiceInstance.slug != ""
+        )
         return list(self._session.execute(statement).unique().scalars().all())
+
+    def get_id_by_slug(self, slug: str) -> UUID | None:
+        """Resolve ``service_instances.id`` from public slug (case-insensitive)."""
+        normalized = slug.strip()
+        if not normalized:
+            return None
+        statement = select(ServiceInstance.id).where(
+            func.lower(ServiceInstance.slug) == normalized.lower()
+        )
+        return self._session.execute(statement).scalar_one_or_none()
 
     def list_event_instances_for_public_feed(
         self,

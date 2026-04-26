@@ -29,6 +29,7 @@ from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 from app.utils.maps import build_google_maps_directions_url
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -154,10 +155,19 @@ def _fetch_public_offerings(
     enrollment_counts = repository.get_enrollment_counts_for_instances(
         capacity_instance_ids
     )
-    return [
-        _serialize_public_event(instance, enrollment_counts=enrollment_counts)
-        for instance in rows
-    ]
+    out: list[dict[str, Any]] = []
+    for instance in rows:
+        slug = (instance.slug or "").strip()
+        if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
+            logger.warning(
+                "Public calendar feed skipped instance without valid slug",
+                extra={"instance_id": str(instance.id)},
+            )
+            continue
+        out.append(
+            _serialize_public_event(instance, enrollment_counts=enrollment_counts)
+        )
+    return out
 
 
 def _resolve_primary_location(
@@ -283,11 +293,11 @@ def _serialize_public_event(
     slots = sorted(instance.session_slots, key=lambda s: (s.sort_order, s.starts_at))
     dates = [
         {
-            "id": str(s.id),
+            "part": idx + 1,
             "start_datetime": _iso(s.starts_at),
             "end_datetime": _iso(s.ends_at),
         }
-        for s in slots
+        for idx, s in enumerate(slots)
     ]
 
     primary_location = _resolve_primary_location(instance, slots)
@@ -318,8 +328,15 @@ def _serialize_public_event(
         "fully_booked" if instance.status == InstanceStatus.FULL else "open"
     )
 
+    slug = (instance.slug or "").strip()
+    if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
+        raise ValueError(
+            "Public calendar serialization requires a non-empty slug matching "
+            "the public slug pattern (caller must filter slug-less rows)."
+        )
+
     payload: dict[str, Any] = {
-        "service_instance_id": str(instance.id),
+        "slug": slug,
         "service_type": service.service_type.value,
         "title": title,
         "summary": summary,
@@ -350,8 +367,6 @@ def _serialize_public_event(
     if external_url:
         payload["external_url"] = external_url
 
-    if instance.slug is not None:
-        payload["slug"] = instance.slug
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
     payload["service_tier"] = _resolve_public_calendar_service_tier(instance)

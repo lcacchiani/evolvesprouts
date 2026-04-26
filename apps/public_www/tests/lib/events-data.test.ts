@@ -249,7 +249,7 @@ describe('events-data', () => {
     const payload = {
       data: [
         {
-          id: 'my-best-auntie-booking-event-1',
+          slug: 'my-best-auntie-booking-event-1',
           title: 'My Best Auntie booking event',
           booking_system: 'my-best-auntie-booking',
           service_tier: '1-3',
@@ -264,7 +264,7 @@ describe('events-data', () => {
           external_url: 'https://booking.example.com/events/should-not-be-used',
           dates: [
             {
-              id: 'part-1',
+              part: 1,
               start_datetime: '2026-01-22T09:00:00Z',
               end_datetime: '2026-01-22T11:00:00Z',
             },
@@ -282,15 +282,18 @@ describe('events-data', () => {
     );
     expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
     if (events[0]?.bookingModalPayload?.variant === 'my-best-auntie') {
-      expect(events[0].bookingModalPayload.selectedCohort.service_instance_id).toBeNull();
+      expect(events[0].bookingModalPayload.selectedCohort.slug).toBe(
+        'my-best-auntie-booking-event-1',
+      );
+      expect(events[0].bookingModalPayload.selectedCohort.dates[0]?.part).toBe(1);
     }
   });
 
-  it('resolves my-best-auntie cohort id from service_instance_id when id is absent', () => {
+  it('resolves my-best-auntie cohort slug from slug field', () => {
     const payload = {
       data: [
         {
-          service_instance_id: 'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
+          slug: 'mba-cohort-apr-26',
           title: 'My Best Auntie 1-3',
           booking_system: 'my-best-auntie-booking',
           service_tier: '1-3',
@@ -305,7 +308,7 @@ describe('events-data', () => {
           location_url: 'https://www.google.com/maps/dir/?api=1&destination=22.286209%2C114.148303',
           dates: [
             {
-              id: 'da6bcd38-0a63-481b-830f-31de835b9369',
+              part: 1,
               start_datetime: '2026-04-18T09:00:00+00:00',
               end_datetime: '2026-04-18T11:00:00+00:00',
             },
@@ -320,12 +323,7 @@ describe('events-data', () => {
     expect(events).toHaveLength(1);
     expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
     if (events[0]?.bookingModalPayload?.variant === 'my-best-auntie') {
-      expect(events[0].bookingModalPayload.selectedCohort.id).toBe(
-        'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
-      );
-      expect(events[0].bookingModalPayload.selectedCohort.service_instance_id).toBe(
-        'e2d0ad6b-70df-4385-873f-bdfc628d59c9',
-      );
+      expect(events[0].bookingModalPayload.selectedCohort.slug).toBe('mba-cohort-apr-26');
     }
   });
 

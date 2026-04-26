@@ -84,9 +84,12 @@ interface BookingReservationFormProps {
   locale: Locale;
   content: BookingPaymentModalContent;
   eventTitle: string;
-  /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
+  /**
+   * Aurora `services.slug` for discount scope and lead metadata `service_key`
+   * (e.g. `my-best-auntie` for MBA). Not the instance/cohort slug.
+   */
   reservationServiceKey?: string;
-  /** Optional cohort identifier for Stripe metadata (e.g. MBA cohort id). */
+  /** Instance or event stable id for Stripe PaymentIntent metadata (`cohort_id`). */
   cohortId?: string;
   /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;
@@ -115,8 +118,8 @@ interface BookingReservationFormProps {
   captchaWidgetAction?: string;
   /** When set, included in discount validate API as `service_key` (public slug). */
   discountValidationServiceKey?: string;
-  /** Optional Aurora instance UUID for instance-scoped discount redemption. */
-  serviceInstanceId?: string | null;
+  /** Optional public instance slug for instance-scoped discount redemption. */
+  serviceInstanceSlug?: string | null;
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
@@ -457,7 +460,7 @@ export function BookingReservationForm({
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   discountValidationServiceKey,
-  serviceInstanceId,
+  serviceInstanceSlug,
   prefilledDiscountCode = '',
   referralAppliedNote = '',
   referralAppliedAnnouncement = '',
@@ -833,11 +836,11 @@ export function BookingReservationForm({
         setDiscountError('');
       }
       try {
-        const instanceForValidate = sanitizeSingleLineValue(serviceInstanceId ?? '');
+        const instanceSlugForValidate = sanitizeSingleLineValue(serviceInstanceSlug ?? '');
         const validatedRule = await validateDiscountCode(crmApiClient, {
           code: normalizedCode,
           serviceKey: scopeKey || undefined,
-          serviceInstanceId: instanceForValidate || undefined,
+          serviceInstanceSlug: instanceSlugForValidate || undefined,
         });
         if (!validatedRule) {
           if (options.autoApply) {
@@ -929,7 +932,7 @@ export function BookingReservationForm({
       courseSlug,
       discountRule,
       discountValidationServiceKey,
-      serviceInstanceId,
+      serviceInstanceSlug,
       originalPriceAmount,
       referralAppliedAnnouncement,
     ],
@@ -1242,12 +1245,12 @@ export function BookingReservationForm({
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(reservationServiceKey ?? '');
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
-        const instanceUuid = sanitizeSingleLineValue(serviceInstanceId ?? '');
+        const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug ?? '');
         const sanitizedServiceSlug = sanitizeSingleLineValue(serviceSlug ?? '');
         return {
           ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
           ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
-          ...(instanceUuid ? { serviceInstanceId: instanceUuid } : {}),
+          ...(instanceSlug ? { serviceInstanceSlug: instanceSlug } : {}),
           ...(sanitizedServiceSlug ? { service: sanitizedServiceSlug } : {}),
         };
       })(),

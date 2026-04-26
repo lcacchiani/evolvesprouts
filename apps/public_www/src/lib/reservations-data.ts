@@ -37,8 +37,8 @@ export interface ReservationSubmissionPayload {
   courseSlug?: string;
   /** Optional high-level service type for confirmation email (event, training-course, consultation). */
   service?: string;
-  /** Aurora service_instances.id for instance-scoped discount redemption. */
-  serviceInstanceId?: string;
+  /** Public service_instances.slug for instance-scoped discount redemption. */
+  serviceInstanceSlug?: string;
   scheduleDateLabel?: string;
   scheduleTimeLabel?: string;
   /** Consultation booking: writing focus title for confirmation email Details row. */

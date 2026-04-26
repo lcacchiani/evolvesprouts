@@ -668,6 +668,7 @@ def _patch_discount_validate_repositories(
     *,
     discount_row: SimpleNamespace,
     slug_to_service_id: dict[str, UUID] | None = None,
+    slug_to_instance_id: dict[str, UUID] | None = None,
 ) -> None:
     """Patch Session + repositories for public_discount_validate unit tests."""
 
@@ -714,6 +715,20 @@ def _patch_discount_validate_repositories(
         public_discount_validate,
         "ServiceRepository",
         _FakeServiceRepository,
+    )
+
+    class _FakeServiceInstanceRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_id_by_slug(self, slug: str) -> UUID | None:
+            mapping = slug_to_instance_id or {}
+            return mapping.get(slug.strip().lower())
+
+    monkeypatch.setattr(
+        public_discount_validate,
+        "ServiceInstanceRepository",
+        _FakeServiceInstanceRepository,
     )
 
 
@@ -873,6 +888,7 @@ def test_public_discount_validate_instance_scoped_match_returns_200(
         monkeypatch,
         discount_row=row,
         slug_to_service_id={"my-best-auntie": svc},
+        slug_to_instance_id={"mba-apr-26": inst},
     )
 
     event = api_gateway_event(
@@ -882,7 +898,7 @@ def test_public_discount_validate_instance_scoped_match_returns_200(
             {
                 "code": "INST",
                 "service_key": "my-best-auntie",
-                "service_instance_id": str(inst),
+                "service_instance_slug": "mba-apr-26",
             }
         ),
     )
@@ -894,7 +910,7 @@ def test_public_discount_validate_instance_scoped_unknown_service_key_ignored(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
-    """Instance-scoped validation uses `service_instance_id`; slug is not required."""
+    """Instance-scoped validation uses `service_instance_slug`; service_key may be unknown."""
     svc = uuid4()
     inst = uuid4()
     row = _usable_row(code="INST", service_id=svc, instance_id=inst)
@@ -902,6 +918,7 @@ def test_public_discount_validate_instance_scoped_unknown_service_key_ignored(
         monkeypatch,
         discount_row=row,
         slug_to_service_id={},
+        slug_to_instance_id={"mba-apr-26": inst},
     )
 
     event = api_gateway_event(
@@ -911,7 +928,7 @@ def test_public_discount_validate_instance_scoped_unknown_service_key_ignored(
             {
                 "code": "INST",
                 "service_key": "not-a-real-slug",
-                "service_instance_id": str(inst),
+                "service_instance_slug": "mba-apr-26",
             }
         ),
     )
@@ -925,11 +942,13 @@ def test_public_discount_validate_instance_scoped_mismatch_returns_404(
 ) -> None:
     svc = uuid4()
     inst = uuid4()
+    other_inst = uuid4()
     row = _usable_row(code="INST", service_id=svc, instance_id=inst)
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
         slug_to_service_id={"my-best-auntie": svc},
+        slug_to_instance_id={"mba-other": other_inst},
     )
 
     event = api_gateway_event(
@@ -939,7 +958,7 @@ def test_public_discount_validate_instance_scoped_mismatch_returns_404(
             {
                 "code": "INST",
                 "service_key": "my-best-auntie",
-                "service_instance_id": str(uuid4()),
+                "service_instance_slug": "mba-other",
             }
         ),
     )
@@ -947,45 +966,105 @@ def test_public_discount_validate_instance_scoped_mismatch_returns_404(
     assert response["statusCode"] == 404
 
 
-def test_public_discount_validate_service_id_body_path(
+def test_public_discount_validate_instance_scoped_unknown_instance_slug_returns_404(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
     svc = uuid4()
-    row = _usable_row(code="BYID", service_id=svc, instance_id=None)
-
-    class _FakeSession:
-        pass
-
-    class _SessionCtx:
-        def __init__(self, _engine: Any) -> None:
-            self._session = _FakeSession()
-
-        def __enter__(self) -> _FakeSession:
-            return self._session
-
-        def __exit__(self, *_args: Any) -> bool:
-            return False
-
-    class _FakeRepository:
-        def __init__(self, _session: Any) -> None:
-            pass
-
-        def get_by_code(self, _code: str) -> Any:
-            return row
-
-    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
-    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
-    monkeypatch.setattr(
-        public_discount_validate,
-        "DiscountCodeRepository",
-        _FakeRepository,
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_instance_id={},
     )
 
     event = api_gateway_event(
         method="POST",
         path="/v1/discounts/validate",
-        body=json.dumps({"code": "BYID", "service_id": str(svc)}),
+        body=json.dumps(
+            {
+                "code": "INST",
+                "service_key": "my-best-auntie",
+                "service_instance_slug": "no-such-cohort",
+            }
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_service_id_body_ignored_when_service_key_matches(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    """``service_id`` is ignored; ``service_key`` alone must satisfy service scope."""
+    svc = uuid4()
+    row = _usable_row(code="BYID", service_id=svc, instance_id=None)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-svc": svc},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps(
+            {"code": "BYID", "service_id": str(svc), "service_key": "my-svc"}
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_service_scoped_without_service_context_still_passes(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    """Service-scoped codes remain valid when the client omits service context."""
+    svc = uuid4()
+    row = _usable_row(code="OPEN", service_id=svc, instance_id=None)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "OPEN"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_instance_slug_mixed_case_resolves(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INST", service_id=svc, instance_id=inst)
+    _patch_discount_validate_repositories(
+        monkeypatch,
+        discount_row=row,
+        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_instance_id={"mba-apr-26": inst},
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps(
+            {
+                "code": "INST",
+                "service_key": "my-best-auntie",
+                "service_instance_slug": "MBA-Apr-26",
+            }
+        ),
     )
     response = public_discount_validate.handle_public_discount_validate(event, "POST")
     assert response["statusCode"] == 200

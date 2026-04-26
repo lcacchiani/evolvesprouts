@@ -104,16 +104,21 @@ their primary responsibilities.
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
   `service_key` is resolved case-insensitively against `services.slug` in Aurora when
-  the code is service-scoped; unscoped and instance-scoped codes do not fail on an
-  unknown slug; codes with `discount_type` `referral` are rejected with the same 404
+  the code is service-scoped; optional `service_instance_slug` resolves case-insensitively
+  to `service_instances.id` when the code is instance-scoped; unscoped codes do not fail on an
+  unknown `service_key`; service-scoped codes still validate when `service_key` is omitted
+  (same permissive behavior as before `service_id` removal); instance-scoped codes return 404
+  when the instance slug does not resolve;
+  codes with `discount_type` `referral` are rejected with the same 404
   envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
   `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
   **training_course** `service_instances` for published services; consultation
-  is intentionally excluded. Each item includes `service_type`,
-  `service_instance_id` (stable id; no separate `id` field), `partners`, `service_tier`
+  is intentionally excluded. Instances without `service_instances.slug` are omitted.
+  Each item includes `service_type`,
+  `slug` (public instance slug from `service_instances.slug`), `partners`, `service_tier`
   (from parent service, or inferred from instance slug for My Best Auntie) / `cohort`,
   `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training

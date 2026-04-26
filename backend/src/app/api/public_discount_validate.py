@@ -10,16 +10,16 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
-from app.api.admin_services_payload_utils import parse_optional_uuid
 from app.api.admin_validators import validate_string_length
 from app.currency_config import currency_symbol_for_iso_code
 from app.db.engine import get_engine
 from app.db.models import DiscountCode
 from app.db.models.enums import DiscountType
 from app.db.repositories import DiscountCodeRepository, ServiceRepository
-from app.exceptions import ValidationError
+from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
 from app.utils.logging import get_logger, hash_for_correlation, mask_pii
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -33,10 +33,12 @@ _REJECTION_EXPIRED = "expired"
 _REJECTION_MAX_USES = "max_uses_exhausted"
 _REJECTION_INSTANCE_ID_REQUIRED = "instance_id_required"
 _REJECTION_INSTANCE_SCOPE_MISMATCH = "instance_scope_mismatch"
+_REJECTION_UNKNOWN_INSTANCE_SLUG = "unknown_instance_slug"
 _REJECTION_SERVICE_SCOPE_MISMATCH = "service_scope_mismatch"
 
 _MAX_CODE_LENGTH = 100
 _MAX_SERVICE_KEY_LENGTH = 120
+_MAX_SERVICE_INSTANCE_SLUG_LENGTH = 128
 
 
 def _log_discount_validate_rejection(
@@ -84,16 +86,28 @@ def handle_public_discount_validate(
         _MAX_SERVICE_KEY_LENGTH,
         required=False,
     )
-    try:
-        service_id_body = parse_optional_uuid(body.get("service_id"), "service_id")
-    except ValidationError as exc:
-        return json_response(400, exc.to_dict(), event=event)
-    try:
-        service_instance_id_body = parse_optional_uuid(
-            body.get("service_instance_id"), "service_instance_id"
+    service_instance_slug_raw = validate_string_length(
+        body.get("service_instance_slug"),
+        "service_instance_slug",
+        _MAX_SERVICE_INSTANCE_SLUG_LENGTH,
+        required=False,
+    )
+    service_instance_slug_normalized = (
+        service_instance_slug_raw.strip().lower()
+        if service_instance_slug_raw and service_instance_slug_raw.strip()
+        else ""
+    )
+    if service_instance_slug_normalized and not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(
+        service_instance_slug_normalized
+    ):
+        return json_response(
+            400,
+            {
+                "error": "service_instance_slug must match the public slug pattern",
+                "field": "service_instance_slug",
+            },
+            event=event,
         )
-    except ValidationError as exc:
-        return json_response(400, exc.to_dict(), event=event)
 
     logger.info(
         "Validating discount code",
@@ -103,13 +117,10 @@ def handle_public_discount_validate(
     service_key_normalized = (
         service_key.strip() if service_key and service_key.strip() else ""
     )
-    # When `service_key` is sent it wins over `service_id` in the body (OpenAPI).
     # Slug resolution is deferred until after we load the code row so unscoped
     # ("all services") codes are not rejected when the page sends a stale or
     # placeholder `service_key` that does not match `services.slug`.
-    resolved_service_id: UUID | None = (
-        None if service_key_normalized else service_id_body
-    )
+    resolved_service_id: UUID | None = None
 
     with Session(get_engine()) as session:
         repository = DiscountCodeRepository(session)
@@ -170,10 +181,33 @@ def handle_public_discount_validate(
                 )
             resolved_service_id = resolved_from_key
 
+        resolved_request_instance_id: UUID | None = None
+        if service_instance_slug_normalized:
+            instance_repo = ServiceInstanceRepository(session)
+            resolved_from_slug = instance_repo.get_id_by_slug(
+                service_instance_slug_normalized
+            )
+            if getattr(row, "instance_id", None) is not None:
+                if resolved_from_slug is None:
+                    _log_discount_validate_rejection(
+                        _REJECTION_UNKNOWN_INSTANCE_SLUG,
+                        code=code,
+                        extra={
+                            "discount_code_id": str(row.id),
+                            "service_instance_slug": service_instance_slug_normalized,
+                        },
+                    )
+                    return json_response(
+                        404,
+                        {"error": "Discount code not found or inactive"},
+                        event=event,
+                    )
+                resolved_request_instance_id = resolved_from_slug
+
         scope_reason = _scope_rejection_reason(
             row,
             resolved_request_service_id=resolved_service_id,
-            request_instance_id=service_instance_id_body,
+            request_instance_id=resolved_request_instance_id,
         )
         if scope_reason is not None:
             reason_code, detail = scope_reason

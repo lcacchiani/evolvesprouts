@@ -269,7 +269,8 @@ paths:
         Calendar feed for public consumers (direct API).
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
-        included). Results are ordered by the earliest upcoming session slot,
+        included). Instances without a non-null `service_instances.slug` are
+        omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
         Optional filters: `service_type`, `landing_page`, `service_key`. Filters
@@ -344,7 +345,8 @@ paths:
         Same as `GET /v1/calendar/public` for same-origin calls from `public_www`.
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
-        included). Results are ordered by the earliest upcoming session slot,
+        included). Instances without a non-null `service_instances.slug` are
+        omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
         Optional filters: `service_type`, `landing_page`, `service_key`. Filters
@@ -427,11 +429,11 @@ paths:
         Unscoped codes (no `service_id` / `instance_id`) validate regardless of
         `service_key` (unknown slugs are ignored). When the code is scoped to a
         **service only**, the request must include a matching `service_key` (matched
-        case-insensitively against `services.slug`) or a matching `service_id` UUID; if
-        both are supplied, `service_key` wins for resolving the request service. When the
-        code is scoped to an **instance**, the request must include `service_instance_id`
-        equal to the code's instance; `service_key` is optional and not used to reject
-        unknown slugs. Otherwise this endpoint returns **404** (same generic message as
+        case-insensitively against `services.slug`). When the code is scoped to an
+        **instance**, the request must include `service_instance_slug` that resolves to
+        the code's `instance_id` (case-insensitive match on `service_instances.slug`);
+        `service_key` is optional and not used to reject unknown slugs. An unknown
+        instance slug for an instance-scoped code yields **404** (same generic message as
         inactive codes).
       security:
         - ApiKeyAuth: []
@@ -981,12 +983,16 @@ components:
     PublicCalendarEventDate:
       type: object
       required:
-        - id
+        - part
         - start_datetime
         - end_datetime
       properties:
-        id:
-          type: string
+        part:
+          type: integer
+          minimum: 1
+          description: >
+            1-based session-slot ordinal that mirrors the slot's display order. Sequence is
+            dense (1..N) and matches the order returned by the public site.
         start_datetime:
           type: string
           format: date-time
@@ -996,7 +1002,7 @@ components:
     PublicCalendarEvent:
       type: object
       required:
-        - service_instance_id
+        - slug
         - service_type
         - title
         - status
@@ -1010,10 +1016,6 @@ components:
         - partners
         - service_tier
       properties:
-        service_instance_id:
-          type: string
-          format: uuid
-          description: Aurora `service_instances.id`. Stable public identifier for the offering.
         service_type:
           type: string
           enum: [event, training_course]
@@ -1100,7 +1102,9 @@ components:
             `service_instance_organizations`, ordered by `sort_order`.
         slug:
           type: string
-          nullable: true
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          maxLength: 128
+          description: Stable public identifier for the offering. Maps to `service_instances.slug`.
         landing_page:
           type: string
           nullable: true
@@ -1153,20 +1157,15 @@ components:
           maxLength: 120
           description: >
             Public slug for the booked offering (e.g. `my-best-auntie`). Matched
-            case-insensitively against `services.slug` in Aurora. When both `service_key`
-            and `service_id` are provided, `service_key` takes precedence.
-        service_id:
+            case-insensitively against `services.slug` in Aurora for **service-scoped**
+            discount codes.
+        service_instance_slug:
           type: string
-          format: uuid
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          maxLength: 128
           description: >
-            Alternative to `service_key`: explicit Aurora `services.id` for scope checks.
-            Ignored when `service_key` is present and non-empty.
-        service_instance_id:
-          type: string
-          format: uuid
-          description: >
-            Aurora `service_instances.id`. Required for validating instance-scoped discount
-            codes; must match the code's `instance_id`.
+            Public instance slug (`service_instances.slug`). Required for instance-scoped
+            codes; backend resolves it to the underlying instance id.
     DiscountRule:
       type: object
       additionalProperties: false
@@ -1458,12 +1457,14 @@ components:
         discountCode:
           type: string
           maxLength: 100
-        serviceInstanceId:
+        serviceInstanceSlug:
           type: string
-          format: uuid
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          maxLength: 128
           description: >
-            Aurora `service_instances.id` for the booked cohort/instance. Required when
-            redeeming an instance-scoped discount code; used only for redemption checks.
+            Public `service_instances.slug` for the booked cohort/instance. Required when
+            redeeming an instance-scoped discount code; backend resolves to the instance id
+            for scope checks only.
         marketingOptIn:
           type: boolean
           default: false
