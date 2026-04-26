@@ -187,7 +187,7 @@ function InlineLocationEditorInner({
 
   const areaNameForLocation = location ? areaById.get(location.areaId)?.name ?? '' : '';
 
-  const ownerPartnerId = allowEditWhenOwnerPartnerOrganizationId?.trim() ?? '';
+  const ownerPartnerId = allowEditWhenOwnerPartnerOrganizationId ?? '';
   const ownerCanEditLockedVenue =
     Boolean(ownerPartnerId) &&
     Boolean(location?.partnerOrganizationIds?.includes(ownerPartnerId));

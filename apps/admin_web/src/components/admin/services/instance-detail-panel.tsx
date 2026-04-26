@@ -455,8 +455,11 @@ export function InstanceDetailPanel({
     for (const slot of instanceForm.sessionSlots) {
       add(slot.locationId);
     }
+    for (const p of instanceForm.partnerOrganizations) {
+      add(p.locationId);
+    }
     return ids;
-  }, [instanceForm.locationId, instanceForm.sessionSlots, selectedService?.locationId]);
+  }, [instanceForm.locationId, instanceForm.sessionSlots, instanceForm.partnerOrganizations, selectedService?.locationId]);
 
   const filteredLocationOptions = useMemo(
     () =>

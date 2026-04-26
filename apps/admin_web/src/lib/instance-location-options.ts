@@ -1,5 +1,6 @@
-import { formatLocationLabel } from '@/lib/format';
 import type { LocationSummary, PartnerOrgRef } from '@/types/services';
+
+export { formatInstanceLocationOptionLabel } from '@/lib/format';
 
 /**
  * Locations shown on instance create/edit: template venues, assigned partners'
@@ -21,6 +22,8 @@ export function filterLocationsForInstance(
     }
     const partnerIds = location.partnerOrganizationIds ?? [];
     if (partnerIds.length === 0) {
+      // With current API, partner-locked venues always include partner ids; this
+      // branch supports older payloads or admin-web ahead of API deploy.
       if (!location.lockedFromPartnerOrg) {
         return true;
       }
@@ -28,12 +31,4 @@ export function filterLocationsForInstance(
     }
     return partnerIds.some((orgId) => selectedPartnerIds.has(orgId));
   });
-}
-
-/** Dropdown label: partner names when present, else geographic/address label. */
-export function formatInstanceLocationOptionLabel(location: LocationSummary): string {
-  if (location.partnerOrganizationLabels.length > 0) {
-    return location.partnerOrganizationLabels.join(', ');
-  }
-  return formatLocationLabel(location);
 }
