@@ -111,6 +111,40 @@ describe('PartnersPanel', () => {
     expect(setFilter).toHaveBeenCalled();
   });
 
+  it('sorts table rows by name A→Z (case- and accent-insensitive) over the loaded set', () => {
+    const baseRow = {
+      organization_type: 'company' as const,
+      relationship_type: 'partner' as const,
+      slug: null,
+      website: null,
+      location_id: null,
+      location_summary: null,
+      tag_ids: [] as string[],
+      tags: [],
+      members: [],
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+    };
+    const rows: components['schemas']['AdminOrganization'][] = [
+      { id: 'b', name: 'Beta Co', ...baseRow },
+      { id: 'a', name: 'alpha llc', ...baseRow },
+      { id: 'g', name: 'Gamma Org', ...baseRow },
+    ];
+    const partners = buildPartnersHook({ partners: rows });
+
+    render(<PartnersPanel partners={partners} {...panelShell} />);
+
+    const table = screen.getByRole('table');
+    const tableRows = within(table).getAllByRole('row');
+    const dataRows = tableRows.slice(1);
+    expect(dataRows.map((row) => within(row).getAllByRole('cell')[0].textContent)).toEqual([
+      'alpha llc',
+      'Beta Co',
+      'Gamma Org',
+    ]);
+  });
+
   it('edits partner and updates with relationship_type partner', async () => {
     const user = userEvent.setup();
     const updatePartner = vi.fn().mockResolvedValue(null);
