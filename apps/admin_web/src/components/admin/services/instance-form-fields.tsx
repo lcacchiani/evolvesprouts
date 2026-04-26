@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel, formatServiceTitleWithTier } from '@/lib/format';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
 import type {
@@ -156,7 +156,7 @@ export function InstanceFormFields({
               ) : null}
               {serviceOptions.map((service) => (
                 <option key={service.id} value={service.id}>
-                  {service.title}
+                  {formatServiceTitleWithTier(service.title, service.serviceTier)}
                 </option>
               ))}
             </Select>

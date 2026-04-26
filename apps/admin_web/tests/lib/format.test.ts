@@ -78,8 +78,8 @@ describe('format helpers', () => {
     expect(ordered.map((s) => s.id)).toEqual(['b', 'a']);
   });
 
-  it('formats service title with tier using interpunct when tier is set', () => {
-    expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga·adults');
+  it('formats service title with tier using spaced interpunct when tier is set', () => {
+    expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga · adults');
     expect(formatServiceTitleWithTier('Yoga', null)).toBe('Yoga');
     expect(formatServiceTitleWithTier('Yoga', '  ')).toBe('Yoga');
   });

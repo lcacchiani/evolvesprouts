@@ -13,11 +13,11 @@ import adminSelectableCurrency from '@shared-config/admin-selectable-currency-co
 
 const SERVICE_TITLE_TIER_SEP = '\u00b7';
 
-/** Service list label: title, then interpunct, then tier when tier is set. */
+/** Service list label: title, space, interpunct, space, tier when tier is set. */
 export function formatServiceTitleWithTier(title: string, serviceTier: string | null): string {
   const tier = serviceTier?.trim();
   if (tier) {
-    return `${title}${SERVICE_TITLE_TIER_SEP}${tier}`;
+    return `${title} ${SERVICE_TITLE_TIER_SEP} ${tier}`;
   }
   return title;
 }
