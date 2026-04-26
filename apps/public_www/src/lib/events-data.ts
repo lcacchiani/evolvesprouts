@@ -381,53 +381,53 @@ function resolveBookingDateParts(
 ): EventBookingDatePart[] {
   const dateEntries = Array.isArray(record.dates) ? record.dates : [];
 
-  return dateEntries
-    .map((entry, index) => {
-      const dateRecord = toRecord(entry);
-      if (!dateRecord) {
-        return null;
-      }
+  return dateEntries.flatMap((entry, index): EventBookingDatePart[] => {
+    const dateRecord = toRecord(entry);
+    if (!dateRecord) {
+      return [];
+    }
 
-      const startDateTime = readCandidateText(dateRecord, [
-        'start_datetime',
-        'startDateTime',
-        'start',
-      ]) ?? '';
-      const endDateTime = readCandidateText(dateRecord, [
-        'end_datetime',
-        'endDateTime',
-        'end',
-      ]) ?? '';
-      const partRaw = readFirstCandidateValue(dateRecord, ['part', 'Part']);
-      let part: number | null = null;
-      if (typeof partRaw === 'number' && Number.isInteger(partRaw) && partRaw > 0) {
-        part = partRaw;
-      } else {
-        const partText = readOptionalText(partRaw);
-        if (partText) {
-          const parsed = Number.parseInt(partText, 10);
-          if (Number.isFinite(parsed) && parsed > 0) {
-            part = parsed;
-          }
+    const startDateTime = readCandidateText(dateRecord, [
+      'start_datetime',
+      'startDateTime',
+      'start',
+    ]) ?? '';
+    const endDateTime = readCandidateText(dateRecord, [
+      'end_datetime',
+      'endDateTime',
+      'end',
+    ]) ?? '';
+    const partRaw = readFirstCandidateValue(dateRecord, ['part', 'Part']);
+    let part: number | null = null;
+    if (typeof partRaw === 'number' && Number.isInteger(partRaw) && partRaw > 0) {
+      part = partRaw;
+    } else {
+      const partText = readOptionalText(partRaw);
+      if (partText) {
+        const parsed = Number.parseInt(partText, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+          part = parsed;
         }
       }
-      if (part === null) {
-        part = index + 1;
-      }
-      const id = `part-${part}`;
-      if (!startDateTime) {
-        return null;
-      }
+    }
+    if (part === null) {
+      part = index + 1;
+    }
+    const id = `part-${part}`;
+    if (!startDateTime) {
+      return [];
+    }
 
-      return {
+    return [
+      {
         id,
         sessionPart: part,
         startDateTime,
         endDateTime,
         description: index === 0 ? defaultDescription : '',
-      };
-    })
-    .filter((entry): entry is EventBookingDatePart => entry !== null);
+      },
+    ];
+  });
 }
 
 function buildEventBookingModalPayload(
