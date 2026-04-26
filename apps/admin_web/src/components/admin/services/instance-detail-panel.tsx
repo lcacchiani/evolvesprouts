@@ -189,6 +189,7 @@ function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] 
     id: row.id,
     name: row.name,
     active: row.active,
+    locationId: row.locationId ?? null,
   }));
 }
 

@@ -6,6 +6,8 @@ import {
   formatDate,
   formatDateOnly,
   formatEnumLabel,
+  formatInstanceSlotLocationSummary,
+  formatInstanceTableTitle,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
   formatServiceTitleWithTier,
@@ -74,6 +76,141 @@ describe('format helpers', () => {
     expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga · adults');
     expect(formatServiceTitleWithTier('Yoga', null)).toBe('Yoga');
     expect(formatServiceTitleWithTier('Yoga', '  ')).toBe('Yoga');
+  });
+
+  it('formats instance table title from own title or parent service title', () => {
+    const base = (): ServiceInstance => ({
+      id: 'i1',
+      serviceId: 's1',
+      parentServiceTitle: 'Parent',
+      parentServiceTier: 'tier-a',
+      parentServiceType: 'training_course',
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: 'Resolved',
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    });
+    expect(formatInstanceTableTitle({ ...base(), title: '  My run  ' })).toBe('My run');
+    expect(formatInstanceTableTitle(base())).toBe('Parent · tier-a');
+    expect(
+      formatInstanceTableTitle({
+        ...base(),
+        title: null,
+        parentServiceTitle: null,
+      })
+    ).toBe('-');
+  });
+
+  it('summarizes instance locations including partner org venues', () => {
+    const locById = new Map([
+      [
+        'loc-a',
+        {
+          id: 'loc-a',
+          name: 'Hall A',
+          areaId: 'area-1',
+          address: null,
+          lat: null,
+          lng: null,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: false,
+          partnerOrganizationLabels: [],
+        },
+      ],
+      [
+        'loc-b',
+        {
+          id: 'loc-b',
+          name: 'Partner venue',
+          areaId: 'area-1',
+          address: null,
+          lat: null,
+          lng: null,
+          createdAt: null,
+          updatedAt: null,
+          lockedFromPartnerOrg: false,
+          partnerOrganizationLabels: [],
+        },
+      ],
+    ]);
+    const instance: ServiceInstance = {
+      id: 'i1',
+      serviceId: 's1',
+      parentServiceTitle: null,
+      parentServiceTier: null,
+      parentServiceType: null,
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: 'loc-a',
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [
+        { id: 'org-1', name: 'Co', active: true, locationId: 'loc-b' },
+      ],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [
+        {
+          id: 'slot-1',
+          instanceId: 'i1',
+          locationId: 'loc-a',
+          startsAt: '2026-01-01T10:00:00Z',
+          endsAt: null,
+          sortOrder: 0,
+        },
+      ],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+    expect(formatInstanceSlotLocationSummary(instance, locById)).toBe('Hall A · Partner venue');
   });
 
   it('uses earliest ordered slot time for instance sort key', () => {

@@ -251,6 +251,8 @@ export interface PartnerOrgRef {
   id: string;
   name: string;
   active: boolean;
+  /** Partner organization venue id when set (FK locations). */
+  locationId: string | null;
 }
 
 export interface ServiceInstance {

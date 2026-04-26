@@ -4457,6 +4457,11 @@ export interface components {
             name: string;
             /** @description True when the organization is archived (omitted from active pickers). */
             archived: boolean;
+            /**
+             * Format: uuid
+             * @description Partner organization venue id when set (FK locations).
+             */
+            location_id?: string | null;
         };
         ServiceInstance: {
             /** Format: uuid */

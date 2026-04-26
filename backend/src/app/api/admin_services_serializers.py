@@ -269,6 +269,9 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
                 "id": str(link.organization_id),
                 "name": link.organization.name,
                 "archived": link.organization.archived_at is not None,
+                "location_id": str(link.organization.location_id)
+                if link.organization.location_id
+                else None,
             }
             for link in sorted(
                 instance.partner_organization_links,

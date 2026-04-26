@@ -112,7 +112,7 @@ export function EventInstancePartnersField({
             }
             const fromPicker = pickerItems.find((row) => row.id === id);
             if (fromPicker) {
-              next.push({ id: fromPicker.id, name: fromPicker.label, active: true });
+              next.push({ id: fromPicker.id, name: fromPicker.label, active: true, locationId: null });
             }
           }
           onChange(next);

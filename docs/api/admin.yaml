@@ -3935,6 +3935,11 @@ components:
         archived:
           type: boolean
           description: True when the organization is archived (omitted from active pickers).
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Partner organization venue id when set (FK locations).
     ServiceInstance:
       type: object
       required: [id, service_id, status]
