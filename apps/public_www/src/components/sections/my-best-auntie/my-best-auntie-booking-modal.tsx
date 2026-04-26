@@ -177,7 +177,7 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
-              reservationServiceKey={selectedCohort?.slug ?? ''}
+              reservationServiceKey='my-best-auntie'
               cohortId={selectedCohort?.slug ?? ''}
               courseSlug='my-best-auntie'
               serviceSlug={selectedCohort?.service ?? 'training-course'}

@@ -29,6 +29,7 @@ from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 from app.utils.maps import build_google_maps_directions_url
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -156,9 +157,10 @@ def _fetch_public_offerings(
     )
     out: list[dict[str, Any]] = []
     for instance in rows:
-        if not instance.slug:
+        slug = (instance.slug or "").strip()
+        if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
             logger.warning(
-                "Public calendar feed skipped instance without slug",
+                "Public calendar feed skipped instance without valid slug",
                 extra={"instance_id": str(instance.id)},
             )
             continue
@@ -326,14 +328,15 @@ def _serialize_public_event(
         "fully_booked" if instance.status == InstanceStatus.FULL else "open"
     )
 
-    if not instance.slug:
-        logger.warning(
-            "Serialized public calendar event without instance slug",
-            extra={"instance_id": str(instance.id)},
+    slug = (instance.slug or "").strip()
+    if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
+        raise ValueError(
+            "Public calendar serialization requires a non-empty slug matching "
+            "the public slug pattern (caller must filter slug-less rows)."
         )
 
     payload: dict[str, Any] = {
-        "slug": instance.slug or "",
+        "slug": slug,
         "service_type": service.service_type.value,
         "title": title,
         "summary": summary,

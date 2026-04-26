@@ -8,6 +8,8 @@ from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
+import pytest
+
 from app.api import public_events
 from app.db.models.enums import InstanceStatus, ServiceType
 
@@ -382,11 +384,18 @@ def test_max_capacity_with_enrollments() -> None:
     assert out["spaces_left"] == 0
 
 
-def test_slug_empty_string_still_emitted_for_defense_in_depth() -> None:
+def test_serialize_public_event_requires_valid_slug() -> None:
     service = _event_service()
     inst = _minimal_instance(service, slug="")
-    out = public_events._serialize_public_event(inst, enrollment_counts={})
-    assert out["slug"] == ""
+    with pytest.raises(ValueError):
+        public_events._serialize_public_event(inst, enrollment_counts={})
+
+
+def test_serialize_public_event_rejects_slug_not_matching_pattern() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, slug="Not_Valid")
+    with pytest.raises(ValueError):
+        public_events._serialize_public_event(inst, enrollment_counts={})
 
 
 def test_dates_use_dense_part_after_sort_order() -> None:

@@ -273,7 +273,7 @@ const expectedMbaMarketingFields = {
   courseLabel: myBestAuntieModalContent.title,
   courseSlug: 'my-best-auntie',
   service: 'training-course',
-  serviceKey: selectedCohort.slug,
+  serviceKey: 'my-best-auntie',
   serviceInstanceSlug: selectedCohort.slug,
   scheduleDateLabel: 'Apr, 2026',
   scheduleTimeLabel: expectedMbaScheduleTimeLabel,

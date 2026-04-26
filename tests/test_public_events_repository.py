@@ -40,6 +40,7 @@ def test_list_public_offerings_default_types_and_ordering_sql() -> None:
     assert "ORDER BY" in sql.upper()
     assert "service_instances.id ASC" in sql
     assert "service_instances.slug IS NOT NULL" in sql
+    assert "service_instances.slug != ''" in sql
 
 
 def test_list_public_offerings_service_type_event_only() -> None:

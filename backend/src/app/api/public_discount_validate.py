@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any
@@ -20,6 +19,7 @@ from app.db.repositories import DiscountCodeRepository, ServiceRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
 from app.utils.logging import get_logger, hash_for_correlation, mask_pii
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -35,12 +35,10 @@ _REJECTION_INSTANCE_ID_REQUIRED = "instance_id_required"
 _REJECTION_INSTANCE_SCOPE_MISMATCH = "instance_scope_mismatch"
 _REJECTION_UNKNOWN_INSTANCE_SLUG = "unknown_instance_slug"
 _REJECTION_SERVICE_SCOPE_MISMATCH = "service_scope_mismatch"
-_REJECTION_SERVICE_KEY_REQUIRED = "service_key_required"
 
 _MAX_CODE_LENGTH = 100
 _MAX_SERVICE_KEY_LENGTH = 120
 _MAX_SERVICE_INSTANCE_SLUG_LENGTH = 128
-_SERVICE_INSTANCE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def _log_discount_validate_rejection(
@@ -94,8 +92,13 @@ def handle_public_discount_validate(
         _MAX_SERVICE_INSTANCE_SLUG_LENGTH,
         required=False,
     )
-    if service_instance_slug_raw and not _SERVICE_INSTANCE_SLUG_PATTERN.fullmatch(
-        service_instance_slug_raw
+    service_instance_slug_normalized = (
+        service_instance_slug_raw.strip().lower()
+        if service_instance_slug_raw and service_instance_slug_raw.strip()
+        else ""
+    )
+    if service_instance_slug_normalized and not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(
+        service_instance_slug_normalized
     ):
         return json_response(
             400,
@@ -179,9 +182,11 @@ def handle_public_discount_validate(
             resolved_service_id = resolved_from_key
 
         resolved_request_instance_id: UUID | None = None
-        if service_instance_slug_raw:
+        if service_instance_slug_normalized:
             instance_repo = ServiceInstanceRepository(session)
-            resolved_from_slug = instance_repo.get_id_by_slug(service_instance_slug_raw)
+            resolved_from_slug = instance_repo.get_id_by_slug(
+                service_instance_slug_normalized
+            )
             if getattr(row, "instance_id", None) is not None:
                 if resolved_from_slug is None:
                     _log_discount_validate_rejection(
@@ -189,7 +194,7 @@ def handle_public_discount_validate(
                         code=code,
                         extra={
                             "discount_code_id": str(row.id),
-                            "service_instance_slug": service_instance_slug_raw,
+                            "service_instance_slug": service_instance_slug_normalized,
                         },
                     )
                     return json_response(
@@ -286,10 +291,7 @@ def _scope_rejection_reason(
     if service_id is None:
         return None
     if resolved_request_service_id is None:
-        return (
-            _REJECTION_SERVICE_KEY_REQUIRED,
-            {"expected_service_id": str(service_id)},
-        )
+        return None
     if service_id != resolved_request_service_id:
         return (
             _REJECTION_SERVICE_SCOPE_MISMATCH,

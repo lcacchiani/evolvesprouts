@@ -323,7 +323,6 @@ describe('events-data', () => {
     expect(events).toHaveLength(1);
     expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
     if (events[0]?.bookingModalPayload?.variant === 'my-best-auntie') {
-      expect(events[0].bookingModalPayload.selectedCohort.id).toBe('mba-cohort-apr-26');
       expect(events[0].bookingModalPayload.selectedCohort.slug).toBe('mba-cohort-apr-26');
     }
   });

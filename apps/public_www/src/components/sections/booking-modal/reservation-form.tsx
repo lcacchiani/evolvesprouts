@@ -84,9 +84,12 @@ interface BookingReservationFormProps {
   locale: Locale;
   content: BookingPaymentModalContent;
   eventTitle: string;
-  /** Stable id for reservation payload / Mailchimp booking tag (e.g. cohort or event id). */
+  /**
+   * Aurora `services.slug` for discount scope and lead metadata `service_key`
+   * (e.g. `my-best-auntie` for MBA). Not the instance/cohort slug.
+   */
   reservationServiceKey?: string;
-  /** Optional cohort identifier for Stripe metadata (e.g. MBA cohort id). */
+  /** Instance or event stable id for Stripe PaymentIntent metadata (`cohort_id`). */
   cohortId?: string;
   /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
   courseSlug?: string;

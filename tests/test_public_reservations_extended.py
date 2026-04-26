@@ -12,6 +12,7 @@ import pytest
 from app.api.public_reservations import (
     _handle_public_reservation,
     _validate_discount_code_redemption_scope,
+    _validate_reservation_payload,
 )
 
 
@@ -30,6 +31,14 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
     }
     base.update(overrides)
     return base
+
+
+def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> None:
+    body = _reservation_body(
+        serviceInstanceSlug="My-Cohort-Slug",
+    )
+    out = _validate_reservation_payload(body)
+    assert out["service_instance_slug"] == "my-cohort-slug"
 
 
 def _post_event(api_gateway_event: Any, body: dict[str, Any]) -> dict[str, Any]:

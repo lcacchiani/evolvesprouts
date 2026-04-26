@@ -104,10 +104,11 @@ their primary responsibilities.
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
   `service_key` is resolved case-insensitively against `services.slug` in Aurora when
-  the code is service-scoped;   optional `service_instance_slug` resolves case-insensitively
+  the code is service-scoped; optional `service_instance_slug` resolves case-insensitively
   to `service_instances.id` when the code is instance-scoped; unscoped codes do not fail on an
-  unknown `service_key`; service-scoped codes require a matching `service_key` (no `service_id`
-  body field); instance-scoped codes return 404 when the instance slug does not resolve;
+  unknown `service_key`; service-scoped codes still validate when `service_key` is omitted
+  (same permissive behavior as before `service_id` removal); instance-scoped codes return 404
+  when the instance slug does not resolve;
   codes with `discount_type` `referral` are rejected with the same 404
   envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
   `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,

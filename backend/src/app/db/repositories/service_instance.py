@@ -270,7 +270,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             statement = statement.where(ServiceInstance.landing_page == landing_page)
         if service_key:
             statement = statement.where(func.lower(Service.slug) == service_key.lower())
-        statement = statement.where(ServiceInstance.slug.is_not(None))
+        statement = statement.where(ServiceInstance.slug.is_not(None)).where(
+            ServiceInstance.slug != ""
+        )
         return list(self._session.execute(statement).unique().scalars().all())
 
     def get_id_by_slug(self, slug: str) -> UUID | None:

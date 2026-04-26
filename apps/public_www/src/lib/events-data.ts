@@ -42,6 +42,8 @@ const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
 interface EventBookingDatePart {
   id: string;
+  /** 1-based session ordinal when known from API/content `part` (for MBA cohort dates). */
+  sessionPart?: number;
   startDateTime: string;
   endDateTime: string;
   description: string;
@@ -103,9 +105,7 @@ interface MyBestAuntieEventCohortDate {
 }
 
 export interface MyBestAuntieEventCohort {
-  /** Stable public cohort key (maps to `service_instances.slug` from API; content `slug`). */
-  id: string;
-  /** Same as `id`; public instance slug for discount/reservation scope. */
+  /** Public instance slug (`service_instances.slug` from API; content `slug`). */
   slug: string;
   /** Tier slug from calendar/API JSON key `service_tier` (formerly `age_group`). */
   service_tier: string;
@@ -421,6 +421,7 @@ function resolveBookingDateParts(
 
       return {
         id,
+        sessionPart: part,
         startDateTime,
         endDateTime,
         description: index === 0 ? defaultDescription : '',
@@ -506,19 +507,17 @@ function buildMyBestAuntieBookingModalPayload(
   const locationUrl = sanitizeGoogleMapsHref(
     readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
   );
-  const dates = resolveBookingDateParts(record, '')
-    .map((partRow, idx) => {
-      const partMatch = /^part-(\d+)$/.exec(partRow.id);
-      const part =
-        partMatch && partMatch[1]
-          ? Number.parseInt(partMatch[1], 10)
-          : idx + 1;
-      return {
-        part: Number.isFinite(part) && part > 0 ? part : idx + 1,
-        start_datetime: partRow.startDateTime,
-        end_datetime: partRow.endDateTime,
-      };
-    });
+  const dates = resolveBookingDateParts(record, '').map((partRow, idx) => {
+    const part =
+      typeof partRow.sessionPart === 'number' && partRow.sessionPart > 0
+        ? partRow.sessionPart
+        : idx + 1;
+    return {
+      part,
+      start_datetime: partRow.startDateTime,
+      end_datetime: partRow.endDateTime,
+    };
+  });
   if (dates.length === 0) {
     return null;
   }
@@ -526,7 +525,6 @@ function buildMyBestAuntieBookingModalPayload(
   const service = readCandidateText(record, ['service']) ?? 'training-course';
 
   const selectedCohort: MyBestAuntieEventCohort = {
-    id: slug,
     slug,
     service_tier: ageGroup,
     service,

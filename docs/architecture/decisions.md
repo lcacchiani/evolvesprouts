@@ -552,6 +552,11 @@ for the same instance scope check (resolved server-side to the instance UUID).
 **Why:** Public clients should not handle Aurora primary keys; slugs are human-meaningful
 and align static content fixtures with the API contract.
 
+**Scope checks:** Dropping `service_id` from `POST /v1/discounts/validate` does **not** narrow
+service-scoped codes: when neither `service_key` nor a resolved service id is present, the
+handler still returns **200** (unchanged from the pre-cutover `service_id`-less request path).
+Mismatching `service_key` for a service-scoped code still returns **404**.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

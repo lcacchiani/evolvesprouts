@@ -8,6 +8,9 @@ from typing import Any
 _NON_ALNUM_RUNS = re.compile(r"[^a-z0-9]+")
 DEFAULT_MAX_PUBLIC_SLUG_LENGTH = 64
 
+# Public API / content: kebab-case slug (lowercase letters, digits, single hyphens).
+PUBLIC_INSTANCE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
 
 def normalize_public_slug(
     value: Any,

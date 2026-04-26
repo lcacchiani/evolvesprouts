@@ -59,6 +59,7 @@ from app.services.turnstile import (
 from app.utils import json_response
 from app.utils.fps_qr_png import optional_fps_qr_data_url_from_payload
 from app.utils.logging import get_logger, mask_email, mask_pii
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
@@ -75,7 +76,6 @@ _MAX_ISO_FIELD = 50
 _MAX_COHORT_DATE = 100
 _MAX_DISCOUNT_CODE = 100
 _MAX_INSTANCE_SLUG_LENGTH = 128
-_INSTANCE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _MAX_FPS_DATA_URL_BYTES = 120_000
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
@@ -477,13 +477,14 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "serviceInstanceSlug",
         _MAX_INSTANCE_SLUG_LENGTH,
     )
-    if service_instance_slug and not _INSTANCE_SLUG_PATTERN.fullmatch(
-        service_instance_slug
-    ):
-        raise ValidationError(
-            "serviceInstanceSlug must match the public slug pattern",
-            field="serviceInstanceSlug",
-        )
+    if service_instance_slug:
+        normalized_instance_slug = service_instance_slug.strip().lower()
+        if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(normalized_instance_slug):
+            raise ValidationError(
+                "serviceInstanceSlug must match the public slug pattern",
+                field="serviceInstanceSlug",
+            )
+        service_instance_slug = normalized_instance_slug
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
