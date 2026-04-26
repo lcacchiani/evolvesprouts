@@ -4,10 +4,19 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
-import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
+import trainingCoursesFixture from '../../fixtures/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import { formatCohortValue, formatPartDateTimeLabel } from '@/lib/format';
 import { buildWhatsappPrefilledHref } from '@/lib/site-config';
+
+vi.mock('@/components/sections/my-best-auntie/use-my-best-auntie-cohorts', () => ({
+  useMyBestAuntieCohorts: ({ initialCohorts }: { initialCohorts: MyBestAuntieEventCohort[] }) => ({
+    cohorts: initialCohorts,
+    isLoading: false,
+    hasRequestError: false,
+  }),
+}));
 
 vi.mock('next/image', () => ({
   default: ({
@@ -51,15 +60,10 @@ function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): st
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
 
-type BookingContent = typeof enContent.myBestAuntie.booking & {
-  cohorts: typeof trainingCoursesContent.data;
-};
-type BookingCohort = BookingContent['cohorts'][number];
+type BookingCohort = MyBestAuntieEventCohort;
 
-const bookingContent = {
-  ...enContent.myBestAuntie.booking,
-  cohorts: trainingCoursesContent.data,
-} as BookingContent;
+const bookingContent = enContent.myBestAuntie.booking;
+const initialMbaCohorts = trainingCoursesFixture.data as MyBestAuntieEventCohort[];
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal;
 const privateProgrammeFallbackWhatsappHref = buildWhatsappPrefilledHref(
@@ -70,8 +74,8 @@ const privateProgrammeFallbackWhatsappHref = buildWhatsappPrefilledHref(
 const selectedAgeGroupTitleTemplate =
   bookingModalContent.paymentModal.selectedAgeGroupTitleTemplate;
 
-function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
-  return content.cohorts
+function getCohortsForAge(cohorts: MyBestAuntieEventCohort[], ageGroupId: string): BookingCohort[] {
+  return cohorts
     .filter((cohort) => cohort.service_tier === ageGroupId)
     .sort((left, right) => {
       const leftDate = Date.parse(left.dates[0]?.start_datetime ?? '');
@@ -122,6 +126,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -143,6 +148,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -160,6 +166,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -176,6 +183,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -186,8 +194,8 @@ describe('MyBestAuntieBooking section', () => {
     if (!firstAgeOption || !secondAgeOption) {
       throw new Error('Test content must include age options.');
     }
-    const firstAgeCohorts = getCohortsForAge(bookingContent, firstAgeOption.id);
-    const secondAgeCohorts = getCohortsForAge(bookingContent, secondAgeOption.id);
+    const firstAgeCohorts = getCohortsForAge(initialMbaCohorts, firstAgeOption.id);
+    const secondAgeCohorts = getCohortsForAge(initialMbaCohorts, secondAgeOption.id);
     const firstAgeFirstCohort = firstAgeCohorts[0];
     const secondAgeFirstCohort = secondAgeCohorts[0];
     const secondAgeSecondCohort = secondAgeCohorts[1];
@@ -292,17 +300,15 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('shows no date cards for age groups without cohorts and disables CTA', () => {
-    const contentWithoutThreeToSix = JSON.parse(
-      JSON.stringify(bookingContent),
-    ) as BookingContent;
-    contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
-      return cohort.service_tier !== '3-6';
-    });
+    const cohortsWithoutThreeToSix = initialMbaCohorts.filter(
+      (cohort) => cohort.service_tier !== '3-6',
+    );
 
     render(
       <MyBestAuntieBooking
         locale='en'
-        content={contentWithoutThreeToSix}
+        content={bookingContent}
+        initialCohorts={cohortsWithoutThreeToSix}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -315,15 +321,15 @@ describe('MyBestAuntieBooking section', () => {
     );
 
     const dateSelectorRegion = screen.getByRole('region', {
-      name: contentWithoutThreeToSix.dateSelectorLabel,
+      name: bookingContent.dateSelectorLabel,
     });
     expect(within(dateSelectorRegion).queryAllByRole('button')).toHaveLength(0);
     expect(
       screen.getByRole('button', {
-        name: contentWithoutThreeToSix.confirmAndPayLabel,
+        name: bookingContent.confirmAndPayLabel,
       }),
     ).toBeDisabled();
-    expect(screen.getByText(contentWithoutThreeToSix.noCohortsLabel)).toBeInTheDocument();
+    expect(screen.getByText(bookingContent.noCohortsLabel)).toBeInTheDocument();
     expect(screen.queryByText('HK$9,000')).not.toBeInTheDocument();
   });
 
@@ -332,6 +338,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -354,7 +361,7 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include first age option.');
     }
     const secondDateOption = getCohortsForAge(
-      bookingContent,
+      initialMbaCohorts,
       firstAgeOption.id,
     )[1];
     if (!secondDateOption) {
@@ -387,6 +394,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -397,7 +405,7 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include first age option.');
     }
     const firstDateOption = getCohortsForAge(
-      bookingContent,
+      initialMbaCohorts,
       firstAgeOption.id,
     )[0];
     if (!firstDateOption) {
@@ -429,6 +437,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -461,17 +470,15 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('shows edge-overlapped arrows only when more dates are available to scroll', () => {
-    const extendedBookingContent = JSON.parse(
-      JSON.stringify(bookingContent),
-    ) as BookingContent;
+    const extendedCohorts: MyBestAuntieEventCohort[] = [...initialMbaCohorts];
 
-    extendedBookingContent.cohorts.push(
+    extendedCohorts.push(
       {
-        id: 'my-best-auntie-0-1-08-26',
+        slug: 'my-best-auntie-0-1-aug-26',
         service_tier: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
-        cohort: '08-26',
+        cohort: 'aug-26',
         spaces_total: 24,
         spaces_left: 8,
         is_fully_booked: false,
@@ -484,30 +491,31 @@ describe('MyBestAuntieBooking section', () => {
         location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
         location_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        booking_system: 'my-best-auntie-booking',
         dates: [
           {
-            id: 'part-1',
+            part: 1,
             start_datetime: '2026-08-09T12:00:00Z',
             end_datetime: '2026-08-09T14:00:00Z',
           },
           {
-            id: 'part-2',
+            part: 2,
             start_datetime: '2026-08-16T12:00:00Z',
             end_datetime: '2026-08-16T14:00:00Z',
           },
           {
-            id: 'part-3',
+            part: 3,
             start_datetime: '2026-08-23T12:00:00Z',
             end_datetime: '2026-08-23T14:00:00Z',
           },
         ],
       },
       {
-        id: 'my-best-auntie-0-1-09-26',
+        slug: 'my-best-auntie-0-1-sep-26',
         service_tier: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
-        cohort: '09-26',
+        cohort: 'sep-26',
         spaces_total: 24,
         spaces_left: 4,
         is_fully_booked: false,
@@ -520,19 +528,20 @@ describe('MyBestAuntieBooking section', () => {
         location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
         location_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        booking_system: 'my-best-auntie-booking',
         dates: [
           {
-            id: 'part-1',
+            part: 1,
             start_datetime: '2026-09-09T12:00:00Z',
             end_datetime: '2026-09-09T14:00:00Z',
           },
           {
-            id: 'part-2',
+            part: 2,
             start_datetime: '2026-09-16T12:00:00Z',
             end_datetime: '2026-09-16T14:00:00Z',
           },
           {
-            id: 'part-3',
+            part: 3,
             start_datetime: '2026-09-23T12:00:00Z',
             end_datetime: '2026-09-23T14:00:00Z',
           },
@@ -543,7 +552,8 @@ describe('MyBestAuntieBooking section', () => {
     render(
       <MyBestAuntieBooking
         locale='en'
-        content={extendedBookingContent}
+        content={bookingContent}
+        initialCohorts={extendedCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -609,6 +619,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
@@ -645,6 +656,7 @@ describe('MyBestAuntieBooking section', () => {
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
+        initialCohorts={initialMbaCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
         privateProgrammeWhatsappHref={privateProgrammeWhatsappHref}
@@ -665,28 +677,29 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {
-    const soldOutContent = JSON.parse(
-      JSON.stringify(bookingContent),
-    ) as BookingContent;
-
-    const soldOutCohort = soldOutContent.cohorts.find(
-      (cohort) => cohort.service_tier === '0-1',
+    const soldOutCohorts = initialMbaCohorts.map((cohort) => {
+      if (cohort.service_tier === '0-1' && cohort.cohort === '04-26') {
+        return { ...cohort, is_fully_booked: true, spaces_left: 0 };
+      }
+      return cohort;
+    });
+    const soldOutCohort = soldOutCohorts.find(
+      (cohort) => cohort.service_tier === '0-1' && cohort.cohort === '04-26',
     );
     expect(soldOutCohort).toBeDefined();
-    soldOutCohort!.is_fully_booked = true;
-    soldOutCohort!.spaces_left = 0;
 
     render(
       <MyBestAuntieBooking
         locale='en'
-        content={soldOutContent}
+        content={bookingContent}
+        initialCohorts={soldOutCohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
     );
 
     const dateSelectorRegion = screen.getByRole('region', {
-      name: soldOutContent.dateSelectorLabel,
+      name: bookingContent.dateSelectorLabel,
     });
 
     const soldOutButton = within(dateSelectorRegion).getByRole('button', {
@@ -698,11 +711,11 @@ describe('MyBestAuntieBooking section', () => {
     const soldOutCardContent = soldOutButton.querySelector('div.flex.w-full');
     expect(soldOutCardContent?.className).toContain('opacity-40');
 
-    const stampText = within(soldOutButton).getByText(soldOutContent.soldOutStampLabel);
+    const stampText = within(soldOutButton).getByText(bookingContent.soldOutStampLabel);
     expect(stampText).toBeInTheDocument();
     expect(stampText.className).toContain('es-cohort-sold-out-stamp-text');
 
-    const firstAvailableCohort = getCohortsForAge(soldOutContent, '0-1').find(
+    const firstAvailableCohort = getCohortsForAge(soldOutCohorts, '0-1').find(
       (cohort) => !cohort.is_fully_booked,
     );
     expect(firstAvailableCohort).toBeDefined();

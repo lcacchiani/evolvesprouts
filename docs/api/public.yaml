@@ -1113,7 +1113,9 @@ components:
           nullable: true
           description: >
             From `services.service_tier` when set; for My Best Auntie training
-            cohorts, inferred from `service_instances.slug` (e.g. `my-best-auntie-1-3-04-26`)
+            cohorts, inferred from `service_instances.slug` (for example
+            `my-best-auntie-1-3-apr-26` for alpha-month cohort tokens, or legacy
+            `my-best-auntie-1-3-04-26` when the slug still encodes numeric month-year)
             when the parent service tier is unset. `null` when not applicable.
         cohort:
           type: string

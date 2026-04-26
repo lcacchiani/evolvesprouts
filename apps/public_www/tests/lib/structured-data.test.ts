@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import enContent from '@/content/en.json';
+import { publicCalendarFixture } from '../fixtures/public-calendar';
 import type { EventCardData } from '@/lib/events-data';
+import { getLandingPageStructuredDataContentFromPayload } from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import {
   buildBreadcrumbSchema,
@@ -198,10 +200,14 @@ describe('structured-data builders', () => {
   });
 
   it('builds landing page event schema from events content', () => {
+    const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
+      publicCalendarFixture,
+      'easter-2026-montessori-play-coaching-workshop',
+    );
     const schema = buildLandingPageEventSchema({
       locale: 'en',
-      landingPageSlug: 'easter-2026-montessori-play-coaching-workshop',
       pagePath: '/easter-2026-montessori-play-coaching-workshop',
+      structuredDataContent,
     });
 
     expect(schema).toMatchObject({
@@ -238,10 +244,14 @@ describe('structured-data builders', () => {
   });
 
   it('builds landing page event schema for May 2026 The Missing Piece', () => {
+    const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
+      publicCalendarFixture,
+      'may-2026-the-missing-piece',
+    );
     const schema = buildLandingPageEventSchema({
       locale: 'en',
-      landingPageSlug: 'may-2026-the-missing-piece',
       pagePath: '/may-2026-the-missing-piece',
+      structuredDataContent,
     });
 
     expect(schema).toMatchObject({

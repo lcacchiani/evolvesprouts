@@ -27,8 +27,8 @@ All deployment prerequisites and configuration steps are now documented in
 
 ### My Best Auntie instance UUIDs (local dev)
 
-To print Aurora `service_instances.id` values for the My Best Auntie service (for copying into
-`apps/public_www/src/content/my-best-auntie-training-courses.json` by hand), run:
+To print Aurora `service_instances.id` values for the My Best Auntie service (for aligning with
+`GET /v1/calendar/public` instance data), run:
 
 ```
 ATTESTATION_FAIL_CLOSED=false python backend/scripts/dump_mba_instance_uuids.py --execute

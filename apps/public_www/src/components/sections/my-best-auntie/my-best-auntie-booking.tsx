@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { EventsLoadingState } from '@/components/sections/shared/events-shared';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -24,6 +25,7 @@ import type {
   MyBestAuntieModalContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
+import type { MyBestAuntieEventCohort } from '@/lib/events-data';
 import {
   formatCohortValue,
   formatPartDateTimeLabel,
@@ -34,6 +36,7 @@ import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { readReferralCodeFromSearch } from '@/lib/referral-link';
+import { useMyBestAuntieCohorts } from '@/components/sections/my-best-auntie/use-my-best-auntie-cohorts';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -54,6 +57,7 @@ const MyBestAuntieThankYouModal = dynamic(
 interface MyBestAuntieBookingProps {
   locale: Locale;
   content: MyBestAuntieBookingContent;
+  initialCohorts: MyBestAuntieEventCohort[];
   modalContent: MyBestAuntieModalContent;
   bookingModalContent: BookingModalContent;
   commonAccessibility?: CommonAccessibilityContent;
@@ -106,15 +110,14 @@ function formatNextCohortLabel(
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
-
-type BookingCohort = MyBestAuntieBookingContent['cohorts'][number];
+const MY_BEST_AUNTIE_SERVICE_KEY = 'my-best-auntie';
 
 interface BookingDateOption {
   id: string;
   label: string;
   availabilityLabel: string;
   isFullyBooked: boolean;
-  cohort: BookingCohort;
+  cohort: MyBestAuntieEventCohort;
 }
 
 function formatSpacesLeftLabel(count: number, template: string): string {
@@ -128,7 +131,7 @@ function shouldAutoOpenMyBestAuntieBookingModal(searchValue: string): boolean {
   return queryParams.get(BOOKING_SYSTEM_QUERY_PARAM) === MY_BEST_AUNTIE_BOOKING_SYSTEM;
 }
 
-function getPrimarySessionSortValue(cohort: BookingCohort): number {
+function getPrimarySessionSortValue(cohort: MyBestAuntieEventCohort): number {
   const startDateTime = cohort.dates[0]?.start_datetime?.trim() ?? '';
   if (!startDateTime) {
     return Number.POSITIVE_INFINITY;
@@ -141,8 +144,8 @@ function getPrimarySessionSortValue(cohort: BookingCohort): number {
 }
 
 function sortCohortsByPrimarySession(
-  leftCohort: BookingCohort,
-  rightCohort: BookingCohort,
+  leftCohort: MyBestAuntieEventCohort,
+  rightCohort: MyBestAuntieEventCohort,
 ): number {
   const dateDifference =
     getPrimarySessionSortValue(leftCohort) -
@@ -162,7 +165,7 @@ function sortCohortsByPrimarySession(
 }
 
 function findPreferredCohortId(
-  cohorts: BookingCohort[],
+  cohorts: MyBestAuntieEventCohort[],
   ageGroupId: string,
 ): string {
   const ageGroupCohorts = cohorts.filter(
@@ -173,7 +176,7 @@ function findPreferredCohortId(
 }
 
 function getPrimarySessionDateTimeLabel(
-  cohort: BookingCohort | null,
+  cohort: MyBestAuntieEventCohort | null,
   locale: Locale,
 ): string {
   const startDateTime = cohort?.dates[0]?.start_datetime ?? '';
@@ -215,6 +218,7 @@ function formatCohortPrice(
 export function MyBestAuntieBooking({
   locale,
   content,
+  initialCohorts,
   modalContent,
   bookingModalContent,
   commonAccessibility = enContent.common.accessibility,
@@ -222,6 +226,15 @@ export function MyBestAuntieBooking({
   thankYouWhatsappCtaLabel,
   privateProgrammeWhatsappHref,
 }: MyBestAuntieBookingProps) {
+  const {
+    cohorts: cohortsFromHook,
+    isLoading: isCohortsLoading,
+    hasRequestError: hasCohortsRequestError,
+  } = useMyBestAuntieCohorts({
+    initialCohorts,
+    serviceKey: MY_BEST_AUNTIE_SERVICE_KEY,
+    serviceType: 'training_course',
+  });
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
   const [reservationSummary, setReservationSummary] =
@@ -229,12 +242,8 @@ export function MyBestAuntieBooking({
   const [prefilledDiscountCode, setPrefilledDiscountCode] = useState('');
 
   const ageOptions = content.ageOptions ?? [];
-  const sortedCohorts = [...(content.cohorts ?? [])].sort(
-    sortCohortsByPrimarySession,
-  );
+  const sortedCohorts = [...cohortsFromHook].sort(sortCohortsByPrimarySession);
   const initialAgeId = ageOptions[0]?.id ?? '';
-  const initialDateId =
-    findPreferredCohortId(sortedCohorts, initialAgeId);
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
@@ -250,9 +259,22 @@ export function MyBestAuntieBooking({
     isFullyBooked: cohort.is_fully_booked,
     cohort,
   }));
-  const [selectedDateId, setSelectedDateId] = useState(initialDateId);
+  /** User-picked cohort slug for the current age tier; cleared on age change. */
+  const [pendingDateSelectionSlug, setPendingDateSelectionSlug] = useState<string | null>(
+    null,
+  );
+  const preferredDateId = findPreferredCohortId(sortedCohorts, selectedAgeId);
+  const selectedDateId =
+    pendingDateSelectionSlug
+    && sortedCohorts.some(
+      (cohort) =>
+        cohort.service_tier === selectedAgeId && cohort.slug === pendingDateSelectionSlug,
+    )
+      ? pendingDateSelectionSlug
+      : preferredDateId;
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const hasHandledAutoOpenModalRef = useRef(false);
+  const hasHandledReferralPrefillRef = useRef(false);
+  const hasOpenedBookingModalFromQueryRef = useRef(false);
   const {
     carouselRef: dateCarouselRef,
     hasNavigation: hasDateNavigation,
@@ -295,26 +317,31 @@ export function MyBestAuntieBooking({
   }, [scrollItemIntoView, selectedDateId]);
 
   useEffect(() => {
-    if (hasHandledAutoOpenModalRef.current) {
-      return;
-    }
-    hasHandledAutoOpenModalRef.current = true;
-
     if (typeof window === 'undefined') {
       return;
     }
-    const referral = readReferralCodeFromSearch(window.location.search);
-    if (referral) {
-      queueMicrotask(() => {
-        setPrefilledDiscountCode(referral);
-      });
+
+    if (!hasHandledReferralPrefillRef.current) {
+      hasHandledReferralPrefillRef.current = true;
+      const referral = readReferralCodeFromSearch(window.location.search);
+      if (referral) {
+        queueMicrotask(() => {
+          setPrefilledDiscountCode(referral);
+        });
+      }
     }
+
     if (!shouldAutoOpenMyBestAuntieBookingModal(window.location.search)) {
+      return;
+    }
+    if (hasOpenedBookingModalFromQueryRef.current) {
       return;
     }
     if (!selectedCohort || selectedCohort.is_fully_booked) {
       return;
     }
+
+    hasOpenedBookingModalFromQueryRef.current = true;
 
     const openModalTimerId = window.setTimeout(() => {
       trackAnalyticsEvent('booking_modal_open', {
@@ -415,6 +442,21 @@ export function MyBestAuntieBooking({
               {content.eyebrow}
             </h2>
 
+            <div
+              className='mt-4'
+              aria-live={isCohortsLoading || hasCohortsRequestError ? 'polite' : undefined}
+            >
+              {isCohortsLoading ? (
+                <EventsLoadingState
+                  label={content.cohortsLoadingLabel}
+                  testId='my-best-auntie-cohorts-loading'
+                />
+              ) : null}
+              {hasCohortsRequestError && !isCohortsLoading ? (
+                <p className='text-sm text-black/60'>{content.cohortsErrorLabel}</p>
+              ) : null}
+            </div>
+
             <div className='mt-6'>
               <h3 className='text-sm font-semibold es-text-neutral-strong'>
                 {content.ageSelectorLabel}
@@ -438,11 +480,7 @@ export function MyBestAuntieBooking({
                           },
                         });
                         setSelectedAgeId(option.id);
-                        const nextDateId = findPreferredCohortId(
-                          sortedCohorts,
-                          option.id,
-                        );
-                        setSelectedDateId(nextDateId);
+                        setPendingDateSelectionSlug(null);
                       }}
                       className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] snap-center text-left sm:w-[168px]`}
                     >
@@ -506,7 +544,7 @@ export function MyBestAuntieBooking({
                                     is_fully_booked: option.isFullyBooked,
                                   },
                                 });
-                                setSelectedDateId(option.id);
+                                setPendingDateSelectionSlug(option.id);
                               }
                         }
                         className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isFullyBooked ? 'pointer-events-none' : ''}`}
@@ -609,7 +647,11 @@ export function MyBestAuntieBooking({
                   });
                   setIsPaymentModalOpen(true);
                 }}
-                disabled={!selectedCohort || selectedCohort.is_fully_booked}
+                disabled={
+                  dateOptions.length === 0
+                  || !selectedCohort
+                  || selectedCohort.is_fully_booked
+                }
               >
                 {content.confirmAndPayLabel}
               </ButtonPrimitive>

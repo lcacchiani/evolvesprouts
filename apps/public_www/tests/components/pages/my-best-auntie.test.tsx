@@ -22,16 +22,19 @@ vi.mock('@/components/sections/my-best-auntie/my-best-auntie-booking', () => ({
   MyBestAuntieBooking: ({
     content,
     locale,
+    initialCohorts,
     privateProgrammeWhatsappHref,
   }: {
     content: { title: string };
     locale: string;
+    initialCohorts: unknown[];
     privateProgrammeWhatsappHref?: string;
   }) => (
     (() => {
       BOOKING_PROPS_SPY({
         content,
         locale,
+        initialCohorts,
         privateProgrammeWhatsappHref,
       });
       return (
@@ -68,11 +71,56 @@ vi.mock('@/components/sections/free-intro-session', () => ({
   ),
 }));
 
+const testCohorts = [
+  {
+    slug: 'my-best-auntie-1-3-apr-26',
+    service_tier: '1-3',
+    title: 'MBA 1-3 Apr',
+    description: '',
+    cohort: 'apr-26',
+    spaces_total: 8,
+    spaces_left: 4,
+    is_fully_booked: false,
+    price: 9000,
+    currency: 'HKD',
+    location: 'physical',
+    booking_system: 'my-best-auntie-booking',
+    tags: [],
+    categories: [],
+    location_name: 'Venue',
+    location_address: 'Addr',
+    location_url: '',
+    service: 'training-course',
+    dates: [{ part: 1, start_datetime: '2026-04-19T01:00:00Z', end_datetime: '2026-04-19T03:00:00Z' }],
+  },
+  {
+    slug: 'my-best-auntie-0-1-04-26',
+    service_tier: '0-1',
+    title: 'MBA 0-1 legacy',
+    description: '',
+    cohort: '04-26',
+    spaces_total: 8,
+    spaces_left: 5,
+    is_fully_booked: false,
+    price: 9000,
+    currency: 'HKD',
+    location: 'physical',
+    booking_system: 'my-best-auntie-booking',
+    tags: [],
+    categories: [],
+    location_name: 'Venue',
+    location_address: 'Addr',
+    location_url: '',
+    service: 'training-course',
+    dates: [{ part: 1, start_datetime: '2026-05-17T01:00:00Z', end_datetime: '2026-05-17T03:00:00Z' }],
+  },
+];
+
 describe('MyBestAuntiePage', () => {
   it('assembles the booking flow page and forwards locale', () => {
     BOOKING_PROPS_SPY.mockClear();
     const content = getContent('zh-HK');
-    render(<MyBestAuntiePage locale='zh-HK' content={content} />);
+    render(<MyBestAuntiePage locale='zh-HK' content={content} cohorts={testCohorts} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();
@@ -106,8 +154,10 @@ describe('MyBestAuntiePage', () => {
     ).toBeInTheDocument();
     expect(BOOKING_PROPS_SPY).toHaveBeenCalledTimes(1);
     const bookingProps = BOOKING_PROPS_SPY.mock.calls[0][0] as {
+      initialCohorts: unknown[];
       privateProgrammeWhatsappHref?: string;
     };
+    expect(bookingProps.initialCohorts).toHaveLength(2);
     expect(bookingProps.privateProgrammeWhatsappHref).toBe(
       buildWhatsappPrefilledHref(
         content.freeIntroSession.ctaHref,

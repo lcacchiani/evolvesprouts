@@ -39,24 +39,35 @@ describe('formatPartDateTimeLabel', () => {
 });
 
 describe('cohort value helpers', () => {
-  it('keeps the shared cohort pattern aligned', () => {
+  it('keeps the shared cohort pattern aligned (parser validates month names)', () => {
     expect(COHORT_VALUE_PATTERN.test('04-26')).toBe(true);
+    expect(COHORT_VALUE_PATTERN.test('apr-26')).toBe(true);
+    expect(COHORT_VALUE_PATTERN.test('Apr-26')).toBe(true);
+    expect(COHORT_VALUE_PATTERN.test('april-26')).toBe(false);
+    expect(COHORT_VALUE_PATTERN.test('xx-26')).toBe(false);
     expect(COHORT_VALUE_PATTERN.test('4-26')).toBe(false);
   });
 
-  it('parses valid cohort values', () => {
+  it('parses valid cohort values (legacy numeric and canonical alpha)', () => {
     expect(parseCohortValue('04-26')).toEqual({ monthIndex: 3, year: 2026 });
     expect(parseCohortValue(' 12-29 ')).toEqual({ monthIndex: 11, year: 2029 });
+    expect(parseCohortValue('apr-26')).toEqual({ monthIndex: 3, year: 2026 });
+    expect(parseCohortValue('APR-26')).toEqual({ monthIndex: 3, year: 2026 });
+    expect(parseCohortValue('jan-25')).toEqual({ monthIndex: 0, year: 2025 });
+    expect(parseCohortValue('dec-29')).toEqual({ monthIndex: 11, year: 2029 });
   });
 
   it('returns null for invalid cohort values', () => {
     expect(parseCohortValue('13-26')).toBeNull();
     expect(parseCohortValue('AA-26')).toBeNull();
+    expect(parseCohortValue('xyz-26')).toBeNull();
     expect(parseCohortValue('')).toBeNull();
   });
 
   it('formats parsed cohort values and preserves invalid inputs', () => {
     expect(formatCohortValue('04-26')).toBe('Apr, 2026');
+    expect(formatCohortValue('apr-26')).toBe('Apr, 2026');
+    expect(formatCohortValue(' Apr-26 ')).toBe('Apr, 2026');
     expect(formatCohortValue('invalid')).toBe('invalid');
     expect(formatCohortValue(' 04-26 ')).toBe('Apr, 2026');
   });

@@ -14,9 +14,9 @@ import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
 import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
 import type { LandingPageSharedCtaProps } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
-import {
-  getLandingPageBookingEventContent,
-  getLandingPageHeroEventContent,
+import type {
+  LandingPageBookingEventContent,
+  LandingPageHeroEventContent,
 } from '@/lib/events-data';
 import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 
@@ -25,6 +25,8 @@ interface LandingPageProps {
   slug: string;
   siteContent: SiteContent;
   pageContent: LandingPageLocaleContent;
+  heroEventContent: LandingPageHeroEventContent | null;
+  bookingEventContent: LandingPageBookingEventContent | null;
 }
 
 function resolveLandingPageCtaEyebrow(
@@ -88,9 +90,9 @@ export function LandingPage({
   slug,
   siteContent,
   pageContent,
+  heroEventContent,
+  bookingEventContent,
 }: LandingPageProps) {
-  const heroEventContent = getLandingPageHeroEventContent(slug);
-  const bookingEventContent = getLandingPageBookingEventContent(slug, locale);
   const isFullyBooked = bookingEventContent?.status === 'fully_booked';
   const resolvedCtaEyebrow = resolveLandingPageCtaEyebrow(
     pageContent.cta.eyebrow,

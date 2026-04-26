@@ -1,5 +1,4 @@
 import enContent from './en.json';
-import myBestAuntieTrainingCourseContent from './my-best-auntie-training-courses.json';
 import zhCNContent from './zh-CN.json';
 import zhHKContent from './zh-HK.json';
 import { ROUTES } from '@/lib/routes';
@@ -7,6 +6,8 @@ import {
   buildWhatsappPrefilledHref,
   resolvePublicSiteConfig,
 } from '@/lib/site-config';
+
+export type { MyBestAuntieEventCohort } from '@/lib/events-data';
 
 /**
  * Supported locales. Add new locales here and provide a matching
@@ -21,18 +22,11 @@ export const DEFAULT_LOCALE: Locale = 'en';
  * All locale files must conform to this shape.
  */
 type BaseSiteContent = typeof enContent;
-type CourseCohort = typeof myBestAuntieTrainingCourseContent.data[number];
 type TestimonialsContentShape = Omit<BaseSiteContent['testimonials'], 'items'> & {
   items: Array<BaseSiteContent['testimonials']['items'][number] & { role?: string }>;
 };
-type SharedCourseBookingContent = BaseSiteContent['myBestAuntie']['booking'] & {
-  cohorts: CourseCohort[];
-};
-export type SiteContent = Omit<BaseSiteContent, 'testimonials' | 'myBestAuntie'> & {
+export type SiteContent = Omit<BaseSiteContent, 'testimonials'> & {
   testimonials: TestimonialsContentShape;
-  myBestAuntie: Omit<BaseSiteContent['myBestAuntie'], 'booking'> & {
-    booking: SharedCourseBookingContent;
-  };
 };
 
 /**
@@ -85,7 +79,6 @@ export type FreeGuidesAndResourcesFaqContent =
 export type FooterContent = SiteContent['footer'];
 export type LinksHubContent = SiteContent['links']['hub'];
 export type LandingPagesCommonContent = SiteContent['landingPages']['common'];
-export type LandingPageCohort = MyBestAuntieBookingContent['cohorts'][number];
 
 export interface LandingPageLocaleContent {
   meta: {
@@ -167,28 +160,6 @@ const contentMap = {
 const interpolatedContentCache = new Map<string, SiteContent>();
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
 const BUSINESS_PHONE_PLACEHOLDER = '{{BUSINESS_PHONE_NUMBER}}';
-
-function cloneSharedCourseCohorts(): CourseCohort[] {
-  return myBestAuntieTrainingCourseContent.data.map((cohort) => ({
-    ...cohort,
-    dates: cohort.dates.map((date) => ({
-      ...date,
-    })),
-  }));
-}
-
-function withSharedCourseContent(content: BaseSiteContent): SiteContent {
-  return {
-    ...content,
-    myBestAuntie: {
-      ...content.myBestAuntie,
-      booking: {
-        ...content.myBestAuntie.booking,
-        cohorts: cloneSharedCourseCohorts(),
-      },
-    },
-  };
-}
 
 function resolveContactEmail(): string | undefined {
   try {
@@ -359,16 +330,10 @@ function withConfiguredRuntimeContent(
  */
 export function getContent(locale: string): SiteContent {
   if (isValidLocale(locale)) {
-    return withConfiguredRuntimeContent(
-      locale,
-      withSharedCourseContent(contentMap[locale]),
-    );
+    return withConfiguredRuntimeContent(locale, contentMap[locale]);
   }
 
-  return withConfiguredRuntimeContent(
-    DEFAULT_LOCALE,
-    withSharedCourseContent(contentMap[DEFAULT_LOCALE]),
-  );
+  return withConfiguredRuntimeContent(DEFAULT_LOCALE, contentMap[DEFAULT_LOCALE]);
 }
 
 /**

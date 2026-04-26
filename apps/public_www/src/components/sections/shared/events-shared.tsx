@@ -16,8 +16,7 @@ import {
 import {
   type EventCardData,
   fetchEventsPayload,
-  normalizeEventsForEventsPage,
-  shouldUseTemporaryEventsContentSource,
+  normalizeEvents,
 } from '@/lib/events-data';
 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
@@ -246,9 +245,8 @@ export function useEventCards({
   locale,
   sortEventCards,
 }: UseEventCardsOptions): UseEventCardsResult {
-  const useTemporaryEventsSource = shouldUseTemporaryEventsContentSource();
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
-  const shouldRequestEvents = useTemporaryEventsSource || crmApiClient !== null;
+  const shouldRequestEvents = crmApiClient !== null;
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [isLoading, setIsLoading] = useState(() => shouldRequestEvents);
   const [hasRequestError, setHasRequestError] = useState(() => !shouldRequestEvents);
@@ -264,7 +262,7 @@ export function useEventCards({
 
     fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
-        const normalizedEvents = normalizeEventsForEventsPage(payload, content, locale);
+        const normalizedEvents = normalizeEvents(payload, content, locale);
         setHasRequestError(false);
         setEvents(normalizedEvents);
       })

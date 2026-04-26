@@ -7,8 +7,8 @@ import {
   type FaqPageAudience,
 } from '@/lib/faq-audiences';
 import {
-  getLandingPageStructuredDataContent,
   type EventCardData,
+  type LandingPageStructuredDataContent,
 } from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
@@ -251,19 +251,19 @@ export function buildCourseSchema({
 
 interface LandingPageEventSchemaOptions {
   locale: Locale;
-  landingPageSlug: string;
   pagePath: string;
+  structuredDataContent: LandingPageStructuredDataContent | null;
 }
 
 export function buildLandingPageEventSchema({
   locale,
-  landingPageSlug,
   pagePath,
+  structuredDataContent,
 }: LandingPageEventSchemaOptions): JsonLdObject {
-  const structuredData = getLandingPageStructuredDataContent(landingPageSlug);
-  if (!structuredData) {
+  if (!structuredDataContent) {
     return {};
   }
+  const structuredData = structuredDataContent;
 
   const organizationSchemaId = getOrganizationSchemaId();
 

@@ -6,10 +6,10 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
+  CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
   type EventCardData,
   fetchEventsPayload,
-  normalizeEventsForEventsPage,
-  shouldUseTemporaryEventsContentSource,
+  normalizeEvents,
 } from '@/lib/events-data';
 import {
   getMenuLabel,
@@ -25,26 +25,29 @@ import {
 } from '@/lib/structured-data';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
-const EVENTS_FETCH_TIMEOUT_MS = 5000;
 
 async function resolveServerSideEvents(
   locale: string,
   content: SiteContent,
 ): Promise<EventCardData[]> {
-  const useTemporaryEventsSource = shouldUseTemporaryEventsContentSource();
   const crmApiClient = createPublicCrmApiClient();
-  if (!crmApiClient && !useTemporaryEventsSource) {
+  if (!crmApiClient) {
+    reportInternalError({
+      context: 'events-page-fetch',
+      error: new Error('CRM API client is not configured'),
+      metadata: { locale, reason: 'missing_public_crm_client' },
+    });
     return [];
   }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => {
     controller.abort();
-  }, EVENTS_FETCH_TIMEOUT_MS);
+  }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
 
   try {
     const payload = await fetchEventsPayload(crmApiClient, controller.signal);
-    return normalizeEventsForEventsPage(payload, content.events, locale);
+    return normalizeEvents(payload, content.events, locale);
   } catch (error) {
     if (isAbortRequestError(error)) {
       return [];

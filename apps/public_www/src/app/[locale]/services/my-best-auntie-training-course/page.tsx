@@ -1,11 +1,22 @@
 import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
+  createPublicCrmApiClient,
+  isAbortRequestError,
+} from '@/lib/crm-api-client';
+import {
+  CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
+  type MyBestAuntieEventCohort,
+  fetchEventsPayload,
+  normalizeMyBestAuntieCohortsFromPayload,
+} from '@/lib/events-data';
+import {
   getFooterLinkLabel,
   getMenuLabel,
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 import { FAQ_PAGE_AUDIENCES } from '@/lib/faq-audiences';
@@ -46,9 +57,42 @@ export default async function MyBestAuntieRoutePage({
     ROUTES.servicesMyBestAuntieTrainingCourse,
   );
 
+  const crmApiClient = createPublicCrmApiClient();
+  let cohorts: MyBestAuntieEventCohort[] = [];
+  if (crmApiClient) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
+    try {
+      const payload = await fetchEventsPayload(crmApiClient, controller.signal, {
+        serviceKey: 'my-best-auntie',
+        serviceType: 'training_course',
+      });
+      cohorts = normalizeMyBestAuntieCohortsFromPayload(payload);
+    } catch (error) {
+      if (!isAbortRequestError(error)) {
+        reportInternalError({
+          context: 'my-best-auntie-training-course-calendar-fetch',
+          error,
+          metadata: { locale },
+        });
+      }
+      cohorts = [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  } else {
+    reportInternalError({
+      context: 'my-best-auntie-training-course-calendar-fetch',
+      error: new Error('CRM API client is not configured'),
+      metadata: { locale, reason: 'missing_public_crm_client' },
+    });
+  }
+
   return (
     <>
-      <MyBestAuntiePage locale={locale} content={content} />
+      <MyBestAuntiePage locale={locale} content={content} cohorts={cohorts} />
       <StructuredDataScript
         id={`training-course-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

@@ -369,19 +369,17 @@ should extend the shared primitives rather than reintroducing one-off layouts.
 - Do not introduce or reuse legacy contact key names
   (`contactUs.contactUsForm`, `contactUs.contactFaq`).
 
-### Public WWW event-data JSON key contract (MANDATORY for `apps/public_www/**`)
+### Public WWW family-consultations JSON key contract (MANDATORY for `apps/public_www/**`)
 
 - This section applies ONLY to:
-  - `apps/public_www/src/content/events.json`
-  - `apps/public_www/src/content/my-best-auntie-training-courses.json`
   - `apps/public_www/src/content/family-consultations.json`
-- In these event-data JSON files, keys must use `snake_case`.
-- Do not add or keep camelCase keys in these files.
-- Location fields in these files must use:
+- In this file, keys must use `snake_case`.
+- Do not add or keep camelCase keys in this file.
+- Location fields must use:
   - `location_name`
   - `location_address`
   - `location_url`
-- Do not use legacy location keys in these two files:
+- Do not use legacy location keys:
   - `address`
   - `address_url`
   - `locationName`

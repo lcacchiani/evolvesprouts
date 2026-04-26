@@ -46,8 +46,9 @@ Flutter Mobile / Next.js Admin
   on locale-prefixed course URLs; the backend matches `service_key` to
   `services.slug` in Aurora for validate/redeem scope checks.
   Instance-scoped discount redemption uses the public `service_instances.slug` sent as
-  `service_instance_slug` (validate) and `serviceInstanceSlug` (reservations); static
-  MBA cohort fixtures use the same `slug` field. Family consultation venue copy for the
+  `service_instance_slug` (validate) and `serviceInstanceSlug` (reservations); the public
+  calendar feed (`GET /v1/calendar/public`) exposes the same `slug` field for events and
+  training courses. Family consultation venue copy for the
   booking modal lives in `apps/public_www/src/content/family-consultations.json` (per tier).
 - Hosted on S3 + CloudFront in one stack with separate staging and
   production assets.
