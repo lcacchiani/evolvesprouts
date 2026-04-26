@@ -15,7 +15,6 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
-  formatInstanceCohortDisplay,
   formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   orderSessionSlotsForDisplay,
@@ -225,7 +224,9 @@ export function InstanceListPanel({
                   </td>
                 ) : null}
                 {showServiceColumn ? (
-                  <td className='px-4 py-3'>{formatInstanceCohortDisplay(instance.cohort)}</td>
+                  <td className='px-4 py-3'>
+                    {instance.cohort != null && instance.cohort.trim() !== '' ? instance.cohort : '-'}
+                  </td>
                 ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3 align-top'>

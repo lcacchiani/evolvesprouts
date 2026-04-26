@@ -243,7 +243,7 @@ describe('services tables value formatting', () => {
     const instanceTable = tables[0] as HTMLElement;
     expect(within(instanceTable).getByText('Yoga · adults')).toBeInTheDocument();
     expect(within(instanceTable).getByText('In Progress')).toBeInTheDocument();
-    expect(within(instanceTable).getByText('Spring 2024')).toBeInTheDocument();
+    expect(within(instanceTable).getByText('spring-2024')).toBeInTheDocument();
     expect(within(instanceTable).getByText('Unlimited')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
