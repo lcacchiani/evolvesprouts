@@ -91,6 +91,13 @@ export function PartnersPanel({
     [rows, selectedId]
   );
 
+  // Client-side sort over the loaded page set only (same pattern as other admin panels).
+  // Search/status filters still narrow results via the API; pagination order is not global A–Z.
+  const sortedRows = useMemo(
+    () => [...rows].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    [rows]
+  );
+
   const inlineLocationStateKey = editorMode === 'create' ? 'partner-new' : `partner:${selectedId ?? 'none'}`;
 
   const resolvedLocation = useMemo(() => {
@@ -443,7 +450,7 @@ export function PartnersPanel({
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {rows.map((row) => (
+            {sortedRows.map((row) => (
               <tr
                 key={row.id}
                 className={`cursor-pointer transition ${

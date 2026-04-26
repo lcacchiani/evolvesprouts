@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-
 import { PartnersSection } from '@/components/admin/services/partners-section';
 import { usePartners } from '@/hooks/use-partners';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
@@ -20,10 +18,6 @@ export function PartnersTab({
   refreshLocations,
 }: PartnersTabProps) {
   const partners = usePartners();
-
-  useEffect(() => {
-    void partners.refetch();
-  }, [partners]);
 
   return (
     <PartnersSection
