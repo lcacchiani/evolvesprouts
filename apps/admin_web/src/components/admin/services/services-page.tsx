@@ -5,11 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
-import {
-  compareInstancesByFirstSlotStartsDesc,
-  formatInstanceCohortDisplay,
-  formatServiceTitleWithTier,
-} from '@/lib/format';
+import { compareInstancesByFirstSlotStartsDesc, formatServiceTitleWithTier } from '@/lib/format';
 import { getInstance, getService } from '@/lib/services-api';
 import type { ServiceDetail, ServiceInstance } from '@/types/services';
 
@@ -97,7 +93,7 @@ export function ServicesPage() {
       ].filter((value): value is string => Boolean(value));
       const cohortTrimmed = instance.cohort?.trim();
       if (cohortTrimmed) {
-        parts.push(cohortTrimmed, formatInstanceCohortDisplay(instance.cohort));
+        parts.push(cohortTrimmed);
       }
       const searchable = parts.join(' ').toLowerCase();
       return searchable.includes(normalizedInstanceSearch);

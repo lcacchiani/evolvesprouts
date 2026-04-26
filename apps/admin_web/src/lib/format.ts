@@ -144,30 +144,6 @@ export function formatEnumLabel(value: string): string {
   return toTitleCase(value.toLowerCase());
 }
 
-/**
- * Service instance cohort slugs use hyphens (e.g. `spring-2024`); show each segment
- * as a word with a capitalized first letter.
- */
-export function formatInstanceCohortDisplay(cohort: string | null | undefined): string {
-  if (cohort == null) {
-    return '-';
-  }
-  const trimmed = cohort.trim();
-  if (!trimmed) {
-    return '-';
-  }
-  const words = trimmed
-    .split('-')
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0);
-  if (words.length === 0) {
-    return '-';
-  }
-  return words
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
 const SESSION_SLOT_TABLE_DATETIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',

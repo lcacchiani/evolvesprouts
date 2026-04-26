@@ -6,7 +6,6 @@ import {
   formatDate,
   formatDateOnly,
   formatEnumLabel,
-  formatInstanceCohortDisplay,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
   formatServiceTitleWithTier,
@@ -52,13 +51,6 @@ describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
     expect(formatEnumLabel('training_course')).toBe('Training Course');
     expect(formatEnumLabel('in_person')).toBe('In Person');
-  });
-
-  it('formats instance cohort slugs for table display', () => {
-    expect(formatInstanceCohortDisplay(null)).toBe('-');
-    expect(formatInstanceCohortDisplay('')).toBe('-');
-    expect(formatInstanceCohortDisplay('spring-2024')).toBe('Spring 2024');
-    expect(formatInstanceCohortDisplay('MY-BEST-AUNTIE')).toBe('My Best Auntie');
   });
 
   it('formats session slot starts for instances table', () => {
