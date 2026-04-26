@@ -192,11 +192,11 @@ export function InstanceListPanel({
           ) : undefined
         }
       >
-        <AdminDataTable tableClassName='min-w-[960px]'>
+        <AdminDataTable tableClassName='table-fixed min-w-[960px]'>
           <AdminDataTableHead>
             <tr>
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Title</th>
+                <th className='max-w-[15%] px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Locations</th>
@@ -226,7 +226,7 @@ export function InstanceListPanel({
                   aria-selected={selectedInstanceId === instance.id}
                 >
                   {showServiceColumn ? (
-                    <td className='px-4 py-3'>
+                    <td className='max-w-[15%] min-w-0 break-words px-4 py-3'>
                       {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
                     </td>
                   ) : null}
