@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import os
 from decimal import Decimal
-from typing import Any
 from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.api.admin_service_instance_partners import reconcile_instance_partner_organizations
 from app.db.models import (
