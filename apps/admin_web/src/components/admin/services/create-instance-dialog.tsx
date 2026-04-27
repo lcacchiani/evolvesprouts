@@ -1,12 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
+import { Button } from '@/components/ui/button';
 import { FormDialog } from '@/components/ui/form-dialog';
 
+import { buildSessionSlotsUtcPayload } from '@/lib/format';
+import { computeSuggestedInstanceSlug, INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
+
 import type { components } from '@/types/generated/admin-api.generated';
-import type { ServiceType } from '@/types/services';
+import type { ServiceSummary, ServiceType } from '@/types/services';
 
 import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
 import {
@@ -23,7 +27,6 @@ import {
 } from './form-defaults';
 import { EventInstancePartnersField } from './event-instance-partners-field';
 import {
-  INSTANCE_SLUG_PATTERN,
   InstanceFormFields,
   InstanceInstructorField,
   type InstanceFormState,
@@ -31,13 +34,13 @@ import {
 import { SessionSlotEditor } from './session-slot-editor';
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
-import { buildSessionSlotsUtcPayload } from '@/lib/format';
-
 type ApiSchemas = components['schemas'];
 
 export interface CreateInstanceDialogProps {
   open: boolean;
   serviceType: ServiceType;
+  /** When set, used to suggest training_course slugs (MBA vs other). */
+  serviceSummary?: ServiceSummary | null;
   /** Parent service default venue when the instance row has no location yet (matches instance panel). */
   serviceDefaultLocationId?: string | null;
   isLoading: boolean;
@@ -49,6 +52,7 @@ export interface CreateInstanceDialogProps {
 export function CreateInstanceDialog({
   open,
   serviceType,
+  serviceSummary = null,
   serviceDefaultLocationId = null,
   isLoading,
   error,
@@ -62,24 +66,70 @@ export function CreateInstanceDialog({
     DEFAULT_CONSULTATION_FORM
   );
   const [sessionSlotsError, setSessionSlotsError] = useState('');
+  const [slugSubmitError, setSlugSubmitError] = useState('');
+  const slugTouchedRef = useRef(false);
 
   const effectiveSessionSlotDefaultLocationId = useMemo(
     () => instanceForm.locationId.trim() || serviceDefaultLocationId?.trim() || null,
     [instanceForm.locationId, serviceDefaultLocationId]
   );
 
+  const suggestedSlug = useMemo(
+    () => computeSuggestedInstanceSlug(serviceType, serviceSummary ?? null, instanceForm),
+    [serviceType, serviceSummary, instanceForm]
+  );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    slugTouchedRef.current = false;
+    queueMicrotask(() => {
+      setInstanceForm(DEFAULT_INSTANCE_FORM);
+      setTrainingForm(DEFAULT_TRAINING_FORM);
+      setEventForm(DEFAULT_EVENT_FORM);
+      setConsultationForm(DEFAULT_CONSULTATION_FORM);
+      setSessionSlotsError('');
+      setSlugSubmitError('');
+    });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || slugTouchedRef.current) {
+      return;
+    }
+    if (serviceType !== 'event' && serviceType !== 'training_course') {
+      return;
+    }
+    const next = suggestedSlug.trim().toLowerCase();
+    queueMicrotask(() => {
+      setInstanceForm((prev) => ({ ...prev, slug: next }));
+    });
+  }, [open, serviceType, suggestedSlug]);
+
   const eventPriceMissing = serviceType === 'event' && !eventForm.defaultPrice.trim();
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
-
+  const slugTrimmed = instanceForm.slug.trim().toLowerCase();
+  const slugPatternInvalid = Boolean(slugTrimmed) && !INSTANCE_SLUG_PATTERN.test(slugTrimmed);
   const handleSubmit = async () => {
+    setSlugSubmitError('');
+    if (serviceType === 'event' || serviceType === 'training_course') {
+      if (!slugTrimmed) {
+        setSlugSubmitError('slug is required for event and training_course instances');
+        return;
+      }
+      if (!INSTANCE_SLUG_PATTERN.test(slugTrimmed)) {
+        setSlugSubmitError('Use lowercase letters, digits, and single hyphens between segments.');
+        return;
+      }
+    }
     const slotsPayload = buildSessionSlotsUtcPayload(instanceForm.sessionSlots);
     if (!slotsPayload.ok) {
       setSessionSlotsError(slotsPayload.message);
       return;
     }
     setSessionSlotsError('');
-    const slugTrimmed = instanceForm.slug.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
       slug: slugTrimmed || null,
@@ -131,6 +181,23 @@ export function CreateInstanceDialog({
     await onCreate(payload);
   };
 
+  const slugFieldMode = serviceType === 'consultation' ? 'optional' : 'required';
+  const slugAccessory =
+    serviceType === 'event' || serviceType === 'training_course' ? (
+      <Button
+        type='button'
+        variant='secondary'
+        className='text-xs'
+        onClick={() => {
+          slugTouchedRef.current = false;
+          setInstanceForm((prev) => ({ ...prev, slug: suggestedSlug.trim().toLowerCase() }));
+          setSlugSubmitError('');
+        }}
+      >
+        Reset to suggestion
+      </Button>
+    ) : null;
+
   return (
     <FormDialog
       open={open}
@@ -138,11 +205,22 @@ export function CreateInstanceDialog({
       isLoading={isLoading}
       error={error}
       submitLabel='Create instance'
-      submitDisabled={eventPriceMissing || cohortInvalid}
+      submitDisabled={eventPriceMissing || cohortInvalid || slugPatternInvalid}
       onClose={onClose}
       onSubmit={handleSubmit}
     >
-      <InstanceFormFields value={instanceForm} onChange={setInstanceForm} />
+      <InstanceFormFields
+        value={instanceForm}
+        onChange={(next) => {
+          if (next.slug !== instanceForm.slug) {
+            slugTouchedRef.current = true;
+          }
+          setInstanceForm(next);
+        }}
+        slugFieldMode={slugFieldMode}
+        slugFieldError={slugSubmitError}
+        slugFieldAccessory={slugAccessory}
+      />
       {serviceType === 'training_course' ? (
         <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <InstanceInstructorField
