@@ -131,9 +131,12 @@ their primary responsibilities.
   cohorts default to `my-best-auntie-booking` when `services.slug` is
   `my-best-auntie`). Results order by earliest upcoming session slot ascending
   with `service_instances.id` as tie-break. Optional query filters:
-  `landing_page`, `service_type`, `service_key` (matched case-insensitively against
-  `services.slug`; invalid values ignored). Optional `slug` and `landing_page` echo from
-  `service_instances`; `spaces_total` / `spaces_left` when `max_capacity` is set,
+  `landing_page`, `service_type`, `service_key` (`service_key` matched case-insensitively against
+  `services.slug`; invalid values ignored). The `landing_page` query filter matches when
+  `service_instances.landing_page` equals the parameter, or `service_instances.slug` equals it
+  (case-insensitive), or `service_instances.slug` has the parameter as a hyphenated prefix
+  (so a website landing route slug can select a dated instance slug). Optional `slug` and
+  `landing_page` echo from `service_instances`; `spaces_total` / `spaces_left` when `max_capacity` is set,
   using the same enrollment statuses as capacity checks: registered, confirmed,
   completed),
   `/www/v1/assets/free` (lists public assets tagged `client_document`;

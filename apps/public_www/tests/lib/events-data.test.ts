@@ -372,7 +372,39 @@ describe('events-data', () => {
     });
   });
 
-  it('merges landing page bookingTopicsField onto event-booking modal payload when landing_page matches', () => {
+  it('still merges bookingTopicsField when only legacy landing_page matches a registered slug (no slug prefix)', () => {
+    const payload = {
+      data: [
+        {
+          id: 'legacy-lp',
+          title: 'Legacy landing_page only',
+          description: 'Workshop description',
+          booking_system: 'event-booking',
+          landing_page: 'easter-2026-montessori-play-coaching-workshop',
+          location_name: 'Venue',
+          location_address: '123 Road',
+          location_url: 'https://maps.google.com/?q=test',
+          dates: [
+            {
+              id: 'session-1',
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+          price: 350,
+          currency: 'HKD',
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const eventsEn = normalizeEvents(payload, enContent.events, 'en');
+    expect(eventsEn[0]?.bookingModalPayload).toMatchObject({
+      topicsFieldConfig: easterWorkshopLandingContent.en.cta.bookingTopicsField,
+    });
+  });
+
+  it('merges landing page bookingTopicsField onto event-booking modal payload when instance slug maps to a registered landing page', () => {
     const payload = {
       data: [
         {
@@ -380,7 +412,7 @@ describe('events-data', () => {
           title: 'Easter Workshop',
           description: 'Workshop description',
           booking_system: 'event-booking',
-          landing_page: 'easter-2026-montessori-play-coaching-workshop',
+          slug: 'easter-2026-montessori-play-coaching-workshop-2026-04-06',
           location_name: 'Venue',
           location_address: '123 Road',
           location_url: 'https://maps.google.com/?q=test',
@@ -503,7 +535,7 @@ describe('events-data', () => {
     expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
   });
 
-  it('resolves landing page hero content from calendar payload using landing_page slug', () => {
+  it('resolves landing page hero content from calendar payload using public instance slug', () => {
     const heroEventContent = getLandingPageHeroEventContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
@@ -520,7 +552,7 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page booking payload from calendar payload using landing_page slug', () => {
+  it('resolves landing page booking payload from calendar payload using public instance slug', () => {
     const bookingEventContent = getLandingPageBookingEventContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
@@ -546,7 +578,7 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page structured data content from calendar payload using landing_page slug', () => {
+  it('resolves landing page structured data content from calendar payload using public instance slug', () => {
     const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',

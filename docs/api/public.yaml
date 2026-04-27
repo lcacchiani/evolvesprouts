@@ -295,9 +295,12 @@ paths:
             maxLength: 255
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
-            Invalid or empty values are silently ignored.
+            Filter results to at most one instance when any of the following holds
+            (case-insensitive on `service_instances.slug`): `service_instances.landing_page`
+            equals the provided value, `service_instances.slug` equals the provided value,
+            or `service_instances.slug` starts with the provided value followed by a hyphen
+            (so a public website landing route slug can match dated instance slugs such as
+            `easter-workshop-2026-04-06`). Invalid or empty values are silently ignored.
         - name: service_key
           in: query
           required: false
@@ -371,9 +374,12 @@ paths:
             maxLength: 255
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
-            Invalid or empty values are silently ignored.
+            Filter results to at most one instance when any of the following holds
+            (case-insensitive on `service_instances.slug`): `service_instances.landing_page`
+            equals the provided value, `service_instances.slug` equals the provided value,
+            or `service_instances.slug` starts with the provided value followed by a hyphen
+            (so a public website landing route slug can match dated instance slugs such as
+            `easter-workshop-2026-04-06`). Invalid or empty values are silently ignored.
         - name: service_key
           in: query
           required: false
@@ -1122,6 +1128,11 @@ components:
         landing_page:
           type: string
           nullable: true
+          description: >
+            Optional marketing key from `service_instances.landing_page` when set.
+            The public website prefers matching landing pages to the `slug` field
+            (instance slug); this property may differ from the route slug when operators
+            keep a separate marketing key.
         service_tier:
           type: string
           nullable: true

@@ -482,7 +482,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   in practice for public calendar visibility; legacy NULL slugs were backfilled by migration
   `0043_backfill_inst_slug`. **Consultation** instances may keep `slug` NULL (consultations are
   not exposed on the public calendar feed). `landing_page`
-  (marketing route key for the public website).
+  (optional marketing key for the public website; may differ from `slug` when the instance
+  slug encodes a date suffix). The public calendar `landing_page` query parameter matches
+  `landing_page`, exact `slug`, or `slug` with that value as a hyphenated prefix.
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL

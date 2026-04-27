@@ -105,7 +105,6 @@ export const publicCalendarFixture = {
       title: 'Easter 2026 Montessori Play Coaching Workshop',
       description:
         'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
-      landing_page: 'easter-2026-montessori-play-coaching-workshop',
       tags: ['1-4', 'Parent + Child', 'Helpers Welcome'],
       categories: ['Workshop'],
       partners: ['happy-baton', 'baumhaus'],
@@ -135,6 +134,7 @@ export const publicCalendarFixture = {
       title: 'The Missing Piece',
       description:
         'A hands-on workshop for families with children aged 0–2: the right toys, simple play-space tweaks, and practical tools your helper can use right away. Hosted with Little HK at Acorn Playhouse.',
+      /** Marketing slug differs from `service_instances.slug` (`the-missing-piece-…`). */
       landing_page: 'may-2026-the-missing-piece',
       tags: ['0-2', 'Parent + Child', 'Helpers Welcome'],
       categories: ['Workshop'],
