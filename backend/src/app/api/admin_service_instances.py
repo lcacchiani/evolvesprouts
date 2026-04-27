@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_enrollments import handle_admin_enrollments_request
@@ -45,6 +46,15 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _is_service_instance_slug_unique_violation(exc: IntegrityError) -> bool:
+    orig = getattr(exc.orig, "__cause__", None) or exc.orig
+    diag = getattr(orig, "diag", None)
+    constraint = getattr(diag, "constraint_name", None) if diag else None
+    if constraint == "svc_instances_slug_uq":
+        return True
+    return "svc_instances_slug_uq" in str(exc).lower()
 
 
 def _event_category_name(service: Service) -> str:
@@ -426,18 +436,28 @@ def _create_instance(
             )
             for item in payload["session_slots"]
         ]
-        created = instance_repository.create_instance(instance, type_details, slots)
-        reconcile_instance_partner_organizations(
-            session,
-            instance_id=created.id,
-            ordered_org_ids=payload["partner_organization_ids"],
-        )
-        replace_service_instance_tags(
-            session,
-            instance_id=created.id,
-            tag_ids=payload["tag_ids"],
-        )
-        session.commit()
+        try:
+            created = instance_repository.create_instance(instance, type_details, slots)
+            reconcile_instance_partner_organizations(
+                session,
+                instance_id=created.id,
+                ordered_org_ids=payload["partner_organization_ids"],
+            )
+            replace_service_instance_tags(
+                session,
+                instance_id=created.id,
+                tag_ids=payload["tag_ids"],
+            )
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_service_instance_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Another instance already uses this slug. Choose a different slug.",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         if service.service_type == ServiceType.EVENT:
             enqueue_eventbrite_instance_sync_by_id(created.id)
         with_details = instance_repository.get_by_id_with_details(created.id)
@@ -574,7 +594,17 @@ def _update_instance(
                 tag_ids=payload["tag_ids"],
             )
 
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as exc:
+            session.rollback()
+            if _is_service_instance_slug_unique_violation(exc):
+                raise ValidationError(
+                    "Another instance already uses this slug. Choose a different slug.",
+                    field="slug",
+                    status_code=409,
+                ) from exc
+            raise
         if service.service_type == ServiceType.EVENT:
             enqueue_eventbrite_instance_sync_by_id(instance.id)
         with_details = instance_repository.get_by_id_with_details(instance.id)
