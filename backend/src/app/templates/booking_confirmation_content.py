@@ -83,7 +83,7 @@ DETAILS_COHORT_PREFIX: dict[str, str] = {
     "zh-CN": "班级",
     "zh-HK": "班級",
 }
-DETAILS_AGE_GROUP_PREFIX: dict[str, str] = {
+DETAILS_SERVICE_TIER_PREFIX: dict[str, str] = {
     "en": "Age group",
     "zh-CN": "年龄组",
     "zh-HK": "年齡組",

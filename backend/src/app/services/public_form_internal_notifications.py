@@ -341,7 +341,7 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Attendee email: {payload.get('attendee_email', '')}",
         f"Telephone: {phone_display or '(not provided)'}",
     ]
-    child_age_recap = str(payload.get("child_age_group") or "").strip()
+    child_age_recap = str(payload.get("service_tier") or "").strip()
     if child_age_recap:
         lines.append(f"Child age group: {child_age_recap}")
     lines.extend(
