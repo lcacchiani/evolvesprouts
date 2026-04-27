@@ -6,6 +6,7 @@ import {
 } from '@/lib/crm-api-client';
 import {
   CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
+  MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
   type MyBestAuntieEventCohort,
   fetchEventsPayload,
   normalizeMyBestAuntieCohortsFromPayload,
@@ -66,7 +67,7 @@ export default async function MyBestAuntieRoutePage({
     }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
     try {
       const payload = await fetchEventsPayload(crmApiClient, controller.signal, {
-        serviceKey: 'my-best-auntie',
+        serviceKey: MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
         serviceType: 'training_course',
       });
       cohorts = normalizeMyBestAuntieCohortsFromPayload(payload);

@@ -12,6 +12,7 @@ import {
   formatHeroFullDateLine,
 } from '@/lib/site-datetime';
 import {
+  MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
   buildEventsApiPath,
   fetchEventsPayload,
   findLandingPageEventInPayload,
@@ -673,10 +674,12 @@ describe('events-data', () => {
   it('builds filtered calendar API path with service_key and service_type', () => {
     expect(
       buildEventsApiPath({
-        serviceKey: 'my-best-auntie',
+        serviceKey: MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
         serviceType: 'training_course',
       }),
-    ).toBe('/v1/calendar/public?service_type=training_course&service_key=my-best-auntie');
+    ).toBe(
+      `/v1/calendar/public?service_type=training_course&service_key=${MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY}`,
+    );
   });
 
   it('returns upcoming events in chronological order and limits past events to most recent 5', () => {
@@ -855,12 +858,12 @@ describe('events-data', () => {
     }
 
     await fetchEventsPayload(crmApiClient, new AbortController().signal, {
-      serviceKey: 'my-best-auntie',
+      serviceKey: MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
       serviceType: 'training_course',
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.evolvesprouts.com/www/v1/calendar/public?service_type=training_course&service_key=my-best-auntie',
+      `https://api.evolvesprouts.com/www/v1/calendar/public?service_type=training_course&service_key=${MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY}`,
       expect.anything(),
     );
   });
