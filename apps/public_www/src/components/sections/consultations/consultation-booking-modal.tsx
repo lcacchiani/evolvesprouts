@@ -479,7 +479,7 @@ export function ConsultationBookingModal({
             dateEndTime: part.endDateTime,
           };
         })}
-        selectedAgeGroupLabel=''
+        selectedServiceTierLabel=''
         selectedCohortDateLabel={bookingPayload.selectedDateLabel}
         selectedDateStartTime={selectedDateStartTime}
         originalPriceAmount={bookingPayload.originalAmount}

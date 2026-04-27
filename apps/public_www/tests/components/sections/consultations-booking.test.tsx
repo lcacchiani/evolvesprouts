@@ -266,7 +266,7 @@ describe('ConsultationsBooking', () => {
       sectionId: 'consultations-booking',
       ctaLocation: 'booking_section',
       params: {
-        age_group: '',
+        service_tier: '',
         cohort_label: booking.levels[0]!.title,
         cohort_date: essentialsTier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
       },
@@ -314,7 +314,7 @@ describe('ConsultationsBooking', () => {
       sectionId: 'consultations-booking',
       ctaLocation: 'booking_section',
       params: {
-        age_group: '',
+        service_tier: '',
         cohort_label: deepDiveLevel!.title,
         cohort_date: deepDiveTier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
       },

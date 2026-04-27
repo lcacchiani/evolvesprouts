@@ -348,7 +348,7 @@ export function MyBestAuntieBooking({
         sectionId: 'my-best-auntie-booking',
         ctaLocation: 'query_param',
         params: {
-          age_group: selectedCohort.service_tier,
+          service_tier: selectedCohort.service_tier,
           cohort_label: selectedCohort.cohort,
           cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
         },
@@ -383,7 +383,7 @@ export function MyBestAuntieBooking({
       params: {
         payment_method: reservationSummary.paymentMethod,
         total_amount: reservationSummary.totalAmount,
-        age_group: reservationSummary.ageGroup,
+        service_tier: reservationSummary.serviceTier,
         cohort_date: reservationSummary.dateStartTime?.split('T')[0] ?? '',
       },
     });
@@ -476,7 +476,7 @@ export function MyBestAuntieBooking({
                           sectionId: 'my-best-auntie-booking',
                           ctaLocation: 'selector',
                           params: {
-                            age_group: option.label,
+                            service_tier: option.label,
                           },
                         });
                         setSelectedAgeId(option.id);
@@ -537,7 +537,7 @@ export function MyBestAuntieBooking({
                                   sectionId: 'my-best-auntie-booking',
                                   ctaLocation: 'selector',
                                   params: {
-                                    age_group: selectedAgeOption?.label ?? '',
+                                    service_tier: selectedAgeOption?.label ?? '',
                                     cohort_label: option.label,
                                     cohort_date: option.cohort.dates[0]?.start_datetime?.split('T')[0]
                                       ?? '',
@@ -614,7 +614,7 @@ export function MyBestAuntieBooking({
                     sectionId: 'my-best-auntie-booking',
                     ctaLocation: 'booking_section',
                     params: {
-                      age_group: selectedAgeOption?.label ?? '',
+                      service_tier: selectedAgeOption?.label ?? '',
                       cohort_label: selectedDateOption?.label ?? '',
                       cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
                       total_amount: selectedCohort.price,
@@ -624,7 +624,7 @@ export function MyBestAuntieBooking({
                     sectionId: 'my-best-auntie-booking',
                     ctaLocation: 'booking_section',
                     params: {
-                      age_group: selectedAgeOption?.label ?? '',
+                      service_tier: selectedAgeOption?.label ?? '',
                       cohort_label: selectedDateOption?.label ?? '',
                       cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
                     },
@@ -680,7 +680,7 @@ export function MyBestAuntieBooking({
           paymentModalContent={bookingModalContent.paymentModal}
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
-          selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
+          selectedServiceTierLabel={selectedAgeOption?.label ?? ''}
           prefilledDiscountCode={prefilledDiscountCode}
           referralAppliedNote={content.referralAppliedNote}
           referralAppliedAnnouncement={commonAccessibility.referralAppliedAnnouncement}

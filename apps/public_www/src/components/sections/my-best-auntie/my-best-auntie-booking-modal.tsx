@@ -46,7 +46,7 @@ interface MyBestAuntieBookingModalProps {
   paymentModalContent: BookingPaymentModalContent;
   selectedCohort: MyBestAuntieEventCohort | null;
   selectedCohortDateLabel?: string;
-  selectedAgeGroupLabel?: string;
+  selectedServiceTierLabel?: string;
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
@@ -64,7 +64,7 @@ export function MyBestAuntieBookingModal({
   paymentModalContent,
   selectedCohort,
   selectedCohortDateLabel = '',
-  selectedAgeGroupLabel = '',
+  selectedServiceTierLabel = '',
   prefilledDiscountCode = '',
   referralAppliedNote = '',
   referralAppliedAnnouncement = '',
@@ -124,11 +124,11 @@ export function MyBestAuntieBookingModal({
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
-  const selectedAgeGroupLabelText = selectedAgeGroupLabel.trim();
-  const detailsTitle = selectedAgeGroupLabelText
+  const selectedServiceTierLabelText = selectedServiceTierLabel.trim();
+  const detailsTitle = selectedServiceTierLabelText
     ? formatContentTemplate(paymentModalContent.selectedAgeGroupTitleTemplate ?? '', {
         title: modalContent.title,
-        ageGroupLabel: selectedAgeGroupLabelText,
+        ageGroupLabel: selectedServiceTierLabelText,
       }) || modalContent.title
     : modalContent.title;
   const selectedVenueName = selectedCohort?.location_name ?? '';
@@ -189,7 +189,7 @@ export function MyBestAuntieBookingModal({
                   dateEndTime: part.end_datetime,
                 };
               })}
-              selectedAgeGroupLabel={selectedAgeGroupLabel}
+              selectedServiceTierLabel={selectedServiceTierLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
               originalPriceAmount={originalAmount}

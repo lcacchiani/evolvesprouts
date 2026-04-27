@@ -8,7 +8,7 @@ export function buildThankYouRecapLabels(
 ): BookingThankYouRecapLabelTemplates {
   return {
     detailCohortLineTemplate: thankYouModal.detailCohortLineTemplate,
-    detailAgeGroupLineTemplate: thankYouModal.detailAgeGroupLineTemplate,
+    detailServiceTierLineTemplate: thankYouModal.detailServiceTierLineTemplate,
     detailWritingFocusLineTemplate: thankYouModal.detailWritingFocusLineTemplate,
     detailLevelLineTemplate: thankYouModal.detailLevelLineTemplate,
   };

@@ -18,7 +18,7 @@ describe('reservations-data', () => {
         attendeeEmail: 'test@example.com',
         attendeePhone: '91234567',
         attendeeCountry: 'HK',
-        childAgeGroup: '18-24 months',
+        serviceTier: '18-24 months',
         cohortDate: '2026-04-08',
         interestedTopics: 'Please share more details.',
         discountCode: 'SPRING10',
@@ -46,7 +46,7 @@ describe('reservations-data', () => {
     });
   });
 
-  it('submits reservation without childAgeGroup when omitted from payload', async () => {
+  it('submits reservation without serviceTier when omitted from payload', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ status: 'ok' });
     const client = { request: requestSpy };
 
@@ -65,6 +65,6 @@ describe('reservations-data', () => {
     });
 
     const call = requestSpy.mock.calls[0]?.[0] as { body: Record<string, unknown> };
-    expect(call.body).not.toHaveProperty('childAgeGroup');
+    expect(call.body).not.toHaveProperty('serviceTier');
   });
 });

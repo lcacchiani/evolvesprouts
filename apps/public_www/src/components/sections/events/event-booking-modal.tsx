@@ -112,7 +112,7 @@ export function EventBookingModal({
             dateEndTime: part.endDateTime,
           };
         })}
-        selectedAgeGroupLabel=''
+        selectedServiceTierLabel=''
         selectedCohortDateLabel={bookingPayload.selectedDateLabel}
         selectedDateStartTime={bookingPayload.selectedDateStartTime}
         originalPriceAmount={bookingPayload.originalAmount}
