@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
@@ -45,8 +45,13 @@ beforeAll(() => {
   });
 });
 
+beforeEach(() => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-01T00:00:00Z'));
+});
+
 afterEach(() => {
   window.history.replaceState({}, '', '/');
+  vi.restoreAllMocks();
   mockedTrackAnalyticsEvent.mockReset();
 });
 
@@ -112,6 +117,46 @@ function getBookingModalTitleForAgeGroup(ageGroupLabel: string): string {
   return selectedAgeGroupTitleTemplate
     .replace('{title}', myBestAuntieModalContent.title)
     .replace('{ageGroupLabel}', ageGroupLabel);
+}
+
+function buildTestCohort(
+  serviceTier: string,
+  cohort: string,
+  startDateTime: string,
+): MyBestAuntieEventCohort {
+  const baseCohort =
+    initialMbaCohorts.find((entry) => entry.service_tier === serviceTier)
+    ?? initialMbaCohorts[0];
+  if (!baseCohort) {
+    throw new Error('Test fixture must include at least one cohort.');
+  }
+
+  const slug = `my-best-auntie-${serviceTier}-${cohort}`;
+  const startDate = new Date(startDateTime);
+  const buildDatePart = (part: number, dayOffset: number) => {
+    const startMs = startDate.getTime() + dayOffset * 24 * 60 * 60 * 1000;
+    const endMs = startMs + 2 * 60 * 60 * 1000;
+    return {
+      part,
+      start_datetime: new Date(startMs).toISOString(),
+      end_datetime: new Date(endMs).toISOString(),
+    };
+  };
+
+  return {
+    ...baseCohort,
+    slug,
+    service_tier: serviceTier,
+    title: `My Best Auntie Training Course ${serviceTier}`,
+    cohort,
+    spaces_left: 8,
+    is_fully_booked: false,
+    dates: [
+      buildDatePart(1, 0),
+      buildDatePart(2, 7),
+      buildDatePart(3, 14),
+    ],
+  };
 }
 
 describe('MyBestAuntieBooking section', () => {
@@ -469,149 +514,71 @@ describe('MyBestAuntieBooking section', () => {
     expect(ageLabelClassName).toContain('text-lg');
   });
 
-  it('shows edge-overlapped arrows only when more dates are available to scroll', () => {
-    const extendedCohorts: MyBestAuntieEventCohort[] = [...initialMbaCohorts];
-
-    extendedCohorts.push(
-      {
-        slug: 'my-best-auntie-0-1-aug-26',
-        service_tier: '0-1',
-        title: 'My Best Auntie Training Course 0-1',
-        description: 'TBD',
-        cohort: 'aug-26',
-        spaces_total: 24,
-        spaces_left: 8,
-        is_fully_booked: false,
-        price: 9000,
-        currency: 'HKD',
-        location: 'physical',
-        tags: [],
-        categories: ['Training Course'],
-        location_name: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        location_url:
-          'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
-        booking_system: 'my-best-auntie-booking',
-        dates: [
-          {
-            part: 1,
-            start_datetime: '2026-08-09T12:00:00Z',
-            end_datetime: '2026-08-09T14:00:00Z',
-          },
-          {
-            part: 2,
-            start_datetime: '2026-08-16T12:00:00Z',
-            end_datetime: '2026-08-16T14:00:00Z',
-          },
-          {
-            part: 3,
-            start_datetime: '2026-08-23T12:00:00Z',
-            end_datetime: '2026-08-23T14:00:00Z',
-          },
-        ],
-      },
-      {
-        slug: 'my-best-auntie-0-1-sep-26',
-        service_tier: '0-1',
-        title: 'My Best Auntie Training Course 0-1',
-        description: 'TBD',
-        cohort: 'sep-26',
-        spaces_total: 24,
-        spaces_left: 4,
-        is_fully_booked: false,
-        price: 9000,
-        currency: 'HKD',
-        location: 'physical',
-        tags: [],
-        categories: ['Training Course'],
-        location_name: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        location_url:
-          'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
-        booking_system: 'my-best-auntie-booking',
-        dates: [
-          {
-            part: 1,
-            start_datetime: '2026-09-09T12:00:00Z',
-            end_datetime: '2026-09-09T14:00:00Z',
-          },
-          {
-            part: 2,
-            start_datetime: '2026-09-16T12:00:00Z',
-            end_datetime: '2026-09-16T14:00:00Z',
-          },
-          {
-            part: 3,
-            start_datetime: '2026-09-23T12:00:00Z',
-            end_datetime: '2026-09-23T14:00:00Z',
-          },
-        ],
-      },
-    );
+  it('shows at most the next three future cohorts for each age group', () => {
+    vi.mocked(Date.now).mockReturnValue(Date.parse('2026-05-01T00:00:00Z'));
+    const cohorts: MyBestAuntieEventCohort[] = [
+      buildTestCohort('1-3', 'past-26', '2026-04-30T01:00:00Z'),
+      buildTestCohort('1-3', 'today-26', '2026-05-01T01:00:00Z'),
+      buildTestCohort('1-3', 'may-26', '2026-05-16T01:00:00Z'),
+      buildTestCohort('1-3', 'jun-26', '2026-06-13T01:00:00Z'),
+      buildTestCohort('1-3', 'jul-26', '2026-07-11T01:00:00Z'),
+      buildTestCohort('1-3', 'aug-26', '2026-08-08T01:00:00Z'),
+      buildTestCohort('0-1', 'may-26', '2026-05-17T01:00:00Z'),
+      buildTestCohort('0-1', 'jun-26', '2026-06-14T01:00:00Z'),
+      buildTestCohort('3-6', 'may-26', '2026-05-16T04:00:00Z'),
+    ];
 
     render(
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}
-        initialCohorts={extendedCohorts}
+        initialCohorts={cohorts}
         modalContent={myBestAuntieModalContent}
         bookingModalContent={bookingModalContent}
       />,
     );
 
-    const carousel = screen.getByTestId('my-best-auntie-booking-date-carousel');
-    let scrollLeftValue = 0;
-    const maxScrollLeft = 416;
+    const dateSelectorRegion = screen.getByRole('region', {
+      name: bookingContent.dateSelectorLabel,
+    });
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(2);
+    expect(
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(formatCohortValue('may-26', 'en')),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(formatCohortValue('jun-26', 'en')),
+      }),
+    ).toBeInTheDocument();
 
-    Object.defineProperty(carousel, 'clientWidth', {
-      configurable: true,
-      get: () => 520,
-    });
-    Object.defineProperty(carousel, 'scrollWidth', {
-      configurable: true,
-      get: () => 936,
-    });
-    Object.defineProperty(carousel, 'scrollLeft', {
-      configurable: true,
-      get: () => scrollLeftValue,
-      set: (value: number) => {
-        scrollLeftValue = value;
-      },
-    });
-    Object.defineProperty(carousel, 'scrollBy', {
-      configurable: true,
-      value: ({ left }: { left: number }) => {
-        scrollLeftValue = Math.max(
-          0,
-          Math.min(maxScrollLeft, scrollLeftValue + left),
-        );
-        carousel.dispatchEvent(new Event('scroll'));
-      },
-    });
-
-    fireEvent(window, new Event('resize'));
-
+    fireEvent.click(screen.getByRole('button', { name: '1-3' }));
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(3);
+    for (const cohort of ['may-26', 'jun-26', 'jul-26']) {
+      expect(
+        within(dateSelectorRegion).getByRole('button', {
+          name: new RegExp(formatCohortValue(cohort, 'en')),
+        }),
+      ).toBeInTheDocument();
+    }
+    for (const cohort of ['past-26', 'today-26', 'aug-26']) {
+      expect(
+        within(dateSelectorRegion).queryByRole('button', {
+          name: new RegExp(formatCohortValue(cohort, 'en')),
+        }),
+      ).not.toBeInTheDocument();
+    }
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
-    const rightArrow = screen.getByLabelText('Scroll dates right');
-    expect(rightArrow.className).toContain('absolute');
-    expect(rightArrow.className).toContain('hidden');
-    expect(rightArrow.className).toContain('md:flex');
-    expect(rightArrow.className).toContain('right-0');
-    expect(rightArrow.className).toContain('translate-x-1/2');
-
-    fireEvent.click(rightArrow);
-
-    const leftArrow = screen.getByLabelText('Scroll dates left');
-    expect(leftArrow.className).toContain('absolute');
-    expect(leftArrow.className).toContain('hidden');
-    expect(leftArrow.className).toContain('md:flex');
-    expect(leftArrow.className).toContain('left-0');
-    expect(leftArrow.className).toContain('-translate-x-1/2');
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
 
-    fireEvent.click(leftArrow);
-    expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Scroll dates right')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '3-6' }));
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(1);
+    expect(
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(formatCohortValue('may-26', 'en')),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('tracks confirm-and-pay click and modal open events', async () => {

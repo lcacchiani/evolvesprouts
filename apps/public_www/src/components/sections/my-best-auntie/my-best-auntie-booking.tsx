@@ -34,6 +34,7 @@ import {
   formatPartDateTimeLabel,
   parseCohortValue,
 } from '@/lib/format';
+import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -113,6 +114,7 @@ function formatNextCohortLabel(
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
+const MAX_VISIBLE_COHORTS_PER_AGE_GROUP = 3;
 
 interface BookingDateOption {
   id: string;
@@ -143,6 +145,30 @@ function getPrimarySessionSortValue(cohort: MyBestAuntieEventCohort): number {
     return Number.POSITIVE_INFINITY;
   }
   return parsedDate;
+}
+
+function formatYmdInPublicSiteTimeZone(instant: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(instant);
+}
+
+function isFutureCohort(cohort: MyBestAuntieEventCohort, todayYmd: string): boolean {
+  if (cohort.dates.length === 0) {
+    return false;
+  }
+
+  return cohort.dates.every((datePart) => {
+    const parsedDate = Date.parse(datePart.start_datetime);
+    if (Number.isNaN(parsedDate)) {
+      return false;
+    }
+
+    return formatYmdInPublicSiteTimeZone(new Date(parsedDate)) > todayYmd;
+  });
 }
 
 function sortCohortsByPrimarySession(
@@ -242,15 +268,19 @@ export function MyBestAuntieBooking({
   const [reservationSummary, setReservationSummary] =
     useState<ReservationSummary | null>(null);
   const [prefilledDiscountCode, setPrefilledDiscountCode] = useState('');
+  const [todayYmd] = useState(() =>
+    formatYmdInPublicSiteTimeZone(new Date(Date.now())),
+  );
 
   const ageOptions = content.ageOptions ?? [];
   const sortedCohorts = [...cohortsFromHook].sort(sortCohortsByPrimarySession);
   const initialAgeId = ageOptions[0]?.id ?? '';
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
-  const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
-    return cohort.service_tier === selectedAgeId;
-  });
+  const cohortsForSelectedAge = sortedCohorts
+    .filter((cohort) => cohort.service_tier === selectedAgeId)
+    .filter((cohort) => isFutureCohort(cohort, todayYmd))
+    .slice(0, MAX_VISIBLE_COHORTS_PER_AGE_GROUP);
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.slug,
     label: formatCohortValue(cohort.cohort, locale),
@@ -265,10 +295,10 @@ export function MyBestAuntieBooking({
   const [pendingDateSelectionSlug, setPendingDateSelectionSlug] = useState<string | null>(
     null,
   );
-  const preferredDateId = findPreferredCohortId(sortedCohorts, selectedAgeId);
+  const preferredDateId = findPreferredCohortId(cohortsForSelectedAge, selectedAgeId);
   const selectedDateId =
     pendingDateSelectionSlug
-    && sortedCohorts.some(
+    && cohortsForSelectedAge.some(
       (cohort) =>
         cohort.service_tier === selectedAgeId && cohort.slug === pendingDateSelectionSlug,
     )
