@@ -257,6 +257,26 @@ def _resolve_partners(instance: ServiceInstance) -> list[str]:
     ]
 
 
+def _partner_display_name_for_location(
+    instance: ServiceInstance,
+    location: Location,
+) -> str | None:
+    """Partner org display name when ``location`` is that partner's CRM location."""
+    loc_id = getattr(location, "id", None)
+    if loc_id is None:
+        return None
+    for link in instance.partner_organization_links:
+        org = link.organization
+        if org is None or org.location_id is None:
+            continue
+        if org.location_id != loc_id:
+            continue
+        label = _clean_text(org.name)
+        if label is not None:
+            return label
+    return None
+
+
 def _resolve_external_url(instance: ServiceInstance) -> str | None:
     return instance.external_url or instance.eventbrite_event_url or None
 
@@ -346,6 +366,10 @@ def _serialize_public_event(
         if is_virtual
         else _clean_text(primary_location.name if primary_location else None)
     )
+    if not is_virtual and primary_location is not None and location_name is None:
+        partner_label = _partner_display_name_for_location(instance, primary_location)
+        if partner_label is not None:
+            location_name = partner_label
     location_address = (
         None
         if is_virtual
