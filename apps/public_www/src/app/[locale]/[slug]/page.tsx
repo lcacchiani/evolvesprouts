@@ -110,7 +110,7 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     }
   } else {
     reportInternalError({
-      context: 'landing-page-calendar-fetch',
+      context: 'landing-page-no-crm-client',
       error: new Error('CRM API client is not configured'),
       metadata: { locale, slug: resolvedParams.slug, reason: 'missing_public_crm_client' },
     });

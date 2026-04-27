@@ -84,7 +84,7 @@ export default async function MyBestAuntieRoutePage({
     }
   } else {
     reportInternalError({
-      context: 'my-best-auntie-training-course-calendar-fetch',
+      context: 'my-best-auntie-training-course-no-crm-client',
       error: new Error('CRM API client is not configured'),
       metadata: { locale, reason: 'missing_public_crm_client' },
     });
