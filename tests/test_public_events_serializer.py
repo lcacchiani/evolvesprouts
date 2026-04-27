@@ -212,6 +212,48 @@ def test_training_mba_booking_and_category() -> None:
     assert out["currency"] == "HKD"
     assert out["service_tier"] == "0-1"
     assert out["cohort"] == "May 2026"
+    assert out["title"] == "MBA 0-1 - May 2026"
+
+
+def test_public_calendar_title_appends_tier_and_formatted_cohort() -> None:
+    """Title suffix uses tier, a spaced dash, and cohort segments capitalized."""
+    service = SimpleNamespace(
+        title="bla bla bla",
+        description="Course",
+        service_type=ServiceType.TRAINING_COURSE,
+        slug="my-best-auntie",
+        booking_system=None,
+        event_details=None,
+        delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier="1-3",
+        location=None,
+    )
+    inst = _minimal_instance(service, cohort="may-26")
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["title"] == "bla bla bla 1-3 - May 26"
+    assert out["cohort"] == "may-26"
+
+
+def test_public_calendar_title_unchanged_without_tier_or_cohort() -> None:
+    service = SimpleNamespace(
+        title="Only Base",
+        description="Course",
+        service_type=ServiceType.TRAINING_COURSE,
+        slug="my-best-auntie",
+        booking_system=None,
+        event_details=None,
+        delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
+    )
+    inst = _minimal_instance(
+        service,
+        slug="my-best-auntie-1-3-04-26",
+        cohort=None,
+        training_details=SimpleNamespace(price=Decimal("1"), currency="HKD"),
+    )
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["title"] == "Only Base"
 
 
 def test_training_non_mba_omits_booking_system() -> None:
@@ -255,6 +297,7 @@ def test_training_mba_infers_service_tier_from_instance_slug() -> None:
     )
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["service_tier"] == "1-3"
+    assert out["title"] == "MBA 1-3 - Apr 26"
     assert "id" not in out
 
 
