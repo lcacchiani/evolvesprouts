@@ -66,18 +66,7 @@ jobs:
       # Token Studio JSON — no Figma API call needed at deploy time.
 
       - name: Verify public website build env contract
-        run: |
-          fail=0
-          for name in NEXT_PUBLIC_API_BASE_URL NEXT_PUBLIC_WWW_CRM_API_KEY NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS NEXT_PUBLIC_SITE_ORIGIN; do
-            value="${!name}"
-            if [ -z "${value}" ]; then
-              echo "Missing or empty required env: ${name}"
-              fail=1
-            fi
-          done
-          if [ "${fail}" -ne 0 ]; then
-            exit 1
-          fi
+        run: npm run assert:build-env-contract
         working-directory: apps/public_www
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}

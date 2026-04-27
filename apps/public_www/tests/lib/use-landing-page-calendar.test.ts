@@ -9,6 +9,7 @@ import { useLandingPageCalendar } from '@/lib/use-landing-page-calendar';
 const slug = 'easter-2026-montessori-play-coaching-workshop';
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();

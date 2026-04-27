@@ -20,6 +20,7 @@
     "generate:phone-countries": "node ../../scripts/generate-phone-countries.mjs",
     "prebuild": "npm run generate:phone-countries",
     "build": "npm run validate:content && npm run validate:token-fallbacks && npm run figma:build:studio && next build && node ./scripts/emit-landing-pages-manifest.mjs && npm run csp:inject && npm run csp:validate",
+    "assert:build-env-contract": "node ./scripts/assert-build-env-contract.mjs",
     "csp:inject": "node ./scripts/inject-csp-meta.mjs",
     "csp:validate": "node ./scripts/validate-csp-meta.mjs",
     "lighthouse:ci": "lhci autorun --config=.lighthouserc.json",

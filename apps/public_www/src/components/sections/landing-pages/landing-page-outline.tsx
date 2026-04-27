@@ -2,15 +2,11 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
-import {
-  LandingPageBookingCtaAction,
-  type LandingPageSharedCtaProps,
-} from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
+import { LandingPageInlineCalendarCta } from '@/components/sections/landing-pages/shared/landing-page-inline-calendar-cta';
 import type { LandingPageLocaleContent } from '@/content';
 
 interface LandingPageOutlineProps {
   content: LandingPageLocaleContent['outline'];
-  sharedCtaProps?: LandingPageSharedCtaProps;
   ariaLabel?: string;
 }
 
@@ -23,7 +19,6 @@ function splitDescriptionParagraphs(description: string): string[] {
 
 export function LandingPageOutline({
   content,
-  sharedCtaProps,
   ariaLabel,
 }: LandingPageOutlineProps) {
   const paragraphs = splitDescriptionParagraphs(content.description);
@@ -54,14 +49,10 @@ export function LandingPageOutline({
             </p>
           ))}
         </div>
-        {sharedCtaProps ? (
-          <LandingPageBookingCtaAction
-            {...sharedCtaProps}
-            analyticsSectionId='landing-page-outline'
-            ctaLocation='landing_page'
-            buttonClassName='mt-8'
-          />
-        ) : null}
+        <LandingPageInlineCalendarCta
+          analyticsSectionId='landing-page-outline'
+          buttonClassName='mt-8'
+        />
       </SectionContainer>
     </SectionShell>
   );

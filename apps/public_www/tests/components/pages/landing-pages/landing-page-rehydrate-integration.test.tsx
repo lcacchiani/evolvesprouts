@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { LandingPageClient } from '@/components/pages/landing-pages/landing-page-client';
+import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import { clearCrmApiGetCacheForTests } from '@/lib/crm-api-client';
@@ -48,7 +48,7 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', 'public-crm-key');
 });
 
-describe('LandingPageClient calendar rehydrate', () => {
+describe('LandingPage calendar rehydrate', () => {
   it('enables booking CTA and updates hero chips after client fetch', async () => {
     vi.stubGlobal(
       'fetch',
@@ -60,21 +60,24 @@ describe('LandingPageClient calendar rehydrate', () => {
       ),
     );
 
+    const ctaButtonLabel = easterWorkshopContent.en.cta.buttonLabel;
+    const ctaNamePattern = new RegExp(ctaButtonLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
     render(
-      <LandingPageClient
+      <LandingPage
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
         pagePath='/easter-2026-montessori-play-coaching-workshop'
         siteContent={enContent}
         pageContent={easterWorkshopContent.en}
-        initialHero={null}
-        initialBooking={null}
-        initialStructuredData={null}
+        heroEventContent={null}
+        bookingEventContent={null}
+        structuredDataContent={null}
       />,
     );
 
     await waitFor(() => {
-      const ctaButton = screen.getByRole('button', { name: /Reserve my spot/ });
+      const ctaButton = screen.getByRole('button', { name: ctaNamePattern });
       expect(ctaButton).not.toBeDisabled();
     });
 

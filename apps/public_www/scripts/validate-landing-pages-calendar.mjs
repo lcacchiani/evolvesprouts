@@ -33,16 +33,6 @@ async function fetchWithTimeout(url, apiKey, timeoutMs) {
   }
 }
 
-function shouldFailResponse(response) {
-  if (response.ok) {
-    return false;
-  }
-  if (response.status >= 500) {
-    return true;
-  }
-  return false;
-}
-
 async function probeSlug(baseUrl, apiKey, slug) {
   const url = buildCalendarUrl(baseUrl, slug);
   let lastError = null;
@@ -50,12 +40,16 @@ async function probeSlug(baseUrl, apiKey, slug) {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
       const response = await fetchWithTimeout(url, apiKey, BUILD_TIMEOUT_MS);
-      if (shouldFailResponse(response)) {
+      if (!response.ok) {
         const text = await response.text().catch(() => '');
-        lastError = new Error(
+        const httpError = new Error(
           `HTTP ${response.status} for slug=${slug} attempt=${attempt}: ${text.slice(0, 200)}`,
         );
-        continue;
+        if (response.status >= 500 && attempt < MAX_ATTEMPTS) {
+          lastError = httpError;
+          continue;
+        }
+        throw httpError;
       }
       return;
     } catch (error) {

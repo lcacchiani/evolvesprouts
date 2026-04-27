@@ -70,36 +70,37 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     notFound();
   }
 
-  const pageContent = getLandingPageContent(resolvedParams.slug, locale);
+  const landingPageSlug = resolvedParams.slug;
+  const pageContent = getLandingPageContent(landingPageSlug, locale);
   if (!pageContent) {
     notFound();
   }
 
-  const pagePath = buildLandingPagePath(resolvedParams.slug);
+  const pagePath = buildLandingPagePath(landingPageSlug);
 
   const { payload: calendarPayload } = await fetchLandingPageCalendarPayload({
-    slug: resolvedParams.slug,
+    slug: landingPageSlug,
   });
 
   const heroEventContent = getLandingPageHeroEventContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
   );
   const bookingEventContent = getLandingPageBookingEventContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
     locale,
   );
   const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
   );
 
   return (
     <>
       <LandingPage
         locale={locale}
-        slug={resolvedParams.slug}
+        slug={landingPageSlug}
         pagePath={pagePath}
         siteContent={siteContent}
         pageContent={pageContent}

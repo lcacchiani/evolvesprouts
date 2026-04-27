@@ -41,6 +41,7 @@ export function useLandingPageCalendar({
   initialBooking,
   initialStructuredData,
 }: UseLandingPageCalendarParams): UseLandingPageCalendarResult {
+  /** NEXT_PUBLIC_* inlined at build; empty deps = one client per mount tree. */
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
 
   const [heroEventContent, setHeroEventContent] = useState(initialHero);
@@ -54,6 +55,8 @@ export function useLandingPageCalendar({
       return;
     }
 
+    const mountedRef = { current: true };
+    const abortedDueToUnmountRef = { current: false };
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
@@ -61,7 +64,7 @@ export function useLandingPageCalendar({
 
     fetchEventsPayload(crmApiClient, controller.signal, { slug })
       .then((payload) => {
-        if (controller.signal.aborted) {
+        if (!mountedRef.current) {
           return;
         }
 
@@ -75,21 +78,28 @@ export function useLandingPageCalendar({
         );
       })
       .catch((error) => {
-        if (isAbortRequestError(error)) {
+        if (!mountedRef.current) {
           return;
         }
 
-        if (!controller.signal.aborted) {
-          setHasRefreshError(true);
+        if (isAbortRequestError(error)) {
+          if (!abortedDueToUnmountRef.current) {
+            setHasRefreshError(true);
+          }
+          return;
         }
+
+        setHasRefreshError(true);
       })
       .finally(() => {
-        if (!controller.signal.aborted) {
+        if (mountedRef.current) {
           setIsRefreshing(false);
         }
       });
 
     return () => {
+      abortedDueToUnmountRef.current = true;
+      mountedRef.current = false;
       clearTimeout(timeoutId);
       controller.abort();
     };
