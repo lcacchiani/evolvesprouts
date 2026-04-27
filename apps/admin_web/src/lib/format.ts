@@ -234,37 +234,16 @@ export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[]
 }
 
 /**
- * Session slot whose start time is closest to now (by absolute difference).
- * Ties break by {@link orderSessionSlotsForDisplay} order (earlier in that list wins).
+ * First session slot in {@link orderSessionSlotsForDisplay} order that has a
+ * non-empty `startsAt` (for the instances table "First slot" column).
  */
-export function getSessionSlotClosestToNow(slots: SessionSlot[]): SessionSlot | null {
-  const now = Date.now();
-  const ordered = orderSessionSlotsForDisplay(slots);
-  let bestSlot: SessionSlot | null = null;
-  let bestDist = Number.POSITIVE_INFINITY;
-  let bestOrderIndex = Number.POSITIVE_INFINITY;
-  for (let orderIndex = 0; orderIndex < ordered.length; orderIndex += 1) {
-    const sessionSlot = ordered[orderIndex];
-    const raw = sessionSlot.startsAt?.trim() ?? '';
-    if (!raw) {
-      continue;
-    }
-    const ms = new Date(raw).getTime();
-    if (!Number.isFinite(ms)) {
-      continue;
-    }
-    const dist = Math.abs(ms - now);
-    if (
-      bestSlot === null ||
-      dist < bestDist ||
-      (dist === bestDist && orderIndex < bestOrderIndex)
-    ) {
-      bestSlot = sessionSlot;
-      bestDist = dist;
-      bestOrderIndex = orderIndex;
+export function getFirstSessionSlotForDisplay(slots: SessionSlot[]): SessionSlot | null {
+  for (const slot of orderSessionSlotsForDisplay(slots)) {
+    if (slot.startsAt?.trim()) {
+      return slot;
     }
   }
-  return bestSlot;
+  return null;
 }
 
 function collectDistinctLocationLabels(
