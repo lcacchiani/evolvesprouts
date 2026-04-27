@@ -53,18 +53,28 @@ export interface BookingThankYouModalProps {
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
-export function resolveThankYouServiceDisplayLabel(
+export function resolveThankYouServiceTypeLabel(
   summary: ReservationSummary | null,
   serviceLabels: BookingThankYouModalContent['serviceLabels'] | undefined,
 ): string {
-  const title = summary?.eventTitle?.trim() ?? '';
   const slug = (summary?.serviceSlug ?? '').trim().toLowerCase();
   if (!slug || !serviceLabels) {
-    return title;
+    return '';
   }
   const mapped = serviceLabels[slug as keyof typeof serviceLabels];
   const label = typeof mapped === 'string' ? mapped.trim() : '';
-  return label || title;
+  return label;
+}
+
+export function resolveThankYouServiceTitle(
+  summary: ReservationSummary | null,
+  courseLabelFallback: string,
+): string {
+  const title = summary?.eventTitle?.trim() ?? '';
+  if (title) {
+    return title;
+  }
+  return courseLabelFallback.trim();
 }
 
 function resolveThankYouLocationDisplay(
@@ -193,7 +203,9 @@ export function BookingThankYouModal({
 
   const attendeeEmail = summary?.attendeeEmail ?? '';
   const eventTitle = summary?.eventTitle ?? content.courseLabel;
-  const serviceDisplayLabel = resolveThankYouServiceDisplayLabel(summary, content.serviceLabels);
+  const serviceTypeLabel = resolveThankYouServiceTypeLabel(summary, content.serviceLabels);
+  const serviceTitleLine = resolveThankYouServiceTitle(summary, content.courseLabel);
+  const serviceRowLeftLabel = serviceTypeLabel || content.serviceLabel;
   const thankYouSessions = useMemo(
     () => resolveThankYouCourseSessions(summary),
     [summary],
@@ -337,10 +349,10 @@ export function BookingThankYouModal({
               <div className='es-booking-thank-you-recap-row-border pb-4'>
                 <div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6'>
                   <dt className='es-booking-thank-you-recap-label'>
-                    {content.serviceLabel}
+                    {serviceRowLeftLabel}
                   </dt>
                   <dd className='es-booking-thank-you-recap-value m-0'>
-                    {serviceDisplayLabel}
+                    {serviceTitleLine}
                   </dd>
                 </div>
               </div>

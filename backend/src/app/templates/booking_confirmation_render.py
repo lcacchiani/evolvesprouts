@@ -40,6 +40,8 @@ from app.templates.booking_confirmation_content import (
     WHATSAPP_LINK_LABEL,
     normalize_booking_locale,
     resolve_service_row_label,
+    resolve_service_title_label,
+    resolve_service_type_label,
 )
 from app.templates.ses.email_shell import wrap_transactional_html
 
@@ -740,6 +742,8 @@ def booking_confirmation_template_merge_data(
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
     service_row_label = resolve_service_row_label(loc, service_slug, course_label)
+    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_title_label = resolve_service_title_label(course_label)
     pm_display = resolve_payment_method_display(payment_method_code)
     use_hkt = location_suggests_hong_kong(
         location_name=location_name,
@@ -793,6 +797,8 @@ def booking_confirmation_template_merge_data(
         "full_name": full_name.strip(),
         "course_label": course_label.strip(),
         "service_row_label": service_row_label,
+        "service_type_label": service_type_label,
+        "service_title_label": service_title_label,
         "total_amount": free_label if is_free else total_amount,
         "is_pending_payment": pending_for_template,
         "is_free": is_free,
@@ -877,8 +883,10 @@ def render_booking_confirmation_email(
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
-    service_row_label = resolve_service_row_label(loc, service_slug, course_label)
-    esc_service_row = html.escape(service_row_label)
+    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_title_label = resolve_service_title_label(course_label)
+    service_table_left_label = service_type_label or labels["service"]
+    esc_service_title = html.escape(service_title_label)
     pm_display = resolve_payment_method_display(payment_method_code)
     esc_pm = html.escape(pm_display)
     free_label = FREE_TOTAL_LABEL[loc]
@@ -908,7 +916,7 @@ def render_booking_confirmation_email(
     )
 
     rows_html: list[str] = [
-        _html_table_row_bordered(labels["service"], esc_service_row),
+        _html_table_row_bordered(service_table_left_label, esc_service_title),
     ]
     details_cell = format_booking_details_html_cell(
         loc=loc,
@@ -1019,7 +1027,8 @@ def render_booking_confirmation_email(
         loc=loc,
         labels=labels,
         full_name=full_name.strip(),
-        service_row_label=service_row_label,
+        service_type_label=service_type_label,
+        service_title_label=service_title_label,
         schedule_date_label=schedule_date_label,
         schedule_time_label=schedule_time_label,
         location_name=location_name,
@@ -1067,7 +1076,8 @@ def _build_plain_text(
     loc: str,
     labels: dict[str, str],
     full_name: str,
-    service_row_label: str,
+    service_type_label: str,
+    service_title_label: str,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None,
@@ -1097,7 +1107,8 @@ def _build_plain_text(
     else:
         lines.append(f"您好 {full_name}，\n")
     lines.append(THANK_YOU_PLAIN[loc])
-    lines.append(f"{labels['service']}{label_sep}{service_row_label}\n")
+    service_plain_left = service_type_label or labels["service"]
+    lines.append(f"{service_plain_left}{label_sep}{service_title_label}\n")
 
     details_plain = format_booking_details_plain(
         loc=loc,

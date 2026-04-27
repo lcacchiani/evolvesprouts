@@ -1352,7 +1352,10 @@ components:
             - consultation
           description: >
             Optional high-level booking category for localized confirmation email copy.
-            When omitted, the booking confirmation email uses `courseLabel` for the Service row.
+            When present, the confirmation email first table row uses a localized type label
+            (event, training course, consultation) in the left column and `courseLabel` as the
+            title in the right column. When omitted, the left column falls back to a generic
+            "Service" label and the right column shows `courseLabel`.
         locationName:
           type: string
           maxLength: 200

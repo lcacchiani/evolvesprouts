@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from app.templates.booking_confirmation_content import resolve_service_row_label
+from app.templates.booking_confirmation_content import (
+    resolve_service_row_label,
+    resolve_service_type_label,
+)
 from app.templates.booking_confirmation_render import (
     booking_confirmation_template_merge_data,
     format_schedule_datetime_line,
@@ -22,7 +25,7 @@ def test_resolve_payment_method_display() -> None:
     assert resolve_payment_method_display("other") == "other"
 
 
-def test_resolve_service_row_label_falls_back_for_unknown_slug() -> None:
+def test_resolve_service_row_label_matches_course_label() -> None:
     assert resolve_service_row_label("en", "unknown", "My Title") == "My Title"
 
 
@@ -43,6 +46,8 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
         consultation_level_label="Essentials",
     )
     assert data["service_row_label"] == "Consultation"
+    assert data["service_type_label"] == ""
+    assert data["service_title_label"] == "Consultation"
     assert data["schedule_datetime_label_html"] == "12 April in the morning"
     assert data["payment_method"] == "FPS"
     assert data["include_fps_instructions"] is True
@@ -134,7 +139,7 @@ def test_booking_confirmation_template_merge_data_free_omits_payment() -> None:
     assert data["include_fps_instructions"] is False
 
 
-def test_booking_confirmation_template_merge_data_service_row_label_from_slug() -> None:
+def test_booking_confirmation_template_merge_data_service_type_and_title() -> None:
     data = booking_confirmation_template_merge_data(
         locale="zh-CN",
         full_name="A",
@@ -148,4 +153,11 @@ def test_booking_confirmation_template_merge_data_service_row_label_from_slug() 
         whatsapp_url="https://wa.me/1",
         is_free=True,
     )
-    assert data["service_row_label"] == "咨询"
+    assert data["service_row_label"] == "家庭咨询预约"
+    assert data["service_type_label"] == "咨询"
+    assert data["service_title_label"] == "家庭咨询预约"
+
+
+def test_resolve_service_type_label_maps_slug() -> None:
+    assert resolve_service_type_label("en", "event") == "Event"
+    assert resolve_service_type_label("en", "unknown") == ""

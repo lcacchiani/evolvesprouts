@@ -8,8 +8,10 @@ def test_booking_ses_templates_preserve_handlebars_placeholders() -> None:
     assert len(definitions) == 3
     en = next(t for t in definitions if t["TemplateName"].endswith("-en"))
     assert "{{course_label}}" in en["SubjectPart"]
-    assert "{{service_row_label}}" in en["HtmlPart"]
-    assert "{{service_row_label}}" in en["TextPart"]
+    assert "{{service_type_label}}" in en["HtmlPart"]
+    assert "{{service_title_label}}" in en["HtmlPart"]
+    assert "{{service_type_label}}" in en["TextPart"]
+    assert "{{service_title_label}}" in en["TextPart"]
     assert "{{full_name}}" in en["HtmlPart"]
     assert "{{#unless is_free}}" in en["HtmlPart"]
     assert "{{#if is_pending_payment}}" in en["HtmlPart"]
