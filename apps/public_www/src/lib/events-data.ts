@@ -229,6 +229,13 @@ function formatEnumLikeLabel(value: string): string {
   }
 
   if (/\s/.test(trimmedValue) || !/[_-]/.test(trimmedValue)) {
+    // Calendar payloads often send single-token enum slugs in all lowercase (for
+    // example, "workshop"). Title-case those for display while leaving mixed
+    // case (proper nouns) and non-ASCII labels unchanged.
+    if (/^[a-z]+$/.test(trimmedValue)) {
+      return trimmedValue.charAt(0).toUpperCase() + trimmedValue.slice(1).toLowerCase();
+    }
+
     return trimmedValue;
   }
 
@@ -671,7 +678,9 @@ function readLandingPageCategoryChips(
     }
   }
 
-  return dedupeChipLabels(categories);
+  return dedupeChipLabels(
+    categories.map((label) => formatEnumLikeLabel(label)),
+  );
 }
 
 function resolveDateTimeDetails(

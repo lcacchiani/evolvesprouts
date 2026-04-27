@@ -503,6 +503,26 @@ describe('events-data', () => {
     expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
   });
 
+  it('title-cases all-lowercase single-token category labels for landing page chips', () => {
+    const heroEventContent = getLandingPageHeroEventContentFromPayload(
+      {
+        data: [
+          {
+            slug: 'test-workshop-event',
+            title: 'Test Workshop Event',
+            categories: ['workshop'],
+            dates: [{ start_datetime: '2026-05-16T01:00:00Z' }],
+          },
+        ],
+      },
+      'test-workshop-event',
+    );
+
+    expect(heroEventContent).toMatchObject({
+      categoryChips: ['Workshop'],
+    });
+  });
+
   it('resolves landing page hero content from calendar payload using slug', () => {
     const heroEventContent = getLandingPageHeroEventContentFromPayload(
       publicCalendarFixture,
