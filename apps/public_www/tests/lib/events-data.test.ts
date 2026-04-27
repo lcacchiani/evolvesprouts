@@ -520,6 +520,33 @@ describe('events-data', () => {
     });
   });
 
+  it('formats landing page hero category chips with a leading capital letter', () => {
+    const payload = {
+      status: 'success' as const,
+      data: [
+        {
+          title: 'Capitalize chip fixture',
+          slug: 'test-landing-category-chip-capitalize',
+          categories: ['workshop', 'WORKSHOP', 'parent_child'],
+          dates: [
+            {
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+        },
+      ],
+    };
+
+    const heroEventContent = getLandingPageHeroEventContentFromPayload(
+      payload,
+      'test-landing-category-chip-capitalize',
+    );
+
+    expect(heroEventContent).not.toBeNull();
+    expect(heroEventContent?.categoryChips).toEqual(['Workshop', 'Parent Child']);
+  });
+
   it('resolves landing page booking payload from calendar payload using slug', () => {
     const bookingEventContent = getLandingPageBookingEventContentFromPayload(
       publicCalendarFixture,

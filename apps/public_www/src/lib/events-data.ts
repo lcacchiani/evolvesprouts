@@ -239,6 +239,26 @@ function formatEnumLikeLabel(value: string): string {
     .join(' ');
 }
 
+/**
+ * Present enum-like or API-sourced chip text with a leading capital letter.
+ * All-uppercase tokens become sentence case; phrases that already include
+ * lowercase letters keep their casing aside from the first character.
+ */
+function capitalizeFirstForDisplay(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const first = trimmed.charAt(0).toLocaleUpperCase();
+  const rest = trimmed.slice(1);
+  if (/[a-z]/.test(trimmed)) {
+    return `${first}${rest}`;
+  }
+
+  return `${first}${rest.toLocaleLowerCase()}`;
+}
+
 function sanitizeExternalHref(value: string | undefined): string {
   const href = readOptionalText(value);
   if (!href || !isHttpHref(href)) {
@@ -671,7 +691,21 @@ function readLandingPageCategoryChips(
     }
   }
 
-  return dedupeChipLabels(categories);
+  const uniqueRaw = dedupeChipLabels(categories);
+  const displayChips: string[] = [];
+  const seenDisplay = new Set<string>();
+
+  for (const rawLabel of uniqueRaw) {
+    const displayLabel = capitalizeFirstForDisplay(formatEnumLikeLabel(rawLabel));
+    if (!displayLabel || seenDisplay.has(displayLabel)) {
+      continue;
+    }
+
+    seenDisplay.add(displayLabel);
+    displayChips.push(displayLabel);
+  }
+
+  return displayChips;
 }
 
 function resolveDateTimeDetails(
