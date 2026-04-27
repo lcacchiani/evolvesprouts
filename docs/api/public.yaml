@@ -1021,6 +1021,11 @@ components:
           enum: [event, training_course]
         title:
           type: string
+          description: >
+            Base instance or service title. When both `service_tier` and `cohort` are
+            non-null, the API appends a space, the tier, a space-hyphen-space, and a
+            humanized cohort label (hyphen-separated cohort segments, each segment
+            capitalized; e.g. cohort `may-26` yields `May 26`).
         summary:
           type: string
           nullable: true

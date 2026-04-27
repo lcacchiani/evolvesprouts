@@ -121,6 +121,9 @@ their primary responsibilities.
   Each item includes `service_type`,
   `slug` (public instance slug from `service_instances.slug`), `partners`, `service_tier`
   (from parent service, or inferred from instance slug for My Best Auntie) / `cohort`,
+  and `title` augmented with the tier, a spaced hyphen, and a title-cased cohort label
+  when both `service_tier` and `cohort` are present (cohort hyphen segments capitalized,
+  e.g. `may-26` → `May 26`),
   `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.slug` is

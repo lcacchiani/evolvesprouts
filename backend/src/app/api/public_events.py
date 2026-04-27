@@ -281,13 +281,44 @@ def _resolve_public_calendar_service_tier(instance: ServiceInstance) -> str | No
     )
 
 
+def _format_cohort_code_for_public_title(cohort: str) -> str:
+    """Turn a hyphenated cohort code into title words (e.g. ``may-26`` -> ``May 26``)."""
+    parts = [p.strip() for p in cohort.split("-") if p.strip()]
+    if not parts:
+        return cohort.strip()
+    return " ".join(p.capitalize() for p in parts)
+
+
+def _build_public_calendar_display_title(
+    base_title: str | None,
+    *,
+    service_tier: str | None,
+    cohort: str | None,
+) -> str:
+    """Append ``{tier} - {cohort}`` to the base title when both tier and cohort are set."""
+    base = (base_title or "").strip()
+    tier = (service_tier or "").strip()
+    raw_cohort = (cohort or "").strip()
+    if not tier or not raw_cohort:
+        return base
+    cohort_display = _format_cohort_code_for_public_title(raw_cohort)
+    suffix = f"{tier} - {cohort_display}"
+    return f"{base} {suffix}".strip() if base else suffix
+
+
 def _serialize_public_event(
     instance: ServiceInstance,
     *,
     enrollment_counts: dict[UUID, int],
 ) -> dict[str, Any]:
     service = instance.service
-    title = instance.title or service.title
+    base_title = instance.title or service.title
+    service_tier = _resolve_public_calendar_service_tier(instance)
+    title = _build_public_calendar_display_title(
+        base_title,
+        service_tier=service_tier,
+        cohort=instance.cohort,
+    )
     summary = instance.description or service.description
 
     slots = sorted(instance.session_slots, key=lambda s: (s.sort_order, s.starts_at))
@@ -369,7 +400,7 @@ def _serialize_public_event(
 
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
-    payload["service_tier"] = _resolve_public_calendar_service_tier(instance)
+    payload["service_tier"] = service_tier
     if instance.cohort is not None:
         payload["cohort"] = instance.cohort
 
