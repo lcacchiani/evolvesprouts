@@ -3957,8 +3957,10 @@ components:
           type: string
           nullable: true
           description: >
-            Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments
-            (e.g. spring-workshop). Stored normalized to lowercase.
+            Required for event and training_course instances; optional for consultations.
+            Public-calendar visibility depends on this field. URL-safe: lowercase letters,
+            digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
+            to lowercase.
         landing_page:
           type: string
           nullable: true
@@ -4161,6 +4163,11 @@ components:
           $ref: "#/components/schemas/ServiceInstance"
     CreateInstanceRequest:
       type: object
+      description: >
+        Instance create body for `POST /v1/admin/services/{id}/instances`. The parent service
+        `service_type` determines slug rules: `slug` is required for `event` and
+        `training_course` (400 with `field: slug` when missing or invalid); optional for
+        `consultation`. Duplicate instance slugs return 409 with `field: slug`.
       properties:
         title:
           type: string
@@ -4169,8 +4176,10 @@ components:
           type: string
           nullable: true
           description: >
-            Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments
-            (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set.
+            Required for event and training_course instances; optional for consultations.
+            Public-calendar visibility depends on this field. URL-safe: lowercase letters,
+            digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
+            to lowercase. Must be unique among instances when set.
         description:
           type: string
           nullable: true
@@ -4262,6 +4271,9 @@ components:
         - $ref: "#/components/schemas/CreateInstanceRequest"
       required:
         - status
+      description: >
+        Clearing `slug` to null on event or training_course instances returns 400 with
+        `field: slug`.
     Enrollment:
       type: object
       required: [id, instance_id, status]

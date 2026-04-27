@@ -4469,7 +4469,7 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
-            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
+            /** @description Required for event and training_course instances; optional for consultations. Public-calendar visibility depends on this field. URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
             slug?: string | null;
             landing_page?: string | null;
             description?: string | null;
@@ -4553,9 +4553,10 @@ export interface components {
         InstanceResponse: {
             instance: components["schemas"]["ServiceInstance"];
         };
+        /** @description Instance create body for `POST /v1/admin/services/{id}/instances`. The parent service `service_type` determines slug rules: `slug` is required for `event` and `training_course` (400 with `field: slug` when missing or invalid); optional for `consultation`. Duplicate instance slugs return 409 with `field: slug`. */
         CreateInstanceRequest: {
             title?: string | null;
-            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set. */
+            /** @description Required for event and training_course instances; optional for consultations. Public-calendar visibility depends on this field. URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set. */
             slug?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
@@ -4589,6 +4590,7 @@ export interface components {
                 package_sessions?: number | null;
             } | null;
         };
+        /** @description Clearing `slug` to null on event or training_course instances returns 400 with `field: slug`. */
         UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;
         Enrollment: {
             /** Format: uuid */
