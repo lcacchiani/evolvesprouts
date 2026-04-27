@@ -35,11 +35,22 @@ def _database_url() -> str | None:
     return url or None
 
 
+def _sqlalchemy_engine_url(url: str) -> str:
+    """Use psycopg v3; bare ``postgresql://`` defaults to psycopg2 in SQLAlchemy."""
+    if url.startswith("postgresql+") or url.startswith("postgres+"):
+        return url
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgres://")
+    return url
+
+
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_list_public_offerings_omits_null_slug_instances() -> None:
     url = _database_url()
     assert url is not None
-    engine = create_engine(url)
+    engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
     now = datetime.now(UTC)

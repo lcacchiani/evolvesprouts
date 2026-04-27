@@ -15,7 +15,8 @@ Seed-data assessment:
 6. FK/cascade changes: none.
 
 Downgrade is intentionally non-destructive: backfilled values are not safely
-reversible without losing public URLs.
+reversible without losing public URLs. ``downgrade()`` prints a one-line message
+to stdout (for tests and deploy logs); it does not alter data.
 """
 
 from __future__ import annotations
@@ -278,10 +279,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute(
-        sa.text(
-            "DO $dn$ BEGIN "
-            "RAISE NOTICE 'Downgrade is a no-op: backfilled slugs are not safely reversible'; "
-            "END $dn$;"
-        )
+    print(
+        "0043_backfill_inst_slug: downgrade is a no-op; backfilled slugs are not safely reversible"
     )

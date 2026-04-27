@@ -20,6 +20,11 @@ def _database_url() -> str | None:
     return url or None
 
 
+def _libpq_conn_url(url: str) -> str:
+    """Strip SQLAlchemy driver so ``psycopg.connect`` uses a libpq-style URI."""
+    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+
+
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
@@ -29,11 +34,12 @@ def _alembic_ini() -> Path:
 
 
 def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
+    """CWD must be repo root: ``alembic.ini`` has ``script_location = backend/db/alembic``."""
     env = {**os.environ, "DATABASE_URL": _database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
         cmd,
-        cwd=str(_repo_root() / "backend"),
+        cwd=str(_repo_root()),
         env=env,
         capture_output=True,
         text=True,
@@ -68,6 +74,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
     """Backfill MBA, events, collision suffix, empty title fallback, no-slot date; skip consultation."""
     url = _database_url()
     assert url is not None
+    conn_url = _libpq_conn_url(url)
     _run_alembic("upgrade", "0042_slug_nulls_nd")
 
     # One MBA template (same slug+tier as unique index); instances vary tier/cohort via title/cohort.
@@ -89,7 +96,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
     slug_pat = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
     inst_re = re.compile(r"^instance-[a-f0-9]{8}$")
 
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         conn.execute(
             "DELETE FROM instance_session_slots WHERE instance_id::text LIKE '31111111%'"
         )
@@ -262,7 +269,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
         cons_inst,
     ]
 
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         cur = conn.execute(
             "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
             (ids,),
@@ -288,10 +295,10 @@ def test_0043_backfill_service_instance_slugs() -> None:
 
     # Re-applying the raw SQL block is a no-op when all target rows already have slugs.
     upgrade_sql = _load_migration_upgrade_sql()
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         conn.execute(upgrade_sql)
         conn.commit()
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         cur = conn.execute(
             "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
             (ids,),
@@ -301,7 +308,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
 
     # Alembic does not re-run an already-applied revision; prove idempotency by
     # clearing slugs, downgrading one step, and upgrading again.
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         conn.execute(
             "UPDATE service_instances SET slug = NULL WHERE id = ANY(%s)",
             (ids,),
@@ -309,7 +316,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
         conn.commit()
     _run_alembic("downgrade", "0042_slug_nulls_nd")
     _run_alembic("upgrade", "0043_backfill_inst_slug")
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         cur = conn.execute(
             "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
             (ids,),
@@ -319,4 +326,5 @@ def test_0043_backfill_service_instance_slugs() -> None:
 
     proc_down = _run_alembic("downgrade", "0042_slug_nulls_nd")
     combined = f"{proc_down.stdout}\n{proc_down.stderr}".lower()
-    assert "no-op" in combined
+    assert proc_down.returncode == 0
+    assert "0043_backfill_inst_slug: downgrade is a no-op" in combined

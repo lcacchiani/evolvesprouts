@@ -44,6 +44,20 @@ from app.db import models  # noqa: F401,E402
 target_metadata = Base.metadata
 
 
+def _normalize_sqlalchemy_postgres_url(url: str) -> str:
+    """Prefer psycopg v3 (``psycopg``); plain ``postgresql://`` defaults to psycopg2."""
+    trimmed = url.strip()
+    if not trimmed:
+        return trimmed
+    if trimmed.startswith("postgresql+") or trimmed.startswith("postgres+"):
+        return trimmed
+    if trimmed.startswith("postgresql://"):
+        return "postgresql+psycopg://" + trimmed.removeprefix("postgresql://")
+    if trimmed.startswith("postgres://"):
+        return "postgresql+psycopg://" + trimmed.removeprefix("postgres://")
+    return trimmed
+
+
 def get_database_url() -> str:
     """Return the database URL from environment variables."""
     url = config.get_main_option("sqlalchemy.url")
@@ -51,7 +65,7 @@ def get_database_url() -> str:
         url = os.getenv("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL is required for Alembic migrations.")
-    return url
+    return _normalize_sqlalchemy_postgres_url(url)
 
 
 def _escape_for_config(value: str) -> str:

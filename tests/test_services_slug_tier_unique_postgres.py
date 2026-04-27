@@ -18,6 +18,11 @@ def _database_url() -> str | None:
     return url or None
 
 
+def _libpq_conn_url(url: str) -> str:
+    """Strip SQLAlchemy driver so ``psycopg.connect`` uses a libpq-style URI."""
+    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+
+
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_slug_tier_unique_index_treats_null_tier_as_single_bucket() -> None:
     """Two rows with same slug and NULL tier must violate NULLS NOT DISTINCT unique index."""
@@ -33,8 +38,9 @@ def test_slug_tier_unique_index_treats_null_tier_as_single_bucket() -> None:
     )
     url = _database_url()
     assert url is not None
+    conn_url = _libpq_conn_url(url)
 
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         conn.execute(ddl)
         conn.execute(idx)
         conn.execute(
@@ -46,7 +52,7 @@ def test_slug_tier_unique_index_treats_null_tier_as_single_bucket() -> None:
             )
         conn.rollback()
 
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(conn_url) as conn:
         conn.execute(ddl)
         conn.execute(idx)
         conn.execute(
