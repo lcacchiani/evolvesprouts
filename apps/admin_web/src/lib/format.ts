@@ -240,22 +240,31 @@ export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[]
 export function getSessionSlotClosestToNow(slots: SessionSlot[]): SessionSlot | null {
   const now = Date.now();
   const ordered = orderSessionSlotsForDisplay(slots);
-  let best: { slot: SessionSlot; dist: number; orderIndex: number } | null = null;
-  ordered.forEach((slot, orderIndex) => {
-    const raw = slot.startsAt?.trim() ?? '';
+  let bestSlot: SessionSlot | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+  let bestOrderIndex = Number.POSITIVE_INFINITY;
+  for (let orderIndex = 0; orderIndex < ordered.length; orderIndex += 1) {
+    const sessionSlot = ordered[orderIndex];
+    const raw = sessionSlot.startsAt?.trim() ?? '';
     if (!raw) {
-      return;
+      continue;
     }
     const ms = new Date(raw).getTime();
     if (!Number.isFinite(ms)) {
-      return;
+      continue;
     }
     const dist = Math.abs(ms - now);
-    if (best === null || dist < best.dist || (dist === best.dist && orderIndex < best.orderIndex)) {
-      best = { slot, dist, orderIndex };
+    if (
+      bestSlot === null ||
+      dist < bestDist ||
+      (dist === bestDist && orderIndex < bestOrderIndex)
+    ) {
+      bestSlot = sessionSlot;
+      bestDist = dist;
+      bestOrderIndex = orderIndex;
     }
-  });
-  return best?.slot ?? null;
+  }
+  return bestSlot;
 }
 
 function collectDistinctLocationLabels(
