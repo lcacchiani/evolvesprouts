@@ -69,6 +69,18 @@ Public WWW CloudFront includes:
     - `frame-ancestors` is intentionally omitted from the page-level CSP meta
       because browsers ignore it outside the response header.
 - Staging distribution adds `X-Robots-Tag: noindex, nofollow, noarchive`.
+- CloudFront Function updates within each environment are serialized in
+  `public-www-stack.ts` via CDK `node.addDependency`
+  (`PathRewriteFunction → WwwProxyAllowlistFunction → MediaRequestProxyFunction
+  → WwwApiErrorResponseFunction`). Without this chain, CloudFormation issues
+  parallel update calls for all four functions, which trips the regional
+  CloudFront Functions API rate limit (`HandlerErrorCode:
+  ServiceLimitExceeded`, "Reason: Rate exceeded") and rolls the stack back.
+  Production and staging environments still update in parallel with each
+  other; that 2-way concurrency stays under the throttle. The
+  `Deploy Backend` workflow additionally calls
+  `aws cloudformation continue-update-rollback` when it detects a wedged
+  `UPDATE_ROLLBACK_FAILED` state before retrying.
 
 ### Admin Web CloudFront distribution
 

@@ -136,12 +136,85 @@ function assertEachDistributionWwwBehaviors(template: Template): void {
   }
 }
 
+/**
+ * Verify CloudFront Function updates are serialized within each environment.
+ *
+ * The four functions per environment (``PathRewrite``, ``WwwProxyAllowlist``,
+ * ``MediaRequestProxy``, ``WwwApiErrorResponse``) must form a single chain via
+ * CloudFormation ``DependsOn`` so CloudFormation cannot schedule parallel
+ * updates that exhaust the regional CloudFront Functions API rate limit.
+ */
+function assertCloudFrontFunctionUpdatesAreSerialized(template: Template): void {
+  const fns = template.findResources("AWS::CloudFront::Function");
+  const entries = Object.entries(fns);
+  if (entries.length !== 8) {
+    throw new Error(
+      `Expected exactly 8 AWS::CloudFront::Function resources (4 per environment x 2), found ${entries.length}`,
+    );
+  }
+  const expectedEnvKinds = [
+    "PathRewriteFunction",
+    "WwwProxyAllowlistFunction",
+    "MediaRequestProxyFunction",
+    "WwwApiErrorResponseFunction",
+  ] as const;
+  for (const envPrefix of ["PublicWww", "PublicWwwStaging"] as const) {
+    const ids = expectedEnvKinds.map((kind) => {
+      const id = entries.find(([logicalId]) =>
+        logicalId.startsWith(`${envPrefix}${kind}`),
+      )?.[0];
+      if (!id) {
+        throw new Error(
+          `Missing CloudFront Function ${envPrefix}${kind} in synthesized template`,
+        );
+      }
+      return id;
+    });
+    const [pathRewriteId, allowlistId, mediaProxyId, errorResponseId] = ids;
+    const dependsOn = (logicalId: string): string[] => {
+      const raw = fns[logicalId]?.DependsOn;
+      if (raw === undefined || raw === null) {
+        return [];
+      }
+      return Array.isArray(raw) ? (raw as string[]) : [raw as string];
+    };
+    if (!dependsOn(allowlistId).includes(pathRewriteId)) {
+      throw new Error(
+        `${envPrefix}: WwwProxyAllowlistFunction must DependsOn PathRewriteFunction`,
+      );
+    }
+    if (!dependsOn(mediaProxyId).includes(allowlistId)) {
+      throw new Error(
+        `${envPrefix}: MediaRequestProxyFunction must DependsOn WwwProxyAllowlistFunction`,
+      );
+    }
+    if (!dependsOn(errorResponseId).includes(mediaProxyId)) {
+      throw new Error(
+        `${envPrefix}: WwwApiErrorResponseFunction must DependsOn MediaRequestProxyFunction`,
+      );
+    }
+    // Pathrewrite (chain head) must not depend on any sibling function in this
+    // environment so the chain stays single-threaded but doesn't deadlock the
+    // first item.
+    for (const sibling of [allowlistId, mediaProxyId, errorResponseId]) {
+      if (dependsOn(pathRewriteId).includes(sibling)) {
+        throw new Error(
+          `${envPrefix}: PathRewriteFunction must not DependsOn ${sibling}`,
+        );
+      }
+    }
+  }
+}
+
 function main(): void {
   const template = synthPublicWwwTemplate();
   assertApiProxyCachePolicies(template);
   assertEachDistributionWwwBehaviors(template);
+  assertCloudFrontFunctionUpdatesAreSerialized(template);
   // eslint-disable-next-line no-console
-  console.log("public-www-stack CloudFront cache policy assertions passed.");
+  console.log(
+    "public-www-stack CloudFront cache policy and function-chain assertions passed.",
+  );
 }
 
 try {
