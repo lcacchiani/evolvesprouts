@@ -36,13 +36,20 @@ vi.mock('@/components/sections/free-intro-session', () => ({
     <section data-testid='free-intro-session'>{content.ctaLabel}</section>
   ),
 }));
+vi.mock('@/components/sections/shared/events-shared', () => ({
+  EventsDataProvider: ({ children }: { children: ReactNode }) => (
+    <div data-testid='events-data-provider'>{children}</div>
+  ),
+}));
 
 describe('EventsPage', () => {
   it('composes events page sections with locale-aware props', () => {
     render(<EventsPage content={enContent} />);
 
     const pageLayout = screen.getByTestId('page-layout');
+    const eventsDataProvider = screen.getByTestId('events-data-provider');
     expect(pageLayout).toBeInTheDocument();
+    expect(eventsDataProvider).toBeInTheDocument();
     expect(screen.getByTestId('events-section')).toHaveTextContent(
       `${enContent.events.title} (${enContent.meta.locale})`,
     );
@@ -54,14 +61,14 @@ describe('EventsPage', () => {
     );
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
 
-    const renderedSectionOrder = Array.from(pageLayout.querySelectorAll('section')).map(
+    const renderedSectionOrder = Array.from(eventsDataProvider.querySelectorAll('section')).map(
       (section) => section.getAttribute('data-testid'),
     );
     expect(renderedSectionOrder).toEqual([
       'events-section',
       'free-intro-session',
       'past-events-section',
-      'event-notification-section',
     ]);
+    expect(screen.getByTestId('event-notification-section')).toBeInTheDocument();
   });
 });

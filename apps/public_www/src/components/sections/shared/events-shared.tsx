@@ -1,7 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -42,14 +49,94 @@ interface UseEventCardsOptions {
   sortEventCards: SortEventCardsFn;
 }
 
+interface EventsDataProviderProps {
+  children: ReactNode;
+  content: EventsContent;
+  locale: string;
+}
+
 interface UseEventCardsResult {
   visibleEvents: EventCardData[];
   isLoading: boolean;
   hasRequestError: boolean;
 }
 
+interface EventsDataState {
+  events: EventCardData[];
+  isLoading: boolean;
+  hasRequestError: boolean;
+}
+
+const EventsDataContext = createContext<EventsDataState | null>(null);
+
 function formatPartnerChipLabel(value: string): string {
   return value.replaceAll('-', ' ');
+}
+
+function useFetchEventCards(
+  content: EventsContent,
+  locale: string,
+  enabled = true,
+): EventsDataState {
+  const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
+  const shouldRequestEvents = enabled && crmApiClient !== null;
+  const [events, setEvents] = useState<EventCardData[]>([]);
+  const [isLoading, setIsLoading] = useState(() => shouldRequestEvents);
+  const [hasRequestError, setHasRequestError] = useState(() => !shouldRequestEvents);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    if (!shouldRequestEvents) {
+      return () => {
+        controller.abort();
+      };
+    }
+
+    fetchEventsPayload(crmApiClient, controller.signal)
+      .then((payload) => {
+        const normalizedEvents = normalizeEvents(payload, content, locale);
+        setHasRequestError(false);
+        setEvents(normalizedEvents);
+      })
+      .catch((error) => {
+        if (isAbortRequestError(error)) {
+          return;
+        }
+
+        setEvents([]);
+        setHasRequestError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [content, crmApiClient, locale, shouldRequestEvents]);
+
+  return {
+    events,
+    isLoading,
+    hasRequestError,
+  };
+}
+
+export function EventsDataProvider({
+  children,
+  content,
+  locale,
+}: EventsDataProviderProps) {
+  const eventsData = useFetchEventCards(content, locale);
+
+  return (
+    <EventsDataContext.Provider value={eventsData}>
+      {children}
+    </EventsDataContext.Provider>
+  );
 }
 
 export function EventsLoadingState({ label, testId }: EventsLoadingStateProps) {
@@ -245,53 +332,17 @@ export function useEventCards({
   locale,
   sortEventCards,
 }: UseEventCardsOptions): UseEventCardsResult {
-  const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
-  const shouldRequestEvents = crmApiClient !== null;
-  const [events, setEvents] = useState<EventCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(() => shouldRequestEvents);
-  const [hasRequestError, setHasRequestError] = useState(() => !shouldRequestEvents);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    if (!shouldRequestEvents) {
-      return () => {
-        controller.abort();
-      };
-    }
-
-    fetchEventsPayload(crmApiClient, controller.signal)
-      .then((payload) => {
-        const normalizedEvents = normalizeEvents(payload, content, locale);
-        setHasRequestError(false);
-        setEvents(normalizedEvents);
-      })
-      .catch((error) => {
-        if (isAbortRequestError(error)) {
-          return;
-        }
-
-        setEvents([]);
-        setHasRequestError(true);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [content, crmApiClient, locale, shouldRequestEvents]);
+  const contextEventsData = useContext(EventsDataContext);
+  const fallbackEventsData = useFetchEventCards(content, locale, contextEventsData === null);
+  const eventsData = contextEventsData ?? fallbackEventsData;
 
   const visibleEvents = useMemo(() => {
-    return sortEventCards(events);
-  }, [events, sortEventCards]);
+    return sortEventCards(eventsData.events);
+  }, [eventsData.events, sortEventCards]);
 
   return {
     visibleEvents,
-    isLoading,
-    hasRequestError,
+    isLoading: eventsData.isLoading,
+    hasRequestError: eventsData.hasRequestError,
   };
 }

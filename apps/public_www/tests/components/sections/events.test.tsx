@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Events } from '@/components/sections/events';
+import { PastEvents } from '@/components/sections/past-events';
+import { EventsDataProvider } from '@/components/sections/shared/events-shared';
 import enContent from '@/content/en.json';
 import {
   createPublicCrmApiClient,
@@ -461,5 +463,55 @@ describe('Events section', () => {
     expect(
       screen.getAllByRole('link', { name: enContent.events.card.ctaLabel }),
     ).toHaveLength(1);
+  });
+
+  it('shares one calendar request across upcoming and past event sections', async () => {
+    const request = vi.fn().mockResolvedValue({
+      status: 'success',
+      data: [
+        {
+          title: 'Shared future event card',
+          location: 'physical',
+          address: 'PMQ, Central',
+          address_url: 'https://maps.google.com/?q=PMQ+Central',
+          dates: [
+            {
+              start_datetime: '2099-12-10T10:00:00Z',
+              end_datetime: '2099-12-10T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+        {
+          title: 'Shared past event card',
+          location: 'physical',
+          address: 'PMQ, Central',
+          address_url: 'https://maps.google.com/?q=PMQ+Central',
+          dates: [
+            {
+              start_datetime: '2024-02-01T09:00:00Z',
+              end_datetime: '2024-02-01T10:00:00Z',
+            },
+          ],
+          is_fully_booked: true,
+        },
+      ],
+    });
+    const mockApiClient: CrmApiClient = { request };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    render(
+      <EventsDataProvider content={enContent.events} locale='en'>
+        <Events {...defaultEventsProps} />
+        <PastEvents content={enContent.events} />
+      </EventsDataProvider>,
+    );
+
+    await screen.findByText('Shared future event card');
+    await screen.findByText('Shared past event card');
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledTimes(1);
+    });
   });
 });
