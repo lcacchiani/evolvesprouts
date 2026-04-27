@@ -235,7 +235,7 @@ describe('InstanceDetailPanel', () => {
     });
   });
 
-  it('prefills title, description, delivery, and training pricing from the selected service', async () => {
+  it('prefills delivery, location, and training pricing from the selected service but not title or description', async () => {
     const user = userEvent.setup();
     const onSelectService = vi.fn();
 
@@ -271,8 +271,8 @@ describe('InstanceDetailPanel', () => {
     await user.selectOptions(screen.getByLabelText('Service'), 'service-1');
 
     expect(onSelectService).toHaveBeenCalledWith('service-1');
-    expect(screen.getByLabelText('Title')).toHaveValue('Alpha service');
-    expect(screen.getByLabelText('Description')).toHaveValue('Service body');
+    expect(screen.getByLabelText('Title')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Price')).toHaveValue('199.00');

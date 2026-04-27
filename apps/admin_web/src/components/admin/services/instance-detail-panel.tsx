@@ -92,8 +92,6 @@ function mergeServiceIntoInstanceForm(
 ): InstanceFormState {
   return {
     ...prev,
-    title: service.title,
-    description: service.description ?? '',
     deliveryMode: service.deliveryMode,
     locationId: service.locationId ?? '',
   };
