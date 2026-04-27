@@ -43,16 +43,13 @@ export function formatInstanceLocationOptionLabel(location: LocationSummary): st
   return formatLocationLabel(location);
 }
 
-/** Instances table: own title when set, otherwise parent service title (with tier). Cohort is shown in its own column. Empty when nothing to show. */
+/** Instances table: instance title when set, otherwise parent service title only (no tier; tier has its own column). */
 export function formatInstanceTableTitle(instance: ServiceInstance): string {
   const own = instance.title?.trim();
   if (own) {
     return own;
   }
-  if (instance.parentServiceTitle) {
-    return formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier);
-  }
-  return '';
+  return instance.parentServiceTitle?.trim() ?? '';
 }
 
 /** Full venue label: address (when present) plus geographic area name. */

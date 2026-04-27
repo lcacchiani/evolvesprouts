@@ -139,7 +139,7 @@ describe('format helpers', () => {
       resolvedConsultationDetails: null,
     });
     expect(formatInstanceTableTitle({ ...base(), title: '  My run  ' })).toBe('My run');
-    expect(formatInstanceTableTitle(base())).toBe('Parent · tier-a');
+    expect(formatInstanceTableTitle(base())).toBe('Parent');
     expect(
       formatInstanceTableTitle({
         ...base(),
@@ -148,7 +148,7 @@ describe('format helpers', () => {
       })
     ).toBe('');
     expect(formatInstanceTableTitle({ ...base(), title: 'My run', cohort: 'spring-2024' })).toBe('My run');
-    expect(formatInstanceTableTitle({ ...base(), cohort: 'spring-2024' })).toBe('Parent · tier-a');
+    expect(formatInstanceTableTitle({ ...base(), cohort: 'spring-2024' })).toBe('Parent');
     expect(
       formatInstanceTableTitle({
         ...base(),
