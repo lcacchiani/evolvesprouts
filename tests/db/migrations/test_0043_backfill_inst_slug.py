@@ -89,7 +89,18 @@ def test_0043_backfill_service_instance_slugs() -> None:
     url = _database_url()
     assert url is not None
     conn_url = _libpq_conn_url(url)
-    _run_alembic("upgrade", "0042_slug_nulls_nd")
+    # Park the schema at 0042 regardless of current head. CI pre-applies
+    # ``alembic upgrade head`` before pytest, so a plain ``upgrade 0042`` is a
+    # no-op and a follow-up ``upgrade 0043`` also no-ops (already applied),
+    # leaving the inserted fixtures un-backfilled. Reach 0042 via:
+    # 1) ``upgrade 0043`` (no-op when at head; ensures we're past 0042 for the
+    #    downgrade to do something) and
+    # 2) ``downgrade 0042`` (data-safe: 0043 downgrade prints a notice without
+    #    modifying rows; only ``alembic_version`` moves back).
+    # The subsequent explicit upgrade to 0043 then re-runs the migration SQL
+    # against the freshly inserted fixtures.
+    _run_alembic("upgrade", "0043_backfill_inst_slug")
+    _run_alembic("downgrade", "0042_slug_nulls_nd")
 
     # One MBA template (same slug+tier as unique index); instances vary tier/cohort via title/cohort.
     mba_svc = UUID("21111111-1111-1111-1111-111111111101")
