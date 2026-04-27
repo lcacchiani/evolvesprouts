@@ -54,7 +54,7 @@ describe('CreateInstanceDialog', () => {
     const venueId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
     const onCreate = vi.fn().mockResolvedValue(undefined);
 
-    render(
+    const { rerender } = render(
       <CreateInstanceDialog
         open
         serviceType='training_course'
@@ -71,6 +71,39 @@ describe('CreateInstanceDialog', () => {
       expect(screen.getByLabelText(/^slug/i)).toHaveValue('training-template');
     });
 
+    const withTier: ServiceSummary = {
+      ...trainingServiceSummary,
+      slug: 'bla-bla-bla',
+      serviceTier: '1-3',
+    };
+    rerender(
+      <CreateInstanceDialog
+        open
+        serviceType='training_course'
+        serviceSummary={withTier}
+        serviceDefaultLocationId={venueId}
+        isLoading={false}
+        error=''
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />
+    );
+
+    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3');
+    });
+
+    await user.type(screen.getByLabelText('Cohort'), 'may-26');
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3-may-26');
+    });
+
+    await user.clear(screen.getByLabelText('Cohort'));
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3');
+    });
+
     await user.click(screen.getByText('Session slots'));
     await user.click(screen.getByRole('button', { name: /add slot/i }));
     const startInput = screen.getByLabelText('Start time');
@@ -84,7 +117,7 @@ describe('CreateInstanceDialog', () => {
 
     expect(onCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        slug: 'training-template',
+        slug: 'bla-bla-bla-1-3',
         session_slots: [
           expect.objectContaining({
             location_id: venueId,

@@ -475,7 +475,7 @@ describe('InstanceDetailPanel', () => {
         instance={null}
         createPrefillInstance={prefill}
         selectedServiceId='service-1'
-        serviceOptions={[buildServiceSummary()]}
+        serviceOptions={[buildServiceSummary({ slug: 'my-course', serviceTier: '1-3' })]}
         locationOptions={[buildLocationSummary()]}
         isLoadingLocations={false}
         serviceType='training_course'
@@ -492,7 +492,7 @@ describe('InstanceDetailPanel', () => {
       expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
     });
     await waitFor(() => {
-      expect(screen.getByLabelText(/^slug/i)).toHaveValue('alpha-service-spring-2026');
+      expect(screen.getByLabelText(/^slug/i)).toHaveValue('my-course-1-3-spring-2026');
     });
     expect(screen.getByLabelText('Description')).toHaveValue('Body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
@@ -505,7 +505,7 @@ describe('InstanceDetailPanel', () => {
     expect(onCreate).toHaveBeenCalledWith(
       'service-1',
       expect.objectContaining({
-        slug: 'alpha-service-spring-2026',
+        slug: 'my-course-1-3-spring-2026',
         cohort: 'spring-2026',
       })
     );
