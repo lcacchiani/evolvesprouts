@@ -150,13 +150,14 @@ def test_0043_backfill_service_instance_slugs() -> None:
             (evt_svc,),
         )
 
+        # `calendly_url` was dropped by migration 0034_drop_calendly_fields; do not include it.
         conn.execute(
             """
             INSERT INTO consultation_details (
               service_id, consultation_format, max_group_size, duration_minutes,
               pricing_model, default_hourly_rate, default_package_price,
-              default_package_sessions, default_currency, calendly_url
-            ) VALUES (%s, 'one_on_one', NULL, 60, 'free', NULL, NULL, NULL, 'HKD', NULL)
+              default_package_sessions, default_currency
+            ) VALUES (%s, 'one_on_one', NULL, 60, 'free', NULL, NULL, NULL, 'HKD')
             """,
             (cons_svc,),
         )
