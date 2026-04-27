@@ -48,6 +48,51 @@ describe('computeSuggestedInstanceSlug', () => {
     ).toBe('my-best-auntie-1-3-apr-26');
   });
 
+  it('appends tier to service slug for training_course when cohort is empty', () => {
+    const svc: ServiceSummary = {
+      ...baseService,
+      slug: 'bla-bla-bla',
+      serviceTier: '1-3',
+    };
+    expect(
+      computeSuggestedInstanceSlug('training_course', svc, {
+        title: 'ignored-title',
+        cohort: '',
+        sessionSlots: [],
+      })
+    ).toBe('bla-bla-bla-1-3');
+  });
+
+  it('appends cohort after tier as cohort is typed for training_course', () => {
+    const svc: ServiceSummary = {
+      ...baseService,
+      slug: 'bla-bla-bla',
+      serviceTier: '1-3',
+    };
+    expect(
+      computeSuggestedInstanceSlug('training_course', svc, {
+        title: '',
+        cohort: 'may-26',
+        sessionSlots: [],
+      })
+    ).toBe('bla-bla-bla-1-3-may-26');
+  });
+
+  it('drops cohort segment from training_course slug when cohort is cleared', () => {
+    const svc: ServiceSummary = {
+      ...baseService,
+      slug: 'bla-bla-bla',
+      serviceTier: '1-3',
+    };
+    expect(
+      computeSuggestedInstanceSlug('training_course', svc, {
+        title: 'fall-title',
+        cohort: '',
+        sessionSlots: [],
+      })
+    ).toBe('bla-bla-bla-1-3');
+  });
+
   it('builds event slug from title and first slot date', () => {
     expect(
       computeSuggestedInstanceSlug('event', null, {

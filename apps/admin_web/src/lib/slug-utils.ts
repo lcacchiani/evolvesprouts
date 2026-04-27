@@ -67,21 +67,16 @@ export function computeSuggestedInstanceSlug(
     if (!service) {
       return slugifyForInstance(instanceForm.cohort.trim() || instanceForm.title);
     }
-    const slugLower = (service.slug ?? '').trim().toLowerCase();
-    const tier = (service.serviceTier ?? '').trim();
-    const cohortRaw = instanceForm.cohort.trim() || instanceForm.title;
-    const cohortPart = slugifyForInstance(cohortRaw);
-    if (slugLower === 'my-best-auntie' && tier && cohortPart) {
-      return slugifyForInstance(`my-best-auntie-${tier}-${cohortRaw}`);
-    }
     const base = slugifyForInstance((service.slug ?? '').trim() || service.title || '');
-    if (!cohortPart) {
-      return base;
+    const tierRaw = (service.serviceTier ?? '').trim();
+    const tierPart = tierRaw ? slugifyForInstance(tierRaw) : '';
+    const cohortRaw = instanceForm.cohort.trim();
+    const cohortPart = cohortRaw ? slugifyForInstance(cohortRaw) : '';
+    const segments = [base, tierPart, cohortPart].filter(Boolean);
+    if (!segments.length) {
+      return '';
     }
-    if (!base) {
-      return cohortPart;
-    }
-    return `${base}-${cohortPart}`;
+    return segments.join('-');
   }
   return '';
 }
