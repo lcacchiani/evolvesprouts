@@ -25,10 +25,7 @@ import {
 } from '@/lib/landing-pages';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
-import {
-  buildBreadcrumbSchema,
-  buildLandingPageEventSchema,
-} from '@/lib/structured-data';
+import { buildBreadcrumbSchema } from '@/lib/structured-data';
 
 interface LandingPageRouteProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -98,21 +95,17 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     resolvedParams.slug,
   );
 
-  const eventSchema = buildLandingPageEventSchema({
-    locale,
-    pagePath,
-    structuredDataContent,
-  });
-
   return (
     <>
       <LandingPage
         locale={locale}
         slug={resolvedParams.slug}
+        pagePath={pagePath}
         siteContent={siteContent}
         pageContent={pageContent}
         heroEventContent={heroEventContent}
         bookingEventContent={bookingEventContent}
+        structuredDataContent={structuredDataContent}
       />
       <StructuredDataScript
         id={`landing-page-breadcrumb-jsonld-${locale}`}
@@ -130,12 +123,6 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
           ],
         })}
       />
-      {Object.keys(eventSchema).length > 0 ? (
-        <StructuredDataScript
-          id={`landing-page-event-jsonld-${locale}`}
-          data={eventSchema}
-        />
-      ) : null}
     </>
   );
 }

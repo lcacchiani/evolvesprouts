@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { LandingPage } from '@/components/pages/landing-pages/landing-page';
+import { LandingPageClient } from '@/components/pages/landing-pages/landing-page-client';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
@@ -147,16 +147,32 @@ vi.mock('@/components/sections/about-us-ida-coach', () => ({
   ),
 }));
 
+vi.mock('@/lib/use-landing-page-calendar', () => ({
+  useLandingPageCalendar: (params: {
+    initialHero: unknown;
+    initialBooking: unknown;
+    initialStructuredData: unknown;
+  }) => ({
+    heroEventContent: params.initialHero,
+    bookingEventContent: params.initialBooking,
+    structuredDataContent: params.initialStructuredData,
+    isRefreshing: false,
+    hasRefreshError: false,
+  }),
+}));
+
 describe('LandingPage composition', () => {
   it('assembles all landing page sections in order', () => {
     render(
-      <LandingPage
+      <LandingPageClient
         locale='zh-HK'
         slug='easter-2026-montessori-play-coaching-workshop'
+        pagePath='/easter-2026-montessori-play-coaching-workshop'
         siteContent={enContent}
         pageContent={easterWorkshopContent.en}
-        heroEventContent={mockHeroEventContent}
-        bookingEventContent={mockBookingEventContent}
+        initialHero={mockHeroEventContent}
+        initialBooking={mockBookingEventContent}
+        initialStructuredData={null}
       />,
     );
 

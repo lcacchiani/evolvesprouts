@@ -33,7 +33,6 @@ vi.mock('@/lib/locale-page', () => ({
 
 vi.mock('@/lib/structured-data', () => ({
   buildBreadcrumbSchema: vi.fn(() => ({})),
-  buildLandingPageEventSchema: vi.fn(() => ({})),
 }));
 
 afterEach(() => {
