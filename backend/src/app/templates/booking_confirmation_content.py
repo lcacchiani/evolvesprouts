@@ -234,18 +234,27 @@ _SERVICE_TYPE_LABELS: Final[dict[str, dict[str, str]]] = {
 }
 
 
-def resolve_service_row_label(
-    loc: str, service_slug: str | None, course_label: str
-) -> str:
-    """Localized service row for confirmation templates; falls back to course_label."""
-    label = (course_label or "").strip()
+def resolve_service_type_label(loc: str, service_slug: str | None) -> str:
+    """Localized high-level booking category (event, training-course, consultation)."""
     raw = (service_slug or "").strip().lower()
     if not raw:
-        return label
+        return ""
     locale_key = normalize_booking_locale(loc)
     row = _SERVICE_TYPE_LABELS.get(locale_key, _SERVICE_TYPE_LABELS["en"])
     mapped = row.get(raw)
-    return mapped.strip() if isinstance(mapped, str) and mapped.strip() else label
+    return mapped.strip() if isinstance(mapped, str) and mapped.strip() else ""
+
+
+def resolve_service_row_label(
+    loc: str, service_slug: str | None, course_label: str
+) -> str:
+    """Backward-compatible booking title for SES templates using {{service_row_label}}."""
+    return (course_label or "").strip()
+
+
+def resolve_service_title_label(course_label: str) -> str:
+    """Customer-visible booking title (same as course_label in API payloads)."""
+    return (course_label or "").strip()
 
 
 def normalize_booking_locale(locale: str) -> str:

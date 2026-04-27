@@ -217,7 +217,7 @@ describe('BookingThankYouModal', () => {
     expect(screen.queryByText(thankYouEn.fpsReservationPendingNote)).not.toBeInTheDocument();
   });
 
-  it('shows localized service label from serviceSlug in the recap service row', () => {
+  it('shows service type in the left column and title in the right for the recap row', () => {
     const summary: ReservationSummary = {
       attendeeName: 'Pat',
       attendeeEmail: 'pat@example.com',
@@ -241,6 +241,6 @@ describe('BookingThankYouModal', () => {
     );
 
     expect(screen.getByText(thankYouEn.serviceLabels.consultation)).toBeInTheDocument();
-    expect(screen.queryByText('Family Consultation — long title')).not.toBeInTheDocument();
+    expect(screen.getByText('Family Consultation — long title')).toBeInTheDocument();
   });
 });

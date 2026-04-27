@@ -52,6 +52,29 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     assert "期待与您见面" in plain
 
 
+def test_render_booking_confirmation_service_row_type_and_title() -> None:
+    _subject, html_doc, plain = render_booking_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        course_label="Spring Playdate",
+        service_slug="event",
+        schedule_date_label=None,
+        schedule_time_label=None,
+        primary_session_iso="2026-04-16T18:00:00+08:00",
+        course_slug="event-booking",
+        payment_method_code="stripe",
+        total_amount="HK$50.00",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/x",
+        faq_url="https://site.example/en/contact-us#contact-us-faq",
+        include_fps_qr_image=False,
+    )
+    assert "Event" in html_doc
+    assert "Spring Playdate" in html_doc
+    assert "Service" not in html_doc
+    assert "Event: Spring Playdate" in plain
+
+
 def test_render_booking_confirmation_en_hkt_from_iso() -> None:
     _subject, html_doc, plain = render_booking_confirmation_email(
         locale="en",
