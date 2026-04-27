@@ -130,6 +130,8 @@ def test_list_public_offerings_landing_page_filter() -> None:
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
     assert f"service_instances.landing_page = '{slug}'" in sql
+    assert f"lower(service_instances.slug) = lower('{slug}')" in sql
+    assert f"lower(service_instances.slug) LIKE '{slug.lower()}-%%'" in sql
 
 
 def test_list_event_instances_for_public_feed_wraps_list_public_offerings() -> None:

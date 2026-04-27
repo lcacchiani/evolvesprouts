@@ -91,6 +91,28 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
     assert out["tags"] == []
     assert out["partners"] == []
     assert out["is_fully_booked"] is False
+    assert "landing_page" not in out
+
+
+def test_public_calendar_payload_omits_instance_landing_page_even_when_set() -> None:
+    service = SimpleNamespace(
+        title="Svc",
+        description="Desc",
+        service_type=ServiceType.EVENT,
+        slug=None,
+        booking_system=None,
+        event_details=SimpleNamespace(
+            event_category=SimpleNamespace(value="workshop"),
+            default_price=Decimal("99"),
+            default_currency="HKD",
+        ),
+        delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier=None,
+        location=None,
+    )
+    inst = _minimal_instance(service, landing_page="marketing-key")
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert "landing_page" not in out
 
 
 def test_event_default_price_when_no_tiers() -> None:
@@ -600,6 +622,7 @@ def _minimal_instance(
     *,
     status: InstanceStatus = InstanceStatus.OPEN,
     slug: str | None = "slug",
+    landing_page: str | None = None,
     ticket_tiers: list[Any] | None = None,
     instance_tags: list[Any] | None = None,
     partner_organization_links: list[Any] | None = None,
@@ -616,7 +639,7 @@ def _minimal_instance(
     return SimpleNamespace(
         id=uuid4(),
         slug=slug,
-        landing_page=None,
+        landing_page=landing_page,
         title=None,
         description=None,
         status=status,

@@ -4471,6 +4471,7 @@ export interface components {
             title?: string | null;
             /** @description Required for event and training_course instances; optional for consultations. Public-calendar visibility depends on this field. URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
             slug?: string | null;
+            /** @description Optional instance marketing key (`service_instances.landing_page`). There is no `landing_page` column on `services`; this field applies only to the instance row. */
             landing_page?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;

@@ -295,9 +295,12 @@ paths:
             maxLength: 255
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
-            Invalid or empty values are silently ignored.
+            Filter results to at most one instance when any of the following holds
+            (case-insensitive on `service_instances.slug`): `service_instances.landing_page`
+            equals the provided value, `service_instances.slug` equals the provided value,
+            or `service_instances.slug` starts with the provided value followed by a hyphen
+            (so a public website landing route slug can match dated instance slugs such as
+            `easter-workshop-2026-04-06`). Invalid or empty values are silently ignored.
         - name: service_key
           in: query
           required: false
@@ -371,9 +374,12 @@ paths:
             maxLength: 255
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
-            Invalid or empty values are silently ignored.
+            Filter results to at most one instance when any of the following holds
+            (case-insensitive on `service_instances.slug`): `service_instances.landing_page`
+            equals the provided value, `service_instances.slug` equals the provided value,
+            or `service_instances.slug` starts with the provided value followed by a hyphen
+            (so a public website landing route slug can match dated instance slugs such as
+            `easter-workshop-2026-04-06`). Invalid or empty values are silently ignored.
         - name: service_key
           in: query
           required: false
@@ -1119,9 +1125,6 @@ components:
             Stable public identifier for the offering. Maps to `service_instances.slug`.
             The calendar feed omits rows where the instance slug is missing or does not match
             this public pattern (invalid values are filtered server-side).
-        landing_page:
-          type: string
-          nullable: true
         service_tier:
           type: string
           nullable: true

@@ -19,8 +19,8 @@ import {
   formatSiteTimeZoneShortName,
 } from '@/lib/site-datetime';
 import {
+  getAllLandingPageSlugs,
   getLandingPageContent,
-  isValidLandingPageSlug,
 } from '@/lib/landing-pages';
 import { isHttpHref } from '@/lib/url-utils';
 
@@ -76,7 +76,7 @@ export interface EventCalendarBookingModalPayload {
   dateParts: EventBookingDatePart[];
   selectedDateLabel: string;
   selectedDateStartTime: string;
-  /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
+  /** From landing page JSON `cta.bookingTopicsField` when the instance `slug` maps to a registered landing page. */
   topicsFieldConfig?: BookingTopicsFieldConfig;
   /** Optional notes/topics prefill when opening via `EventBookingModal` (e.g. landing CTA). */
   topicsPrefill?: string;
@@ -207,6 +207,29 @@ export interface LandingPageStructuredDataContent {
   offerPrice?: string;
   offerCurrency?: string;
   offerAvailability: 'InStock' | 'SoldOut';
+}
+
+/**
+ * Maps a calendar event record to a registered landing page slug using public
+ * `slug` only: exact match or `{registeredSlug}-…` prefix (longest registered slug wins).
+ */
+function resolveLandingPageKeyFromCalendarRecord(
+  record: Record<string, unknown>,
+): string | null {
+  const instanceSlug = readCandidateText(record, ['slug', 'Slug'])?.trim().toLowerCase() ?? '';
+  if (!instanceSlug) {
+    return null;
+  }
+
+  const sortedRegistered = [...getAllLandingPageSlugs()].sort((a, b) => b.length - a.length);
+  for (const reg of sortedRegistered) {
+    const r = reg.toLowerCase();
+    if (instanceSlug === r || instanceSlug.startsWith(`${r}-`)) {
+      return reg;
+    }
+  }
+
+  return null;
 }
 
 function resolveEventsLocale(locale?: string): Locale {
@@ -365,9 +388,8 @@ function resolveBookingTopicsFieldFromLandingPage(
   record: Record<string, unknown>,
   locale: Locale,
 ): BookingTopicsFieldConfig | undefined {
-  const landingPageSlug =
-    readCandidateText(record, ['landing_page', 'landingPage'])?.trim() ?? '';
-  if (!landingPageSlug || !isValidLandingPageSlug(landingPageSlug)) {
+  const landingPageSlug = resolveLandingPageKeyFromCalendarRecord(record);
+  if (!landingPageSlug) {
     return undefined;
   }
 
@@ -1023,12 +1045,8 @@ export function findLandingPageEventInPayload(
       continue;
     }
 
-    const landingPageSlug = readCandidateText(record, ['landing_page', 'landingPage']);
-    if (!landingPageSlug) {
-      continue;
-    }
-
-    if (landingPageSlug.trim().toLowerCase() === normalizedSlug) {
+    const landingPageKey = resolveLandingPageKeyFromCalendarRecord(record);
+    if (landingPageKey !== null && landingPageKey.toLowerCase() === normalizedSlug) {
       return record;
     }
   }

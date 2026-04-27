@@ -3964,6 +3964,9 @@ components:
         landing_page:
           type: string
           nullable: true
+          description: >
+            Optional instance marketing key (`service_instances.landing_page`). There is no
+            `landing_page` column on `services`; this field applies only to the instance row.
         description:
           type: string
           nullable: true

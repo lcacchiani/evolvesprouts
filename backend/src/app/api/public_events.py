@@ -429,8 +429,6 @@ def _serialize_public_event(
     if external_url:
         payload["external_url"] = external_url
 
-    if instance.landing_page is not None:
-        payload["landing_page"] = instance.landing_page
     payload["service_tier"] = service_tier
     if instance.cohort is not None:
         payload["cohort"] = instance.cohort

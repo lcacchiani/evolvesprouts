@@ -267,7 +267,14 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .limit(limit)
         )
         if landing_page:
-            statement = statement.where(ServiceInstance.landing_page == landing_page)
+            lp = landing_page
+            statement = statement.where(
+                or_(
+                    ServiceInstance.landing_page == lp,
+                    func.lower(ServiceInstance.slug) == func.lower(lp),
+                    func.lower(ServiceInstance.slug).like(f"{lp.lower()}-%"),
+                )
+            )
         if service_key:
             statement = statement.where(func.lower(Service.slug) == service_key.lower())
         statement = statement.where(ServiceInstance.slug.is_not(None)).where(

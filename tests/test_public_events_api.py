@@ -150,7 +150,7 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert len(body["items"]) == 2
     assert body["items"][0]["external_url"] == "https://www.eventbrite.com/e/demo"
     assert body["items"][0]["slug"] == "spring-workshop"
-    assert body["items"][0]["landing_page"] == "spring-workshop"
+    assert "landing_page" not in body["items"][0]
     assert body["items"][0]["spaces_total"] == 10
     assert body["items"][0]["spaces_left"] == 9
     assert body["items"][1]["booking_status"] == "fully_booked"
