@@ -25,7 +25,10 @@ import type {
   MyBestAuntieModalContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import type { MyBestAuntieEventCohort } from '@/lib/events-data';
+import {
+  MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
+  type MyBestAuntieEventCohort,
+} from '@/lib/events-data';
 import {
   formatCohortValue,
   formatPartDateTimeLabel,
@@ -110,7 +113,6 @@ function formatNextCohortLabel(
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
-const MY_BEST_AUNTIE_SERVICE_KEY = 'my-best-auntie';
 
 interface BookingDateOption {
   id: string;
@@ -232,7 +234,7 @@ export function MyBestAuntieBooking({
     hasRequestError: hasCohortsRequestError,
   } = useMyBestAuntieCohorts({
     initialCohorts,
-    serviceKey: MY_BEST_AUNTIE_SERVICE_KEY,
+    serviceKey: MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
     serviceType: 'training_course',
   });
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);

@@ -27,6 +27,12 @@ import { isHttpHref } from '@/lib/url-utils';
 type EventStatus = 'open' | 'fully_booked';
 
 export const EVENTS_API_PATH = '/v1/calendar/public';
+/**
+ * `service_key` for `GET /v1/calendar/public` when loading My Best Auntie training
+ * course cohorts (matches CRM `services.key` for the MBA training course offering).
+ */
+export const MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY =
+  'my-best-auntie-training-course';
 /** Shared timeout for server-side calendar fetches (events, MBA, landing pages). */
 export const CALENDAR_PUBLIC_FETCH_TIMEOUT_MS = 5000;
 const MAX_PAST_EVENTS = 5;
