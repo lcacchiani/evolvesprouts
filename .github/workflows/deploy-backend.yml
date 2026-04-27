@@ -220,6 +220,47 @@ jobs:
 
           # Lambda occasionally returns 500 during UpdateFunctionCode (SDK retries
           # exhaust inside CloudFormation). Brief backoff + redeploy usually succeeds.
+          # Some CloudFormation rollbacks themselves fail (e.g., CloudFront Functions
+          # rate-limit during rollback) and leave the stack wedged in
+          # UPDATE_ROLLBACK_FAILED, which CloudFormation then refuses to update
+          # further. Detect that state and call ``continue-update-rollback`` to
+          # nudge it back to ``UPDATE_ROLLBACK_COMPLETE`` before the next retry.
+          MANAGED_STACKS=(
+            evolvesprouts
+            evolvesprouts-admin-web
+            evolvesprouts-public-www
+          )
+
+          continue_rollback_for_wedged_stacks() {
+            for managed in "${MANAGED_STACKS[@]}"; do
+              if [[ ! " $CDK_STACKS " == *" $managed "* ]]; then
+                continue
+              fi
+              local status
+              status="$(aws cloudformation describe-stacks \
+                --stack-name "$managed" \
+                --region "$AWS_REGION" \
+                --query 'Stacks[0].StackStatus' \
+                --output text 2>/dev/null || echo MISSING)"
+              if [ "$status" != "UPDATE_ROLLBACK_FAILED" ]; then
+                continue
+              fi
+              echo "Stack ${managed} is in UPDATE_ROLLBACK_FAILED; calling continue-update-rollback."
+              if ! aws cloudformation continue-update-rollback \
+                --stack-name "$managed" \
+                --region "$AWS_REGION"; then
+                echo "continue-update-rollback failed for ${managed}; the next deploy attempt will report the wedged state."
+                continue
+              fi
+              echo "Waiting for ${managed} to reach UPDATE_ROLLBACK_COMPLETE (timeout ~15m)."
+              if ! aws cloudformation wait stack-rollback-complete \
+                --stack-name "$managed" \
+                --region "$AWS_REGION"; then
+                echo "Wait for stack-rollback-complete on ${managed} timed out or failed."
+              fi
+            done
+          }
+
           MAX_CDK_DEPLOY_ATTEMPTS=3
           attempt=1
           deploy_exit=1
@@ -240,10 +281,21 @@ jobs:
               exit "$deploy_exit"
             fi
 
+            saw_rollback_failed=0
+            if grep -Eiq 'is in UPDATE_ROLLBACK_FAILED state and can not be updated' "$ATTEMPT_LOG"; then
+              saw_rollback_failed=1
+            fi
+
             rm -f "$ATTEMPT_LOG"
             if [ "$attempt" -eq "$MAX_CDK_DEPLOY_ATTEMPTS" ]; then
               break
             fi
+
+            if [ "$saw_rollback_failed" -eq 1 ]; then
+              echo "Detected UPDATE_ROLLBACK_FAILED; attempting continue-update-rollback before retry."
+              continue_rollback_for_wedged_stacks
+            fi
+
             delay=$((45 * attempt))
             echo "CDK deploy failed (exit ${deploy_exit}); waiting ${delay}s before retry..."
             sleep "$delay"
@@ -251,6 +303,7 @@ jobs:
           done
           exit "$deploy_exit"
         env:
+          AWS_REGION: ${{ steps.region.outputs.region }}
           CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
           RUN_SEED_DATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_seed_data || 'false' }}
           CDK_PARAM_FILE: ${{ vars.CDK_PARAM_FILE }}
