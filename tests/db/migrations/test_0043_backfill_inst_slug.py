@@ -75,9 +75,7 @@ def _load_migration_upgrade_statements() -> list[str]:
         str(getattr(mod, name))
         for name in (
             "_CREATE_SLUGIFY_FN_SQL",
-            "_CREATE_TMP_TABLE_SQL",
-            "_INSERT_CANDIDATES_SQL",
-            "_RESOLVE_COLLISIONS_SQL",
+            "_BACKFILL_UPDATE_SQL",
             "_DROP_SLUGIFY_FN_SQL",
             "_ASSERT_NO_NULL_SLUGS_SQL",
             "_ASSERT_VALID_SLUG_SHAPE_SQL",
@@ -110,7 +108,6 @@ def test_0043_backfill_service_instance_slugs() -> None:
     cons_inst = UUID("31111111-1111-1111-1111-111111111301")
 
     slug_pat = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-    inst_re = re.compile(r"^instance-[a-f0-9]{8}$")
 
     with psycopg.connect(conn_url) as conn:
         conn.execute(
@@ -299,7 +296,9 @@ def test_0043_backfill_service_instance_slugs() -> None:
     assert by_id[evt1] == "easter-2026-workshop-2026-04-06"
     assert by_id[evt2] == "easter-2026-workshop-2026-04-13"
     assert by_id[evt3] == "easter-2026-workshop-2026-04-06-2"
-    assert inst_re.match(by_id[evt_empty] or "")
+    # evt_empty has no instance.title; falls back to service.title ('Event Svc')
+    # plus the instance.created_at date (no session slots).
+    assert by_id[evt_empty] == "event-svc-2026-05-10"
     assert by_id[evt_noslot] == "no-slot-title-2026-03-15"
     assert by_id[cons_inst] is None
 
@@ -310,10 +309,9 @@ def test_0043_backfill_service_instance_slugs() -> None:
 
     snapshots = dict(by_id)
 
-    # Re-applying the per-statement upgrade SQL is a no-op when all target rows
-    # already have slugs. Note that the temp table from upgrade() is bound to
-    # the alembic process's connection and dropped on commit; this test's
-    # connection re-creates it via the CREATE TEMP TABLE statement below.
+    # Re-applying the upgrade SQL is a no-op because the backfill UPDATE only
+    # targets rows where ``slug IS NULL OR trim(slug) = ''``. The migration is
+    # now temp-table-free, so each statement is independent.
     upgrade_statements = _load_migration_upgrade_statements()
     with psycopg.connect(conn_url) as conn:
         for stmt in upgrade_statements:

@@ -2,7 +2,8 @@
 
 Fills NULL slugs using deterministic rules (MBA cohorts, event title + first
 slot date, other training course service slug + cohort/title). Resolves
-collisions with numeric suffixes ``-2``, ``-3``, … (case-insensitive uniqueness).
+collisions with numeric suffixes ``-2``, ``-3``, … (case-insensitive uniqueness)
+in a single statement using window functions and a count of pre-existing slugs.
 
 Seed-data assessment:
 1. Compatible: seed only sets ``services.slug``; ``service_instances.slug`` is
@@ -10,7 +11,11 @@ Seed-data assessment:
 2. NOT NULL: column stays nullable; backfill targets rows where ``slug`` is
    NULL or blank (``trim`` empty) for ``event`` and ``training_course`` services.
 3. Renamed/dropped columns: none.
-4. New tables: none (uses session-local temp table inside DO block).
+4. New tables: none. Earlier draft used a temp table; replaced with a single
+   ``UPDATE … FROM (CTE)`` because temp tables with ``ON COMMIT DROP`` did not
+   survive across separate ``op.execute(sa.text(...))`` calls reliably under
+   SQLAlchemy 2.x + psycopg3 (each ``op.execute`` may flush state in a way that
+   triggers the drop), leaving the backfill silently a no-op.
 5. Enum/allowed-value changes: none.
 6. FK/cascade changes: none.
 
@@ -29,10 +34,9 @@ down_revision = "0042_slug_nulls_nd"
 branch_labels = None
 depends_on = None
 
-# Multi-statement migration split into separate ``op.execute`` calls below.
-# psycopg3's extended-query protocol only runs the first top-level statement when
-# multiple semicolon-separated statements are passed to a single ``execute()``;
-# matching the per-statement pattern used in 0042 keeps each step actually run.
+# Each module-level constant is exactly one top-level SQL statement so each
+# ``op.execute(sa.text(...))`` call sends a single statement under psycopg3's
+# extended-query protocol. Order matches the production ``upgrade()`` body.
 
 _CREATE_SLUGIFY_FN_SQL = r"""
 CREATE OR REPLACE FUNCTION migration_0043_slugify(input text)
@@ -62,15 +66,18 @@ AS $slugfn$
 $slugfn$
 """
 
-_CREATE_TMP_TABLE_SQL = r"""
-CREATE TEMP TABLE tmp_0043_slug_candidates (
-  id uuid PRIMARY KEY,
-  base_candidate text NOT NULL
-) ON COMMIT DROP
-"""
-
-_INSERT_CANDIDATES_SQL = r"""
-INSERT INTO tmp_0043_slug_candidates (id, base_candidate)
+# Single-statement backfill. Computes a base candidate per target row, dedupes
+# via window function within the backfill batch, and adds an offset for any
+# pre-existing populated slugs that collide on lowercase. Final slug shape:
+#   base                              when first occurrence in batch + no DB collision
+#   base-<rn>                         when 2nd+ occurrence in batch + no DB collision
+#   base-<rn + existing_count>        when at least one DB row already uses ``base``
+#
+# ``existing_count`` is the number of populated rows whose lowercased slug equals
+# the base candidate; the unique partial index ``svc_instances_slug_uq`` would
+# fail an UPDATE that produced a duplicate, so a residual ``base-N`` collision
+# against an existing ``base-N`` (extremely rare) surfaces as a deploy error.
+_BACKFILL_UPDATE_SQL = r"""
 WITH first_slot AS (
   SELECT DISTINCT ON (iss.instance_id)
     iss.instance_id,
@@ -81,7 +88,6 @@ WITH first_slot AS (
 base_rows AS (
   SELECT
     si.id,
-    si.service_id,
     si.title AS si_title,
     si.cohort AS si_cohort,
     si.created_at,
@@ -170,89 +176,48 @@ computed AS (
       ELSE migration_0043_slugify('')
     END AS raw_candidate
   FROM base_rows AS b
-)
-SELECT
-  c.id,
-  CASE
-    WHEN migration_0043_slugify(c.raw_candidate) = ''
-    THEN 'instance-' || substring(replace(c.id::text, '-', ''), 1, 8)
-    ELSE migration_0043_slugify(c.raw_candidate)
-  END
-FROM computed AS c
-"""
-
-_RESOLVE_COLLISIONS_SQL = r"""
-DO $collision$
-DECLARE
-  iter int := 0;
-  assigned int;
-BEGIN
-  LOOP
-    IF NOT EXISTS (
-      SELECT 1
-      FROM service_instances AS si
-      INNER JOIN tmp_0043_slug_candidates AS t ON t.id = si.id
-      WHERE si.slug IS NULL OR trim(si.slug) = ''
-    ) THEN
-      EXIT;
-    END IF;
-
-    iter := iter + 1;
-    IF iter > 100 THEN
-      RAISE EXCEPTION 'Backfill slug collision resolution exceeded 100 levels';
-    END IF;
-
-    WITH proposed AS (
-      SELECT
-        si.id,
-        trim(
-          both '-'
-          FROM regexp_replace(
-            substring(
-              trim(
-                both '-'
-                FROM (t.base_candidate || CASE WHEN iter = 1 THEN '' ELSE '-' || iter::text END)
-              )
-              FROM 1 FOR 128
-            ),
-            '-+$',
-            ''
-          )
-        ) AS final_slug
-      FROM service_instances AS si
-      INNER JOIN tmp_0043_slug_candidates AS t ON t.id = si.id
-      WHERE si.slug IS NULL OR trim(si.slug) = ''
-    ),
-    ranked AS (
-      SELECT
-        id,
-        final_slug,
-        row_number() OVER (PARTITION BY lower(final_slug) ORDER BY id) AS rn
-      FROM proposed
-    ),
-    winners AS (
-      SELECT r.id, r.final_slug
-      FROM ranked AS r
-      WHERE r.rn = 1
-        AND NOT EXISTS (
-          SELECT 1
-          FROM service_instances AS x
-          WHERE x.slug IS NOT NULL
-            AND lower(x.slug) = lower(r.final_slug)
+),
+candidates AS (
+  SELECT
+    c.id,
+    CASE
+      WHEN migration_0043_slugify(c.raw_candidate) = ''
+      THEN 'instance-' || substring(replace(c.id::text, '-', ''), 1, 8)
+      ELSE migration_0043_slugify(c.raw_candidate)
+    END AS base
+  FROM computed AS c
+),
+ranked AS (
+  SELECT
+    cand.id,
+    cand.base,
+    row_number() OVER (PARTITION BY lower(cand.base) ORDER BY cand.id) AS within_batch_rn,
+    (
+      SELECT count(*)::int
+      FROM service_instances AS x
+      WHERE x.slug IS NOT NULL
+        AND lower(x.slug) = lower(cand.base)
+    ) AS existing_count
+  FROM candidates AS cand
+),
+final_slugs AS (
+  SELECT
+    r.id,
+    CASE
+      WHEN r.within_batch_rn = 1 AND r.existing_count = 0
+      THEN r.base
+      ELSE
+        substring(
+          r.base || '-' || (r.within_batch_rn + r.existing_count)::text
+          FROM 1 FOR 128
         )
-    )
-    UPDATE service_instances AS si
-    SET slug = w.final_slug
-    FROM winners AS w
-    WHERE si.id = w.id;
-
-    GET DIAGNOSTICS assigned = ROW_COUNT;
-    IF assigned = 0 THEN
-      RAISE EXCEPTION 'Backfill deadlock: no progress assigning slugs at iteration %', iter;
-    END IF;
-  END LOOP;
-END
-$collision$
+    END AS final_slug
+  FROM ranked AS r
+)
+UPDATE service_instances AS si
+SET slug = fs.final_slug
+FROM final_slugs AS fs
+WHERE si.id = fs.id
 """
 
 _DROP_SLUGIFY_FN_SQL = "DROP FUNCTION IF EXISTS migration_0043_slugify(text)"
@@ -288,29 +253,10 @@ END
 $assert2$
 """
 
-# Concatenated form preserved for the migration test's raw idempotency check
-# (executes everything in one go via psycopg, which the test wraps in its own
-# loop). Trailing semicolons separate statements; psycopg accepts them as long
-# as the test passes them via ``cursor.execute`` without parameter binding.
-_UPGRADE_SQL = ";\n".join(
-    s.strip()
-    for s in (
-        _CREATE_SLUGIFY_FN_SQL,
-        _CREATE_TMP_TABLE_SQL,
-        _INSERT_CANDIDATES_SQL,
-        _RESOLVE_COLLISIONS_SQL,
-        _DROP_SLUGIFY_FN_SQL,
-        _ASSERT_NO_NULL_SLUGS_SQL,
-        _ASSERT_VALID_SLUG_SHAPE_SQL,
-    )
-)
-
 
 def upgrade() -> None:
     op.execute(sa.text(_CREATE_SLUGIFY_FN_SQL))
-    op.execute(sa.text(_CREATE_TMP_TABLE_SQL))
-    op.execute(sa.text(_INSERT_CANDIDATES_SQL))
-    op.execute(sa.text(_RESOLVE_COLLISIONS_SQL))
+    op.execute(sa.text(_BACKFILL_UPDATE_SQL))
     op.execute(sa.text(_DROP_SLUGIFY_FN_SQL))
     op.execute(sa.text(_ASSERT_NO_NULL_SLUGS_SQL))
     op.execute(sa.text(_ASSERT_VALID_SLUG_SHAPE_SQL))
