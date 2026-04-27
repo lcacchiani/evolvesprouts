@@ -883,7 +883,6 @@ def render_booking_confirmation_email(
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
-    service_row_label = resolve_service_row_label(loc, service_slug, course_label)
     service_type_label = resolve_service_type_label(loc, service_slug)
     service_title_label = resolve_service_title_label(course_label)
     service_table_left_label = service_type_label or labels["service"]
