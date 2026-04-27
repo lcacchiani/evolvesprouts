@@ -7,8 +7,8 @@ collisions with numeric suffixes ``-2``, ``-3``, … (case-insensitive uniquenes
 Seed-data assessment:
 1. Compatible: seed only sets ``services.slug``; ``service_instances.slug`` is
    untouched by seed.
-2. NOT NULL: column stays nullable; backfill only targets rows where
-   ``slug IS NULL`` for ``event`` and ``training_course`` services.
+2. NOT NULL: column stays nullable; backfill targets rows where ``slug`` is
+   NULL or blank (``trim`` empty) for ``event`` and ``training_course`` services.
 3. Renamed/dropped columns: none.
 4. New tables: none (uses session-local temp table inside DO block).
 5. Enum/allowed-value changes: none.
@@ -84,7 +84,7 @@ base_rows AS (
   INNER JOIN services AS s ON s.id = si.service_id
   LEFT JOIN first_slot AS fs ON fs.instance_id = si.id
   WHERE s.service_type IN ('event', 'training_course')
-    AND si.slug IS NULL
+    AND (si.slug IS NULL OR trim(si.slug) = '')
 ),
 computed AS (
   SELECT
@@ -101,7 +101,7 @@ computed AS (
               regexp_replace(
                 substring(lower(coalesce(b.si_title, '')) FROM '([a-z]{3}\s*\d{2,4})$'),
                 '\s+',
-                '',
+                '-',
                 'g'
               ),
               substring(b.si_title FROM '(\d{2}-\d{2})$'),
@@ -121,7 +121,7 @@ computed AS (
               regexp_replace(
                 substring(lower(coalesce(b.si_title, '')) FROM '([a-z]{3}\s*\d{2,4})$'),
                 '\s+',
-                '',
+                '-',
                 'g'
               ),
               substring(b.si_title FROM '(\d{2}-\d{2})$'),
@@ -132,7 +132,7 @@ computed AS (
       WHEN b.stype = 'training_course'
       THEN
         CASE
-          WHEN migration_0043_slugify(trim(coalesce(b.si_cohort, b.si_title, '')))) = ''
+          WHEN migration_0043_slugify(trim(coalesce(b.si_cohort, b.si_title, ''))) = ''
           THEN migration_0043_slugify(b.s_title)
           ELSE
             trim(
@@ -180,7 +180,7 @@ BEGIN
       SELECT 1
       FROM service_instances AS si
       INNER JOIN tmp_0043_slug_candidates AS t ON t.id = si.id
-      WHERE si.slug IS NULL
+      WHERE si.slug IS NULL OR trim(si.slug) = ''
     ) THEN
       EXIT;
     END IF;
@@ -209,7 +209,7 @@ BEGIN
         ) AS final_slug
       FROM service_instances AS si
       INNER JOIN tmp_0043_slug_candidates AS t ON t.id = si.id
-      WHERE si.slug IS NULL
+      WHERE si.slug IS NULL OR trim(si.slug) = ''
     ),
     ranked AS (
       SELECT
@@ -242,7 +242,7 @@ BEGIN
 END
 $collision$;
 
-DROP FUNCTION migration_0043_slugify(text);
+DROP FUNCTION IF EXISTS migration_0043_slugify(text);
 
 DO $assert1$
 BEGIN
@@ -251,7 +251,7 @@ BEGIN
     FROM service_instances AS si
     INNER JOIN services AS s ON s.id = si.service_id
     WHERE s.service_type IN ('event', 'training_course')
-      AND (si.slug IS NULL OR si.slug = '')
+      AND (si.slug IS NULL OR trim(coalesce(si.slug, '')) = '')
   ) THEN
     RAISE EXCEPTION 'Backfill incomplete: event/training_course instances with NULL/empty slug remain';
   END IF;

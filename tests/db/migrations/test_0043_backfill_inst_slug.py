@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import re
 import subprocess
@@ -27,7 +28,7 @@ def _alembic_ini() -> Path:
     return _repo_root() / "backend" / "db" / "alembic.ini"
 
 
-def _run_alembic(*args: str) -> None:
+def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
     env = {**os.environ, "DATABASE_URL": _database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
@@ -42,6 +43,24 @@ def _run_alembic(*args: str) -> None:
         raise AssertionError(
             f"alembic {' '.join(args)} failed:\n{proc.stdout}\n{proc.stderr}"
         )
+    return proc
+
+
+def _load_migration_upgrade_sql() -> str:
+    """Load ``_UPGRADE_SQL`` from the revision file (for idempotency checks without Alembic)."""
+    path = (
+        _repo_root()
+        / "backend"
+        / "db"
+        / "alembic"
+        / "versions"
+        / "0043_backfill_inst_slug.py"
+    )
+    spec = importlib.util.spec_from_file_location("revision_0043_inst_slug", path)
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return str(getattr(mod, "_UPGRADE_SQL"))
 
 
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
@@ -51,9 +70,8 @@ def test_0043_backfill_service_instance_slugs() -> None:
     assert url is not None
     _run_alembic("upgrade", "0042_slug_nulls_nd")
 
-    mba_svc_01 = UUID("21111111-1111-1111-1111-111111111101")
-    mba_svc_13 = UUID("21111111-1111-1111-1111-111111111102")
-    mba_svc_36 = UUID("21111111-1111-1111-1111-111111111103")
+    # One MBA template (same slug+tier as unique index); instances vary tier/cohort via title/cohort.
+    mba_svc = UUID("21111111-1111-1111-1111-111111111101")
     mba_i01 = UUID("31111111-1111-1111-1111-111111111101")
     mba_i13 = UUID("31111111-1111-1111-1111-111111111102")
     mba_i36 = UUID("31111111-1111-1111-1111-111111111103")
@@ -100,27 +118,22 @@ def test_0043_backfill_service_instance_slugs() -> None:
             ) VALUES
             (%s, 'training_course', 'MBA', 'my-best-auntie', NULL, NULL, NULL,
              'online', 'published', 'test', NULL, NULL),
-            (%s, 'training_course', 'MBA', 'my-best-auntie', NULL, NULL, NULL,
-             'online', 'published', 'test', NULL, NULL),
-            (%s, 'training_course', 'MBA', 'my-best-auntie', NULL, NULL, NULL,
-             'online', 'published', 'test', '3-6', NULL),
             (%s, 'event', 'Event Svc', 'evt-svc-0043', NULL, NULL, NULL,
              'in_person', 'published', 'test', NULL, NULL),
             (%s, 'consultation', 'Cons', NULL, NULL, NULL, NULL,
              'online', 'published', 'test', NULL, NULL)
             """,
-            (mba_svc_01, mba_svc_13, mba_svc_36, evt_svc, cons_svc),
+            (mba_svc, evt_svc, cons_svc),
         )
 
-        for sid in (mba_svc_01, mba_svc_13, mba_svc_36):
-            conn.execute(
-                """
-                INSERT INTO training_course_details (
-                  service_id, pricing_unit, default_price, default_currency
-                ) VALUES (%s, 'per_person', 1.00, 'HKD')
-                """,
-                (sid,),
-            )
+        conn.execute(
+            """
+            INSERT INTO training_course_details (
+              service_id, pricing_unit, default_price, default_currency
+            ) VALUES (%s, 'per_person', 1.00, 'HKD')
+            """,
+            (mba_svc,),
+        )
 
         conn.execute(
             """
@@ -155,7 +168,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
             (%s, %s, 'MBA 1-3 cohort 04-26', NULL, NULL, NULL, NULL, 'scheduled', NULL, NULL,
              NULL, false, NULL, '04-26', NULL, 'test', TIMESTAMPTZ '2026-01-01 00:00:00Z',
              NULL, NULL, 'pending'),
-            (%s, %s, 'MBA May 26', NULL, NULL, NULL, NULL, 'scheduled', NULL, NULL,
+            (%s, %s, 'MBA 3-6 May 26', NULL, NULL, NULL, NULL, 'scheduled', NULL, NULL,
              NULL, false, NULL, 'may-26', NULL, 'test', TIMESTAMPTZ '2026-01-01 00:00:00Z',
              NULL, NULL, 'pending'),
             (%s, %s, 'Easter 2026 Workshop', NULL, NULL, NULL, NULL, 'scheduled', 'in_person', NULL,
@@ -179,11 +192,11 @@ def test_0043_backfill_service_instance_slugs() -> None:
             """,
             (
                 mba_i01,
-                mba_svc_01,
+                mba_svc,
                 mba_i13,
-                mba_svc_13,
+                mba_svc,
                 mba_i36,
-                mba_svc_36,
+                mba_svc,
                 evt1,
                 evt_svc,
                 evt2,
@@ -272,26 +285,38 @@ def test_0043_backfill_service_instance_slugs() -> None:
         assert slug is not None and slug_pat.match(slug), (sid, slug)
 
     snapshots = dict(by_id)
+
+    # Re-applying the raw SQL block is a no-op when all target rows already have slugs.
+    upgrade_sql = _load_migration_upgrade_sql()
+    with psycopg.connect(url) as conn:
+        conn.execute(upgrade_sql)
+        conn.commit()
+    with psycopg.connect(url) as conn:
+        cur = conn.execute(
+            "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
+            (ids,),
+        )
+        after_raw = {row[0]: row[1] for row in cur.fetchall()}
+    assert after_raw == snapshots
+
+    # Alembic does not re-run an already-applied revision; prove idempotency by
+    # clearing slugs, downgrading one step, and upgrading again.
+    with psycopg.connect(url) as conn:
+        conn.execute(
+            "UPDATE service_instances SET slug = NULL WHERE id = ANY(%s)",
+            (ids,),
+        )
+        conn.commit()
+    _run_alembic("downgrade", "0042_slug_nulls_nd")
     _run_alembic("upgrade", "0043_backfill_inst_slug")
     with psycopg.connect(url) as conn:
         cur = conn.execute(
             "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
             (ids,),
         )
-        after = {row[0]: row[1] for row in cur.fetchall()}
-    assert after == snapshots
+        after_cycle = {row[0]: row[1] for row in cur.fetchall()}
+    assert after_cycle == snapshots
 
-    notices: list[str] = []
-    conn = psycopg.connect(url)
-    try:
-        conn.add_notice_handler(lambda diag: notices.append(diag.message_primary))
-        with conn.cursor() as cur:
-            cur.execute(
-                "DO $dn$ BEGIN "
-                "RAISE NOTICE 'Downgrade is a no-op: backfilled slugs are not safely reversible'; "
-                "END $dn$;"
-            )
-        conn.commit()
-    finally:
-        conn.close()
-    assert any("no-op" in n.lower() for n in notices)
+    proc_down = _run_alembic("downgrade", "0042_slug_nulls_nd")
+    combined = f"{proc_down.stdout}\n{proc_down.stderr}".lower()
+    assert "no-op" in combined
