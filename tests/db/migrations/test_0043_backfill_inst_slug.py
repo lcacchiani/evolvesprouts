@@ -52,8 +52,13 @@ def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
     return proc
 
 
-def _load_migration_upgrade_sql() -> str:
-    """Load ``_UPGRADE_SQL`` from the revision file (for idempotency checks without Alembic)."""
+def _load_migration_upgrade_statements() -> list[str]:
+    """Load per-statement upgrade SQL from the revision (for SQL-level idempotency checks).
+
+    The revision exposes one constant per top-level statement because psycopg3's
+    extended-query protocol only runs the first statement of a multi-statement
+    script via ``cursor.execute``. We replay those statements in order.
+    """
     path = (
         _repo_root()
         / "backend"
@@ -66,7 +71,18 @@ def _load_migration_upgrade_sql() -> str:
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return str(getattr(mod, "_UPGRADE_SQL"))
+    return [
+        str(getattr(mod, name))
+        for name in (
+            "_CREATE_SLUGIFY_FN_SQL",
+            "_CREATE_TMP_TABLE_SQL",
+            "_INSERT_CANDIDATES_SQL",
+            "_RESOLVE_COLLISIONS_SQL",
+            "_DROP_SLUGIFY_FN_SQL",
+            "_ASSERT_NO_NULL_SLUGS_SQL",
+            "_ASSERT_VALID_SLUG_SHAPE_SQL",
+        )
+    ]
 
 
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
@@ -294,10 +310,14 @@ def test_0043_backfill_service_instance_slugs() -> None:
 
     snapshots = dict(by_id)
 
-    # Re-applying the raw SQL block is a no-op when all target rows already have slugs.
-    upgrade_sql = _load_migration_upgrade_sql()
+    # Re-applying the per-statement upgrade SQL is a no-op when all target rows
+    # already have slugs. Note that the temp table from upgrade() is bound to
+    # the alembic process's connection and dropped on commit; this test's
+    # connection re-creates it via the CREATE TEMP TABLE statement below.
+    upgrade_statements = _load_migration_upgrade_statements()
     with psycopg.connect(conn_url) as conn:
-        conn.execute(upgrade_sql)
+        for stmt in upgrade_statements:
+            conn.execute(stmt)
         conn.commit()
     with psycopg.connect(conn_url) as conn:
         cur = conn.execute(

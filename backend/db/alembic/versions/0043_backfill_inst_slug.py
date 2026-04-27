@@ -29,7 +29,12 @@ down_revision = "0042_slug_nulls_nd"
 branch_labels = None
 depends_on = None
 
-_UPGRADE_SQL = r"""
+# Multi-statement migration split into separate ``op.execute`` calls below.
+# psycopg3's extended-query protocol only runs the first top-level statement when
+# multiple semicolon-separated statements are passed to a single ``execute()``;
+# matching the per-statement pattern used in 0042 keeps each step actually run.
+
+_CREATE_SLUGIFY_FN_SQL = r"""
 CREATE OR REPLACE FUNCTION migration_0043_slugify(input text)
 RETURNS text
 LANGUAGE sql
@@ -54,13 +59,17 @@ AS $slugfn$
       ''
     )
   );
-$slugfn$;
+$slugfn$
+"""
 
+_CREATE_TMP_TABLE_SQL = r"""
 CREATE TEMP TABLE tmp_0043_slug_candidates (
   id uuid PRIMARY KEY,
   base_candidate text NOT NULL
-) ON COMMIT DROP;
+) ON COMMIT DROP
+"""
 
+_INSERT_CANDIDATES_SQL = r"""
 INSERT INTO tmp_0043_slug_candidates (id, base_candidate)
 WITH first_slot AS (
   SELECT DISTINCT ON (iss.instance_id)
@@ -169,8 +178,10 @@ SELECT
     THEN 'instance-' || substring(replace(c.id::text, '-', ''), 1, 8)
     ELSE migration_0043_slugify(c.raw_candidate)
   END
-FROM computed AS c;
+FROM computed AS c
+"""
 
+_RESOLVE_COLLISIONS_SQL = r"""
 DO $collision$
 DECLARE
   iter int := 0;
@@ -241,10 +252,12 @@ BEGIN
     END IF;
   END LOOP;
 END
-$collision$;
+$collision$
+"""
 
-DROP FUNCTION IF EXISTS migration_0043_slugify(text);
+_DROP_SLUGIFY_FN_SQL = "DROP FUNCTION IF EXISTS migration_0043_slugify(text)"
 
+_ASSERT_NO_NULL_SLUGS_SQL = r"""
 DO $assert1$
 BEGIN
   IF EXISTS (
@@ -257,8 +270,10 @@ BEGIN
     RAISE EXCEPTION 'Backfill incomplete: event/training_course instances with NULL/empty slug remain';
   END IF;
 END
-$assert1$;
+$assert1$
+"""
 
+_ASSERT_VALID_SLUG_SHAPE_SQL = r"""
 DO $assert2$
 BEGIN
   IF EXISTS (
@@ -270,12 +285,35 @@ BEGIN
     RAISE EXCEPTION 'Migration produced invalid slug shape; aborting';
   END IF;
 END
-$assert2$;
+$assert2$
 """
+
+# Concatenated form preserved for the migration test's raw idempotency check
+# (executes everything in one go via psycopg, which the test wraps in its own
+# loop). Trailing semicolons separate statements; psycopg accepts them as long
+# as the test passes them via ``cursor.execute`` without parameter binding.
+_UPGRADE_SQL = ";\n".join(
+    s.strip()
+    for s in (
+        _CREATE_SLUGIFY_FN_SQL,
+        _CREATE_TMP_TABLE_SQL,
+        _INSERT_CANDIDATES_SQL,
+        _RESOLVE_COLLISIONS_SQL,
+        _DROP_SLUGIFY_FN_SQL,
+        _ASSERT_NO_NULL_SLUGS_SQL,
+        _ASSERT_VALID_SLUG_SHAPE_SQL,
+    )
+)
 
 
 def upgrade() -> None:
-    op.execute(sa.text(_UPGRADE_SQL))
+    op.execute(sa.text(_CREATE_SLUGIFY_FN_SQL))
+    op.execute(sa.text(_CREATE_TMP_TABLE_SQL))
+    op.execute(sa.text(_INSERT_CANDIDATES_SQL))
+    op.execute(sa.text(_RESOLVE_COLLISIONS_SQL))
+    op.execute(sa.text(_DROP_SLUGIFY_FN_SQL))
+    op.execute(sa.text(_ASSERT_NO_NULL_SLUGS_SQL))
+    op.execute(sa.text(_ASSERT_VALID_SLUG_SHAPE_SQL))
 
 
 def downgrade() -> None:
