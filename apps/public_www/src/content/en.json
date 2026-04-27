@@ -1630,7 +1630,7 @@
       "totalLabel": "Total",
       "freeTotalLabel": "Free",
       "detailCohortLineTemplate": "Cohort: {cohort}",
-      "detailAgeGroupLineTemplate": "Age group: {ageGroup}",
+      "detailServiceTierLineTemplate": "Age group: {serviceTier}",
       "detailWritingFocusLineTemplate": "Focus: {label}",
       "detailLevelLineTemplate": "Level: {label}",
       "summaryLocationVirtualFallback": "Virtual Zoom call",

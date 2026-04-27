@@ -1630,7 +1630,7 @@
       "totalLabel": "总额",
       "freeTotalLabel": "免费",
       "detailCohortLineTemplate": "班级：{cohort}",
-      "detailAgeGroupLineTemplate": "年龄组：{ageGroup}",
+      "detailServiceTierLineTemplate": "年龄组：{serviceTier}",
       "detailWritingFocusLineTemplate": "重点：{label}",
       "detailLevelLineTemplate": "级别：{label}",
       "summaryLocationVirtualFallback": "线上 Zoom 会议",

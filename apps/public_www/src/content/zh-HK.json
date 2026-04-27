@@ -1630,7 +1630,7 @@
       "totalLabel": "總額",
       "freeTotalLabel": "免費",
       "detailCohortLineTemplate": "班級：{cohort}",
-      "detailAgeGroupLineTemplate": "年齡組：{ageGroup}",
+      "detailServiceTierLineTemplate": "年齡組：{serviceTier}",
       "detailWritingFocusLineTemplate": "重點：{label}",
       "detailLevelLineTemplate": "級別：{label}",
       "summaryLocationVirtualFallback": "網上 Zoom 會議",
