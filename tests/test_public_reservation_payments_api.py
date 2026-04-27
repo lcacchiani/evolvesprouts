@@ -11,7 +11,7 @@ from app.services.aws_proxy import AwsProxyError
 
 def _valid_payment_body() -> dict[str, Any]:
     return {
-        "cohort_age": "3-4 years",
+        "service_tier": "3-4 years",
         "cohort_date": "2026-04",
         "price": 120.5,
     }
