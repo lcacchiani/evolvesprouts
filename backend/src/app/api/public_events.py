@@ -236,9 +236,16 @@ def _resolve_categories(service: Service) -> list[str]:
     return []
 
 
-def _resolve_tags(instance: ServiceInstance) -> list[str]:
+def _resolve_tags(
+    instance: ServiceInstance,
+    *,
+    service_tier: str | None = None,
+) -> list[str]:
     links = instance.instance_tags
     names = {link.tag.name for link in links if link.tag and link.tag.name}
+    tier = (service_tier or "").strip()
+    if tier:
+        names.add(tier)
     return sorted(names, key=str.casefold)
 
 
@@ -380,7 +387,7 @@ def _serialize_public_event(
         "location_address": location_address,
         "location_url": location_url,
         "dates": dates,
-        "tags": _resolve_tags(instance),
+        "tags": _resolve_tags(instance, service_tier=service_tier),
         "categories": _resolve_categories(service),
         "partners": _resolve_partners(instance),
     }

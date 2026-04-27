@@ -1089,7 +1089,9 @@ components:
             type: string
           description: >
             Alphabetically ordered display tag names from
-            `service_instance_tags`. Does not include service-level CRM tags.
+            `service_instance_tags`, plus the `service_tier` value when it is
+            non-null and non-empty (same string as the `service_tier` field).
+            Does not include service-level CRM tags.
         categories:
           type: array
           items:
