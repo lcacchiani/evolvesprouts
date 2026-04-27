@@ -579,14 +579,14 @@ def _my_best_auntie_details_segments(
     service_tier_label: str | None,
 ) -> list[str]:
     cohort = (cohort_label or "").strip()
-    age = (service_tier_label or "").strip()
-    if not cohort and not age:
+    tier = (service_tier_label or "").strip()
+    if not cohort and not tier:
         return []
     lines: list[str] = []
     if cohort:
         lines.append(f"{DETAILS_COHORT_PREFIX[loc]}: {cohort}")
-    if age:
-        lines.append(f"{DETAILS_SERVICE_TIER_PREFIX[loc]}: {age}")
+    if tier:
+        lines.append(f"{DETAILS_SERVICE_TIER_PREFIX[loc]}: {tier}")
     return lines
 
 

@@ -184,7 +184,7 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
 def test_run_reservation_post_success_hooks_accepts_null_service_tier(
     monkeypatch: Any,
 ) -> None:
-    """Confirmation email path accepts optional age group (event bookings)."""
+    """Confirmation email path accepts optional service tier (event bookings omit it)."""
     from decimal import Decimal
 
     from app.api import public_reservations as pr
