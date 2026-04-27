@@ -244,7 +244,8 @@ describe('services tables value formatting', () => {
 
     const tables = screen.getAllByRole('table');
     const instanceTable = tables[0] as HTMLElement;
-    expect(within(instanceTable).getByText('Custom instance title · spring-2024')).toBeInTheDocument();
+    expect(within(instanceTable).getByText('Custom instance title')).toBeInTheDocument();
+    expect(within(instanceTable).getByText('spring-2024')).toBeInTheDocument();
     expect(within(instanceTable).getByText('In Progress')).toBeInTheDocument();
     expect(within(instanceTable).getByText('Unlimited')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();

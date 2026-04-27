@@ -43,25 +43,16 @@ export function formatInstanceLocationOptionLabel(location: LocationSummary): st
   return formatLocationLabel(location);
 }
 
-/** Instances table: own title when set, otherwise parent service title (with tier); cohort appended when set. Empty when nothing to show. */
+/** Instances table: own title when set, otherwise parent service title (with tier). Cohort is shown in its own column. Empty when nothing to show. */
 export function formatInstanceTableTitle(instance: ServiceInstance): string {
   const own = instance.title?.trim();
-  let base: string;
   if (own) {
-    base = own;
-  } else if (instance.parentServiceTitle) {
-    base = formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier);
-  } else {
-    base = '';
+    return own;
   }
-  const cohort = instance.cohort?.trim();
-  if (!cohort) {
-    return base;
+  if (instance.parentServiceTitle) {
+    return formatServiceTitleWithTier(instance.parentServiceTitle, instance.parentServiceTier);
   }
-  if (!base) {
-    return cohort;
-  }
-  return `${base} ${SERVICE_TITLE_TIER_SEP} ${cohort}`;
+  return '';
 }
 
 /** Full venue label: address (when present) plus geographic area name. */
@@ -216,7 +207,7 @@ function sessionSlotSortKey(slot: SessionSlot, index: number): number {
   return index;
 }
 
-/** Same ordering as the instances table slot column: `sort_order`, then start time, then index. */
+/** Same ordering as legacy multi-slot display: `sort_order`, then start time, then index. */
 export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[] {
   return slots
     .map((slot, index) => ({ slot, index }))
@@ -240,6 +231,31 @@ export function orderSessionSlotsForDisplay(slots: SessionSlot[]): SessionSlot[]
       return a.index - b.index;
     })
     .map(({ slot }) => slot);
+}
+
+/**
+ * Session slot whose start time is closest to now (by absolute difference).
+ * Ties break by {@link orderSessionSlotsForDisplay} order (earlier in that list wins).
+ */
+export function getSessionSlotClosestToNow(slots: SessionSlot[]): SessionSlot | null {
+  const now = Date.now();
+  const ordered = orderSessionSlotsForDisplay(slots);
+  let best: { slot: SessionSlot; dist: number; orderIndex: number } | null = null;
+  ordered.forEach((slot, orderIndex) => {
+    const raw = slot.startsAt?.trim() ?? '';
+    if (!raw) {
+      return;
+    }
+    const ms = new Date(raw).getTime();
+    if (!Number.isFinite(ms)) {
+      return;
+    }
+    const dist = Math.abs(ms - now);
+    if (best === null || dist < best.dist || (dist === best.dist && orderIndex < best.orderIndex)) {
+      best = { slot, dist, orderIndex };
+    }
+  });
+  return best?.slot ?? null;
 }
 
 function collectDistinctLocationLabels(

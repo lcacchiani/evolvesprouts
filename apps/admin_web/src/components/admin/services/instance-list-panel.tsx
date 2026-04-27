@@ -19,7 +19,7 @@ import {
   formatInstanceSlotLocationSummary,
   formatInstanceTableTitle,
   formatSessionSlotStartsAtDisplay,
-  orderSessionSlotsForDisplay,
+  getSessionSlotClosestToNow,
 } from '@/lib/format';
 
 import type { LocationSummary, ServiceInstance, ServiceType } from '@/types/services';
@@ -58,7 +58,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title with cohort, locations, slots) before status. */
+  /** When true, add cross-service columns (title, cohort, locations, next slot) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -150,7 +150,7 @@ export function InstanceListPanel({
                     id='instances-filter-search'
                     value={searchFilter.value}
                     onChange={(event) => searchFilter.onChange(event.target.value)}
-                    placeholder='Cohort, service, instructor, status'
+                    placeholder='Cohort, service, status'
                   />
                 </div>
               ) : null}
@@ -196,23 +196,27 @@ export function InstanceListPanel({
           <AdminDataTableHead>
             <tr>
               {showServiceColumn ? (
-                <th className='max-w-[15%] px-4 py-3 font-semibold'>Title</th>
+                <th className='max-w-[20%] px-4 py-3 font-semibold'>Title</th>
+              ) : null}
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Cohort</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Slots</th>
+                <th className='px-4 py-3 font-semibold'>Next slot</th>
               ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
-              <th className='px-4 py-3 font-semibold'>Instructor</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
             {instances.map((instance) => {
               const instanceTableTitle = formatInstanceTableTitle(instance);
+              const cohortDisplay = instance.cohort?.trim() ?? '';
+              const nextSlot = getSessionSlotClosestToNow(instance.sessionSlots);
               return (
                 <tr
                   key={instance.id}
@@ -226,8 +230,13 @@ export function InstanceListPanel({
                   aria-selected={selectedInstanceId === instance.id}
                 >
                   {showServiceColumn ? (
-                    <td className='max-w-[15%] min-w-0 break-words px-4 py-3'>
+                    <td className='max-w-[20%] min-w-0 break-words px-4 py-3'>
                       {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
+                    </td>
+                  ) : null}
+                  {showServiceColumn ? (
+                    <td className='max-w-[12rem] min-w-0 break-words px-4 py-3 text-sm'>
+                      {cohortDisplay !== '' ? cohortDisplay : '-'}
                     </td>
                   ) : null}
                   {showServiceColumn ? (
@@ -236,23 +245,12 @@ export function InstanceListPanel({
                     </td>
                   ) : null}
                   {showServiceColumn ? (
-                    <td className='px-4 py-3 align-top'>
-                      {instance.sessionSlots.length === 0 ? (
-                        '-'
-                      ) : (
-                        <ul className='m-0 max-w-[11rem] list-none space-y-0.5 p-0'>
-                          {orderSessionSlotsForDisplay(instance.sessionSlots).map((slot, slotIndex) => (
-                            <li key={slot.id ?? `${instance.id}-slot-${slotIndex}`}>
-                              {formatSessionSlotStartsAtDisplay(slot.startsAt)}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                    <td className='px-4 py-3 align-top text-sm'>
+                      {nextSlot ? formatSessionSlotStartsAtDisplay(nextSlot.startsAt) : '-'}
                     </td>
                   ) : null}
                   <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                   <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
-                  <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
                   <td className='px-4 py-3 text-right'>
                     <div className='flex justify-end gap-2'>
                       <CopyFeedbackIconButton
