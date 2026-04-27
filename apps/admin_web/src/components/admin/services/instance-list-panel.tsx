@@ -19,7 +19,7 @@ import {
   formatInstanceSlotLocationSummary,
   formatInstanceTableTitle,
   formatSessionSlotStartsAtDisplay,
-  getSessionSlotClosestToNow,
+  getFirstSessionSlotForDisplay,
 } from '@/lib/format';
 
 import type { LocationSummary, ServiceInstance, ServiceType } from '@/types/services';
@@ -58,7 +58,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, cohort, locations, next slot) before status. */
+  /** When true, add cross-service columns (title, cohort, locations, first slot) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -196,7 +196,7 @@ export function InstanceListPanel({
           <AdminDataTableHead>
             <tr>
               {showServiceColumn ? (
-                <th className='max-w-[20%] px-4 py-3 font-semibold'>Title</th>
+                <th className='w-[50%] px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Cohort</th>
@@ -205,7 +205,7 @@ export function InstanceListPanel({
                 <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Next slot</th>
+                <th className='px-4 py-3 align-middle font-semibold'>First slot</th>
               ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
@@ -216,7 +216,7 @@ export function InstanceListPanel({
             {instances.map((instance) => {
               const instanceTableTitle = formatInstanceTableTitle(instance);
               const cohortDisplay = instance.cohort?.trim() ?? '';
-              const nextSlot = getSessionSlotClosestToNow(instance.sessionSlots);
+              const firstSlot = getFirstSessionSlotForDisplay(instance.sessionSlots);
               return (
                 <tr
                   key={instance.id}
@@ -230,7 +230,7 @@ export function InstanceListPanel({
                   aria-selected={selectedInstanceId === instance.id}
                 >
                   {showServiceColumn ? (
-                    <td className='max-w-[20%] min-w-0 break-words px-4 py-3'>
+                    <td className='w-[50%] min-w-0 break-words px-4 py-3'>
                       {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
                     </td>
                   ) : null}
@@ -245,8 +245,8 @@ export function InstanceListPanel({
                     </td>
                   ) : null}
                   {showServiceColumn ? (
-                    <td className='px-4 py-3 align-top text-sm'>
-                      {nextSlot ? formatSessionSlotStartsAtDisplay(nextSlot.startsAt) : '-'}
+                    <td className='px-4 py-3 align-middle text-sm'>
+                      {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
                     </td>
                   ) : null}
                   <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
