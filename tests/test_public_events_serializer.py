@@ -174,6 +174,41 @@ def test_instance_tags_sorted_case_insensitive() -> None:
     assert out["tags"] == ["Alpha", "beta", "zebra"]
 
 
+def test_tags_include_service_tier_when_set() -> None:
+    """Non-empty service_tier is merged into tags (sorted with instance tags)."""
+    service = _event_service()
+    service.service_tier = "premium"
+    inst = _minimal_instance(
+        service,
+        instance_tags=[_tag_link("zebra"), _tag_link("Alpha")],
+    )
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["service_tier"] == "premium"
+    assert out["tags"] == ["Alpha", "premium", "zebra"]
+
+
+def test_service_tier_tag_dedupes_instance_tag_same_name() -> None:
+    service = SimpleNamespace(
+        title="MBA",
+        description="Course",
+        service_type=ServiceType.TRAINING_COURSE,
+        slug="my-best-auntie",
+        booking_system=None,
+        event_details=None,
+        delivery_mode=SimpleNamespace(value="in_person"),
+        service_tier="0-1",
+        location=None,
+    )
+    inst = _minimal_instance(
+        service,
+        cohort="May 2026",
+        training_details=SimpleNamespace(price=Decimal("350"), currency="HKD"),
+        instance_tags=[_tag_link("0-1"), _tag_link("other")],
+    )
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["tags"] == ["0-1", "other"]
+
+
 def test_partners_follow_link_order() -> None:
     service = _event_service()
     inst = _minimal_instance(
@@ -213,6 +248,7 @@ def test_training_mba_booking_and_category() -> None:
     assert out["service_tier"] == "0-1"
     assert out["cohort"] == "May 2026"
     assert out["title"] == "MBA 0-1 - May 2026"
+    assert out["tags"] == ["0-1"]
 
 
 def test_public_calendar_title_appends_tier_and_formatted_cohort() -> None:
@@ -232,6 +268,7 @@ def test_public_calendar_title_appends_tier_and_formatted_cohort() -> None:
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["title"] == "bla bla bla 1-3 - May 26"
     assert out["cohort"] == "may-26"
+    assert out["tags"] == ["1-3"]
 
 
 def test_public_calendar_title_unchanged_without_tier_or_cohort() -> None:
@@ -298,6 +335,7 @@ def test_training_mba_infers_service_tier_from_instance_slug() -> None:
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["service_tier"] == "1-3"
     assert out["title"] == "MBA 1-3 - Apr 26"
+    assert out["tags"] == ["1-3"]
     assert "id" not in out
 
 
