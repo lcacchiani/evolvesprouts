@@ -1054,7 +1054,11 @@ components:
         location_name:
           type: string
           nullable: true
-          description: Venue display name; derivation matches `location_url`.
+          description: >
+            Venue display name; derivation matches `location_url`. When the resolved
+            location row has no display name but matches a linked partner organization's
+            CRM location (`organizations.location_id`), the API uses that partner's
+            `organizations.name` instead of `null`.
         location_address:
           type: string
           nullable: true

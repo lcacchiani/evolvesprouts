@@ -447,6 +447,57 @@ def test_primary_location_all_null() -> None:
     assert out["location_address"] is None
 
 
+def test_partner_venue_location_name_falls_back_to_organization_name() -> None:
+    """Partner CRM locations often omit ``locations.name``; use the org display name."""
+    loc_id = uuid4()
+    venue = SimpleNamespace(
+        id=loc_id,
+        name=None,
+        address="99 Partner Rd",
+        lat=None,
+        lng=None,
+    )
+    org = SimpleNamespace(
+        name="Springfield Community Center",
+        slug="springfield-cc",
+        location_id=loc_id,
+    )
+    link = SimpleNamespace(sort_order=0, organization=org)
+    service = _event_service()
+    service.location = None
+    inst = _minimal_instance(service, partner_organization_links=[link])
+    inst.session_slots[0].location = venue
+    inst.location = venue
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] == "Springfield Community Center"
+    assert out["partners"] == ["springfield-cc"]
+
+
+def test_location_without_partner_match_does_not_use_partner_name() -> None:
+    """Only substitute when the resolved location is a linked partner's org location."""
+    loc_id = uuid4()
+    other_id = uuid4()
+    venue = SimpleNamespace(
+        id=loc_id,
+        name=None,
+        address="Somewhere",
+        lat=None,
+        lng=None,
+    )
+    org = SimpleNamespace(
+        name="Partner Org",
+        slug="partner",
+        location_id=other_id,
+    )
+    link = SimpleNamespace(sort_order=0, organization=org)
+    service = _event_service()
+    inst = _minimal_instance(service, partner_organization_links=[link])
+    inst.session_slots[0].location = venue
+    inst.location = venue
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert out["location_name"] is None
+
+
 def test_max_capacity_none_omits_spaces() -> None:
     service = _event_service()
     inst = _minimal_instance(service, max_capacity=None)

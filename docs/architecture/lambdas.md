@@ -124,7 +124,9 @@ their primary responsibilities.
   and `title` augmented with the tier, a spaced hyphen, and a title-cased cohort label
   when both `service_tier` and `cohort` are present (cohort hyphen segments capitalized,
   e.g. `may-26` → `May 26`),
-  `is_fully_booked`, and a server-derived `location_url`. `booking_system` comes
+  `is_fully_booked`, and a server-derived `location_url`. `location_name` falls back
+  to the linked partner organization's display name when the venue location row has
+  no name but is that partner's `organizations.location`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.slug` is
   `my-best-auntie`). Results order by earliest upcoming session slot ascending
