@@ -1228,157 +1228,6 @@ components:
                 $ref: "#/components/schemas/DiscountRule"
         discount:
           $ref: "#/components/schemas/DiscountRule"
-    ReservationSubmissionRequest:
-      type: object
-      required:
-        - full_name
-        - email
-        - phone_number
-        - cohort_age
-        - cohort_date
-        - price
-        - reservation_pending_until_payment_confirmed
-        - agreed_to_terms_and_conditions
-        - payment_method
-      properties:
-        full_name:
-          type: string
-          maxLength: 200
-        email:
-          type: string
-          format: email
-        phone_number:
-          type: string
-          maxLength: 40
-        phone_country:
-          type: string
-          minLength: 2
-          maxLength: 2
-          pattern: "^[A-Z]{2}$"
-          nullable: true
-          description: >
-            Optional ISO 3166-1 alpha-2 region for parsing `phone_number`. When omitted, the
-            API uses the configured default phone region (production default HK).
-        cohort_age:
-          type: string
-          maxLength: 200
-        cohort_date:
-          type: string
-          description: Cohort date in ISO format (YYYY-MM-DD).
-        comments:
-          type: string
-          maxLength: 1000
-        comments_field_label:
-          type: string
-          maxLength: 200
-          description: >
-            Optional label for the free-text question field (e.g. topics interest).
-            Included in the internal sales recap email so the answer is attributed to
-            the correct form prompt.
-        discount_code:
-          type: string
-          maxLength: 100
-        price:
-          type: number
-          minimum: 0
-          maximum: 1000000
-        reservation_pending_until_payment_confirmed:
-          type: boolean
-        agreed_to_terms_and_conditions:
-          type: boolean
-        payment_method:
-          type: string
-          description: >
-            How the attendee will pay. Values match the public booking modal
-            (FPS QR, bank transfer, Stripe, or `free` when the post-discount total is zero).
-            When `free`, `price` must be 0, `stripe_payment_intent_id` and `fps_qr_image_data_url`
-            must be omitted, and `reservation_pending_until_payment_confirmed` is always false.
-            Confirmation email and thank-you recap omit the payment row and show Total as Free.
-          enum:
-            - fps_qr
-            - bank_transfer
-            - stripe
-            - free
-        stripe_payment_intent_id:
-          type: string
-          description: Required when payment method is Stripe/card-wallet flow.
-          pattern: '^pi_[A-Za-z0-9]+$'
-        marketing_opt_in:
-          type: boolean
-          default: false
-          description: When true, subscribe the attendee to marketing (Mailchimp) with a booking tag.
-        locale:
-          type: string
-          description: Public website locale for SES booking confirmation template selection.
-          enum:
-            - en
-            - zh-CN
-            - zh-HK
-        course_label:
-          type: string
-          maxLength: 500
-          description: Human-readable course or event title for confirmation email context.
-        service_key:
-          type: string
-          maxLength: 120
-          description: >
-            Stable machine identifier for the booked offering (e.g. event or cohort id).
-            Used with course_slug to build the Mailchimp audience tag
-            public-www-booking-customer-{slug}; omitted values fall back to course_slug or unknown.
-        course_slug:
-          type: string
-          maxLength: 120
-          description: >
-            Optional stable slug for the course or product line when service_key is absent.
-        schedule_date_label:
-          type: string
-          maxLength: 500
-        schedule_time_label:
-          type: string
-          maxLength: 500
-        consultation_writing_focus_label:
-          type: string
-          maxLength: 500
-          description: >
-            Optional consultation booking: writing focus title shown in the booking
-            confirmation email Details row.
-        consultation_level_label:
-          type: string
-          maxLength: 500
-          description: >
-            Optional consultation booking: level title shown in the booking confirmation
-            email Details row.
-        location_name:
-          type: string
-          maxLength: 500
-        location_address:
-          type: string
-          maxLength: 500
-          description: >
-            Optional second line for the venue address. When present with location_name,
-            the booking confirmation email shows "venue, address".
-        primary_session_start_iso:
-          type: string
-          maxLength: 100
-          description: >
-            Optional ISO 8601 start datetime of the primary booked session. When the
-            venue appears to be in Hong Kong, the confirmation email formats date and
-            time in HKT from this value.
-        primary_session_end_iso:
-          type: string
-          maxLength: 100
-          description: >
-            Optional ISO 8601 end datetime of the primary booked session. When present
-            with primary_session_start_iso, the booking confirmation email may set the
-            calendar attachment (ICS) event end time to this value.
-        fps_qr_image_data_url:
-          type: string
-          maxLength: 50000
-          description: >
-            Optional PNG image as a data URL (data:image/png;base64,...) matching the
-            FPS QR shown in the public booking modal. When payment is pending and
-            payment_method is fps_qr, the API may embed this image in the booking
-            confirmation email.
     PublicReservationSubmissionRequest:
       type: object
       required:
@@ -1408,12 +1257,13 @@ components:
           description: >
             Optional ISO 3166-1 alpha-2 region for parsing `attendeePhone`. When omitted, the
             API uses the configured default phone region (production default HK).
-        childAgeGroup:
+        serviceTier:
           type: string
           maxLength: 200
           description: >
-            Optional; event flows without an age selector may omit it. Age-gated flows
-            (for example My Best Auntie or consultation) should send the selected label.
+            Optional; event flows without a tier selector may omit it. Flows that
+            collect a service tier label (for example My Best Auntie or consultation)
+            should send the selected label.
         packageLabel:
           type: string
           maxLength: 200
@@ -1547,13 +1397,15 @@ components:
     ReservationPaymentIntentRequest:
       type: object
       required:
-        - cohort_age
+        - service_tier
         - cohort_date
         - price
       properties:
-        cohort_age:
+        service_tier:
           type: string
           maxLength: 200
+          description: >
+            Selected service tier label for the booking (Stripe PaymentIntent metadata).
         cohort_date:
           type: string
           maxLength: 100

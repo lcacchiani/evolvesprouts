@@ -226,13 +226,13 @@ def test_sales_recap_display_timezone_invalid_env_falls_back(
     assert "Submitted at: 2026-03-03 11:14:00 HKT" in "\n".join(lines)
 
 
-def test_build_reservation_recap_lines_omits_child_age_group_when_empty() -> None:
+def test_build_reservation_recap_lines_omits_service_tier_when_empty() -> None:
     lines = n.build_reservation_recap_lines(
         payload={
             "attendee_name": "N",
             "attendee_email": "n@example.com",
             "attendee_phone": "1",
-            "child_age_group": None,
+            "service_tier": None,
             "package_label": "P",
             "month_label": "M",
             "course_label": "C",
@@ -250,7 +250,7 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
             "attendee_name": "N",
             "attendee_email": "n@example.com",
             "attendee_phone": "1",
-            "child_age_group": "2",
+            "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
             "course_label": "C",
@@ -275,7 +275,7 @@ def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
             "attendee_name": "N",
             "attendee_email": "n@example.com",
             "attendee_phone": "999",
-            "child_age_group": "2",
+            "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
             "course_label": "C",
@@ -296,7 +296,7 @@ def test_build_reservation_recap_lines_free_booking() -> None:
             "attendee_name": "N",
             "attendee_email": "n@example.com",
             "attendee_phone": "1",
-            "child_age_group": "2",
+            "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
             "course_label": "C",

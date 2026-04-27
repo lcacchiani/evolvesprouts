@@ -3,7 +3,7 @@ import type { CrmApiClient } from '@/lib/crm-api-client';
 export const RESERVATION_PAYMENT_INTENT_API_PATH = '/v1/reservations/payment-intent';
 
 export interface ReservationPaymentIntentPayload {
-  cohort_age: string;
+  service_tier: string;
   cohort_date: string;
   discount_code?: string;
   service_key?: string;

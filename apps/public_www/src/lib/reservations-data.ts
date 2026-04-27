@@ -16,10 +16,10 @@ export interface ReservationSubmissionPayload {
   /** ISO 3166-1 alpha-2; optional — server defaults when omitted. */
   attendeeCountry?: string;
   /**
-   * Child age group label; optional. Omit for flows without an age selector (e.g. events);
-   * age-gated flows (MBA, consultation) send the selected label.
+   * Parent-facing tier label; optional. Omit for flows without a tier selector (e.g. events);
+   * flows that collect a label (MBA, consultation) send the selected value as `serviceTier`.
    */
-  childAgeGroup?: string;
+  serviceTier?: string;
   cohortDate: string;
   interestedTopics?: string;
   discountCode?: string;

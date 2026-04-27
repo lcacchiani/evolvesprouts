@@ -406,7 +406,7 @@ should extend the shared primitives rather than reintroducing one-off layouts.
   `myBestAuntieBooking.paymentModal.*`).
 - For locale strings that interpolate runtime values, use a `*Template` suffix
   and named placeholders such as `{title}`, `{label}`, `{author}`, or
-  `{ageGroupLabel}`.
+  `{serviceTier}`.
 - Prefer removing user-visible fallback literals from code once a locale key
   exists. If a fallback is still required, it must come from locale content,
   not a hardcoded string in app code.

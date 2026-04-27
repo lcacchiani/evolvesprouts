@@ -160,7 +160,7 @@ Components that fire events:
 
 `page_locale`, `cta_location`, `section_id`, `discount_type`,
 `payment_method`, `form_type`, `cohort_date`, `error_type`, `environment`,
-`resource_key`, `age_group`, `cohort_label`
+`resource_key`, `service_tier`, `cohort_label`
 
 ### Key events (7)
 

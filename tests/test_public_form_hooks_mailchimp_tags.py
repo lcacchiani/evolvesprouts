@@ -149,7 +149,7 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
         {
             "attendee_email": "j@example.com",
             "attendee_name": "Jane Doe",
-            "child_age_group": "3",
+            "service_tier": "3",
             "payment_method": "fps_qr",
             "total_amount": Decimal("150"),
             "course_label": "Course",

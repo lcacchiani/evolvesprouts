@@ -11,7 +11,7 @@ export interface ReservationSummary {
   attendeePhone: string;
   /** ISO 3166-1 alpha-2 region for the national phone number (e.g. HK). */
   attendeeCountry?: string;
-  ageGroup?: string;
+  serviceTier?: string;
   cohort?: string;
   paymentMethod: string;
   totalAmount: number;
@@ -52,7 +52,7 @@ export interface BookingTopicsFieldConfig {
 /** Locale templates for building `ReservationSummary.detailLines` in the reservation form. */
 export interface BookingThankYouRecapLabelTemplates {
   detailCohortLineTemplate: string;
-  detailAgeGroupLineTemplate: string;
+  detailServiceTierLineTemplate: string;
   detailWritingFocusLineTemplate: string;
   detailLevelLineTemplate: string;
 }

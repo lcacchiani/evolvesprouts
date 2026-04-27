@@ -181,7 +181,7 @@ export function ConsultationsBooking({
       params: {
         payment_method: thankYouSummary.paymentMethod,
         total_amount: thankYouSummary.totalAmount,
-        age_group: '',
+        service_tier: '',
         cohort_date: thankYouSummary.dateStartTime?.split('T')[0] ?? '',
       },
     });
@@ -505,7 +505,7 @@ export function ConsultationsBooking({
                   sectionId: 'consultations-booking',
                   ctaLocation: 'booking_section',
                   params: {
-                    age_group: '',
+                    service_tier: '',
                     cohort_label: selectionLabels.levelLabel,
                     cohort_date: tier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
                   },

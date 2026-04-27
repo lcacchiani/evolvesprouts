@@ -215,7 +215,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
     course_slug = _optional_str(payload.get("course_slug"))
     service_slug = _optional_str(payload.get("service"))
-    age_group_label = _optional_str(payload.get("child_age_group"))
+    service_tier_label = _optional_str(payload.get("service_tier"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
     course_sessions = _course_sessions_for_email(payload.get("course_sessions"))
@@ -245,7 +245,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 primary_session_iso=primary_session_iso,
                 primary_session_end_iso=primary_session_end_iso,
                 course_slug=course_slug,
-                age_group_label=age_group_label,
+                service_tier_label=service_tier_label,
                 payment_method=payment_method,
                 total_amount=total_amount,
                 is_pending_payment=is_pending,
@@ -350,9 +350,9 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     phone_region, phone_national_number = validate_phone_fields(
         parse_region, attendee_phone
     )
-    child_age_group = _optional_text(
-        body.get("childAgeGroup"),
-        "childAgeGroup",
+    service_tier = _optional_text(
+        body.get("serviceTier"),
+        "serviceTier",
         _MAX_LABEL_LENGTH,
     )
     package_label = _optional_text(
@@ -517,7 +517,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "attendee_country": attendee_country,
         "phone_region": phone_region,
         "phone_national_number": phone_national_number,
-        "child_age_group": child_age_group,
+        "service_tier": service_tier,
         "package_label": package_label,
         "month_label": month_label,
         "payment_method": payment_method,

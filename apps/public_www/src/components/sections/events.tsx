@@ -92,7 +92,7 @@ export function Events({
       params: {
         payment_method: reservationSummary.paymentMethod,
         total_amount: reservationSummary.totalAmount,
-        age_group: reservationSummary.ageGroup ?? '',
+        service_tier: reservationSummary.serviceTier ?? '',
         cohort_date: reservationSummary.dateStartTime?.split('T')[0] ?? '',
       },
     });
@@ -109,8 +109,8 @@ export function Events({
       sectionId: 'events-booking',
       ctaLocation: 'events_section',
       params: {
-        age_group: nextBookingPayload.variant === 'my-best-auntie'
-          ? nextBookingPayload.selectedAgeGroupLabel
+        service_tier: nextBookingPayload.variant === 'my-best-auntie'
+          ? nextBookingPayload.selectedServiceTierLabel
           : '',
         cohort_label: nextBookingPayload.variant === 'my-best-auntie'
           ? nextBookingPayload.selectedCohortDateLabel
@@ -135,7 +135,7 @@ export function Events({
         item_id: nextActiveEvent.id,
         item_name: nextActiveEvent.title,
         item_category: nextBookingPayload.variant === 'my-best-auntie'
-          ? nextBookingPayload.selectedAgeGroupLabel
+          ? nextBookingPayload.selectedServiceTierLabel
           : 'event',
         price: ecommercePrice,
         quantity: 1,
@@ -209,7 +209,7 @@ export function Events({
           paymentModalContent={bookingModalContent.paymentModal}
           selectedCohort={activeBookingPayload.selectedCohort}
           selectedCohortDateLabel={activeBookingPayload.selectedCohortDateLabel}
-          selectedAgeGroupLabel={activeBookingPayload.selectedAgeGroupLabel}
+          selectedServiceTierLabel={activeBookingPayload.selectedServiceTierLabel}
           analyticsSectionId='events-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.my_best_auntie}
           captchaWidgetAction='events_mba_reservation_submit'

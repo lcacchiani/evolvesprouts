@@ -257,7 +257,7 @@ describe('EventBookingModal', () => {
       }),
     );
     const call = requestSpy.mock.calls[0]?.[0] as { body: Record<string, unknown> };
-    expect(call.body).not.toHaveProperty('childAgeGroup');
+    expect(call.body).not.toHaveProperty('serviceTier');
   });
 
   it('omits payment UI for a zero-priced event and submits paymentMethod free', async () => {

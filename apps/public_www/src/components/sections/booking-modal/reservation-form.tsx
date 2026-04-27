@@ -97,7 +97,7 @@ interface BookingReservationFormProps {
   serviceSlug?: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
-  selectedAgeGroupLabel: string;
+  selectedServiceTierLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
   originalPriceAmount: number;
@@ -442,7 +442,7 @@ export function BookingReservationForm({
   serviceSlug,
   eventSubtitle = '',
   courseSessions,
-  selectedAgeGroupLabel,
+  selectedServiceTierLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
   originalPriceAmount,
@@ -596,7 +596,7 @@ export function BookingReservationForm({
     sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
     sanitizeSingleLineValue(courseSlug ?? '');
   const stripePaymentIntentRequestKey = [
-    sanitizeSingleLineValue(selectedAgeGroupLabel),
+    sanitizeSingleLineValue(selectedServiceTierLabel),
     normalizedCohortDate,
     String(totalAmount),
     discountRule?.code ?? '',
@@ -705,7 +705,7 @@ export function BookingReservationForm({
     }
     void createReservationPaymentIntent(adminApiClient, {
       payload: {
-        cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
+        service_tier: sanitizeSingleLineValue(selectedServiceTierLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
         discount_code: discountRule?.code || undefined,
         service_key: paymentIntentServiceKey || undefined,
@@ -758,7 +758,7 @@ export function BookingReservationForm({
     isFreeReservation,
     isStripeUnavailable,
     normalizedCohortDate,
-    selectedAgeGroupLabel,
+    selectedServiceTierLabel,
     setSubmissionError,
     stripePaymentIntent,
     stripePaymentIntentKey,
@@ -980,7 +980,7 @@ export function BookingReservationForm({
       ctaLocation: 'reservation_form',
       params: {
         payment_method: paymentMethodForAnalytics,
-        age_group: selectedAgeGroupLabel,
+        service_tier: selectedServiceTierLabel,
         cohort_date: normalizedCohortDate,
         cohort_label: selectedCohortDateLabel,
         total_amount: totalAmount,
@@ -1010,7 +1010,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'validation_error',
@@ -1027,7 +1027,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'service_unavailable',
@@ -1043,7 +1043,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'validation_error',
@@ -1059,7 +1059,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'validation_error',
@@ -1077,7 +1077,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'validation_error',
@@ -1117,7 +1117,7 @@ export function BookingReservationForm({
       const flowSlug = sanitizeSingleLineValue(courseSlug ?? '').toLowerCase();
       if (flowSlug === 'my-best-auntie') {
         const cohort = sanitizeSingleLineValue(selectedCohortDateLabel);
-        const age = sanitizeSingleLineValue(selectedAgeGroupLabel);
+        const serviceTierLine = sanitizeSingleLineValue(selectedServiceTierLabel);
         if (cohort) {
           detailLines.push(
             formatContentTemplate(thankYouRecapLabels.detailCohortLineTemplate, {
@@ -1125,10 +1125,10 @@ export function BookingReservationForm({
             }),
           );
         }
-        if (age) {
+        if (serviceTierLine) {
           detailLines.push(
-            formatContentTemplate(thankYouRecapLabels.detailAgeGroupLineTemplate, {
-              ageGroup: age,
+            formatContentTemplate(thankYouRecapLabels.detailServiceTierLineTemplate, {
+              serviceTier: serviceTierLine,
             }),
           );
         }
@@ -1158,7 +1158,7 @@ export function BookingReservationForm({
       attendeePhone: submitPhoneDigits,
       attendeeCountry: phoneCountry,
       serviceSlug: sanitizeSingleLineValue(serviceSlug ?? '') || undefined,
-      ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
+      serviceTier: sanitizeSingleLineValue(selectedServiceTierLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: isFreeReservation
         ? ''
@@ -1200,7 +1200,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'service_unavailable',
@@ -1226,8 +1226,8 @@ export function BookingReservationForm({
       attendeeEmail: reservationSummary.attendeeEmail,
       attendeePhone: reservationSummary.attendeePhone,
       attendeeCountry: reservationSummary.attendeeCountry,
-      ...(reservationSummary.ageGroup
-        ? { childAgeGroup: reservationSummary.ageGroup }
+      ...(reservationSummary.serviceTier
+        ? { serviceTier: reservationSummary.serviceTier }
         : {}),
       cohortDate: normalizedCohortDate,
       interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
@@ -1310,7 +1310,7 @@ export function BookingReservationForm({
             ctaLocation: 'reservation_form',
             params: {
               payment_method: paymentMethodForAnalytics,
-              age_group: selectedAgeGroupLabel,
+              service_tier: selectedServiceTierLabel,
               cohort_date: normalizedCohortDate,
               total_amount: totalAmount,
               error_type: 'validation_error',
@@ -1328,7 +1328,7 @@ export function BookingReservationForm({
             ctaLocation: 'reservation_form',
             params: {
               payment_method: paymentMethodForAnalytics,
-              age_group: selectedAgeGroupLabel,
+              service_tier: selectedServiceTierLabel,
               cohort_date: normalizedCohortDate,
               total_amount: totalAmount,
               error_type: 'payment_error',
@@ -1366,7 +1366,7 @@ export function BookingReservationForm({
           ctaLocation: 'reservation_form',
           params: {
             payment_method: paymentMethodForAnalytics,
-            age_group: selectedAgeGroupLabel,
+            service_tier: selectedServiceTierLabel,
             cohort_date: normalizedCohortDate,
             cohort_label: selectedCohortDateLabel,
             total_amount: totalAmount,
@@ -1389,9 +1389,9 @@ export function BookingReservationForm({
           paymentType: paymentMethodForAnalytics,
           transactionId: stripePaymentIntentId ?? `${normalizedCohortDate}-${Date.now()}`,
           items: [{
-            item_id: `mba-${selectedAgeGroupLabel}`,
+            item_id: `mba-${selectedServiceTierLabel}`,
             item_name: eventTitle,
-            item_category: selectedAgeGroupLabel,
+            item_category: selectedServiceTierLabel,
             price: isFreeReservation ? 0 : totalAmount,
             quantity: 1,
           }],
@@ -1407,7 +1407,7 @@ export function BookingReservationForm({
         ctaLocation: 'reservation_form',
         params: {
           payment_method: paymentMethodForAnalytics,
-          age_group: selectedAgeGroupLabel,
+          service_tier: selectedServiceTierLabel,
           cohort_date: normalizedCohortDate,
           total_amount: totalAmount,
           error_type: 'api_error',
@@ -1551,9 +1551,9 @@ export function BookingReservationForm({
                                 value: totalAmount,
                                 paymentType: PAYMENT_METHOD_FPS,
                                 items: [{
-                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_id: `mba-${selectedServiceTierLabel}`,
                                   item_name: eventTitle,
-                                  item_category: selectedAgeGroupLabel,
+                                  item_category: selectedServiceTierLabel,
                                   price: totalAmount,
                                   quantity: 1,
                                 }],
@@ -1599,9 +1599,9 @@ export function BookingReservationForm({
                                 value: totalAmount,
                                 paymentType: PAYMENT_METHOD_BANK_TRANSFER,
                                 items: [{
-                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_id: `mba-${selectedServiceTierLabel}`,
                                   item_name: eventTitle,
-                                  item_category: selectedAgeGroupLabel,
+                                  item_category: selectedServiceTierLabel,
                                   price: totalAmount,
                                   quantity: 1,
                                 }],
@@ -1649,9 +1649,9 @@ export function BookingReservationForm({
                                 value: totalAmount,
                                 paymentType: PAYMENT_METHOD_STRIPE,
                                 items: [{
-                                  item_id: `mba-${selectedAgeGroupLabel}`,
+                                  item_id: `mba-${selectedServiceTierLabel}`,
                                   item_name: eventTitle,
-                                  item_category: selectedAgeGroupLabel,
+                                  item_category: selectedServiceTierLabel,
                                   price: totalAmount,
                                   quantity: 1,
                                 }],

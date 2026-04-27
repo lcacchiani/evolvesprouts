@@ -13,7 +13,7 @@ from app.templates.booking_confirmation_content import (
     BOOKING_ICS_ATTACHED_NOTE,
     BOOKING_ICS_PRODID,
     CLOSING_NOTE,
-    DETAILS_AGE_GROUP_PREFIX,
+    DETAILS_SERVICE_TIER_PREFIX,
     DETAILS_COHORT_PREFIX,
     DETAILS_LEVEL_PREFIX,
     DETAILS_WRITING_FOCUS_PREFIX,
@@ -576,17 +576,17 @@ def _my_best_auntie_details_segments(
     *,
     loc: str,
     cohort_label: str | None,
-    age_group_label: str | None,
+    service_tier_label: str | None,
 ) -> list[str]:
     cohort = (cohort_label or "").strip()
-    age = (age_group_label or "").strip()
-    if not cohort and not age:
+    tier = (service_tier_label or "").strip()
+    if not cohort and not tier:
         return []
     lines: list[str] = []
     if cohort:
         lines.append(f"{DETAILS_COHORT_PREFIX[loc]}: {cohort}")
-    if age:
-        lines.append(f"{DETAILS_AGE_GROUP_PREFIX[loc]}: {age}")
+    if tier:
+        lines.append(f"{DETAILS_SERVICE_TIER_PREFIX[loc]}: {tier}")
     return lines
 
 
@@ -605,7 +605,7 @@ def format_booking_details_html_cell(
     loc: str,
     course_slug: str | None,
     schedule_date_label: str | None,
-    age_group_label: str | None,
+    service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
@@ -615,7 +615,7 @@ def format_booking_details_html_cell(
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
-            age_group_label=age_group_label,
+            service_tier_label=service_tier_label,
         )
     elif slug == "consultation-booking":
         segments = _consultation_details_segments(
@@ -636,7 +636,7 @@ def format_booking_details_plain(
     loc: str,
     course_slug: str | None,
     schedule_date_label: str | None,
-    age_group_label: str | None,
+    service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
@@ -646,7 +646,7 @@ def format_booking_details_plain(
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
-            age_group_label=age_group_label,
+            service_tier_label=service_tier_label,
         )
     elif slug == "consultation-booking":
         segments = _consultation_details_segments(
@@ -672,7 +672,7 @@ def format_consultation_details_html_cell(
         loc=loc,
         course_slug="consultation-booking",
         schedule_date_label=None,
-        age_group_label=None,
+        service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -688,7 +688,7 @@ def format_consultation_details_plain(
         loc=loc,
         course_slug="consultation-booking",
         schedule_date_label=None,
-        age_group_label=None,
+        service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -726,7 +726,7 @@ def booking_confirmation_template_merge_data(
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
-    age_group_label: str | None = None,
+    service_tier_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -771,7 +771,7 @@ def booking_confirmation_template_merge_data(
         loc=loc,
         course_slug=course_slug,
         schedule_date_label=schedule_date_label,
-        age_group_label=age_group_label,
+        service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -779,7 +779,7 @@ def booking_confirmation_template_merge_data(
         loc=loc,
         course_slug=course_slug,
         schedule_date_label=schedule_date_label,
-        age_group_label=age_group_label,
+        service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -859,7 +859,7 @@ def render_booking_confirmation_email(
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
     course_slug: str | None = None,
-    age_group_label: str | None = None,
+    service_tier_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -914,7 +914,7 @@ def render_booking_confirmation_email(
         loc=loc,
         course_slug=course_slug,
         schedule_date_label=schedule_date_label,
-        age_group_label=age_group_label,
+        service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )
@@ -1027,7 +1027,7 @@ def render_booking_confirmation_email(
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         course_slug=course_slug,
-        age_group_label=age_group_label,
+        service_tier_label=service_tier_label,
         payment_method_display=pm_display,
         total_amount=total_amount,
         is_pending_payment=is_pending_payment,
@@ -1075,7 +1075,7 @@ def _build_plain_text(
     primary_session_iso: str | None,
     primary_session_end_iso: str | None,
     course_slug: str | None,
-    age_group_label: str | None,
+    service_tier_label: str | None,
     payment_method_display: str,
     total_amount: str,
     is_pending_payment: bool,
@@ -1103,7 +1103,7 @@ def _build_plain_text(
         loc=loc,
         course_slug=course_slug,
         schedule_date_label=schedule_date_label,
-        age_group_label=age_group_label,
+        service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
     )

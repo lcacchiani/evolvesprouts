@@ -82,7 +82,7 @@ def test_run_reservation_post_success_hooks_sets_pending_without_stripe(
         {
             "attendee_email": "j@example.com",
             "attendee_name": "Jane Doe",
-            "child_age_group": "3",
+            "service_tier": "3",
             "payment_method": "fps_qr",
             "total_amount": Decimal("15234.50"),
             "course_label": "Course",
@@ -125,7 +125,7 @@ def test_run_reservation_post_success_hooks_free_sets_is_free(
         {
             "attendee_email": "j@example.com",
             "attendee_name": "Jane Doe",
-            "child_age_group": "3",
+            "service_tier": "3",
             "payment_method": "free",
             "total_amount": Decimal("0"),
             "course_label": "Course",
@@ -169,7 +169,7 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
         {
             "attendee_email": "j@example.com",
             "attendee_name": "Jane Doe",
-            "child_age_group": "3",
+            "service_tier": "3",
             "payment_method": "stripe",
             "total_amount": Decimal("0"),
             "course_label": "Course",
@@ -181,10 +181,10 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
     assert captured["is_free"] is False
 
 
-def test_run_reservation_post_success_hooks_accepts_null_child_age_group(
+def test_run_reservation_post_success_hooks_accepts_null_service_tier(
     monkeypatch: Any,
 ) -> None:
-    """Confirmation email path accepts optional age group (event bookings)."""
+    """Confirmation email path accepts optional service tier (event bookings omit it)."""
     from decimal import Decimal
 
     from app.api import public_reservations as pr
@@ -212,7 +212,7 @@ def test_run_reservation_post_success_hooks_accepts_null_child_age_group(
         {
             "attendee_email": "j@example.com",
             "attendee_name": "Jane Doe",
-            "child_age_group": None,
+            "service_tier": None,
             "payment_method": "bank_transfer",
             "total_amount": Decimal("100"),
             "course_label": "Course",
@@ -221,4 +221,4 @@ def test_run_reservation_post_success_hooks_accepts_null_child_age_group(
         }
     )
 
-    assert captured.get("age_group_label") is None
+    assert captured.get("service_tier_label") is None

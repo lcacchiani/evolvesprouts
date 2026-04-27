@@ -477,7 +477,7 @@ function buildApiCases(turnstileToken) {
         attendeeName: 'Smoke Runner',
         attendeeEmail: smokeEmail,
         attendeePhone: '+85290000000',
-        childAgeGroup: '3-5 years',
+        serviceTier: '3-5 years',
         cohortDate: '2030-01-01',
         interestedTopics: 'Smoke test reservation',
         totalAmount: 1,
@@ -499,7 +499,7 @@ function buildApiCases(turnstileToken) {
       directPath: '/v1/reservations/payment-intent',
       apiBaseType: 'crm',
       body: {
-        cohort_age: '3-5 years',
+        service_tier: '3-5 years',
         cohort_date: '2030-01-01',
         price: 1,
       },

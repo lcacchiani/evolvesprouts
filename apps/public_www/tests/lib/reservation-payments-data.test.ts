@@ -17,7 +17,7 @@ describe('reservation-payments-data', () => {
 
     await expect(createReservationPaymentIntent(client, {
       payload: {
-        cohort_age: '18-24 months',
+        service_tier: '18-24 months',
         cohort_date: '2026-04-08',
         discount_code: 'SPRING10',
         price: 9000,
@@ -32,7 +32,7 @@ describe('reservation-payments-data', () => {
       endpointPath: RESERVATION_PAYMENT_INTENT_API_PATH,
       method: 'POST',
       body: {
-        cohort_age: '18-24 months',
+        service_tier: '18-24 months',
         cohort_date: '2026-04-08',
         discount_code: 'SPRING10',
         price: 9000,

@@ -137,7 +137,7 @@ export function LandingPageBookingCtaAction({
       sectionId: analyticsSectionId,
       ctaLocation,
       params: {
-        age_group: '',
+        service_tier: '',
         cohort_label: selectedDateLabel,
         cohort_date: selectedDate,
       },
@@ -177,7 +177,7 @@ export function LandingPageBookingCtaAction({
               ctaLocation,
               params: {
                 landing_page_slug: slug,
-                age_group: '',
+                service_tier: '',
                 cohort_label: selectedDateLabel,
               },
             });
@@ -200,7 +200,7 @@ export function LandingPageBookingCtaAction({
               ctaLocation,
               params: {
                 landing_page_slug: slug,
-                age_group: '',
+                service_tier: '',
                 cohort_label: selectedDateLabel,
               },
             });

@@ -22,7 +22,7 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
         "attendeeEmail": "u@example.com",
         "attendeePhone": "91234567",
         "attendeeCountry": "HK",
-        "childAgeGroup": "3-5 years",
+        "serviceTier": "3-5 years",
         "paymentMethod": "bank_transfer",
         "totalAmount": 100,
         "courseLabel": "Course",
@@ -342,11 +342,11 @@ def test_handle_public_reservation_runs_hooks_after_persist(
     assert payload["payment_method"] == "bank_transfer"
 
 
-def test_handle_public_reservation_accepts_missing_child_age_group(
+def test_handle_public_reservation_accepts_missing_service_tier(
     api_gateway_event: Any,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Event-style bookings omit childAgeGroup; persistence and hooks still succeed."""
+    """Event-style bookings omit serviceTier; persistence and hooks still succeed."""
     monkeypatch.setattr(
         "app.api.public_reservations.verify_turnstile_token",
         lambda *_a, **_k: True,
@@ -418,13 +418,13 @@ def test_handle_public_reservation_accepts_missing_child_age_group(
     )
 
     body = _reservation_body()
-    del body["childAgeGroup"]
+    del body["serviceTier"]
     event = _post_event(api_gateway_event, body)
     resp = _handle_public_reservation(event, "POST")
     assert resp["statusCode"] == 202
     hooks.assert_called_once()
     payload = hooks.call_args[0][0]
-    assert payload.get("child_age_group") is None
+    assert payload.get("service_tier") is None
 
 
 def test_handle_public_reservation_validation_rejects_missing_terms(

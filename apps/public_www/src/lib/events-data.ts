@@ -140,7 +140,7 @@ export interface MyBestAuntieEventCohort {
 export interface MyBestAuntieBookingModalPayload {
   variant: 'my-best-auntie';
   bookingSystem: typeof MY_BEST_AUNTIE_BOOKING_SYSTEM;
-  selectedAgeGroupLabel: string;
+  selectedServiceTierLabel: string;
   selectedCohortDateLabel: string;
   selectedCohort: MyBestAuntieEventCohort;
 }
@@ -489,9 +489,9 @@ function buildMyBestAuntieBookingModalPayload(
 ): MyBestAuntieBookingModalPayload | null {
   const slug =
     readCandidateText(record, ['slug', 'id', 'eventId'])?.trim() ?? '';
-  const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
+  const serviceTier = readCandidateText(record, ['service_tier']) ?? '';
   const cohortValue = readCandidateText(record, ['cohort']) ?? '';
-  if (!slug || !ageGroup || !cohortValue) {
+  if (!slug || !serviceTier || !cohortValue) {
     return null;
   }
 
@@ -534,7 +534,7 @@ function buildMyBestAuntieBookingModalPayload(
 
   const selectedCohort: MyBestAuntieEventCohort = {
     slug,
-    service_tier: ageGroup,
+    service_tier: serviceTier,
     service,
     title,
     description,
@@ -557,7 +557,7 @@ function buildMyBestAuntieBookingModalPayload(
   return {
     variant: 'my-best-auntie',
     bookingSystem: MY_BEST_AUNTIE_BOOKING_SYSTEM,
-    selectedAgeGroupLabel: ageGroup,
+    selectedServiceTierLabel: serviceTier,
     selectedCohortDateLabel: formatCohortValue(cohortValue, locale),
     selectedCohort,
   };
@@ -1545,9 +1545,9 @@ function recordToMyBestAuntieEventCohort(
 ): MyBestAuntieEventCohort | null {
   const slug =
     readCandidateText(record, ['slug', 'id', 'eventId'])?.trim() ?? '';
-  const ageGroup = readCandidateText(record, ['service_tier']) ?? '';
+  const serviceTier = readCandidateText(record, ['service_tier']) ?? '';
   const cohortValue = readCandidateText(record, ['cohort']) ?? '';
-  if (!slug || !ageGroup || !cohortValue) {
+  if (!slug || !serviceTier || !cohortValue) {
     return null;
   }
 
@@ -1590,7 +1590,7 @@ function recordToMyBestAuntieEventCohort(
 
   return {
     slug,
-    service_tier: ageGroup,
+    service_tier: serviceTier,
     service,
     title,
     description,

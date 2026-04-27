@@ -225,7 +225,7 @@ const reservationSummary: ReservationSummary = {
   attendeeEmail: 'test@example.com',
   attendeePhone: '91234567',
   attendeeCountry: 'HK',
-  ageGroup: '1-3',
+  serviceTier: '1-3',
   paymentMethod: 'Pay via FPS QR',
   paymentMethodCode: 'fps_qr',
   courseSlug: 'my-best-auntie',
@@ -249,8 +249,8 @@ const reservationSummary: ReservationSummary = {
     formatContentTemplate(thankYouModalContent.detailCohortLineTemplate, {
       cohort: 'Apr, 2026',
     }),
-    formatContentTemplate(thankYouModalContent.detailAgeGroupLineTemplate, {
-      ageGroup: '1-3',
+    formatContentTemplate(thankYouModalContent.detailServiceTierLineTemplate, {
+      serviceTier: '1-3',
     }),
   ],
 };
@@ -424,7 +424,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('hides child age group and renders icon-based payment option radios in booking modal', () => {
     const { container } = renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     expect(
@@ -473,7 +473,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('keeps the base left column title when no age group is selected', () => {
     renderBookingModal({
-      selectedAgeGroupLabel: '   ',
+      selectedServiceTierLabel: '   ',
     });
 
     expect(screen.getByRole('heading', {
@@ -813,7 +813,7 @@ describe('my-best-auntie booking modals footer content', () => {
     const freeCohort = { ...selectedCohort, price: 0 };
     const { container } = renderBookingModal({
       selectedCohort: freeCohort,
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     expect(container.querySelector('div[data-booking-payment="true"]')).toBeNull();
@@ -879,7 +879,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     const { container } = renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     const discountInput = screen.getByPlaceholderText(
@@ -1011,7 +1011,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     const submitButton = screen.getByRole('button', {
@@ -1034,7 +1034,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     const submitButton = screen.getByRole('button', {
@@ -1089,7 +1089,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
@@ -1145,7 +1145,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
     });
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
@@ -1209,7 +1209,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
       onSubmitReservation,
     });
 
@@ -1261,7 +1261,7 @@ describe('my-best-auntie booking modals footer content', () => {
         attendeeEmail: 'ida@example.com',
         attendeePhone: '91234567',
         attendeeCountry: 'HK',
-        childAgeGroup: '18-24 months',
+        serviceTier: '18-24 months',
         cohortDate: selectedCohortDate,
         interestedTopics: 'Need details',
         discountCode: undefined,
@@ -1306,7 +1306,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     const { container } = renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
       onSubmitReservation,
     });
 
@@ -1434,7 +1434,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     renderBookingModal({
-      selectedAgeGroupLabel: '18-24 months',
+      selectedServiceTierLabel: '18-24 months',
       onSubmitReservation,
       paymentModalContent: bookingModalStripeEnabledContent,
     });
@@ -1498,7 +1498,7 @@ describe('my-best-auntie booking modals footer content', () => {
         attendeeEmail: 'ida@example.com',
         attendeePhone: '91234567',
         attendeeCountry: 'HK',
-        childAgeGroup: '18-24 months',
+        serviceTier: '18-24 months',
         cohortDate: selectedCohortDate,
         interestedTopics: 'Need details',
         discountCode: undefined,

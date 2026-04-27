@@ -28,7 +28,7 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 _STRIPE_PAYMENT_INTENTS_URL = "https://api.stripe.com/v1/payment_intents"
-_MAX_COHORT_AGE_LENGTH = 200
+_MAX_SERVICE_TIER_LENGTH = 200
 _MAX_COHORT_DATE_LENGTH = 100
 _MAX_DISCOUNT_CODE_LENGTH = 100
 _MAX_SERVICE_KEY_LENGTH = 100
@@ -79,7 +79,7 @@ def handle_public_reservation_payment_intent(
         "amount": str(amount_minor_units),
         "currency": "hkd",
         "description": "Evolve Sprouts reservation payment",
-        "metadata[cohort_age]": payment_payload["cohort_age"],
+        "metadata[service_tier]": payment_payload["service_tier"],
         "metadata[cohort_date]": payment_payload["cohort_date"],
     }
     discount_code = payment_payload.get("discount_code")
@@ -160,10 +160,10 @@ def handle_public_reservation_payment_intent(
 
 def _validate_payment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Validate and normalize payment-intent request payload."""
-    cohort_age = _require_text(
-        body.get("cohort_age"),
-        "cohort_age",
-        _MAX_COHORT_AGE_LENGTH,
+    service_tier = _require_text(
+        body.get("service_tier"),
+        "service_tier",
+        _MAX_SERVICE_TIER_LENGTH,
     )
     cohort_date = _require_text(
         body.get("cohort_date"),
@@ -187,7 +187,7 @@ def _validate_payment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     )
     price = _parse_total_amount(body.get("price"))
     return {
-        "cohort_age": cohort_age,
+        "service_tier": service_tier,
         "cohort_date": cohort_date,
         "discount_code": discount_code,
         "service_key": service_key,
