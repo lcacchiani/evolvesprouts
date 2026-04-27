@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +9,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatEnumLabel, formatServiceTitleWithTier } from '@/lib/format';
 import { formatInstanceLocationOptionLabel } from '@/lib/instance-location-options';
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
 import type {
@@ -19,8 +22,7 @@ import type {
 
 import type { SessionSlotFormRow } from '@/types/services';
 
-/** Same pattern as service instance cohorts; matches backend `SERVICE_INSTANCE_SLUG_RE`. */
-export const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 
 export interface InstanceInstructorOption {
   sub: string;
@@ -57,6 +59,12 @@ export interface InstanceFormFieldsProps {
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
+  /** When `required`, show a required marker; consultations stay `optional`. */
+  slugFieldMode?: 'required' | 'optional';
+  /** Inline message under the slug field (for example submit validation or API field errors). */
+  slugFieldError?: string;
+  /** Optional control rendered under the slug input (for example “Reset to suggestion”). */
+  slugFieldAccessory?: ReactNode;
 }
 
 function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
@@ -122,6 +130,9 @@ export function InstanceFormFields({
   isLoadingInstructors = false,
   onSelectService,
   onChange,
+  slugFieldMode = 'optional',
+  slugFieldError = '',
+  slugFieldAccessory = null,
 }: InstanceFormFieldsProps) {
   const canSelectService = Boolean(onSelectService);
   const serviceExists = serviceOptions.some((entry) => entry.id === serviceId);
@@ -132,6 +143,8 @@ export function InstanceFormFields({
   const instanceFieldsLocked = canSelectService && !serviceId;
   const cohortTrimmed = value.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
+  const slugTrimmed = value.slug.trim().toLowerCase();
+  const slugPatternInvalid = Boolean(slugTrimmed) && !INSTANCE_SLUG_PATTERN.test(slugTrimmed);
 
   const topRowClass =
     canSelectService && !instanceFieldsLocked
@@ -231,6 +244,33 @@ export function InstanceFormFields({
           rows={2}
           placeholder='Leave empty to inherit from service'
         />
+      </div>
+      <div>
+        <Label htmlFor='instance-slug'>
+          Slug
+          {slugFieldMode === 'required' ? (
+            <span className='text-red-600' aria-hidden>
+              {' '}
+              *
+            </span>
+          ) : null}
+        </Label>
+        <Input
+          id='instance-slug'
+          value={value.slug}
+          disabled={instanceFieldsLocked}
+          onChange={(event) => onChange({ ...value, slug: event.target.value })}
+          onBlur={() => onChange({ ...value, slug: value.slug.trim().toLowerCase() })}
+          placeholder='e.g. spring-workshop-2026-04-20'
+          autoComplete='off'
+        />
+        {slugFieldAccessory ? <div className='mt-1'>{slugFieldAccessory}</div> : null}
+        {slugPatternInvalid ? (
+          <p className='mt-1 text-xs text-red-600'>
+            Use lowercase letters, digits, and single hyphens between segments (no leading or trailing hyphen).
+          </p>
+        ) : null}
+        {slugFieldError ? <p className='mt-1 text-xs text-red-600'>{slugFieldError}</p> : null}
       </div>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
         <div>

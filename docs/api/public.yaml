@@ -1104,7 +1104,10 @@ components:
           type: string
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           maxLength: 128
-          description: Stable public identifier for the offering. Maps to `service_instances.slug`.
+          description: >
+            Stable public identifier for the offering. Maps to `service_instances.slug`.
+            The calendar feed omits rows where the instance slug is missing or does not match
+            this public pattern (invalid values are filtered server-side).
         landing_page:
           type: string
           nullable: true

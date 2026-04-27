@@ -1,9 +1,31 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 
 import { CreateInstanceDialog } from '@/components/admin/services/create-instance-dialog';
+import type { ServiceSummary } from '@/types/services';
+
+const trainingServiceSummary: ServiceSummary = {
+  id: 'svc-1',
+  instancesCount: 0,
+  serviceType: 'training_course',
+  title: 'Training',
+  slug: 'training-template',
+  bookingSystem: null,
+  description: null,
+  coverImageS3Key: null,
+  deliveryMode: 'online',
+  status: 'published',
+  createdBy: 'admin',
+  createdAt: null,
+  updatedAt: null,
+  serviceTier: null,
+  locationId: null,
+  trainingDetails: null,
+  eventDetails: null,
+  consultationDetails: null,
+};
 
 vi.mock('@/components/ui/form-dialog', () => ({
   FormDialog: ({
@@ -36,6 +58,7 @@ describe('CreateInstanceDialog', () => {
       <CreateInstanceDialog
         open
         serviceType='training_course'
+        serviceSummary={trainingServiceSummary}
         serviceDefaultLocationId={venueId}
         isLoading={false}
         error=''
@@ -43,6 +66,10 @@ describe('CreateInstanceDialog', () => {
         onCreate={onCreate}
       />
     );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^slug/i)).toHaveValue('training-template');
+    });
 
     await user.click(screen.getByText('Session slots'));
     await user.click(screen.getByRole('button', { name: /add slot/i }));
@@ -57,6 +84,7 @@ describe('CreateInstanceDialog', () => {
 
     expect(onCreate).toHaveBeenCalledWith(
       expect.objectContaining({
+        slug: 'training-template',
         session_slots: [
           expect.objectContaining({
             location_id: venueId,
@@ -66,5 +94,128 @@ describe('CreateInstanceDialog', () => {
         ],
       })
     );
+  });
+
+  it('auto-populates event slug from title and first session slot date until slug is edited', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const eventService: ServiceSummary = {
+      ...trainingServiceSummary,
+      id: 'evt-svc',
+      serviceType: 'event',
+      title: 'Events',
+      slug: 'events',
+    };
+
+    const { rerender } = render(
+      <CreateInstanceDialog
+        open={false}
+        serviceType='event'
+        serviceSummary={eventService}
+        isLoading={false}
+        error=''
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />
+    );
+
+    rerender(
+      <CreateInstanceDialog
+        open
+        serviceType='event'
+        serviceSummary={eventService}
+        isLoading={false}
+        error=''
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />
+    );
+
+    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    await waitFor(() => {
+      expect(slugInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    await user.click(screen.getByText('Session slots'));
+    await user.click(screen.getByRole('button', { name: /add slot/i }));
+    const startInput = screen.getByLabelText('Start time');
+    await user.clear(startInput);
+    await user.type(startInput, '2026-04-20T14:00');
+
+    await waitFor(() => {
+      expect(slugInput.value.endsWith('2026-04-20')).toBe(true);
+    });
+
+    await user.type(screen.getByLabelText('Title'), 'Spring Gala');
+    await waitFor(() => {
+      expect(slugInput.value).toBe('spring-gala-2026-04-20');
+    });
+
+    await user.clear(slugInput);
+    await user.type(slugInput, 'custom-slug');
+    await user.clear(screen.getByLabelText('Title'));
+    await user.type(screen.getByLabelText('Title'), 'Ignored');
+    expect(slugInput).toHaveValue('custom-slug');
+
+    await user.click(screen.getByRole('button', { name: /reset to suggestion/i }));
+    await waitFor(() => {
+      expect(slugInput.value).not.toBe('custom-slug');
+    });
+  });
+
+  it('shows inline error when event slug is empty on submit', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const eventService: ServiceSummary = {
+      ...trainingServiceSummary,
+      id: 'evt-svc-2',
+      serviceType: 'event',
+      title: 'Events',
+      slug: 'events',
+    };
+
+    render(
+      <CreateInstanceDialog
+        open
+        serviceType='event'
+        serviceSummary={eventService}
+        isLoading={false}
+        error=''
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />
+    );
+
+    await user.type(screen.getByLabelText(/default price/i), '25');
+
+    const slugInput = screen.getByLabelText(/^slug/i);
+    await user.clear(slugInput);
+    await user.click(screen.getByRole('button', { name: 'Submit dialog' }));
+    expect(
+      screen.getByText(/slug is required for event and training_course instances/i)
+    ).toBeInTheDocument();
+    expect(onCreate).not.toHaveBeenCalled();
+  });
+
+  it('does not require slug for consultation create', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <CreateInstanceDialog
+        open
+        serviceType='consultation'
+        isLoading={false}
+        error=''
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />
+    );
+
+    const slugLabel = screen.getByText('Slug');
+    expect(slugLabel.parentElement?.textContent).not.toMatch(/\*/);
+
+    await user.click(screen.getByRole('button', { name: 'Submit dialog' }));
+    expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ slug: null }));
   });
 });

@@ -13,6 +13,7 @@ from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,
     parse_optional_service_instance_slug,
     parse_optional_service_instance_slug_like_text,
+    parse_required_service_instance_slug,
 )
 from app.api.admin_services_cursor import (
     parse_created_cursor,
@@ -353,9 +354,14 @@ def parse_create_instance_payload(
 ) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
     _reject_deprecated_instance_age_group(body)
+    slug_value: str | None
+    if service.service_type in (ServiceType.EVENT, ServiceType.TRAINING_COURSE):
+        slug_value = parse_required_service_instance_slug(body.get("slug"))
+    else:
+        slug_value = parse_optional_service_instance_slug(body.get("slug"))
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
-        "slug": parse_optional_service_instance_slug(body.get("slug")),
+        "slug": slug_value,
         "landing_page": parse_optional_text(body.get("landing_page"), max_length=255),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
@@ -407,7 +413,16 @@ def parse_update_instance_payload(
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)
     if has_field(body, "slug"):
-        payload["slug"] = parse_optional_service_instance_slug(body.get("slug"))
+        parsed_slug = parse_optional_service_instance_slug(body.get("slug"))
+        if parsed_slug is None and service.service_type in (
+            ServiceType.EVENT,
+            ServiceType.TRAINING_COURSE,
+        ):
+            raise ValidationError(
+                "slug cannot be cleared for event or training_course instances",
+                field="slug",
+            )
+        payload["slug"] = parsed_slug
     if has_field(body, "landing_page"):
         payload["landing_page"] = parse_optional_text(
             body.get("landing_page"), max_length=255

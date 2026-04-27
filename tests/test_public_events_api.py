@@ -159,6 +159,111 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert body["items"][0]["slug"] == "spring-workshop"
 
 
+def test_handle_public_events_skips_instances_without_valid_slug(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    """Repository may return rows; handler drops items with missing or invalid slug."""
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            return [
+                _instance_row(
+                    status=public_events.InstanceStatus.OPEN,
+                    slug=None,
+                    landing_page=None,
+                )
+            ]
+
+        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+            return {}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    response = public_events.handle_public_events(
+        api_gateway_event(method="GET", path="/v1/calendar/public"),
+        "GET",
+    )
+    assert response["statusCode"] == 200
+    body = json.loads(response["body"])
+    assert body["events"] == []
+    assert body["items"] == []
+
+
+def test_handle_public_events_includes_instance_when_slug_is_set(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            pass
+
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    row = _instance_row(status=public_events.InstanceStatus.OPEN, slug="spring-workshop-2026-04-20")
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_public_offerings(
+            self,
+            *,
+            limit: int,
+            now: datetime,
+            service_types: Any,
+            landing_page: str | None,
+            service_key: str | None,
+        ) -> list[Any]:
+            return [row]
+
+        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+            return {instance_ids[0]: 0}
+
+    monkeypatch.setattr(public_events, "Session", _SessionCtx)
+    monkeypatch.setattr(public_events, "get_engine", lambda: object())
+    monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
+
+    response = public_events.handle_public_events(
+        api_gateway_event(method="GET", path="/v1/calendar/public"),
+        "GET",
+    )
+    body = json.loads(response["body"])
+    assert len(body["items"]) == 1
+    assert body["items"][0]["slug"] == "spring-workshop-2026-04-20"
+
+
 def test_handle_public_events_landing_page_filter(
     monkeypatch: Any, api_gateway_event: Any
 ) -> None:

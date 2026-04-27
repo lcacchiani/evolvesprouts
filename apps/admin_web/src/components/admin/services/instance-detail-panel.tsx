@@ -20,12 +20,7 @@ import {
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
 import { EventInstancePartnersField } from './event-instance-partners-field';
-import {
-  INSTANCE_SLUG_PATTERN,
-  InstanceFormFields,
-  InstanceInstructorField,
-  type InstanceFormState,
-} from './instance-form-fields';
+import { InstanceFormFields, InstanceInstructorField, type InstanceFormState } from './instance-form-fields';
 import { SessionSlotEditor } from './session-slot-editor';
 import {
   TrainingCurrencyControl,
@@ -56,10 +51,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
+import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { buildSessionSlotsUtcPayload, mapSessionSlotsFromApiToForm } from '@/lib/format';
 import { filterLocationsForInstance } from '@/lib/instance-location-options';
 import type { EntityTagRef } from '@/lib/entity-api';
+import { computeSuggestedInstanceSlug, INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 
 type ApiSchemas = components['schemas'];
 const defaultCurrencyCode = getAdminDefaultCurrencyCode();
@@ -241,12 +238,15 @@ export function InstanceDetailPanel({
   const lastMergedServiceIdForCreateRef = useRef<string | null>(null);
   const duplicateCreateHydratedRef = useRef(false);
   const duplicateEventTiersTemplateRef = useRef<EventTicketTier[] | null>(null);
+  const createSlugTouchedRef = useRef(false);
   const { users: instructorUsers, isLoading: isLoadingInstructors } = useInstructorUsers(
     Boolean(selectedServiceId)
   );
 
   const [tagIds, setTagIds] = useState<string[]>(() => instance?.tagIds ?? []);
   const [sessionSlotsError, setSessionSlotsError] = useState('');
+  const [slugSubmitError, setSlugSubmitError] = useState('');
+  const [slugConflictError, setSlugConflictError] = useState('');
 
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
     instance
@@ -291,6 +291,10 @@ export function InstanceDetailPanel({
   );
 
   useEffect(() => {
+    createSlugTouchedRef.current = false;
+  }, [selectedServiceId]);
+
+  useEffect(() => {
     if (!createPrefillInstance) {
       duplicateCreateHydratedRef.current = false;
       duplicateEventTiersTemplateRef.current = null;
@@ -312,6 +316,9 @@ export function InstanceDetailPanel({
     duplicateEventTiersTemplateRef.current = cloneEventTiersForCreate(createPrefillInstance.eventTicketTiers);
     const source = createPrefillInstance;
     queueMicrotask(() => {
+      setSlugSubmitError('');
+      setSlugConflictError('');
+      createSlugTouchedRef.current = false;
       setTagIds([...source.tagIds]);
       setInstanceForm({
         title: source.title ?? '',
@@ -348,6 +355,8 @@ export function InstanceDetailPanel({
 
   const handleSelectService = useCallback(
     (serviceId: string | null) => {
+      setSlugSubmitError('');
+      setSlugConflictError('');
       onSelectService(serviceId);
       if (!serviceId) {
         lastMergedServiceIdForCreateRef.current = null;
@@ -399,6 +408,8 @@ export function InstanceDetailPanel({
       return;
     }
     queueMicrotask(() => {
+      setSlugSubmitError('');
+      setSlugConflictError('');
       setTagIds(instance.tagIds);
       setInstanceForm({
         title: instance.title ?? '',
@@ -439,6 +450,32 @@ export function InstanceDetailPanel({
   const canSubmit = Boolean(selectedServiceId);
   const typeFieldsLocked = !selectedServiceId;
 
+  const suggestedCreateSlug = useMemo(
+    () =>
+      computeSuggestedInstanceSlug(
+        effectiveServiceType,
+        selectedService,
+        instanceForm
+      ),
+    [effectiveServiceType, selectedService, instanceForm]
+  );
+
+  useEffect(() => {
+    if (instance || !selectedServiceId) {
+      return;
+    }
+    if (effectiveServiceType !== 'event' && effectiveServiceType !== 'training_course') {
+      return;
+    }
+    if (createSlugTouchedRef.current) {
+      return;
+    }
+    const next = suggestedCreateSlug.trim().toLowerCase();
+    queueMicrotask(() => {
+      setInstanceForm((prev) => ({ ...prev, slug: next }));
+    });
+  }, [instance, selectedServiceId, effectiveServiceType, suggestedCreateSlug]);
+
   const effectiveSessionSlotDefaultLocationId =
     instanceForm.locationId.trim() || selectedService?.locationId?.trim() || null;
 
@@ -477,6 +514,8 @@ export function InstanceDetailPanel({
   );
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] | null => {
+    setSlugSubmitError('');
+    setSlugConflictError('');
     const slotsPayload = buildSessionSlotsUtcPayload(instanceForm.sessionSlots);
     if (!slotsPayload.ok) {
       setSessionSlotsError(slotsPayload.message);
@@ -484,10 +523,25 @@ export function InstanceDetailPanel({
     }
     setSessionSlotsError('');
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
+    if (effectiveServiceType === 'event' || effectiveServiceType === 'training_course') {
+      if (!slugTrimmed) {
+        setSlugSubmitError('slug is required for event and training_course instances');
+        return null;
+      }
+      if (!INSTANCE_SLUG_PATTERN.test(slugTrimmed)) {
+        setSlugSubmitError(
+          'Use lowercase letters, digits, and single hyphens between segments.'
+        );
+        return null;
+      }
+    }
     const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
-      slug: slugTrimmed || null,
+      slug:
+        effectiveServiceType === 'consultation'
+          ? slugTrimmed || null
+          : slugTrimmed,
       description: instanceForm.description.trim() || null,
       status: instanceForm.status,
       delivery_mode: instanceForm.deliveryMode || undefined,
@@ -590,6 +644,69 @@ export function InstanceDetailPanel({
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
+  const slugFieldMode =
+    effectiveServiceType === 'consultation' ? 'optional' : 'required';
+  const slugFieldError = [slugSubmitError, slugConflictError].filter(Boolean).join(' ');
+  const slugFieldAccessory =
+    !instance && (effectiveServiceType === 'event' || effectiveServiceType === 'training_course') ? (
+      <Button
+        type='button'
+        variant='secondary'
+        className='text-xs'
+        onClick={() => {
+          createSlugTouchedRef.current = false;
+          setSlugConflictError('');
+          setSlugSubmitError('');
+          setInstanceForm((prev) => ({
+            ...prev,
+            slug: suggestedCreateSlug.trim().toLowerCase(),
+          }));
+        }}
+      >
+        Reset to suggestion
+      </Button>
+    ) : null;
+
+  const runCreate = async () => {
+    if (!selectedServiceId) {
+      return;
+    }
+    const payload = buildCreatePayload();
+    if (!payload) {
+      return;
+    }
+    try {
+      await onCreate(selectedServiceId, payload);
+      setSlugConflictError('');
+    } catch (err) {
+      if (err instanceof AdminApiError && err.statusCode === 409 && readAdminApiErrorField(err) === 'slug') {
+        setSlugConflictError(err.message || 'This slug is already in use.');
+        return;
+      }
+      throw err;
+    }
+  };
+
+  const runUpdate = async () => {
+    if (!instance || !selectedServiceId) {
+      return;
+    }
+    const payload = buildUpdatePayload();
+    if (!payload) {
+      return;
+    }
+    try {
+      await onUpdate(selectedServiceId, instance.id, payload);
+      setSlugConflictError('');
+    } catch (err) {
+      if (err instanceof AdminApiError && err.statusCode === 409 && readAdminApiErrorField(err) === 'slug') {
+        setSlugConflictError(err.message || 'This slug is already in use.');
+        return;
+      }
+      throw err;
+    }
+  };
+
   return (
     <AdminEditorCard
       title='Instance'
@@ -612,14 +729,7 @@ export function InstanceDetailPanel({
                     cohortInvalid
                   }
                   onClick={() => {
-                    if (!instance || !selectedServiceId) {
-                      return;
-                    }
-                    const payload = buildUpdatePayload();
-                    if (!payload) {
-                      return;
-                    }
-                    void onUpdate(selectedServiceId, instance.id, payload);
+                    void runUpdate();
                   }}
                 >
                   {isLoading ? 'Updating...' : 'Update instance'}
@@ -636,14 +746,7 @@ export function InstanceDetailPanel({
                   cohortInvalid
                 }
                 onClick={() => {
-                  if (!selectedServiceId) {
-                    return;
-                  }
-                  const payload = buildCreatePayload();
-                  if (!payload) {
-                    return;
-                  }
-                  void onCreate(selectedServiceId, payload);
+                  void runCreate();
                 }}
               >
                 {isLoading ? 'Adding...' : 'Add instance'}
@@ -666,7 +769,18 @@ export function InstanceDetailPanel({
         instructorOptions={instructorUsers}
         isLoadingInstructors={isLoadingInstructors}
         onSelectService={handleSelectService}
-        onChange={setInstanceForm}
+        onChange={(next) => {
+          if (next.slug !== instanceForm.slug) {
+            setSlugConflictError('');
+            if (!instance) {
+              createSlugTouchedRef.current = true;
+            }
+          }
+          setInstanceForm(next);
+        }}
+        slugFieldMode={slugFieldMode}
+        slugFieldError={slugFieldError}
+        slugFieldAccessory={slugFieldAccessory}
       />
 
       {effectiveServiceType === 'training_course' ? (

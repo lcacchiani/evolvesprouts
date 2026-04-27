@@ -84,6 +84,14 @@ def _valid_currencies() -> frozenset[str]:
     return frozenset(codes)
 
 
+def parse_required_service_instance_slug(value: Any, *, field: str = "slug") -> str:
+    """Return a normalized lowercase slug; raises ValidationError if missing or invalid."""
+    parsed = parse_optional_service_instance_slug(value, field=field)
+    if parsed is None:
+        raise ValidationError("slug is required", field=field)
+    return parsed
+
+
 def parse_optional_service_instance_slug(
     value: Any, *, field: str = "slug"
 ) -> str | None:

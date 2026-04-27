@@ -41,12 +41,23 @@ def _database_url() -> str | None:
     return url or None
 
 
+def _sqlalchemy_engine_url(url: str) -> str:
+    """Use psycopg v3; bare ``postgresql://`` defaults to psycopg2 in SQLAlchemy."""
+    if url.startswith("postgresql+") or url.startswith("postgres+"):
+        return url
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgres://")
+    return url
+
+
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
     """Mirrors admin PUT path: loaded instance + bulk reconcile + commit (no session.add)."""
     url = _database_url()
     assert url is not None
-    engine = create_engine(url)
+    engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
     service_id = uuid4()
@@ -193,7 +204,7 @@ def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
 def test_location_repository_two_partners_same_venue_distinct_ids() -> None:
     url = _database_url()
     assert url is not None
-    engine = create_engine(url)
+    engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
     area_id = uuid4()

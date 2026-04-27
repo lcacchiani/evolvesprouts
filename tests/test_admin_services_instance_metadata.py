@@ -57,6 +57,7 @@ def _minimal_training_service() -> Service:
 def test_parse_create_instance_payload_persists_cohort() -> None:
     service = _minimal_training_service()
     body = {
+        "slug": "spring-2026-run",
         "cohort": "Spring-2026",
         "training_details": {
             "training_format": "group",
@@ -72,6 +73,7 @@ def test_parse_create_instance_payload_persists_cohort() -> None:
 def test_parse_create_instance_payload_rejects_invalid_cohort_field() -> None:
     service = _minimal_training_service()
     body = {
+        "slug": "valid-slug",
         "cohort": "Bad_Slug",
         "training_details": {
             "training_format": "group",
@@ -88,6 +90,7 @@ def test_parse_create_instance_payload_rejects_invalid_cohort_field() -> None:
 def test_parse_create_instance_payload_rejects_deprecated_age_group() -> None:
     service = _minimal_training_service()
     body = {
+        "slug": "x",
         "age_group": "0-1",
         "training_details": {
             "training_format": "group",
@@ -113,6 +116,7 @@ def test_parse_create_instance_payload_accepts_tag_ids() -> None:
     service = _minimal_training_service()
     t1, t2 = uuid4(), uuid4()
     body = {
+        "slug": "tagged-run",
         "tag_ids": [str(t2), str(t1)],
         "training_details": {
             "training_format": "group",

@@ -7,10 +7,9 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatEnumLabel } from '@/lib/format';
 
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES } from '@/types/services';
 import type { ServiceDeliveryMode, ServiceStatus } from '@/types/services';
-
-const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export interface ServiceReferralSlugFieldProps {
   value: string;
@@ -36,7 +35,7 @@ export function ServiceReferralSlugField({
         placeholder='e.g. my-best-auntie'
         autoComplete='off'
       />
-      {value.trim() && !SLUG_PATTERN.test(value.trim()) ? (
+      {value.trim() && !INSTANCE_SLUG_PATTERN.test(value.trim()) ? (
         <p className='mt-1 text-xs text-red-600'>
           Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
           hyphen).

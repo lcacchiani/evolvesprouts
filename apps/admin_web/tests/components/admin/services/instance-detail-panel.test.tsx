@@ -408,7 +408,7 @@ describe('InstanceDetailPanel', () => {
     expect(optionTexts.some((t) => t.includes('Secret'))).toBe(false);
   });
 
-  it('prefills duplicate create from createPrefillInstance and sends null slug with cohort', async () => {
+  it('prefills duplicate create from createPrefillInstance and sends suggested slug with cohort', async () => {
     const user = userEvent.setup();
     const onCreate = vi.fn().mockResolvedValue(undefined);
     const prefill: ServiceInstance = {
@@ -491,7 +491,9 @@ describe('InstanceDetailPanel', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
     });
-    expect(screen.queryByLabelText('Slug')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^slug/i)).toHaveValue('alpha-service-spring-2026');
+    });
     expect(screen.getByLabelText('Description')).toHaveValue('Body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
@@ -503,7 +505,7 @@ describe('InstanceDetailPanel', () => {
     expect(onCreate).toHaveBeenCalledWith(
       'service-1',
       expect.objectContaining({
-        slug: null,
+        slug: 'alpha-service-spring-2026',
         cohort: 'spring-2026',
       })
     );
