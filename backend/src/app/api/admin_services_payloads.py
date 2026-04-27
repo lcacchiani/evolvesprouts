@@ -362,7 +362,6 @@ def parse_create_instance_payload(
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
         "slug": slug_value,
-        "landing_page": parse_optional_text(body.get("landing_page"), max_length=255),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -423,10 +422,6 @@ def parse_update_instance_payload(
                 field="slug",
             )
         payload["slug"] = parsed_slug
-    if has_field(body, "landing_page"):
-        payload["landing_page"] = parse_optional_text(
-            body.get("landing_page"), max_length=255
-        )
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH

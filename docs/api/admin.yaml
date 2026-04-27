@@ -3961,9 +3961,6 @@ components:
             Public-calendar visibility depends on this field. URL-safe: lowercase letters,
             digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
             to lowercase.
-        landing_page:
-          type: string
-          nullable: true
         description:
           type: string
           nullable: true

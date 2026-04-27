@@ -21,7 +21,6 @@ def _instance_row(
     delivery_mode_value: str = "in_person",
     max_capacity: int | None = 10,
     slug: str | None = "spring-workshop",
-    landing_page: str | None = "spring-workshop",
 ) -> Any:
     starts = datetime(2026, 4, 20, 18, 0, tzinfo=UTC)
     ends = datetime(2026, 4, 20, 20, 0, tzinfo=UTC)
@@ -43,7 +42,6 @@ def _instance_row(
         id=uuid4(),
         title="Spring Workshop",
         slug=slug,
-        landing_page=landing_page,
         description="Learn together",
         status=status,
         service=service,
@@ -111,12 +109,12 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             assert limit == 100
             assert isinstance(now, datetime)
-            assert landing_page is None
+            assert slug is None
             assert service_types is None
             assert service_key is None
             return [
@@ -150,7 +148,7 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert len(body["items"]) == 2
     assert body["items"][0]["external_url"] == "https://www.eventbrite.com/e/demo"
     assert body["items"][0]["slug"] == "spring-workshop"
-    assert body["items"][0]["landing_page"] == "spring-workshop"
+    assert "landing_page" not in body["items"][0]
     assert body["items"][0]["spaces_total"] == 10
     assert body["items"][0]["spaces_left"] == 9
     assert body["items"][1]["booking_status"] == "fully_booked"
@@ -187,14 +185,13 @@ def test_handle_public_events_skips_instances_without_valid_slug(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             return [
                 _instance_row(
                     status=public_events.InstanceStatus.OPEN,
                     slug=None,
-                    landing_page=None,
                 )
             ]
 
@@ -243,7 +240,7 @@ def test_handle_public_events_includes_instance_when_slug_is_set(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             return [row]
@@ -264,7 +261,7 @@ def test_handle_public_events_includes_instance_when_slug_is_set(
     assert body["items"][0]["slug"] == "spring-workshop-2026-04-20"
 
 
-def test_handle_public_events_landing_page_filter(
+def test_handle_public_events_slug_filter(
     monkeypatch: Any, api_gateway_event: Any
 ) -> None:
     captured: dict[str, Any] = {}
@@ -292,10 +289,10 @@ def test_handle_public_events_landing_page_filter(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
-            captured["landing_page"] = landing_page
+            captured["slug"] = slug
             captured["service_types"] = service_types
             captured["service_key"] = service_key
             return [_instance_row(status=public_events.InstanceStatus.OPEN)]
@@ -313,18 +310,18 @@ def test_handle_public_events_landing_page_filter(
         api_gateway_event(
             method="GET",
             path="/v1/calendar/public",
-            query_params={"landing_page": slug},
+            query_params={"slug": slug},
         ),
         "GET",
     )
     assert response["statusCode"] == 200
-    assert captured["landing_page"] == slug
+    assert captured["slug"] == slug
     body = json.loads(response["body"])
     assert len(body["events"]) == 1
     assert response["headers"]["Cache-Control"] == _EXPECTED_CACHE_CONTROL_SUCCESS
 
 
-def test_handle_public_events_invalid_landing_page_ignored(
+def test_handle_public_events_invalid_slug_ignored(
     monkeypatch: Any, api_gateway_event: Any
 ) -> None:
     captured: dict[str, Any] = {}
@@ -352,10 +349,10 @@ def test_handle_public_events_invalid_landing_page_ignored(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
-            captured["landing_page"] = landing_page
+            captured["slug"] = slug
             captured["service_key"] = service_key
             return []
 
@@ -369,11 +366,11 @@ def test_handle_public_events_invalid_landing_page_ignored(
     public_events.handle_public_events(
         api_gateway_event(
             method="GET",
-            query_params={"landing_page": "Invalid.Slug"},
+            query_params={"slug": "Invalid.Slug"},
         ),
         "GET",
     )
-    assert captured["landing_page"] is None
+    assert captured["slug"] is None
 
 
 def test_handle_public_events_service_type_training_course(
@@ -404,7 +401,7 @@ def test_handle_public_events_service_type_training_course(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_types"] = service_types
@@ -457,7 +454,7 @@ def test_handle_public_events_invalid_service_type_defaults(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_types"] = service_types
@@ -510,7 +507,7 @@ def test_handle_public_events_service_key_passthrough(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_key"] = service_key
@@ -561,7 +558,7 @@ def test_handle_public_events_service_key_trims_and_lowercases(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_key"] = service_key
@@ -612,7 +609,7 @@ def test_handle_public_events_service_key_invalid_ignored(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_key"] = service_key
@@ -664,7 +661,7 @@ def test_handle_public_events_service_key_too_long_ignored(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_key"] = service_key
@@ -715,7 +712,7 @@ def test_handle_public_events_service_key_blank_ignored(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_key"] = service_key
@@ -773,7 +770,7 @@ def test_handle_public_events_service_key_unknown_returns_empty(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             assert service_key == "unknown-service"
@@ -826,11 +823,11 @@ def test_handle_public_events_combined_filters(
             limit: int,
             now: datetime,
             service_types: Any,
-            landing_page: str | None,
+            slug: str | None,
             service_key: str | None,
         ) -> list[Any]:
             captured["service_types"] = service_types
-            captured["landing_page"] = landing_page
+            captured["slug"] = slug
             captured["service_key"] = service_key
             return []
 
@@ -847,14 +844,14 @@ def test_handle_public_events_combined_filters(
             query_params={
                 "service_key": "my-best-auntie",
                 "service_type": "training_course",
-                "landing_page": "foo-bar",
+                "slug": "foo-bar",
             },
         ),
         "GET",
     )
     assert captured["service_key"] == "my-best-auntie"
     assert captured["service_types"] == {ServiceType.TRAINING_COURSE}
-    assert captured["landing_page"] == "foo-bar"
+    assert captured["slug"] == "foo-bar"
 
 
 def test_parse_service_key_none() -> None:

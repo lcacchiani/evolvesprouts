@@ -90,14 +90,14 @@ def test_list_public_offerings_service_key_combines_with_other_filters() -> None
         limit=5,
         now=now,
         service_types={ServiceType.TRAINING_COURSE},
-        landing_page="foo-bar",
+        slug="foo-bar",
         service_key="my-best-auntie",
     )
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
     assert "lower(services.slug) = 'my-best-auntie'" in sql
-    assert "service_instances.landing_page = 'foo-bar'" in sql
+    assert "lower(service_instances.slug) = 'foo-bar'" in sql
     assert "services.service_type IN ('training_course')" in sql
 
 
@@ -116,7 +116,7 @@ def test_list_public_offerings_service_key_not_applied_when_none() -> None:
     assert "lower(services.slug)" not in sql
 
 
-def test_list_public_offerings_landing_page_filter() -> None:
+def test_list_public_offerings_slug_filter() -> None:
     mock_session = MagicMock()
     exec_result = MagicMock()
     exec_result.unique.return_value.scalars.return_value.all.return_value = []
@@ -125,11 +125,11 @@ def test_list_public_offerings_landing_page_filter() -> None:
     repo = ServiceInstanceRepository(mock_session)
     now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
     slug = "may-2026-the-missing-piece"
-    repo.list_public_offerings(limit=5, now=now, landing_page=slug)
+    repo.list_public_offerings(limit=5, now=now, slug=slug)
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
-    assert f"service_instances.landing_page = '{slug}'" in sql
+    assert f"lower(service_instances.slug) = '{slug}'" in sql
 
 
 def test_list_event_instances_for_public_feed_wraps_list_public_offerings() -> None:

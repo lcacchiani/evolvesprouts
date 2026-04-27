@@ -105,7 +105,6 @@ export const publicCalendarFixture = {
       title: 'Easter 2026 Montessori Play Coaching Workshop',
       description:
         'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
-      landing_page: 'easter-2026-montessori-play-coaching-workshop',
       tags: ['1-4', 'Parent + Child', 'Helpers Welcome'],
       categories: ['Workshop'],
       partners: ['happy-baton', 'baumhaus'],
@@ -129,13 +128,12 @@ export const publicCalendarFixture = {
       location_address: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
       location_url:
         'https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai',
-      slug: 'easter-2026-montessori-play-coaching-workshop-2026-04-06',
+      slug: 'easter-2026-montessori-play-coaching-workshop',
     },
     {
       title: 'The Missing Piece',
       description:
         'A hands-on workshop for families with children aged 0–2: the right toys, simple play-space tweaks, and practical tools your helper can use right away. Hosted with Little HK at Acorn Playhouse.',
-      landing_page: 'may-2026-the-missing-piece',
       tags: ['0-2', 'Parent + Child', 'Helpers Welcome'],
       categories: ['Workshop'],
       partners: ['little-hk'],
@@ -159,7 +157,7 @@ export const publicCalendarFixture = {
       location_address: '3/F, 4 Yip Fat St, Wong Chuk Hang',
       location_url:
         'https://www.google.com/maps/dir/?api=1&destination=3%2FF%2C+4+Yip+Fat+St%2C+Wong+Chuk+Hang',
-      slug: 'the-missing-piece-2026-05-16',
+      slug: 'may-2026-the-missing-piece',
     },
   ],
 };

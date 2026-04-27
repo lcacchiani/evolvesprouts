@@ -43,10 +43,10 @@ export const CONSULTATION_BOOKING_SYSTEM = 'consultation-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
-/** Query keys for `GET /v1/calendar/public` (OpenAPI: `service_type`, `landing_page`, `service_key`). */
+/** Query keys for `GET /v1/calendar/public` (OpenAPI: `service_type`, `slug`, `service_key`). */
 export interface EventsFetchParams {
   serviceType?: 'event' | 'training_course';
-  landingPage?: string;
+  slug?: string;
   serviceKey?: string;
 }
 
@@ -76,7 +76,7 @@ export interface EventCalendarBookingModalPayload {
   dateParts: EventBookingDatePart[];
   selectedDateLabel: string;
   selectedDateStartTime: string;
-  /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
+  /** From landing page JSON `cta.bookingTopicsField` when `slug` matches a registered page. */
   topicsFieldConfig?: BookingTopicsFieldConfig;
   /** Optional notes/topics prefill when opening via `EventBookingModal` (e.g. landing CTA). */
   topicsPrefill?: string;
@@ -365,8 +365,7 @@ function resolveBookingTopicsFieldFromLandingPage(
   record: Record<string, unknown>,
   locale: Locale,
 ): BookingTopicsFieldConfig | undefined {
-  const landingPageSlug =
-    readCandidateText(record, ['landing_page', 'landingPage'])?.trim() ?? '';
+  const landingPageSlug = readCandidateText(record, ['slug'])?.trim() ?? '';
   if (!landingPageSlug || !isValidLandingPageSlug(landingPageSlug)) {
     return undefined;
   }
@@ -741,7 +740,7 @@ function buildEventsApiUrl(crmApiBaseUrl: string): string {
 
 /**
  * Builds the calendar public endpoint path including optional filters
- * (`service_type`, `landing_page`, `service_key`).
+ * (`service_type`, `slug`, `service_key`).
  */
 export function buildEventsApiPath(params?: EventsFetchParams): string {
   if (!params) {
@@ -752,8 +751,8 @@ export function buildEventsApiPath(params?: EventsFetchParams): string {
   if (params.serviceType) {
     search.set('service_type', params.serviceType);
   }
-  if (params.landingPage?.trim()) {
-    search.set('landing_page', params.landingPage.trim());
+  if (params.slug?.trim()) {
+    search.set('slug', params.slug.trim());
   }
   if (params.serviceKey?.trim()) {
     search.set('service_key', params.serviceKey.trim());
@@ -1023,12 +1022,12 @@ export function findLandingPageEventInPayload(
       continue;
     }
 
-    const landingPageSlug = readCandidateText(record, ['landing_page', 'landingPage']);
-    if (!landingPageSlug) {
+    const eventSlug = readCandidateText(record, ['slug']);
+    if (!eventSlug) {
       continue;
     }
 
-    if (landingPageSlug.trim().toLowerCase() === normalizedSlug) {
+    if (eventSlug.trim().toLowerCase() === normalizedSlug) {
       return record;
     }
   }

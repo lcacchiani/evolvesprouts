@@ -273,7 +273,7 @@ paths:
         omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
-        Optional filters: `service_type`, `landing_page`, `service_key`. Filters
+        Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
       security:
         - ApiKeyAuth: []
@@ -287,16 +287,16 @@ paths:
           description: >
             Restrict feed to one service type. Omitted = both event and
             training_course are returned. Consultation is never exposed.
-        - name: landing_page
+        - name: slug
           in: query
           required: false
           schema:
             type: string
-            maxLength: 255
+            maxLength: 128
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
             Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
+            `service_instances.slug` matches the provided slug case-insensitively.
             Invalid or empty values are silently ignored.
         - name: service_key
           in: query
@@ -309,10 +309,10 @@ paths:
             Restrict the feed to instances of a single service whose slug matches
             `service_key` case-insensitively against `services.slug` in Aurora
             (e.g. `my-best-auntie`). Combines with `service_type` and
-            `landing_page` via logical AND; contradictory combinations return
+            `slug` via logical AND; contradictory combinations return
             `events: []`. Unknown slugs return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
-            applied, consistent with `service_type` and `landing_page`.
+            applied, consistent with `service_type` and `slug`.
             Same case-insensitive `services.slug` mapping as the `service_key` field
             on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
@@ -349,7 +349,7 @@ paths:
         omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
-        Optional filters: `service_type`, `landing_page`, `service_key`. Filters
+        Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
       security:
         - ApiKeyAuth: []
@@ -363,16 +363,16 @@ paths:
           description: >
             Restrict feed to one service type. Omitted = both event and
             training_course are returned. Consultation is never exposed.
-        - name: landing_page
+        - name: slug
           in: query
           required: false
           schema:
             type: string
-            maxLength: 255
+            maxLength: 128
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
             Filter results to at most one instance whose
-            `service_instances.landing_page` matches the provided slug.
+            `service_instances.slug` matches the provided slug case-insensitively.
             Invalid or empty values are silently ignored.
         - name: service_key
           in: query
@@ -385,10 +385,10 @@ paths:
             Restrict the feed to instances of a single service whose slug matches
             `service_key` case-insensitively against `services.slug` in Aurora
             (e.g. `my-best-auntie`). Combines with `service_type` and
-            `landing_page` via logical AND; contradictory combinations return
+            `slug` via logical AND; contradictory combinations return
             `events: []`. Unknown slugs return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
-            applied, consistent with `service_type` and `landing_page`.
+            applied, consistent with `service_type` and `slug`.
             Same case-insensitive `services.slug` mapping as the `service_key` field
             on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
@@ -1119,9 +1119,6 @@ components:
             Stable public identifier for the offering. Maps to `service_instances.slug`.
             The calendar feed omits rows where the instance slug is missing or does not match
             this public pattern (invalid values are filtered server-side).
-        landing_page:
-          type: string
-          nullable: true
         service_tier:
           type: string
           nullable: true

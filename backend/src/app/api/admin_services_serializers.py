@@ -253,7 +253,6 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         "parent_service_type": service.service_type.value,
         "title": instance.title,
         "slug": instance.slug,
-        "landing_page": instance.landing_page,
         "description": instance.description,
         "cover_image_s3_key": instance.cover_image_s3_key,
         "status": instance.status.value,

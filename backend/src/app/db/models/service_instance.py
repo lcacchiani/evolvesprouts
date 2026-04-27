@@ -84,7 +84,6 @@ class ServiceInstance(Base):
     )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     slug: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    landing_page: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     cover_image_s3_key: Mapped[str | None] = mapped_column(String(), nullable=True)
     status: Mapped[InstanceStatus] = mapped_column(
