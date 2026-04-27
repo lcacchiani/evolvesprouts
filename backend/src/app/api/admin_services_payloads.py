@@ -354,6 +354,7 @@ def parse_create_instance_payload(
 ) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
     _reject_deprecated_instance_age_group(body)
+    slug_value: str | None
     if service.service_type in (ServiceType.EVENT, ServiceType.TRAINING_COURSE):
         slug_value = parse_required_service_instance_slug(body.get("slug"))
     else:
