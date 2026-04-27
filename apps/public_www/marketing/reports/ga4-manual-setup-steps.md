@@ -122,7 +122,7 @@ parameters via `dataLayer` events (see `src/lib/analytics-taxonomy.json`):
 | `form_type`      | Form Type          | Contact or signup form variant. |
 | `error_type`     | Error Type         | Error classification for failed submissions. |
 | `resource_key`   | Resource Key       | Identifier for the downloadable media guide. |
-| `age_group`      | Age Group          | Selected age group for booking events. |
+| `service_tier`   | Service Tier       | Selected service tier label for booking events. |
 | `cohort_label`   | Cohort Label       | Selected cohort / date label for bookings. |
 | `cohort_date`    | Cohort Date        | Cohort start date (YYYY-MM-DD). |
 | `is_fully_booked`| Is Fully Booked    | Whether the selected cohort is fully booked. |

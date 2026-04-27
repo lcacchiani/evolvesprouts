@@ -72,7 +72,7 @@ Use coarse categories only (no field names or user input):
 ### `booking_submit_error` required keys vs empty values
 
 The contract requires these custom params on every `booking_submit_error` hit:
-`payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` (plus
+`payment_method`, `service_tier`, `cohort_date`, `total_amount`, `error_type` (plus
 `form_kind` from `trackPublicFormOutcome`). **Keys must always be present** so GTM
 variables and downstream joins stay stable. On early-abort paths
 (`service_unavailable`, `validation_error`, or `payment_error` before full state),
@@ -104,18 +104,18 @@ data bug.
 | `community_signup_submit_attempt` | Community signup submit attempt | `section_id`, `form_type`, `form_kind` | No |
 | `community_signup_submit_success` | Sprouts/Event signup success | `section_id`, `form_type`, `form_kind` | Yes |
 | `community_signup_submit_error` | Sprouts/Event signup error | `section_id`, `form_type`, `form_kind`, `error_type` | No |
-| `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `age_group`, `cohort_label` | No |
-| `booking_age_selected` | Age option selected | `section_id`, `age_group` | No |
-| `booking_date_selected` | Date/cohort selected | `section_id`, `cohort_label`, `is_fully_booked` | No |
-| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `age_group`, `cohort_label`, `total_amount` | Yes |
+| `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `service_tier`, `cohort_label` | No |
+| `booking_age_selected` | Age option selected | `section_id`, `service_tier` | No |
+| `booking_date_selected` | Date/cohort selected | `section_id`, `service_tier`, `cohort_label`, `is_fully_booked` | No |
+| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `service_tier`, `cohort_label`, `total_amount` | Yes |
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
 | `booking_discount_autoapply_success` | Referral / URL-prefilled discount applied successfully (same semantics as manual apply; distinct event for funnel analysis) | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_autoapply_error` | Referral / URL-prefilled discount failed (invalid code, API, or unavailable client) | `section_id`, `error_type` | No |
-| `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies. For zero-total (free) bookings, `payment_method` is `free` and `total_amount` is `0`. | No |
-| `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `age_group`, `cohort_date`. For free bookings, `payment_method` is `free`. | Yes |
-| `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `age_group`, `cohort_date`, `total_amount`, `error_type` | No |
+| `booking_submit_attempt` | Reservation form submit invoked (before validation, API, or Stripe) | `section_id`, `form_kind`, `payment_method`, `service_tier`, `cohort_date`, `total_amount`; optional `cohort_label`, `discount_amount`, `discount_type` when a discount applies. For zero-total (free) bookings, `payment_method` is `free` and `total_amount` is `0`. | No |
+| `booking_submit_success` | `/v1/reservations` success | `section_id`, `form_kind`, `payment_method`, `total_amount`, `service_tier`, `cohort_date`. For free bookings, `payment_method` is `free`. | Yes |
+| `booking_submit_error` | Reservation validation, Stripe, or API error | `section_id`, `form_kind`, `payment_method`, `service_tier`, `cohort_date`, `total_amount`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_thank_you_ics_download` | Thank-you modal calendar (.ics) download | `section_id`, `cohort_date`, `total_amount` | No |
 | `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
@@ -146,7 +146,7 @@ setup below).
 2. Create or confirm a **Web Data Stream** for the public site domain.
 3. In GA4 Admin, create event-scoped custom dimensions for:
    - `section_id`, `cta_location`, `form_type`, `form_kind`, `form_id`,
-     `payment_method`, `age_group`, `cohort_label`, `cohort_date`, `resource_key`,
+     `payment_method`, `service_tier`, `cohort_label`, `cohort_date`, `resource_key`,
      `error_type`, `discount_type`, `landing_page_slug`
 4. Create custom metrics for:
    - `total_amount`, `discount_amount`
@@ -177,7 +177,7 @@ setup below).
 5. Define variables for common parameters:
    - page metadata (`page_path`, `page_title`)
    - locale and section context (`page_locale`, `section_id`, `cta_location`)
-   - booking context (`payment_method`, `cohort_label`, `age_group`, amounts)
+   - booking context (`payment_method`, `cohort_label`, `service_tier`, amounts)
 6. Attach common parameters to all event tags.
 7. Use GTM Preview to validate every event and parameter.
 8. Validate in GA4 DebugView.

@@ -138,7 +138,7 @@
     "booking_modal_open": {
       "requiredCustomParams": [],
       "allowedCustomParams": [
-        "age_group",
+        "service_tier",
         "cohort_label",
         "cohort_date"
       ],
@@ -148,7 +148,7 @@
       "requiredCustomParams": [
         "form_kind",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "total_amount"
       ],
@@ -156,7 +156,7 @@
         "form_kind",
         "form_id",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "cohort_label",
         "total_amount",
@@ -167,20 +167,20 @@
     },
     "booking_age_selected": {
       "requiredCustomParams": [
-        "age_group"
+        "service_tier"
       ],
       "allowedCustomParams": [
-        "age_group"
+        "service_tier"
       ],
       "ga4KeyEvent": false
     },
     "booking_date_selected": {
       "requiredCustomParams": [
-        "age_group",
+        "service_tier",
         "cohort_label"
       ],
       "allowedCustomParams": [
-        "age_group",
+        "service_tier",
         "cohort_label",
         "cohort_date",
         "is_fully_booked"
@@ -189,13 +189,13 @@
     },
     "booking_confirm_pay_click": {
       "requiredCustomParams": [
-        "age_group",
+        "service_tier",
         "cohort_label",
         "cohort_date",
         "total_amount"
       ],
       "allowedCustomParams": [
-        "age_group",
+        "service_tier",
         "cohort_label",
         "cohort_date",
         "total_amount"
@@ -255,7 +255,7 @@
       "requiredCustomParams": [
         "form_kind",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "total_amount"
       ],
@@ -263,7 +263,7 @@
         "form_kind",
         "form_id",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "cohort_label",
         "total_amount",
@@ -276,7 +276,7 @@
       "requiredCustomParams": [
         "form_kind",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "total_amount",
         "error_type"
@@ -285,7 +285,7 @@
         "form_kind",
         "form_id",
         "payment_method",
-        "age_group",
+        "service_tier",
         "cohort_date",
         "total_amount",
         "error_type"
@@ -300,7 +300,7 @@
       "allowedCustomParams": [
         "payment_method",
         "total_amount",
-        "age_group",
+        "service_tier",
         "cohort_date"
       ],
       "ga4KeyEvent": false
@@ -321,7 +321,7 @@
       ],
       "allowedCustomParams": [
         "landing_page_slug",
-        "age_group",
+        "service_tier",
         "cohort_label"
       ],
       "ga4KeyEvent": false
