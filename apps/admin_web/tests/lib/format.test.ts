@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   compareInstancesByFirstSlotStartsDesc,
@@ -13,6 +13,7 @@ import {
   formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   getFirstSessionSlotStartTimeMs,
+  getSessionSlotClosestToNow,
   getContentLanguageOptions,
   getCurrencyOptions,
   matchAdminSelectableContentLanguage,
@@ -72,6 +73,56 @@ describe('format helpers', () => {
     expect(ordered.map((s) => s.id)).toEqual(['b', 'a']);
   });
 
+  describe('getSessionSlotClosestToNow', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-06-01T12:00:00.000Z'));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('returns null when no valid slot times', () => {
+      expect(getSessionSlotClosestToNow([])).toBeNull();
+      expect(
+        getSessionSlotClosestToNow([
+          { id: 'x', instanceId: null, locationId: null, startsAt: null, endsAt: null, sortOrder: 0 },
+        ])
+      ).toBeNull();
+    });
+
+    it('picks the slot with smallest absolute distance to now', () => {
+      const slots: SessionSlot[] = [
+        { id: 'far-past', instanceId: null, locationId: null, startsAt: '2026-01-01T10:00:00Z', endsAt: null, sortOrder: 0 },
+        { id: 'soon', instanceId: null, locationId: null, startsAt: '2026-06-01T18:00:00Z', endsAt: null, sortOrder: 1 },
+        { id: 'far-future', instanceId: null, locationId: null, startsAt: '2026-12-01T10:00:00Z', endsAt: null, sortOrder: 2 },
+      ];
+      expect(getSessionSlotClosestToNow(slots)?.id).toBe('soon');
+    });
+
+    it('breaks distance ties using orderSessionSlotsForDisplay order', () => {
+      const slots: SessionSlot[] = [
+        {
+          id: 'first',
+          instanceId: null,
+          locationId: null,
+          startsAt: '2026-06-01T00:00:00Z',
+          endsAt: null,
+          sortOrder: 0,
+        },
+        {
+          id: 'second',
+          instanceId: null,
+          locationId: null,
+          startsAt: '2026-06-02T00:00:00Z',
+          endsAt: null,
+          sortOrder: 1,
+        },
+      ];
+      expect(getSessionSlotClosestToNow(slots)?.id).toBe('first');
+    });
+  });
+
   it('formats service title with tier using spaced interpunct when tier is set', () => {
     expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga · adults');
     expect(formatServiceTitleWithTier('Yoga', null)).toBe('Yoga');
@@ -126,10 +177,8 @@ describe('format helpers', () => {
         parentServiceTitle: null,
       })
     ).toBe('');
-    expect(formatInstanceTableTitle({ ...base(), title: 'My run', cohort: 'spring-2024' })).toBe(
-      'My run · spring-2024'
-    );
-    expect(formatInstanceTableTitle({ ...base(), cohort: 'spring-2024' })).toBe('Parent · tier-a · spring-2024');
+    expect(formatInstanceTableTitle({ ...base(), title: 'My run', cohort: 'spring-2024' })).toBe('My run');
+    expect(formatInstanceTableTitle({ ...base(), cohort: 'spring-2024' })).toBe('Parent · tier-a');
     expect(
       formatInstanceTableTitle({
         ...base(),
@@ -138,7 +187,7 @@ describe('format helpers', () => {
         parentServiceTier: null,
         cohort: 'spring-2024',
       })
-    ).toBe('spring-2024');
+    ).toBe('');
   });
 
   it('summarizes instance locations including partner org venues', () => {
