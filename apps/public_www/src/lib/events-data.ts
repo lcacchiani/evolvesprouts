@@ -8,7 +8,14 @@ import {
   readOptionalText,
   toRecord,
 } from '@/content/content-field-utils';
-import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
+import {
+  type CrmApiClient,
+  buildCrmApiUrl,
+  createPublicCrmApiClient,
+  CrmApiRequestError,
+  isAbortRequestError,
+} from '@/lib/crm-api-client';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 import { formatCohortValue } from '@/lib/format';
 import { ROUTES } from '@/lib/routes';
 import {
@@ -33,8 +40,19 @@ export const EVENTS_API_PATH = '/v1/calendar/public';
  */
 export const MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY =
   'my-best-auntie-training-course';
-/** Shared timeout for server-side calendar fetches (events, MBA, landing pages). */
-export const CALENDAR_PUBLIC_FETCH_TIMEOUT_MS = 5000;
+
+/** Timeout for server-side / static-export calendar fetches (events, MBA, landing pages). */
+export const CALENDAR_PUBLIC_BUILD_FETCH_TIMEOUT_MS = 15_000;
+
+/** Timeout for client-side landing page calendar refresh (see `useLandingPageCalendar`). */
+export const CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS = 5_000;
+
+/**
+ * @deprecated Use {@link CALENDAR_PUBLIC_BUILD_FETCH_TIMEOUT_MS} for server/export fetches
+ * or {@link CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS} for client hooks. This alias matches
+ * the build timeout for backward compatibility with existing imports.
+ */
+export const CALENDAR_PUBLIC_FETCH_TIMEOUT_MS = CALENDAR_PUBLIC_BUILD_FETCH_TIMEOUT_MS;
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
@@ -966,6 +984,84 @@ export async function fetchEventsPayload(
     method: 'GET',
     signal,
   });
+}
+
+function resolveLandingPageCalendarFetchFailureReason(error: unknown): string {
+  if (isAbortRequestError(error)) {
+    return 'timeout';
+  }
+
+  if (error instanceof CrmApiRequestError) {
+    if (error.statusCode >= 500) {
+      return 'http_5xx';
+    }
+    if (error.statusCode >= 400) {
+      return 'http_4xx';
+    }
+  }
+
+  return 'fetch_error';
+}
+
+export interface FetchLandingPageCalendarPayloadOptions {
+  slug: string;
+  timeoutMs?: number;
+  attempts?: number;
+}
+
+export interface FetchLandingPageCalendarPayloadResult {
+  payload: unknown | null;
+  lastError: unknown | null;
+}
+
+/**
+ * Server-side fetch for landing page calendar with per-attempt timeout and retries.
+ * Reports every failed attempt (including timeouts) via {@link reportInternalError}.
+ */
+export async function fetchLandingPageCalendarPayload({
+  slug,
+  timeoutMs = CALENDAR_PUBLIC_BUILD_FETCH_TIMEOUT_MS,
+  attempts = 2,
+}: FetchLandingPageCalendarPayloadOptions): Promise<FetchLandingPageCalendarPayloadResult> {
+  const crmApiClient = createPublicCrmApiClient();
+  if (!crmApiClient) {
+    const error = new Error('CRM API client is not configured');
+    reportInternalError({
+      context: 'landing-page-calendar-fetch',
+      error,
+      metadata: { slug, attempt: 0, reason: 'missing_public_crm_client' },
+    });
+    return { payload: null, lastError: error };
+  }
+
+  const normalizedAttempts = Math.max(1, attempts);
+  let lastError: unknown | null = null;
+
+  for (let attempt = 1; attempt <= normalizedAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const payload = await fetchEventsPayload(crmApiClient, controller.signal, {
+        slug,
+      });
+      return { payload, lastError: null };
+    } catch (error) {
+      lastError = error;
+      const reason = resolveLandingPageCalendarFetchFailureReason(error);
+      reportInternalError({
+        context: 'landing-page-calendar-fetch',
+        error,
+        metadata: { slug, attempt, reason },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  return { payload: null, lastError };
 }
 
 export function resolveEventsApiUrl(
