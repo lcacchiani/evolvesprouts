@@ -598,7 +598,7 @@ describe('events-data', () => {
       bookingPayload: {
         variant: 'event',
         service: 'event',
-        serviceKey: 'the-missing-piece-2026-05-16',
+        serviceKey: 'may-2026-the-missing-piece',
         title: 'The Missing Piece',
         locationName: 'Acorn Playhouse',
         locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',

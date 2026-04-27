@@ -272,7 +272,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .limit(limit)
         )
         if slug:
-            statement = statement.where(func.lower(ServiceInstance.slug) == slug.lower())
+            statement = statement.where(
+                func.lower(ServiceInstance.slug) == slug.lower()
+            )
         if service_key:
             statement = statement.where(func.lower(Service.slug) == service_key.lower())
         statement = statement.where(ServiceInstance.slug.is_not(None)).where(
