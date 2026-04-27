@@ -426,6 +426,17 @@ function handler(event) {
 `),
       },
     );
+    // Serialize CloudFront Function updates inside this environment so
+    // CloudFormation does not exhaust the regional CloudFront Functions API
+    // rate limit. Without this chain, CDK schedules all four updates in
+    // parallel and AWS returns ``Limit exceeded ... Reason: Rate exceeded``
+    // (``ServiceLimitExceeded``), rolling the stack back. Production and
+    // staging environments still run in parallel with each other (2-way
+    // concurrency stays under the throttle); chain order is otherwise
+    // arbitrary because none of these functions reference each other.
+    wwwProxyAllowlistFunction.node.addDependency(pathRewriteFunction);
+    mediaRequestProxyFunction.node.addDependency(wwwProxyAllowlistFunction);
+    wwwApiErrorResponseFunction.node.addDependency(mediaRequestProxyFunction);
 
     const customHeaders: cloudfront.ResponseCustomHeader[] = [
       {
