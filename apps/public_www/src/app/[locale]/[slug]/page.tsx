@@ -95,7 +95,7 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
     try {
       calendarPayload = await fetchEventsPayload(crmApiClient, controller.signal, {
-        landingPage: resolvedParams.slug,
+        slug: resolvedParams.slug,
       });
     } catch (error) {
       if (!isAbortRequestError(error)) {

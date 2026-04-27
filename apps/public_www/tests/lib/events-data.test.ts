@@ -372,7 +372,7 @@ describe('events-data', () => {
     });
   });
 
-  it('merges landing page bookingTopicsField onto event-booking modal payload when landing_page matches', () => {
+  it('merges landing page bookingTopicsField onto event-booking modal payload when slug matches', () => {
     const payload = {
       data: [
         {
@@ -380,7 +380,7 @@ describe('events-data', () => {
           title: 'Easter Workshop',
           description: 'Workshop description',
           booking_system: 'event-booking',
-          landing_page: 'easter-2026-montessori-play-coaching-workshop',
+          slug: 'easter-2026-montessori-play-coaching-workshop',
           location_name: 'Venue',
           location_address: '123 Road',
           location_url: 'https://maps.google.com/?q=test',
@@ -503,7 +503,7 @@ describe('events-data', () => {
     expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
   });
 
-  it('resolves landing page hero content from calendar payload using landing_page slug', () => {
+  it('resolves landing page hero content from calendar payload using slug', () => {
     const heroEventContent = getLandingPageHeroEventContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
@@ -520,7 +520,7 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page booking payload from calendar payload using landing_page slug', () => {
+  it('resolves landing page booking payload from calendar payload using slug', () => {
     const bookingEventContent = getLandingPageBookingEventContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
@@ -536,7 +536,7 @@ describe('events-data', () => {
       bookingPayload: {
         variant: 'event',
         service: 'event',
-        serviceKey: 'easter-2026-montessori-play-coaching-workshop-2026-04-06',
+        serviceKey: 'easter-2026-montessori-play-coaching-workshop',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
         locationName: 'Baumhaus',
         locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
@@ -546,7 +546,7 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves landing page structured data content from calendar payload using landing_page slug', () => {
+  it('resolves landing page structured data content from calendar payload using slug', () => {
     const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
       publicCalendarFixture,
       'easter-2026-montessori-play-coaching-workshop',
@@ -598,7 +598,7 @@ describe('events-data', () => {
       bookingPayload: {
         variant: 'event',
         service: 'event',
-        serviceKey: 'the-missing-piece-2026-05-16',
+        serviceKey: 'may-2026-the-missing-piece',
         title: 'The Missing Piece',
         locationName: 'Acorn Playhouse',
         locationAddress: '3/F, 4 Yip Fat St, Wong Chuk Hang',

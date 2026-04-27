@@ -202,10 +202,15 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         limit: int,
         now: datetime,
         service_types: set[ServiceType] | None = None,
-        landing_page: str | None = None,
+        slug: str | None = None,
         service_key: str | None = None,
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services.
+
+        When ``slug`` is set, it is compared to ``lower(service_instances.slug)``;
+        the public handler passes a pre-normalized lowercase slug, and callers
+        that pass mixed case are still matched defensively via ``lower()`` on the
+        value.
 
         When ``service_key`` is set, it is compared to ``lower(services.slug)``; the
         public handler passes a pre-normalized lowercase slug, and callers that
@@ -266,8 +271,10 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .order_by(earliest_upcoming_slot.asc(), ServiceInstance.id.asc())
             .limit(limit)
         )
-        if landing_page:
-            statement = statement.where(ServiceInstance.landing_page == landing_page)
+        if slug:
+            statement = statement.where(
+                func.lower(ServiceInstance.slug) == slug.lower()
+            )
         if service_key:
             statement = statement.where(func.lower(Service.slug) == service_key.lower())
         statement = statement.where(ServiceInstance.slug.is_not(None)).where(

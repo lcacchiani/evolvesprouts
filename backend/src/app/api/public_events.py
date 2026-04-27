@@ -33,8 +33,8 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
-_LANDING_PAGE_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_PUBLIC_INSTANCE_SLUG_MAX_LEN = 128  # matches service_instances.slug varchar(128)
 _SERVICE_KEY_MAX_LEN = 80  # matches services.slug varchar(80)
 
 
@@ -53,7 +53,7 @@ def handle_public_events(
         )
 
     query = event.get("queryStringParameters") or {}
-    landing_page = _parse_landing_page(query.get("landing_page"))
+    slug = _parse_public_instance_slug(query.get("slug"))
     service_types = _parse_service_type_filter(query.get("service_type"))
     service_key = _parse_service_key(query.get("service_key"))
 
@@ -66,7 +66,7 @@ def handle_public_events(
                 if service_types is not None
                 else None
             ),
-            "filter.landing_page": landing_page,
+            "filter.slug": slug,
             "filter.service_key": service_key,
         },
     )
@@ -77,7 +77,7 @@ def handle_public_events(
             repository,
             now=datetime.now(UTC),
             service_types=service_types,
-            landing_page=landing_page,
+            slug=slug,
             service_key=service_key,
         )
     # Keep a temporary alias for older consumers while "events" is canonical.
@@ -94,14 +94,16 @@ def handle_public_calendar_events_request(
     return handle_public_events(event, method)
 
 
-def _parse_landing_page(raw: str | None) -> str | None:
+def _parse_public_instance_slug(raw: str | None) -> str | None:
     if raw is None:
         return None
-    if len(raw) > 255:
+    trimmed = raw.strip()
+    if not trimmed or len(trimmed) > _PUBLIC_INSTANCE_SLUG_MAX_LEN:
         return None
-    if not _LANDING_PAGE_PATTERN.fullmatch(raw):
+    normalized = trimmed.lower()
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(normalized):
         return None
-    return raw
+    return normalized
 
 
 def _parse_service_type_filter(raw: str | None) -> set[ServiceType] | None:
@@ -141,14 +143,14 @@ def _fetch_public_offerings(
     *,
     now: datetime,
     service_types: set[ServiceType] | None,
-    landing_page: str | None,
+    slug: str | None,
     service_key: str | None,
 ) -> list[dict[str, Any]]:
     rows = repository.list_public_offerings(
         limit=100,
         now=now,
         service_types=service_types,
-        landing_page=landing_page,
+        slug=slug,
         service_key=service_key,
     )
     capacity_instance_ids = [row.id for row in rows if row.max_capacity is not None]
@@ -429,8 +431,6 @@ def _serialize_public_event(
     if external_url:
         payload["external_url"] = external_url
 
-    if instance.landing_page is not None:
-        payload["landing_page"] = instance.landing_page
     payload["service_tier"] = service_tier
     if instance.cohort is not None:
         payload["cohort"] = instance.cohort

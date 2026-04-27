@@ -47,7 +47,6 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
     inst = SimpleNamespace(
         id=uuid4(),
         slug="my-event",
-        landing_page=None,
         title=None,
         description=None,
         status=InstanceStatus.OPEN,
@@ -616,7 +615,6 @@ def _minimal_instance(
     return SimpleNamespace(
         id=uuid4(),
         slug=slug,
-        landing_page=None,
         title=None,
         description=None,
         status=status,

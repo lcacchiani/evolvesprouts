@@ -120,7 +120,6 @@ def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
                 service_id=service_id,
                 title="Instance",
                 slug=f"int-inst-{instance_id.hex[:8]}",
-                landing_page=None,
                 description=None,
                 cover_image_s3_key=None,
                 status=InstanceStatus.SCHEDULED,

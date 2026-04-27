@@ -80,7 +80,6 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
         service_id=service_id,
         title="Inst",
         slug="inst-slug",
-        landing_page=None,
         description=None,
         cover_image_s3_key=None,
         status=InstanceStatus.SCHEDULED,
