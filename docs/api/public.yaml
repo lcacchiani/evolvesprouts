@@ -1408,12 +1408,13 @@ components:
           description: >
             Optional ISO 3166-1 alpha-2 region for parsing `attendeePhone`. When omitted, the
             API uses the configured default phone region (production default HK).
-        childAgeGroup:
+        serviceTier:
           type: string
           maxLength: 200
           description: >
-            Optional; event flows without an age selector may omit it. Age-gated flows
-            (for example My Best Auntie or consultation) should send the selected label.
+            Optional; event flows without a tier selector may omit it. Flows that
+            collect a service tier label (for example My Best Auntie or consultation)
+            should send the selected label.
         packageLabel:
           type: string
           maxLength: 200
@@ -1547,13 +1548,15 @@ components:
     ReservationPaymentIntentRequest:
       type: object
       required:
-        - cohort_age
+        - service_tier
         - cohort_date
         - price
       properties:
-        cohort_age:
+        service_tier:
           type: string
           maxLength: 200
+          description: >
+            Selected service tier label for the booking (Stripe PaymentIntent metadata).
         cohort_date:
           type: string
           maxLength: 100
