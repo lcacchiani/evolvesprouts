@@ -67,13 +67,35 @@ export function formatInstanceLocationOptionLabel(location: LocationSummary): st
   return formatLocationLabel(location);
 }
 
-/** Instances table: instance title when set, otherwise parent service title only (no tier; tier has its own column). */
+/** Instances table: instance title when set, otherwise parent service title only (tier/cohort use {@link formatInstanceTableTierCohort}). */
 export function formatInstanceTableTitle(instance: ServiceInstance): string {
   const own = instance.title?.trim();
   if (own) {
     return own;
   }
   return instance.parentServiceTitle?.trim() ?? '';
+}
+
+/** Column header for the instances table tier + cohort column (space, interpunct, space between words). */
+export const INSTANCE_TABLE_TIER_COHORT_HEADER = `Tier${DISPLAY_PART_SEP}Cohort`;
+
+/**
+ * Instances table: parent service tier and cohort joined by space + interpunct + space when both are set;
+ * otherwise the single non-empty part; empty when neither is set (show placeholder in UI).
+ */
+export function formatInstanceTableTierCohort(instance: ServiceInstance): string {
+  const tier = instance.parentServiceTier?.trim() ?? '';
+  const cohort = instance.cohort?.trim() ?? '';
+  if (tier && cohort) {
+    return `${tier}${DISPLAY_PART_SEP}${cohort}`;
+  }
+  if (tier) {
+    return tier;
+  }
+  if (cohort) {
+    return cohort;
+  }
+  return '';
 }
 
 /** Full venue label: address (when present) plus geographic area name. */

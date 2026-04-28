@@ -17,9 +17,11 @@ import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
   formatInstanceSlotLocationSummary,
+  formatInstanceTableTierCohort,
   formatInstanceTableTitle,
   formatSessionSlotStartsAtDisplay,
   getFirstSessionSlotForDisplay,
+  INSTANCE_TABLE_TIER_COHORT_HEADER,
 } from '@/lib/format';
 
 import type { LocationSummary, ServiceInstance, ServiceType } from '@/types/services';
@@ -58,7 +60,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, tier, cohort, locations, first slot) before status. */
+  /** When true, add cross-service columns (title, tier · cohort, locations, first slot) before status. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -199,10 +201,7 @@ export function InstanceListPanel({
                 <th className='w-[20%] px-4 py-3 font-semibold'>Title</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Tier</th>
-              ) : null}
-              {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Cohort</th>
+                <th className='max-w-[14rem] px-4 py-3 font-semibold'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
               ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Locations</th>
@@ -218,8 +217,7 @@ export function InstanceListPanel({
           <AdminDataTableBody>
             {instances.map((instance) => {
               const instanceTableTitle = formatInstanceTableTitle(instance);
-              const tierDisplay = instance.parentServiceTier?.trim() ?? '';
-              const cohortDisplay = instance.cohort?.trim() ?? '';
+              const tierCohortDisplay = formatInstanceTableTierCohort(instance);
               const firstSlot = getFirstSessionSlotForDisplay(instance.sessionSlots);
               return (
                 <tr
@@ -239,13 +237,8 @@ export function InstanceListPanel({
                     </td>
                   ) : null}
                   {showServiceColumn ? (
-                    <td className='max-w-[10rem] min-w-0 break-words px-4 py-3 text-sm'>
-                      {tierDisplay !== '' ? tierDisplay : '-'}
-                    </td>
-                  ) : null}
-                  {showServiceColumn ? (
-                    <td className='max-w-[12rem] min-w-0 break-words px-4 py-3 text-sm'>
-                      {cohortDisplay !== '' ? cohortDisplay : '-'}
+                    <td className='max-w-[14rem] min-w-0 break-words px-4 py-3 text-sm'>
+                      {tierCohortDisplay !== '' ? tierCohortDisplay : '-'}
                     </td>
                   ) : null}
                   {showServiceColumn ? (

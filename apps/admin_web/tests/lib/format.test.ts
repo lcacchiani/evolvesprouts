@@ -7,7 +7,9 @@ import {
   formatDateOnly,
   formatEnumLabel,
   formatInstanceSlotLocationSummary,
+  formatInstanceTableTierCohort,
   formatInstanceTableTitle,
+  INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
   formatDiscountCodeInstanceOptionLabel,
@@ -252,6 +254,64 @@ describe('format helpers', () => {
         parentServiceTitle: null,
         parentServiceTier: null,
         cohort: 'spring-2024',
+      })
+    ).toBe('');
+  });
+
+  it('formats instance table tier and cohort with interpunct when both are set', () => {
+    const base = (): ServiceInstance => ({
+      id: 'i1',
+      serviceId: 's1',
+      parentServiceTitle: 'Parent',
+      parentServiceTier: 'tier-a',
+      parentServiceType: 'training_course',
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: 'Resolved',
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    });
+    expect(INSTANCE_TABLE_TIER_COHORT_HEADER).toBe('Tier \u00b7 Cohort');
+    expect(formatInstanceTableTierCohort(base())).toBe('tier-a');
+    expect(formatInstanceTableTierCohort({ ...base(), cohort: 'spring-2024' })).toBe('tier-a \u00b7 spring-2024');
+    expect(
+      formatInstanceTableTierCohort({
+        ...base(),
+        parentServiceTier: null,
+        cohort: '  spring-2024  ',
+      })
+    ).toBe('spring-2024');
+    expect(
+      formatInstanceTableTierCohort({
+        ...base(),
+        parentServiceTier: '  ',
+        cohort: null,
       })
     ).toBe('');
   });
