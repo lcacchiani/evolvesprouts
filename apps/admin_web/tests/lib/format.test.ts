@@ -156,12 +156,27 @@ describe('format helpers', () => {
     expect(
       formatDiscountCodeInstanceOptionLabel({
         ...base(),
+        title: 'Spring cohort',
+        parentServiceTier: 't1',
+        cohort: 'c1',
+      })
+    ).toBe('Spring cohort · t1 · c1');
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
         parentServiceTitle: null,
         resolvedTitle: 'Resolved only',
         parentServiceTier: 't1',
         cohort: 'c1',
       })
     ).toBe('Resolved only · t1 · c1');
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
+        title: 'Own title',
+        parentServiceTitle: 'Workshop',
+      })
+    ).toBe('Own title');
     expect(
       formatDiscountCodeInstanceOptionLabel({
         ...base(),

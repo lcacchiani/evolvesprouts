@@ -24,15 +24,15 @@ export function formatServiceTitleWithTier(title: string, serviceTier: string | 
 }
 
 /**
- * Discount code editor — instance scope select: parent service title (or
- * resolved/title fallback, then id), then optional parent tier and cohort,
- * each separated by space + interpunct + space when present.
+ * Discount code editor — instance scope select: instance `title` when set,
+ * otherwise parent service title, then resolved title, then id; then optional
+ * parent tier and cohort, each separated by space + interpunct + space when present.
  */
 export function formatDiscountCodeInstanceOptionLabel(instance: ServiceInstance): string {
   const baseTitle =
+    instance.title?.trim() ||
     instance.parentServiceTitle?.trim() ||
     instance.resolvedTitle?.trim() ||
-    instance.title?.trim() ||
     instance.id;
   const tier = instance.parentServiceTier?.trim();
   const cohort = instance.cohort?.trim();
