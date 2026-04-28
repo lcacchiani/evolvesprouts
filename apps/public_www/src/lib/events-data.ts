@@ -16,7 +16,7 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import { reportInternalError } from '@/lib/internal-error-reporting';
-import { formatCohortValue } from '@/lib/format';
+import { formatCohortValue, normalizeCurrencyPrefixForDisplay } from '@/lib/format';
 import { ROUTES } from '@/lib/routes';
 import {
   appendTimeZoneLabel,
@@ -862,19 +862,6 @@ function formatNumberWithThousandsSeparators(value: number): string {
   }).format(value);
 }
 
-function normalizeCurrencyPrefix(value: string | undefined): string | undefined {
-  const normalizedValue = readOptionalText(value);
-  if (!normalizedValue) {
-    return undefined;
-  }
-
-  if (normalizedValue.toUpperCase() === 'HKD') {
-    return 'HK$';
-  }
-
-  return normalizedValue;
-}
-
 function resolveEventCost(
   record: Record<string, unknown>,
   content: EventsContent,
@@ -927,7 +914,7 @@ function resolveEventCost(
     'priceCurrency',
     'price_currency',
   ]);
-  const normalizedCurrencyPrefix = normalizeCurrencyPrefix(currencyPrefix);
+  const normalizedCurrencyPrefix = normalizeCurrencyPrefixForDisplay(currencyPrefix);
 
   const amountText =
     typeof rawAmount === 'number' && Number.isFinite(rawAmount)
@@ -970,7 +957,7 @@ function formatLandingPageEventCtaPriceLabel(
   }
 
   const formattedAmount = formatNumberWithThousandsSeparators(amount);
-  const currencyPrefix = normalizeCurrencyPrefix(
+  const currencyPrefix = normalizeCurrencyPrefixForDisplay(
     readCandidateText(record, [
       'currencySymbol',
       'currency_symbol',
