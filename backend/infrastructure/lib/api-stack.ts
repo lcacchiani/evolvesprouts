@@ -2253,7 +2253,7 @@ export class ApiStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(5),
         noVpc: true,
         environment: {
-          ALLOWED_GROUPS: adminGroupName,
+          ALLOWED_GROUPS: `${adminGroupName},manager,instructor`,
         },
       }
     );

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { usePathname } from 'next/navigation';
 
+import { AdminAccessDeniedScreen } from '@/components/admin-access-denied-screen';
 import { AppShell } from '@/components/app-shell';
 import { useAuth } from '@/components/auth-provider';
 import { LoginScreen } from '@/components/login-screen';
@@ -23,6 +24,10 @@ export function AdminAuthenticatedShell({ children }: { children: ReactNode }) {
         </StatusBanner>
       </main>
     );
+  }
+
+  if (status === 'authenticated_no_access') {
+    return <AdminAccessDeniedScreen onSignOut={logout} />;
   }
 
   if (status === 'authenticated') {

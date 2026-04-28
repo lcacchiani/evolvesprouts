@@ -286,7 +286,7 @@ All functions use Python 3.12, KMS-encrypted environment variables,
 | Function | Handler | Purpose |
 |---|---|---|
 | DeviceAttestationAuthorizer | `lambda/authorizers/device_attestation/handler.py` | Validates `x-device-attestation` JWT |
-| AdminGroupAuthorizerFunction | `lambda/authorizers/cognito_group/handler.py` | Cognito JWT + admin group check |
+| AdminGroupAuthorizerFunction | `lambda/authorizers/cognito_group/handler.py` | Cognito JWT + staff group check (`admin`, `manager`, `instructor`) |
 | UserAuthorizerFunction | `lambda/authorizers/cognito_user/handler.py` | Cognito JWT (any valid user) |
 
 ### AWS API proxy (not in VPC)
@@ -315,7 +315,8 @@ User/Admin
 Cognito User Pool (evolvesprouts-user-pool)
     │
     ├─▶ Group: admin (full admin access)
-    └─▶ Group: manager (limited management access)
+    ├─▶ Group: manager (limited management access)
+    └─▶ Group: instructor (instructor access)
 ```
 
 | Resource | Value |
@@ -324,7 +325,7 @@ Cognito User Pool (evolvesprouts-user-pool)
 | Domain | `auth.evolvesprouts.com` |
 | Identity provider | Google OAuth |
 | Auth flows | Custom auth (passwordless), SRP, refresh token |
-| Groups | `admin`, `manager` |
+| Groups | `admin`, `manager`, `instructor` |
 
 ## Messaging (SNS + SQS)
 
