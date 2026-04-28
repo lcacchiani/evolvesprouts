@@ -189,11 +189,6 @@ describe('CreateInstanceDialog', () => {
     await user.clear(screen.getByLabelText('Title'));
     await user.type(screen.getByLabelText('Title'), 'Ignored');
     expect(slugInput).toHaveValue('custom-slug');
-
-    await user.click(screen.getByRole('button', { name: /reset to suggestion/i }));
-    await waitFor(() => {
-      expect(slugInput.value).not.toBe('custom-slug');
-    });
   });
 
   it('shows inline error when event slug is empty on submit', async () => {

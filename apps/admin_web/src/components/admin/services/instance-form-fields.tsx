@@ -1,7 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
-
 import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,8 +61,6 @@ export interface InstanceFormFieldsProps {
   slugFieldMode?: 'required' | 'optional';
   /** Inline message under the slug field (for example submit validation or API field errors). */
   slugFieldError?: string;
-  /** Optional control rendered under the slug input (for example “Reset to suggestion”). */
-  slugFieldAccessory?: ReactNode;
 }
 
 function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
@@ -132,7 +128,6 @@ export function InstanceFormFields({
   onChange,
   slugFieldMode = 'optional',
   slugFieldError = '',
-  slugFieldAccessory = null,
 }: InstanceFormFieldsProps) {
   const canSelectService = Boolean(onSelectService);
   const serviceExists = serviceOptions.some((entry) => entry.id === serviceId);
@@ -264,7 +259,6 @@ export function InstanceFormFields({
           placeholder='e.g. spring-workshop-2026-04-20'
           autoComplete='off'
         />
-        {slugFieldAccessory ? <div className='mt-1'>{slugFieldAccessory}</div> : null}
         {slugPatternInvalid ? (
           <p className='mt-1 text-xs text-red-600'>
             Use lowercase letters, digits, and single hyphens between segments (no leading or trailing hyphen).
