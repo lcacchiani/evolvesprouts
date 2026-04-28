@@ -525,6 +525,35 @@ describe('events-data', () => {
     });
   });
 
+  it('title-cases landing page hero category chips and splits hyphenated CRM categories', () => {
+    const heroEventContent = getLandingPageHeroEventContentFromPayload(
+      {
+        status: 'success',
+        data: [
+          {
+            slug: 'test-landing-category-chip-labels',
+            title: 'Test Event',
+            categories: ['workshop', 'training-course', '1-4'],
+            dates: [
+              {
+                start_datetime: '2026-01-01T12:00:00Z',
+                end_datetime: '2026-01-01T13:00:00Z',
+              },
+            ],
+          },
+        ],
+      },
+      'test-landing-category-chip-labels',
+    );
+
+    expect(heroEventContent).not.toBeNull();
+    expect(heroEventContent?.categoryChips).toEqual([
+      'Workshop',
+      'Training Course',
+      '1-4',
+    ]);
+  });
+
   it('resolves landing page booking payload from calendar payload using slug', () => {
     const bookingEventContent = getLandingPageBookingEventContentFromPayload(
       publicCalendarFixture,

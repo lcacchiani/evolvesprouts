@@ -257,6 +257,25 @@ function formatEnumLikeLabel(value: string): string {
     .join(' ');
 }
 
+/** Display labels for landing page hero category chips (CRM `categories` list). */
+function formatLandingPageCategoryChipLabel(value: string): string {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  if (/^\d+\s*-\s*\d+$/.test(trimmedValue)) {
+    return trimmedValue.replace(/\s*-\s*/g, '-');
+  }
+
+  return trimmedValue
+    .split('-')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
 function sanitizeExternalHref(value: string | undefined): string {
   const href = readOptionalText(value);
   if (!href || !isHttpHref(href)) {
@@ -689,7 +708,9 @@ function readLandingPageCategoryChips(
     }
   }
 
-  return dedupeChipLabels(categories);
+  return dedupeChipLabels(
+    categories.map((entry) => formatLandingPageCategoryChipLabel(entry)),
+  );
 }
 
 function resolveDateTimeDetails(
