@@ -84,17 +84,16 @@ interface BookingReservationFormProps {
   locale: Locale;
   content: BookingPaymentModalContent;
   eventTitle: string;
-  /**
-   * Aurora `services.slug` for discount scope and lead metadata `service_key`
-   * (e.g. `my-best-auntie` for MBA). Not the instance/cohort slug.
-   */
-  reservationServiceKey?: string;
-  /** Instance or event stable id for Stripe PaymentIntent metadata (`cohort_id`). */
+  /** Parent service public key (`services.service_key`) for reservation, discount validate, and Stripe metadata. */
+  serviceKey: string;
+  /** Instance or cohort stable id for Stripe PaymentIntent metadata (`cohort_id`). */
   cohortId?: string;
-  /** Stable slug when reservationServiceKey is not set (e.g. my-best-auntie, consultation tier). */
+  /** Marketing-flow slug for thank-you recap branching and optional confirmation links (e.g. `my-best-auntie`). */
   courseSlug?: string;
-  /** High-level service type for thank-you recap and confirmation email (event, training-course, consultation). */
-  serviceSlug?: string;
+  /** Thank-you service type row label key (`thankYouModal.serviceLabels`). */
+  serviceTypeLabelKey: 'event' | 'training-course' | 'consultation';
+  /** Which booking flow built this submission (drives thank-you recap detail lines). */
+  bookingSystem: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
   selectedServiceTierLabel: string;
@@ -116,10 +115,8 @@ interface BookingReservationFormProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
-  /** When set, included in discount validate API as `service_key` (public slug). */
-  discountValidationServiceKey?: string;
-  /** Optional public instance slug for instance-scoped discount redemption. */
-  serviceInstanceSlug?: string | null;
+  /** Public instance slug (`service_instances.slug`) for discount validate and reservation identity. */
+  serviceInstanceSlug: string;
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
@@ -436,10 +433,11 @@ export function BookingReservationForm({
   locale,
   content,
   eventTitle,
-  reservationServiceKey,
+  serviceKey,
   cohortId = '',
   courseSlug,
-  serviceSlug,
+  serviceTypeLabelKey,
+  bookingSystem,
   eventSubtitle = '',
   courseSessions,
   selectedServiceTierLabel,
@@ -459,7 +457,6 @@ export function BookingReservationForm({
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
-  discountValidationServiceKey,
   serviceInstanceSlug,
   prefilledDiscountCode = '',
   referralAppliedNote = '',
@@ -592,9 +589,7 @@ export function BookingReservationForm({
   const normalizedCohortDate =
     (normalizedStartDateTime.split('T')[0] ?? '') ||
     sanitizeSingleLineValue(selectedCohortDateLabel);
-  const paymentIntentServiceKey =
-    sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
-    sanitizeSingleLineValue(courseSlug ?? '');
+  const paymentIntentServiceKey = sanitizeSingleLineValue(serviceKey);
   const stripePaymentIntentRequestKey = [
     sanitizeSingleLineValue(selectedServiceTierLabel),
     normalizedCohortDate,
@@ -708,7 +703,7 @@ export function BookingReservationForm({
         service_tier: sanitizeSingleLineValue(selectedServiceTierLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
         discount_code: discountRule?.code || undefined,
-        service_key: paymentIntentServiceKey || undefined,
+        service_key: paymentIntentServiceKey,
         cohort_id: sanitizeSingleLineValue(cohortId) || undefined,
         price: totalAmount,
       },
@@ -750,7 +745,7 @@ export function BookingReservationForm({
     discountRule?.code,
     cohortId,
     courseSlug,
-    discountValidationServiceKey,
+    serviceKey,
     paymentIntentServiceKey,
     captchaToken,
     paymentMethodFlags.stripeCards,
@@ -827,20 +822,25 @@ export function BookingReservationForm({
         return;
       }
 
-      const scopeKey =
-        sanitizeSingleLineValue(discountValidationServiceKey ?? '') ||
-        sanitizeSingleLineValue(courseSlug ?? '');
+      const scopeKey = sanitizeSingleLineValue(serviceKey);
+      const instanceSlugForValidate = sanitizeSingleLineValue(serviceInstanceSlug);
 
       setIsDiscountValidationSubmitting(true);
       if (!options.autoApply) {
         setDiscountError('');
       }
       try {
-        const instanceSlugForValidate = sanitizeSingleLineValue(serviceInstanceSlug ?? '');
+        if (!scopeKey || !instanceSlugForValidate) {
+          setDiscountRule(null);
+          if (!options.autoApply) {
+            setDiscountError(content.invalidDiscountLabel);
+          }
+          return;
+        }
         const validatedRule = await validateDiscountCode(crmApiClient, {
           code: normalizedCode,
-          serviceKey: scopeKey || undefined,
-          serviceInstanceSlug: instanceSlugForValidate || undefined,
+          serviceKey: scopeKey,
+          serviceInstanceSlug: instanceSlugForValidate,
         });
         if (!validatedRule) {
           if (options.autoApply) {
@@ -929,9 +929,8 @@ export function BookingReservationForm({
     [
       analyticsSectionId,
       content.invalidDiscountLabel,
-      courseSlug,
       discountRule,
-      discountValidationServiceKey,
+      serviceKey,
       serviceInstanceSlug,
       originalPriceAmount,
       referralAppliedAnnouncement,
@@ -1114,8 +1113,7 @@ export function BookingReservationForm({
 
     const detailLines: string[] = [];
     if (thankYouRecapLabels) {
-      const flowSlug = sanitizeSingleLineValue(courseSlug ?? '').toLowerCase();
-      if (flowSlug === 'my-best-auntie') {
+      if (bookingSystem === 'my-best-auntie-booking') {
         const cohort = sanitizeSingleLineValue(selectedCohortDateLabel);
         const serviceTierLine = sanitizeSingleLineValue(selectedServiceTierLabel);
         if (cohort) {
@@ -1132,7 +1130,7 @@ export function BookingReservationForm({
             }),
           );
         }
-      } else if (flowSlug === 'consultation-booking') {
+      } else if (bookingSystem === 'consultation-booking') {
         const focus = sanitizeSingleLineValue(consultationWritingFocusLabel);
         const level = sanitizeSingleLineValue(consultationLevelLabel);
         if (focus) {
@@ -1157,7 +1155,8 @@ export function BookingReservationForm({
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: submitPhoneDigits,
       attendeeCountry: phoneCountry,
-      serviceSlug: sanitizeSingleLineValue(serviceSlug ?? '') || undefined,
+      serviceKey: sanitizeSingleLineValue(serviceKey) || undefined,
+      serviceTypeLabelKey,
       serviceTier: sanitizeSingleLineValue(selectedServiceTierLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: isFreeReservation
@@ -1229,7 +1228,7 @@ export function BookingReservationForm({
       ...(reservationSummary.serviceTier
         ? { serviceTier: reservationSummary.serviceTier }
         : {}),
-      cohortDate: normalizedCohortDate,
+      ...(normalizedCohortDate ? { cohortDate: normalizedCohortDate } : {}),
       interestedTopics: sanitizeSingleLineValue(interestedTopics) || undefined,
       discountCode: discountRule?.code || undefined,
       totalAmount: isFreeReservation ? 0 : totalAmount,
@@ -1243,15 +1242,13 @@ export function BookingReservationForm({
       locale,
       courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
-        const sanitizedServiceKey = sanitizeSingleLineValue(reservationServiceKey ?? '');
+        const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey);
         const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
-        const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug ?? '');
-        const sanitizedServiceSlug = sanitizeSingleLineValue(serviceSlug ?? '');
+        const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
         return {
-          ...(sanitizedServiceKey ? { serviceKey: sanitizedServiceKey } : {}),
+          serviceKey: sanitizedServiceKey,
           ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
-          ...(instanceSlug ? { serviceInstanceSlug: instanceSlug } : {}),
-          ...(sanitizedServiceSlug ? { service: sanitizedServiceSlug } : {}),
+          serviceInstanceSlug: instanceSlug,
         };
       })(),
       scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,

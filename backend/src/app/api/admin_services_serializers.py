@@ -81,7 +81,7 @@ def serialize_service_summary(
         "service_type": service.service_type.value,
         "title": service.title,
         "description": service.description,
-        "slug": service.slug,
+        "service_key": service.service_key,
         "booking_system": service.booking_system,
         "cover_image_s3_key": service.cover_image_s3_key,
         "delivery_mode": service.delivery_mode.value,
@@ -235,7 +235,7 @@ def serialize_instance(
     """Serialize service instance payload."""
     service = instance.service
     resolved_title = instance.title if instance.title is not None else service.title
-    resolved_slug = instance.slug if instance.slug is not None else service.slug
+    resolved_slug = instance.slug
     resolved_description = (
         instance.description
         if instance.description is not None

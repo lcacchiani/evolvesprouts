@@ -57,11 +57,11 @@ export function resolveThankYouServiceTypeLabel(
   summary: ReservationSummary | null,
   serviceLabels: BookingThankYouModalContent['serviceLabels'] | undefined,
 ): string {
-  const slug = (summary?.serviceSlug ?? '').trim().toLowerCase();
-  if (!slug || !serviceLabels) {
+  const key = (summary?.serviceTypeLabelKey ?? '').trim().toLowerCase();
+  if (!key || !serviceLabels) {
     return '';
   }
-  const mapped = serviceLabels[slug as keyof typeof serviceLabels];
+  const mapped = serviceLabels[key as keyof typeof serviceLabels];
   const label = typeof mapped === 'string' ? mapped.trim() : '';
   return label;
 }

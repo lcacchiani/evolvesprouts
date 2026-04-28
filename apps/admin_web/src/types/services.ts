@@ -116,8 +116,8 @@ export interface ServiceSummary {
   instancesCount: number;
   serviceType: ServiceType;
   title: string;
-  /** Lowercase referral slug from Aurora; null when unset. */
-  slug: string | null;
+  /** Lowercase public service key from Aurora; null when unset. */
+  serviceKey: string | null;
   /** Optional admin label for booking system or flow (free-form text). */
   bookingSystem: string | null;
   description: string | null;
@@ -264,8 +264,8 @@ export interface ServiceInstance {
   parentServiceTier: string | null;
   parentServiceType: ServiceType | null;
   title: string | null;
-  /** Lowercase URL slug from Aurora; null when unset. */
-  slug: string | null;
+  /** Public instance slug from Aurora (required). */
+  slug: string;
   description: string | null;
   coverImageS3Key: string | null;
   status: InstanceStatus;
@@ -285,7 +285,7 @@ export interface ServiceInstance {
   createdAt: string | null;
   updatedAt: string | null;
   resolvedTitle: string | null;
-  resolvedSlug: string | null;
+  resolvedSlug: string;
   resolvedDescription: string | null;
   resolvedCoverImageS3Key: string | null;
   resolvedDeliveryMode: string | null;

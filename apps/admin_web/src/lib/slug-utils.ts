@@ -52,7 +52,11 @@ function _firstSessionSlotYmd(slots: SuggestedInstanceSlugSlot[]): string | null
 /** Suggested public instance slug for create flows (event / training_course). */
 export function computeSuggestedInstanceSlug(
   serviceType: 'event' | 'training_course' | 'consultation',
-  service: { title: string; slug: string | null | undefined; serviceTier: string | null | undefined } | null,
+  service: {
+    title: string;
+    serviceKey: string | null | undefined;
+    serviceTier: string | null | undefined;
+  } | null,
   instanceForm: { title: string; cohort: string; sessionSlots: SuggestedInstanceSlugSlot[] }
 ): string {
   if (serviceType === 'event') {
@@ -67,7 +71,7 @@ export function computeSuggestedInstanceSlug(
     if (!service) {
       return slugifyForInstance(instanceForm.cohort.trim() || instanceForm.title);
     }
-    const base = slugifyForInstance((service.slug ?? '').trim() || service.title || '');
+    const base = slugifyForInstance((service.serviceKey ?? '').trim() || service.title || '');
     const tierRaw = (service.serviceTier ?? '').trim();
     const tierPart = tierRaw ? slugifyForInstance(tierRaw) : '';
     const cohortRaw = instanceForm.cohort.trim();

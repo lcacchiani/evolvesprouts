@@ -1099,9 +1099,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           description: >
-            Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier, NULL tiers treated as one bucket).
-            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
+            Service key and service tier conflict with another service (unique index
+            on case-insensitive service_key and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -1169,7 +1169,7 @@ paths:
       description: >
         Returns aggregate `current_uses` across discount codes scoped to this service
         (`service_id` set) and how many such codes exist. Used by the admin UI before
-        changing a service referral slug.
+        changing a service `service_key`.
       security:
         - AdminBearerAuth: []
       responses:
@@ -1231,9 +1231,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           description: >
-            Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier, NULL tiers treated as one bucket).
-            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
+            Service key and service tier conflict with another service (unique index
+            on case-insensitive service_key and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -1263,9 +1263,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           description: >
-            Referral slug and service tier conflict with another service (unique index
-            on case-insensitive slug and tier, NULL tiers treated as one bucket).
-            Error body uses `field` value `slug_tier` (see `ErrorResponse.field`).
+            Service key and service tier conflict with another service (unique index
+            on case-insensitive service_key and tier, NULL tiers treated as one bucket).
+            Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`).
           content:
             application/json:
               schema:
@@ -3598,21 +3598,21 @@ components:
           $ref: "#/components/schemas/ServiceType"
         title:
           type: string
-        slug:
+        service_key:
           type: string
           nullable: true
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`).
-            Uniqueness is enforced case-insensitively in Aurora.
+            Optional lowercase public service key for URLs and booking identity (e.g. `my-best-auntie`).
+            Uniqueness is enforced case-insensitively in Aurora (with `service_tier`).
         booking_system:
           type: string
           nullable: true
           maxLength: 80
           description: >
             Optional label for which booking system or flow applies to this service
-            (free-form text, same max length as referral slug).
+            (free-form text, same max length as service key).
         description:
           type: string
           nullable: true
@@ -3714,12 +3714,12 @@ components:
           $ref: "#/components/schemas/ServiceType"
         title:
           type: string
-        slug:
+        service_key:
           type: string
           nullable: true
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
-          description: Optional referral slug (lowercase letters, numbers, hyphens).
+          description: Optional service key (lowercase letters, numbers, hyphens).
         booking_system:
           type: string
           nullable: true
@@ -3774,7 +3774,7 @@ components:
       properties:
         title:
           type: string
-        slug:
+        service_key:
           type: string
           nullable: true
           maxLength: 80
@@ -3943,7 +3943,7 @@ components:
           description: Partner organization venue id when set (FK locations).
     ServiceInstance:
       type: object
-      required: [id, service_id, status]
+      required: [id, service_id, status, slug]
       properties:
         id:
           type: string
@@ -3956,12 +3956,10 @@ components:
           nullable: true
         slug:
           type: string
-          nullable: true
           description: >
-            Required for event and training_course instances; optional for consultations.
-            Public-calendar visibility depends on this field. URL-safe: lowercase letters,
+            Public instance slug (required for all service types). URL-safe: lowercase letters,
             digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
-            to lowercase.
+            to lowercase. Must be unique among instances.
         description:
           type: string
           nullable: true
@@ -4046,10 +4044,8 @@ components:
           nullable: true
         resolved_slug:
           type: string
-          nullable: true
           description: >
-            Effective referral slug: instance slug when set, otherwise the parent
-            service slug.
+            Public instance slug; same as `slug`. Kept for backwards compatibility.
         resolved_location_id:
           type: string
           format: uuid
@@ -4166,23 +4162,21 @@ components:
           $ref: "#/components/schemas/ServiceInstance"
     CreateInstanceRequest:
       type: object
+      required: [slug]
       description: >
-        Instance create body for `POST /v1/admin/services/{id}/instances`. The parent service
-        `service_type` determines slug rules: `slug` is required for `event` and
-        `training_course` (400 with `field: slug` when missing or invalid); optional for
-        `consultation`. Duplicate instance slugs return 409 with `field: slug`.
+        Instance create body for `POST /v1/admin/services/{id}/instances`. `slug` is required
+        for all service types (400 with `field: slug` when missing or invalid). Duplicate
+        instance slugs return 409 with `field: slug`.
       properties:
         title:
           type: string
           nullable: true
         slug:
           type: string
-          nullable: true
           description: >
-            Required for event and training_course instances; optional for consultations.
-            Public-calendar visibility depends on this field. URL-safe: lowercase letters,
+            Public instance slug (required). URL-safe: lowercase letters,
             digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
-            to lowercase. Must be unique among instances when set.
+            to lowercase. Must be unique among instances.
         description:
           type: string
           nullable: true
@@ -4275,8 +4269,7 @@ components:
       required:
         - status
       description: >
-        Clearing `slug` to null on event or training_course instances returns 400 with
-        `field: slug`.
+        Clearing `slug` to null returns 400 with `field: slug`.
     Enrollment:
       type: object
       required: [id, instance_id, status]
@@ -5996,11 +5989,11 @@ components:
           $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/EntityRelationshipType"
-        slug:
+        partner_key:
           type: string
           nullable: true
           description: >
-            Optional URL-safe identifier for partner organisations only (lowercase
+            Optional URL-safe partner key for partner organisations only (lowercase
             letters, digits, single hyphens between segments). Null when not a partner
             or unset. Uniqueness is enforced case-insensitively among partner rows.
         website:
@@ -6075,12 +6068,12 @@ components:
           $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/EntityOrganizationRelationshipType"
-        slug:
+        partner_key:
           type: string
           maxLength: 128
           nullable: true
           description: >
-            Optional partner-only slug. Omit or null to clear. Must be null when
+            Optional partner-only key. Omit or null to clear. Must be null when
             relationship_type is not partner.
         website:
           type: string
@@ -6110,12 +6103,12 @@ components:
           $ref: "#/components/schemas/EntityOrganizationType"
         relationship_type:
           $ref: "#/components/schemas/EntityOrganizationRelationshipType"
-        slug:
+        partner_key:
           type: string
           maxLength: 128
           nullable: true
           description: >
-            Optional partner-only slug. Omit or null to clear. Must be null when
+            Optional partner-only key. Omit or null to clear. Must be null when
             relationship_type is not partner.
         website:
           type: string
@@ -6170,7 +6163,7 @@ components:
           nullable: true
           description: >
             Optional input field key for validation-style errors. Duplicate service
-            slug+tier conflicts use the literal `slug_tier` (not `slug` or `service_tier`).
+            service_key+tier conflicts use the literal `service_key_tier` (not `service_key` or `service_tier`).
     HealthResponse:
       type: object
       required:

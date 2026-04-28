@@ -444,15 +444,15 @@ SNS media publishes in non-production environments (see `deployment.py` and CDK
 defaults this to `production`; override with **`CDK_DEPLOYMENT_STAGE=staging`**
 at synth time for explicit non-prod stacks.
 
-## Replace service-key env map with `services.slug`
+## Replace service-key env map with `services.service_key`
 
-**Decision:** Store optional lowercase referral slugs on `services.slug` with a
-case-insensitive unique index, and resolve public `service_key` / booking
-`course_slug` values against Aurora instead of a Lambda JSON env map.
+**Decision:** Store optional lowercase referral keys on `services.service_key` with a
+case-insensitive unique index (with `service_tier`), and resolve public `service_key`
+values against Aurora instead of a Lambda JSON env map.
 
-**Why:** The database already owns service identity; slug is a first-class admin
+**Why:** The database already owns service identity; the key is a first-class admin
 field and avoids deploy-time JSON drift. Public discount validate/redeem paths
-query `ServiceRepository.get_by_slug` in-session.
+query `ServiceRepository.get_by_service_key` in-session.
 
 ## Vendors API merged into organizations
 
@@ -552,10 +552,12 @@ for the same instance scope check (resolved server-side to the instance UUID).
 **Why:** Public clients should not handle Aurora primary keys; slugs are human-meaningful
 and align static content fixtures with the API contract.
 
-**Scope checks:** Dropping `service_id` from `POST /v1/discounts/validate` does **not** narrow
-service-scoped codes: when neither `service_key` nor a resolved service id is present, the
-handler still returns **200** (unchanged from the pre-cutover `service_id`-less request path).
-Mismatching `service_key` for a service-scoped code still returns **404**.
+**Scope checks:** `POST /v1/discounts/validate` and `POST /v1/reservations` require the
+pair (`service_key`, `service_instance_slug`) on the wire. The handler resolves the
+instance (and parent service) in one query; unknown instance slug or a key that does not
+match the instance’s parent service returns **404** with structured rejection reasons.
+Unscoped codes still validate once the pair resolves; scoped codes compare against the
+resolved `services.id` / `service_instances.id` as before.
 
 ## Keeping Documentation Up to Date
 

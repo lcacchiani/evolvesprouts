@@ -55,8 +55,8 @@ from app.exceptions import ValidationError
 from app.utils.logging import get_logger
 
 _MAX_CODE_LENGTH = 50
-_SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-_MAX_SERVICE_SLUG_LENGTH = 80
+_SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_MAX_SERVICE_KEY_LENGTH = 80
 _MAX_BOOKING_SYSTEM_LENGTH = 80
 logger = get_logger(__name__)
 
@@ -81,8 +81,8 @@ def _reject_deprecated_instance_age_group(body: Mapping[str, Any]) -> None:
         )
 
 
-def parse_optional_service_slug(value: Any, field: str) -> str | None:
-    """Parse optional referral slug: strip, lower, validate pattern; empty -> None."""
+def parse_optional_service_key(value: Any, field: str) -> str | None:
+    """Parse optional referral service key: strip, lower, validate pattern; empty -> None."""
     if value is None:
         return None
     if not isinstance(value, str):
@@ -90,12 +90,12 @@ def parse_optional_service_slug(value: Any, field: str) -> str | None:
     trimmed = value.strip().lower()
     if not trimmed:
         return None
-    if len(trimmed) > _MAX_SERVICE_SLUG_LENGTH:
+    if len(trimmed) > _MAX_SERVICE_KEY_LENGTH:
         raise ValidationError(
-            f"{field} must be at most {_MAX_SERVICE_SLUG_LENGTH} characters",
+            f"{field} must be at most {_MAX_SERVICE_KEY_LENGTH} characters",
             field=field,
         )
-    if not _SERVICE_SLUG_PATTERN.fullmatch(trimmed):
+    if not _SERVICE_KEY_PATTERN.fullmatch(trimmed):
         raise ValidationError(
             f"{field} must use lowercase letters, numbers, and single hyphens between segments",
             field=field,
@@ -244,7 +244,9 @@ def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "service_type": service_type,
         "title": parse_required_text(body.get("title"), "title", max_length=255),
-        "slug": parse_optional_service_slug(body.get("slug"), "slug"),
+        "service_key": parse_optional_service_key(
+            body.get("service_key"), "service_key"
+        ),
         "booking_system": parse_optional_booking_system(
             body.get("booking_system"), "booking_system"
         ),
@@ -283,8 +285,10 @@ def parse_update_service_payload(
         payload["title"] = parse_required_text(
             body.get("title"), "title", max_length=255
         )
-    if has_field(body, "slug"):
-        payload["slug"] = parse_optional_service_slug(body.get("slug"), "slug")
+    if has_field(body, "service_key"):
+        payload["service_key"] = parse_optional_service_key(
+            body.get("service_key"), "service_key"
+        )
     if has_field(body, "booking_system"):
         payload["booking_system"] = parse_optional_booking_system(
             body.get("booking_system"), "booking_system"
@@ -352,11 +356,7 @@ def parse_create_instance_payload(
 ) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
     _reject_deprecated_instance_age_group(body)
-    slug_value: str | None
-    if service.service_type in (ServiceType.EVENT, ServiceType.TRAINING_COURSE):
-        slug_value = parse_required_service_instance_slug(body.get("slug"))
-    else:
-        slug_value = parse_optional_service_instance_slug(body.get("slug"))
+    slug_value = parse_required_service_instance_slug(body.get("slug"))
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
         "slug": slug_value,
@@ -411,12 +411,9 @@ def parse_update_instance_payload(
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)
     if has_field(body, "slug"):
         parsed_slug = parse_optional_service_instance_slug(body.get("slug"))
-        if parsed_slug is None and service.service_type in (
-            ServiceType.EVENT,
-            ServiceType.TRAINING_COURSE,
-        ):
+        if parsed_slug is None:
             raise ValidationError(
-                "slug cannot be cleared for event or training_course instances",
+                "slug cannot be cleared",
                 field="slug",
             )
         payload["slug"] = parsed_slug

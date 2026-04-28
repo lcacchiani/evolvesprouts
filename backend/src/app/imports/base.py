@@ -64,8 +64,8 @@ class ImporterContext:
     #: Existing ``lower(email)`` / ``lower(instagram_handle)`` → contact id (contacts importer).
     email_to_contact_id: Mapping[str, UUID] = field(default_factory=dict)
     instagram_to_contact_id: Mapping[str, UUID] = field(default_factory=dict)
-    #: ``event_instances`` importer: ``str(service.id)`` → slug for instance slug preview.
-    event_service_slug_by_uuid: Mapping[str, str] = field(default_factory=dict)
+    #: ``event_instances`` importer: ``str(service.id)`` → service_key for instance slug preview.
+    event_service_key_by_uuid: Mapping[str, str] = field(default_factory=dict)
 
 
 @dataclass

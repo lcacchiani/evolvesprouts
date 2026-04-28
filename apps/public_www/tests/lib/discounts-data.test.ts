@@ -93,6 +93,8 @@ describe('discounts-data', () => {
 
     const rule = await validateDiscountCode(crmApiClient, {
       code: ' FEIER10 ',
+      serviceKey: 'my-best-auntie',
+      serviceInstanceSlug: 'test-instance-slug',
       signal: new AbortController().signal,
     });
 
@@ -102,6 +104,8 @@ describe('discounts-data', () => {
         method: 'POST',
         body: JSON.stringify({
           code: 'FEIER10',
+          service_key: 'my-best-auntie',
+          service_instance_slug: 'test-instance-slug',
         }),
         headers: expect.objectContaining({
           Accept: 'application/json',

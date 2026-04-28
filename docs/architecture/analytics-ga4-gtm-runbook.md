@@ -25,8 +25,8 @@ Stable **`admin_*` namespace** events used today:
 
 | Event | Trigger | Notes |
 |---|---|---|
-| `admin_referral_qr_opened` | Referral QR dialog opens | Optional `service_slug` |
-| `admin_referral_qr_downloaded` | Download referral PNG | `service_slug`, `png_size_px` |
+| `admin_referral_qr_opened` | Referral QR dialog opens | Optional `service_key` |
+| `admin_referral_qr_downloaded` | Download referral PNG | `service_key`, `png_size_px` |
 | `admin_public_page_qr_opened` | Website → public page QR screen: valid URL shown | `public_site_path`, `locale` |
 | `admin_public_page_qr_downloaded` | Download public page PNG | `public_site_path`, `locale`, `png_size_px` |
 

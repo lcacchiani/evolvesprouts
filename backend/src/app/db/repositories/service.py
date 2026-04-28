@@ -32,12 +32,12 @@ class ServiceRepository(BaseRepository[Service]):
     def __init__(self, session: Session):
         super().__init__(session, Service)
 
-    def get_by_slug(self, slug: str) -> Service | None:
-        """Return a service by case-insensitive slug; None for blank input."""
-        normalized = slug.strip().lower()
+    def get_by_service_key(self, service_key: str) -> Service | None:
+        """Return a service by case-insensitive ``service_key``; None for blank input."""
+        normalized = service_key.strip().lower()
         if not normalized:
             return None
-        statement = select(Service).where(func.lower(Service.slug) == normalized)
+        statement = select(Service).where(func.lower(Service.service_key) == normalized)
         return self._session.execute(statement).scalar_one_or_none()
 
     def list_services(

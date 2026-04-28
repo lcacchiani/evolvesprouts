@@ -97,23 +97,23 @@ describe('PartnersPanel', () => {
     });
   });
 
-  it('always shows slug field and creates with relationship_type partner', async () => {
+  it('always shows partner key field and creates with relationship_type partner', async () => {
     const user = userEvent.setup();
     const createPartner = vi.fn().mockResolvedValue(null);
     const partners = buildPartnersHook({ createPartner });
 
     render(<PartnersPanel partners={partners} {...panelShell} />);
 
-    expect(screen.getByLabelText('Slug')).toBeInTheDocument();
+    expect(screen.getByLabelText('Partner key')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Name'), 'Gamma');
-    await user.type(screen.getByLabelText('Slug'), 'gamma-slug');
+    await user.type(screen.getByLabelText('Partner key'), 'gamma-slug');
     await user.click(screen.getByRole('button', { name: 'Create partner' }));
 
     expect(createPartner).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Gamma',
         relationship_type: 'partner',
-        slug: 'gamma-slug',
+        partner_key: 'gamma-slug',
       })
     );
   });
@@ -134,7 +134,7 @@ describe('PartnersPanel', () => {
     const baseRow = {
       organization_type: 'company' as const,
       relationship_type: 'partner' as const,
-      slug: null,
+      partner_key: null,
       website: null,
       location_id: null,
       location_summary: null,
@@ -172,7 +172,7 @@ describe('PartnersPanel', () => {
       name: 'Row Partner',
       organization_type: 'school',
       relationship_type: 'partner',
-      slug: 'row-slug',
+      partner_key: 'row-slug',
       website: 'https://example.com',
       location_id: null,
       location_summary: null,
@@ -200,7 +200,7 @@ describe('PartnersPanel', () => {
       expect.objectContaining({
         name: 'Row Partner Renamed',
         relationship_type: 'partner',
-        slug: 'row-slug',
+        partner_key: 'row-slug',
       })
     );
   });
@@ -222,7 +222,7 @@ describe('PartnersPanel', () => {
       name: 'Venue Owner',
       organization_type: 'company',
       relationship_type: 'partner',
-      slug: null,
+      partner_key: null,
       website: null,
       location_id: locId,
       location_summary: null,
@@ -293,7 +293,7 @@ describe('PartnersPanel', () => {
       name: 'Del Partner',
       organization_type: 'company',
       relationship_type: 'partner',
-      slug: 'del',
+      partner_key: 'del',
       website: null,
       location_id: null,
       location_summary: null,

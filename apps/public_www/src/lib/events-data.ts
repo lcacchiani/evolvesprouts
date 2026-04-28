@@ -55,10 +55,10 @@ export const CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS = 5_000;
 export const CALENDAR_PUBLIC_FETCH_TIMEOUT_MS = CALENDAR_PUBLIC_BUILD_FETCH_TIMEOUT_MS;
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
-const EVENT_BOOKING_SYSTEM = 'event-booking';
+export const EVENT_BOOKING_SYSTEM = 'event-booking';
 /** Consultation one-off booking modal (same reservation API shape as events). */
 export const CONSULTATION_BOOKING_SYSTEM = 'consultation-booking';
-const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
+export const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
 /** Query keys for `GET /v1/calendar/public` (OpenAPI: `service_type`, `slug`, `service_key`). */
@@ -81,10 +81,10 @@ interface EventBookingDatePart {
 export interface EventCalendarBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof EVENT_BOOKING_SYSTEM;
-  /** High-level service type for confirmations (from event JSON `service`). */
-  service: string;
-  /** Stable event id for reservation / Mailchimp tag; omitted when source record has no id/slug. */
-  serviceKey?: string;
+  /** Parent service public key from calendar JSON `service_key` (required for booking). */
+  serviceKey: string;
+  /** Public instance slug from calendar JSON `slug` (required for booking). */
+  instanceSlug: string;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -105,8 +105,8 @@ export interface ConsultationEventBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
   serviceKey: string;
-  /** High-level service type for confirmations (from family-consultations JSON). */
-  service: string;
+  /** Public instance slug for the selected consultation slot (required for booking). */
+  instanceSlug: string;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -156,8 +156,6 @@ export interface MyBestAuntieEventCohort {
   location_name: string;
   location_address: string;
   location_url: string;
-  /** High-level service type for confirmations (from cohort JSON `service`). */
-  service?: string;
   dates: MyBestAuntieEventCohortDate[];
 }
 
@@ -504,14 +502,15 @@ function buildEventBookingModalPayload(
 
   const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
 
-  const serviceKey = readCandidateText(record, ['slug', 'id', 'eventId']);
-  const service = readCandidateText(record, ['service']) ?? 'event';
+  const instanceSlug = readCandidateText(record, ['slug', 'id', 'eventId'])?.trim() ?? '';
+  const serviceKey =
+    readCandidateText(record, ['service_key', 'serviceKey'])?.trim() ?? '';
 
   return {
     variant: 'event',
     bookingSystem: EVENT_BOOKING_SYSTEM,
-    service,
-    ...(serviceKey ? { serviceKey } : {}),
+    serviceKey,
+    instanceSlug,
     title,
     subtitle: summary ?? '',
     originalAmount,
@@ -572,12 +571,9 @@ function buildMyBestAuntieBookingModalPayload(
     return null;
   }
 
-  const service = readCandidateText(record, ['service']) ?? 'training-course';
-
   const selectedCohort: MyBestAuntieEventCohort = {
     slug,
     service_tier: serviceTier,
-    service,
     title,
     description,
     cohort: cohortValue,

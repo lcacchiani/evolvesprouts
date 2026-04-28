@@ -56,24 +56,24 @@ describe('buildMyBestAuntieReferralUrl', () => {
 });
 
 describe('buildPublicReferralUrlWithSlug', () => {
-  it('builds service path when slug is set', () => {
+  it('builds service path when service key is set', () => {
     expect(
       buildPublicReferralUrlWithSlug({
         baseUrl: 'https://www.example.com',
         locale: 'en',
-        serviceSlug: 'my-best-auntie',
+        serviceKey: 'my-best-auntie',
         code: 'SAVE10',
         paramName: 'ref',
       }),
     ).toBe('https://www.example.com/en/services/my-best-auntie?ref=SAVE10');
   });
 
-  it('builds locale home when slug is null', () => {
+  it('builds locale home when service key is null', () => {
     expect(
       buildPublicReferralUrlWithSlug({
         baseUrl: 'https://www.example.com',
         locale: 'en',
-        serviceSlug: null,
+        serviceKey: null,
         code: 'SAVE10',
         paramName: 'ref',
       }),

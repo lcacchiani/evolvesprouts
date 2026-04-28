@@ -29,19 +29,21 @@ from app.imports.registry import register
 from app.imports import refs
 
 
-def _slug_fits(slug: str) -> bool:
-    return 0 < len(slug) <= 80
+def _service_key_fits(key: str) -> bool:
+    return 0 < len(key) <= 80
 
 
-def _allocate_service_slug(session: Session, base: str) -> str | None:
-    if not _slug_fits(base):
+def _allocate_service_key(session: Session, base: str) -> str | None:
+    if not _service_key_fits(base):
         return None
     for n in range(10):
         candidate = base if n == 0 else f"{base}-{n + 1}"
-        if not _slug_fits(candidate):
+        if not _service_key_fits(candidate):
             return None
         cnt = session.execute(
-            select(func.count()).select_from(Service).where(Service.slug == candidate),
+            select(func.count())
+            .select_from(Service)
+            .where(Service.service_key == candidate),
         ).scalar_one()
         if int(cnt or 0) == 0:
             return candidate
@@ -106,13 +108,13 @@ class EventServicesImporter:
                 stats.inserted += 1
                 continue
 
-            slug_base = _slugify_event_title(title)
-            slug = _allocate_service_slug(session, slug_base) if slug_base else None
+            key_base = _slugify_event_title(title)
+            service_key = _allocate_service_key(session, key_base) if key_base else None
 
             svc = Service(
                 service_type=ServiceType.EVENT,
                 title=title,
-                slug=slug,
+                service_key=service_key,
                 description=str(ev.description).strip() if ev.description else None,
                 cover_image_s3_key=None,
                 delivery_mode=delivery,

@@ -28,7 +28,7 @@ def _event_service() -> Service:
         id=sid,
         service_type=ServiceType.EVENT,
         title="Workshop",
-        slug="ws-svc",
+        service_key="ws-svc",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -51,7 +51,7 @@ def _training_service() -> Service:
         id=sid,
         service_type=ServiceType.TRAINING_COURSE,
         title="Course",
-        slug="course-slug",
+        service_key="course-slug",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -67,7 +67,7 @@ def _consultation_service() -> Service:
         id=sid,
         service_type=ServiceType.CONSULTATION,
         title="Cons",
-        slug=None,
+        service_key=None,
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -104,7 +104,7 @@ def test_parse_create_instance_requires_slug_for_training_course() -> None:
     assert exc.value.field == "slug"
 
 
-def test_parse_create_instance_allows_missing_slug_for_consultation() -> None:
+def test_parse_create_instance_requires_slug_for_consultation() -> None:
     service = _consultation_service()
     body = {
         "consultation_details": {
@@ -112,8 +112,22 @@ def test_parse_create_instance_allows_missing_slug_for_consultation() -> None:
             "currency": "HKD",
         },
     }
+    with pytest.raises(ValidationError) as exc:
+        parse_create_instance_payload(body, service)
+    assert exc.value.field == "slug"
+
+
+def test_parse_create_instance_accepts_slug_for_consultation() -> None:
+    service = _consultation_service()
+    body = {
+        "slug": "essentials-tier-2026",
+        "consultation_details": {
+            "pricing_model": "free",
+            "currency": "HKD",
+        },
+    }
     parsed = parse_create_instance_payload(body, service)
-    assert parsed["slug"] is None
+    assert parsed["slug"] == "essentials-tier-2026"
 
 
 def test_parse_update_instance_rejects_clearing_slug_for_event() -> None:
@@ -166,7 +180,7 @@ def test_parse_create_instance_accepts_slug_for_training() -> None:
     assert parsed["slug"] == "run-a"
 
 
-def test_parse_update_instance_allows_clearing_slug_for_consultation() -> None:
+def test_parse_update_instance_rejects_clearing_slug_for_consultation() -> None:
     service = _consultation_service()
     body = {
         "status": InstanceStatus.SCHEDULED.value,
@@ -176,5 +190,6 @@ def test_parse_update_instance_allows_clearing_slug_for_consultation() -> None:
             "currency": "HKD",
         },
     }
-    parsed = parse_update_instance_payload(body, service)
-    assert parsed.get("slug") is None
+    with pytest.raises(ValidationError) as exc:
+        parse_update_instance_payload(body, service)
+    assert exc.value.field == "slug"

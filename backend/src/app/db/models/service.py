@@ -56,11 +56,11 @@ class Service(Base):
         Index("services_type_idx", "service_type"),
         Index("services_status_idx", "status"),
         Index(
-            "services_slug_tier_unique_idx",
-            text("lower(slug)"),
+            "services_service_key_tier_unique_idx",
+            text("lower(service_key)"),
             text("lower(service_tier)"),
             unique=True,
-            postgresql_where=text("slug IS NOT NULL"),
+            postgresql_where=text("service_key IS NOT NULL"),
             postgresql_nulls_not_distinct=True,
         ),
     )
@@ -80,7 +80,7 @@ class Service(Base):
         nullable=False,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    service_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
     booking_system: Mapped[str | None] = mapped_column(String(80), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     cover_image_s3_key: Mapped[str | None] = mapped_column(String(), nullable=True)

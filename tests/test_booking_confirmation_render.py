@@ -57,7 +57,7 @@ def test_render_booking_confirmation_service_row_type_and_title() -> None:
         locale="en",
         full_name="Pat",
         course_label="Spring Playdate",
-        service_slug="event",
+        service_type="event",
         schedule_date_label=None,
         schedule_time_label=None,
         primary_session_iso="2026-04-16T18:00:00+08:00",

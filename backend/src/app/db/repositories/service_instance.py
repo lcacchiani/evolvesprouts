@@ -212,7 +212,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         that pass mixed case are still matched defensively via ``lower()`` on the
         value.
 
-        When ``service_key`` is set, it is compared to ``lower(services.slug)``; the
+        When ``service_key`` is set, it is compared to ``lower(services.service_key)``; the
         public handler passes a pre-normalized lowercase slug, and callers that
         pass mixed case are still matched defensively via ``lower()`` on the value.
         """
@@ -276,11 +276,24 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 func.lower(ServiceInstance.slug) == slug.lower()
             )
         if service_key:
-            statement = statement.where(func.lower(Service.slug) == service_key.lower())
-        statement = statement.where(ServiceInstance.slug.is_not(None)).where(
-            ServiceInstance.slug != ""
-        )
+            statement = statement.where(
+                func.lower(Service.service_key) == service_key.lower()
+            )
+        statement = statement.where(ServiceInstance.slug != "")
         return list(self._session.execute(statement).unique().scalars().all())
+
+    def get_with_service_by_slug(self, slug: str) -> ServiceInstance | None:
+        """Load instance and parent service by public instance slug (case-insensitive)."""
+        normalized = slug.strip()
+        if not normalized:
+            return None
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(func.lower(ServiceInstance.slug) == normalized.lower())
+            .options(joinedload(ServiceInstance.service))
+        )
+        return self._session.execute(statement).unique().scalar_one_or_none()
 
     def get_id_by_slug(self, slug: str) -> UUID | None:
         """Resolve ``service_instances.id`` from public slug (case-insensitive)."""

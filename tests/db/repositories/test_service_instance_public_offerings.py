@@ -92,7 +92,7 @@ def test_list_public_offerings_omits_null_slug_instances() -> None:
                 id=service_id,
                 service_type=ServiceType.EVENT,
                 title="Public Feed Svc",
-                slug=f"pub-feed-{service_id.hex[:8]}",
+                service_key=f"pub-feed-{service_id.hex[:8]}",
                 booking_system=None,
                 description=None,
                 cover_image_s3_key=None,

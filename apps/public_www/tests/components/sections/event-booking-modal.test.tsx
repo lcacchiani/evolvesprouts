@@ -141,8 +141,8 @@ const mapsUrl = 'https://maps.example.com/dir?q=venue';
 const eventPayload: EventCalendarBookingModalPayload = {
   variant: 'event',
   bookingSystem: 'event-booking',
-  service: 'event',
   serviceKey: 'test-event-1',
+  instanceSlug: 'test-event-instance-slug',
   title: 'Test Event',
   subtitle: 'Event subtitle',
   originalAmount: 100,
@@ -252,7 +252,8 @@ describe('EventBookingModal', () => {
         body: expect.objectContaining({
           locationUrl: mapsUrl,
           courseSlug: 'event-booking',
-          service: 'event',
+          serviceKey: 'test-event-1',
+          serviceInstanceSlug: 'test-event-instance-slug',
         }),
       }),
     );
@@ -322,7 +323,8 @@ describe('EventBookingModal', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
-          service: 'event',
+          serviceKey: 'test-event-1',
+          serviceInstanceSlug: 'test-event-instance-slug',
         }),
       }),
     );

@@ -133,28 +133,30 @@ def _parse_organization_type(value: Any, *, field: str) -> OrganizationType:
         raise ValidationError(f"Invalid {field}", field=field) from exc
 
 
-def _apply_organization_slug_from_body(
+def _apply_organization_partner_key_from_body(
     org: Organization,
     body: Mapping[str, Any],
     *,
     relationship_type: RelationshipType | None = None,
 ) -> None:
-    """Set slug from request body; only partner orgs may have a slug."""
-    if "slug" not in body:
+    """Set partner_key from request body; only partner orgs may have a key."""
+    if "partner_key" not in body:
         return
-    slug = parse_optional_service_instance_slug(body.get("slug"), field="slug")
+    partner_key = parse_optional_service_instance_slug(
+        body.get("partner_key"), field="partner_key"
+    )
     effective = (
         relationship_type if relationship_type is not None else org.relationship_type
     )
     if effective != RelationshipType.PARTNER:
-        if slug is not None:
+        if partner_key is not None:
             raise ValidationError(
-                "slug is only allowed when relationship_type is partner",
-                field="slug",
+                "partner_key is only allowed when relationship_type is partner",
+                field="partner_key",
             )
-        org.slug = None
+        org.partner_key = None
         return
-    org.slug = slug
+    org.partner_key = partner_key
 
 
 def _parse_relationship_type_filter(
@@ -177,15 +179,15 @@ def _parse_relationship_type_filter(
         ) from exc
 
 
-def _is_organizations_partner_slug_unique_violation(exc: IntegrityError) -> bool:
+def _is_organizations_partner_key_unique_violation(exc: IntegrityError) -> bool:
     constraint = getattr(getattr(exc, "orig", None), "diag", None)
     constraint_name = (
         getattr(constraint, "constraint_name", None) if constraint else None
     )
-    if constraint_name == "organizations_partner_slug_unique_idx":
+    if constraint_name == "organizations_partner_key_unique_idx":
         return True
     message = str(exc).lower()
-    return "organizations_partner_slug_unique_idx" in message
+    return "organizations_partner_key_unique_idx" in message
 
 
 def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -295,7 +297,7 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
             if active is None:
                 raise ValidationError("active is required", field="active")
             org.archived_at = None if active else now
-        _apply_organization_slug_from_body(
+        _apply_organization_partner_key_from_body(
             org, body, relationship_type=relationship_type
         )
         created = repository.create(org)
@@ -307,10 +309,10 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_organizations_partner_slug_unique_violation(exc):
+            if _is_organizations_partner_key_unique_violation(exc):
                 raise ValidationError(
-                    "Slug already in use",
-                    field="slug",
+                    "Partner key already in use",
+                    field="partner_key",
                     status_code=409,
                 ) from exc
             raise
@@ -365,7 +367,7 @@ def _update_organization(
                 allowed=ORGANIZATION_RELATIONSHIP_TYPES,
             )
             if org.relationship_type != RelationshipType.PARTNER:
-                org.slug = None
+                org.partner_key = None
         if "website" in body:
             org.website = validate_string_length(
                 body.get("website"),
@@ -386,17 +388,17 @@ def _update_organization(
             tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
             replace_organization_tags(session, organization_id=org.id, tag_ids=tag_ids)
 
-        _apply_organization_slug_from_body(org, body)
+        _apply_organization_partner_key_from_body(org, body)
 
         repository.update(org)
         try:
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if _is_organizations_partner_slug_unique_violation(exc):
+            if _is_organizations_partner_key_unique_violation(exc):
                 raise ValidationError(
-                    "Slug already in use",
-                    field="slug",
+                    "Partner key already in use",
+                    field="partner_key",
                     status_code=409,
                 ) from exc
             raise

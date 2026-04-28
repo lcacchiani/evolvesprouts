@@ -720,7 +720,9 @@ def booking_confirmation_template_merge_data(
     locale: str,
     full_name: str,
     course_label: str,
-    service_slug: str | None = None,
+    service_key: str
+    | None = None,  # canonical template service key (reserved for future use)
+    service_type: str | None = None,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
@@ -741,8 +743,8 @@ def booking_confirmation_template_merge_data(
 ) -> dict[str, Any]:
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
-    service_row_label = resolve_service_row_label(loc, service_slug, course_label)
-    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_row_label = resolve_service_row_label(loc, service_type, course_label)
+    service_type_label = resolve_service_type_label(loc, service_type)
     service_title_label = resolve_service_title_label(course_label)
     pm_display = resolve_payment_method_display(payment_method_code)
     use_hkt = location_suggests_hong_kong(
@@ -857,7 +859,8 @@ def render_booking_confirmation_email(
     locale: str,
     full_name: str,
     course_label: str,
-    service_slug: str | None = None,
+    service_key: str | None = None,
+    service_type: str | None = None,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
@@ -883,7 +886,7 @@ def render_booking_confirmation_email(
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
-    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_type_label = resolve_service_type_label(loc, service_type)
     service_title_label = resolve_service_title_label(course_label)
     service_table_left_label = service_type_label or labels["service"]
     esc_service_title = html.escape(service_title_label)

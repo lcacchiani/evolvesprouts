@@ -227,7 +227,7 @@ describe('BookingThankYouModal', () => {
       totalAmount: 100,
       eventTitle: 'Family Consultation — long title',
       courseSlug: 'consultation-booking',
-      serviceSlug: 'consultation',
+      serviceTypeLabelKey: 'consultation',
     };
 
     render(

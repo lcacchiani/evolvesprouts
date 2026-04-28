@@ -35,7 +35,7 @@ describe('ReferralLinkQrDialog', () => {
         open
         onClose={() => {}}
         discountCode='SAVE10'
-        serviceSlug='my-best-auntie-training-course'
+        serviceKey='my-best-auntie-training-course'
         discountType='percentage'
       />,
     );
@@ -52,7 +52,7 @@ describe('ReferralLinkQrDialog', () => {
       expect.objectContaining({
         event: 'admin_referral_qr_opened',
         app_surface: 'admin',
-        service_slug: 'my-best-auntie-training-course',
+        service_key: 'my-best-auntie-training-course',
       }),
     );
 
@@ -65,7 +65,7 @@ describe('ReferralLinkQrDialog', () => {
         open
         onClose={() => {}}
         discountCode='SAVE10'
-        serviceSlug='my-best-auntie-training-course'
+        serviceKey='my-best-auntie-training-course'
         discountType='referral'
       />,
     );
@@ -85,7 +85,7 @@ describe('ReferralLinkQrDialog', () => {
         open
         onClose={() => {}}
         discountCode='SAVE10'
-        serviceSlug='my-best-auntie-training-course'
+        serviceKey='my-best-auntie-training-course'
         discountType='absolute'
       />,
     );
@@ -112,7 +112,7 @@ describe('ReferralLinkQrDialog', () => {
         open
         onClose={() => {}}
         discountCode='ABC'
-        serviceSlug={null}
+        serviceKey={null}
         discountType='percentage'
       />,
     );
@@ -138,7 +138,7 @@ describe('ReferralLinkQrDialog', () => {
 
   it('passes applyBranding true by default and false when branding is unchecked', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} discountType='percentage' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceKey={null} discountType='percentage' />,
     );
 
     await vi.waitFor(() => {
@@ -163,7 +163,7 @@ describe('ReferralLinkQrDialog', () => {
 
   it('omits logo from QR generation when include-logo is unchecked', async () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceSlug={null} discountType='percentage' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='ABC' serviceKey={null} discountType='percentage' />,
     );
 
     await vi.waitFor(() => {
@@ -188,7 +188,7 @@ describe('ReferralLinkQrDialog', () => {
         open
         onClose={() => {}}
         discountCode='SAVE10'
-        serviceSlug={null}
+        serviceKey={null}
         discountType='percentage'
       />,
     );
@@ -201,14 +201,14 @@ describe('ReferralLinkQrDialog', () => {
 
   it('does not render URL parameter selector', () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceKey={null} discountType='referral' />,
     );
     expect(screen.queryByLabelText('URL parameter')).toBeNull();
   });
 
   it('renders locale select and QR branding controls together', () => {
     render(
-      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceSlug={null} discountType='referral' />,
+      <ReferralLinkQrDialog open onClose={() => {}} discountCode='X' serviceKey={null} discountType='referral' />,
     );
     expect(screen.getByLabelText('Locale')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /include logo in qr code/i })).toBeInTheDocument();

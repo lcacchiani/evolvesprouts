@@ -23,7 +23,10 @@ import type {
   BookingPaymentModalContent,
   Locale,
 } from '@/content';
-import type { EventBookingModalPayload } from '@/lib/events-data';
+import {
+  EVENT_BOOKING_SYSTEM,
+  type EventBookingModalPayload,
+} from '@/lib/events-data';
 import { formatPartDateTimeLabel } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -102,9 +105,11 @@ export function EventBookingModal({
         locale={locale}
         content={paymentModalContent}
         eventTitle={bookingPayload.title}
-        reservationServiceKey={bookingPayload.serviceKey ?? ''}
+        serviceKey={bookingPayload.serviceKey}
         courseSlug='event-booking'
-        serviceSlug={bookingPayload.service}
+        serviceTypeLabelKey='event'
+        bookingSystem={EVENT_BOOKING_SYSTEM}
+        serviceInstanceSlug={bookingPayload.instanceSlug}
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={bookingPayload.dateParts.map((part) => {
           return {

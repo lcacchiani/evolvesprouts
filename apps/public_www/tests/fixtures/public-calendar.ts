@@ -42,7 +42,6 @@ export const publicCalendarFixture = {
       location_url:
         'https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan',
       location_name: 'Evolve Sprouts',
-      service: 'training-course',
       slug: 'my-best-auntie-1-3-apr-26',
     },
     {
@@ -82,13 +81,13 @@ export const publicCalendarFixture = {
       location_url:
         'https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan',
       location_name: 'Evolve Sprouts',
-      service: 'training-course',
       slug: 'my-best-auntie-0-1-may-26',
     },
     {
       title: 'Generic Public Event',
       description: 'No landing page, no cohort.',
       service_type: 'event',
+      service_key: 'generic-events',
       tags: ['Community'],
       categories: ['Meetup'],
       location: 'virtual',
@@ -111,7 +110,7 @@ export const publicCalendarFixture = {
       location: 'physical',
       booking_system: 'event-booking',
       service_type: 'event',
-      service: 'event',
+      service_key: 'easter-workshops',
       dates: [
         {
           start_datetime: '2026-04-06T02:00:00Z',
@@ -140,7 +139,7 @@ export const publicCalendarFixture = {
       location: 'physical',
       booking_system: 'event-booking',
       service_type: 'event',
-      service: 'event',
+      service_key: 'missing-piece-series',
       dates: [
         {
           start_datetime: '2026-05-16T01:00:00Z',

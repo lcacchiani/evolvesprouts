@@ -31,7 +31,7 @@ def _instance_row(
         title="Parent Service",
         description="Parent description",
         service_type=ServiceType.EVENT,
-        slug=None,
+        service_key=None,
         booking_system=None,
         event_details=SimpleNamespace(event_category=SimpleNamespace(value="workshop")),
         delivery_mode=SimpleNamespace(value=delivery_mode_value),

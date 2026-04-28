@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any
@@ -15,7 +16,7 @@ from app.currency_config import currency_symbol_for_iso_code
 from app.db.engine import get_engine
 from app.db.models import DiscountCode
 from app.db.models.enums import DiscountType
-from app.db.repositories import DiscountCodeRepository, ServiceRepository
+from app.db.repositories import DiscountCodeRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
 from app.utils.logging import get_logger, hash_for_correlation, mask_pii
@@ -24,21 +25,21 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 logger = get_logger(__name__)
 
 # Logged on 404 responses only; stable for CloudWatch Insights. Never log raw codes.
-_REJECTION_UNKNOWN_SERVICE_KEY = "unknown_service_key"
 _REJECTION_CODE_NOT_FOUND = "code_not_found"
 _REJECTION_REFERRAL_TYPE = "referral_type_not_allowed"
 _REJECTION_INACTIVE = "inactive"
 _REJECTION_NOT_YET_VALID = "not_yet_valid"
 _REJECTION_EXPIRED = "expired"
 _REJECTION_MAX_USES = "max_uses_exhausted"
-_REJECTION_INSTANCE_ID_REQUIRED = "instance_id_required"
 _REJECTION_INSTANCE_SCOPE_MISMATCH = "instance_scope_mismatch"
-_REJECTION_UNKNOWN_INSTANCE_SLUG = "unknown_instance_slug"
+_REJECTION_UNKNOWN_INSTANCE_SLUG = "unknown_service_instance_slug"
+_REJECTION_SERVICE_KEY_INSTANCE_MISMATCH = "service_key_instance_mismatch"
 _REJECTION_SERVICE_SCOPE_MISMATCH = "service_scope_mismatch"
 
 _MAX_CODE_LENGTH = 100
-_MAX_SERVICE_KEY_LENGTH = 120
+_MAX_SERVICE_KEY_LENGTH = 80
 _MAX_SERVICE_INSTANCE_SLUG_LENGTH = 128
+_SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def _log_discount_validate_rejection(
@@ -80,26 +81,52 @@ def handle_public_discount_validate(
     if code is None:
         return json_response(400, {"error": "code is required"}, event=event)
 
-    service_key = validate_string_length(
+    service_key_raw = validate_string_length(
         body.get("service_key"),
         "service_key",
         _MAX_SERVICE_KEY_LENGTH,
-        required=False,
+        required=True,
     )
+    if service_key_raw is None or not str(service_key_raw).strip():
+        return json_response(
+            400,
+            {"error": "service_key is required", "field": "service_key"},
+            event=event,
+        )
+    service_key_normalized = str(service_key_raw).strip().lower()
+    if len(service_key_normalized) > _MAX_SERVICE_KEY_LENGTH:
+        return json_response(
+            400,
+            {"error": "service_key is too long", "field": "service_key"},
+            event=event,
+        )
+    if not _SERVICE_KEY_PATTERN.fullmatch(service_key_normalized):
+        return json_response(
+            400,
+            {
+                "error": "service_key must match the public service key pattern",
+                "field": "service_key",
+            },
+            event=event,
+        )
+
     service_instance_slug_raw = validate_string_length(
         body.get("service_instance_slug"),
         "service_instance_slug",
         _MAX_SERVICE_INSTANCE_SLUG_LENGTH,
-        required=False,
+        required=True,
     )
-    service_instance_slug_normalized = (
-        service_instance_slug_raw.strip().lower()
-        if service_instance_slug_raw and service_instance_slug_raw.strip()
-        else ""
-    )
-    if service_instance_slug_normalized and not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(
-        service_instance_slug_normalized
-    ):
+    if service_instance_slug_raw is None or not str(service_instance_slug_raw).strip():
+        return json_response(
+            400,
+            {
+                "error": "service_instance_slug is required",
+                "field": "service_instance_slug",
+            },
+            event=event,
+        )
+    service_instance_slug_normalized = str(service_instance_slug_raw).strip().lower()
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(service_instance_slug_normalized):
         return json_response(
             400,
             {
@@ -113,14 +140,6 @@ def handle_public_discount_validate(
         "Validating discount code",
         extra={"code": mask_pii(code.strip().upper(), visible_chars=2)},
     )
-
-    service_key_normalized = (
-        service_key.strip() if service_key and service_key.strip() else ""
-    )
-    # Slug resolution is deferred until after we load the code row so unscoped
-    # ("all services") codes are not rejected when the page sends a stale or
-    # placeholder `service_key` that does not match `services.slug`.
-    resolved_service_id: UUID | None = None
 
     with Session(get_engine()) as session:
         repository = DiscountCodeRepository(session)
@@ -162,51 +181,54 @@ def handle_public_discount_validate(
                 event=event,
             )
 
-        if service_key_normalized:
-            resolved_from_key, slug_unknown = _resolve_service_id_from_key_for_row(
-                session,
-                row,
-                service_key_normalized,
+        instance_repo = ServiceInstanceRepository(session)
+        resolved = instance_repo.get_with_service_by_slug(
+            service_instance_slug_normalized
+        )
+        if resolved is None:
+            _log_discount_validate_rejection(
+                _REJECTION_UNKNOWN_INSTANCE_SLUG,
+                code=code,
+                extra={
+                    "discount_code_id": str(row.id),
+                    "service_instance_slug": service_instance_slug_normalized,
+                },
             )
-            if slug_unknown:
-                _log_discount_validate_rejection(
-                    _REJECTION_UNKNOWN_SERVICE_KEY,
-                    code=code,
-                    extra={"service_key": service_key_normalized},
-                )
-                return json_response(
-                    404,
-                    {"error": "Discount code not found or inactive"},
-                    event=event,
-                )
-            resolved_service_id = resolved_from_key
+            return json_response(
+                404,
+                {
+                    "error": "Discount code not found or inactive",
+                    "rejection_reason": _REJECTION_UNKNOWN_INSTANCE_SLUG,
+                },
+                event=event,
+            )
 
-        resolved_request_instance_id: UUID | None = None
-        if service_instance_slug_normalized:
-            instance_repo = ServiceInstanceRepository(session)
-            resolved_from_slug = instance_repo.get_id_by_slug(
-                service_instance_slug_normalized
+        parent_key = (resolved.service.service_key or "").strip().lower()
+        if parent_key != service_key_normalized:
+            _log_discount_validate_rejection(
+                _REJECTION_SERVICE_KEY_INSTANCE_MISMATCH,
+                code=code,
+                extra={
+                    "discount_code_id": str(row.id),
+                    "service_key": service_key_normalized,
+                    "service_instance_slug": service_instance_slug_normalized,
+                },
             )
-            if getattr(row, "instance_id", None) is not None:
-                if resolved_from_slug is None:
-                    _log_discount_validate_rejection(
-                        _REJECTION_UNKNOWN_INSTANCE_SLUG,
-                        code=code,
-                        extra={
-                            "discount_code_id": str(row.id),
-                            "service_instance_slug": service_instance_slug_normalized,
-                        },
-                    )
-                    return json_response(
-                        404,
-                        {"error": "Discount code not found or inactive"},
-                        event=event,
-                    )
-                resolved_request_instance_id = resolved_from_slug
+            return json_response(
+                404,
+                {
+                    "error": "Discount code not found or inactive",
+                    "rejection_reason": _REJECTION_SERVICE_KEY_INSTANCE_MISMATCH,
+                },
+                event=event,
+            )
+
+        resolved_request_service_id: UUID = resolved.service.id
+        resolved_request_instance_id: UUID = resolved.id
 
         scope_reason = _scope_rejection_reason(
             row,
-            resolved_request_service_id=resolved_service_id,
+            resolved_request_service_id=resolved_request_service_id,
             request_instance_id=resolved_request_instance_id,
         )
         if scope_reason is not None:
@@ -235,50 +257,16 @@ def handle_public_discount_validate(
         )
 
 
-def _resolve_service_id_from_key_for_row(
-    session: Session,
-    row: DiscountCode,
-    service_key: str,
-) -> tuple[UUID | None, bool]:
-    """Resolve `service_key` to a service id when needed for scope checks.
-
-    Returns ``(resolved_service_id, slug_unknown)``. When ``slug_unknown`` is True,
-    the slug did not match any ``services.slug`` row while the code requires that
-    resolution (service-scoped code only).
-
-    Instance-scoped codes ignore ``service_key`` for resolution (instance id is
-    authoritative). Unscoped codes do not resolve the slug; an unknown slug must
-    not invalidate the code.
-    """
-    instance_id = getattr(row, "instance_id", None)
-    if instance_id is not None:
-        return (None, False)
-
-    service_id = getattr(row, "service_id", None)
-    if service_id is None:
-        return (None, False)
-
-    svc = ServiceRepository(session).get_by_slug(service_key)
-    if svc is None:
-        return (None, True)
-    return (svc.id, False)
-
-
 def _scope_rejection_reason(
     row: DiscountCode,
     *,
-    resolved_request_service_id: UUID | None,
-    request_instance_id: UUID | None,
+    resolved_request_service_id: UUID,
+    request_instance_id: UUID,
 ) -> tuple[str, dict[str, Any]] | None:
     """Return a rejection reason when scope does not match the request context."""
     instance_id = getattr(row, "instance_id", None)
     service_id = getattr(row, "service_id", None)
     if instance_id is not None:
-        if request_instance_id is None:
-            return (
-                _REJECTION_INSTANCE_ID_REQUIRED,
-                {"expected_service_instance_id": str(instance_id)},
-            )
         if request_instance_id != instance_id:
             return (
                 _REJECTION_INSTANCE_SCOPE_MISMATCH,
@@ -290,8 +278,6 @@ def _scope_rejection_reason(
         return None
     if service_id is None:
         return None
-    if resolved_request_service_id is None:
-        return None
     if service_id != resolved_request_service_id:
         return (
             _REJECTION_SERVICE_SCOPE_MISMATCH,
@@ -301,23 +287,6 @@ def _scope_rejection_reason(
             },
         )
     return None
-
-
-def _discount_scope_allows_validate(
-    row: DiscountCode,
-    *,
-    resolved_request_service_id: UUID | None,
-    request_instance_id: UUID | None,
-) -> bool:
-    """Return False when scope does not match the request context."""
-    return (
-        _scope_rejection_reason(
-            row,
-            resolved_request_service_id=resolved_request_service_id,
-            request_instance_id=request_instance_id,
-        )
-        is None
-    )
 
 
 def _unusable_reason(row: DiscountCode) -> tuple[str, dict[str, Any]] | None:

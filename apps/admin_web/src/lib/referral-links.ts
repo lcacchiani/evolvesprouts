@@ -46,15 +46,15 @@ const SERVICE_SLUG_PATH = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export interface BuildPublicReferralUrlInput {
   baseUrl: string;
   locale: string;
-  /** Public `services.slug` segment, or null/empty for locale home (`/{locale}/`). */
-  serviceSlug: string | null | undefined;
+  /** Public `services.service_key` segment, or null/empty for locale home (`/{locale}/`). */
+  serviceKey: string | null | undefined;
   code: string;
   paramName: ReferralParamName;
 }
 
 /**
  * Build a locale-prefixed public URL with `ref` or `discount` for referral QR.
- * With a service slug: `/{locale}/services/{slug}?…`. Without: `/{locale}/?…` (site home for that locale).
+ * With a service key: `/{locale}/services/{key}?…`. Without: `/{locale}/?…` (site home for that locale).
  *
  * Note: `URL` omits a trailing slash on non-root paths before the query string (for example
  * `…/services/foo?ref=…`), while marketing page QR uses a trailing slash before any query
@@ -74,10 +74,10 @@ export function buildPublicReferralUrlWithSlug(input: BuildPublicReferralUrlInpu
     return '';
   }
   const param = input.paramName === 'discount' ? 'discount' : 'ref';
-  const rawSlug = input.serviceSlug?.trim().toLowerCase() ?? '';
+  const rawKey = input.serviceKey?.trim().toLowerCase() ?? '';
   const path =
-    rawSlug && SERVICE_SLUG_PATH.test(rawSlug)
-      ? `/${locale}/services/${rawSlug}`
+    rawKey && SERVICE_SLUG_PATH.test(rawKey)
+      ? `/${locale}/services/${rawKey}`
       : `/${locale}/`;
   const url = new URL(path, `${base}/`);
   url.searchParams.set(param, code);

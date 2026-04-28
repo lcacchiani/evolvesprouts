@@ -25,8 +25,8 @@ from app.api.admin_services_common import (
 )
 from app.api.admin_services_cover import create_cover_image_upload
 from app.api.admin_services_integrity import (
-    is_services_slug_tier_unique_violation,
-    slug_tier_uniqueness_validation_error,
+    is_services_service_key_tier_unique_violation,
+    service_key_tier_uniqueness_validation_error,
 )
 from app.api.admin_services_payload_utils import parse_service_type_details
 from app.api.admin_entities_helpers import require_assignable_tag
@@ -179,7 +179,7 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
         service = Service(
             service_type=payload["service_type"],
             title=payload["title"],
-            slug=payload["slug"],
+            service_key=payload["service_key"],
             booking_system=payload["booking_system"],
             description=payload["description"],
             cover_image_s3_key=payload["cover_image_s3_key"],
@@ -207,9 +207,9 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if is_services_slug_tier_unique_violation(exc):
-                raise slug_tier_uniqueness_validation_error(
-                    slug=payload["slug"],
+            if is_services_service_key_tier_unique_violation(exc):
+                raise service_key_tier_uniqueness_validation_error(
+                    service_key=payload["service_key"],
                     service_tier=payload["service_tier"],
                 ) from exc
             raise
@@ -263,8 +263,8 @@ def _update_service(
 
         if "title" in payload:
             service.title = payload["title"]
-        if "slug" in payload:
-            service.slug = payload["slug"]
+        if "service_key" in payload:
+            service.service_key = payload["service_key"]
         if "booking_system" in payload:
             service.booking_system = payload["booking_system"]
         if "description" in payload:
@@ -304,9 +304,9 @@ def _update_service(
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            if is_services_slug_tier_unique_violation(exc):
-                raise slug_tier_uniqueness_validation_error(
-                    slug=service.slug,
+            if is_services_service_key_tier_unique_violation(exc):
+                raise service_key_tier_uniqueness_validation_error(
+                    service_key=service.service_key,
                     service_tier=service.service_tier,
                 ) from exc
             raise

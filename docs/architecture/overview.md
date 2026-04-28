@@ -44,7 +44,7 @@ Flutter Mobile / Next.js Admin
   stay aligned.
 - Referral links for scoped discounts use query parameters (`ref` / `discount`)
   on locale-prefixed course URLs; the backend matches `service_key` to
-  `services.slug` in Aurora for validate/redeem scope checks.
+  `services.service_key` in Aurora for validate/redeem scope checks.
   Instance-scoped discount redemption uses the public `service_instances.slug` sent as
   `service_instance_slug` (validate) and `serviceInstanceSlug` (reservations); the public
   calendar feed (`GET /v1/calendar/public`) exposes the same `slug` field for events and

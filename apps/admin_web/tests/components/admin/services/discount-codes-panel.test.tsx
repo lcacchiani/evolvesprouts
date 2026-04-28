@@ -46,7 +46,7 @@ describe('DiscountCodesPanel', () => {
     instancesCount: 0,
     serviceType: 'training_course' as const,
     title: 'My Best Auntie',
-    slug: 'my-best-auntie' as string | null,
+    serviceKey: 'my-best-auntie' as string | null,
     bookingSystem: null,
     description: null,
     coverImageS3Key: null,

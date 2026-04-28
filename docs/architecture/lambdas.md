@@ -20,7 +20,7 @@ their primary responsibilities.
 ### CDK deploy parameter hygiene
 
 - Discount validation and reservation flows resolve public `service_key` values from
-  `services.slug` in Aurora. The legacy `PUBLIC_SERVICE_KEY_MAP_JSON` Lambda environment
+  `services.service_key` in Aurora. The legacy `PUBLIC_SERVICE_KEY_MAP_JSON` Lambda environment
   variable (and CDK `PublicServiceKeyMapJson` parameter) has been removed; production and
   staging deploys must not pass it in pipeline parameter files or `cdk deploy --parameters`
   invocations.
@@ -96,7 +96,7 @@ their primary responsibilities.
   among scheduled/open/full); `partner_organizations` entries include optional
   `location_id` (partner venue); and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
-  aggregate discount usage before service slug changes; `DELETE /v1/admin/services/{id}`
+  aggregate discount usage before service key changes; `DELETE /v1/admin/services/{id}`
   returns `409` when the service still has instances), `/v1/admin/discount-codes/*`
   (`POST` returns `409` with `field: code` when the code collides with the
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
@@ -107,21 +107,19 @@ their primary responsibilities.
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
   and `GET /v1/assets/free`,
   plus public website proxy routes including
-  `/www/v1/discounts/validate` (native Aurora-backed discount validation; optional
-  `service_key` is resolved case-insensitively against `services.slug` in Aurora when
-  the code is service-scoped; optional `service_instance_slug` resolves case-insensitively
-  to `service_instances.id` when the code is instance-scoped; unscoped codes do not fail on an
-  unknown `service_key`; service-scoped codes still validate when `service_key` is omitted
-  (same permissive behavior as before `service_id` removal); instance-scoped codes return 404
-  when the instance slug does not resolve;
-  codes with `discount_type` `referral` are rejected with the same 404
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation; request body
+  requires `service_key` and `service_instance_slug`. The pair resolves to a
+  `service_instances` row whose parent `services.service_key` matches `service_key`
+  (case-insensitive); otherwise **404** with `unknown_service_instance_slug` or
+  `service_key_instance_mismatch`. Scoped codes compare against the resolved service/instance
+  ids; codes with `discount_type` `referral` are rejected with the same 404
   envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
   `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
   **training_course** `service_instances` for published services; consultation
-  is intentionally excluded. Instances without `service_instances.slug` are omitted.
+  is intentionally excluded. Instances with an empty `service_instances.slug` are omitted.
   Each item includes `service_type`,
   `slug` (public instance slug from `service_instances.slug`), `partners`, `service_tier`
   (from parent service, or inferred from instance slug for My Best Auntie) / `cohort`,
@@ -132,11 +130,11 @@ their primary responsibilities.
   to the linked partner organization's display name when the venue location row has
   no name but is that partner's `organizations.location`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
-  cohorts default to `my-best-auntie-booking` when `services.slug` is
+  cohorts default to `my-best-auntie-booking` when `services.service_key` is
   `my-best-auntie`). Results order by earliest upcoming session slot ascending
   with `service_instances.id` as tie-break. Optional query filters:
   `slug` (matched case-insensitively against `service_instances.slug`), `service_type`,
-  `service_key` (matched case-insensitively against `services.slug`; invalid values
+  `service_key` (matched case-insensitively against `services.service_key`; invalid values
   ignored). `slug` echoes from `service_instances`; `spaces_total` / `spaces_left`
   when `max_capacity` is set,
   using the same enrollment statuses as capacity checks: registered, confirmed,
@@ -210,8 +208,10 @@ their primary responsibilities.
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
   `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
   fields, persists contact + program-enrollment lead (including discount metadata when
-  applicable; referral-type codes are rejected). May insert an `enrollments` row for the
-  resolved instance slug when capacity allows (or returns **409** when the instance is
+  applicable; referral-type codes are rejected). Requires `serviceKey` and
+  `serviceInstanceSlug`; the server resolves the instance and parent service, derives
+  `service_type`, and may insert an `enrollments` row for the
+  resolved instance when capacity allows (or returns **409** when the instance is
   full with waitlist disabled). Admin enrollment APIs validate discount code scope to
   the instance's service before incrementing usage. Then sends booking confirmation
   (SES), optional Mailchimp subscribe, and a plain-text **sales recap** with extended
@@ -237,7 +237,7 @@ their primary responsibilities.
   `SendRawEmail` (multipart HTML + inline PNG) when the client supplies a valid
   PNG data URL. Stored booking-confirmation templates expose `{{service_type_label}}`
   and `{{service_title_label}}` for the first details table row (localized service type
-  from optional reservation `service` when present, with generic “Service” fallback
+  from the resolved instance `service_type` when present, with generic “Service” fallback
   in the label column; title is the booking title). `{{service_row_label}}` remains in
   merge data as the course title for backward compatibility with older template revisions.
 - VPC: **No**

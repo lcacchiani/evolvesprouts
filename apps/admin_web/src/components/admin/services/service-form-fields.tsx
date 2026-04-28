@@ -7,42 +7,42 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatEnumLabel } from '@/lib/format';
 
-import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
+import { SERVICE_KEY_PATTERN } from '@/lib/service-key-utils';
 import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES } from '@/types/services';
 import type { ServiceDeliveryMode, ServiceStatus } from '@/types/services';
 
-export interface ServiceReferralSlugFieldProps {
+export interface ServiceKeyFieldProps {
   value: string;
   onChange: (next: string) => void;
-  slugUsageLoadError?: string;
-  slugConflictError?: string;
+  serviceKeyUsageLoadError?: string;
+  serviceKeyConflictError?: string;
 }
 
-export function ServiceReferralSlugField({
+export function ServiceKeyField({
   value,
   onChange,
-  slugUsageLoadError,
-  slugConflictError,
-}: ServiceReferralSlugFieldProps) {
+  serviceKeyUsageLoadError,
+  serviceKeyConflictError,
+}: ServiceKeyFieldProps) {
   return (
     <div>
-      <Label htmlFor='service-slug'>Slug</Label>
+      <Label htmlFor='service-key'>Service key</Label>
       <Input
-        id='service-slug'
+        id='service-key'
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onBlur={() => onChange(value.trim().toLowerCase())}
         placeholder='e.g. my-best-auntie'
         autoComplete='off'
       />
-      {value.trim() && !INSTANCE_SLUG_PATTERN.test(value.trim()) ? (
+      {value.trim() && !SERVICE_KEY_PATTERN.test(value.trim()) ? (
         <p className='mt-1 text-xs text-red-600'>
           Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
           hyphen).
         </p>
       ) : null}
-      {slugUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{slugUsageLoadError}</p> : null}
-      {slugConflictError ? <p className='mt-1 text-xs text-red-600'>{slugConflictError}</p> : null}
+      {serviceKeyUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{serviceKeyUsageLoadError}</p> : null}
+      {serviceKeyConflictError ? <p className='mt-1 text-xs text-red-600'>{serviceKeyConflictError}</p> : null}
     </div>
   );
 }
@@ -50,7 +50,7 @@ export function ServiceReferralSlugField({
 export interface ServiceFormState {
   title: string;
   description: string;
-  slug: string;
+  serviceKey: string;
   deliveryMode: ServiceDeliveryMode;
   status: ServiceStatus;
 }
@@ -59,16 +59,16 @@ export interface ServiceFormFieldsProps {
   value: ServiceFormState;
   onChange: (value: ServiceFormState) => void;
   hideTitle?: boolean;
-  slugUsageLoadError?: string;
-  slugConflictError?: string;
+  serviceKeyUsageLoadError?: string;
+  serviceKeyConflictError?: string;
 }
 
 export function ServiceFormFields({
   value,
   onChange,
   hideTitle = false,
-  slugUsageLoadError,
-  slugConflictError,
+  serviceKeyUsageLoadError,
+  serviceKeyConflictError,
 }: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
@@ -93,11 +93,11 @@ export function ServiceFormFields({
           placeholder='Optional description'
         />
       </div>
-      <ServiceReferralSlugField
-        value={value.slug}
-        onChange={(next) => onChange({ ...value, slug: next })}
-        slugUsageLoadError={slugUsageLoadError}
-        slugConflictError={slugConflictError}
+      <ServiceKeyField
+        value={value.serviceKey}
+        onChange={(next) => onChange({ ...value, serviceKey: next })}
+        serviceKeyUsageLoadError={serviceKeyUsageLoadError}
+        serviceKeyConflictError={serviceKeyConflictError}
       />
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

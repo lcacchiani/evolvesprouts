@@ -20,7 +20,8 @@ export interface ReservationSubmissionPayload {
    * flows that collect a label (MBA, consultation) send the selected value as `serviceTier`.
    */
   serviceTier?: string;
-  cohortDate: string;
+  /** Optional display label only (not identity). */
+  cohortDate?: string;
   interestedTopics?: string;
   discountCode?: string;
   totalAmount: number;
@@ -31,14 +32,12 @@ export interface ReservationSubmissionPayload {
   marketingOptIn?: boolean;
   locale?: string;
   courseLabel?: string;
-  /** Stable id for Mailchimp tag segment (e.g. event or cohort id). */
-  serviceKey?: string;
-  /** Stable slug when serviceKey is not used (e.g. product line). */
+  /** Parent service public key (required; identity with serviceInstanceSlug). */
+  serviceKey: string;
+  /** Optional marketing-flow label for confirmation email links only. */
   courseSlug?: string;
-  /** Optional high-level service type for confirmation email (event, training-course, consultation). */
-  service?: string;
-  /** Public service_instances.slug for instance-scoped discount redemption. */
-  serviceInstanceSlug?: string;
+  /** Public service_instances.slug (required; identity with serviceKey). */
+  serviceInstanceSlug: string;
   scheduleDateLabel?: string;
   scheduleTimeLabel?: string;
   /** Consultation booking: writing focus title for confirmation email Details row. */

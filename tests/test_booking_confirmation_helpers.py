@@ -144,7 +144,7 @@ def test_booking_confirmation_template_merge_data_service_type_and_title() -> No
         locale="zh-CN",
         full_name="A",
         course_label="家庭咨询预约",
-        service_slug="consultation",
+        service_type="consultation",
         schedule_date_label=None,
         schedule_time_label=None,
         payment_method_code="free",
