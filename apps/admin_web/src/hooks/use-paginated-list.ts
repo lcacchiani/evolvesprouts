@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
+
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
 
@@ -45,6 +47,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
   debounceMs = 300,
   fetchOnMount = true,
 }: UsePaginatedListOptions<TItem, TFilters>): UsePaginatedListReturn<TItem, TFilters> {
+  const pageSize = clampAdminListLimit(limit);
   const [filters, setFilters] = useState<TFilters>(defaultFilters);
   const filtersRef = useRef<TFilters>(defaultFilters);
   const latestRequestIdRef = useRef(0);
@@ -72,7 +75,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
         const response = await fetcher({
           ...effectiveFilters,
           cursor: null,
-          limit,
+          limit: pageSize,
         });
         if (latestRequestIdRef.current !== requestId) {
           return;
@@ -91,7 +94,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
         }
       }
     },
-    [fetcher, limit, errorPrefix]
+    [fetcher, pageSize, errorPrefix]
   );
 
   const loadMore = useCallback(async () => {
@@ -104,7 +107,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
       const response = await fetcher({
         ...filtersRef.current,
         cursor: nextCursor,
-        limit,
+        limit: pageSize,
       });
       setItems((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);
@@ -114,7 +117,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [nextCursor, fetcher, limit, errorPrefix]);
+  }, [nextCursor, fetcher, pageSize, errorPrefix]);
 
   useEffect(() => {
     if (fetchOnMount) {

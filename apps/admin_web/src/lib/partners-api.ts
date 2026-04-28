@@ -1,3 +1,5 @@
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
+
 import { adminApiRequest } from './api-admin-client';
 import { asNullableString, asNumber, unwrapPayload } from './api-payload';
 import {
@@ -21,7 +23,7 @@ export async function listAdminPartners(
   const query = new URLSearchParams();
   query.set('relationship_type', 'partner');
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.query?.trim()) query.set('query', params.query.trim());
   if (params.active) query.set('active', params.active);
   const qs = query.toString();
