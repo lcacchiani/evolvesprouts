@@ -6,16 +6,16 @@ import base64
 import json
 from uuid import UUID
 
-from app.api.admin_request import (
-    encode_created_cursor,
-    parse_created_cursor,
-    request_id,
-)
+from app import api as _api_package
+from app.api.admin_request import encode_created_cursor
 from app.db.models import DiscountCode, Enrollment, Service, ServiceInstance
 from app.exceptions import ValidationError
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+parse_created_cursor = _api_package.admin_request.parse_created_cursor
+request_id = _api_package.admin_request.request_id
 
 
 def encode_service_cursor(service: Service) -> str | None:

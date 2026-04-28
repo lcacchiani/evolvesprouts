@@ -297,11 +297,11 @@ def _mark_expense_paid(
         "Marking expense paid",
         extra={"expense_id": str(expense_id), "actor": actor_sub},
     )
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         repository = ExpenseRepository(session)
         expense = repository.get_with_attachments(expense_id)
         if expense is None:
@@ -329,10 +329,10 @@ def _reparse_expense(
         "Requeueing expense parse",
         extra={"expense_id": str(expense_id), "actor": actor_sub},
     )
-    request_id = _request_id(event)
+    req_id = request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         repository = ExpenseRepository(session)
         expense = repository.get_with_attachments(expense_id)
         if expense is None:
@@ -362,11 +362,11 @@ def _amend_expense(
         extra={"source_expense_id": str(expense_id), "actor": actor_sub},
     )
     payload = parse_update_payload(parse_body(event))
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         expense_repo = ExpenseRepository(session)
         source = expense_repo.get_with_attachments(expense_id)
         if source is None:

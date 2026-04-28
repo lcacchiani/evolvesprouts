@@ -257,13 +257,13 @@ def _update_location(
 ) -> dict[str, Any]:
     body = parse_body(event)
     identity = extract_identity(event)
-    request_id = _request_id(event)
+    location_request_id = request_id(event)
 
     with Session(get_engine()) as session:
         set_audit_context(
             session,
             user_id=identity.user_sub or "",
-            request_id=request_id,
+            request_id=location_request_id,
         )
         geo_repo = GeographicAreaRepository(session)
         location_repo = LocationRepository(session)
@@ -330,13 +330,13 @@ def _update_location(
 
 def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, Any]:
     identity = extract_identity(event)
-    request_id = _request_id(event)
+    location_request_id = request_id(event)
 
     with Session(get_engine()) as session:
         set_audit_context(
             session,
             user_id=identity.user_sub or "",
-            request_id=request_id,
+            request_id=location_request_id,
         )
         location_repo = LocationRepository(session)
         location = location_repo.get_by_id(location_id)

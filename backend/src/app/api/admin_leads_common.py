@@ -12,7 +12,7 @@ from uuid import UUID
 from app.api.admin_request import (
     parse_limit as parse_admin_limit,
     query_param,
-    request_id,
+    request_id as request_id,
 )
 from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,

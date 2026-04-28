@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from typing import Any
-from collections.abc import Mapping
 from uuid import UUID
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import parse_limit, request_id
+from app.api.admin_request import parse_limit as parse_limit
+from app.api.admin_request import request_id as request_id
 from app.exceptions import ValidationError
 from app.db.models import (
     ContactTag,

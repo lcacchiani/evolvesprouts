@@ -55,8 +55,6 @@ def partial_batch_response(
     """Return a summary plus SQS partial batch failure entries."""
     response = sqs_batch_response(processed=processed, skipped=skipped)
     response["batchItemFailures"] = [
-        {"itemIdentifier": record_id}
-        for record_id in failed_record_ids
-        if record_id
+        {"itemIdentifier": record_id} for record_id in failed_record_ids if record_id
     ]
     return response
