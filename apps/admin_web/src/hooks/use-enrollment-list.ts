@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
 import { listEnrollments } from '@/lib/services-api';
 import { DEFAULT_ENROLLMENT_LIST_FILTERS } from '@/types/services';
 import type { Enrollment, EnrollmentListFilters } from '@/types/services';
@@ -40,7 +41,7 @@ export function useEnrollmentList(serviceId: string | null, instanceId: string |
         {
           status: filtersRef.current.status || undefined,
           cursor: null,
-          limit: 50,
+          limit: clampAdminListLimit(50),
         },
         undefined
       );
@@ -68,7 +69,7 @@ export function useEnrollmentList(serviceId: string | null, instanceId: string |
       const response = await listEnrollments(serviceId, instanceId, {
         status: filtersRef.current.status || undefined,
         cursor: nextCursor,
-        limit: 50,
+        limit: clampAdminListLimit(50),
       });
       setEnrollments((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);

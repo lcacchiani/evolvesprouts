@@ -1,3 +1,5 @@
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
+
 import { adminApiRequest, isAbortRequestError } from './api-admin-client';
 
 export { isAbortRequestError };
@@ -392,7 +394,7 @@ function parseDiscountCode(value: unknown): DiscountCode {
 function buildServiceListQuery(params: Partial<ServiceListFilters> & { cursor?: string | null; limit?: number }) {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.serviceType) query.set('service_type', params.serviceType);
   if (params.status) query.set('status', params.status);
   if (params.search?.trim()) query.set('search', params.search.trim());
@@ -428,7 +430,7 @@ export async function listLocations(
 ): Promise<{ items: LocationSummary[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.areaId) query.set('area_id', params.areaId);
   if (params.search?.trim()) query.set('search', params.search.trim());
   if (params.excludeAddresses) query.set('exclude_addresses', 'true');
@@ -454,7 +456,7 @@ export async function listAllLocations(signal?: AbortSignal): Promise<LocationSu
     const page = await listLocations(
       {
         cursor,
-        limit: 100,
+        limit: clampAdminListLimit(100),
       },
       signal
     );
@@ -477,7 +479,7 @@ export async function listAllVenueAndPartnerLocations(signal?: AbortSignal): Pro
     const page = await listLocations(
       {
         cursor: venueCursor,
-        limit: 100,
+        limit: clampAdminListLimit(100),
         excludeAddresses: true,
       },
       signal
@@ -493,7 +495,7 @@ export async function listAllVenueAndPartnerLocations(signal?: AbortSignal): Pro
     const page = await listLocations(
       {
         cursor: allCursor,
-        limit: 100,
+        limit: clampAdminListLimit(100),
       },
       signal
     );
@@ -719,7 +721,7 @@ export async function createServiceCoverImageUpload(
 function buildInstanceListQuery(params: { status?: string; cursor?: string | null; limit?: number }) {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.status) query.set('status', params.status);
   const queryString = query.toString();
   return queryString ? `?${queryString}` : '';
@@ -734,7 +736,7 @@ function buildGlobalInstanceListQuery(params: {
 }) {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.status) query.set('status', params.status);
   if (params.serviceId?.trim()) query.set('service_id', params.serviceId.trim());
   if (params.serviceType?.trim()) query.set('service_type', params.serviceType.trim());
@@ -841,7 +843,7 @@ export async function listEnrollments(
 ): Promise<{ items: Enrollment[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.status) query.set('status', params.status);
   const queryString = query.toString();
   const payload = await adminApiRequest<ApiEnrollmentListResponse>({
@@ -938,7 +940,7 @@ export async function listDiscountCodes(
 ): Promise<{ items: DiscountCode[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.active) query.set('active', params.active);
   if (params.search?.trim()) query.set('search', params.search.trim());
   if (params.scope) query.set('scope', params.scope);

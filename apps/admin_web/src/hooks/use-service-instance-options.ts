@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
 import { listInstances } from '@/lib/services-api';
 import type { ServiceInstance } from '@/types/services';
 
@@ -50,7 +51,7 @@ export function useServiceInstanceOptions(refreshKey?: unknown): UseServiceInsta
     setIsLoading(true);
     setError('');
     try {
-      const page = await listInstances(key, { limit: 100 });
+      const page = await listInstances(key, { limit: clampAdminListLimit(100) });
       cacheRef.current.set(key, page.items);
       setInstances(page.items);
     } catch (caught) {

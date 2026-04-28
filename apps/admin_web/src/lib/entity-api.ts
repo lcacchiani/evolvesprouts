@@ -1,3 +1,5 @@
+import { clampAdminListLimit } from '@/lib/admin-list-limit';
+
 import { adminApiRequest } from './api-admin-client';
 import { asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
@@ -71,7 +73,7 @@ export async function listEntityFamilyPicker(
   signal?: AbortSignal
 ): Promise<EntityPickerListItem[]> {
   const payload = await adminApiRequest<ApiEntityPickerList>({
-    endpointPath: '/v1/admin/families/picker?limit=100',
+    endpointPath: `/v1/admin/families/picker?limit=${clampAdminListLimit(100)}`,
     method: 'GET',
     signal,
   });
@@ -84,7 +86,7 @@ export async function listEntityOrganizationPicker(
   signal?: AbortSignal
 ): Promise<EntityPickerListItem[]> {
   const query = new URLSearchParams();
-  query.set('limit', '100');
+  query.set('limit', `${clampAdminListLimit(100)}`);
   if (params?.relationshipType?.trim()) {
     query.set('relationship_type', params.relationshipType.trim());
   }
@@ -113,7 +115,7 @@ export async function searchEntityContactsForPicker(
     q.set('exclude_contact_id', params.excludeContactId.trim());
   }
   if (typeof params.limit === 'number') {
-    q.set('limit', `${params.limit}`);
+    q.set('limit', `${clampAdminListLimit(params.limit)}`);
   }
   const payload = await adminApiRequest<ApiEntityPickerList>({
     endpointPath: `/v1/admin/contacts/search?${q.toString()}`,
@@ -143,7 +145,7 @@ export async function listAdminContacts(
 ): Promise<{ items: AdminContactRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.query?.trim()) query.set('query', params.query.trim());
   if (params.active) query.set('active', params.active);
   if (params.contact_type) query.set('contact_type', params.contact_type);
@@ -250,7 +252,7 @@ export async function listAdminFamilies(
 ): Promise<{ items: AdminFamilyRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.query?.trim()) query.set('query', params.query.trim());
   if (params.active) query.set('active', params.active);
   const qs = query.toString();
@@ -347,7 +349,7 @@ export async function listAdminOrganizations(
 ): Promise<{ items: AdminOrganizationRow[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (typeof params.limit === 'number') query.set('limit', `${clampAdminListLimit(params.limit)}`);
   if (params.query?.trim()) query.set('query', params.query.trim());
   if (params.active) query.set('active', params.active);
   const qs = query.toString();
