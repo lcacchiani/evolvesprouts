@@ -18,12 +18,7 @@ from typing import Any
 
 from app.auth.authorizer_utils import (
     build_iam_policy,
-    extract_bearer_token,
-    extract_organization_ids,
-)
-from app.auth.jwt_validator import (
-    JWTValidationError,
-    decode_and_verify_token,
+    verified_cognito_context_from_event,
 )
 from app.utils.logging import configure_logging, get_logger
 
@@ -47,55 +42,22 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     Returns:
         IAM policy document allowing or denying the request
     """
-    headers = event.get("headers") or {}
     method_arn = event.get("methodArn", "")
+    verified = verified_cognito_context_from_event(
+        event,
+        method_arn=method_arn,
+        logger=logger,
+    )
+    if verified.policy is not None:
+        return verified.policy
 
-    # Extract token from Authorization header
-    token = extract_bearer_token(headers)
-    if not token:
-        logger.warning("Missing or invalid Authorization header")
-        return build_iam_policy(
-            "Deny",
-            method_arn,
-            "anonymous",
-            {"reason": "missing_token"},
-        )
-
-    try:
-        # Verify and decode the JWT token with signature validation
-        claims = decode_and_verify_token(token)
-
-        user_sub = claims.sub
-        email = claims.email
-        user_groups = claims.groups
-        organization_ids = extract_organization_ids(claims.raw_claims)
-
-        logger.info(
-            f"Access granted for authenticated user {user_sub[:8]}*** "
-            f"(groups: {', '.join(user_groups) if user_groups else 'none'})"
-        )
-
-        return build_iam_policy(
-            "Allow",
-            method_arn,
-            user_sub,
-            {
-                "userSub": user_sub,
-                "email": email,
-                "groups": ",".join(user_groups),
-                "organizationIds": ",".join(sorted(organization_ids)),
-            },
-        )
-
-    except JWTValidationError as exc:
-        logger.warning(f"JWT validation failed: {exc.message} (reason: {exc.reason})")
-        return build_iam_policy("Deny", method_arn, "invalid", {"reason": exc.reason})
-    except Exception as exc:
-        # SECURITY: Don't expose internal error details
-        logger.warning(f"Token validation failed: {type(exc).__name__}")
-        return build_iam_policy(
-            "Deny",
-            method_arn,
-            "invalid",
-            {"reason": "invalid_token"},
-        )
+    logger.info(
+        f"Access granted for authenticated user {verified.user_sub[:8]}*** "
+        f"(groups: {', '.join(verified.groups) if verified.groups else 'none'})"
+    )
+    return build_iam_policy(
+        "Allow",
+        method_arn,
+        verified.user_sub,
+        verified.policy_context(),
+    )

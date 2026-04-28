@@ -6,7 +6,7 @@ or continue with a custom challenge based on the session history.
 
 import os
 
-from app.utils.logging import configure_logging, get_logger
+from app.utils.logging import configure_logging, get_logger, mask_email
 
 configure_logging()
 logger = get_logger(__name__)
@@ -21,9 +21,10 @@ def lambda_handler(event, _context):
     username = (
         event.get("request", {}).get("userAttributes", {}).get("email", "unknown")
     )
+    masked_username = mask_email(username)
 
     logger.debug(
-        f"Define auth challenge for {username}",
+        f"Define auth challenge for {masked_username}",
         extra={"session_length": len(session), "max_attempts": max_attempts},
     )
 
@@ -32,18 +33,18 @@ def lambda_handler(event, _context):
         if last.get("challengeName") == "CUSTOM_CHALLENGE" and last.get(
             "challengeResult"
         ):
-            logger.info(f"Auth successful for {username}")
+            logger.info(f"Auth successful for {masked_username}")
             response["issueTokens"] = True
             response["failAuthentication"] = False
             return event
 
         if len(session) >= max_attempts:
-            logger.warning(f"Max auth attempts reached for {username}")
+            logger.warning(f"Max auth attempts reached for {masked_username}")
             response["issueTokens"] = False
             response["failAuthentication"] = True
             return event
 
-    logger.debug(f"Issuing custom challenge for {username}")
+    logger.debug(f"Issuing custom challenge for {masked_username}")
     response["issueTokens"] = False
     response["failAuthentication"] = False
     response["challengeName"] = "CUSTOM_CHALLENGE"

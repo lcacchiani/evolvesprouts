@@ -9,7 +9,11 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from app.api.admin_request import query_param
+from app.api.admin_request import (
+    parse_limit as parse_admin_limit,
+    query_param,
+    request_id as request_id,
+)
 from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,
     MAX_NAME_LENGTH,
@@ -28,30 +32,27 @@ from app.db.models.enums import (
 )
 from app.exceptions import ValidationError
 
-_LIST_LEADS_DEFAULT_LIMIT = 50
+_LIST_LEADS_DEFAULT_LIMIT = 25
 _LIST_LEADS_MAX_LIMIT = 100
 
 
 def parse_lead_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse list/query filters for lead list and export endpoints."""
-    raw_limit = query_param(event, "limit")
-    if not raw_limit:
-        limit = _LIST_LEADS_DEFAULT_LIMIT
-    else:
-        try:
-            limit = int(raw_limit)
-        except (TypeError, ValueError) as exc:
-            raise ValidationError("limit must be an integer", field="limit") from exc
-        if limit < 1 or limit > _LIST_LEADS_MAX_LIMIT:
-            raise ValidationError(
-                f"limit must be between 1 and {_LIST_LEADS_MAX_LIMIT}",
-                field="limit",
-            )
-
-    cursor_created_at, cursor_id = parse_lead_cursor(query_param(event, "cursor"))
+    limit = parse_admin_limit(
+        event,
+        default=_LIST_LEADS_DEFAULT_LIMIT,
+        max_limit=_LIST_LEADS_MAX_LIMIT,
+    )
+    raw_cursor = query_param(event, "cursor")
     sort = (query_param(event, "sort") or "created_at").strip().lower()
     if sort not in {"created_at", "updated_at", "funnel_stage", "contact_name"}:
         raise ValidationError("Invalid sort field", field="sort")
+    if raw_cursor and sort != "created_at":
+        raise ValidationError(
+            "cursor is only supported when sort is created_at",
+            field="cursor",
+        )
+    cursor_created_at, cursor_id = parse_lead_cursor(raw_cursor)
     sort_dir = (query_param(event, "sort_dir") or "desc").strip().lower()
     if sort_dir not in {"asc", "desc"}:
         raise ValidationError("sort_dir must be asc or desc", field="sort_dir")
@@ -298,16 +299,6 @@ def parse_lead_cursor(cursor: str | None) -> tuple[datetime | None, UUID | None]
         return created_at, lead_id
     except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         raise ValidationError("Invalid cursor", field="cursor") from exc
-
-
-def request_id(event: Mapping[str, Any]) -> str:
-    """Return API Gateway request ID if present."""
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id_value = request_context.get("requestId")
-        if isinstance(request_id_value, str):
-            return request_id_value
-    return ""
 
 
 def _serialize_contact(contact: Contact | None) -> dict[str, Any]:

@@ -127,7 +127,24 @@ def test_lambda_handler_counts_processed_and_skipped(monkeypatch: Any) -> None:
     }
 
     response = handler.lambda_handler(event, None)
-    body = json.loads(response["body"])
 
-    assert response["statusCode"] == 200
-    assert body == {"processed": 1, "skipped": 1}
+    assert response == {
+        "batchItemFailures": [],
+        "processed": 1,
+        "skipped": 1,
+    }
+
+
+def test_lambda_handler_reports_partial_batch_failure() -> None:
+    handler = _load_handler_module()
+
+    response = handler.lambda_handler(
+        {"Records": [{"messageId": "bad-inbound", "body": "{not-json"}]},
+        None,
+    )
+
+    assert response == {
+        "batchItemFailures": [{"itemIdentifier": "bad-inbound"}],
+        "processed": 0,
+        "skipped": 0,
+    }

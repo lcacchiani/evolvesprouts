@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import (
+from app.api.validators import (
     validate_email,
     validate_phone_fields,
     validate_phone_region,

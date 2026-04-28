@@ -3,8 +3,12 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
+import pytest
+
 from app.api import admin_leads
+from app.api.admin_leads_common import parse_lead_filters
 from app.api.assets.assets_common import RequestIdentity
+from app.exceptions import ValidationError
 
 
 def _build_admin_identity(admin_identity: dict[str, str]) -> RequestIdentity:
@@ -112,3 +116,22 @@ def test_handle_admin_leads_dispatches_note_creation(
     )
 
     assert response is marker
+
+
+def test_parse_lead_filters_defaults_to_standard_admin_limit(api_gateway_event: Any) -> None:
+    filters = parse_lead_filters(api_gateway_event(method="GET", path="/v1/admin/leads"))
+
+    assert filters["limit"] == 25
+
+
+def test_parse_lead_filters_rejects_cursor_for_non_created_sort(
+    api_gateway_event: Any,
+) -> None:
+    event = api_gateway_event(
+        method="GET",
+        path="/v1/admin/leads",
+        query_params={"cursor": "abc", "sort": "updated_at"},
+    )
+
+    with pytest.raises(ValidationError, match="cursor is only supported"):
+        parse_lead_filters(event)

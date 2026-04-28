@@ -5,16 +5,21 @@ from __future__ import annotations
 import os
 import re
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
 from app.api.admin_request import (
     encode_cursor,
+    extract_identity,
+    normalize_path,
+    paginated_json_response,
     parse_body,
     parse_cursor as parse_admin_cursor,
+    parse_limit as parse_admin_limit,
     query_param,
+    RequestIdentity,
+    split_route_parts,
 )
 from app.api.admin_validators import validate_string_length
 from app.db.models import (
@@ -31,8 +36,15 @@ from app.services.asset_expense_tagging import (
 )
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
-from app.utils import json_response, require_env
+from app.utils import require_env
 from sqlalchemy import inspect
+
+__all__ = [
+    "RequestIdentity",
+    "extract_identity",
+    "normalize_path",
+    "split_route_parts",
+]
 
 _MAX_FILE_NAME_LENGTH = 255
 # Admin presigned PUT uploads (create + replace): reject completes larger than this (bytes).
@@ -63,94 +75,14 @@ _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
 _RESOURCE_KEY_SANITIZE_RE = re.compile(r"[^a-z0-9]+")
 
 
-@dataclass(frozen=True)
-class RequestIdentity:
-    """Caller identity extracted from API Gateway authorizer context."""
-
-    user_sub: str | None
-    groups: set[str]
-    organization_ids: set[str]
-
-    @property
-    def is_authenticated(self) -> bool:
-        return bool(self.user_sub)
-
-    @property
-    def is_admin_or_manager(self) -> bool:
-        normalized = {group.lower() for group in self.groups}
-        return "admin" in normalized or "manager" in normalized
-
-
-def normalize_path(path: str) -> str:
-    """Normalize route path for deterministic matching."""
-    if not path:
-        return ""
-    normalized = path.strip()
-    if not normalized.startswith("/"):
-        normalized = "/" + normalized
-    if normalized != "/" and normalized.endswith("/"):
-        normalized = normalized[:-1]
-    return normalized
-
-
-def split_route_parts(path: str) -> list[str]:
-    """Split normalized API route into segments without version prefix."""
-    parts = [segment for segment in normalize_path(path).split("/") if segment]
-    if parts and parts[0].startswith("v") and parts[0][1:].isdigit():
-        return parts[1:]
-    return parts
-
-
 def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
     """Parse and validate list page size."""
-    raw_value = query_param(event, "limit")
-    if not raw_value:
-        return default
-    try:
-        parsed = int(raw_value)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError("limit must be an integer", field="limit") from exc
-    if parsed <= 0 or parsed > 100:
-        raise ValidationError("limit must be between 1 and 100", field="limit")
-    return parsed
+    return parse_admin_limit(event, default=default)
 
 
 def parse_cursor(event: Mapping[str, Any]) -> UUID | None:
     """Parse cursor query parameter."""
     return parse_admin_cursor(query_param(event, "cursor"))
-
-
-def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
-    """Extract request identity from API Gateway custom authorizer context."""
-    request_context = event.get("requestContext")
-    if not isinstance(request_context, Mapping):
-        return RequestIdentity(user_sub=None, groups=set(), organization_ids=set())
-    authorizer = request_context.get("authorizer")
-    if not isinstance(authorizer, Mapping):
-        return RequestIdentity(user_sub=None, groups=set(), organization_ids=set())
-
-    user_sub = _to_optional_string(
-        authorizer.get("userSub")
-        or authorizer.get("principalId")
-        or _extract_claim(authorizer.get("claims"), "sub")
-    )
-    groups = _parse_csv_set(
-        _to_optional_string(authorizer.get("groups"))
-        or _extract_claim(authorizer.get("claims"), "cognito:groups")
-    )
-    organization_ids = _parse_csv_set(
-        _to_optional_string(authorizer.get("organizationIds"))
-        or _to_optional_string(authorizer.get("organizationId"))
-        or _extract_claim(authorizer.get("claims"), "custom:organization_ids")
-        or _extract_claim(authorizer.get("claims"), "custom:organization_id")
-        or _extract_claim(authorizer.get("claims"), "organization_ids")
-        or _extract_claim(authorizer.get("claims"), "organization_id")
-    )
-    return RequestIdentity(
-        user_sub=user_sub,
-        groups=groups,
-        organization_ids=organization_ids,
-    )
 
 
 def parse_admin_asset_list_filters(
@@ -447,21 +379,14 @@ def paginate_response(
     headers: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build a standard paginated API response payload."""
-    page_items = list(items[:limit])
-    next_cursor = (
-        encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
-    )
-    body: dict[str, Any] = {
-        "items": [serializer(item) for item in page_items],
-        "next_cursor": next_cursor,
-    }
-    if extra_fields:
-        body.update(dict(extra_fields))
-    return json_response(
-        200,
-        body,
+    return paginated_json_response(
+        items=items,
+        limit=limit,
         event=event,
-        headers=dict(headers) if headers is not None else None,
+        serializer=serializer,
+        cursor_encoder=lambda item: encode_cursor(item.id),
+        extra_fields=extra_fields,
+        headers=headers,
     )
 
 

@@ -13,6 +13,8 @@ from app.api.admin_request import (
     encode_cursor,
     parse_body,
     parse_cursor,
+    parse_limit,
+    request_id,
     parse_uuid,
     query_param,
 )
@@ -173,7 +175,7 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
 def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
     body = parse_body(event)
     identity = extract_identity(event)
-    request_id = _request_id(event)
+    location_request_id = request_id(event)
 
     area_id_raw = body.get("area_id")
     if area_id_raw is None:
@@ -189,7 +191,7 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
         set_audit_context(
             session,
             user_id=identity.user_sub or "",
-            request_id=request_id,
+            request_id=location_request_id,
         )
         geo_repo = GeographicAreaRepository(session)
         if geo_repo.get_by_id(area_id) is None:
@@ -255,13 +257,13 @@ def _update_location(
 ) -> dict[str, Any]:
     body = parse_body(event)
     identity = extract_identity(event)
-    request_id = _request_id(event)
+    location_request_id = request_id(event)
 
     with Session(get_engine()) as session:
         set_audit_context(
             session,
             user_id=identity.user_sub or "",
-            request_id=request_id,
+            request_id=location_request_id,
         )
         geo_repo = GeographicAreaRepository(session)
         location_repo = LocationRepository(session)
@@ -328,13 +330,13 @@ def _update_location(
 
 def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, Any]:
     identity = extract_identity(event)
-    request_id = _request_id(event)
+    location_request_id = request_id(event)
 
     with Session(get_engine()) as session:
         set_audit_context(
             session,
             user_id=identity.user_sub or "",
-            request_id=request_id,
+            request_id=location_request_id,
         )
         location_repo = LocationRepository(session)
         location = location_repo.get_by_id(location_id)
@@ -409,16 +411,7 @@ def _parse_query_bool(
 
 
 def _parse_limit(event: Mapping[str, Any]) -> int:
-    raw_value = query_param(event, "limit")
-    if not raw_value:
-        return 50
-    try:
-        limit = int(raw_value)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError("limit must be an integer", field="limit") from exc
-    if limit < 1 or limit > 100:
-        raise ValidationError("limit must be between 1 and 100", field="limit")
-    return limit
+    return parse_limit(event)
 
 
 def _parse_optional_uuid(value: str | None, *, field: str) -> UUID | None:
@@ -463,12 +456,3 @@ def _validate_coordinates(*, lat: Any, lng: Any) -> None:
         raise ValidationError("lat must be between -90 and 90", field="lat")
     if lng is not None and (lng < -180 or lng > 180):
         raise ValidationError("lng must be between -180 and 180", field="lng")
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id
-    return ""

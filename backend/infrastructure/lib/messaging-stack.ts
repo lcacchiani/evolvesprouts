@@ -276,6 +276,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.mediaRequestProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(this.mediaQueue, {
         batchSize: 1,
+        reportBatchItemFailures: true,
       })
     );
 
@@ -390,6 +391,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.expenseParserFunction.addEventSource(
       new lambdaEventSources.SqsEventSource(this.expenseParserQueue, {
         batchSize: 1,
+        reportBatchItemFailures: true,
       })
     );
 

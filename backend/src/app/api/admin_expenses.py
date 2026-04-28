@@ -27,8 +27,10 @@ from app.api.admin_request import (
     encode_cursor,
     parse_body,
     parse_cursor,
+    parse_limit,
     parse_uuid,
     query_param,
+    request_id,
 )
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
@@ -107,7 +109,7 @@ def handle_admin_expenses_request(
 
 
 def _list_expenses(event: Mapping[str, Any]) -> dict[str, Any]:
-    limit = _parse_limit(event)
+    limit = parse_limit(event, default=_DEFAULT_LIMIT, max_limit=_MAX_LIMIT)
     cursor = parse_cursor(query_param(event, "cursor"))
     query = parse_optional_string(query_param(event, "query"), max_length=255)
     status = parse_optional_status(query_param(event, "status"))
@@ -147,7 +149,7 @@ def _list_expenses(event: Mapping[str, Any]) -> dict[str, Any]:
 def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     logger.info("Creating expense", extra={"actor": actor_sub})
     payload = parse_create_payload(parse_body(event))
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
     parse_status = (
         ExpenseParseStatus.QUEUED
@@ -156,7 +158,7 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
     )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         expense_repo = ExpenseRepository(session)
         vendor = resolve_vendor(session, payload["vendor_id"])
         expense = expense_repo.create_expense(
@@ -212,10 +214,10 @@ def _update_expense(
         extra={"expense_id": str(expense_id), "actor": actor_sub},
     )
     payload = parse_update_payload(parse_body(event))
-    request_id = _request_id(event)
+    req_id = request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         expense_repo = ExpenseRepository(session)
         expense = expense_repo.get_with_attachments(expense_id)
         if expense is None:
@@ -266,11 +268,11 @@ def _cancel_expense(
     )
     body = parse_body(event)
     reason = required_string(body, "reason", max_length=2000)
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         repository = ExpenseRepository(session)
         expense = repository.get_with_attachments(expense_id)
         if expense is None:
@@ -295,11 +297,11 @@ def _mark_expense_paid(
         "Marking expense paid",
         extra={"expense_id": str(expense_id), "actor": actor_sub},
     )
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         repository = ExpenseRepository(session)
         expense = repository.get_with_attachments(expense_id)
         if expense is None:
@@ -327,10 +329,10 @@ def _reparse_expense(
         "Requeueing expense parse",
         extra={"expense_id": str(expense_id), "actor": actor_sub},
     )
-    request_id = _request_id(event)
+    req_id = request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         repository = ExpenseRepository(session)
         expense = repository.get_with_attachments(expense_id)
         if expense is None:
@@ -360,11 +362,11 @@ def _amend_expense(
         extra={"source_expense_id": str(expense_id), "actor": actor_sub},
     )
     payload = parse_update_payload(parse_body(event))
-    request_id = _request_id(event)
+    req_id = request_id(event)
     now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
         expense_repo = ExpenseRepository(session)
         source = expense_repo.get_with_attachments(expense_id)
         if source is None:
@@ -426,25 +428,3 @@ def _amend_expense(
         return json_response(
             201, {"expense": serialize_expense(refreshed)}, event=event
         )
-
-
-def _parse_limit(event: Mapping[str, Any]) -> int:
-    raw = query_param(event, "limit")
-    if raw is None or raw == "":
-        return _DEFAULT_LIMIT
-    try:
-        parsed = int(raw)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError("limit must be an integer", field="limit") from exc
-    if parsed < 1 or parsed > _MAX_LIMIT:
-        raise ValidationError("limit must be between 1 and 100", field="limit")
-    return parsed
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id.strip()
-    return ""

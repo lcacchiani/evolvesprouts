@@ -1077,6 +1077,7 @@ export interface paths {
             parameters: {
                 query?: {
                     limit?: number;
+                    /** @description Opaque continuation token from `next_cursor`; only valid when `sort` is `created_at`. */
                     cursor?: string;
                     stage?: string;
                     source?: string;

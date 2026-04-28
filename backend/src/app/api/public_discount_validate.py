@@ -10,7 +10,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import validate_string_length
+from app.api.validators import validate_string_length
 from app.currency_config import currency_symbol_for_iso_code
 from app.db.engine import get_engine
 from app.db.models import DiscountCode

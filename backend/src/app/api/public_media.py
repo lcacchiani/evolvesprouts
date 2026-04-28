@@ -10,7 +10,7 @@ from typing import Any
 from collections.abc import Mapping
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import validate_email, validate_string_length
+from app.api.validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_clients import get_sns_client
 from app.services.turnstile import (

@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 
+from app.auth import authorizer_utils
+
 
 def _load_lambda_module(relative_path: str, module_name: str) -> Any:
     module_path = Path(__file__).resolve().parents[1] / "backend" / "lambda" / relative_path
@@ -28,7 +30,11 @@ def test_cognito_group_authorizer_allows_matching_group(monkeypatch: Any) -> Non
         groups = ["admin"]
         raw_claims = {"custom:organization_ids": "org-1"}
 
-    monkeypatch.setattr(handler, "decode_and_verify_token", lambda _token: _Claims())
+    monkeypatch.setattr(
+        authorizer_utils,
+        "decode_and_verify_token",
+        lambda _token: _Claims(),
+    )
 
     event = {
         "headers": {"Authorization": "Bearer valid.jwt"},
