@@ -88,8 +88,6 @@ export interface DiscountCodesPanelProps {
   serviceDirectoryForDisplay?: ServiceSummary[];
   /** Bumps to clear cached instance options after mutations. */
   instanceOptionsRefreshKey?: unknown;
-  showArchivedServices?: boolean;
-  onShowArchivedChange?: (value: boolean) => void;
   onFilterChange: <TKey extends keyof DiscountCodeFilters>(
     key: TKey,
     value: DiscountCodeFilters[TKey]
@@ -119,8 +117,6 @@ export function DiscountCodesPanel({
   serviceOptions = [],
   serviceDirectoryForDisplay,
   instanceOptionsRefreshKey,
-  showArchivedServices = false,
-  onShowArchivedChange,
   onFilterChange,
   onLoadMore,
   onCreate,
@@ -521,9 +517,9 @@ export function DiscountCodesPanel({
             <Input id='discount-max-uses' value={maxUses} onChange={(event) => setMaxUses(event.target.value)} />
           </div>
           <div>
-            <Label htmlFor='discount-active'>Active</Label>
+            <Label htmlFor='discount-status'>Status</Label>
             <Select
-              id='discount-active'
+              id='discount-status'
               value={active ? 'true' : 'false'}
               onChange={(event) => setActive(event.target.value === 'true')}
             >
@@ -553,6 +549,15 @@ export function DiscountCodesPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 flex flex-wrap items-end gap-3'>
+            <div className='min-w-[200px] flex-1'>
+              <Label htmlFor='discount-filter-search'>Search</Label>
+              <Input
+                id='discount-filter-search'
+                value={filters.search}
+                onChange={(event) => onFilterChange('search', event.target.value)}
+                placeholder='Code'
+              />
+            </div>
             <div className='min-w-[140px]'>
               <Label htmlFor='discount-filter-active'>Status</Label>
               <Select
@@ -561,8 +566,8 @@ export function DiscountCodesPanel({
                 onChange={(event) => onFilterChange('active', event.target.value as DiscountCodeFilters['active'])}
               >
                 <option value=''>All</option>
-                <option value='true'>Active</option>
-                <option value='false'>Inactive</option>
+                <option value='true'>Enabled</option>
+                <option value='false'>Disabled</option>
               </Select>
             </div>
             <div className='min-w-[180px]'>
@@ -580,29 +585,6 @@ export function DiscountCodesPanel({
                 <option value='instance'>Instance-scoped</option>
               </Select>
             </div>
-            <div className='min-w-[200px] flex-1'>
-              <Label htmlFor='discount-filter-search'>Search</Label>
-              <Input
-                id='discount-filter-search'
-                value={filters.search}
-                onChange={(event) => onFilterChange('search', event.target.value)}
-                placeholder='Code'
-              />
-            </div>
-            {onShowArchivedChange ? (
-              <div className='flex min-w-[140px] items-center gap-2 pt-6'>
-                <input
-                  id='discount-filter-archived'
-                  type='checkbox'
-                  className='h-4 w-4 rounded border-slate-300 text-slate-900'
-                  checked={showArchivedServices}
-                  onChange={(event) => onShowArchivedChange(event.target.checked)}
-                />
-                <Label htmlFor='discount-filter-archived' className='cursor-pointer font-normal'>
-                  Show archived
-                </Label>
-              </div>
-            ) : null}
           </div>
         }
       >
