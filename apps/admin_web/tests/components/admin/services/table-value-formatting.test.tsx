@@ -8,6 +8,19 @@ import { ServiceListPanel } from '@/components/admin/services/service-list-panel
 import { formatDate } from '@/lib/format';
 import type { DiscountCode, Enrollment, ServiceInstance, ServiceSummary } from '@/types/services';
 
+vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
+  useEnrollmentParentPickers: () => ({
+    contactOptions: [{ id: 'contact-1', label: 'Resolved contact label' }],
+    families: [],
+    organizations: [],
+    loading: false,
+    error: '',
+    labelByContactId: new Map([['contact-1', 'Resolved contact label']]),
+    labelByFamilyId: new Map(),
+    labelByOrganizationId: new Map(),
+  }),
+}));
+
 const SERVICE_FIXTURE: ServiceSummary = {
   id: 'service-1',
   instancesCount: 0,
