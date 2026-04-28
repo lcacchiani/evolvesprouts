@@ -39,9 +39,14 @@ from app.db.repositories import (
     ServiceRepository,
 )
 from app.db.repositories.service_instance import ServiceInstanceRepository
+from app.api.discount_enrollment_scope import (
+    ensure_discount_code_eligible_for_instance,
+    service_id_for_instance,
+)
 from app.db.models.enums import (
     ContactSource,
     ContactType,
+    DiscountType,
     EnrollmentStatus,
     FunnelStage,
     LeadEventType,
@@ -178,37 +183,53 @@ def _handle_public_reservation(
                     contact_id=contact.id,
                 )
             ):
-                discount_id_for_enrollment: UUID | None = None
-                incremented_code_id: UUID | None = None
+                instance_service_id = service_id_for_instance(
+                    session, instance_id_resolved
+                )
                 if dc_row is not None:
-                    if discount_repo.validate_and_increment(dc_row.id):
-                        incremented_code_id = dc_row.id
-                        discount_id_for_enrollment = dc_row.id
-                    else:
-                        raise ValidationError(
-                            "Discount code is invalid, inactive, expired, or exhausted",
-                            field="discountCode",
-                        )
-                try:
-                    enrollment_repo.create_enrollment(
-                        Enrollment(
-                            instance_id=instance_id_resolved,
-                            contact_id=contact.id,
-                            family_id=None,
-                            organization_id=None,
-                            ticket_tier_id=None,
-                            discount_code_id=discount_id_for_enrollment,
-                            status=EnrollmentStatus.REGISTERED,
-                            amount_paid=reservation_payload["total_amount"],
-                            currency="HKD",
-                            notes=None,
-                            created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
-                        )
+                    ensure_discount_code_eligible_for_instance(
+                        session,
+                        discount_code_id=dc_row.id,
+                        service_id=instance_service_id,
+                        instance_id=instance_id_resolved,
                     )
-                except ValueError:
-                    if incremented_code_id is not None:
-                        discount_repo.decrement_uses(incremented_code_id)
-                    raise
+                enrollment_row = Enrollment(
+                    instance_id=instance_id_resolved,
+                    contact_id=contact.id,
+                    family_id=None,
+                    organization_id=None,
+                    ticket_tier_id=None,
+                    discount_code_id=None,
+                    status=EnrollmentStatus.REGISTERED,
+                    amount_paid=reservation_payload["total_amount"],
+                    currency="HKD",
+                    notes=None,
+                    created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
+                )
+                created_enrollment, create_err = (
+                    enrollment_repo.try_create_enrollment_with_capacity_guard(
+                        enrollment_row
+                    )
+                )
+                if create_err == "capacity_full":
+                    raise ValidationError(
+                        "This cohort is full and is not accepting a waitlist for "
+                        "public bookings. Your payment was processed; contact support "
+                        "if you need a refund.",
+                        field="serviceInstanceSlug",
+                        status_code=409,
+                    )
+                if create_err != "duplicate" and created_enrollment is not None:
+                    if dc_row is not None:
+                        if not discount_repo.validate_and_increment(dc_row.id):
+                            session.delete(created_enrollment)
+                            session.flush()
+                            raise ValidationError(
+                                "Discount code is invalid, inactive, expired, or exhausted",
+                                field="discountCode",
+                            )
+                        created_enrollment.discount_code_id = dc_row.id
+                        session.flush()
 
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
@@ -646,6 +667,9 @@ def _validate_discount_code_redemption_scope(
     repository = DiscountCodeRepository(session)
     row = repository.get_by_code(str(code))
     if row is None or not discount_code_is_usable_now(row):
+        raise ValidationError("Invalid discount code", field="discountCode")
+
+    if row.discount_type == DiscountType.REFERRAL:
         raise ValidationError("Invalid discount code", field="discountCode")
 
     if row.instance_id is not None:

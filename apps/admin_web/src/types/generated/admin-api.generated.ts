@@ -4638,7 +4638,10 @@ export interface components {
             organization_id?: string | null;
             /** Format: uuid */
             ticket_tier_id?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Must be globally scoped, scoped to this instance's service, or scoped to this instance; otherwise the API returns 400.
+             */
             discount_code_id?: string | null;
             status?: components["schemas"]["EnrollmentStatus"];
             amount_paid?: string | null;
@@ -4651,7 +4654,7 @@ export interface components {
             currency?: string | null;
             /**
              * Format: uuid
-             * @description Set to null to clear the enrollment discount; changing the id adjusts discount code usage counts accordingly.
+             * @description Set to null to clear the enrollment discount; changing the id adjusts discount code usage counts accordingly. The new id must be globally scoped, scoped to this instance's service, or scoped to this instance; otherwise the API returns 400.
              */
             discount_code_id?: string | null;
             notes?: string | null;

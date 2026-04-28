@@ -14,6 +14,7 @@ from app.api.public_reservations import (
     _validate_discount_code_redemption_scope,
     _validate_reservation_payload,
 )
+from app.db.models.enums import DiscountType
 
 
 def _reservation_body(**overrides: object) -> dict[str, Any]:
@@ -99,6 +100,125 @@ def _patch_public_reservation_db_helpers(monkeypatch: pytest.MonkeyPatch) -> Non
         "app.api.public_reservations.EnrollmentRepository",
         _FakeEnrollmentRepo,
     )
+
+
+def test_handle_public_reservation_returns_409_when_instance_capacity_full(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    _patch_public_reservation_db_helpers(monkeypatch)
+
+    contact_id = uuid4()
+    instance_uuid = uuid4()
+
+    class _FakeDiscountRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> None:
+            return None
+
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_id_by_slug(self, slug: str) -> object | None:
+            return instance_uuid if slug == "full-cohort" else None
+
+    class _FakeEnrollmentRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def contact_has_enrollment_for_instance(self, **_kwargs: object) -> bool:
+            return False
+
+        def try_create_enrollment_with_capacity_guard(
+            self, _enrollment: object
+        ) -> tuple[None, str]:
+            return None, "capacity_full"
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.DiscountCodeRepository",
+        _FakeDiscountRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.EnrollmentRepository",
+        _FakeEnrollmentRepo,
+    )
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
+            return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr("app.api.public_reservations.SalesLead", _FakeSalesLead)
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.service_id_for_instance",
+        lambda _session, _iid: uuid4(),
+    )
+
+    body = _reservation_body(serviceInstanceSlug="full-cohort")
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 409
+    body_json = json.loads(resp["body"])
+    assert body_json.get("field") == "serviceInstanceSlug"
 
 
 def test_handle_public_reservation_accepts_free_payment_zero_total(
@@ -508,6 +628,7 @@ def test_discount_redemption_rejects_service_scope_mismatch(
     class _FakeRow:
         service_id = svc
         instance_id = None
+        discount_type = DiscountType.PERCENTAGE
         active = True
         valid_from = None
         valid_until = None
@@ -570,6 +691,7 @@ def test_discount_redemption_requires_instance_slug_for_instance_scoped_code(
     class _FakeRow:
         service_id = uuid4()
         instance_id = inst
+        discount_type = DiscountType.PERCENTAGE
         active = True
         valid_from = None
         valid_until = None
@@ -616,6 +738,36 @@ def test_discount_redemption_requires_instance_slug_for_instance_scoped_code(
     assert getattr(excinfo.value, "field", None) == "serviceInstanceSlug"
 
 
+def test_discount_redemption_rejects_referral_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.exceptions import ValidationError
+
+    class _FakeRow:
+        service_id = None
+        instance_id = None
+        discount_type = DiscountType.REFERRAL
+        active = True
+        valid_from = None
+        valid_until = None
+        max_uses = None
+        current_uses = 0
+
+    class _FakeDiscountRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> object:
+            return _FakeRow()
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.DiscountCodeRepository",
+        _FakeDiscountRepo,
+    )
+
+    with pytest.raises(ValidationError) as excinfo:
+        _validate_discount_code_redemption_scope(object(), {"discount_code": "REF"})
+    assert getattr(excinfo.value, "field", None) == "discountCode"
+
+
 def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollment(
     api_gateway_event: Any,
     monkeypatch: pytest.MonkeyPatch,
@@ -642,6 +794,7 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
         id = discount_uuid
         service_id = None
         instance_id = None
+        discount_type = DiscountType.PERCENTAGE
         active = True
         valid_from = None
         valid_until = None
@@ -682,9 +835,11 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
         def contact_has_enrollment_for_instance(self, **_kwargs: object) -> bool:
             return False
 
-        def create_enrollment(self, enrollment: object) -> object:
+        def try_create_enrollment_with_capacity_guard(
+            self, enrollment: object
+        ) -> tuple[object | None, str | None]:
             created_enrollments.append(enrollment)
-            return enrollment
+            return enrollment, None
 
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
@@ -735,6 +890,12 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
         def commit(self) -> None:
             return None
 
+        def flush(self) -> None:
+            return None
+
+        def delete(self, *_a: object, **_k: object) -> None:
+            return None
+
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
             return _FakeSession()
@@ -757,6 +918,14 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
     monkeypatch.setattr(
         "app.api.public_reservations.get_engine",
         lambda: object(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.service_id_for_instance",
+        lambda _session, _iid: uuid4(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.ensure_discount_code_eligible_for_instance",
+        lambda *_a, **_k: None,
     )
 
     body = _reservation_body(

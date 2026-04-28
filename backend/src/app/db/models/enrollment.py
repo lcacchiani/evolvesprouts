@@ -44,6 +44,13 @@ class Enrollment(Base):
         Index("enrollments_family_idx", "family_id"),
         Index("enrollments_org_idx", "organization_id"),
         Index("enrollments_status_idx", "status"),
+        Index(
+            "enrollments_instance_contact_uidx",
+            "instance_id",
+            "contact_id",
+            unique=True,
+            postgresql_where=text("contact_id IS NOT NULL"),
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(

@@ -10,6 +10,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body, parse_uuid
+from app.api.discount_enrollment_scope import (
+    ensure_discount_code_eligible_for_instance,
+    service_id_for_instance,
+)
 from app.api.admin_services_common import (
     encode_enrollment_cursor,
     parse_create_enrollment_payload,
@@ -138,6 +142,13 @@ def _create_enrollment(
         discount_code_repository = DiscountCodeRepository(session)
         discount_code_id = payload["discount_code_id"]
         if discount_code_id is not None:
+            parent_service_id = service_id_for_instance(session, instance_id)
+            ensure_discount_code_eligible_for_instance(
+                session,
+                discount_code_id=discount_code_id,
+                service_id=parent_service_id,
+                instance_id=instance_id,
+            )
             if not discount_code_repository.validate_and_increment(discount_code_id):
                 raise ValidationError(
                     "Discount code is invalid, inactive, expired, or exhausted",
@@ -206,6 +217,7 @@ def _update_enrollment(
             old_id = enrollment.discount_code_id
             if new_id != old_id:
                 discount_repo = DiscountCodeRepository(session)
+                parent_service_id = service_id_for_instance(session, instance_id)
                 if old_id is not None:
                     if not discount_repo.decrement_uses(old_id):
                         raise ValidationError(
@@ -213,6 +225,12 @@ def _update_enrollment(
                             field="discount_code_id",
                         )
                 if new_id is not None:
+                    ensure_discount_code_eligible_for_instance(
+                        session,
+                        discount_code_id=new_id,
+                        service_id=parent_service_id,
+                        instance_id=instance_id,
+                    )
                     if not discount_repo.validate_and_increment(new_id):
                         if old_id is not None:
                             discount_repo.validate_and_increment(old_id)
