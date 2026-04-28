@@ -31,8 +31,10 @@ import {
 import { formatDiscountRowValue } from '@/lib/discount-row-format';
 import {
   formatDate,
+  formatDiscountCodeInstanceOptionLabel,
   formatEnumLabel,
   formatIsoForDatetimeLocalInput,
+  formatServiceTitleWithTier,
   getCurrencyOptions,
   parseAdminDateTimeInputToIsoUtc,
 } from '@/lib/format';
@@ -465,7 +467,7 @@ export function DiscountCodesPanel({
               <option value=''>All services</option>
               {serviceSelectOptions.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.title}
+                  {formatServiceTitleWithTier(svc.title, svc.serviceTier)}
                 </option>
               ))}
             </Select>
@@ -481,7 +483,7 @@ export function DiscountCodesPanel({
               <option value=''>All instances</option>
               {instances.map((inst) => (
                 <option key={inst.id} value={inst.id}>
-                  {inst.resolvedTitle ?? inst.title ?? inst.id}
+                  {formatDiscountCodeInstanceOptionLabel(inst)}
                 </option>
               ))}
             </Select>

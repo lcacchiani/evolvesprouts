@@ -12,14 +12,38 @@ import type {
 import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
 
 const SERVICE_TITLE_TIER_SEP = '\u00b7';
+const DISPLAY_PART_SEP = ` ${SERVICE_TITLE_TIER_SEP} `;
 
 /** Service list label: title, space, interpunct, space, tier when tier is set. */
 export function formatServiceTitleWithTier(title: string, serviceTier: string | null): string {
   const tier = serviceTier?.trim();
   if (tier) {
-    return `${title} ${SERVICE_TITLE_TIER_SEP} ${tier}`;
+    return `${title}${DISPLAY_PART_SEP}${tier}`;
   }
   return title;
+}
+
+/**
+ * Discount code editor — instance scope select: parent service title (or
+ * resolved/title fallback, then id), then optional parent tier and cohort,
+ * each separated by space + interpunct + space when present.
+ */
+export function formatDiscountCodeInstanceOptionLabel(instance: ServiceInstance): string {
+  const baseTitle =
+    instance.parentServiceTitle?.trim() ||
+    instance.resolvedTitle?.trim() ||
+    instance.title?.trim() ||
+    instance.id;
+  const tier = instance.parentServiceTier?.trim();
+  const cohort = instance.cohort?.trim();
+  let label = baseTitle;
+  if (tier) {
+    label = `${label}${DISPLAY_PART_SEP}${tier}`;
+  }
+  if (cohort) {
+    label = `${label}${DISPLAY_PART_SEP}${cohort}`;
+  }
+  return label;
 }
 
 /** Short user-visible label for a location (venue name, address, or id). */
