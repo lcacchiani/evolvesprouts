@@ -1,10 +1,8 @@
-const INSTAGRAM_URL_ENV_NAME = 'NEXT_PUBLIC_INSTAGRAM_URL';
-const LINKEDIN_URL_ENV_NAME = 'NEXT_PUBLIC_LINKEDIN_URL';
-const WHATSAPP_URL_ENV_NAME = 'NEXT_PUBLIC_WHATSAPP_URL';
-const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
-const BUSINESS_ADDRESS_ENV_NAME = 'NEXT_PUBLIC_BUSINESS_ADDRESS';
-const BUSINESS_PHONE_ENV_NAME = 'NEXT_PUBLIC_BUSINESS_PHONE_NUMBER';
-
+/**
+ * Public site config reads `process.env.NEXT_PUBLIC_*` with literal property
+ * access only. Next.js inlines those at build time; dynamic keys like
+ * `process.env[name]` are undefined in client bundles.
+ */
 export interface PublicSiteConfig {
   instagramUrl?: string;
   linkedinUrl?: string;
@@ -14,14 +12,12 @@ export interface PublicSiteConfig {
   businessPhoneNumber?: string;
 }
 
-function readOptionalEnv(name: string): string | undefined {
-  const value = process.env[name];
-  if (typeof value !== 'string') {
+function normalizeOptionalEnvValue(raw: string | undefined): string | undefined {
+  if (typeof raw !== 'string') {
     return undefined;
   }
-
-  const normalized = value.trim();
-  return normalized === '' ? undefined : normalized;
+  const trimmed = raw.trim();
+  return trimmed === '' ? undefined : trimmed;
 }
 
 function parseConfiguredUrl(value: string): URL | null {
@@ -99,10 +95,12 @@ function normalizeConfiguredEmail(value: string | undefined): string | undefined
 }
 
 function resolveRequiredContactEmail(): string {
-  const normalizedEmail = normalizeConfiguredEmail(readOptionalEnv(CONTACT_EMAIL_ENV_NAME));
+  const normalizedEmail = normalizeConfiguredEmail(
+    normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_EMAIL),
+  );
   if (!normalizedEmail) {
     throw new Error(
-      `${CONTACT_EMAIL_ENV_NAME} must be configured with a valid email address.`,
+      'NEXT_PUBLIC_EMAIL must be configured with a valid email address.',
     );
   }
 
@@ -182,11 +180,17 @@ export function buildUtmHref(
 
 export function resolvePublicSiteConfig(): PublicSiteConfig {
   return {
-    instagramUrl: normalizeConfiguredUrl(readOptionalEnv(INSTAGRAM_URL_ENV_NAME)),
-    linkedinUrl: normalizeConfiguredUrl(readOptionalEnv(LINKEDIN_URL_ENV_NAME)),
-    whatsappUrl: normalizeConfiguredUrl(readOptionalEnv(WHATSAPP_URL_ENV_NAME)),
+    instagramUrl: normalizeConfiguredUrl(
+      normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_INSTAGRAM_URL),
+    ),
+    linkedinUrl: normalizeConfiguredUrl(
+      normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_LINKEDIN_URL),
+    ),
+    whatsappUrl: normalizeConfiguredUrl(
+      normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_WHATSAPP_URL),
+    ),
     contactEmail: resolveRequiredContactEmail(),
-    businessAddress: readOptionalEnv(BUSINESS_ADDRESS_ENV_NAME),
-    businessPhoneNumber: readOptionalEnv(BUSINESS_PHONE_ENV_NAME),
+    businessAddress: normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_BUSINESS_ADDRESS),
+    businessPhoneNumber: normalizeOptionalEnvValue(process.env.NEXT_PUBLIC_BUSINESS_PHONE_NUMBER),
   };
 }
