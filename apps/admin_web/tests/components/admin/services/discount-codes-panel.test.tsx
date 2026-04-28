@@ -142,7 +142,7 @@ describe('DiscountCodesPanel', () => {
     expect(screen.getByRole('button', { name: 'Link and QR' })).toBeInTheDocument();
   });
 
-  it('shows archived service title in Scope while picker omits archived services', () => {
+  it('shows archived service title in Scope (editor-aligned, no suffix) while picker omits archived services', () => {
     const archived = {
       ...baseService,
       id: 'svc-archived',
@@ -187,7 +187,7 @@ describe('DiscountCodesPanel', () => {
       />,
     );
 
-    expect(screen.getByText('MBA Archived (archived)')).toBeInTheDocument();
+    expect(screen.getByText('MBA Archived')).toBeInTheDocument();
     const serviceSelect = screen.getByLabelText('Applies to service') as HTMLSelectElement;
     expect(
       [...serviceSelect.options].some((opt) => opt.textContent?.includes('MBA Archived')),
