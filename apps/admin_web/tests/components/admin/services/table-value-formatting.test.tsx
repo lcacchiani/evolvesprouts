@@ -256,6 +256,71 @@ describe('services tables value formatting', () => {
     expect(currencySelect).toBeDisabled();
   });
 
+  it('merges tier and cohort in instances table: interpunct only when both set, else single dash when empty', () => {
+    render(
+      <InstanceListPanel
+        instances={[
+          {
+            ...INSTANCE_FIXTURE,
+            title: 'A',
+            parentServiceTier: 'only-tier',
+            cohort: null,
+          },
+          {
+            ...INSTANCE_FIXTURE,
+            id: 'instance-2',
+            title: 'B',
+            parentServiceTier: null,
+            cohort: 'only-cohort',
+          },
+          {
+            ...INSTANCE_FIXTURE,
+            id: 'instance-3',
+            title: 'C',
+            parentServiceTier: 't1',
+            cohort: 'c1',
+          },
+          {
+            ...INSTANCE_FIXTURE,
+            id: 'instance-4',
+            title: 'D',
+            parentServiceTier: null,
+            cohort: null,
+          },
+        ]}
+        selectedInstanceId={null}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectInstance={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDuplicateInstance={vi.fn()}
+        onDeleteInstance={vi.fn()}
+        showServiceColumn
+      />
+    );
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Tier \u00b7 Cohort')).toBeInTheDocument();
+    expect(within(table).getByText('only-tier')).toBeInTheDocument();
+    expect(within(table).getByText('only-cohort')).toBeInTheDocument();
+    expect(within(table).getByText('t1 \u00b7 c1')).toBeInTheDocument();
+
+    const tierCohortColumnIndex = 1;
+    const rowFor = (title: string) => {
+      const titleCell = within(table).getByText(title);
+      const row = titleCell.closest('tr');
+      expect(row).toBeTruthy();
+      return within(row as HTMLElement).getAllByRole('cell');
+    };
+    expect(rowFor('A')[tierCohortColumnIndex].textContent).toBe('only-tier');
+    expect(rowFor('B')[tierCohortColumnIndex].textContent).toBe('only-cohort');
+    expect(rowFor('C')[tierCohortColumnIndex].textContent).toBe('t1 \u00b7 c1');
+    expect(rowFor('D')[tierCohortColumnIndex].textContent).toBe('-');
+  });
+
   it('formats enum and date values in enrollment table rows', () => {
     render(
       <EnrollmentListPanel

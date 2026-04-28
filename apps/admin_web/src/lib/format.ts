@@ -80,8 +80,10 @@ export function formatInstanceTableTitle(instance: ServiceInstance): string {
 export const INSTANCE_TABLE_TIER_COHORT_HEADER = `Tier${DISPLAY_PART_SEP}Cohort`;
 
 /**
- * Instances table: parent service tier and cohort joined by space + interpunct + space when both are set;
- * otherwise the single non-empty part; empty when neither is set (show placeholder in UI).
+ * Instances table: parent service tier and cohort.
+ * Uses space + interpunct + space only when both tier and cohort are non-empty after trim.
+ * If only one is present, returns that value alone (no interpunct).
+ * Returns empty string when neither is present (UI should show a single placeholder dash).
  */
 export function formatInstanceTableTierCohort(instance: ServiceInstance): string {
   const tier = instance.parentServiceTier?.trim() ?? '';
