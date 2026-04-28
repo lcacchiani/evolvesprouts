@@ -1,4 +1,6 @@
 import { adminApiRequest, isAbortRequestError } from './api-admin-client';
+
+export { isAbortRequestError };
 import {
   asBoolean,
   asNullableFiniteNumber,
