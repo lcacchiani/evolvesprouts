@@ -207,7 +207,7 @@ export function InstanceListPanel({
                 <th className='px-4 py-3 font-semibold'>Locations</th>
               ) : null}
               {showServiceColumn ? (
-                <th className='px-4 py-3 align-middle font-semibold'>First slot</th>
+                <th className='whitespace-nowrap px-4 py-3 align-middle font-semibold'>First slot</th>
               ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
@@ -247,7 +247,7 @@ export function InstanceListPanel({
                     </td>
                   ) : null}
                   {showServiceColumn ? (
-                    <td className='px-4 py-3 align-middle text-sm'>
+                    <td className='whitespace-nowrap px-4 py-3 align-middle text-sm'>
                       {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
                     </td>
                   ) : null}
