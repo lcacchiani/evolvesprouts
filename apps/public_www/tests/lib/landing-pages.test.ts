@@ -99,6 +99,22 @@ describe('landing-pages registry', () => {
     }
   });
 
+  it('matches landing-pages-manifest slug list (same source as deploy calendar probe)', () => {
+    const landingPagesTs = readFileSync(
+      path.resolve(__dirname, '../../src/lib/landing-pages.ts'),
+      'utf8',
+    );
+    const landingPagesMatch = landingPagesTs.match(
+      /const\s+LANDING_PAGES\s*=\s*\{([\s\S]*?)\}\s*satisfies/,
+    );
+    expect(landingPagesMatch).not.toBeNull();
+    const manifestSlugs = [...landingPagesMatch![1].matchAll(/^\s*'([^']+)'\s*:/gm)].map(
+      (entry) => entry[1],
+    );
+    const registrySlugs = [...getAllLandingPageSlugs()].sort();
+    expect([...manifestSlugs].sort()).toEqual(registrySlugs);
+  });
+
   it('every static root app segment with page.tsx is reserved or a registered landing slug', () => {
     const appDir = path.resolve(__dirname, '../../src/app');
     const landingSlugSet = new Set(getAllLandingPageSlugs());

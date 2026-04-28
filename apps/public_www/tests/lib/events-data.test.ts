@@ -5,8 +5,12 @@ import zhHKContent from '@/content/zh-HK.json';
 import easterWorkshopLandingContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import missingPieceLandingContent from '@/content/landing-pages/may-2026-the-missing-piece.json';
 import { publicCalendarFixture } from '../fixtures/public-calendar';
-import { createCrmApiClient } from '@/lib/crm-api-client';
+import {
+  createCrmApiClient,
+  clearCrmApiGetCacheForTests,
+} from '@/lib/crm-api-client';
 import { formatCohortValue } from '@/lib/format';
+import * as internalErrorReporting from '@/lib/internal-error-reporting';
 import {
   PUBLIC_SITE_IANA_TIMEZONE,
   formatHeroFullDateLine,
@@ -15,6 +19,7 @@ import {
   MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
   buildEventsApiPath,
   fetchEventsPayload,
+  fetchLandingPageCalendarPayload,
   findLandingPageEventInPayload,
   getLandingPageBookingEventContentFromPayload,
   getLandingPageHeroEventContentFromPayload,
@@ -881,5 +886,132 @@ describe('events-data', () => {
         apiKey: '   ',
       }),
     ).toBeNull();
+  });
+
+  describe('fetchLandingPageCalendarPayload', () => {
+    beforeEach(() => {
+      clearCrmApiGetCacheForTests();
+      vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+      vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', 'public-crm-key');
+    });
+
+    it('returns payload after one attempt and uses slug in request URL', async () => {
+      const fetchSpy = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(publicCalendarFixture), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+      vi.stubGlobal('fetch', fetchSpy);
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const slug = 'easter-2026-montessori-play-coaching-workshop';
+      const { payload, lastError } = await fetchLandingPageCalendarPayload({
+        slug,
+        attempts: 1,
+        timeoutMs: 5000,
+      });
+
+      expect(lastError).toBeNull();
+      expect(findLandingPageEventInPayload(payload, slug)).not.toBeNull();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(String(fetchSpy.mock.calls[0]?.[0])).toContain(
+        `/v1/calendar/public?slug=${encodeURIComponent(slug)}`,
+      );
+    });
+
+    it('uses distinct cache keys per slug', async () => {
+      const fetchSpy = vi.fn().mockImplementation((url: string) =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              status: 'success',
+              data: [
+                {
+                  title: 'A',
+                  slug: url.includes('slug-a') ? 'slug-a' : 'slug-b',
+                  booking_system: 'event-booking',
+                  dates: [
+                    {
+                      start_datetime: '2026-01-01T00:00:00Z',
+                      end_datetime: '2026-01-01T01:00:00Z',
+                      part: 1,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+        ),
+      );
+      vi.stubGlobal('fetch', fetchSpy);
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      await fetchLandingPageCalendarPayload({ slug: 'slug-a', attempts: 1, timeoutMs: 5000 });
+      await fetchLandingPageCalendarPayload({ slug: 'slug-b', attempts: 1, timeoutMs: 5000 });
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('times out on attempt 1 and succeeds on attempt 2', async () => {
+      const fetchSpy = vi
+        .fn()
+        .mockRejectedValueOnce(Object.assign(new Error('Aborted'), { name: 'AbortError' }))
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(publicCalendarFixture), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      vi.stubGlobal('fetch', fetchSpy);
+      const reportSpy = vi
+        .spyOn(internalErrorReporting, 'reportInternalError')
+        .mockImplementation(() => {});
+
+      const slug = 'easter-2026-montessori-play-coaching-workshop';
+      const { payload, lastError } = await fetchLandingPageCalendarPayload({
+        slug,
+        attempts: 2,
+        timeoutMs: 5000,
+      });
+
+      expect(lastError).toBeNull();
+      expect(findLandingPageEventInPayload(payload, slug)).not.toBeNull();
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(reportSpy).toHaveBeenCalledTimes(1);
+      expect(reportSpy.mock.calls[0]?.[0]).toMatchObject({
+        metadata: { slug, attempt: 1, reason: 'timeout' },
+      });
+    });
+
+    it('returns null payload after all attempts fail with AbortError and reports each attempt', async () => {
+      const fetchSpy = vi.fn().mockRejectedValue(
+        Object.assign(new Error('Aborted'), { name: 'AbortError' }),
+      );
+      vi.stubGlobal('fetch', fetchSpy);
+      const reportSpy = vi
+        .spyOn(internalErrorReporting, 'reportInternalError')
+        .mockImplementation(() => {});
+
+      const slug = 'easter-2026-montessori-play-coaching-workshop';
+      const { payload, lastError } = await fetchLandingPageCalendarPayload({
+        slug,
+        attempts: 2,
+        timeoutMs: 5000,
+      });
+
+      expect(payload).toBeNull();
+      expect(lastError).toMatchObject({ name: 'AbortError' });
+      expect(reportSpy).toHaveBeenCalledTimes(2);
+      expect(reportSpy.mock.calls[0]?.[0]).toMatchObject({
+        context: 'landing-page-calendar-fetch',
+        metadata: { slug, attempt: 1, reason: 'timeout' },
+      });
+      expect(reportSpy.mock.calls[1]?.[0]).toMatchObject({
+        context: 'landing-page-calendar-fetch',
+        metadata: { slug, attempt: 2, reason: 'timeout' },
+      });
+    });
   });
 });

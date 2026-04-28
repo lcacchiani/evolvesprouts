@@ -12,12 +12,7 @@ import {
   resolveLocalePageContext,
 } from '@/lib/locale-page';
 import {
-  createPublicCrmApiClient,
-  isAbortRequestError,
-} from '@/lib/crm-api-client';
-import {
-  CALENDAR_PUBLIC_FETCH_TIMEOUT_MS,
-  fetchEventsPayload,
+  fetchLandingPageCalendarPayload,
   getLandingPageBookingEventContentFromPayload,
   getLandingPageHeroEventContentFromPayload,
   getLandingPageStructuredDataContentFromPayload,
@@ -28,13 +23,9 @@ import {
   getLandingPageContent,
   isValidLandingPageSlug,
 } from '@/lib/landing-pages';
-import { reportInternalError } from '@/lib/internal-error-reporting';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
-import {
-  buildBreadcrumbSchema,
-  buildLandingPageEventSchema,
-} from '@/lib/structured-data';
+import { buildBreadcrumbSchema } from '@/lib/structured-data';
 
 interface LandingPageRouteProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -79,72 +70,43 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     notFound();
   }
 
-  const pageContent = getLandingPageContent(resolvedParams.slug, locale);
+  const landingPageSlug = resolvedParams.slug;
+  const pageContent = getLandingPageContent(landingPageSlug, locale);
   if (!pageContent) {
     notFound();
   }
 
-  const pagePath = buildLandingPagePath(resolvedParams.slug);
+  const pagePath = buildLandingPagePath(landingPageSlug);
 
-  const crmApiClient = createPublicCrmApiClient();
-  let calendarPayload: unknown = null;
-  if (crmApiClient) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, CALENDAR_PUBLIC_FETCH_TIMEOUT_MS);
-    try {
-      calendarPayload = await fetchEventsPayload(crmApiClient, controller.signal, {
-        slug: resolvedParams.slug,
-      });
-    } catch (error) {
-      if (!isAbortRequestError(error)) {
-        reportInternalError({
-          context: 'landing-page-calendar-fetch',
-          error,
-          metadata: { locale, slug: resolvedParams.slug },
-        });
-      }
-    } finally {
-      clearTimeout(timeout);
-    }
-  } else {
-    reportInternalError({
-      context: 'landing-page-no-crm-client',
-      error: new Error('CRM API client is not configured'),
-      metadata: { locale, slug: resolvedParams.slug, reason: 'missing_public_crm_client' },
-    });
-  }
+  const { payload: calendarPayload } = await fetchLandingPageCalendarPayload({
+    slug: landingPageSlug,
+  });
 
   const heroEventContent = getLandingPageHeroEventContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
   );
   const bookingEventContent = getLandingPageBookingEventContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
     locale,
   );
   const structuredDataContent = getLandingPageStructuredDataContentFromPayload(
     calendarPayload,
-    resolvedParams.slug,
+    landingPageSlug,
   );
-
-  const eventSchema = buildLandingPageEventSchema({
-    locale,
-    pagePath,
-    structuredDataContent,
-  });
 
   return (
     <>
       <LandingPage
         locale={locale}
-        slug={resolvedParams.slug}
+        slug={landingPageSlug}
+        pagePath={pagePath}
         siteContent={siteContent}
         pageContent={pageContent}
         heroEventContent={heroEventContent}
         bookingEventContent={bookingEventContent}
+        structuredDataContent={structuredDataContent}
       />
       <StructuredDataScript
         id={`landing-page-breadcrumb-jsonld-${locale}`}
@@ -162,12 +124,6 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
           ],
         })}
       />
-      {Object.keys(eventSchema).length > 0 ? (
-        <StructuredDataScript
-          id={`landing-page-event-jsonld-${locale}`}
-          data={eventSchema}
-        />
-      ) : null}
     </>
   );
 }

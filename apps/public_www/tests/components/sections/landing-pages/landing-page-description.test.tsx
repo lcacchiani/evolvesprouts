@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import { LandingPageCalendarContext } from '@/lib/landing-page-calendar-context';
+import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
 
 describe('LandingPageDescription section', () => {
   it('renders section shell identifiers and description items', () => {
@@ -45,20 +47,29 @@ describe('LandingPageDescription section', () => {
     expect(firstDescription).toHaveClass('sm:mt-1.5');
   });
 
-  it('renders shared CTA action at the bottom when shared props are provided', () => {
+  it('renders shared CTA action at the bottom when calendar context is provided', () => {
+    const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
+      'en',
+      'easter-2026-montessori-play-coaching-workshop',
+      easterWorkshopContent.en.cta,
+      enContent,
+      easterWorkshopContent.en.meta.title,
+      null,
+      null,
+    );
     render(
-      <LandingPageDescription
-        content={easterWorkshopContent.en.description}
-        sharedCtaProps={{
-          locale: 'en',
-          slug: 'easter-2026-montessori-play-coaching-workshop',
-          content: easterWorkshopContent.en.cta,
-          commonContent: enContent.landingPages.common,
-          bookingPayload: null,
-          isFullyBooked: false,
-          bookingModalContent: enContent.bookingModal,
+      <LandingPageCalendarContext.Provider
+        value={{
+          heroEventContent: null,
+          bookingEventContent: null,
+          structuredDataContent: null,
+          sharedCtaProps,
+          isRefreshing: false,
+          hasRefreshError: false,
         }}
-      />,
+      >
+        <LandingPageDescription content={easterWorkshopContent.en.description} />
+      </LandingPageCalendarContext.Provider>,
     );
 
     expect(

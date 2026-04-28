@@ -303,6 +303,7 @@ function sync_site_artifacts() {
     "$destination_uri" \
     --exclude "_next/static/*" \
     --exclude "releases/*" \
+    --exclude "landing-pages-manifest.json" \
     --cache-control "$DOCUMENT_CACHE_CONTROL" \
     --delete
 }
@@ -323,6 +324,7 @@ function sync_release_artifacts() {
     "$destination_uri" \
     --exclude "_next/static/*" \
     --exclude "releases/*" \
+    --exclude "landing-pages-manifest.json" \
     --cache-control "$DOCUMENT_CACHE_CONTROL" \
     --delete
 }

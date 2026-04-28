@@ -3,192 +3,105 @@ import type {
   LandingPageLocaleContent,
   SiteContent,
 } from '@/content';
-import { formatContentTemplate } from '@/content/content-field-utils';
 import { PageLayout } from '@/components/shared/page-layout';
 import { AboutUsIdaCoach } from '@/components/sections/about-us-ida-coach';
 import { Testimonials } from '@/components/sections/testimonials';
-import { LandingPageCta } from '@/components/sections/landing-pages/landing-page-cta';
+import { LandingPageCtaBridge } from '@/components/pages/landing-pages/landing-page-cta-bridge';
+import { LandingPageEventJsonLd } from '@/components/pages/landing-pages/landing-page-event-jsonld';
+import { LandingPageHeroBridge } from '@/components/pages/landing-pages/landing-page-hero-bridge';
 import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
-import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
 import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
-import type { LandingPageSharedCtaProps } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
+import { LandingPageRehydrateRoot } from '@/lib/landing-page-calendar-context';
 import type {
   LandingPageBookingEventContent,
   LandingPageHeroEventContent,
+  LandingPageStructuredDataContent,
 } from '@/lib/events-data';
-import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 
-interface LandingPageProps {
+export interface LandingPageProps {
   locale: Locale;
   slug: string;
+  pagePath: string;
   siteContent: SiteContent;
   pageContent: LandingPageLocaleContent;
   heroEventContent: LandingPageHeroEventContent | null;
   bookingEventContent: LandingPageBookingEventContent | null;
-}
-
-function resolveLandingPageCtaEyebrow(
-  eyebrowTemplate: string | undefined,
-  spotsLeft: number | undefined,
-  dateLabel: string | undefined,
-): string | undefined {
-  const normalizedTemplate = eyebrowTemplate?.trim();
-  if (!normalizedTemplate) {
-    return undefined;
-  }
-
-  if (typeof spotsLeft === 'number' && Number.isFinite(spotsLeft) && spotsLeft <= 0) {
-    return '';
-  }
-
-  const hasNumericSpotsLeft = typeof spotsLeft === 'number' && Number.isFinite(spotsLeft);
-  if (!hasNumericSpotsLeft || !dateLabel?.trim()) {
-    return normalizedTemplate;
-  }
-
-  const normalizedSpotsLeft = Math.max(0, Math.trunc(spotsLeft));
-
-  const resolvedEyebrow = formatContentTemplate(normalizedTemplate, {
-    spotsLeft: normalizedSpotsLeft,
-    date: dateLabel.trim(),
-  }).trim();
-
-  return resolvedEyebrow || undefined;
-}
-
-function resolveFullyBookedWaitlistHref(
-  isFullyBooked: boolean,
-  baseWhatsappHref: string | undefined,
-  phoneNumber: string | undefined,
-  messageTemplate: string | undefined,
-  eventTitle: string,
-): string | undefined {
-  if (!isFullyBooked) {
-    return undefined;
-  }
-
-  const normalizedMessageTemplate = messageTemplate?.trim() ?? '';
-  if (!normalizedMessageTemplate) {
-    return undefined;
-  }
-
-  const resolvedMessage = formatContentTemplate(normalizedMessageTemplate, {
-    eventTitle,
-  }).trim();
-  if (!resolvedMessage) {
-    return undefined;
-  }
-
-  const whatsappHref = buildWhatsappPrefilledHref(baseWhatsappHref, resolvedMessage, phoneNumber);
-  return whatsappHref || undefined;
+  structuredDataContent: LandingPageStructuredDataContent | null;
 }
 
 export function LandingPage({
   locale,
   slug,
+  pagePath,
   siteContent,
   pageContent,
   heroEventContent,
   bookingEventContent,
+  structuredDataContent,
 }: LandingPageProps) {
-  const isFullyBooked = bookingEventContent?.status === 'fully_booked';
-  const resolvedCtaEyebrow = resolveLandingPageCtaEyebrow(
-    pageContent.cta.eyebrow,
-    bookingEventContent?.spacesLeft,
-    bookingEventContent?.eyebrowDateLabel,
-  );
-  const waitlistEventTitle = heroEventContent?.title ?? pageContent.meta.title;
-  const fullyBookedWaitlistHref = resolveFullyBookedWaitlistHref(
-    isFullyBooked,
-    siteContent.navbar.bookNow.href,
-    siteContent.navbar.bookNow.phoneNumber,
-    pageContent.cta.fullyBookedWaitlistMessageTemplate,
-    waitlistEventTitle,
-  );
-  const publicSiteConfig = resolvePublicSiteConfig();
-  const sharedCtaProps: LandingPageSharedCtaProps = {
-    locale,
-    slug,
-    content: pageContent.cta,
-    ctaPriceLabel: bookingEventContent?.ctaPriceLabel,
-    commonContent: siteContent.landingPages.common,
-    bookingPayload: bookingEventContent?.bookingPayload ?? null,
-    isFullyBooked,
-    fullyBookedCtaLabel: pageContent.cta.fullyBookedButtonLabel,
-    fullyBookedWaitlistHref,
-    bookingModalContent: siteContent.bookingModal,
-    thankYouWhatsappHref: publicSiteConfig.whatsappUrl,
-    thankYouWhatsappCtaLabel: siteContent.contactUs.form.contactMethodLinks.whatsapp,
-  };
-
   return (
-    <PageLayout
-      navbarContent={siteContent.navbar}
-      footerContent={siteContent.footer}
+    <LandingPageRehydrateRoot
+      key={`${slug}-${locale}`}
+      locale={locale}
+      slug={slug}
+      siteContent={siteContent}
+      pageContent={pageContent}
+      initialHero={heroEventContent}
+      initialBooking={bookingEventContent}
+      initialStructuredData={structuredDataContent}
     >
-      <LandingPageHero
-        slug={slug}
-        content={pageContent.hero}
-        ctaContent={pageContent.cta}
-        ctaPriceLabel={bookingEventContent?.ctaPriceLabel}
-        commonContent={siteContent.landingPages.common}
+      <PageLayout
+        navbarContent={siteContent.navbar}
+        footerContent={siteContent.footer}
+      >
+        <LandingPageHeroBridge
+          slug={slug}
+          content={pageContent.hero}
+          ctaContent={pageContent.cta}
+          commonContent={siteContent.landingPages.common}
+          locale={locale}
+          metaTitle={pageContent.meta.title}
+          bookingModalContent={siteContent.bookingModal}
+          ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
+        />
+        <LandingPageOutline
+          content={pageContent.outline}
+          ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
+        />
+        <LandingPageDescription
+          content={pageContent.description}
+          ariaLabel={siteContent.landingPages.common.a11y.descriptionSectionLabel}
+        />
+        <LandingPageDetails
+          content={pageContent.details}
+          ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+        />
+        <Testimonials
+          content={siteContent.testimonials}
+          commonAccessibility={siteContent.common.accessibility}
+        />
+        <LandingPageCtaBridge
+          locale={locale}
+          slug={slug}
+          content={pageContent.cta}
+          commonContent={siteContent.landingPages.common}
+          ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
+        />
+        <AboutUsIdaCoach
+          content={siteContent.aboutUs.coaches.ida}
+          ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
+        />
+        <LandingPageFaq
+          content={pageContent.faq}
+          ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
+        />
+      </PageLayout>
+      <LandingPageEventJsonLd
         locale={locale}
-        title={heroEventContent?.title ?? pageContent.meta.title}
-        eventContent={heroEventContent}
-        bookingPayload={bookingEventContent?.bookingPayload ?? null}
-        isFullyBooked={isFullyBooked}
-        fullyBookedCtaLabel={pageContent.cta.fullyBookedButtonLabel}
-        fullyBookedWaitlistHref={fullyBookedWaitlistHref}
-        bookingModalContent={siteContent.bookingModal}
-        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
-        thankYouWhatsappCtaLabel={siteContent.contactUs.form.contactMethodLinks.whatsapp}
-        ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
+        pagePath={pagePath}
       />
-      <LandingPageOutline
-        content={pageContent.outline}
-        sharedCtaProps={sharedCtaProps}
-        ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
-      />
-      <LandingPageDescription
-        content={pageContent.description}
-        sharedCtaProps={sharedCtaProps}
-        ariaLabel={siteContent.landingPages.common.a11y.descriptionSectionLabel}
-      />
-      <LandingPageDetails
-        content={pageContent.details}
-        sharedCtaProps={sharedCtaProps}
-        ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
-      />
-      <Testimonials
-        content={siteContent.testimonials}
-        commonAccessibility={siteContent.common.accessibility}
-      />
-      <LandingPageCta
-        locale={locale}
-        slug={slug}
-        content={pageContent.cta}
-        eyebrow={resolvedCtaEyebrow}
-        ctaPriceLabel={bookingEventContent?.ctaPriceLabel}
-        commonContent={siteContent.landingPages.common}
-        bookingPayload={bookingEventContent?.bookingPayload ?? null}
-        isFullyBooked={isFullyBooked}
-        fullyBookedCtaLabel={pageContent.cta.fullyBookedButtonLabel}
-        fullyBookedWaitlistHref={fullyBookedWaitlistHref}
-        bookingModalContent={siteContent.bookingModal}
-        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
-        thankYouWhatsappCtaLabel={siteContent.contactUs.form.contactMethodLinks.whatsapp}
-        ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
-      />
-      <AboutUsIdaCoach
-        content={siteContent.aboutUs.coaches.ida}
-        ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
-      />
-      <LandingPageFaq
-        content={pageContent.faq}
-        ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
-      />
-    </PageLayout>
+    </LandingPageRehydrateRoot>
   );
 }

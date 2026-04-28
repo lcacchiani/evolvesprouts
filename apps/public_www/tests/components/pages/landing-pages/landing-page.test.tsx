@@ -5,6 +5,56 @@ import { describe, expect, it, vi } from 'vitest';
 import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import {
+  LandingPageCalendarContext,
+  type LandingPageCalendarContextValue,
+  type LandingPageRehydrateRootProps,
+} from '@/lib/landing-page-calendar-context';
+import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
+
+function MockLandingPageRehydrateRoot({
+  locale,
+  slug,
+  siteContent,
+  pageContent,
+  initialHero,
+  initialBooking,
+  initialStructuredData,
+  children,
+}: LandingPageRehydrateRootProps) {
+  const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
+    locale,
+    slug,
+    pageContent.cta,
+    siteContent,
+    pageContent.meta.title,
+    initialHero,
+    initialBooking,
+  );
+
+  const value: LandingPageCalendarContextValue = {
+    heroEventContent: initialHero,
+    bookingEventContent: initialBooking,
+    structuredDataContent: initialStructuredData,
+    sharedCtaProps,
+    isRefreshing: false,
+    hasRefreshError: false,
+  };
+
+  return (
+    <LandingPageCalendarContext.Provider value={value}>
+      {children}
+    </LandingPageCalendarContext.Provider>
+  );
+}
+
+vi.mock('@/lib/landing-page-calendar-context', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/landing-page-calendar-context')>();
+  return {
+    ...actual,
+    LandingPageRehydrateRoot: MockLandingPageRehydrateRoot,
+  };
+});
 
 const mockHeroEventContent = {
   title: 'Mock Event Title',
@@ -63,15 +113,13 @@ vi.mock('@/components/sections/landing-pages/landing-page-hero', () => ({
 vi.mock('@/components/sections/landing-pages/landing-page-outline', () => ({
   LandingPageOutline: ({
     content,
-    sharedCtaProps,
   }: {
     content: { title: string };
-    sharedCtaProps?: { slug: string };
   }) => (
     <section
       data-testid='landing-page-outline'
-      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
-      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+      data-shared-cta='yes'
+      data-shared-cta-slug='easter-2026-montessori-play-coaching-workshop'
     >
       {content.title}
     </section>
@@ -80,15 +128,13 @@ vi.mock('@/components/sections/landing-pages/landing-page-outline', () => ({
 vi.mock('@/components/sections/landing-pages/landing-page-description', () => ({
   LandingPageDescription: ({
     content,
-    sharedCtaProps,
   }: {
     content: { title: string };
-    sharedCtaProps?: { slug: string };
   }) => (
     <section
       data-testid='landing-page-description'
-      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
-      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+      data-shared-cta='yes'
+      data-shared-cta-slug='easter-2026-montessori-play-coaching-workshop'
     >
       {content.title}
     </section>
@@ -97,15 +143,13 @@ vi.mock('@/components/sections/landing-pages/landing-page-description', () => ({
 vi.mock('@/components/sections/landing-pages/landing-page-details', () => ({
   LandingPageDetails: ({
     content,
-    sharedCtaProps,
   }: {
     content: { title: string };
-    sharedCtaProps?: { slug: string };
   }) => (
     <section
       data-testid='landing-page-details'
-      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
-      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+      data-shared-cta='yes'
+      data-shared-cta-slug='easter-2026-montessori-play-coaching-workshop'
     >
       {content.title}
     </section>
@@ -153,10 +197,12 @@ describe('LandingPage composition', () => {
       <LandingPage
         locale='zh-HK'
         slug='easter-2026-montessori-play-coaching-workshop'
+        pagePath='/easter-2026-montessori-play-coaching-workshop'
         siteContent={enContent}
         pageContent={easterWorkshopContent.en}
         heroEventContent={mockHeroEventContent}
         bookingEventContent={mockBookingEventContent}
+        structuredDataContent={null}
       />,
     );
 
