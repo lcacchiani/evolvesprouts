@@ -2,6 +2,7 @@ import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 import type {
+  DiscountCode,
   LocationSummary,
   ServiceInstance,
   ServiceSummary,
@@ -23,12 +24,10 @@ export function formatServiceTitleWithTier(title: string, serviceTier: string | 
   return title;
 }
 
-/**
- * Discount code editor — instance scope select: instance `title` when set,
- * otherwise parent service title, then resolved title, then id; then optional
- * parent tier and cohort, each separated by space + interpunct + space when present.
- */
-export function formatDiscountCodeInstanceOptionLabel(instance: ServiceInstance): string {
+/** Title + optional tier + cohort for discount instance scope (editor select and table). */
+export function formatDiscountCodeInstanceScopeLabel(
+  instance: Pick<ServiceInstance, 'id' | 'title' | 'parentServiceTitle' | 'resolvedTitle' | 'parentServiceTier' | 'cohort'>
+): string {
   const baseTitle =
     instance.title?.trim() ||
     instance.parentServiceTitle?.trim() ||
@@ -44,6 +43,65 @@ export function formatDiscountCodeInstanceOptionLabel(instance: ServiceInstance)
     label = `${label}${DISPLAY_PART_SEP}${cohort}`;
   }
   return label;
+}
+
+/**
+ * Discount code editor — instance scope select: instance `title` when set,
+ * otherwise parent service title, then resolved title, then id; then optional
+ * parent tier and cohort, each separated by space + interpunct + space when present.
+ */
+export function formatDiscountCodeInstanceOptionLabel(instance: ServiceInstance): string {
+  return formatDiscountCodeInstanceScopeLabel(instance);
+}
+
+/** Discount codes table — scope column: same labels as the editor service/instance pickers. */
+export function formatDiscountCodeScopeSummary(
+  row: DiscountCode,
+  serviceById: Map<string, ServiceSummary>,
+  instanceById: ReadonlyMap<string, ServiceInstance>
+): string {
+  if (!row.serviceId && !row.instanceId) {
+    return 'All services';
+  }
+  const serviceId = row.serviceId?.trim() ?? '';
+  const instanceId = row.instanceId?.trim() ?? '';
+
+  if (instanceId) {
+    const resolved = instanceById.get(instanceId);
+    if (resolved) {
+      return formatDiscountCodeInstanceScopeLabel(resolved);
+    }
+    if (serviceId) {
+      const svc = serviceById.get(serviceId);
+      if (svc) {
+        return formatDiscountCodeInstanceScopeLabel({
+          id: instanceId,
+          title: null,
+          parentServiceTitle: svc.title?.trim() ? svc.title : null,
+          resolvedTitle: null,
+          parentServiceTier: svc.serviceTier,
+          cohort: null,
+        });
+      }
+    }
+    return formatDiscountCodeInstanceScopeLabel({
+      id: instanceId,
+      title: null,
+      parentServiceTitle: null,
+      resolvedTitle: null,
+      parentServiceTier: null,
+      cohort: null,
+    });
+  }
+
+  if (!serviceId) {
+    return 'Service';
+  }
+  const svc = serviceById.get(serviceId);
+  if (!svc) {
+    return 'Service (unknown)';
+  }
+  return formatServiceTitleWithTier(svc.title, svc.serviceTier);
 }
 
 /** Short user-visible label for a location (venue name, address, or id). */

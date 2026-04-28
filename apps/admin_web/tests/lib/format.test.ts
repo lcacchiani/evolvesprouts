@@ -13,6 +13,8 @@ import {
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
   formatDiscountCodeInstanceOptionLabel,
+  formatDiscountCodeInstanceScopeLabel,
+  formatDiscountCodeScopeSummary,
   formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   getFirstSessionSlotForDisplay,
@@ -27,7 +29,7 @@ import {
   parseDatetimeLocalToIsoUtc,
   sessionSlotApiTimesToFormLocals,
 } from '@/lib/format';
-import type { ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
+import type { DiscountCode, ServiceInstance, ServiceSummary, SessionSlot } from '@/types/services';
 
 function baseSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
   return {
@@ -195,6 +197,137 @@ describe('format helpers', () => {
         title: null,
       })
     ).toBe('inst-uuid');
+  });
+
+  it('formats discount code instance scope label same as option label helper', () => {
+    const inst: ServiceInstance = {
+      id: 'i1',
+      serviceId: 's1',
+      parentServiceTitle: 'P',
+      parentServiceTier: 't',
+      parentServiceType: 'training_course',
+      title: 'Own',
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: 'c',
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+    expect(formatDiscountCodeInstanceScopeLabel(inst)).toBe(formatDiscountCodeInstanceOptionLabel(inst));
+  });
+
+  it('formats discount code scope summary for table (editor-aligned service and instance)', () => {
+    const svc = baseSummary({ id: 'svc-1', title: 'Yoga', serviceTier: 'adults' });
+    const serviceById = new Map<string, ServiceSummary>([[svc.id, svc]]);
+    const emptyInstances = new Map<string, ServiceInstance>();
+
+    const unscoped: DiscountCode = {
+      id: 'd0',
+      code: 'ALL',
+      description: null,
+      discountType: 'percentage',
+      discountValue: '5',
+      currency: 'HKD',
+      validFrom: null,
+      validUntil: null,
+      serviceId: null,
+      instanceId: null,
+      maxUses: null,
+      currentUses: 0,
+      active: true,
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+    };
+    expect(formatDiscountCodeScopeSummary(unscoped, serviceById, emptyInstances)).toBe('All services');
+
+    const serviceOnly: DiscountCode = { ...unscoped, id: 'd1', serviceId: 'svc-1' };
+    expect(formatDiscountCodeScopeSummary(serviceOnly, serviceById, emptyInstances)).toBe('Yoga · adults');
+
+    const unknownService: DiscountCode = { ...unscoped, id: 'd2', serviceId: 'missing' };
+    expect(formatDiscountCodeScopeSummary(unknownService, serviceById, emptyInstances)).toBe('Service (unknown)');
+
+    const inst: ServiceInstance = {
+      id: 'inst-1',
+      serviceId: 'svc-1',
+      parentServiceTitle: 'Yoga',
+      parentServiceTier: 'adults',
+      parentServiceType: 'training_course',
+      title: 'Spring',
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: 'March',
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+    const instanceById = new Map<string, ServiceInstance>([[inst.id, inst]]);
+    const instanceScoped: DiscountCode = {
+      ...unscoped,
+      id: 'd3',
+      serviceId: 'svc-1',
+      instanceId: 'inst-1',
+    };
+    expect(formatDiscountCodeScopeSummary(instanceScoped, serviceById, instanceById)).toBe('Spring · adults · March');
+
+    const instanceScopedNoFetch: DiscountCode = {
+      ...unscoped,
+      id: 'd4',
+      serviceId: 'svc-1',
+      instanceId: 'inst-missing',
+    };
+    expect(formatDiscountCodeScopeSummary(instanceScopedNoFetch, serviceById, emptyInstances)).toBe(
+      'Yoga · adults'
+    );
   });
 
   it('formats instance table title from own title or parent service title', () => {
