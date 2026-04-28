@@ -16,6 +16,18 @@ function buildCalendarUrl(baseUrl, slug) {
   return `${trimmed}/v1/calendar/public?${search.toString()}`;
 }
 
+function parseHttpStatusFromProbeError(error) {
+  if (!(error instanceof Error)) {
+    return null;
+  }
+  const match = error.message.match(/^HTTP (\d{3}) for slug=/);
+  if (!match) {
+    return null;
+  }
+  const status = Number.parseInt(match[1], 10);
+  return Number.isFinite(status) ? status : null;
+}
+
 async function fetchWithTimeout(url, apiKey, timeoutMs) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -54,9 +66,16 @@ async function probeSlug(baseUrl, apiKey, slug) {
       return;
     } catch (error) {
       lastError = error;
-      const isAbort = error instanceof Error && error.name === 'AbortError';
-      const reason = isAbort ? 'timeout' : 'transport';
+      const httpStatus = parseHttpStatusFromProbeError(error);
+      if (httpStatus !== null && httpStatus >= 400 && httpStatus < 500) {
+        throw error;
+      }
       if (attempt === MAX_ATTEMPTS) {
+        if (httpStatus !== null && httpStatus >= 500) {
+          throw error;
+        }
+        const isAbort = error instanceof Error && error.name === 'AbortError';
+        const reason = isAbort ? 'timeout' : 'transport';
         throw new Error(
           `Calendar probe failed for slug=${slug} (${reason}): ${error instanceof Error ? error.message : String(error)}`,
         );
