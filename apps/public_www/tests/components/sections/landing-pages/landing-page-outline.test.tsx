@@ -39,6 +39,7 @@ describe('LandingPageOutline section', () => {
       easterWorkshopContent.en.meta.title,
       null,
       null,
+      undefined,
     );
     render(
       <LandingPageCalendarContext.Provider

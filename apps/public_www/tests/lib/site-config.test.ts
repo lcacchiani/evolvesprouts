@@ -84,6 +84,12 @@ describe('site-config', () => {
     );
   });
 
+  it('throws when NEXT_PUBLIC_EMAIL is unset', () => {
+    delete process.env.NEXT_PUBLIC_EMAIL;
+
+    expect(() => resolvePublicSiteConfig()).toThrow(/NEXT_PUBLIC_EMAIL/);
+  });
+
   it('normalizes schemeless social URLs by prepending https', () => {
     process.env.NEXT_PUBLIC_WHATSAPP_URL = 'wa.me/message/ZQHVW4DEORD5A1?src=qr';
     process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'instagram.com/evolvesprouts';

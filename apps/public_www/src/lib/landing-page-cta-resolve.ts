@@ -5,7 +5,7 @@ import type {
 } from '@/lib/events-data';
 import type { LandingPageLocaleContent, Locale, SiteContent } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
+import { buildWhatsappPrefilledHref } from '@/lib/site-config';
 
 export function resolveLandingPageCtaEyebrow(
   eyebrowTemplate: string | undefined,
@@ -71,6 +71,7 @@ export function buildLandingPageSharedCtaPropsFromCalendar(
   heroTitleFallback: string,
   heroEventContent: LandingPageHeroEventContent | null,
   bookingEventContent: LandingPageBookingEventContent | null,
+  thankYouWhatsappHref: string | undefined,
 ): LandingPageSharedCtaProps {
   const isFullyBooked = bookingEventContent?.status === 'fully_booked';
   const waitlistEventTitle = heroEventContent?.title ?? heroTitleFallback;
@@ -81,8 +82,6 @@ export function buildLandingPageSharedCtaPropsFromCalendar(
     pageContentCta.fullyBookedWaitlistMessageTemplate,
     waitlistEventTitle,
   );
-  const publicSiteConfig = resolvePublicSiteConfig();
-
   return {
     locale,
     slug,
@@ -94,7 +93,7 @@ export function buildLandingPageSharedCtaPropsFromCalendar(
     fullyBookedCtaLabel: pageContentCta.fullyBookedButtonLabel,
     fullyBookedWaitlistHref,
     bookingModalContent: siteContent.bookingModal,
-    thankYouWhatsappHref: publicSiteConfig.whatsappUrl,
+    thankYouWhatsappHref,
     thankYouWhatsappCtaLabel: siteContent.contactUs.form.contactMethodLinks.whatsapp,
   };
 }

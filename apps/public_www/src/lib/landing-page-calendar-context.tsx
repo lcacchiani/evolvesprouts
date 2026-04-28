@@ -36,6 +36,7 @@ export interface LandingPageRehydrateRootProps {
   initialHero: LandingPageHeroEventContent | null;
   initialBooking: LandingPageBookingEventContent | null;
   initialStructuredData: LandingPageStructuredDataContent | null;
+  thankYouWhatsappHref?: string;
   children: ReactNode;
 }
 
@@ -47,6 +48,7 @@ export function LandingPageRehydrateRoot({
   initialHero,
   initialBooking,
   initialStructuredData,
+  thankYouWhatsappHref,
   children,
 }: LandingPageRehydrateRootProps) {
   const {
@@ -73,6 +75,7 @@ export function LandingPageRehydrateRoot({
         pageContent.meta.title,
         heroEventContent,
         bookingEventContent,
+        thankYouWhatsappHref,
       ),
     [
       locale,
@@ -82,6 +85,7 @@ export function LandingPageRehydrateRoot({
       siteContent,
       heroEventContent,
       bookingEventContent,
+      thankYouWhatsappHref,
     ],
   );
 
