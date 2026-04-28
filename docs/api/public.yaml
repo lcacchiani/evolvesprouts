@@ -585,8 +585,16 @@ paths:
       description: >
         Submit a public reservation from `public_www` (execute-api origin).
 
-        Persists the attendee as a CRM contact and creates a program-enrollment
-        sales lead, then returns **202** on success. Best-effort SES booking
+        Persists the attendee as a CRM contact, creates a program-enrollment
+        sales lead (lead event metadata may include `discount_code` and
+        `discount_code_id` when a valid non-referral code was supplied), and when
+        `serviceInstanceSlug` resolves to a `service_instances` row and the
+        contact has no existing enrollment for that instance, inserts an
+        `enrollments` row (`created_by`: `public-reservation`) with optional
+        `discount_code_id` and paid amount, then returns **202** on success.
+        Referral-type discount codes are rejected like the public validate endpoint.
+        Returns **409** when the instance is full and public bookings may not waitlist.
+        Best-effort SES booking
         confirmation to the attendee, optional Mailchimp subscribe, and plain-text
         **sales recap** to `ADMIN_GROUP` verified emails run after commit (hook
         failures are logged; HTTP **202** is still returned). Returns **500** when
@@ -615,6 +623,15 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: >
+            Conflict (for example the resolved instance is at capacity with waitlist
+            disabled for public bookings). May occur after payment confirmation; response
+            body uses the standard error shape with `field` when applicable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Persistence failed.
           content:
@@ -648,6 +665,12 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Same conflict cases as `POST /v1/reservations`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Persistence failed.
           content:

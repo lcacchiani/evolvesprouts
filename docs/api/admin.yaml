@@ -4373,6 +4373,9 @@ components:
           type: string
           format: uuid
           nullable: true
+          description: >
+            Must be globally scoped, scoped to this instance's service, or scoped to this
+            instance; otherwise the API returns 400.
         status:
           $ref: "#/components/schemas/EnrollmentStatus"
         amount_paid:
@@ -4396,6 +4399,15 @@ components:
         currency:
           type: string
           nullable: true
+        discount_code_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Set to null to clear the enrollment discount; changing the id adjusts
+            discount code usage counts accordingly. The new id must be globally scoped,
+            scoped to this instance's service, or scoped to this instance; otherwise the
+            API returns 400.
         notes:
           type: string
           nullable: true

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -15,9 +15,10 @@ import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
 import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
+import { isAbortRequestError, listEnrollmentDiscountOptions } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import type { Enrollment } from '@/types/services';
+import type { DiscountCode, Enrollment } from '@/types/services';
 import { ENROLLMENT_STATUSES } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
@@ -40,6 +41,9 @@ function ensureOption(
 
 export interface EnrollmentListPanelProps {
   enrollments: Enrollment[];
+  /** Required to load instance-eligible discount codes for the picker. */
+  serviceId: string | null;
+  instanceId: string | null;
   canCreate: boolean;
   isLoading: boolean;
   isLoadingMore: boolean;
@@ -57,6 +61,8 @@ export interface EnrollmentListPanelProps {
 
 export function EnrollmentListPanel({
   enrollments,
+  serviceId,
+  instanceId,
   canCreate,
   isLoading,
   isLoadingMore,
@@ -87,6 +93,10 @@ export function EnrollmentListPanel({
   const [status, setStatus] = useState<ApiSchemas['EnrollmentStatus']>('registered');
   const [amountPaid, setAmountPaid] = useState('');
   const [currency, setCurrency] = useState('HKD');
+  const [discountCodeId, setDiscountCodeId] = useState('');
+  const [discountOptions, setDiscountOptions] = useState<DiscountCode[]>([]);
+  const [discountOptionsLoading, setDiscountOptionsLoading] = useState(false);
+  const [discountOptionsError, setDiscountOptionsError] = useState('');
   const [notes, setNotes] = useState('');
 
   const selectedEnrollment = useMemo(
@@ -106,6 +116,46 @@ export function EnrollmentListPanel({
   const organizationSelectOptions = useMemo(
     () => ensureOption(organizations, selectedEnrollment?.organizationId ?? null, 'Organization'),
     [organizations, selectedEnrollment?.organizationId]
+  );
+
+  const loadDiscountOptions = useCallback(async () => {
+    if (!serviceId?.trim() || !instanceId?.trim()) {
+      setDiscountOptions([]);
+      setDiscountOptionsError('');
+      setDiscountOptionsLoading(false);
+      return;
+    }
+    setDiscountOptionsLoading(true);
+    setDiscountOptionsError('');
+    try {
+      const rows = await listEnrollmentDiscountOptions(serviceId.trim(), instanceId.trim());
+      setDiscountOptions(rows);
+    } catch (err) {
+      if (isAbortRequestError(err)) {
+        return;
+      }
+      setDiscountOptions([]);
+      setDiscountOptionsError(err instanceof Error ? err.message : 'Failed to load discount codes');
+    } finally {
+      setDiscountOptionsLoading(false);
+    }
+  }, [serviceId, instanceId]);
+
+  useEffect(() => {
+    void loadDiscountOptions();
+  }, [loadDiscountOptions]);
+
+  const discountSelectOptions = useMemo(
+    () =>
+      ensureOption(
+        discountOptions.map((row) => ({
+          id: row.id,
+          label: row.description?.trim() ? `${row.code} — ${row.description.trim()}` : row.code,
+        })),
+        selectedEnrollment?.discountCodeId ?? null,
+        'Discount'
+      ),
+    [discountOptions, selectedEnrollment?.discountCodeId]
   );
 
   const formatEnrollmentParentCell = (enrollment: Enrollment): string => {
@@ -129,6 +179,7 @@ export function EnrollmentListPanel({
     setStatus('registered');
     setAmountPaid('');
     setCurrency('HKD');
+    setDiscountCodeId('');
     setNotes('');
   };
 
@@ -136,18 +187,27 @@ export function EnrollmentListPanel({
     contact_id: contactId.trim() || null,
     family_id: familyId.trim() || null,
     organization_id: organizationId.trim() || null,
+    discount_code_id: discountCodeId.trim() || null,
     status,
     amount_paid: amountPaid.trim() || null,
     currency: currency.trim() || null,
     notes: notes.trim() || null,
   });
 
-  const buildUpdatePayload = (): ApiSchemas['UpdateEnrollmentRequest'] => ({
-    status,
-    amount_paid: amountPaid.trim() || null,
-    currency: currency.trim() || null,
-    notes: notes.trim() || null,
-  });
+  const buildUpdatePayload = (): ApiSchemas['UpdateEnrollmentRequest'] => {
+    const base: ApiSchemas['UpdateEnrollmentRequest'] = {
+      status,
+      amount_paid: amountPaid.trim() || null,
+      currency: currency.trim() || null,
+      notes: notes.trim() || null,
+    };
+    const nextDiscount = discountCodeId.trim() || null;
+    const prev = selectedEnrollment?.discountCodeId?.trim() || null;
+    if (nextDiscount !== prev) {
+      base.discount_code_id = nextDiscount;
+    }
+    return base;
+  };
 
   const handleSave = async () => {
     try {
@@ -173,6 +233,7 @@ export function EnrollmentListPanel({
     setStatus(enrollment.status);
     setAmountPaid(enrollment.amountPaid ?? '');
     setCurrency(enrollment.currency ?? 'HKD');
+    setDiscountCodeId(enrollment.discountCodeId ?? '');
     setNotes(enrollment.notes ?? '');
   };
 
@@ -306,7 +367,12 @@ export function EnrollmentListPanel({
           Contact, family, and organization are chosen when creating an enrollment and cannot be changed
           afterward.
         </p>
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+        {canCreate && discountOptionsError ? (
+          <p className='text-xs text-red-600' role='alert'>
+            {discountOptionsError}
+          </p>
+        ) : null}
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <div>
             <Label htmlFor='enrollment-status'>Status</Label>
             <Select
@@ -339,6 +405,26 @@ export function EnrollmentListPanel({
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor='enrollment-discount'>Discount code</Label>
+            <Select
+              id='enrollment-discount'
+              value={discountCodeId || EMPTY_PARENT_VALUE}
+              onChange={(event) => {
+                const next = event.target.value;
+                setDiscountCodeId(next === EMPTY_PARENT_VALUE ? '' : next);
+              }}
+              disabled={!canCreate || discountOptionsLoading}
+              aria-busy={discountOptionsLoading}
+            >
+              <option value={EMPTY_PARENT_VALUE}>None</option>
+              {discountSelectOptions.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.label}
+                </option>
+              ))}
+            </Select>
+          </div>
         </div>
         <div>
           <Label htmlFor='enrollment-notes'>Notes</Label>
@@ -361,6 +447,7 @@ export function EnrollmentListPanel({
               <th className='px-4 py-3 font-semibold'>Parent</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Amount</th>
+              <th className='px-4 py-3 font-semibold'>Discount</th>
               <th className='px-4 py-3 font-semibold'>Enrolled at</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
@@ -378,6 +465,12 @@ export function EnrollmentListPanel({
                 <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
                 <td className='px-4 py-3'>
                   {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
+                </td>
+                <td className='px-4 py-3'>
+                  {enrollment.discountCodeId
+                    ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
+                        enrollment.discountCodeId)
+                    : '-'}
                 </td>
                 <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
                 <td className='px-4 py-3 text-right'>

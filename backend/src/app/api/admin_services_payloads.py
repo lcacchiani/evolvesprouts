@@ -550,6 +550,14 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         payload["notes"] = parse_optional_text(
             body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
         )
+    if has_field(body, "discount_code_id"):
+        raw_dc = body.get("discount_code_id")
+        if raw_dc is None or (isinstance(raw_dc, str) and not raw_dc.strip()):
+            payload["discount_code_id"] = None
+        else:
+            payload["discount_code_id"] = parse_optional_uuid(
+                raw_dc, "discount_code_id"
+            )
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")
     return payload

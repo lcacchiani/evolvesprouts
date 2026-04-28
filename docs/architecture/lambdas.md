@@ -205,7 +205,11 @@ their primary responsibilities.
   the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
   `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
-  fields, persists contact + program-enrollment lead, then sends booking confirmation
+  fields, persists contact + program-enrollment lead (including discount metadata when
+  applicable; referral-type codes are rejected). May insert an `enrollments` row for the
+  resolved instance slug when capacity allows (or returns **409** when the instance is
+  full with waitlist disabled). Admin enrollment APIs validate discount code scope to
+  the instance's service before incrementing usage. Then sends booking confirmation
   (SES), optional Mailchimp subscribe, and a plain-text **sales recap** with extended
   booking context when provided, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.

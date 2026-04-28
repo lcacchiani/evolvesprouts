@@ -895,8 +895,41 @@ export async function deleteEnrollment(
   });
 }
 
+const ENROLLMENT_DISCOUNT_OPTIONS_PAGE_LIMIT = 200;
+
+/**
+ * Discount codes applicable when creating/editing an enrollment for one instance:
+ * global (unscoped), service-scoped for `serviceId`, and instance-scoped for `instanceId`.
+ */
+export async function listEnrollmentDiscountOptions(
+  serviceId: string,
+  instanceId: string,
+  signal?: AbortSignal
+): Promise<DiscountCode[]> {
+  const base = { active: 'true' as const, limit: ENROLLMENT_DISCOUNT_OPTIONS_PAGE_LIMIT };
+  const [unscoped, forService, forInstance] = await Promise.all([
+    listDiscountCodes({ ...base, scope: 'unscoped' }, signal),
+    listDiscountCodes({ ...base, scope: 'service', service_id: serviceId }, signal),
+    listDiscountCodes({ ...base, scope: 'instance', instance_id: instanceId }, signal),
+  ]);
+  const byId = new Map<string, DiscountCode>();
+  for (const row of [...unscoped.items, ...forService.items, ...forInstance.items]) {
+    if (row.id) {
+      byId.set(row.id, row);
+    }
+  }
+  return [...byId.values()].sort((a, b) =>
+    a.code.localeCompare(b.code, undefined, { sensitivity: 'base' })
+  );
+}
+
 export async function listDiscountCodes(
-  params: Partial<DiscountCodeFilters> & { cursor?: string | null; limit?: number },
+  params: Partial<DiscountCodeFilters> & {
+    cursor?: string | null;
+    limit?: number;
+    service_id?: string;
+    instance_id?: string;
+  },
   signal?: AbortSignal
 ): Promise<{ items: DiscountCode[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
@@ -905,6 +938,8 @@ export async function listDiscountCodes(
   if (params.active) query.set('active', params.active);
   if (params.search?.trim()) query.set('search', params.search.trim());
   if (params.scope) query.set('scope', params.scope);
+  if (params.service_id?.trim()) query.set('service_id', params.service_id.trim());
+  if (params.instance_id?.trim()) query.set('instance_id', params.instance_id.trim());
   const queryString = query.toString();
   const payload = await adminApiRequest<ApiDiscountCodeListResponse>({
     endpointPath: `/v1/admin/discount-codes${queryString ? `?${queryString}` : ''}`,
