@@ -61,6 +61,7 @@ describe('MyBestAuntieHero', () => {
       <MyBestAuntieHero
         content={content}
         lowestPrice={9000}
+        priceCurrencySymbol='HK$'
         nextCohortLabel='Apr, 2026'
       />,
     );

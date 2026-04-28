@@ -119,6 +119,7 @@ export default async function MyBestAuntieRoutePage({
         data={buildCourseSchema({
           locale,
           content,
+          myBestAuntieCohorts: cohorts,
         })}
       />
       <StructuredDataScript

@@ -16,6 +16,8 @@ import type { MyBestAuntieHeroContent } from '@/content';
 interface MyBestAuntieHeroProps {
   content: MyBestAuntieHeroContent;
   lowestPrice?: number;
+  /** Display prefix for lowest price (e.g. HK$); must align with JSON-LD `priceCurrency` cohort data. */
+  priceCurrencySymbol?: string;
   nextCohortLabel?: string;
 }
 
@@ -24,6 +26,7 @@ const MY_BEST_AUNTIE_HERO_CTA_CLASSNAME = 'mt-auto max-w-[360px]';
 function buildMyBestAuntieHeroChips(
   content: MyBestAuntieHeroContent,
   lowestPrice: number | undefined,
+  priceCurrencySymbol: string | undefined,
   nextCohortLabel: string | undefined,
 ): HeroQuickFactChip[] {
   const quickFacts = (content as Record<string, unknown>).quickFacts as
@@ -38,10 +41,11 @@ function buildMyBestAuntieHeroChips(
     { type: 'duration', label: quickFacts.durationLabel.trim() },
   ];
 
-  if (lowestPrice !== undefined) {
+  if (lowestPrice !== undefined && priceCurrencySymbol) {
     chips.push({
       type: 'price',
       label: formatContentTemplate(quickFacts.priceTemplate, {
+        currency: priceCurrencySymbol,
         price: lowestPrice.toLocaleString(),
       }).trim(),
     });
@@ -86,10 +90,16 @@ function MicroTestimonial({ content }: { content: MyBestAuntieHeroContent }) {
 export function MyBestAuntieHero({
   content,
   lowestPrice,
+  priceCurrencySymbol,
   nextCohortLabel,
 }: MyBestAuntieHeroProps) {
   const description = resolveMyBestAuntieHeroDescription(content);
-  const heroChips = buildMyBestAuntieHeroChips(content, lowestPrice, nextCohortLabel);
+  const heroChips = buildMyBestAuntieHeroChips(
+    content,
+    lowestPrice,
+    priceCurrencySymbol,
+    nextCohortLabel,
+  );
 
   return (
     <SectionShell
