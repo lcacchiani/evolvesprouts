@@ -166,6 +166,7 @@ export function ContactsPanel({
   } = contacts;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [pendingLocationLeaveDialogProps, requestPendingLocationLeaveConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
   const [notesTarget, setNotesTarget] = useState<ApiSchemas['AdminContact'] | null>(null);
 
@@ -375,11 +376,16 @@ export function ContactsPanel({
     };
   }, [referralContactId, source]);
 
-  function resetCreateForm() {
-    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
-      const ok = window.confirm(
-        'You saved an address to a new location but have not finished creating this contact yet. Leave anyway? The location row stays in the directory.'
-      );
+  async function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId) {
+      const ok = await requestPendingLocationLeaveConfirm({
+        title: 'Leave without finishing?',
+        description:
+          'You saved an address to a new location but have not finished creating this contact yet. Leave anyway? The location row stays in the directory.',
+        confirmLabel: 'Leave',
+        cancelLabel: 'Stay',
+        variant: 'default',
+      });
       if (!ok) {
         return;
       }
@@ -442,7 +448,7 @@ export function ContactsPanel({
           referral_contact_id:
             source === 'referral' ? referralContactId.trim() : null,
         });
-        resetCreateForm();
+        await resetCreateForm();
         return;
       }
       if (!selected) {
@@ -506,7 +512,7 @@ export function ContactsPanel({
     try {
       await deleteContact(row.id);
       if (selectedId === row.id) {
-        resetCreateForm();
+        await resetCreateForm();
       }
     } catch (err) {
       setDeleteActionError(err instanceof Error ? err.message : 'Failed to delete contact');
@@ -548,6 +554,7 @@ export function ContactsPanel({
   return (
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...pendingLocationLeaveDialogProps} />
       <ContactNotesModal
         open={notesTarget !== null}
         contact={notesTarget}
@@ -561,7 +568,12 @@ export function ContactsPanel({
         actions={
           <>
             {editorMode === 'edit' ? (
-              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => void resetCreateForm()}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
             ) : null}

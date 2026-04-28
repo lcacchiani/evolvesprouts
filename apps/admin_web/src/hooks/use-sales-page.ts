@@ -22,33 +22,33 @@ export function useSalesPage() {
   const [selectedLeadIdState, setSelectedLeadIdState] = useState<string | null | undefined>(
     undefined
   );
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(false);
 
   const adminUsers = useAdminUsers();
   const leadList = useLeadList();
 
   const selectedLeadId = useMemo(() => {
-    if (isCreateDialogOpen) {
+    if (isCreateMode) {
       return null;
     }
     if (selectedLeadIdState !== undefined) {
       return selectedLeadIdState;
     }
     return leadList.leads[0]?.id ?? null;
-  }, [isCreateDialogOpen, leadList.leads, selectedLeadIdState]);
+  }, [isCreateMode, leadList.leads, selectedLeadIdState]);
 
   const setSelectedLeadId = useCallback((leadId: string | null) => {
     setSelectedLeadIdState(leadId);
-    setIsCreateDialogOpen(false);
+    setIsCreateMode(false);
   }, []);
 
-  const openCreateDialog = useCallback(() => {
+  const startCreateLead = useCallback(() => {
     setSelectedLeadIdState(null);
-    setIsCreateDialogOpen(true);
+    setIsCreateMode(true);
   }, []);
 
-  const closeCreateDialog = useCallback(() => {
-    setIsCreateDialogOpen(false);
+  const cancelCreateLead = useCallback(() => {
+    setIsCreateMode(false);
   }, []);
 
   const leadDetail = useLeadDetail(selectedLeadId);
@@ -76,9 +76,9 @@ export function useSalesPage() {
     selectedLeadId,
     setSelectedLeadId,
     selectedLead,
-    isCreateDialogOpen,
-    openCreateDialog,
-    closeCreateDialog,
+    isCreateMode,
+    startCreateLead,
+    cancelCreateLead,
     adminUsers,
     leadList,
     leadDetail,

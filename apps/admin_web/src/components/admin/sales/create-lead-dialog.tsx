@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Standalone FormDialog for lead creation — not wired from SalesPage.
+ * Pipeline create/edit uses the inline `LeadDetailPanel` pattern instead.
+ * Kept for intentional reuse (e.g. embedding elsewhere) without duplicating
+ * the inline CRUD shell.
+ */
+
 import { useState } from 'react';
 
 import { CONTACT_SOURCES, LEAD_TYPES } from '@/types/leads';

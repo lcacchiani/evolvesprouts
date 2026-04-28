@@ -217,7 +217,7 @@ export function ConsultationServicePanelFields(props: ConsultationServicePanelFi
   );
 }
 
-/** Full stacked form for create-instance dialog and similar. */
+/** Full stacked form for instance create/edit inline flows. */
 export function ConsultationFormFieldsStacked({
   value,
   disabled = false,

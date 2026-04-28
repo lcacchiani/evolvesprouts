@@ -95,6 +95,7 @@ export function OrganizationsPanel({
   } = organizations;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [pendingLocationLeaveDialogProps, requestPendingLocationLeaveConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
@@ -208,11 +209,16 @@ export function OrganizationsPanel({
     }
   }
 
-  function resetCreateForm() {
-    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
-      const ok = window.confirm(
-        'You saved an address to a new location but have not finished creating this organisation yet. Leave anyway? The location row stays in the directory.'
-      );
+  async function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId) {
+      const ok = await requestPendingLocationLeaveConfirm({
+        title: 'Leave without finishing?',
+        description:
+          'You saved an address to a new location but have not finished creating this organisation yet. Leave anyway? The location row stays in the directory.',
+        confirmLabel: 'Leave',
+        cancelLabel: 'Stay',
+        variant: 'default',
+      });
       if (!ok) {
         return;
       }
@@ -244,7 +250,7 @@ export function OrganizationsPanel({
           location_id: loc,
           tag_ids: tagIds,
         });
-        resetCreateForm();
+        await resetCreateForm();
         return;
       }
       if (!selected) {
@@ -299,7 +305,7 @@ export function OrganizationsPanel({
     try {
       await deleteOrganization(row.id);
       if (selectedId === row.id) {
-        resetCreateForm();
+        await resetCreateForm();
       }
     } catch (err) {
       setDeleteActionError(
@@ -331,13 +337,19 @@ export function OrganizationsPanel({
   return (
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...pendingLocationLeaveDialogProps} />
       <AdminEditorCard
         title='Organisation'
         description='CRM organisations only. Vendors are managed under Finance → Vendors; partners under Services → Partners.'
         actions={
           <>
             {editorMode === 'edit' ? (
-              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => void resetCreateForm()}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
             ) : null}

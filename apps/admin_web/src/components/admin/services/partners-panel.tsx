@@ -71,6 +71,7 @@ export function PartnersPanel({
   } = partners;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [pendingLocationLeaveDialogProps, requestPendingLocationLeaveConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
@@ -154,11 +155,16 @@ export function PartnersPanel({
   } = useInlineLocationSave(refreshLocations);
   const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
 
-  function resetCreateForm() {
-    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
-      const ok = window.confirm(
-        'You saved an address to a new location but have not finished creating this partner yet. Leave anyway? The location row stays in the directory.'
-      );
+  async function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId) {
+      const ok = await requestPendingLocationLeaveConfirm({
+        title: 'Leave without finishing?',
+        description:
+          'You saved an address to a new location but have not finished creating this partner yet. Leave anyway? The location row stays in the directory.',
+        confirmLabel: 'Leave',
+        cancelLabel: 'Stay',
+        variant: 'default',
+      });
       if (!ok) {
         return;
       }
@@ -189,7 +195,7 @@ export function PartnersPanel({
           location_id: loc,
           tag_ids: tagIds,
         });
-        resetCreateForm();
+        await resetCreateForm();
         return;
       }
       if (!selected) {
@@ -229,7 +235,7 @@ export function PartnersPanel({
     try {
       await deletePartner(row.id);
       if (selectedId === row.id) {
-        resetCreateForm();
+        await resetCreateForm();
       }
     } catch (err) {
       setDeleteActionError(err instanceof Error ? err.message : 'Failed to delete partner');
@@ -266,13 +272,19 @@ export function PartnersPanel({
       ) : null}
 
       <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...pendingLocationLeaveDialogProps} />
       <AdminEditorCard
         title='Partner'
         description='Partner organisations for Services. Not shown under Contacts → Organisations or Finance → Vendors.'
         actions={
           <>
             {editorMode === 'edit' ? (
-              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => void resetCreateForm()}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
             ) : null}

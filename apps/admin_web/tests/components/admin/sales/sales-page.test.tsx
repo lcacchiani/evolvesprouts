@@ -9,9 +9,9 @@ const { mockUseSalesPage, state } = vi.hoisted(() => {
     selectedLeadId: null as string | null,
     setSelectedLeadId: vi.fn(),
     selectedLead: null,
-    isCreateDialogOpen: false,
-    openCreateDialog: vi.fn(),
-    closeCreateDialog: vi.fn(),
+    isCreateMode: false,
+    startCreateLead: vi.fn(),
+    cancelCreateLead: vi.fn(),
     adminUsers: {
       users: [],
       isLoading: false,
@@ -89,11 +89,11 @@ describe('SalesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('analytics');
   });
 
-  it('opens create-lead dialog action', async () => {
+  it('starts inline create-lead flow from header', async () => {
     const user = userEvent.setup();
     render(<SalesPage />);
 
     await user.click(screen.getAllByRole('button', { name: 'New lead' })[0]);
-    expect(state.openCreateDialog).toHaveBeenCalledTimes(1);
+    expect(state.startCreateLead).toHaveBeenCalledTimes(1);
   });
 });

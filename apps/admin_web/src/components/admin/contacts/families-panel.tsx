@@ -86,6 +86,7 @@ export function FamiliesPanel({
   } = families;
 
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [pendingLocationLeaveDialogProps, requestPendingLocationLeaveConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
@@ -195,11 +196,16 @@ export function FamiliesPanel({
     }
   }
 
-  function resetCreateForm() {
-    if (editorMode === 'create' && pendingLocationId && typeof window !== 'undefined') {
-      const ok = window.confirm(
-        'You saved an address to a new location but have not finished creating this family yet. Leave anyway? The location row stays in the directory.'
-      );
+  async function resetCreateForm() {
+    if (editorMode === 'create' && pendingLocationId) {
+      const ok = await requestPendingLocationLeaveConfirm({
+        title: 'Leave without finishing?',
+        description:
+          'You saved an address to a new location but have not finished creating this family yet. Leave anyway? The location row stays in the directory.',
+        confirmLabel: 'Leave',
+        cancelLabel: 'Stay',
+        variant: 'default',
+      });
       if (!ok) {
         return;
       }
@@ -226,7 +232,7 @@ export function FamiliesPanel({
           location_id: loc,
           tag_ids: tagIds,
         });
-        resetCreateForm();
+        await resetCreateForm();
         return;
       }
       if (!selected) {
@@ -278,7 +284,7 @@ export function FamiliesPanel({
     try {
       await deleteFamily(row.id);
       if (selectedId === row.id) {
-        resetCreateForm();
+        await resetCreateForm();
       }
     } catch (err) {
       setDeleteActionError(err instanceof Error ? err.message : 'Failed to delete family');
@@ -306,13 +312,19 @@ export function FamiliesPanel({
   return (
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...pendingLocationLeaveDialogProps} />
       <AdminEditorCard
         title='Family'
         description='Create a family or select one below. Add members by linking an existing contact.'
         actions={
           <>
             {editorMode === 'edit' ? (
-              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => void resetCreateForm()}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
             ) : null}
