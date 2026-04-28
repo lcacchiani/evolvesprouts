@@ -2550,10 +2550,14 @@ export class ApiStack extends cdk.Stack {
     // authorizer denials, Lambda timeouts, integration errors) won't include
     // CORS headers, causing the browser to block the response.  The frontend
     // then sees a CORS / network error instead of a useful status code.
+    //
+    // Do not set a gateway response *body* mapping template here: API Gateway
+    // gateway responses support only simple variable substitution in the
+    // payload template, not full VTL.  A prior Velocity template leaked raw
+    // `#set` / `#if` text into JSON error bodies (for example Postman).
+    // Response headers below still apply; browsers get CORS on errors even
+    // when Access-Control-Allow-Origin is a fixed first allowlisted origin.
     // -------------------------------------------------------------------------
-    const gatewayResponseTemplates: Record<string, string> = {
-      "application/json": buildCorsOriginOverrideTemplate(corsAllowedOrigins),
-    };
     const gatewayResponseHeaders: Record<string, string> = {
       "Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
       "Access-Control-Allow-Headers":
@@ -2564,12 +2568,10 @@ export class ApiStack extends cdk.Stack {
     api.addGatewayResponse("GatewayResponseDefault4XX", {
       type: apigateway.ResponseType.DEFAULT_4XX,
       responseHeaders: gatewayResponseHeaders,
-      templates: gatewayResponseTemplates,
     });
     api.addGatewayResponse("GatewayResponseDefault5XX", {
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders: gatewayResponseHeaders,
-      templates: gatewayResponseTemplates,
     });
 
     const publicWwwApiKey = new apigateway.ApiKey(this, "PublicWwwApiKey", {
@@ -3662,31 +3664,6 @@ function normalizeCorsOrigins(value: unknown): string[] {
     .split(",")
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
-}
-
-function buildCorsOriginOverrideTemplate(allowedOrigins: string[]): string {
-  const conditions = allowedOrigins
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0)
-    .map((origin) =>
-      origin
-        .replace(/\\/g, "\\\\")
-        .replace(/"/g, '\\"')
-    )
-    .map((origin) => `$origin == "${origin}"`)
-    .join(" || ");
-
-  const allowlistCondition = conditions || "false";
-
-  return [
-    '#set($origin = $input.params().header.get("Origin"))',
-    '#if($origin == "")',
-    '  #set($origin = $input.params().header.get("origin"))',
-    "#end",
-    `#if(${allowlistCondition})`,
-    "  #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin)",
-    "#end",
-  ].join("\n");
 }
 
 function addCheckovMethodSuppression(

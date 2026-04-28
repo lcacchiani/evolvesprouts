@@ -498,9 +498,13 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 
 CORS headers are added to API Gateway error responses so the browser can
 read error status codes instead of silently blocking them.
-Gateway responses use a static fallback origin plus a response-template
-override that echoes the request `Origin` when it matches the configured
-allowlist (`CORS_ALLOWED_ORIGINS` plus required defaults).
+Gateway responses set CORS headers only via `responseParameters` (static
+values). API Gateway gateway-response body templates do not run full VTL,
+so we do not attach a payload mapping template there (a prior template would
+have leaked Velocity directives into JSON error bodies).
+`Access-Control-Allow-Origin` on these errors uses the first resolved
+allowlisted origin (required defaults plus `CORS_ALLOWED_ORIGINS` / context),
+not per-request `Origin` echoing.
 
 | Response Type | Headers Added |
 |--------------|---------------|
