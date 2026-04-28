@@ -645,25 +645,6 @@ export function InstanceDetailPanel({
   const slugFieldMode =
     effectiveServiceType === 'consultation' ? 'optional' : 'required';
   const slugFieldError = [slugSubmitError, slugConflictError].filter(Boolean).join(' ');
-  const slugFieldAccessory =
-    !instance && (effectiveServiceType === 'event' || effectiveServiceType === 'training_course') ? (
-      <Button
-        type='button'
-        variant='secondary'
-        className='text-xs'
-        onClick={() => {
-          createSlugTouchedRef.current = false;
-          setSlugConflictError('');
-          setSlugSubmitError('');
-          setInstanceForm((prev) => ({
-            ...prev,
-            slug: suggestedCreateSlug.trim().toLowerCase(),
-          }));
-        }}
-      >
-        Reset to suggestion
-      </Button>
-    ) : null;
 
   const runCreate = async () => {
     if (!selectedServiceId) {
@@ -778,7 +759,6 @@ export function InstanceDetailPanel({
         }}
         slugFieldMode={slugFieldMode}
         slugFieldError={slugFieldError}
-        slugFieldAccessory={slugFieldAccessory}
       />
 
       {effectiveServiceType === 'training_course' ? (

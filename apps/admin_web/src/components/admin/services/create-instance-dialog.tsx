@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
-import { Button } from '@/components/ui/button';
 import { FormDialog } from '@/components/ui/form-dialog';
 
 import { buildSessionSlotsUtcPayload } from '@/lib/format';
@@ -182,21 +181,6 @@ export function CreateInstanceDialog({
   };
 
   const slugFieldMode = serviceType === 'consultation' ? 'optional' : 'required';
-  const slugAccessory =
-    serviceType === 'event' || serviceType === 'training_course' ? (
-      <Button
-        type='button'
-        variant='secondary'
-        className='text-xs'
-        onClick={() => {
-          slugTouchedRef.current = false;
-          setInstanceForm((prev) => ({ ...prev, slug: suggestedSlug.trim().toLowerCase() }));
-          setSlugSubmitError('');
-        }}
-      >
-        Reset to suggestion
-      </Button>
-    ) : null;
 
   return (
     <FormDialog
@@ -219,7 +203,6 @@ export function CreateInstanceDialog({
         }}
         slugFieldMode={slugFieldMode}
         slugFieldError={slugSubmitError}
-        slugFieldAccessory={slugAccessory}
       />
       {serviceType === 'training_course' ? (
         <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
