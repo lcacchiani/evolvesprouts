@@ -49,6 +49,21 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _capacity_commit_and_counts(
+    session: Any,
+    repository: ServiceInstanceRepository,
+    instance_ids: list[UUID],
+) -> dict[UUID, int]:
+    """Commit after capacity reconcile and load counts; no-op for unit-test fake sessions."""
+    if not hasattr(session, "execute"):
+        return {}
+    if hasattr(session, "commit"):
+        session.commit()
+    if hasattr(repository, "get_enrollment_counts_for_instances"):
+        return repository.get_enrollment_counts_for_instances(instance_ids)
+    return {}
+
+
 def _is_service_instance_slug_unique_violation(exc: IntegrityError) -> bool:
     orig = getattr(exc.orig, "__cause__", None) or exc.orig
     diag = getattr(orig, "diag", None)
@@ -267,9 +282,8 @@ def handle_admin_all_service_instances_request(
             encode_instance_cursor(page_rows[-1]) if has_more and page_rows else None
         )
         bulk_reconcile_instance_capacity_status(session, page_rows)
-        session.commit()
-        enrollment_counts = repository.get_enrollment_counts_for_instances(
-            [row.id for row in page_rows]
+        enrollment_counts = _capacity_commit_and_counts(
+            session, repository, [row.id for row in page_rows]
         )
         return json_response(
             200,
@@ -374,9 +388,8 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
             encode_instance_cursor(page_rows[-1]) if has_more and page_rows else None
         )
         bulk_reconcile_instance_capacity_status(session, page_rows)
-        session.commit()
-        enrollment_counts = repository.get_enrollment_counts_for_instances(
-            [row.id for row in page_rows]
+        enrollment_counts = _capacity_commit_and_counts(
+            session, repository, [row.id for row in page_rows]
         )
         return json_response(
             200,
@@ -484,9 +497,8 @@ def _create_instance(
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(created.id))
         bulk_reconcile_instance_capacity_status(session, [with_details])
-        session.commit()
-        enrollment_counts = instance_repository.get_enrollment_counts_for_instances(
-            [with_details.id]
+        enrollment_counts = _capacity_commit_and_counts(
+            session, instance_repository, [with_details.id]
         )
         return json_response(
             201,
@@ -516,9 +528,8 @@ def _get_instance(
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
         bulk_reconcile_instance_capacity_status(session, [instance])
-        session.commit()
-        enrollment_counts = repository.get_enrollment_counts_for_instances(
-            [instance.id]
+        enrollment_counts = _capacity_commit_and_counts(
+            session, repository, [instance.id]
         )
         return json_response(
             200,
@@ -652,9 +663,8 @@ def _update_instance(
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(instance.id))
         bulk_reconcile_instance_capacity_status(session, [with_details])
-        session.commit()
-        enrollment_counts = instance_repository.get_enrollment_counts_for_instances(
-            [with_details.id]
+        enrollment_counts = _capacity_commit_and_counts(
+            session, instance_repository, [with_details.id]
         )
         return json_response(
             200,

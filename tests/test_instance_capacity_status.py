@@ -119,6 +119,23 @@ def test_reconcile_opens_full_when_seats_available(monkeypatch) -> None:
     session.flush.assert_called_once()
 
 
+def test_reconcile_skips_when_session_has_no_execute(monkeypatch) -> None:
+    """Unit tests use minimal fake sessions without SQLAlchemy execute()."""
+    iid = uuid4()
+    instance = _minimal_instance(
+        instance_id=iid, max_capacity=2, status=InstanceStatus.OPEN
+    )
+
+    def _boom(_session):
+        raise AssertionError("repository should not be used without DB session")
+
+    monkeypatch.setattr(
+        "app.api.instance_capacity_status.ServiceInstanceRepository", _boom
+    )
+    bulk_reconcile_instance_capacity_status(object(), [instance])
+    assert instance.status == InstanceStatus.OPEN
+
+
 def test_reconcile_no_flush_when_nothing_changes(monkeypatch) -> None:
     iid = uuid4()
     instance = _minimal_instance(
