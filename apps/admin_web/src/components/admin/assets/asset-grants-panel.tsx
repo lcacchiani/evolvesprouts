@@ -54,25 +54,12 @@ export function AssetGrantsPanel({
 
   const isGranteeRequired = useMemo(() => grantType !== 'all_authenticated', [grantType]);
 
-  if (!selectedAsset) {
-    return (
-      <>
-        <Card
-          title='Access Grants'
-          description='Select an asset to review and manage access grants.'
-        >
-          <p className='text-sm text-slate-600'>
-            Restricted assets rely on grants. Public assets can still include grants if needed.
-          </p>
-        </Card>
-        <ConfirmDialog {...confirmDialogProps} />
-      </>
-    );
-  }
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
+    if (!selectedAsset) {
+      return;
+    }
 
     const normalizedGrantee = granteeId.trim();
     if (isGranteeRequired && !normalizedGrantee) {
@@ -88,6 +75,9 @@ export function AssetGrantsPanel({
   };
 
   const handleDelete = async (grantId: string) => {
+    if (!selectedAsset) {
+      return;
+    }
     const confirmed = await requestConfirm({
       title: 'Revoke grant',
       description: 'Delete this grant? Access revocation is immediate for new URLs.',
@@ -103,130 +93,141 @@ export function AssetGrantsPanel({
 
   return (
     <>
-      <div className='space-y-6'>
-        <AdminEditorCard
-          title='Add Grant'
-          description={`Asset: ${selectedAsset.title} (${selectedAsset.visibility})`}
-          actions={
-            <Button type='submit' form={ASSET_GRANT_FORM_ID} disabled={isSavingGrant}>
-              {isSavingGrant ? 'Adding...' : 'Add grant'}
-            </Button>
-          }
+      {!selectedAsset ? (
+        <Card
+          title='Access Grants'
+          description='Select an asset to review and manage access grants.'
         >
-          {grantMutationError ? (
-            <StatusBanner variant='error' title='Grant update'>
-              {grantMutationError}
-            </StatusBanner>
-          ) : null}
-
-          {formError ? (
-            <StatusBanner variant='error' title='Validation'>
-              {formError}
-            </StatusBanner>
-          ) : null}
-
-          <form
-            id={ASSET_GRANT_FORM_ID}
-            onSubmit={handleSubmit}
-            className='grid grid-cols-1 gap-3 md:grid-cols-2'
+          <p className='text-sm text-slate-600'>
+            Restricted assets rely on grants. Public assets can still include grants if needed.
+          </p>
+        </Card>
+      ) : (
+        <div className='space-y-6'>
+          <AdminEditorCard
+            title='Add Grant'
+            description={`Asset: ${selectedAsset.title} (${selectedAsset.visibility})`}
+            actions={
+              <Button type='submit' form={ASSET_GRANT_FORM_ID} disabled={isSavingGrant}>
+                {isSavingGrant ? 'Adding...' : 'Add grant'}
+              </Button>
+            }
           >
-            <div className='space-y-2'>
-              <Label htmlFor='grant-type'>Grant type *</Label>
-              <Select
-                id='grant-type'
-                value={grantType}
-                onChange={(event) =>
-                  setGrantType(event.target.value as CreateAssetGrantInput['grantType'])
-                }
-              >
-                {ACCESS_GRANT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {toTitleCase(type)}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            {grantMutationError ? (
+              <StatusBanner variant='error' title='Grant update'>
+                {grantMutationError}
+              </StatusBanner>
+            ) : null}
 
-            <div className='space-y-2'>
-              <Label htmlFor='grantee-id'>{isGranteeRequired ? 'Grantee ID *' : 'Grantee ID'}</Label>
-              <Input
-                id='grantee-id'
-                value={granteeId}
-                onChange={(event) => setGranteeId(event.target.value)}
-                required={isGranteeRequired}
-                placeholder={
-                  grantType === 'organization'
-                    ? 'Organization UUID'
-                    : grantType === 'user'
-                      ? 'User sub'
-                      : 'Leave empty for all_authenticated'
-                }
-              />
-            </div>
-          </form>
-        </AdminEditorCard>
+            {formError ? (
+              <StatusBanner variant='error' title='Validation'>
+                {formError}
+              </StatusBanner>
+            ) : null}
 
-        <PaginatedTableCard
-          title='Grants'
-          isLoading={isLoadingGrants}
-          isLoadingMore={false}
-          hasMore={false}
-          error={grantsError}
-          loadingLabel='Loading grants...'
-          onLoadMore={() => {}}
-        >
-          <AdminDataTable tableClassName='min-w-[680px]'>
-            <AdminDataTableHead>
-              <tr>
-                <th className='px-4 py-3 font-semibold'>Type</th>
-                <th className='px-4 py-3 font-semibold'>Grantee</th>
-                <th className='px-4 py-3 font-semibold'>Granted by</th>
-                <th className='px-4 py-3 font-semibold'>Created</th>
-                <th className='px-4 py-3 text-right font-semibold'>Operations</th>
-              </tr>
-            </AdminDataTableHead>
-            <AdminDataTableBody>
-              {isLoadingGrants ? null : grants.length === 0 ? (
+            <form
+              id={ASSET_GRANT_FORM_ID}
+              onSubmit={handleSubmit}
+              className='grid grid-cols-1 gap-3 md:grid-cols-2'
+            >
+              <div className='space-y-2'>
+                <Label htmlFor='grant-type'>Grant type *</Label>
+                <Select
+                  id='grant-type'
+                  value={grantType}
+                  onChange={(event) =>
+                    setGrantType(event.target.value as CreateAssetGrantInput['grantType'])
+                  }
+                >
+                  {ACCESS_GRANT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {toTitleCase(type)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='grantee-id'>{isGranteeRequired ? 'Grantee ID *' : 'Grantee ID'}</Label>
+                <Input
+                  id='grantee-id'
+                  value={granteeId}
+                  onChange={(event) => setGranteeId(event.target.value)}
+                  required={isGranteeRequired}
+                  placeholder={
+                    grantType === 'organization'
+                      ? 'Organization UUID'
+                      : grantType === 'user'
+                        ? 'User sub'
+                        : 'Leave empty for all_authenticated'
+                  }
+                />
+              </div>
+            </form>
+          </AdminEditorCard>
+
+          <PaginatedTableCard
+            title='Grants'
+            isLoading={isLoadingGrants}
+            isLoadingMore={false}
+            hasMore={false}
+            error={grantsError}
+            loadingLabel='Loading grants...'
+            onLoadMore={() => {}}
+          >
+            <AdminDataTable tableClassName='min-w-[680px]'>
+              <AdminDataTableHead>
                 <tr>
-                  <td className='px-4 py-8 text-slate-600' colSpan={5}>
-                    No grants configured for this asset.
-                  </td>
+                  <th className='px-4 py-3 font-semibold'>Type</th>
+                  <th className='px-4 py-3 font-semibold'>Grantee</th>
+                  <th className='px-4 py-3 font-semibold'>Granted by</th>
+                  <th className='px-4 py-3 font-semibold'>Created</th>
+                  <th className='px-4 py-3 text-right font-semibold'>Operations</th>
                 </tr>
-              ) : (
-                grants.map((grant) => (
-                  <tr key={grant.id}>
-                    <td className='px-4 py-3 text-slate-700'>{toTitleCase(grant.grantType)}</td>
-                    <td className='px-4 py-3 text-slate-700'>{grant.granteeId || '—'}</td>
-                    <td className='px-4 py-3 text-slate-700'>{grant.grantedBy || '—'}</td>
-                    <td className='px-4 py-3 text-slate-700'>{formatDate(grant.createdAt)}</td>
-                    <td className='px-4 py-3 text-right'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='danger'
-                        onClick={() => void handleDelete(grant.id)}
-                        disabled={isDeletingGrantId === grant.id}
-                        aria-label='Revoke grant'
-                        title='Revoke grant'
-                        aria-busy={isDeletingGrantId === grant.id}
-                      >
-                        {isDeletingGrantId === grant.id ? (
-                          <span
-                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
-                            aria-hidden
-                          />
-                        ) : (
-                          <DeleteIcon className='h-4 w-4' />
-                        )}
-                      </Button>
+              </AdminDataTableHead>
+              <AdminDataTableBody>
+                {isLoadingGrants ? null : grants.length === 0 ? (
+                  <tr>
+                    <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                      No grants configured for this asset.
                     </td>
                   </tr>
-                ))
-              )}
-            </AdminDataTableBody>
-          </AdminDataTable>
-        </PaginatedTableCard>
-      </div>
+                ) : (
+                  grants.map((grant) => (
+                    <tr key={grant.id}>
+                      <td className='px-4 py-3 text-slate-700'>{toTitleCase(grant.grantType)}</td>
+                      <td className='px-4 py-3 text-slate-700'>{grant.granteeId || '—'}</td>
+                      <td className='px-4 py-3 text-slate-700'>{grant.grantedBy || '—'}</td>
+                      <td className='px-4 py-3 text-slate-700'>{formatDate(grant.createdAt)}</td>
+                      <td className='px-4 py-3 text-right'>
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          onClick={() => void handleDelete(grant.id)}
+                          disabled={isDeletingGrantId === grant.id}
+                          aria-label='Revoke grant'
+                          title='Revoke grant'
+                          aria-busy={isDeletingGrantId === grant.id}
+                        >
+                          {isDeletingGrantId === grant.id ? (
+                            <span
+                              className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
+                              aria-hidden
+                            />
+                          ) : (
+                            <DeleteIcon className='h-4 w-4' />
+                          )}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </AdminDataTableBody>
+            </AdminDataTable>
+          </PaginatedTableCard>
+        </div>
+      )}
       <ConfirmDialog {...confirmDialogProps} />
     </>
   );
