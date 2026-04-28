@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import datetime, timezone
 from typing import Any
@@ -47,6 +46,8 @@ from app.services.public_form_internal_notifications import (
     build_media_lead_recap_lines,
     send_sales_form_recap_email,
 )
+from app.events.sqs_batch import SqsBatchProcessor
+from app.events.sqs_sns import parse_sqs_sns_record
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.public_slug import normalize_public_slug
 from app.utils.retry import run_with_retry
@@ -62,50 +63,35 @@ _MAX_RESOURCE_KEY_LENGTH = 64
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Process media request messages delivered through SQS."""
-    processed = 0
-    skipped = 0
+    batch = SqsBatchProcessor(logger=logger)
 
     for record in event.get("Records", []):
-        try:
-            message = _parse_record_message(record)
+        with batch.record(record, failure_message="Failed to process media message"):
+            message = parse_sqs_sns_record(record)
             if message.get("event_type") != _EVENT_TYPE:
                 logger.info(
                     "Skipping unsupported event type",
                     extra={"event_type": message.get("event_type")},
                 )
-                skipped += 1
+                batch.skipped += 1
                 continue
 
             was_processed = _process_message(message)
             if was_processed:
-                processed += 1
+                batch.processed += 1
             else:
-                skipped += 1
-        except json.JSONDecodeError as exc:
-            logger.error(f"Failed to parse SQS/SNS payload: {exc}")
-            raise
-        except Exception:
-            logger.exception("Failed to process media message")
-            raise
+                batch.skipped += 1
 
-    result = {
-        "statusCode": 200,
-        "body": json.dumps({"processed": processed, "skipped": skipped}),
-    }
+    result = batch.response()
     logger.info(
         "Media processing complete",
-        extra={"processed": processed, "skipped": skipped},
+        extra={
+            "processed": batch.processed,
+            "skipped": batch.skipped,
+            "failed": len(batch.failures),
+        },
     )
     return result
-
-
-def _parse_record_message(record: dict[str, Any]) -> dict[str, Any]:
-    sqs_body = json.loads(record["body"])
-    sns_message = sqs_body.get("Message", "{}")
-    parsed = json.loads(sns_message)
-    if not isinstance(parsed, dict):
-        raise ValueError("SNS message payload must be a JSON object")
-    return parsed
 
 
 def _process_message(message: dict[str, Any]) -> bool:

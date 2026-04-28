@@ -27,7 +27,10 @@ def _load_handler_module() -> Any:
 
 
 def _sqs_record(message: dict[str, Any]) -> dict[str, Any]:
-    return {"body": json.dumps({"Message": json.dumps(message)})}
+    return {
+        "messageId": "message-1",
+        "body": json.dumps({"Message": json.dumps(message)}),
+    }
 
 
 def test_lambda_handler_skips_unknown_event_type() -> None:
@@ -44,10 +47,9 @@ def test_lambda_handler_skips_unknown_event_type() -> None:
     }
 
     response = handler.lambda_handler(event, None)
-    body = json.loads(response["body"])
-
-    assert body["processed"] == 0
-    assert body["skipped"] == 1
+    assert response["processed"] == 0
+    assert response["skipped"] == 1
+    assert response["batchItemFailures"] == []
 
 
 def test_lambda_handler_processes_event_instance(monkeypatch: Any) -> None:
@@ -100,8 +102,20 @@ def test_lambda_handler_processes_event_instance(monkeypatch: Any) -> None:
         ]
     }
     response = handler.lambda_handler(event, None)
-    body = json.loads(response["body"])
-
-    assert body["processed"] == 1
-    assert body["skipped"] == 0
+    assert response["processed"] == 1
+    assert response["skipped"] == 0
+    assert response["batchItemFailures"] == []
     assert seen_sync_ids == [instance_id]
+
+
+def test_lambda_handler_reports_partial_batch_failure() -> None:
+    handler = _load_handler_module()
+
+    response = handler.lambda_handler(
+        {"Records": [{"messageId": "bad-message", "body": "{not-json"}]},
+        None,
+    )
+
+    assert response["processed"] == 0
+    assert response["skipped"] == 0
+    assert response["batchItemFailures"] == [{"itemIdentifier": "bad-message"}]

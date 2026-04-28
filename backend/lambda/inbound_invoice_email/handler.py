@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-import json
 from typing import Any
 from collections.abc import Mapping
 
@@ -11,6 +10,8 @@ from app.services.inbound_invoice_ingest import (
     InboundInvoiceEmailEvent,
     process_inbound_invoice_email,
 )
+from app.events.sqs_batch import SqsBatchProcessor
+from app.events.sqs_sns import parse_sqs_sns_message
 from app.utils.logging import configure_logging, get_logger
 
 configure_logging()
@@ -19,36 +20,27 @@ logger = get_logger(__name__)
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Process SES inbound-email notifications delivered through SQS + SNS."""
-    processed = 0
-    skipped = 0
+    batch = SqsBatchProcessor(logger=logger)
 
     for record in event.get("Records", []):
-        message = _parse_sqs_sns_record(record)
-        notification = _parse_inbound_notification(message)
-        result = process_inbound_invoice_email(notification)
-        if result.expense_id is None:
-            skipped += 1
-        else:
-            processed += 1
+        with batch.record(
+            record,
+            failure_message="Failed to process inbound invoice email message",
+        ):
+            message = parse_sqs_sns_message(record)
+            notification = _parse_inbound_notification(message)
+            result = process_inbound_invoice_email(notification)
+            if result.expense_id is None:
+                batch.skip()
+            else:
+                batch.process()
 
     logger.info(
         "Inbound invoice email batch processed",
-        extra={"processed": processed, "skipped": skipped},
+        extra=batch.summary(),
     )
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"processed": processed, "skipped": skipped}),
-    }
-
-
-def _parse_sqs_sns_record(record: Mapping[str, Any]) -> dict[str, Any]:
-    sqs_body = json.loads(str(record.get("body") or "{}"))
-    sns_message = sqs_body.get("Message", "{}")
-    parsed = json.loads(str(sns_message))
-    if not isinstance(parsed, dict):
-        raise ValueError("SNS message payload must be an object")
-    return parsed
+    return batch.response()
 
 
 def _parse_inbound_notification(message: Mapping[str, Any]) -> InboundInvoiceEmailEvent:

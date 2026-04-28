@@ -4,7 +4,7 @@ import base64
 
 import pytest
 
-from app.api.admin_request import parse_body
+from app.api.admin_request import parse_body, parse_limit
 from app.exceptions import ValidationError
 
 
@@ -36,3 +36,12 @@ def test_parse_body_decodes_base64_json_payload() -> None:
     }
 
     assert parse_body(event) == {"title": "Guide"}
+
+
+def test_parse_limit_defaults_to_standard_admin_page_size() -> None:
+    assert parse_limit({"queryStringParameters": {}}) == 25
+
+
+def test_parse_limit_rejects_values_above_standard_max() -> None:
+    with pytest.raises(ValidationError, match="limit must be between 1 and 100"):
+        parse_limit({"queryStringParameters": {"limit": "101"}})

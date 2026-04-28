@@ -162,6 +162,7 @@ class EventbriteSyncNestedStack extends cdk.NestedStack {
     this.processorFunction.addEventSource(
       new lambdaEventSources.SqsEventSource(this.queue, {
         batchSize: 1,
+        reportBatchItemFailures: true,
       })
     );
 
@@ -1892,6 +1893,7 @@ export class ApiStack extends cdk.Stack {
     inboundInvoiceProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
         batchSize: 1,
+        reportBatchItemFailures: true,
       })
     );
 
@@ -2716,29 +2718,25 @@ export class ApiStack extends cdk.Stack {
       publicWwwBusinessPhoneNumber.valueAsString
     );
 
+    const addAdminMethod = (resource: apigateway.IResource, method: string) =>
+      resource.addMethod(method, adminIntegration, {
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        authorizer: adminAuthorizer,
+      });
+    const addPublicApiKeyMethod = (resource: apigateway.IResource, method: string) =>
+      resource.addMethod(method, adminIntegration, {
+        authorizationType: apigateway.AuthorizationType.NONE,
+        apiKeyRequired: true,
+      });
+
     const calendar = v1.addResource("calendar");
-    calendar.addResource("public").addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
+    addPublicApiKeyMethod(calendar.addResource("public"), "GET");
     const reservations = v1.addResource("reservations");
-    reservations.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
-    reservations.addResource("payment-intent").addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
-    v1.addResource("contact-us").addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
+    addPublicApiKeyMethod(reservations, "POST");
+    addPublicApiKeyMethod(reservations.addResource("payment-intent"), "POST");
+    addPublicApiKeyMethod(v1.addResource("contact-us"), "POST");
     const publicDiscounts = v1.addResource("discounts");
-    publicDiscounts.addResource("validate").addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
+    addPublicApiKeyMethod(publicDiscounts.addResource("validate"), "POST");
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
     const mailchimpWebhookPostMethod = mailchimpWebhook.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,

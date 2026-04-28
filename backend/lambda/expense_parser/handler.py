@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-import json
 from decimal import Decimal
 from typing import Any
 
@@ -12,6 +11,8 @@ from sqlalchemy.orm import Session
 from app.db.engine import get_engine
 from app.db.models import ExpenseParseStatus
 from app.db.repositories import ExpenseRepository, OrganizationRepository
+from app.events.sqs_batch import SqsBatchProcessor
+from app.events.sqs_sns import parse_sqs_sns_message
 from app.services.openrouter_expense_parser import parse_invoice_from_assets
 from app.utils.logging import configure_logging, get_logger
 
@@ -24,34 +25,25 @@ _SYSTEM_ACTOR = "system"
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Process expense parser messages from SQS."""
-    processed = 0
-    skipped = 0
+    batch = SqsBatchProcessor(logger=logger)
 
     for record in event.get("Records", []):
-        message = _parse_record_message(record)
-        if message.get("event_type") != _EVENT_TYPE_PARSE_REQUESTED:
-            skipped += 1
-            continue
-        expense_id = str(message.get("expense_id") or "").strip()
-        if not expense_id:
-            skipped += 1
-            continue
-        _process_expense(expense_id)
-        processed += 1
+        with batch.record(
+            record,
+            failure_message="Failed to process expense parser message",
+        ):
+            message = parse_sqs_sns_message(record)
+            if message.get("event_type") != _EVENT_TYPE_PARSE_REQUESTED:
+                batch.skip()
+                continue
+            expense_id = str(message.get("expense_id") or "").strip()
+            if not expense_id:
+                batch.skip()
+                continue
+            _process_expense(expense_id)
+            batch.process()
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"processed": processed, "skipped": skipped}),
-    }
-
-
-def _parse_record_message(record: dict[str, Any]) -> dict[str, Any]:
-    sqs_body = json.loads(record["body"])
-    sns_message = sqs_body.get("Message", "{}")
-    parsed = json.loads(sns_message)
-    if not isinstance(parsed, dict):
-        raise ValueError("SNS message payload must be an object")
-    return parsed
+    return batch.response()
 
 
 def _process_expense(expense_id: str) -> None:

@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 from collections.abc import Mapping
+
+from app.auth.jwt_validator import (
+    JWTValidationError,
+    TokenClaims,
+    decode_and_verify_token,
+)
 
 
 def get_header_case_insensitive(headers: Mapping[str, Any], name: str) -> str:
@@ -77,3 +84,118 @@ def build_iam_policy(
         },
         "context": dict(context),
     }
+
+
+def deny_missing_token(method_arn: str) -> dict[str, Any]:
+    """Build a Deny policy for requests without a bearer token."""
+    return build_iam_policy(
+        "Deny",
+        method_arn,
+        "anonymous",
+        {"reason": "missing_token"},
+    )
+
+
+def deny_invalid_token(
+    method_arn: str, reason: str = "invalid_token"
+) -> dict[str, Any]:
+    """Build a Deny policy for invalid bearer token requests."""
+    return build_iam_policy("Deny", method_arn, "invalid", {"reason": reason})
+
+
+def decode_authorizer_claims(event: Mapping[str, Any]) -> TokenClaims:
+    """Extract and validate Cognito JWT claims from an authorizer event."""
+    headers = event.get("headers") or {}
+    if not isinstance(headers, Mapping):
+        headers = {}
+    token = extract_bearer_token(headers)
+    if not token:
+        raise JWTValidationError("Missing bearer token", reason="missing_token")
+    return decode_and_verify_token(token)
+
+
+def build_allow_context(claims: TokenClaims) -> dict[str, str]:
+    """Build the common IAM authorizer context from verified claims."""
+    organization_ids = extract_organization_ids(claims.raw_claims)
+    return {
+        "userSub": claims.sub,
+        "email": claims.email,
+        "groups": ",".join(claims.groups),
+        "organizationIds": ",".join(sorted(organization_ids)),
+    }
+
+
+@dataclass(frozen=True)
+class VerifiedCognitoContext:
+    """Verified Cognito identity data or a Deny policy when verification failed."""
+
+    claims: TokenClaims | None
+    policy: dict[str, Any] | None = None
+
+    @property
+    def user_sub(self) -> str:
+        return self.claims.sub if self.claims is not None else ""
+
+    @property
+    def email(self) -> str:
+        return self.claims.email if self.claims is not None else ""
+
+    @property
+    def groups(self) -> list[str]:
+        return list(self.claims.groups) if self.claims is not None else []
+
+    @property
+    def organization_ids(self) -> set[str]:
+        if self.claims is None:
+            return set()
+        return extract_organization_ids(self.claims.raw_claims)
+
+    def policy_context(self) -> dict[str, str]:
+        if self.claims is None:
+            return {}
+        return build_allow_context(self.claims)
+
+
+def verified_cognito_context_from_event(
+    event: Mapping[str, Any],
+    *,
+    method_arn: str,
+    logger: Any,
+) -> VerifiedCognitoContext:
+    """Return verified Cognito context, or a Deny policy for auth failures."""
+    try:
+        claims = decode_authorizer_claims(event)
+        return VerifiedCognitoContext(claims=claims)
+    except JWTValidationError as exc:
+        if exc.reason == "missing_token":
+            logger.warning("Missing or invalid Authorization header")
+            return VerifiedCognitoContext(
+                claims=None,
+                policy=deny_missing_token(method_arn),
+            )
+        logger.warning(f"JWT validation failed: {exc.message} (reason: {exc.reason})")
+        return VerifiedCognitoContext(
+            claims=None,
+            policy=deny_invalid_token(method_arn, exc.reason),
+        )
+    except Exception as exc:
+        # SECURITY: Do not expose internal error details in the authorizer context.
+        logger.warning(f"Token validation failed: {type(exc).__name__}")
+        return VerifiedCognitoContext(
+            claims=None,
+            policy=deny_invalid_token(method_arn),
+        )
+
+
+def verify_cognito_authorizer_claims(
+    event: Mapping[str, Any],
+    method_arn: str,
+    *,
+    logger: Any,
+) -> VerifiedCognitoContext:
+    """Compatibility wrapper for handlers that need raw verified claims."""
+    return verified_cognito_context_from_event(
+        event,
+        method_arn=method_arn,
+        logger=logger,
+    )

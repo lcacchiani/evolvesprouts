@@ -542,7 +542,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
+            default: 25
         - name: cursor
           in: query
           required: false
@@ -794,10 +794,11 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
+            default: 25
         - name: cursor
           in: query
           required: false
+          description: Opaque continuation token from `next_cursor`; only valid when `sort` is `created_at`.
           schema:
             type: string
         - name: stage
@@ -1033,7 +1034,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
+            default: 25
         - name: cursor
           in: query
           required: false
@@ -1122,7 +1123,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
+            default: 25
         - name: cursor
           in: query
           required: false

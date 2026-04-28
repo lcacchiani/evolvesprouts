@@ -13,7 +13,7 @@ from collections.abc import Mapping
 from urllib.parse import urlencode
 
 from app.api.admin_request import parse_body
-from app.api.admin_validators import validate_string_length
+from app.api.validators import validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key

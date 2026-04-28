@@ -20,12 +20,8 @@ from typing import Any
 
 from app.auth.authorizer_utils import (
     build_iam_policy,
-    extract_bearer_token,
     extract_organization_ids,
-)
-from app.auth.jwt_validator import (
-    JWTValidationError,
-    decode_and_verify_token,
+    verify_cognito_authorizer_claims,
 )
 from app.utils.logging import configure_logging, get_logger
 
@@ -49,7 +45,6 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     Returns:
         IAM policy document allowing or denying the request
     """
-    headers = event.get("headers") or {}
     method_arn = event.get("methodArn", "")
 
     # Get configuration
@@ -65,67 +60,51 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
 
     allowed_groups = {g.strip() for g in allowed_groups_str.split(",") if g.strip()}
 
-    # Extract token from Authorization header
-    token = extract_bearer_token(headers)
-    if not token:
-        logger.warning("Missing or invalid Authorization header")
-        return build_iam_policy(
-            "Deny",
-            method_arn,
-            "anonymous",
-            {"reason": "missing_token"},
-        )
-
-    try:
-        # Verify and decode the JWT token with signature validation
-        claims = decode_and_verify_token(token)
-
-        user_sub = claims.sub
-        email = claims.email
-        user_groups = set(claims.groups)
-        organization_ids = extract_organization_ids(claims.raw_claims)
-
-        # Check if user is in any of the allowed groups
-        matching_groups = user_groups & allowed_groups
-
-        if matching_groups:
-            logger.info(
-                f"Access granted for user {user_sub[:8]}*** "
-                f"(groups: {', '.join(matching_groups)})"
-            )
-            return build_iam_policy(
-                "Allow",
-                method_arn,
-                user_sub,
-                {
-                    "userSub": user_sub,
-                    "email": email,
-                    "groups": ",".join(user_groups),
-                    "matchedGroups": ",".join(matching_groups),
-                    "organizationIds": ",".join(sorted(organization_ids)),
-                },
-            )
-        else:
-            logger.warning(
-                f"Access denied for user {user_sub[:8]}*** "
-                f"(user groups: {user_groups}, required: {allowed_groups})"
-            )
-            return build_iam_policy(
-                "Deny",
-                method_arn,
-                user_sub,
-                {"reason": "insufficient_permissions", "userSub": user_sub},
-            )
-
-    except JWTValidationError as exc:
-        logger.warning(f"JWT validation failed: {exc.message} (reason: {exc.reason})")
-        return build_iam_policy("Deny", method_arn, "invalid", {"reason": exc.reason})
-    except Exception as exc:
-        # SECURITY: Don't expose internal error details
-        logger.warning(f"Token validation failed: {type(exc).__name__}")
+    claims_result = verify_cognito_authorizer_claims(event, method_arn, logger=logger)
+    if claims_result.policy is not None:
+        return claims_result.policy
+    claims = claims_result.claims
+    if claims is None:  # pragma: no cover - defensive invariant
         return build_iam_policy(
             "Deny",
             method_arn,
             "invalid",
             {"reason": "invalid_token"},
         )
+
+    user_sub = claims.sub
+    email = claims.email
+    user_groups = set(claims.groups)
+    organization_ids = extract_organization_ids(claims.raw_claims)
+
+    # Check if user is in any of the allowed groups
+    matching_groups = user_groups & allowed_groups
+
+    if matching_groups:
+        logger.info(
+            f"Access granted for user {user_sub[:8]}*** "
+            f"(groups: {', '.join(matching_groups)})"
+        )
+        return build_iam_policy(
+            "Allow",
+            method_arn,
+            user_sub,
+            {
+                "userSub": user_sub,
+                "email": email,
+                "groups": ",".join(user_groups),
+                "matchedGroups": ",".join(matching_groups),
+                "organizationIds": ",".join(sorted(organization_ids)),
+            },
+        )
+
+    logger.warning(
+        f"Access denied for user {user_sub[:8]}*** "
+        f"(user groups: {user_groups}, required: {allowed_groups})"
+    )
+    return build_iam_policy(
+        "Deny",
+        method_arn,
+        user_sub,
+        {"reason": "insufficient_permissions", "userSub": user_sub},
+    )

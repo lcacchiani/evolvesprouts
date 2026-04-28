@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from app.api.admin_request import query_param
+from app.api.admin_request import parse_limit, query_param
 from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,
     parse_optional_service_instance_slug,
@@ -54,8 +54,6 @@ from app.db.models import (
 from app.exceptions import ValidationError
 from app.utils.logging import get_logger
 
-_LIST_DEFAULT_LIMIT = 50
-_LIST_MAX_LIMIT = 100
 _MAX_CODE_LENGTH = 50
 _SERVICE_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _MAX_SERVICE_SLUG_LENGTH = 80
@@ -125,7 +123,7 @@ def parse_optional_booking_system(value: Any, field: str) -> str | None:
 def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for service list endpoint."""
     logger.debug("Parsing service list filters")
-    limit = _parse_limit(query_param(event, "limit"))
+    limit = parse_limit(event)
     cursor_title, cursor_id = parse_service_list_cursor(query_param(event, "cursor"))
     return {
         "limit": limit,
@@ -148,7 +146,7 @@ def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for service instance list endpoint."""
     logger.debug("Parsing service instance list filters")
-    limit = _parse_limit(query_param(event, "limit"))
+    limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
         "limit": limit,
@@ -165,7 +163,7 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for cross-service instance list endpoint."""
     logger.debug("Parsing global service instance list filters")
-    limit = _parse_limit(query_param(event, "limit"))
+    limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
         "limit": limit,
@@ -190,7 +188,7 @@ def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, An
 def parse_enrollment_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for enrollment list endpoint."""
     logger.debug("Parsing enrollment list filters")
-    limit = _parse_limit(query_param(event, "limit"))
+    limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
         "limit": limit,
@@ -207,7 +205,7 @@ def parse_enrollment_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for discount-code list endpoint."""
     logger.debug("Parsing discount code list filters")
-    limit = _parse_limit(query_param(event, "limit"))
+    limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     scope_raw = parse_optional_text(query_param(event, "scope"), max_length=20)
     scope = (scope_raw or "").strip().lower()
@@ -659,18 +657,3 @@ def parse_update_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         payload["discount_value"] = REFERRAL_DEFAULT_DISCOUNT_VALUE
         payload["currency"] = REFERRAL_DEFAULT_CURRENCY
     return payload
-
-
-def _parse_limit(raw_limit: str | None) -> int:
-    if not raw_limit:
-        return _LIST_DEFAULT_LIMIT
-    try:
-        limit = int(raw_limit)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError("limit must be an integer", field="limit") from exc
-    if limit < 1 or limit > _LIST_MAX_LIMIT:
-        raise ValidationError(
-            f"limit must be between 1 and {_LIST_MAX_LIMIT}",
-            field="limit",
-        )
-    return limit

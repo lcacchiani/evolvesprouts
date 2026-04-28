@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import query_param
+from app.api.admin_request import parse_limit, request_id
 from app.exceptions import ValidationError
 from app.db.models import (
     ContactTag,
@@ -26,20 +26,6 @@ from app.db.models.enums import ContactType
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-
-def parse_limit(event: Mapping[str, Any], *, default: int = 25) -> int:
-    raw = query_param(event, "limit")
-    if raw is None or raw == "":
-        return default
-    try:
-        parsed = int(raw)
-    except (TypeError, ValueError) as exc:
-        logger.warning("Invalid list limit value", extra={"field": "limit"})
-        raise ValidationError("limit must be an integer", field="limit") from exc
-    if parsed < 1 or parsed > 100:
-        raise ValidationError("limit must be between 1 and 100", field="limit")
-    return parsed
 
 
 def parse_active_filter(raw: str | None) -> bool | None:
@@ -218,16 +204,6 @@ def list_all_tags_for_picker(session: Session) -> list[Tag]:
         select(Tag).where(Tag.archived_at.is_(None)).order_by(func.lower(Tag.name))
     )
     return list(session.execute(statement).scalars().all())
-
-
-def request_id(event: Mapping[str, Any]) -> str:
-    """API Gateway request id for audit context (shared by admin CRM handlers)."""
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id.strip()
-    return ""
 
 
 def parse_relationship_type(
