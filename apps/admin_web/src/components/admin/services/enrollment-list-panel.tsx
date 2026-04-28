@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
 import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -20,6 +21,22 @@ import type { Enrollment } from '@/types/services';
 import { ENROLLMENT_STATUSES } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
+
+const EMPTY_PARENT_VALUE = '';
+
+function ensureOption(
+  options: { id: string; label: string }[],
+  id: string | null | undefined,
+  fallbackPrefix: string
+): { id: string; label: string }[] {
+  if (!id?.trim()) {
+    return options;
+  }
+  if (options.some((o) => o.id === id)) {
+    return options;
+  }
+  return [...options, { id, label: `${fallbackPrefix} (${id})` }];
+}
 
 export interface EnrollmentListPanelProps {
   enrollments: Enrollment[];
@@ -52,6 +69,16 @@ export function EnrollmentListPanel({
   onDelete,
 }: EnrollmentListPanelProps) {
   const currencyOptions = getCurrencyOptions();
+  const {
+    contactOptions,
+    families,
+    organizations,
+    loading: parentPickersLoading,
+    error: parentPickersError,
+    labelByContactId,
+    labelByFamilyId,
+    labelByOrganizationId,
+  } = useEnrollmentParentPickers(canCreate);
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
   const [contactId, setContactId] = useState('');
@@ -67,6 +94,32 @@ export function EnrollmentListPanel({
     [enrollments, selectedEnrollmentId]
   );
   const isEditMode = Boolean(selectedEnrollment);
+
+  const contactSelectOptions = useMemo(
+    () => ensureOption(contactOptions, selectedEnrollment?.contactId ?? null, 'Contact'),
+    [contactOptions, selectedEnrollment?.contactId]
+  );
+  const familySelectOptions = useMemo(
+    () => ensureOption(families, selectedEnrollment?.familyId ?? null, 'Family'),
+    [families, selectedEnrollment?.familyId]
+  );
+  const organizationSelectOptions = useMemo(
+    () => ensureOption(organizations, selectedEnrollment?.organizationId ?? null, 'Organization'),
+    [organizations, selectedEnrollment?.organizationId]
+  );
+
+  const formatEnrollmentParentCell = (enrollment: Enrollment): string => {
+    if (enrollment.contactId) {
+      return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
+    }
+    if (enrollment.familyId) {
+      return labelByFamilyId.get(enrollment.familyId) ?? enrollment.familyId;
+    }
+    if (enrollment.organizationId) {
+      return labelByOrganizationId.get(enrollment.organizationId) ?? enrollment.organizationId;
+    }
+    return '-';
+  };
 
   const resetCreateForm = () => {
     setSelectedEnrollmentId(null);
@@ -166,6 +219,7 @@ export function EnrollmentListPanel({
                 disabled={
                   !canCreate ||
                   isMutating ||
+                  parentPickersLoading ||
                   (!contactId.trim() && !familyId.trim() && !organizationId.trim())
                 }
                 onClick={() => void handleSave()}
@@ -181,37 +235,76 @@ export function EnrollmentListPanel({
             Select a service and instance before creating or editing enrollments.
           </p>
         ) : null}
+        {canCreate && parentPickersError ? (
+          <p className='text-xs text-red-600' role='alert'>
+            {parentPickersError}
+          </p>
+        ) : null}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
           <div>
-            <Label htmlFor='enrollment-contact-id'>Contact ID</Label>
-            <Input
-              id='enrollment-contact-id'
-              value={contactId}
-              onChange={(event) => setContactId(event.target.value)}
-              disabled={isEditMode}
-            />
+            <Label htmlFor='enrollment-contact'>Contact</Label>
+            <Select
+              id='enrollment-contact'
+              value={contactId || EMPTY_PARENT_VALUE}
+              onChange={(event) => {
+                const next = event.target.value;
+                setContactId(next === EMPTY_PARENT_VALUE ? '' : next);
+              }}
+              disabled={isEditMode || parentPickersLoading}
+              aria-busy={parentPickersLoading}
+            >
+              <option value={EMPTY_PARENT_VALUE}>None</option>
+              {contactSelectOptions.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.label}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
-            <Label htmlFor='enrollment-family-id'>Family ID</Label>
-            <Input
-              id='enrollment-family-id'
-              value={familyId}
-              onChange={(event) => setFamilyId(event.target.value)}
-              disabled={isEditMode}
-            />
+            <Label htmlFor='enrollment-family'>Family</Label>
+            <Select
+              id='enrollment-family'
+              value={familyId || EMPTY_PARENT_VALUE}
+              onChange={(event) => {
+                const next = event.target.value;
+                setFamilyId(next === EMPTY_PARENT_VALUE ? '' : next);
+              }}
+              disabled={isEditMode || parentPickersLoading}
+              aria-busy={parentPickersLoading}
+            >
+              <option value={EMPTY_PARENT_VALUE}>None</option>
+              {familySelectOptions.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.label}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
-            <Label htmlFor='enrollment-organization-id'>Organization ID</Label>
-            <Input
-              id='enrollment-organization-id'
-              value={organizationId}
-              onChange={(event) => setOrganizationId(event.target.value)}
-              disabled={isEditMode}
-            />
+            <Label htmlFor='enrollment-organization'>Organization</Label>
+            <Select
+              id='enrollment-organization'
+              value={organizationId || EMPTY_PARENT_VALUE}
+              onChange={(event) => {
+                const next = event.target.value;
+                setOrganizationId(next === EMPTY_PARENT_VALUE ? '' : next);
+              }}
+              disabled={isEditMode || parentPickersLoading}
+              aria-busy={parentPickersLoading}
+            >
+              <option value={EMPTY_PARENT_VALUE}>None</option>
+              {organizationSelectOptions.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.label}
+                </option>
+              ))}
+            </Select>
           </div>
         </div>
         <p className='text-xs text-slate-500'>
-          Contact, family, and organization IDs are set during creation and are read-only when editing.
+          Contact, family, and organization are chosen when creating an enrollment and cannot be changed
+          afterward.
         </p>
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
           <div>
@@ -281,9 +374,7 @@ export function EnrollmentListPanel({
                 }`}
                 onClick={() => applyEnrollmentSelection(enrollment)}
               >
-                <td className='px-4 py-3'>
-                  {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
-                </td>
+                <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
                 <td className='px-4 py-3'>
                   {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
