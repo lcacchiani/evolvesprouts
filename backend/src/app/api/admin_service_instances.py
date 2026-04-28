@@ -25,6 +25,7 @@ from app.api.admin_services_common import (
     request_id,
     serialize_instance,
 )
+from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -265,10 +266,20 @@ def handle_admin_all_service_instances_request(
         next_cursor = (
             encode_instance_cursor(page_rows[-1]) if has_more and page_rows else None
         )
+        bulk_reconcile_instance_capacity_status(session, page_rows)
+        session.commit()
+        enrollment_counts = repository.get_enrollment_counts_for_instances(
+            [row.id for row in page_rows]
+        )
         return json_response(
             200,
             {
-                "items": [serialize_instance(row) for row in page_rows],
+                "items": [
+                    serialize_instance(
+                        row, enrollment_counts_by_instance_id=enrollment_counts
+                    )
+                    for row in page_rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -362,10 +373,20 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
         next_cursor = (
             encode_instance_cursor(page_rows[-1]) if has_more and page_rows else None
         )
+        bulk_reconcile_instance_capacity_status(session, page_rows)
+        session.commit()
+        enrollment_counts = repository.get_enrollment_counts_for_instances(
+            [row.id for row in page_rows]
+        )
         return json_response(
             200,
             {
-                "items": [serialize_instance(row) for row in page_rows],
+                "items": [
+                    serialize_instance(
+                        row, enrollment_counts_by_instance_id=enrollment_counts
+                    )
+                    for row in page_rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -462,8 +483,20 @@ def _create_instance(
         with_details = instance_repository.get_by_id_with_details(created.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(created.id))
+        bulk_reconcile_instance_capacity_status(session, [with_details])
+        session.commit()
+        enrollment_counts = instance_repository.get_enrollment_counts_for_instances(
+            [with_details.id]
+        )
         return json_response(
-            201, {"instance": serialize_instance(with_details)}, event=event
+            201,
+            {
+                "instance": serialize_instance(
+                    with_details,
+                    enrollment_counts_by_instance_id=enrollment_counts,
+                )
+            },
+            event=event,
         )
 
 
@@ -482,8 +515,19 @@ def _get_instance(
         instance = repository.get_by_id_with_details(instance_id)
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
+        bulk_reconcile_instance_capacity_status(session, [instance])
+        session.commit()
+        enrollment_counts = repository.get_enrollment_counts_for_instances(
+            [instance.id]
+        )
         return json_response(
-            200, {"instance": serialize_instance(instance)}, event=event
+            200,
+            {
+                "instance": serialize_instance(
+                    instance, enrollment_counts_by_instance_id=enrollment_counts
+                )
+            },
+            event=event,
         )
 
 
@@ -607,8 +651,20 @@ def _update_instance(
         with_details = instance_repository.get_by_id_with_details(instance.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(instance.id))
+        bulk_reconcile_instance_capacity_status(session, [with_details])
+        session.commit()
+        enrollment_counts = instance_repository.get_enrollment_counts_for_instances(
+            [with_details.id]
+        )
         return json_response(
-            200, {"instance": serialize_instance(with_details)}, event=event
+            200,
+            {
+                "instance": serialize_instance(
+                    with_details,
+                    enrollment_counts_by_instance_id=enrollment_counts,
+                )
+            },
+            event=event,
         )
 
 

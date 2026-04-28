@@ -96,6 +96,9 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
         def commit(self) -> None:
             return None
 
+        def flush(self) -> None:
+            return None
+
     class _SessionCtx:
         def __init__(self, _engine: Any) -> None:
             self._session = _FakeSession()
@@ -164,6 +167,19 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
         admin_enrollments,
         "EnrollmentRepository",
         _FakeEnrollmentRepository,
+    )
+
+    class _FakeServiceInstanceRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id(self, _instance_id: Any) -> None:
+            return None
+
+    monkeypatch.setattr(
+        admin_enrollments,
+        "ServiceInstanceRepository",
+        _FakeServiceInstanceRepository,
     )
     monkeypatch.setattr(
         admin_enrollments,

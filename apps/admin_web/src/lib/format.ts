@@ -143,6 +143,17 @@ export const INSTANCE_TABLE_TIER_COHORT_HEADER = `Tier${DISPLAY_PART_SEP}Cohort`
  * If only one is present, returns that value alone (no interpunct).
  * Returns empty string when neither is present (UI should show a single placeholder dash).
  */
+/** Instances table: seats remaining / max when capped; otherwise unlimited label. */
+export function formatInstanceTableCapacity(instance: ServiceInstance): string {
+  const max = instance.maxCapacity;
+  if (max == null) {
+    return 'Unlimited';
+  }
+  const used = instance.capacityEnrolledCount ?? 0;
+  const left = Math.max(0, max - used);
+  return `${left}/${max}`;
+}
+
 export function formatInstanceTableTierCohort(instance: ServiceInstance): string {
   const tier = instance.parentServiceTier?.trim() ?? '';
   const cohort = instance.cohort?.trim() ?? '';

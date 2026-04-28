@@ -17,6 +17,7 @@ import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
   formatInstanceSlotLocationSummary,
+  formatInstanceTableCapacity,
   formatInstanceTableTierCohort,
   formatInstanceTableTitle,
   formatSessionSlotStartsAtDisplay,
@@ -252,7 +253,7 @@ export function InstanceListPanel({
                     </td>
                   ) : null}
                   <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
-                  <td className='px-4 py-3'>{instance.maxCapacity ?? 'Unlimited'}</td>
+                  <td className='px-4 py-3'>{formatInstanceTableCapacity(instance)}</td>
                   <td className='px-4 py-3 text-right'>
                     <div className='flex justify-end gap-2'>
                       <CopyFeedbackIconButton

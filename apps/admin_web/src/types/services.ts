@@ -272,6 +272,8 @@ export interface ServiceInstance {
   deliveryMode: ServiceDeliveryMode | null;
   locationId: string | null;
   maxCapacity: number | null;
+  /** Enrollments that count toward capacity (registered, confirmed, completed). From admin API. */
+  capacityEnrolledCount?: number;
   waitlistEnabled: boolean;
   externalUrl: string | null;
   partnerOrganizations: PartnerOrgRef[];

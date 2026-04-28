@@ -4479,6 +4479,8 @@ export interface components {
             /** Format: uuid */
             location_id?: string | null;
             max_capacity?: number | null;
+            /** @description Count of enrollments that consume instance capacity (registered, confirmed, completed). Included on admin instance payloads for display and capacity logic. */
+            capacity_enrolled_count?: number;
             waitlist_enabled?: boolean;
             /**
              * Format: uri

@@ -269,6 +269,36 @@ describe('services tables value formatting', () => {
     expect(currencySelect).toBeDisabled();
   });
 
+  it('shows instance capacity as seats left over max in instances table', () => {
+    render(
+      <InstanceListPanel
+        instances={[
+          {
+            ...INSTANCE_FIXTURE,
+            title: 'Capped',
+            maxCapacity: 8,
+            capacityEnrolledCount: 2,
+            status: 'open',
+          },
+        ]}
+        selectedInstanceId={null}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectInstance={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDuplicateInstance={vi.fn()}
+        onDeleteInstance={vi.fn()}
+        showServiceColumn
+      />
+    );
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('6/8')).toBeInTheDocument();
+  });
+
   it('merges tier and cohort in instances table: interpunct only when both set, else single dash when empty', () => {
     render(
       <InstanceListPanel

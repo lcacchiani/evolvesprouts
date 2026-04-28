@@ -194,6 +194,7 @@ def test_training_instance_round_trip_cohort_tags_in_memory() -> None:
 
     payload = serialize_instance(instance)
     assert "age_group" not in payload
+    assert payload["capacity_enrolled_count"] == 0
     assert payload["cohort"] == "spring-2026"
     assert [t["name"] for t in payload["tags"]] == ["alpha", "Beta"]
     assert payload["tag_ids"] == [str(tag_aa.id), str(tag_ba.id)]
