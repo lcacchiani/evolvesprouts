@@ -10,6 +10,7 @@ import {
   formatInstanceTableTitle,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
+  formatDiscountCodeInstanceOptionLabel,
   formatServiceTitleWithTier,
   formatSessionSlotStartsAtDisplay,
   getFirstSessionSlotForDisplay,
@@ -97,6 +98,86 @@ describe('format helpers', () => {
     expect(formatServiceTitleWithTier('Yoga', 'adults')).toBe('Yoga · adults');
     expect(formatServiceTitleWithTier('Yoga', null)).toBe('Yoga');
     expect(formatServiceTitleWithTier('Yoga', '  ')).toBe('Yoga');
+  });
+
+  it('formats discount code instance option label with optional tier and cohort', () => {
+    const base = (): ServiceInstance => ({
+      id: 'inst-uuid',
+      serviceId: 's1',
+      parentServiceTitle: 'Workshop',
+      parentServiceTier: null,
+      parentServiceType: 'training_course',
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    });
+    expect(formatDiscountCodeInstanceOptionLabel(base())).toBe('Workshop');
+    expect(formatDiscountCodeInstanceOptionLabel({ ...base(), parentServiceTier: 'standard' })).toBe(
+      'Workshop · standard'
+    );
+    expect(formatDiscountCodeInstanceOptionLabel({ ...base(), cohort: 'March 2026' })).toBe(
+      'Workshop · March 2026'
+    );
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
+        parentServiceTier: 'standard',
+        cohort: 'March 2026',
+      })
+    ).toBe('Workshop · standard · March 2026');
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
+        parentServiceTitle: null,
+        resolvedTitle: 'Resolved only',
+        parentServiceTier: 't1',
+        cohort: 'c1',
+      })
+    ).toBe('Resolved only · t1 · c1');
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
+        parentServiceTitle: null,
+        resolvedTitle: null,
+        title: 'Own title',
+      })
+    ).toBe('Own title');
+    expect(
+      formatDiscountCodeInstanceOptionLabel({
+        ...base(),
+        parentServiceTitle: null,
+        resolvedTitle: null,
+        title: null,
+      })
+    ).toBe('inst-uuid');
   });
 
   it('formats instance table title from own title or parent service title', () => {
