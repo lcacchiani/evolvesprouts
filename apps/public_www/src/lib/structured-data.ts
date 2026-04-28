@@ -9,7 +9,9 @@ import {
 import {
   type EventCardData,
   type LandingPageStructuredDataContent,
+  type MyBestAuntieEventCohort,
 } from '@/lib/events-data';
+import { resolveMyBestAuntieHeroCohortSummary } from '@/lib/my-best-auntie-cohort-summary';
 import { ROUTES } from '@/lib/routes';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
@@ -231,11 +233,32 @@ export function buildFaqPageSchema(
   return buildFaqJsonLd(questions);
 }
 
+interface BuildCourseSchemaOptions extends SharedStructuredDataOptions {
+  /** MBA cohort rows from CRM; used for Course.offers (lowest open price) when present. */
+  myBestAuntieCohorts?: MyBestAuntieEventCohort[];
+}
+
 export function buildCourseSchema({
   locale,
   content,
-}: SharedStructuredDataOptions): JsonLdObject {
+  myBestAuntieCohorts,
+}: BuildCourseSchemaOptions): JsonLdObject {
   const organizationSchemaId = getOrganizationSchemaId();
+  const { lowestPrice, priceCurrency } = resolveMyBestAuntieHeroCohortSummary(
+    myBestAuntieCohorts,
+    locale,
+  );
+  const offers =
+    lowestPrice !== undefined && priceCurrency
+      ? compactJsonLdObject({
+          '@type': 'Offer',
+          price: String(lowestPrice),
+          priceCurrency,
+          availability: OFFER_AVAILABILITY_IN_STOCK,
+          url: toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale),
+        })
+      : undefined;
+
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Course',
@@ -246,6 +269,7 @@ export function buildCourseSchema({
     provider: {
       '@id': organizationSchemaId,
     },
+    offers,
   });
 }
 

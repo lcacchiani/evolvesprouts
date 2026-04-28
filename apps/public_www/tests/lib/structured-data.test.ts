@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import enContent from '@/content/en.json';
 import { publicCalendarFixture } from '../fixtures/public-calendar';
 import type { EventCardData } from '@/lib/events-data';
-import { getLandingPageStructuredDataContentFromPayload } from '@/lib/events-data';
+import {
+  getLandingPageStructuredDataContentFromPayload,
+  normalizeMyBestAuntieCohortsFromPayload,
+} from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import {
   buildBreadcrumbSchema,
@@ -121,6 +124,25 @@ describe('structured-data builders', () => {
     } | undefined;
     expect(firstBreadcrumbItem?.item).toContain('/zh-HK');
     expect(secondBreadcrumbItem?.item).toContain('/zh-HK/about-us');
+  });
+
+  it('adds Course.offers from MBA cohorts when lowest open price is available', () => {
+    const mbaCohorts = normalizeMyBestAuntieCohortsFromPayload(publicCalendarFixture);
+    const courseSchema = buildCourseSchema({
+      locale: 'en',
+      content: enContent,
+      myBestAuntieCohorts: mbaCohorts,
+    });
+
+    expect(courseSchema).toMatchObject({
+      '@type': 'Course',
+      offers: {
+        '@type': 'Offer',
+        price: '9000',
+        priceCurrency: 'HKD',
+        availability: 'https://schema.org/InStock',
+      },
+    });
   });
 
   it('builds event schemas only for events with timestamps', () => {

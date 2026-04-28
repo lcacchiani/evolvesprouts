@@ -1,4 +1,5 @@
 import type { Locale } from '@/content';
+import { readOptionalText } from '@/content/content-field-utils';
 
 import { formatCohortMonthYearLabel } from '@/lib/site-datetime';
 
@@ -59,6 +60,63 @@ export function formatCurrencyHkd(value: number, locale?: string): string {
   } catch {
     return getFormatter(DEFAULT_HKD_LOCALE).format(value);
   }
+}
+
+const currencyDisplayPrefixCache = new Map<string, Intl.NumberFormat>();
+
+/**
+ * Normalizes API-provided currency hints to a display prefix (calendar/events).
+ * `HKD` maps to `HK$`; any other non-empty string is returned trimmed as-is.
+ */
+export function normalizeCurrencyPrefixForDisplay(
+  value: string | undefined,
+): string | undefined {
+  const normalizedValue = readOptionalText(value);
+  if (!normalizedValue) {
+    return undefined;
+  }
+  if (normalizedValue.toUpperCase() === HKD_CURRENCY) {
+    return 'HK$';
+  }
+  return normalizedValue;
+}
+
+/**
+ * Prefix/symbol for site copy templates (e.g. `{currency}{price}`), from an ISO 4217 code.
+ * JSON-LD should keep the raw ISO code in `priceCurrency`; use this only for visible strings.
+ * HKD uses the same mapping as {@link normalizeCurrencyPrefixForDisplay}; other codes use Intl.
+ */
+export function formatCurrencyDisplayPrefix(iso4217: string): string {
+  const code = iso4217.trim().toUpperCase();
+  if (!code) {
+    return '';
+  }
+  const hkdPrefix = normalizeCurrencyPrefixForDisplay(code);
+  if (hkdPrefix === 'HK$') {
+    return 'HK$';
+  }
+  try {
+    let formatter = currencyDisplayPrefixCache.get(code);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat('en', {
+        style: 'currency',
+        currency: code,
+        currencyDisplay: 'narrowSymbol',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      currencyDisplayPrefixCache.set(code, formatter);
+    }
+    const symbol = formatter
+      .formatToParts(0)
+      .find((part) => part.type === 'currency')?.value;
+    if (symbol && symbol.trim()) {
+      return symbol;
+    }
+  } catch {
+    // fall through
+  }
+  return `${code} `;
 }
 
 /**

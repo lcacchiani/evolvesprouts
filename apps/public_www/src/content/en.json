@@ -1173,7 +1173,7 @@
       "quickFacts": {
         "durationLabel": "9 weeks",
         "homeVisitsLabel": "3 home visits",
-        "priceTemplate": "From HK${price}",
+        "priceTemplate": "From {currency}{price}",
         "nextCohortTemplate": "Next: {cohortLabel}"
       },
       "testimonialQuote": "After the programme, our helper sets up independent play every morning without being asked.",
@@ -1183,7 +1183,8 @@
       "eyebrow": "Course Outline",
       "title": "My Best Auntie Course Outline - Designed by Ida",
       "subtitle": "A 9-Week Programme That Changes How Your Child Is Raised.",
-      "description": "Structured helper training with group sessions + private 1:1 coaching. Your child's caregiver learns by doing - in your home, with your routines. Starting from HK$9,000.",
+      "description": "Structured helper training with group sessions + private 1:1 coaching. Your child's caregiver learns by doing - in your home, with your routines.",
+      "descriptionWithPriceTemplate": "Structured helper training with group sessions + private 1:1 coaching. Your child's caregiver learns by doing - in your home, with your routines. Starting from {currency}{price}.",
       "ctaLabel": "Book your spot now!",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [

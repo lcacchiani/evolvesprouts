@@ -1173,7 +1173,7 @@
       "quickFacts": {
         "durationLabel": "9 週",
         "homeVisitsLabel": "3 次上門指導",
-        "priceTemplate": "HK${price} 起",
+        "priceTemplate": "{currency}{price} 起",
         "nextCohortTemplate": "下期：{cohortLabel}"
       },
       "testimonialQuote": "課程之後，我哋嘅家傭每朝都自動安排獨立遊戲，唔使再提醒。",
@@ -1183,7 +1183,8 @@
       "eyebrow": "課程大綱",
       "title": "My Best Auntie 課程大綱 - 由 Ida 設計",
       "subtitle": "一個改變孩子每日成長方式的 9 週課程。",
-      "description": "結構化助手培訓，包含小組課程 + 一對一私人輔導。你孩子的照護者在你家中、按你的日常流程學習實踐。起步價 HK$9,000。",
+      "description": "結構化助手培訓，包含小組課程 + 一對一私人輔導。你孩子的照護者在你家中、按你的日常流程學習實踐。",
+      "descriptionWithPriceTemplate": "結構化助手培訓，包含小組課程 + 一對一私人輔導。你孩子的照護者在你家中、按你的日常流程學習實踐。起步價 {currency}{price}。",
       "ctaLabel": "立即預訂名額！",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [

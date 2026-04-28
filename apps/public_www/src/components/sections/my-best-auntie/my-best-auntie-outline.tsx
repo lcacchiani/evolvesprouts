@@ -14,13 +14,15 @@ import type {
   CommonAccessibilityContent,
   MyBestAuntieOutlineContent,
 } from '@/content';
-import { formatContentTemplate } from '@/content/content-field-utils';
+import { formatContentTemplate, readOptionalText } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieOutlineProps {
   content: MyBestAuntieOutlineContent;
   ctaHref?: string;
   commonAccessibility?: CommonAccessibilityContent;
+  lowestPrice?: number;
+  priceCurrencySymbol?: string;
 }
 
 type ModuleIconVariant =
@@ -93,6 +95,13 @@ function renderMultilineText(value: string): ReactNode {
 
 function getModuleTone(index: number): ModuleToneVariant {
   return MODULE_TONES[index % MODULE_TONES.length];
+}
+
+function readOptionalOutlineField(
+  record: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  return readOptionalText(record[key]);
 }
 
 function parseModuleActivity(activity: string | undefined): ParsedModuleActivity | null {
@@ -256,6 +265,8 @@ export function MyBestAuntieOutline({
   content,
   ctaHref,
   commonAccessibility = enContent.common.accessibility,
+  lowestPrice,
+  priceCurrencySymbol,
 }: MyBestAuntieOutlineProps) {
   const firstModuleStep = content.modules[0]?.step ?? null;
 
@@ -281,6 +292,21 @@ export function MyBestAuntieOutline({
   const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
   const computedCtaHref =
     ctaHref?.trim() || content.ctaHref?.trim() || '#my-best-auntie-booking';
+
+  const outlineRecord = content as Record<string, unknown>;
+  const descriptionWithPriceTemplate = readOptionalOutlineField(
+    outlineRecord,
+    'descriptionWithPriceTemplate',
+  );
+  const resolvedOutlineDescription =
+    lowestPrice !== undefined &&
+    priceCurrencySymbol &&
+    descriptionWithPriceTemplate
+      ? formatContentTemplate(descriptionWithPriceTemplate, {
+          currency: priceCurrencySymbol,
+          price: lowestPrice.toLocaleString(),
+        })
+      : content.description;
 
   function handleToggleModule(step: string) {
     setExpandedModuleStep((previousStep) =>
@@ -374,9 +400,9 @@ export function MyBestAuntieOutline({
         </div>
 
         <div className='mx-auto max-w-[760px] text-center'>
-          {content.description && (
+          {resolvedOutlineDescription && (
             <p className='es-type-body-italic text-balance'>
-              {renderQuotedDescriptionText(content.description)}
+              {renderQuotedDescriptionText(resolvedOutlineDescription)}
             </p>
           )}
 
