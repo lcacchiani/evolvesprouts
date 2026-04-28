@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   buildUtmHref,
@@ -17,6 +17,7 @@ const originalEnvValues = Object.fromEntries(
 ) as Record<(typeof ENV_KEYS)[number], string | undefined>;
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   for (const key of ENV_KEYS) {
     const originalValue = originalEnvValues[key];
     if (typeof originalValue === 'string') {
@@ -82,6 +83,12 @@ describe('site-config', () => {
     expect(() => resolvePublicSiteConfig()).toThrow(
       'NEXT_PUBLIC_EMAIL must be configured with a valid email address.',
     );
+  });
+
+  it('throws when NEXT_PUBLIC_EMAIL is unset', () => {
+    vi.stubEnv('NEXT_PUBLIC_EMAIL', '');
+
+    expect(() => resolvePublicSiteConfig()).toThrow(/NEXT_PUBLIC_EMAIL/);
   });
 
   it('normalizes schemeless social URLs by prepending https', () => {

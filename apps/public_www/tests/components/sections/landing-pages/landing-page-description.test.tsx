@@ -56,6 +56,7 @@ describe('LandingPageDescription section', () => {
       easterWorkshopContent.en.meta.title,
       null,
       null,
+      undefined,
     );
     render(
       <LandingPageCalendarContext.Provider

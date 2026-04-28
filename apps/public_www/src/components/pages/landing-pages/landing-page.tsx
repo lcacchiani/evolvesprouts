@@ -14,6 +14,7 @@ import { LandingPageDetails } from '@/components/sections/landing-pages/landing-
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
 import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
 import { LandingPageRehydrateRoot } from '@/lib/landing-page-calendar-context';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 import type {
   LandingPageBookingEventContent,
   LandingPageHeroEventContent,
@@ -41,6 +42,8 @@ export function LandingPage({
   bookingEventContent,
   structuredDataContent,
 }: LandingPageProps) {
+  const publicSiteConfig = resolvePublicSiteConfig();
+
   return (
     <LandingPageRehydrateRoot
       key={`${slug}-${locale}`}
@@ -51,6 +54,7 @@ export function LandingPage({
       initialHero={heroEventContent}
       initialBooking={bookingEventContent}
       initialStructuredData={structuredDataContent}
+      thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
     >
       <PageLayout
         navbarContent={siteContent.navbar}

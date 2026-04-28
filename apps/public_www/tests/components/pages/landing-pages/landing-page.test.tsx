@@ -4,56 +4,77 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
-import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import {
   LandingPageCalendarContext,
   type LandingPageCalendarContextValue,
   type LandingPageRehydrateRootProps,
 } from '@/lib/landing-page-calendar-context';
 import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
+import * as siteConfig from '@/lib/site-config';
+import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
-function MockLandingPageRehydrateRoot({
-  locale,
-  slug,
-  siteContent,
-  pageContent,
-  initialHero,
-  initialBooking,
-  initialStructuredData,
-  children,
-}: LandingPageRehydrateRootProps) {
-  const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
-    locale,
-    slug,
-    pageContent.cta,
-    siteContent,
-    pageContent.meta.title,
-    initialHero,
-    initialBooking,
-  );
-
-  const value: LandingPageCalendarContextValue = {
-    heroEventContent: initialHero,
-    bookingEventContent: initialBooking,
-    structuredDataContent: initialStructuredData,
-    sharedCtaProps,
-    isRefreshing: false,
-    hasRefreshError: false,
-  };
-
-  return (
-    <LandingPageCalendarContext.Provider value={value}>
-      {children}
-    </LandingPageCalendarContext.Provider>
-  );
-}
+const { landingPageRehydrateRootSpy } = vi.hoisted(() => ({
+  landingPageRehydrateRootSpy: vi.fn(),
+}));
 
 vi.mock('@/lib/landing-page-calendar-context', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/landing-page-calendar-context')>();
+
+  function MockLandingPageRehydrateRoot(props: LandingPageRehydrateRootProps) {
+    const {
+      locale,
+      slug,
+      siteContent,
+      pageContent,
+      initialHero,
+      initialBooking,
+      initialStructuredData,
+      thankYouWhatsappHref,
+      children,
+    } = props;
+
+    const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
+      locale,
+      slug,
+      pageContent.cta,
+      siteContent,
+      pageContent.meta.title,
+      initialHero,
+      initialBooking,
+      thankYouWhatsappHref,
+    );
+
+    const value: LandingPageCalendarContextValue = {
+      heroEventContent: initialHero,
+      bookingEventContent: initialBooking,
+      structuredDataContent: initialStructuredData,
+      sharedCtaProps,
+      isRefreshing: false,
+      hasRefreshError: false,
+    };
+
+    return (
+      <actual.LandingPageCalendarContext.Provider value={value}>
+        {children}
+      </actual.LandingPageCalendarContext.Provider>
+    );
+  }
+
+  landingPageRehydrateRootSpy.mockImplementation(MockLandingPageRehydrateRoot);
+
   return {
     ...actual,
-    LandingPageRehydrateRoot: MockLandingPageRehydrateRoot,
+    LandingPageRehydrateRoot: landingPageRehydrateRootSpy,
   };
+});
+
+vi.spyOn(siteConfig, 'resolvePublicSiteConfig').mockReturnValue({
+  instagramUrl: undefined,
+  linkedinUrl: undefined,
+  whatsappUrl: 'https://wa.me/85212345678',
+  contactEmail: 'hello@example.com',
+  businessAddress: undefined,
+  businessPhoneNumber: undefined,
 });
 
 const mockHeroEventContent = {
@@ -192,6 +213,27 @@ vi.mock('@/components/sections/about-us-ida-coach', () => ({
 }));
 
 describe('LandingPage composition', () => {
+  it('resolves public site config on the server and passes thankYouWhatsappHref to LandingPageRehydrateRoot', () => {
+    render(
+      <LandingPage
+        locale='zh-HK'
+        slug='easter-2026-montessori-play-coaching-workshop'
+        pagePath='/easter-2026-montessori-play-coaching-workshop'
+        siteContent={enContent}
+        pageContent={easterWorkshopContent.en}
+        heroEventContent={mockHeroEventContent}
+        bookingEventContent={mockBookingEventContent}
+        structuredDataContent={null}
+      />,
+    );
+
+    expect(siteConfig.resolvePublicSiteConfig).toHaveBeenCalled();
+    const firstCallProps = landingPageRehydrateRootSpy.mock.calls[0]?.[0];
+    expect(firstCallProps).toMatchObject({
+      thankYouWhatsappHref: 'https://wa.me/85212345678',
+    });
+  });
+
   it('assembles all landing page sections in order', () => {
     render(
       <LandingPage

@@ -4,7 +4,10 @@ import { describe, expect, it } from 'vitest';
 import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
-import { LandingPageCalendarContext } from '@/lib/landing-page-calendar-context';
+import {
+  LandingPageCalendarContext,
+  useLandingPageCalendarContext,
+} from '@/lib/landing-page-calendar-context';
 import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
 
 describe('LandingPageOutline section', () => {
@@ -39,6 +42,7 @@ describe('LandingPageOutline section', () => {
       easterWorkshopContent.en.meta.title,
       null,
       null,
+      undefined,
     );
     render(
       <LandingPageCalendarContext.Provider
@@ -58,5 +62,49 @@ describe('LandingPageOutline section', () => {
     expect(
       screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
+  });
+
+  it('passes thankYouWhatsappHref through calendar context for shared CTA props', () => {
+    const thankYouWhatsappHref = 'https://wa.me/85298765432';
+    const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
+      'en',
+      'easter-2026-montessori-play-coaching-workshop',
+      easterWorkshopContent.en.cta,
+      enContent,
+      easterWorkshopContent.en.meta.title,
+      null,
+      null,
+      thankYouWhatsappHref,
+    );
+    expect(sharedCtaProps.thankYouWhatsappHref).toBe(thankYouWhatsappHref);
+
+    function SharedCtaThankYouHrefProbe() {
+      const calendar = useLandingPageCalendarContext();
+      return (
+        <span data-testid='shared-cta-thank-you-whatsapp-href'>
+          {calendar?.sharedCtaProps.thankYouWhatsappHref ?? ''}
+        </span>
+      );
+    }
+
+    render(
+      <LandingPageCalendarContext.Provider
+        value={{
+          heroEventContent: null,
+          bookingEventContent: null,
+          structuredDataContent: null,
+          sharedCtaProps,
+          isRefreshing: false,
+          hasRefreshError: false,
+        }}
+      >
+        <SharedCtaThankYouHrefProbe />
+        <LandingPageOutline content={easterWorkshopContent.en.outline} />
+      </LandingPageCalendarContext.Provider>,
+    );
+
+    expect(screen.getByTestId('shared-cta-thank-you-whatsapp-href')).toHaveTextContent(
+      thankYouWhatsappHref,
+    );
   });
 });
