@@ -54,6 +54,25 @@ function assertStageHasNoApiGatewayCacheCluster(template: Template): void {
   }
 }
 
+function assertGatewayResponsesHaveNoBodyTemplates(template: Template): void {
+  const responses = template.findResources("AWS::ApiGateway::GatewayResponse");
+  const entries = Object.entries(responses);
+  if (entries.length === 0) {
+    throw new Error("Expected at least one AWS::ApiGateway::GatewayResponse resource");
+  }
+  for (const [logicalId, resource] of entries) {
+    const props = resource.Properties ?? {};
+    if ("ResponseTemplates" in props && props.ResponseTemplates != null) {
+      const rt = props.ResponseTemplates;
+      if (typeof rt === "object" && rt !== null && Object.keys(rt as object).length > 0) {
+        throw new Error(
+          `GatewayResponse ${logicalId} must not set ResponseTemplates (API Gateway only supports simple substitution in gateway response body templates; VTL leaks into JSON bodies). Found ${JSON.stringify(rt)}`,
+        );
+      }
+    }
+  }
+}
+
 function assertStageHasCheckovCkv120Suppression(template: Template): void {
   const stages = template.findResources("AWS::ApiGateway::Stage");
   const entries = Object.entries(stages);
@@ -90,6 +109,7 @@ function assertStageHasCheckovCkv120Suppression(template: Template): void {
 function main(): void {
   const template = synthApiTemplate();
   assertStageHasNoApiGatewayCacheCluster(template);
+  assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);
   // eslint-disable-next-line no-console
   console.log("api-stack API Gateway stage cache assertions passed.");
