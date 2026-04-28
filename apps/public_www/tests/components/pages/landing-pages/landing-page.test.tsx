@@ -4,6 +4,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
+import {
+  LandingPageCalendarContext,
+  type LandingPageCalendarContextValue,
+  type LandingPageRehydrateRootProps,
+} from '@/lib/landing-page-calendar-context';
+import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
 import * as siteConfig from '@/lib/site-config';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
@@ -13,11 +19,8 @@ const { landingPageRehydrateRootSpy } = vi.hoisted(() => ({
 
 vi.mock('@/lib/landing-page-calendar-context', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/landing-page-calendar-context')>();
-  const { buildLandingPageSharedCtaPropsFromCalendar } = await import('@/lib/landing-page-cta-resolve');
 
-  function MockLandingPageRehydrateRoot(
-    props: import('@/lib/landing-page-calendar-context').LandingPageRehydrateRootProps,
-  ) {
+  function MockLandingPageRehydrateRoot(props: LandingPageRehydrateRootProps) {
     const {
       locale,
       slug,
@@ -41,7 +44,7 @@ vi.mock('@/lib/landing-page-calendar-context', async (importOriginal) => {
       thankYouWhatsappHref,
     );
 
-    const value: import('@/lib/landing-page-calendar-context').LandingPageCalendarContextValue = {
+    const value: LandingPageCalendarContextValue = {
       heroEventContent: initialHero,
       bookingEventContent: initialBooking,
       structuredDataContent: initialStructuredData,
