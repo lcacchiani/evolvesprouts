@@ -1,9 +1,7 @@
 import type { Locale, SiteContent } from '@/content';
 import type { MyBestAuntieEventCohort } from '@/lib/events-data';
-import {
-  formatTrainingCoursePriceCurrencySymbol,
-  resolveMyBestAuntieHeroCohortSummary,
-} from '@/lib/my-best-auntie-cohort-summary';
+import { formatCurrencyDisplayPrefix } from '@/lib/format';
+import { resolveMyBestAuntieHeroCohortSummary } from '@/lib/my-best-auntie-cohort-summary';
 import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
@@ -33,7 +31,7 @@ export function MyBestAuntiePage({ locale, content, cohorts }: MyBestAuntiePageP
     resolveMyBestAuntieHeroCohortSummary(cohorts, locale);
   const priceCurrencySymbol =
     lowestPrice !== undefined && priceCurrency
-      ? formatTrainingCoursePriceCurrencySymbol(priceCurrency)
+      ? formatCurrencyDisplayPrefix(priceCurrency)
       : undefined;
 
   return (

@@ -58,28 +58,3 @@ export function resolveMyBestAuntieHeroCohortSummary(
     nextCohortLabel,
   };
 }
-
-/** Display symbol for hero/outline copy; JSON-LD keeps ISO codes (e.g. HKD). */
-export function formatTrainingCoursePriceCurrencySymbol(iso: string): string {
-  const code = iso.trim().toUpperCase();
-  if (code === 'HKD') {
-    return 'HK$';
-  }
-  try {
-    const symbol = new Intl.NumberFormat('en', {
-      style: 'currency',
-      currency: code,
-      currencyDisplay: 'narrowSymbol',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })
-      .formatToParts(0)
-      .find((part) => part.type === 'currency')?.value;
-    if (symbol && symbol.trim()) {
-      return symbol;
-    }
-  } catch {
-    // fall through
-  }
-  return `${code} `;
-}

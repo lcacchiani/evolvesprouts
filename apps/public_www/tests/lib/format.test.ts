@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   COHORT_VALUE_PATTERN,
   formatCohortValue,
+  formatCurrencyDisplayPrefix,
   formatCurrencyHkd,
   formatPartDateTimeLabel,
   parseCohortValue,
@@ -23,6 +24,17 @@ describe('formatCurrencyHkd', () => {
   it('formats HKD values using locale-aware output', () => {
     expect(formatCurrencyHkd(9000, 'zh-CN')).toBe('HK$9,000');
     expect(formatCurrencyHkd(9000, 'zh-HK')).toBe('HK$9,000');
+  });
+});
+
+describe('formatCurrencyDisplayPrefix', () => {
+  it('maps HKD to HK$ for template copy', () => {
+    expect(formatCurrencyDisplayPrefix('HKD')).toBe('HK$');
+    expect(formatCurrencyDisplayPrefix(' hkd ')).toBe('HK$');
+  });
+
+  it('returns a narrow symbol for other ISO codes when Intl supports them', () => {
+    expect(formatCurrencyDisplayPrefix('USD').length).toBeGreaterThan(0);
   });
 });
 

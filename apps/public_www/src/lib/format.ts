@@ -61,6 +61,44 @@ export function formatCurrencyHkd(value: number, locale?: string): string {
   }
 }
 
+const currencyDisplayPrefixCache = new Map<string, Intl.NumberFormat>();
+
+/**
+ * Prefix/symbol for site copy templates (e.g. `{currency}{price}`), from an ISO 4217 code.
+ * JSON-LD should keep the raw ISO code in `priceCurrency`; use this only for visible strings.
+ */
+export function formatCurrencyDisplayPrefix(iso4217: string): string {
+  const code = iso4217.trim().toUpperCase();
+  if (!code) {
+    return '';
+  }
+  if (code === HKD_CURRENCY) {
+    return 'HK$';
+  }
+  try {
+    let formatter = currencyDisplayPrefixCache.get(code);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat('en', {
+        style: 'currency',
+        currency: code,
+        currencyDisplay: 'narrowSymbol',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      currencyDisplayPrefixCache.set(code, formatter);
+    }
+    const symbol = formatter
+      .formatToParts(0)
+      .find((part) => part.type === 'currency')?.value;
+    if (symbol && symbol.trim()) {
+      return symbol;
+    }
+  } catch {
+    // fall through
+  }
+  return `${code} `;
+}
+
 /**
  * Broad cohort token shape: three letters or two digits, hyphen, two-digit year suffix.
  * Month validity is enforced in {@link parseCohortValue} (invalid month abbreviations parse to null).
