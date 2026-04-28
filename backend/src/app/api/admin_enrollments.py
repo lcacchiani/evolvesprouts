@@ -201,6 +201,26 @@ def _update_enrollment(
             enrollment.currency = payload["currency"]
         if "notes" in payload:
             enrollment.notes = payload["notes"]
+        if "discount_code_id" in payload:
+            new_id = payload["discount_code_id"]
+            old_id = enrollment.discount_code_id
+            if new_id != old_id:
+                discount_repo = DiscountCodeRepository(session)
+                if old_id is not None:
+                    if not discount_repo.decrement_uses(old_id):
+                        raise ValidationError(
+                            "Unable to release prior discount code usage",
+                            field="discount_code_id",
+                        )
+                if new_id is not None:
+                    if not discount_repo.validate_and_increment(new_id):
+                        if old_id is not None:
+                            discount_repo.validate_and_increment(old_id)
+                        raise ValidationError(
+                            "Discount code is invalid, inactive, expired, or exhausted",
+                            field="discount_code_id",
+                        )
+                enrollment.discount_code_id = new_id
 
         updated = repository.update(enrollment)
         session.commit()
@@ -232,6 +252,13 @@ def _delete_enrollment(
         enrollment = repository.get_by_id(enrollment_id)
         if enrollment is None or enrollment.instance_id != instance_id:
             raise NotFoundError("Enrollment", str(enrollment_id))
+        discount_repo = DiscountCodeRepository(session)
+        if enrollment.discount_code_id is not None:
+            if not discount_repo.decrement_uses(enrollment.discount_code_id):
+                raise ValidationError(
+                    "Unable to release discount code usage for this enrollment",
+                    field="discount_code_id",
+                )
         repository.delete(enrollment)
         session.commit()
         return json_response(204, {}, event=event)

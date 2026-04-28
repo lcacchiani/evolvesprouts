@@ -162,3 +162,15 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         )
         row = self._session.execute(statement).first()
         return row is not None
+
+    def decrement_uses(self, code_id: UUID) -> bool:
+        """Decrement current_uses when at least one use is recorded (undo redemption)."""
+        statement = (
+            update(DiscountCode)
+            .where(DiscountCode.id == code_id)
+            .where(DiscountCode.current_uses > 0)
+            .values(current_uses=DiscountCode.current_uses - 1)
+            .returning(DiscountCode.id)
+        )
+        row = self._session.execute(statement).first()
+        return row is not None

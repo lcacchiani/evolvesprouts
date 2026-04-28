@@ -4649,6 +4649,11 @@ export interface components {
             status?: components["schemas"]["EnrollmentStatus"];
             amount_paid?: string | null;
             currency?: string | null;
+            /**
+             * Format: uuid
+             * @description Set to null to clear the enrollment discount; changing the id adjusts discount code usage counts accordingly.
+             */
+            discount_code_id?: string | null;
             notes?: string | null;
         };
         DiscountCode: {

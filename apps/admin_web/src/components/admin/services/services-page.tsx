@@ -316,6 +316,8 @@ export function ServicesPage() {
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
+            serviceId={instancesContextServiceId}
+            instanceId={state.selectedInstanceId}
             canCreate={Boolean(instancesContextServiceId && state.selectedInstanceId)}
             isLoading={state.enrollmentList.isLoading}
             isLoadingMore={state.enrollmentList.isLoadingMore}

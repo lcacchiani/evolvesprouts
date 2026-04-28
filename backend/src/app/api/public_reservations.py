@@ -32,11 +32,17 @@ from app.api.public_form_hooks import (
     send_booking_confirmation_email,
 )
 from app.db.engine import get_engine
-from app.db.repositories import DiscountCodeRepository, ServiceRepository
+from app.db.models import Enrollment
+from app.db.repositories import (
+    DiscountCodeRepository,
+    EnrollmentRepository,
+    ServiceRepository,
+)
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.db.models.enums import (
     ContactSource,
     ContactType,
+    EnrollmentStatus,
     FunnelStage,
     LeadEventType,
     LeadType,
@@ -82,6 +88,7 @@ _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/
 _STRIPE_PAYMENT_INTENT_ID_PATTERN = re.compile(r"^pi_[A-Za-z0-9]+$")
 _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 _ALLOWED_SERVICE_SLUGS = frozenset({"event", "training-course", "consultation"})
+_PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
 
 
 def _handle_public_reservation(
@@ -148,6 +155,61 @@ def _handle_public_reservation(
                 contact.phone_region = new_region
                 contact.phone_national_number = new_national
             contact_repo.update(contact)
+
+            dc_text = reservation_payload.get("discount_code")
+            dc_row = None
+            if dc_text:
+                dc_lookup = DiscountCodeRepository(session)
+                dc_row = dc_lookup.get_by_code(str(dc_text))
+
+            raw_slug = reservation_payload.get("service_instance_slug")
+            instance_id_resolved: UUID | None = None
+            if raw_slug and str(raw_slug).strip():
+                instance_id_resolved = ServiceInstanceRepository(
+                    session
+                ).get_id_by_slug(str(raw_slug).strip())
+
+            enrollment_repo = EnrollmentRepository(session)
+            discount_repo = DiscountCodeRepository(session)
+            if (
+                instance_id_resolved is not None
+                and not enrollment_repo.contact_has_enrollment_for_instance(
+                    instance_id=instance_id_resolved,
+                    contact_id=contact.id,
+                )
+            ):
+                discount_id_for_enrollment: UUID | None = None
+                incremented_code_id: UUID | None = None
+                if dc_row is not None:
+                    if discount_repo.validate_and_increment(dc_row.id):
+                        incremented_code_id = dc_row.id
+                        discount_id_for_enrollment = dc_row.id
+                    else:
+                        raise ValidationError(
+                            "Discount code is invalid, inactive, expired, or exhausted",
+                            field="discountCode",
+                        )
+                try:
+                    enrollment_repo.create_enrollment(
+                        Enrollment(
+                            instance_id=instance_id_resolved,
+                            contact_id=contact.id,
+                            family_id=None,
+                            organization_id=None,
+                            ticket_tier_id=None,
+                            discount_code_id=discount_id_for_enrollment,
+                            status=EnrollmentStatus.REGISTERED,
+                            amount_paid=reservation_payload["total_amount"],
+                            currency="HKD",
+                            notes=None,
+                            created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
+                        )
+                    )
+                except ValueError:
+                    if incremented_code_id is not None:
+                        discount_repo.decrement_uses(incremented_code_id)
+                    raise
+
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
                 "course_label": reservation_payload["course_label"],
@@ -159,6 +221,10 @@ def _handle_public_reservation(
                 lead_metadata["course_slug"] = reservation_payload["course_slug"]
             if reservation_payload.get("service"):
                 lead_metadata["service"] = reservation_payload["service"]
+            if dc_text and str(dc_text).strip():
+                lead_metadata["discount_code"] = str(dc_text).strip()
+                if dc_row is not None:
+                    lead_metadata["discount_code_id"] = str(dc_row.id)
             lead = SalesLead(
                 contact_id=contact.id,
                 lead_type=LeadType.PROGRAM_ENROLLMENT,

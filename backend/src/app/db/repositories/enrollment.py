@@ -72,6 +72,18 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
 
+    def contact_has_enrollment_for_instance(
+        self, *, instance_id: UUID, contact_id: UUID
+    ) -> bool:
+        """True if any enrollment row exists for this contact on this instance."""
+        statement = (
+            select(func.count(Enrollment.id))
+            .where(Enrollment.instance_id == instance_id)
+            .where(Enrollment.contact_id == contact_id)
+        )
+        n = int(self._session.execute(statement).scalar_one_or_none() or 0)
+        return n > 0
+
     def create_enrollment(self, enrollment: Enrollment) -> Enrollment:
         """Create enrollment with capacity guard where required."""
         # Lock the instance row so capacity checks and inserts are serialized.

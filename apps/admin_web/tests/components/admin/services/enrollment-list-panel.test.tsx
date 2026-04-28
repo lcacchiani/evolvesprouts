@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { EnrollmentListPanel } from '@/components/admin/services/enrollment-list-panel';
 import type { Enrollment } from '@/types/services';
 
+vi.mock('@/lib/services-api', () => ({
+  isAbortRequestError: () => false,
+  listEnrollmentDiscountOptions: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
   useEnrollmentParentPickers: () => ({
     contactOptions: [{ id: 'contact-1', label: 'Jane Doe' }],
@@ -41,6 +46,8 @@ describe('EnrollmentListPanel', () => {
     render(
       <EnrollmentListPanel
         enrollments={[ENROLLMENT_FIXTURE]}
+        serviceId='service-1'
+        instanceId='instance-1'
         canCreate={true}
         isLoading={false}
         isLoadingMore={false}
@@ -74,6 +81,8 @@ describe('EnrollmentListPanel', () => {
     render(
       <EnrollmentListPanel
         enrollments={[]}
+        serviceId='service-1'
+        instanceId='instance-1'
         canCreate={true}
         isLoading={false}
         isLoadingMore={false}
