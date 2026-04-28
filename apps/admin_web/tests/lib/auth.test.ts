@@ -67,6 +67,16 @@ describe('auth helpers', () => {
     expect(profile.lastAuthTime).toBe('2023-11-14T22:13:20.000Z');
   });
 
+  it('hasStaffAdminAccess is true for admin, manager, or instructor', async () => {
+    const auth = await loadAuthModule();
+    expect(auth.hasStaffAdminAccess([])).toBe(false);
+    expect(auth.hasStaffAdminAccess(['guest'])).toBe(false);
+    expect(auth.hasStaffAdminAccess(['admin'])).toBe(true);
+    expect(auth.hasStaffAdminAccess(['manager'])).toBe(true);
+    expect(auth.hasStaffAdminAccess(['instructor'])).toBe(true);
+    expect(auth.hasStaffAdminAccess(['manager', 'other'])).toBe(true);
+  });
+
   it('returns current tokens when not near expiry', async () => {
     const auth = await loadAuthModule();
     const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);

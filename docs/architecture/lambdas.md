@@ -280,9 +280,9 @@ their primary responsibilities.
 - Function: AdminGroupAuthorizerFunction
 - Handler: backend/lambda/authorizers/cognito_group/handler.py
 - Trigger: API Gateway request authorizer
-- Purpose: verify JWT and check user belongs to the `admin` Cognito group
+- Purpose: verify JWT and check the user belongs to at least one staff Cognito group (`admin`, `manager`, or `instructor`)
 - VPC: **No** (runs outside VPC to fetch JWKS from Cognito)
-- Environment: `ALLOWED_GROUPS=admin`
+- Environment: `ALLOWED_GROUPS=admin,manager,instructor`
 
 ### User authorizer (any authenticated user)
 - Function: UserAuthorizerFunction

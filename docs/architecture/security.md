@@ -98,6 +98,14 @@ logger.info("Processing user", extra={"user_id_masked": mask_pii(user_id)})
 
 ## Authentication Security
 
+### Admin web and admin API (Cognito groups)
+
+Access to the admin Next.js app (beyond sign-in) and to admin API routes that use
+the Cognito group authorizer requires membership in at least one of the user pool
+groups **`admin`**, **`manager`**, or **`instructor`**. Users who complete social
+or passwordless sign-in without any of these groups must not see the admin
+dashboard; the client shows an access-denied state and sign out instead.
+
 ### OTP/Code Generation
 
 **Always use cryptographically secure random for security tokens.**

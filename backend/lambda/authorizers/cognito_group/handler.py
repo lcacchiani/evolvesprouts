@@ -10,7 +10,7 @@ SECURITY NOTES:
 
 Environment Variables:
     ALLOWED_GROUPS: Comma-separated list of groups that can access the endpoint
-                    (e.g., "admin" or "admin,manager")
+                    (e.g., "admin,manager,instructor")
 """
 
 from __future__ import annotations

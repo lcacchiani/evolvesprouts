@@ -149,8 +149,10 @@ pull requests for dependency updates:
 - IAM auth for RDS Proxy, TLS enforced on DB connections.
 - Secrets stored in GitHub Secrets or AWS Secrets Manager.
 - Public asset routes require an API key plus device attestation (JWKS-validated).
-- Admin routes require membership in the Cognito `admin` group.
-- Manager routes (when exposed) require `admin` or `manager` group membership.
+- Admin API routes protected by the admin group authorizer require membership in
+  at least one of the Cognito groups `admin`, `manager`, or `instructor`.
+- The admin web app shows the dashboard only for the same staff groups; other
+  signed-in pool users see an access-denied screen with sign out.
 - User routes (when exposed) require any valid Cognito JWT (no group requirement).
 - API keys are rotated every 90 days via a scheduled Lambda.
 - Optional CDK parameters can bootstrap an initial admin user.

@@ -9,6 +9,7 @@ import {
   completeLogin,
   ensureFreshTokens,
   getUserProfile,
+  hasStaffAdminAccess,
   startLogin,
   startLogout,
   storeTokensFromPasswordless,
@@ -21,7 +22,11 @@ import {
 } from '../lib/cognito-auth';
 import { getConfigErrors } from '../lib/config';
 
-export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+export type AuthStatus =
+  | 'loading'
+  | 'authenticated'
+  | 'authenticated_no_access'
+  | 'unauthenticated';
 
 export type PasswordlessStatus =
   | 'idle'
@@ -95,7 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = getUserProfile(tokens);
           setError('');
           setUser(profile);
-          setStatus('authenticated');
+          setStatus(
+            hasStaffAdminAccess(profile.groups) ? 'authenticated' : 'authenticated_no_access'
+          );
         } else {
           setStatus('unauthenticated');
         }
@@ -183,7 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         setUser(profile);
-        setStatus('authenticated');
+        setStatus(
+          hasStaffAdminAccess(profile.groups) ? 'authenticated' : 'authenticated_no_access'
+        );
         setPasswordlessStatus('idle');
         setCognitoUser(null);
         setPasswordlessEmail('');

@@ -1,6 +1,14 @@
 import { appConfig, getCognitoDomain } from './config';
 import { generatePkcePair } from './pkce';
 
+/** Cognito group names that may use the admin web app and admin API (see user pool groups in CDK). */
+export const COGNITO_STAFF_ADMIN_GROUPS = ['admin', 'manager', 'instructor'] as const;
+
+export function hasStaffAdminAccess(groups: string[]): boolean {
+  const allowed = new Set<string>(COGNITO_STAFF_ADMIN_GROUPS);
+  return groups.some((g) => allowed.has(g));
+}
+
 const tokenStorageKey = 'admin_auth_tokens';
 const pkceStorageKey = 'admin_auth_pkce';
 const loginRedirectStorageKey = 'admin_auth_redirect';

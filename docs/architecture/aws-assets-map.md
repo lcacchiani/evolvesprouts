@@ -512,7 +512,7 @@ allowlist (`CORS_ALLOWED_ORIGINS` plus required defaults).
 | Resource Type | Logical ID | Type | Handler | Notes |
 |--------------|------------|------|---------|-------|
 | Request Authorizer | `DeviceAttestationRequestAuthorizer` | Lambda | `DeviceAttestationAuthorizer` | Validates `x-device-attestation` header, no caching |
-| Request Authorizer | `AdminGroupAuthorizer` | Lambda | `AdminGroupAuthorizerFunction` | JWT + admin group check, 5-min cache |
+| Request Authorizer | `AdminGroupAuthorizer` | Lambda | `AdminGroupAuthorizerFunction` | JWT + staff group check (`admin` / `manager` / `instructor`), 5-min cache |
 | Request Authorizer | `UserAuthorizer` | Lambda | `UserAuthorizerFunction` | JWT validation (any user), 5-min cache |
 
 ### API Gateway API Key and Usage Plan
