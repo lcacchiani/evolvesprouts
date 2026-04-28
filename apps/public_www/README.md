@@ -266,6 +266,10 @@ and the free guides resource library list (`GET /v1/assets/free`, same-origin as
 The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
 for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
 injects the beacon at the edge.
+When the build detects Google Tag Manager (`init-gtm.js`), CSP also allows Google
+Ads–related script and connect endpoints used by tags in the container (for example
+`googleads.g.doubleclick.net`, `www.googleadservices.com`, and `www.google.com` for
+CCM/rmkt beacons), in addition to the existing Google Analytics `connect-src` hosts.
 Public website discount validation uses `/v1/discounts/validate`. Contact-us and
 reservation submission use:
 

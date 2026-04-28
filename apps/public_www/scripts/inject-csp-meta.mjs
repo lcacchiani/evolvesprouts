@@ -11,12 +11,19 @@ const CLOUDFLARE_INSIGHTS_SCRIPT_ORIGIN = 'https://static.cloudflareinsights.com
 const CLOUDFLARE_INSIGHTS_CONNECT_ORIGIN = 'https://cloudflareinsights.com';
 const API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_API_BASE_URL';
 
-const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
+// GTM may load Google Ads / conversion tags; hosts align with Google Tag Platform CSP guidance.
+const GTM_SCRIPT_ORIGINS = [
+  'https://www.googletagmanager.com',
+  'https://googleads.g.doubleclick.net',
+  'https://www.googleadservices.com',
+];
 const GTM_CONNECT_ORIGINS = [
   'https://www.google-analytics.com',
   'https://analytics.google.com',
   'https://region1.google-analytics.com',
   'https://stats.g.doubleclick.net',
+  'https://www.google.com',
+  'https://googleads.g.doubleclick.net',
 ];
 const GTM_DETECT_MARKER = 'init-gtm.js';
 
