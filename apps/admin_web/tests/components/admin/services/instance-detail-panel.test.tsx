@@ -672,4 +672,228 @@ describe('InstanceDetailPanel', () => {
       })
     );
   });
+
+  it('auto-updates training_course create slug from service slug, tier, and cohort until slug is edited', async () => {
+    const user = userEvent.setup();
+    const venueId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
+    const { rerender } = render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='svc-1'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'svc-1',
+            title: 'Training',
+            slug: 'training-template',
+            serviceTier: null,
+          }),
+        ]}
+        locationOptions={[buildLocationSummary({ id: venueId })]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^slug/i)).toHaveValue('training-template');
+    });
+
+    rerender(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='svc-1'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'svc-1',
+            title: 'Training',
+            slug: 'bla-bla-bla',
+            serviceTier: '1-3',
+          }),
+        ]}
+        locationOptions={[buildLocationSummary({ id: venueId })]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3');
+    });
+
+    await user.type(screen.getByLabelText('Cohort'), 'may-26');
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3-may-26');
+    });
+
+    await user.clear(screen.getByLabelText('Cohort'));
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('bla-bla-bla-1-3');
+    });
+  });
+
+  it('auto-populates event slug from title and first session slot date until slug is edited', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='evt-svc'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'evt-svc',
+            serviceType: 'event',
+            title: 'Events',
+            slug: 'events',
+            trainingDetails: null,
+            eventDetails: {
+              eventCategory: 'open_house',
+              defaultPrice: '10',
+              defaultCurrency: 'HKD',
+            },
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='event'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    await waitFor(() => {
+      expect(slugInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    await user.click(screen.getByText('Session slots'));
+    await user.click(screen.getByRole('button', { name: /add slot/i }));
+    const startInput = screen.getByLabelText('Start time');
+    await user.clear(startInput);
+    await user.type(startInput, '2026-04-20T14:00');
+
+    await waitFor(() => {
+      expect(slugInput.value.endsWith('2026-04-20')).toBe(true);
+    });
+
+    await user.type(screen.getByLabelText('Title'), 'Spring Gala');
+    await waitFor(() => {
+      expect(slugInput.value).toBe('spring-gala-2026-04-20');
+    });
+
+    await user.clear(slugInput);
+    await user.type(slugInput, 'custom-slug');
+    await user.clear(screen.getByLabelText('Title'));
+    await user.type(screen.getByLabelText('Title'), 'Ignored');
+    expect(slugInput).toHaveValue('custom-slug');
+  });
+
+  it('shows inline error when event slug is empty on add', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='evt-svc-2'
+        serviceOptions={[
+          buildServiceSummary({
+            id: 'evt-svc-2',
+            serviceType: 'event',
+            title: 'Events',
+            slug: 'events',
+            trainingDetails: null,
+            eventDetails: {
+              eventCategory: 'open_house',
+              defaultPrice: '25',
+              defaultCurrency: 'HKD',
+            },
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='event'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    const slugInput = screen.getByLabelText(/^slug/i);
+    await waitFor(() => {
+      expect((slugInput as HTMLInputElement).value.length).toBeGreaterThan(0);
+    });
+    await user.type(slugInput, '-manual');
+    await user.clear(slugInput);
+    await waitFor(() => {
+      expect(slugInput).toHaveValue('');
+    });
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+    expect(
+      screen.getByText(/slug is required for event and training_course instances/i)
+    ).toBeInTheDocument();
+    expect(onCreate).not.toHaveBeenCalled();
+  });
+
+  it('does not require slug for consultation create', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[
+          buildServiceSummary({
+            serviceType: 'consultation',
+            trainingDetails: null,
+            consultationDetails: null,
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='consultation'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    const slugLabel = screen.getByText('Slug');
+    expect(slugLabel.parentElement?.textContent).not.toMatch(/\*/);
+
+    await user.click(screen.getByRole('button', { name: 'Add instance' }));
+    expect(onCreate).toHaveBeenCalledWith(
+      'service-1',
+      expect.objectContaining({ slug: null })
+    );
+  });
 });

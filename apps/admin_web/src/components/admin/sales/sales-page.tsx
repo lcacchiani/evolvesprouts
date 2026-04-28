@@ -54,7 +54,7 @@ export function SalesPage() {
           await state.leadAnalytics.refetch();
           await state.adminUsers.refetch();
         }}
-        onNewLead={state.openCreateDialog}
+        onNewLead={state.startCreateLead}
       />
 
       {state.activeView === 'pipeline' ? (
@@ -65,17 +65,17 @@ export function SalesPage() {
             onSelectStage={(stage) => state.leadList.setFilter('stage', stage ? [stage] : [])}
           />
           <LeadDetailPanel
-            key={`${state.isCreateDialogOpen ? 'create' : 'edit'}-${state.selectedLeadId ?? 'none'}`}
-            mode={state.isCreateDialogOpen ? 'create' : 'edit'}
+            key={`${state.isCreateMode ? 'create' : 'edit'}-${state.selectedLeadId ?? 'none'}`}
+            mode={state.isCreateMode ? 'create' : 'edit'}
             lead={state.leadDetail.lead}
             users={state.adminUsers.users}
             isLoading={state.mutations.isLoading || state.leadDetail.isLoading}
             error={state.mutations.error}
-            onStartCreate={state.openCreateDialog}
-            onCancelCreate={state.closeCreateDialog}
+            onStartCreate={state.startCreateLead}
+            onCancelCreate={state.cancelCreateLead}
             onCreate={async (payload) => {
               await state.mutations.createLeadEntry(payload);
-              state.closeCreateDialog();
+              state.cancelCreateLead();
             }}
             onUpdateStage={async (stage, lostReason) => {
               if (!state.selectedLeadId) {

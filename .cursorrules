@@ -279,7 +279,7 @@ should extend the shared primitives rather than reintroducing one-off layouts.
 
 - **Top-level navigation** (`ADMIN_NAV_ITEMS` in `apps/admin_web/src/lib/admin-nav.ts`, rendered by
   `apps/admin_web/src/components/admin-authenticated-shell.tsx`) must list areas
-  alphabetically: **Assets**, **Contacts**, **Finance**, **Sales**, **Services**, **Website**. The default
+  alphabetically: **Assets**, **Contacts**, **Finance**, **Sales**, **Services**, **Tags**, **Website**. The default
   section after sign-in is **Finance** unless product requirements change.
 - **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
   must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`
