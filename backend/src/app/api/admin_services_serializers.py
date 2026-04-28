@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 from app.api.admin_entities_helpers import serialize_tag_ref
 
@@ -15,7 +16,11 @@ from app.db.models import (
     Service,
     ServiceInstance,
 )
-from app.db.models.enums import ConsultationPricingModel, ServiceType
+from app.db.models.enums import (
+    CAPACITY_ENROLLMENT_STATUSES,
+    ConsultationPricingModel,
+    ServiceType,
+)
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -213,7 +218,20 @@ def _resolved_event_ticket_tiers(
     ]
 
 
-def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
+def _capacity_enrollment_count_from_loaded(instance: ServiceInstance) -> int:
+    """Count capacity enrollments when ``instance.enrollments`` is loaded (detail payloads)."""
+    enrollments = getattr(instance, "enrollments", None)
+    if not enrollments:
+        return 0
+    return sum(1 for row in enrollments if row.status in CAPACITY_ENROLLMENT_STATUSES)
+
+
+def serialize_instance(
+    instance: ServiceInstance,
+    *,
+    capacity_enrolled_count: int | None = None,
+    enrollment_counts_by_instance_id: dict[UUID, int] | None = None,
+) -> dict[str, Any]:
     """Serialize service instance payload."""
     service = instance.service
     resolved_title = instance.title if instance.title is not None else service.title
@@ -245,6 +263,12 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
             str(row.tag_id),
         ),
     )
+    if capacity_enrolled_count is not None:
+        enrolled_for_capacity = capacity_enrolled_count
+    elif enrollment_counts_by_instance_id is not None:
+        enrolled_for_capacity = enrollment_counts_by_instance_id.get(instance.id, 0)
+    else:
+        enrolled_for_capacity = _capacity_enrollment_count_from_loaded(instance)
     return {
         "id": str(instance.id),
         "service_id": str(instance.service_id),
@@ -261,6 +285,7 @@ def serialize_instance(instance: ServiceInstance) -> dict[str, Any]:
         else None,
         "location_id": str(instance.location_id) if instance.location_id else None,
         "max_capacity": instance.max_capacity,
+        "capacity_enrolled_count": enrolled_for_capacity,
         "waitlist_enabled": instance.waitlist_enabled,
         "external_url": instance.external_url,
         "partner_organizations": [

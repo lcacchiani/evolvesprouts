@@ -27,7 +27,12 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment
 from app.db.models.enums import EnrollmentStatus
-from app.db.repositories import DiscountCodeRepository, EnrollmentRepository
+from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
+from app.db.repositories import (
+    DiscountCodeRepository,
+    EnrollmentRepository,
+    ServiceInstanceRepository,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
 from app.utils.logging import get_logger
@@ -168,6 +173,11 @@ def _create_enrollment(
             created_by=actor_sub,
         )
         created = repository.create_enrollment(enrollment)
+        if hasattr(session, "get"):
+            instance_repository = ServiceInstanceRepository(session)
+            instance_row = instance_repository.get_by_id(created.instance_id)
+            if instance_row is not None:
+                bulk_reconcile_instance_capacity_status(session, [instance_row])
         session.commit()
         return json_response(
             201,
@@ -241,6 +251,11 @@ def _update_enrollment(
                 enrollment.discount_code_id = new_id
 
         updated = repository.update(enrollment)
+        if hasattr(session, "get"):
+            instance_repository = ServiceInstanceRepository(session)
+            instance_row = instance_repository.get_by_id(updated.instance_id)
+            if instance_row is not None:
+                bulk_reconcile_instance_capacity_status(session, [instance_row])
         session.commit()
         return json_response(
             200,
@@ -278,5 +293,10 @@ def _delete_enrollment(
                     field="discount_code_id",
                 )
         repository.delete(enrollment)
+        if hasattr(session, "get"):
+            instance_repository = ServiceInstanceRepository(session)
+            instance_row = instance_repository.get_by_id(instance_id)
+            if instance_row is not None:
+                bulk_reconcile_instance_capacity_status(session, [instance_row])
         session.commit()
         return json_response(204, {}, event=event)

@@ -7,6 +7,7 @@ import {
   formatDateOnly,
   formatEnumLabel,
   formatInstanceSlotLocationSummary,
+  formatInstanceTableCapacity,
   formatInstanceTableTierCohort,
   formatInstanceTableTitle,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
@@ -96,6 +97,51 @@ describe('format helpers', () => {
         { id: 'ok', instanceId: null, locationId: null, startsAt: '2026-01-01T10:00:00Z', endsAt: null, sortOrder: 1 },
       ])?.id
     ).toBe('ok');
+  });
+
+  it('formats instance table capacity as seats left over max or Unlimited', () => {
+    const base = (): ServiceInstance => ({
+      id: 'inst-uuid',
+      serviceId: 's1',
+      parentServiceTitle: 'Workshop',
+      parentServiceTier: null,
+      parentServiceType: 'training_course',
+      title: null,
+      slug: null,
+      description: null,
+      coverImageS3Key: null,
+      status: 'open',
+      deliveryMode: null,
+      locationId: null,
+      maxCapacity: null,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: null,
+      tagIds: [],
+      createdBy: 'u',
+      createdAt: null,
+      updatedAt: null,
+      resolvedTitle: null,
+      resolvedSlug: null,
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: null,
+      sessionSlots: [],
+      trainingDetails: null,
+      resolvedTrainingDetails: null,
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    });
+    expect(formatInstanceTableCapacity(base())).toBe('Unlimited');
+    expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 8, capacityEnrolledCount: 2 })).toBe('6/8');
+    expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 8, capacityEnrolledCount: 8 })).toBe('0/8');
+    expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 5 })).toBe('5/5');
   });
 
   it('formats service title with tier using spaced interpunct when tier is set', () => {

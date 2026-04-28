@@ -198,7 +198,7 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
     monkeypatch.setattr(
         admin_service_instances,
         "serialize_instance",
-        lambda inst: {"id": str(inst.id), "partner_ok": True},
+        lambda inst, **_kwargs: {"id": str(inst.id), "partner_ok": True},
     )
     monkeypatch.setattr(
         admin_service_instances,

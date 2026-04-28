@@ -105,7 +105,7 @@ def test_list_instances_returns_repository_total_count(
     monkeypatch.setattr(
         admin_service_instances,
         "serialize_instance",
-        lambda _item: {"id": "instance-1"},
+        lambda _item, **_kwargs: {"id": "instance-1"},
     )
     monkeypatch.setattr(
         admin_service_instances,
@@ -178,7 +178,7 @@ def test_handle_admin_all_service_instances_lists_global(
     monkeypatch.setattr(
         admin_service_instances,
         "serialize_instance",
-        lambda _item: {"id": "instance-1"},
+        lambda _item, **_kwargs: {"id": "instance-1"},
     )
     monkeypatch.setattr(
         admin_service_instances,

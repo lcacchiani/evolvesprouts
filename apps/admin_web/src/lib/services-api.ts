@@ -297,6 +297,8 @@ function parseInstance(value: unknown): ServiceInstance {
     deliveryMode: (asNullableString(item.delivery_mode) ?? null) as ServiceInstance['deliveryMode'],
     locationId: asNullableString(item.location_id),
     maxCapacity: typeof item.max_capacity === 'number' ? item.max_capacity : null,
+    capacityEnrolledCount:
+      typeof item.capacity_enrolled_count === 'number' ? item.capacity_enrolled_count : 0,
     waitlistEnabled: asBoolean(item.waitlist_enabled, false),
     externalUrl: asNullableString(item.external_url),
     partnerOrganizations: Array.isArray(item.partner_organizations)

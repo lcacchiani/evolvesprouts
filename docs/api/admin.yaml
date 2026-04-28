@@ -3979,6 +3979,11 @@ components:
         max_capacity:
           type: integer
           nullable: true
+        capacity_enrolled_count:
+          type: integer
+          description: >
+            Count of enrollments that consume instance capacity (registered, confirmed,
+            completed). Included on admin instance payloads for display and capacity logic.
         waitlist_enabled:
           type: boolean
         external_url:
