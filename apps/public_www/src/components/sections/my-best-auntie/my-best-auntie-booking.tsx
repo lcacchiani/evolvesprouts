@@ -34,7 +34,11 @@ import {
   formatPartDateTimeLabel,
   parseCohortValue,
 } from '@/lib/format';
-import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
+import {
+  formatYmdInPublicSiteTimeZone,
+  getPrimarySessionSortValue,
+  isFutureCohort,
+} from '@/lib/my-best-auntie-cohort-calendar';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -133,42 +137,6 @@ function formatSpacesLeftLabel(count: number, template: string): string {
 function shouldAutoOpenMyBestAuntieBookingModal(searchValue: string): boolean {
   const queryParams = new URLSearchParams(searchValue);
   return queryParams.get(BOOKING_SYSTEM_QUERY_PARAM) === MY_BEST_AUNTIE_BOOKING_SYSTEM;
-}
-
-function getPrimarySessionSortValue(cohort: MyBestAuntieEventCohort): number {
-  const startDateTime = cohort.dates[0]?.start_datetime?.trim() ?? '';
-  if (!startDateTime) {
-    return Number.POSITIVE_INFINITY;
-  }
-  const parsedDate = Date.parse(startDateTime);
-  if (Number.isNaN(parsedDate)) {
-    return Number.POSITIVE_INFINITY;
-  }
-  return parsedDate;
-}
-
-function formatYmdInPublicSiteTimeZone(instant: Date): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(instant);
-}
-
-function isFutureCohort(cohort: MyBestAuntieEventCohort, todayYmd: string): boolean {
-  if (cohort.dates.length === 0) {
-    return false;
-  }
-
-  return cohort.dates.every((datePart) => {
-    const parsedDate = Date.parse(datePart.start_datetime);
-    if (Number.isNaN(parsedDate)) {
-      return false;
-    }
-
-    return formatYmdInPublicSiteTimeZone(new Date(parsedDate)) > todayYmd;
-  });
 }
 
 function sortCohortsByPrimarySession(
