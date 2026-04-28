@@ -1,5 +1,10 @@
 import type { Locale } from '@/content';
 import type { MyBestAuntieEventCohort } from '@/lib/events-data';
+import {
+  formatYmdInPublicSiteTimeZone,
+  getPrimarySessionSortValue,
+  isFutureCohort,
+} from '@/lib/my-best-auntie-cohort-calendar';
 import { formatCohortValue } from '@/lib/format';
 
 export interface MyBestAuntieHeroCohortSummary {
@@ -23,7 +28,9 @@ export function resolveMyBestAuntieHeroCohortSummary(
       nextCohortLabel: undefined,
     };
   }
-  const available = cohorts.filter((c) => !c.is_fully_booked);
+  const notSoldOut = cohorts.filter((c) => !c.is_fully_booked);
+  const todayYmd = formatYmdInPublicSiteTimeZone(new Date());
+  const available = notSoldOut.filter((c) => isFutureCohort(c, todayYmd));
   if (available.length === 0) {
     return {
       lowestPrice: undefined,
@@ -44,9 +51,12 @@ export function resolveMyBestAuntieHeroCohortSummary(
     lowestPrice === Infinity || lowestPrice <= 0 ? undefined : lowestPrice;
 
   const sorted = [...available].sort((a, b) => {
-    const dateA = a.dates[0]?.start_datetime ?? '';
-    const dateB = b.dates[0]?.start_datetime ?? '';
-    return dateA.localeCompare(dateB);
+    const dateDifference =
+      getPrimarySessionSortValue(a) - getPrimarySessionSortValue(b);
+    if (dateDifference !== 0) {
+      return dateDifference;
+    }
+    return a.slug.localeCompare(b.slug);
   });
   const rawCohort = sorted[0]?.cohort ?? '';
   const nextCohortLabel =
