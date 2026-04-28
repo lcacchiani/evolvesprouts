@@ -2,7 +2,7 @@
 
 Seed-data assessment (``backend/db/seed/seed_data.sql``):
 1. Compatibility: seed has no ``enrollments`` inserts.
-2. NOT NULL: index only applies where ``contact_id`` IS NOT NULL; no seed rows.
+2. NOT NULL: index only applies where ``contact_id`` is not null; no seed rows.
 3. Renamed/dropped: none.
 4. New tables: none.
 5. Enum/allowed-value changes: none.
@@ -19,7 +19,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0045_enrollment_inst_contact_uidx"
+revision: str = "0045_enroll_inst_contact_uidx"
 down_revision: Union[str, None] = "0044_drop_landing_page"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

@@ -540,7 +540,7 @@ without breaking existing junction references.
 - Registration/booking rows linked to a `service_instances` row.
 - Supports parent linkage to one of contact/family/organization.
 - Optional links to event ticket tiers and discount codes.
-- Migration `0045_enrollment_inst_contact_uidx` adds partial unique index
+- Migration `0045_enroll_inst_contact_uidx` adds partial unique index
   `enrollments_instance_contact_uidx` on `(instance_id, contact_id)` where
   `contact_id` is not null (at most one enrollment per contact per instance when
   the parent is a contact).
