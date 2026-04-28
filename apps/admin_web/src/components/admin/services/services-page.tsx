@@ -26,7 +26,6 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
-  const [showArchivedDiscountServices, setShowArchivedDiscountServices] = useState(false);
   const [duplicateServiceTemplate, setDuplicateServiceTemplate] = useState<ServiceDetail | null>(null);
   const [duplicateInstanceTemplate, setDuplicateInstanceTemplate] = useState<ServiceInstance | null>(null);
   const [servicesEditorRemountKey, setServicesEditorRemountKey] = useState(0);
@@ -73,12 +72,7 @@ export function ServicesPage() {
     [state]
   );
   const allServiceOptionsIncludingArchived = state.serviceList.services;
-  const pickerServiceOptions = useMemo(() => {
-    if (showArchivedDiscountServices) {
-      return allServiceOptionsIncludingArchived;
-    }
-    return allServiceOptionsIncludingArchived.filter((svc) => svc.status !== 'archived');
-  }, [showArchivedDiscountServices, allServiceOptionsIncludingArchived]);
+  const pickerServiceOptions = allServiceOptionsIncludingArchived;
   const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
   const instanceSearchLocationById = useMemo(
     () => new Map(state.locationList.locations.map((loc) => [loc.id, loc])),
@@ -374,8 +368,6 @@ export function ServicesPage() {
           serviceOptions={pickerServiceOptions}
           serviceDirectoryForDisplay={allServiceOptionsIncludingArchived}
           instanceOptionsRefreshKey={state.instanceOptionsCacheVersion}
-          showArchivedServices={showArchivedDiscountServices}
-          onShowArchivedChange={setShowArchivedDiscountServices}
           onFilterChange={state.discountCodes.setFilter}
           onLoadMore={state.discountCodes.loadMore}
           onCreate={(payload, options) =>

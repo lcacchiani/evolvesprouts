@@ -116,9 +116,9 @@ export function CreateDiscountCodeDialog({
         />
       </div>
       <div>
-        <Label htmlFor='discount-active'>Active</Label>
+        <Label htmlFor='discount-status'>Status</Label>
         <Select
-          id='discount-active'
+          id='discount-status'
           value={active ? 'true' : 'false'}
           onChange={(event) => setActive(event.target.value === 'true')}
         >
