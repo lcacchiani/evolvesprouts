@@ -569,6 +569,13 @@ without breaking existing junction references.
   `contact_id` is not null (at most one enrollment per contact per instance when
   the parent is a contact).
 
+### `calendar_manual_blocks`
+
+- Purpose-scoped manual half-day blocks (`purpose` varchar(64), `block_date` date,
+  `period` in `am` / `pm` / `both`, optional `note`).
+- Unique on `(purpose, block_date, period)`; merged at read time with session slots for
+  public `GET /v1/calendar/blockers` (see `app.services.calendar_blockers`).
+
 ### `service_tags` + `service_assets`
 
 - Junction tables for many-to-many links between services and existing `tags`

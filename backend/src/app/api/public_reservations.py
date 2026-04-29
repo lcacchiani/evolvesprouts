@@ -54,6 +54,10 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
+from app.services.calendar_blockers import (
+    consultation_booking_purpose,
+    consultation_slot_blocked,
+)
 from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
     send_sales_form_recap_email,
@@ -202,6 +206,23 @@ def _handle_public_reservation(
                 **reservation_payload,
                 "service_type": resolved_instance.service.service_type.value,
             }
+            if reservation_payload.get("booking_system") == "consultation-booking":
+                start_iso = reservation_payload.get("primary_session_start_iso")
+                if not start_iso:
+                    raise ValidationError(
+                        "primarySessionStartIso is required for consultation bookings",
+                        field="primarySessionStartIso",
+                    )
+                if consultation_slot_blocked(
+                    primary_start_iso=str(start_iso),
+                    purpose=consultation_booking_purpose(),
+                    session=session,
+                ):
+                    raise ValidationError(
+                        "The selected consultation time is no longer available. "
+                        "Please pick another slot.",
+                        field="primarySessionStartIso",
+                    )
             _validate_discount_code_redemption_scope(
                 session, reservation_payload, resolved_instance=resolved_instance
             )

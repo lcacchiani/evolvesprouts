@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
 import enContent from '@/content/en.json';
-import calendarAvailability from '@/content/calendar-availability.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -24,6 +23,11 @@ vi.mock('@/lib/analytics', () => ({
 
 vi.mock('@/lib/meta-pixel', () => ({
   trackMetaPixelEvent: vi.fn(),
+}));
+
+vi.mock('@/lib/calendar-blockers-api', () => ({
+  CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 5000,
+  fetchConsultationCalendarBlockersSlots: vi.fn().mockResolvedValue([]),
 }));
 
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -77,7 +81,6 @@ describe('ConsultationsBooking', () => {
         locale='en'
         content={booking}
         bookingModalContent={enContent.bookingModal}
-        calendarAvailability={calendarAvailability}
       />,
     );
 
@@ -175,7 +178,6 @@ describe('ConsultationsBooking', () => {
         locale='en'
         content={booking}
         bookingModalContent={enContent.bookingModal}
-        calendarAvailability={calendarAvailability}
       />,
     );
 
@@ -255,7 +257,6 @@ describe('ConsultationsBooking', () => {
         locale='en'
         content={booking}
         bookingModalContent={enContent.bookingModal}
-        calendarAvailability={calendarAvailability}
       />,
     );
 
@@ -300,7 +301,6 @@ describe('ConsultationsBooking', () => {
         locale='en'
         content={booking}
         bookingModalContent={enContent.bookingModal}
-        calendarAvailability={calendarAvailability}
       />,
     );
 

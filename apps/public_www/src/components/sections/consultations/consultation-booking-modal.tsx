@@ -35,10 +35,10 @@ import {
   isConsultationPeriodBlocked,
   pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
-  resolveDefaultDateTimeZone,
   type ConsultationDayPeriod,
   type ConsultationUnavailableByYmd,
 } from '@/lib/consultation-booking-slot';
+import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { mergeClassNames } from '@/lib/class-name-utils';
@@ -331,7 +331,7 @@ export function ConsultationBookingModal({
   const dialogTitleId = useId();
   const dialogDescriptionId = useId();
 
-  const timeZone = useMemo(() => resolveDefaultDateTimeZone(), []);
+  const timeZone = useMemo(() => PUBLIC_SITE_IANA_TIMEZONE, []);
 
   const unavailableByYmd = useMemo(() => {
     return buildUnavailableSlotMap(calendarAvailability.unavailable_slots);

@@ -24,6 +24,8 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
+    - `GET|POST /v1/admin/calendar/manual-blocks` (GET requires `purpose`, `from`, `to`)
+    - `GET|PATCH|DELETE /v1/admin/calendar/manual-blocks/{id}`
     - `GET|POST /v1/admin/tags` (optional `include_archived`, `archived_only`)
     - `GET|PATCH|DELETE /v1/admin/tags/{id}` (DELETE returns JSON with `deleted` and `usage_count`)
     - `GET /v1/admin/contacts/tags`
@@ -1590,6 +1592,141 @@ paths:
                 $ref: "#/components/schemas/DiscountCodeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/calendar/manual-blocks:
+    get:
+      summary: List manual calendar blocks for a purpose
+      description: |
+        Returns **manual** rows from `calendar_manual_blocks` only (session-derived blockers
+        are exposed on `GET /v1/calendar/blockers`). Current release supports `purpose=consultation_booking` only.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: purpose
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Manual block list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCalendarManualBlockListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create manual calendar block
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminCalendarManualBlockRequest"
+      responses:
+        "201":
+          description: Block created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCalendarManualBlockResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Duplicate purpose/date/period.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/admin/calendar/manual-blocks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get manual calendar block by id
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Block detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCalendarManualBlockResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update manual calendar block
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminCalendarManualBlockRequest"
+      responses:
+        "200":
+          description: Updated block.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCalendarManualBlockResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Duplicate purpose/date/period.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete manual calendar block
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCalendarManualBlockDeleteResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
@@ -5350,6 +5487,98 @@ components:
               description: >
                 True for reserved asset-pipeline tags (`expense_attachment`, `client_document`).
                 These cannot be renamed, archived, or deleted via the admin API.
+    AdminCalendarManualBlockRef:
+      type: object
+      required:
+        - id
+        - purpose
+        - block_date
+        - period
+      properties:
+        id:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          maxLength: 64
+        block_date:
+          type: string
+          format: date
+        period:
+          type: string
+          enum: [am, pm, both]
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    AdminCalendarManualBlockListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminCalendarManualBlockRef"
+    AdminCalendarManualBlockResponse:
+      type: object
+      required:
+        - block
+      properties:
+        block:
+          $ref: "#/components/schemas/AdminCalendarManualBlockRef"
+    AdminCalendarManualBlockDeleteResponse:
+      type: object
+      required:
+        - deleted
+      properties:
+        deleted:
+          type: boolean
+    CreateAdminCalendarManualBlockRequest:
+      type: object
+      required:
+        - purpose
+        - blockDate
+        - period
+      properties:
+        purpose:
+          type: string
+          maxLength: 64
+          pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+        blockDate:
+          type: string
+          format: date
+        period:
+          type: string
+          enum: [am, pm, both]
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
+    UpdateAdminCalendarManualBlockRequest:
+      type: object
+      required:
+        - blockDate
+        - period
+      properties:
+        blockDate:
+          type: string
+          format: date
+        period:
+          type: string
+          enum: [am, pm, both]
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
     AdminTagDeleteResponse:
       type: object
       required:

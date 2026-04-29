@@ -22,7 +22,11 @@ import type {
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
+import calendarAvailabilityFallback from '@/content/calendar-availability.json';
+import {
+  CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
+  fetchConsultationCalendarBlockersSlots,
+} from '@/lib/calendar-blockers-api';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,
@@ -138,7 +142,6 @@ interface ConsultationsBookingProps {
   locale: Locale;
   content: ConsultationsBookingContent;
   bookingModalContent: BookingModalContent;
-  calendarAvailability: CalendarAvailabilityPayload;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
   commonAccessibility?: CommonAccessibilityContent;
@@ -148,12 +151,14 @@ export function ConsultationsBooking({
   locale,
   content,
   bookingModalContent,
-  calendarAvailability,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
   commonAccessibility = enContent.common.accessibility,
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [calendarAvailability, setCalendarAvailability] = useState(() => ({
+    unavailable_slots: [...calendarAvailabilityFallback.unavailable_slots],
+  }));
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
     null,
   );
@@ -169,6 +174,25 @@ export function ConsultationsBooking({
     useState(false);
   const [consultationModalLevelFeaturesAnimNonce, setConsultationModalLevelFeaturesAnimNonce] =
     useState(0);
+
+  useEffect(() => {
+    if (!isBookingModalOpen) {
+      return;
+    }
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS);
+
+    void fetchConsultationCalendarBlockersSlots(controller.signal).then((slots) => {
+      setCalendarAvailability({ unavailable_slots: slots });
+    });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [isBookingModalOpen]);
 
   useEffect(() => {
     if (!isThankYouOpen || !thankYouSummary) {

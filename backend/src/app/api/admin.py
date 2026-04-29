@@ -32,6 +32,10 @@ from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
 from app.api.public_free_assets import handle_public_free_assets_list_request
 from app.api.public_discount_validate import handle_public_discount_validate
+from app.api.admin_calendar_manual_blocks import (
+    handle_admin_calendar_manual_blocks_request,
+)
+from app.api.public_calendar_blockers import handle_public_calendar_blockers
 from app.api.public_events import handle_public_events
 from app.api.public_contact import handle_public_contact_us
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
@@ -88,6 +92,16 @@ _ROUTES: tuple[
         "/www/v1/calendar/public",
         True,
         lambda event, method, _path: handle_public_events(event, method),
+    ),
+    (
+        "/v1/calendar/blockers",
+        True,
+        lambda event, method, _path: handle_public_calendar_blockers(event, method),
+    ),
+    (
+        "/www/v1/calendar/blockers",
+        True,
+        lambda event, method, _path: handle_public_calendar_blockers(event, method),
     ),
     (
         "/v1/discounts/validate",
@@ -172,6 +186,11 @@ _ROUTES: tuple[
         "/v1/admin/tags",
         False,
         handle_admin_tags_request,
+    ),
+    (
+        "/v1/admin/calendar/manual-blocks",
+        False,
+        handle_admin_calendar_manual_blocks_request,
     ),
     (
         "/v1/admin/contacts",

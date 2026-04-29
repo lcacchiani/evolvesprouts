@@ -16,6 +16,7 @@ info:
       `/v1/assets/free`).
     - Public free-asset listing for the website (`/v1/assets/free`, `/www/v1/assets/free`).
     - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
+    - Public calendar blockers (`/v1/calendar/blockers`, `/www/v1/calendar/blockers`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
@@ -413,6 +414,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PublicCalendarEventsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
+
+  /v1/calendar/blockers:
+    get:
+      summary: List merged calendar blockers
+      description: |
+        Returns half-day **blockers** (`am`, `pm`, or `both` for a calendar date) for a
+        caller-defined `purpose`. Manual admin rows from `calendar_manual_blocks` are merged
+        with **session-derived** blocks from published **event** and **training_course**
+        `instance_session_slots` whose intervals intersect nominal local wall-clock windows
+        (09:00–12:00 blocks `am`, 14:00–18:00 blocks `pm`) in the server wall-clock zone
+        (`CALENDAR_BLOCKERS_WALL_TIMEZONE`, default `Asia/Hong_Kong`).
+
+        For `purpose=consultation_booking`, the merged list matches the public website
+        consultation date picker disable rules; `POST /v1/reservations` rejects
+        `consultation-booking` when `primarySessionStartIso` falls on a blocked half-day.
+
+        Optional `from` / `to` (`YYYY-MM-DD`) bound the response window (defaults: `from=today`,
+        `to=from+120 days`, capped to 120 days). Invalid dates fall back to defaults.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: purpose
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+          description: >
+            Blocker namespace. Supported: `consultation_booking` (family consultation home-visit picker).
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Inclusive range start (`YYYY-MM-DD`). Defaults to today (UTC date).
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Inclusive range end (`YYYY-MM-DD`). Defaults to `from` + 120 days (capped).
+      responses:
+        "200":
+          description: Blocker list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCalendarBlockersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
+
+  /www/v1/calendar/blockers:
+    get:
+      summary: List public website calendar blockers
+      description: |
+        Same as `GET /v1/calendar/blockers` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: purpose
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Blocker list response.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: >
+                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
+                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCalendarBlockersResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -1218,6 +1335,49 @@ components:
             Deprecated alias of `events` for older clients. Prefer `events`.
           items:
             $ref: "#/components/schemas/PublicCalendarEvent"
+    PublicCalendarBlockerRow:
+      type: object
+      required:
+        - date
+        - period
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar date in `YYYY-MM-DD` (wall-clock zone implied by `meta.wall_time_zone` for consultation purposes).
+        period:
+          type: string
+          enum: [am, pm, both]
+    PublicCalendarBlockersMeta:
+      type: object
+      required:
+        - purpose
+        - from
+        - to
+      properties:
+        purpose:
+          type: string
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        wall_time_zone:
+          type: string
+          description: Present for `purpose=consultation_booking` (IANA zone used for half-day windows).
+    PublicCalendarBlockersResponse:
+      type: object
+      required:
+        - blockers
+        - meta
+      properties:
+        blockers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarBlockerRow"
+        meta:
+          $ref: "#/components/schemas/PublicCalendarBlockersMeta"
     DiscountValidationRequest:
       type: object
       required:
@@ -1437,6 +1597,10 @@ components:
         primarySessionStartIso:
           type: string
           maxLength: 50
+          description: >
+            Required when `bookingSystem` is `consultation-booking` (home-visit slot start in
+            ISO-8601). Must fall on a non-blocked half-day for `purpose=consultation_booking`
+            per `GET /v1/calendar/blockers`.
         primarySessionEndIso:
           type: string
           maxLength: 50
