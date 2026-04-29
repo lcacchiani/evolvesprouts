@@ -92,6 +92,13 @@ _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 _PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
 _MAX_SERVICE_KEY_LENGTH = 80
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES = frozenset(
+    {
+        "consultation-booking",
+        "event-booking",
+        "my-best-auntie-booking",
+    }
+)
 
 
 def _resolve_booking_identity(
@@ -568,6 +575,15 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "bookingSystem",
         _MAX_SLUG_KEY_LENGTH,
     )
+    if booking_system is not None:
+        normalized_bs = booking_system.strip().lower()
+        if normalized_bs not in _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES:
+            raise ValidationError(
+                "bookingSystem must be one of: consultation-booking, event-booking, "
+                "my-best-auntie-booking",
+                field="bookingSystem",
+            )
+        booking_system = normalized_bs
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",

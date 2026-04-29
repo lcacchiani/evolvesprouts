@@ -1415,10 +1415,14 @@ components:
         bookingSystem:
           type: string
           maxLength: 100
+          enum:
+            - consultation-booking
+            - event-booking
+            - my-best-auntie-booking
           description: >
-            Optional booking flow code (for example `my-best-auntie-booking`, `consultation-booking`,
-            `event-booking`). Drives confirmation email formatting (schedule/details) when set; not
-            used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
+            Optional booking flow code. When set, must be exactly one of the enum values
+            (case-insensitive on input; stored lowercased). Drives confirmation email formatting
+            (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
         locationName:
           type: string
           maxLength: 200

@@ -66,17 +66,6 @@ export function resolveThankYouServiceTypeLabel(
   return label;
 }
 
-export function resolveThankYouServiceTitle(
-  summary: ReservationSummary | null,
-  bookingTitleFallback: string,
-): string {
-  const title = summary?.eventTitle?.trim() ?? '';
-  if (title) {
-    return title;
-  }
-  return bookingTitleFallback.trim();
-}
-
 function resolveThankYouLocationDisplay(
   summary: ReservationSummary | null,
   virtualFallback: string,
@@ -202,12 +191,9 @@ export function BookingThankYouModal({
   });
 
   const attendeeEmail = summary?.attendeeEmail ?? '';
-  const eventTitle = summary?.eventTitle ?? content.bookingTitleFallback;
+  const eventTitle = summary?.eventTitle?.trim() ?? '';
   const serviceTypeLabel = resolveThankYouServiceTypeLabel(summary, content.serviceLabels);
-  const serviceTitleLine = resolveThankYouServiceTitle(
-    summary,
-    content.bookingTitleFallback,
-  );
+  const serviceTitleLine = eventTitle;
   const serviceRowLeftLabel = serviceTypeLabel || content.serviceLabel;
   const thankYouSessions = useMemo(
     () => resolveThankYouCourseSessions(summary),

@@ -1619,7 +1619,6 @@
       "closeLabel": "关闭",
       "title": "谢谢！",
       "messageTemplate": "确认邮件已发送至 {email}",
-      "bookingTitleFallback": "我的最佳阿姨培训课程。",
       "serviceLabels": {
         "event": "活动",
         "training-course": "培训课程",

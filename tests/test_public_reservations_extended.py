@@ -54,6 +54,21 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
     return base
 
 
+def test_validate_reservation_payload_rejects_unknown_booking_system() -> None:
+    from app.exceptions import ValidationError
+
+    body = _reservation_body(bookingSystem="not-a-real-flow")
+    with pytest.raises(ValidationError) as excinfo:
+        _validate_reservation_payload(body)
+    assert getattr(excinfo.value, "field", None) == "bookingSystem"
+
+
+def test_validate_reservation_payload_normalizes_booking_system_case() -> None:
+    body = _reservation_body(bookingSystem="EVENT-BOOKING")
+    out = _validate_reservation_payload(body)
+    assert out["booking_system"] == "event-booking"
+
+
 def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> None:
     body = _reservation_body(
         serviceInstanceSlug="My-Cohort-Slug",

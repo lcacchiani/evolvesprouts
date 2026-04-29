@@ -268,6 +268,7 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
     body = "\n".join(lines)
     assert "Title: C" in body
     assert "pi_x" in body and "sleep" in body
+    assert "Booking system: event-booking" in body
     assert "Telephone: 1" in body
     assert "Question (What should we know?):" in body
     assert "Course slug" not in body
