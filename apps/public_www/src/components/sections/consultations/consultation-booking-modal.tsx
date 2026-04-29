@@ -473,7 +473,6 @@ export function ConsultationBookingModal({
         content={paymentModalContent}
         eventTitle={bookingPayload.title}
         serviceKey={bookingPayload.serviceKey}
-        courseSlug='consultation-booking'
         serviceTypeLabelKey='consultation'
         bookingSystem={CONSULTATION_BOOKING_SYSTEM}
         serviceInstanceSlug={bookingPayload.instanceSlug}

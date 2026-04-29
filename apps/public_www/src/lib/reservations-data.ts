@@ -36,6 +36,8 @@ export interface ReservationSubmissionPayload {
   serviceKey: string;
   /** Optional marketing-flow label for confirmation email links only. */
   courseSlug?: string;
+  /** Optional booking flow code; preferred over `courseSlug` for `course_slug` metadata when both sent. */
+  bookingSystem?: string;
   /** Public service_instances.slug (required; identity with serviceKey). */
   serviceInstanceSlug: string;
   scheduleDateLabel?: string;

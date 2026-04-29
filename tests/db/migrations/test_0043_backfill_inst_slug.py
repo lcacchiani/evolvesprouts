@@ -189,7 +189,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
         conn.execute(
             """
             INSERT INTO service_instances (
-              id, service_id, title, slug, landing_page, description, cover_image_s3_key,
+              id, service_id, title, slug, description, cover_image_s3_key,
               status, delivery_mode, location_id, max_capacity, waitlist_enabled,
               instructor_id, cohort, notes, created_by, created_at,
               eventbrite_event_id, eventbrite_event_url, eventbrite_sync_status

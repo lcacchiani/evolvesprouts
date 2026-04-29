@@ -136,8 +136,8 @@ function buildThankYouDateTimeLines(
     return [];
   }
 
-  const slug = (summary.courseSlug ?? '').trim().toLowerCase();
-  if (slug === 'my-best-auntie') {
+  const bookingSystem = (summary.bookingSystem ?? '').trim().toLowerCase();
+  if (bookingSystem === 'my-best-auntie-booking') {
     const ordinals = content.groupSessionOrdinals;
     return thankYouSessions
       .map((session, index) => {
@@ -159,7 +159,7 @@ function buildThankYouDateTimeLines(
       .filter((line) => line.length > 0);
   }
 
-  if (slug === 'consultation-booking') {
+  if (bookingSystem === 'consultation-booking') {
     const session = thankYouSessions[0];
     if (!session) {
       return [];
@@ -243,8 +243,8 @@ export function BookingThankYouModal({
   const showDetailsRow = detailLines.length > 0;
   const showDateTimeRow = dateTimeLines.length > 0;
   const showIcsOnlyRow = Boolean(summary) && !showDateTimeRow;
-  const courseSlugNormalized = (summary?.courseSlug ?? '').trim().toLowerCase();
-  const isConsultationBooking = courseSlugNormalized === 'consultation-booking';
+  const bookingSystemNormalized = (summary?.bookingSystem ?? '').trim().toLowerCase();
+  const isConsultationBooking = bookingSystemNormalized === 'consultation-booking';
   const showCalendarDownload = !isConsultationBooking;
 
   const messageParts = useMemo(() => {

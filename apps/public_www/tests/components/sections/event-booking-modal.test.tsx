@@ -251,7 +251,7 @@ describe('EventBookingModal', () => {
         endpointPath: '/v1/reservations',
         body: expect.objectContaining({
           locationUrl: mapsUrl,
-          courseSlug: 'event-booking',
+          bookingSystem: 'event-booking',
           serviceKey: 'test-event-1',
           serviceInstanceSlug: 'test-event-instance-slug',
         }),

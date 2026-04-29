@@ -568,6 +568,12 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "courseSlug",
         _MAX_SLUG_KEY_LENGTH,
     )
+    booking_system = _optional_text(
+        body.get("bookingSystem") or body.get("booking_system"),
+        "bookingSystem",
+        _MAX_SLUG_KEY_LENGTH,
+    )
+    effective_course_slug = booking_system or course_slug
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -660,7 +666,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "comments_field_label": comments_field_label,
         "cohort_date": cohort_date,
         "service_key": service_key,
-        "course_slug": course_slug,
+        "course_slug": effective_course_slug,
         "location_name": location_name,
         "location_address": location_address,
         "location_url": location_url,

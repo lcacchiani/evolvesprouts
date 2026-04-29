@@ -32,7 +32,7 @@ from app.api.admin_request import (
 )
 from app.api.admin_services_payload_utils import parse_optional_uuid, parse_uuid_list
 from app.api.admin_validators import (
-    parse_optional_service_instance_slug,
+    parse_optional_partner_key,
     validate_string_length,
 )
 from app.api.assets.assets_common import extract_identity, split_route_parts
@@ -142,9 +142,7 @@ def _apply_organization_partner_key_from_body(
     """Set partner_key from request body; only partner orgs may have a key."""
     if "partner_key" not in body:
         return
-    partner_key = parse_optional_service_instance_slug(
-        body.get("partner_key"), field="partner_key"
-    )
+    partner_key = parse_optional_partner_key(body.get("partner_key"))
     effective = (
         relationship_type if relationship_type is not None else org.relationship_type
     )

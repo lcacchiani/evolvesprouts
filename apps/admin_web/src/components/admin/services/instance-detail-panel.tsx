@@ -637,7 +637,6 @@ export function InstanceDetailPanel({
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
-  const slugFieldMode = 'required';
   const slugFieldError = [slugSubmitError, slugConflictError].filter(Boolean).join(' ');
 
   const runCreate = async () => {
@@ -751,7 +750,6 @@ export function InstanceDetailPanel({
           }
           setInstanceForm(next);
         }}
-        slugFieldMode={slugFieldMode}
         slugFieldError={slugFieldError}
       />
 

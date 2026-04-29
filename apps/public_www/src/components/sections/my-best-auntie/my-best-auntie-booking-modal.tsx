@@ -179,7 +179,6 @@ export function MyBestAuntieBookingModal({
               eventTitle={modalContent.title}
               serviceKey={MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY}
               cohortId={selectedCohort?.slug ?? ''}
-              courseSlug='my-best-auntie'
               serviceTypeLabelKey='training-course'
               bookingSystem={MY_BEST_AUNTIE_BOOKING_SYSTEM}
               serviceInstanceSlug={selectedCohort?.slug ?? ''}

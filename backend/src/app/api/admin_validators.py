@@ -96,6 +96,16 @@ def parse_optional_service_instance_slug(
     value: Any, *, field: str = "slug"
 ) -> str | None:
     """Return a normalized lowercase slug or None; raises ValidationError if invalid."""
+    return _parse_optional_kebab_slug(value, field=field)
+
+
+def parse_optional_partner_key(value: Any, *, field: str = "partner_key") -> str | None:
+    """Normalize optional partner organisation key (same character rules as instance slugs)."""
+    return _parse_optional_kebab_slug(value, field=field)
+
+
+def _parse_optional_kebab_slug(value: Any, *, field: str) -> str | None:
+    """Return a normalized lowercase slug or None; raises ValidationError if invalid."""
     if value is None:
         return None
     if not isinstance(value, str):
@@ -120,7 +130,7 @@ def parse_optional_service_instance_slug_like_text(
     value: Any, *, field: str
 ) -> str | None:
     """Same character rules and normalization as instance slug; for free-text labels."""
-    return parse_optional_service_instance_slug(value, field=field)
+    return _parse_optional_kebab_slug(value, field=field)
 
 
 def validate_string_length(

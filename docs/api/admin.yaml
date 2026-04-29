@@ -3943,7 +3943,7 @@ components:
           description: Partner organization venue id when set (FK locations).
     ServiceInstance:
       type: object
-      required: [id, service_id, status, slug]
+      required: [id, service_id, status, slug, resolved_slug]
       properties:
         id:
           type: string
@@ -4141,6 +4141,12 @@ components:
           description: Parent service type (present on cross-service list responses).
           allOf:
             - $ref: "#/components/schemas/ServiceType"
+        parent_service_key:
+          type: string
+          nullable: true
+          description: >
+            Parent service public key (`services.service_key`) when set; mirrors the parent
+            service row for cross-service instance list responses.
     InstanceListResponse:
       type: object
       required: [items, total_count]
