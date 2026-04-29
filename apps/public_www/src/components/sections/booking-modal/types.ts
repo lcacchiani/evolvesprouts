@@ -19,7 +19,7 @@ export interface ReservationSummary {
   dateStartTime?: string;
   dateEndTime?: string;
   /** All scheduled parts (MBA cohort dates or event date parts). */
-  courseSessions?: ReservationCourseSession[];
+  sessionSlots?: ReservationCourseSession[];
   /** Subtitle shown under the title in the booking modal (course / event). */
   eventSubtitle?: string;
   /** Booking system code from the flow (e.g. my-best-auntie-booking, consultation-booking). */

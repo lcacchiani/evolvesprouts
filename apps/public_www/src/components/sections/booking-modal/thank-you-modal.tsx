@@ -66,17 +66,6 @@ export function resolveThankYouServiceTypeLabel(
   return label;
 }
 
-export function resolveThankYouServiceTitle(
-  summary: ReservationSummary | null,
-  courseLabelFallback: string,
-): string {
-  const title = summary?.eventTitle?.trim() ?? '';
-  if (title) {
-    return title;
-  }
-  return courseLabelFallback.trim();
-}
-
 function resolveThankYouLocationDisplay(
   summary: ReservationSummary | null,
   virtualFallback: string,
@@ -96,8 +85,8 @@ function resolveThankYouCourseSessions(summary: ReservationSummary | null): Rese
     return [];
   }
 
-  if (summary.courseSessions && summary.courseSessions.length > 0) {
-    return summary.courseSessions;
+  if (summary.sessionSlots && summary.sessionSlots.length > 0) {
+    return summary.sessionSlots;
   }
 
   const start = summary.dateStartTime?.trim() ?? '';
@@ -202,9 +191,9 @@ export function BookingThankYouModal({
   });
 
   const attendeeEmail = summary?.attendeeEmail ?? '';
-  const eventTitle = summary?.eventTitle ?? content.courseLabel;
+  const eventTitle = summary?.eventTitle?.trim() ?? '';
   const serviceTypeLabel = resolveThankYouServiceTypeLabel(summary, content.serviceLabels);
-  const serviceTitleLine = resolveThankYouServiceTitle(summary, content.courseLabel);
+  const serviceTitleLine = eventTitle;
   const serviceRowLeftLabel = serviceTypeLabel || content.serviceLabel;
   const thankYouSessions = useMemo(
     () => resolveThankYouCourseSessions(summary),

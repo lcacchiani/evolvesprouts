@@ -31,17 +31,20 @@ export interface ReservationSubmissionPayload {
   stripePaymentIntentId?: string;
   marketingOptIn?: boolean;
   locale?: string;
-  courseLabel?: string;
+  title?: string;
   /** Parent service public key (required; identity with serviceInstanceSlug). */
   serviceKey: string;
-  /** Optional marketing-flow label for confirmation email links only. */
-  courseSlug?: string;
-  /** Optional booking flow code; preferred over `courseSlug` for `course_slug` metadata when both sent. */
+  /** Optional booking flow code (e.g. event vs MBA vs consultation). */
   bookingSystem?: string;
   /** Public service_instances.slug (required; identity with serviceKey). */
   serviceInstanceSlug: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
+  /**
+   * Optional cohort display label for the selected instance (e.g. MBA cohort title).
+   * Shown on internal sales recap; not used for booking identity.
+   */
+  serviceInstanceCohort?: string;
+  scheduleDate?: string;
+  scheduleTime?: string;
   /** Consultation booking: writing focus title for confirmation email Details row. */
   consultationWritingFocusLabel?: string;
   /** Consultation booking: level title for confirmation email Details row. */
@@ -61,7 +64,7 @@ export interface ReservationSubmissionPayload {
   /** Primary session end as ISO 8601 when known (e.g. multi-hour session). Used for email .ics DTEND. */
   primarySessionEndIso?: string;
   /** All session parts for multi-line schedule in confirmation email (MBA, etc.). */
-  courseSessions?: Array<{ startIso: string; endIso?: string }>;
+  sessionSlots?: Array<{ startIso: string; endIso?: string }>;
   /** Maps URL for optional "Get directions" link in confirmation email. */
   locationUrl?: string;
   /**

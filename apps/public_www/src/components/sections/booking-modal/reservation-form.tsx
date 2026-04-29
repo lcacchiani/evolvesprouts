@@ -93,7 +93,7 @@ interface BookingReservationFormProps {
   /** Thank-you service type row label key (`thankYouModal.serviceLabels`). */
   serviceTypeLabelKey: 'event' | 'training-course' | 'consultation';
   eventSubtitle?: string;
-  courseSessions?: ReservationCourseSession[];
+  sessionSlots?: ReservationCourseSession[];
   selectedServiceTierLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
@@ -436,7 +436,7 @@ export function BookingReservationForm({
   serviceTypeLabelKey,
   bookingSystem,
   eventSubtitle = '',
-  courseSessions,
+  sessionSlots,
   selectedServiceTierLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
@@ -1123,8 +1123,8 @@ export function BookingReservationForm({
     }
 
     const resolvedCourseSessions: ReservationCourseSession[] = [];
-    if (courseSessions && courseSessions.length > 0) {
-      for (const session of courseSessions) {
+    if (sessionSlots && sessionSlots.length > 0) {
+      for (const session of sessionSlots) {
         const sessionStart = sanitizeSingleLineValue(session.dateStartTime);
         if (!sessionStart) {
           continue;
@@ -1207,7 +1207,7 @@ export function BookingReservationForm({
       eventTitle: sanitizeSingleLineValue(eventTitle),
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
-      courseSessions:
+      sessionSlots:
         resolvedCourseSessions.length > 0 ? resolvedCourseSessions : undefined,
       eventSubtitle: sanitizeSingleLineValue(eventSubtitle) || undefined,
       ...(!isFreeReservation &&
@@ -1245,7 +1245,7 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
-    const scheduleTimeLabel = (() => {
+    const scheduleTime = (() => {
       if (!primarySession) {
         return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
       }
@@ -1277,7 +1277,7 @@ export function BookingReservationForm({
       stripePaymentIntentId: undefined,
       marketingOptIn: marketingOptIn,
       locale,
-      courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
+      title: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey);
         const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
@@ -1285,10 +1285,15 @@ export function BookingReservationForm({
           serviceKey: sanitizedServiceKey,
           bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
           serviceInstanceSlug: instanceSlug,
+          ...(sanitizeSingleLineValue(selectedCohortDateLabel)
+            ? {
+                serviceInstanceCohort: sanitizeSingleLineValue(selectedCohortDateLabel),
+              }
+            : {}),
         };
       })(),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
-      scheduleTimeLabel: scheduleTimeLabel,
+      scheduleDate: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      scheduleTime: scheduleTime,
       locationName: sanitizeSingleLineValue(venueName) || undefined,
       locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
       primarySessionStartIso: sanitizeSingleLineValue(primarySession?.dateStartTime)
@@ -1313,7 +1318,7 @@ export function BookingReservationForm({
         }
 
         return {
-          courseSessions: resolvedCourseSessions.map((s) => {
+          sessionSlots: resolvedCourseSessions.map((s) => {
             return {
               startIso: s.dateStartTime,
               ...(s.dateEndTime ? { endIso: s.dateEndTime } : {}),

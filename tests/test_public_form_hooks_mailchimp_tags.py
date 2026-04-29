@@ -26,28 +26,24 @@ def test_mailchimp_tag_for_contact_signup_intent() -> None:
 
 def test_mailchimp_booking_tag_from_payload() -> None:
     assert (
-        plc.mailchimp_booking_tag_from_payload({"service_key": "My Service!"})
-        == "public-www-booking-customer-my-service"
+        plc.mailchimp_booking_tag_from_payload({"service_instance_slug": "spring-2026"})
+        == "public-www-booking-customer-spring-2026"
     )
     assert (
-        plc.mailchimp_booking_tag_from_payload({"course_slug": "mba-0-1"})
-        == "public-www-booking-customer-mba-0-1"
-    )
-    assert (
-        plc.mailchimp_booking_tag_from_payload(
-            {"service_key": "primary", "course_slug": "ignored"}
-        )
-        == "public-www-booking-customer-primary"
-    )
-    assert plc.mailchimp_booking_tag_from_payload({}) == "public-www-booking-customer-unknown"
-    assert (
-        plc.mailchimp_booking_tag_from_payload({"serviceKey": "From Camel"})
+        plc.mailchimp_booking_tag_from_payload({"serviceInstanceSlug": "From Camel"})
         == "public-www-booking-customer-from-camel"
     )
     assert (
-        plc.mailchimp_booking_tag_from_payload({"courseSlug": "mba-track"})
-        == "public-www-booking-customer-mba-track"
+        plc.mailchimp_booking_tag_from_payload(
+            {
+                "service_instance_slug": "used",
+                "service_key": "ignored",
+                "booking_system": "ignored",
+            }
+        )
+        == "public-www-booking-customer-used"
     )
+    assert plc.mailchimp_booking_tag_from_payload({}) == "public-www-booking-customer-unknown"
 
 
 @pytest.mark.parametrize(
@@ -152,13 +148,15 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
             "service_tier": "3",
             "payment_method": "fps_qr",
             "total_amount": Decimal("150"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "marketing_opt_in": True,
             "service_key": "easter-workshop",
-            "course_slug": "event-booking",
+            "service_instance_slug": "easter-2026-instance",
+            "service_instance_cohort": "April cohort",
+            "booking_system": "event-booking",
             "stripe_payment_intent_id": None,
         }
     )
 
-    assert captured.get("tag_name") == "public-www-booking-customer-easter-workshop"
+    assert captured.get("tag_name") == "public-www-booking-customer-easter-2026-instance"

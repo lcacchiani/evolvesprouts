@@ -207,9 +207,7 @@ def get_ses_template_definitions() -> list[dict[str, Any]]:
         definitions.append(
             {
                 "TemplateName": f"evolvesprouts-booking-confirmation-{loc}",
-                "SubjectPart": SUBJECT_PREFIX[loc]
-                + "{{course_label}}"
-                + SUBJECT_SUFFIX,
+                "SubjectPart": SUBJECT_PREFIX[loc] + "{{title}}" + SUBJECT_SUFFIX,
                 "HtmlPart": wrap_transactional_html(
                     header_title=HEADER_TITLE[loc],
                     inner_html=inner_html,

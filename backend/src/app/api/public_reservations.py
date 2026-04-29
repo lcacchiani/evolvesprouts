@@ -92,6 +92,13 @@ _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 _PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
 _MAX_SERVICE_KEY_LENGTH = 80
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES = frozenset(
+    {
+        "consultation-booking",
+        "event-booking",
+        "my-best-auntie-booking",
+    }
+)
 
 
 def _resolve_booking_identity(
@@ -278,7 +285,7 @@ def _handle_public_reservation(
 
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
-                "course_label": reservation_payload["course_label"],
+                "title": reservation_payload["title"],
                 "locale": reservation_payload["locale"],
             }
             if reservation_payload.get("service_key"):
@@ -289,8 +296,12 @@ def _handle_public_reservation(
                 lead_metadata["service_instance_slug"] = reservation_payload[
                     "service_instance_slug"
                 ]
-            if reservation_payload.get("course_slug"):
-                lead_metadata["course_slug"] = reservation_payload["course_slug"]
+            if reservation_payload.get("service_instance_cohort"):
+                lead_metadata["service_instance_cohort"] = reservation_payload[
+                    "service_instance_cohort"
+                ]
+            if reservation_payload.get("booking_system"):
+                lead_metadata["booking_system"] = reservation_payload["booking_system"]
             if dc_text and str(dc_text).strip():
                 lead_metadata["discount_code"] = str(dc_text).strip()
                 if dc_row is not None:
@@ -326,7 +337,7 @@ def _handle_public_reservation(
         extra={
             "attendee_email": mask_email(reservation_payload["attendee_email"]),
             "attendee_phone": mask_pii(reservation_payload["attendee_phone"]),
-            "course_label": reservation_payload["course_label"],
+            "title": reservation_payload["title"],
         },
     )
 
@@ -342,20 +353,20 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     email = str(payload.get("attendee_email") or "").strip()
     full_name = str(payload.get("attendee_name") or "").strip()
     locale = normalize_body_locale(payload.get("locale"))
-    course_label = str(payload.get("course_label") or "").strip() or "Your booking"
-    schedule_date = _optional_str(payload.get("schedule_date_label"))
-    schedule_time = _optional_str(payload.get("schedule_time_label"))
+    title = str(payload.get("title") or "").strip() or "Your booking"
+    schedule_date = _optional_str(payload.get("schedule_date"))
+    schedule_time = _optional_str(payload.get("schedule_time"))
     location_name = _optional_str(payload.get("location_name"))
     location_address = _optional_str(payload.get("location_address"))
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
     primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
-    course_slug = _optional_str(payload.get("course_slug"))
+    booking_system_for_email = _optional_str(payload.get("booking_system"))
     service_key_for_email = _optional_str(payload.get("service_key"))
     service_type_for_email = _optional_str(payload.get("service_type"))
     service_tier_label = _optional_str(payload.get("service_tier"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
-    course_sessions = _course_sessions_for_email(payload.get("course_sessions"))
+    session_slots = _session_slots_for_email(payload.get("session_slots"))
     location_url = _optional_str(payload.get("location_url"))
     payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
     total_dec = payload["total_amount"]
@@ -373,16 +384,16 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
             send_booking_confirmation_email(
                 to_email=email,
                 full_name=full_name,
-                course_label=course_label,
+                title=title,
                 service_key=service_key_for_email,
                 service_type=service_type_for_email,
-                schedule_date_label=schedule_date,
-                schedule_time_label=schedule_time,
+                schedule_date=schedule_date,
+                schedule_time=schedule_time,
                 location_name=location_name,
                 location_address=location_address,
                 primary_session_iso=primary_session_iso,
                 primary_session_end_iso=primary_session_end_iso,
-                course_slug=course_slug,
+                booking_system=booking_system_for_email,
                 service_tier_label=service_tier_label,
                 payment_method=payment_method,
                 total_amount=total_amount,
@@ -391,7 +402,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 fps_qr_image_data_url=fps_qr_data_url,
                 consultation_writing_focus_label=consultation_focus,
                 consultation_level_label=consultation_level,
-                course_sessions=course_sessions,
+                session_slots=session_slots,
                 location_url=location_url,
                 is_free=is_free,
             )
@@ -439,7 +450,7 @@ def _optional_str(value: Any) -> str | None:
     return s or None
 
 
-def _course_sessions_for_email(
+def _session_slots_for_email(
     raw: Any,
 ) -> list[dict[str, str]] | None:
     if not isinstance(raw, list) or not raw:
@@ -493,36 +504,26 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "serviceTier",
         _MAX_LABEL_LENGTH,
     )
-    package_label = _optional_text(
-        body.get("packageLabel"),
-        "packageLabel",
-        _MAX_LABEL_LENGTH,
-    )
-    month_label = _optional_text(
-        body.get("monthLabel"),
-        "monthLabel",
-        _MAX_LABEL_LENGTH,
-    )
     payment_method = _require_text(
         body.get("paymentMethod"),
         "paymentMethod",
         _MAX_PAYMENT_METHOD_LENGTH,
     )
-    course_label = _require_text(
-        body.get("courseLabel"),
-        "courseLabel",
+    title = _require_text(
+        body.get("title"),
+        "title",
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
     stripe_payment_intent_id = _stripe_payment_intent_id_from_body(body)
-    schedule_date_label = _optional_text(
-        body.get("scheduleDateLabel"),
-        "scheduleDateLabel",
+    schedule_date = _optional_text(
+        body.get("scheduleDate"),
+        "scheduleDate",
         _MAX_LABEL_LENGTH,
     )
-    schedule_time_label = _optional_text(
-        body.get("scheduleTimeLabel"),
-        "scheduleTimeLabel",
+    schedule_time = _optional_text(
+        body.get("scheduleTime"),
+        "scheduleTime",
         _MAX_LABEL_LENGTH,
     )
     interested_topics = _optional_text(
@@ -563,17 +564,20 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             "serviceKey must match the public service key pattern",
             field="serviceKey",
         )
-    course_slug = _optional_text(
-        body.get("courseSlug"),
-        "courseSlug",
-        _MAX_SLUG_KEY_LENGTH,
-    )
     booking_system = _optional_text(
         body.get("bookingSystem") or body.get("booking_system"),
         "bookingSystem",
         _MAX_SLUG_KEY_LENGTH,
     )
-    effective_course_slug = booking_system or course_slug
+    if booking_system is not None:
+        normalized_bs = booking_system.strip().lower()
+        if normalized_bs not in _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES:
+            raise ValidationError(
+                "bookingSystem must be one of: consultation-booking, event-booking, "
+                "my-best-auntie-booking",
+                field="bookingSystem",
+            )
+        booking_system = normalized_bs
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -599,7 +603,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "primarySessionEndIso",
         _MAX_ISO_FIELD,
     )
-    course_sessions = _parse_course_sessions(body.get("courseSessions"))
+    session_slots = _parse_session_slots(body.get("sessionSlots"))
     fps_qr_image_data_url = _optional_fps_qr_data_url(body.get("fpsQrImageDataUrl"))
     marketing_opt_in = _parse_bool_opt(body.get("marketingOptIn"), default=False)
     locale = _normalize_locale_field(body.get("locale"))
@@ -619,6 +623,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             "serviceInstanceSlug must match the public slug pattern",
             field="serviceInstanceSlug",
         )
+    service_instance_cohort = _optional_text(
+        body.get("serviceInstanceCohort") or body.get("service_instance_cohort"),
+        "serviceInstanceCohort",
+        _MAX_LABEL_LENGTH,
+    )
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
@@ -652,13 +661,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "phone_region": phone_region,
         "phone_national_number": phone_national_number,
         "service_tier": service_tier,
-        "package_label": package_label,
-        "month_label": month_label,
         "payment_method": payment_method,
         "total_amount": total_amount,
-        "course_label": course_label,
-        "schedule_date_label": schedule_date_label,
-        "schedule_time_label": schedule_time_label,
+        "title": title,
+        "schedule_date": schedule_date,
+        "schedule_time": schedule_time,
         "interested_topics": interested_topics,
         "stripe_payment_intent_id": stripe_payment_intent_id,
         "consultation_writing_focus_label": consultation_writing_focus_label,
@@ -666,18 +673,19 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "comments_field_label": comments_field_label,
         "cohort_date": cohort_date,
         "service_key": service_key,
-        "course_slug": effective_course_slug,
+        "booking_system": booking_system,
         "location_name": location_name,
         "location_address": location_address,
         "location_url": location_url,
         "primary_session_start_iso": primary_session_start_iso,
         "primary_session_end_iso": primary_session_end_iso,
-        "course_sessions": course_sessions,
+        "session_slots": session_slots,
         "fps_qr_image_data_url": fps_qr_image_data_url,
         "marketing_opt_in": marketing_opt_in,
         "locale": locale,
         "discount_code": discount_code,
         "service_instance_slug": service_instance_slug,
+        "service_instance_cohort": service_instance_cohort,
         "agreed_to_terms_and_conditions": True,
         "reservation_pending_until_payment_confirmed": reservation_pending,
     }
@@ -752,43 +760,43 @@ def _parse_bool_opt(value: Any, *, default: bool) -> bool:
     return default
 
 
-def _parse_course_sessions(raw: Any) -> list[dict[str, str]] | None:
+def _parse_session_slots(raw: Any) -> list[dict[str, str]] | None:
     if raw is None:
         return None
     if not isinstance(raw, list):
-        raise ValidationError("courseSessions must be an array", field="courseSessions")
+        raise ValidationError("sessionSlots must be an array", field="sessionSlots")
     out: list[dict[str, str]] = []
     for idx, item in enumerate(raw):
         if not isinstance(item, Mapping):
             raise ValidationError(
-                "courseSessions items must be objects",
-                field="courseSessions",
+                "sessionSlots items must be objects",
+                field="sessionSlots",
             )
         start = item.get("startIso")
         if not isinstance(start, str) or not start.strip():
             raise ValidationError(
-                f"courseSessions[{idx}].startIso is required",
-                field="courseSessions",
+                f"sessionSlots[{idx}].startIso is required",
+                field="sessionSlots",
             )
         start_norm = start.strip()
         if len(start_norm) > _MAX_ISO_FIELD:
             raise ValidationError(
-                f"courseSessions[{idx}].startIso is too long",
-                field="courseSessions",
+                f"sessionSlots[{idx}].startIso is too long",
+                field="sessionSlots",
             )
         row: dict[str, str] = {"start_iso": start_norm}
         end_raw = item.get("endIso")
         if end_raw is not None:
             if not isinstance(end_raw, str):
                 raise ValidationError(
-                    f"courseSessions[{idx}].endIso must be a string",
-                    field="courseSessions",
+                    f"sessionSlots[{idx}].endIso must be a string",
+                    field="sessionSlots",
                 )
             end_norm = end_raw.strip()
             if len(end_norm) > _MAX_ISO_FIELD:
                 raise ValidationError(
-                    f"courseSessions[{idx}].endIso is too long",
-                    field="courseSessions",
+                    f"sessionSlots[{idx}].endIso is too long",
+                    field="sessionSlots",
                 )
             if end_norm:
                 row["end_iso"] = end_norm

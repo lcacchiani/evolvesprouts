@@ -25,7 +25,7 @@ def test_resolve_payment_method_display() -> None:
     assert resolve_payment_method_display("other") == "other"
 
 
-def test_resolve_service_row_label_matches_course_label() -> None:
+def test_resolve_service_row_label_matches_title() -> None:
     assert resolve_service_row_label("en", "unknown", "My Title") == "My Title"
 
 
@@ -33,10 +33,10 @@ def test_booking_confirmation_template_merge_data_consultation_details() -> None
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="Consultation",
-        schedule_date_label="Apr 2026",
-        schedule_time_label="Mon, 12 Apr 2026 AM",
-        course_slug="consultation-booking",
+        title="Consultation",
+        schedule_date="Apr 2026",
+        schedule_time="Mon, 12 Apr 2026 AM",
+        booking_system="consultation-booking",
         primary_session_iso="2026-04-12T10:30:00+08:00",
         payment_method_code="fps_qr",
         total_amount="HK$1,234.00",
@@ -60,13 +60,13 @@ def test_booking_confirmation_hkt_schedule_from_iso() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="X",
-        schedule_date_label="ignored",
-        schedule_time_label="ignored",
+        title="X",
+        schedule_date="ignored",
+        schedule_time="ignored",
         location_name="HK venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
@@ -79,13 +79,13 @@ def test_booking_confirmation_merge_consultation_en_uses_morning_afternoon() -> 
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="Consultation",
-        schedule_date_label="Apr 2026",
-        schedule_time_label="ignored",
+        title="Consultation",
+        schedule_date="Apr 2026",
+        schedule_time="ignored",
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-12T10:30:00+08:00",
-        course_slug="consultation-booking",
+        booking_system="consultation-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
@@ -98,13 +98,13 @@ def test_booking_confirmation_template_merge_includes_directions_when_url() -> N
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
@@ -123,9 +123,9 @@ def test_booking_confirmation_template_merge_data_free_omits_payment() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         payment_method_code="free",
         total_amount="HK$0.00",
         is_pending_payment=False,
@@ -143,10 +143,10 @@ def test_booking_confirmation_template_merge_data_service_type_and_title() -> No
     data = booking_confirmation_template_merge_data(
         locale="zh-CN",
         full_name="A",
-        course_label="家庭咨询预约",
+        title="家庭咨询预约",
         service_type="consultation",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        schedule_date=None,
+        schedule_time=None,
         payment_method_code="free",
         total_amount="HK$0.00",
         is_pending_payment=False,

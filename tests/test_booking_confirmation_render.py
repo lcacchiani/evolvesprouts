@@ -14,13 +14,13 @@ def test_render_booking_confirmation_zh_cn_includes_labels_and_fps_block() -> No
     subject, html_doc, plain = render_booking_confirmation_email(
         locale="zh-CN",
         full_name="王敏",
-        course_label="课程 A",
-        schedule_date_label="4月12日",
-        schedule_time_label=None,
+        title="课程 A",
+        schedule_date="4月12日",
+        schedule_time=None,
         location_name="学习中心",
         location_address="香港中环",
         primary_session_iso="2026-04-12T10:30:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="fps_qr",
         total_amount="HK$100.00",
         is_pending_payment=True,
@@ -56,12 +56,12 @@ def test_render_booking_confirmation_service_row_type_and_title() -> None:
     _subject, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Spring Playdate",
+        title="Spring Playdate",
         service_type="event",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        schedule_date=None,
+        schedule_time=None,
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$50.00",
         is_pending_payment=False,
@@ -79,13 +79,13 @@ def test_render_booking_confirmation_en_hkt_from_iso() -> None:
     _subject, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Workshop",
-        schedule_date_label="Apr 16, 2026",
-        schedule_time_label="6:00 pm",
+        title="Workshop",
+        schedule_date="Apr 16, 2026",
+        schedule_time="6:00 pm",
         location_name="Evolve Sprouts",
         location_address="Sheung Wan, Hong Kong",
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="bank_transfer",
         total_amount="HK$50.00",
         is_pending_payment=False,
@@ -103,13 +103,13 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     _subject, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="MBA",
-        schedule_date_label="Apr, 2026",
-        schedule_time_label="ignored when iso",
+        title="MBA",
+        schedule_date="Apr, 2026",
+        schedule_time="ignored when iso",
         location_name="Venue",
         location_address="1 Road, Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie-booking",
+        booking_system="my-best-auntie-booking",
         service_tier_label="18-24 months",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -131,13 +131,13 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     _s_wire, html_wire, _plain_wire = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="MBA",
-        schedule_date_label="Apr, 2026",
-        schedule_time_label="ignored when iso",
+        title="MBA",
+        schedule_date="Apr, 2026",
+        schedule_time="ignored when iso",
         location_name="Venue",
         location_address="1 Road, Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie-booking",
+        booking_system="my-best-auntie-booking",
         service_tier_label="18-24 months",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -153,12 +153,12 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     _s2, html2, _p2 = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="Event",
-        schedule_date_label="May 1",
-        schedule_time_label="10:00",
+        title="Event",
+        schedule_date="May 1",
+        schedule_time="10:00",
         location_name="X",
         location_address="Y",
-        course_slug="event-booking",
+        booking_system="event-booking",
         service_tier_label="should-not-show",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -175,9 +175,9 @@ def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
     _subject, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         location_name=None,
         payment_method_code="bank_transfer",
         total_amount="HK$50.00",
@@ -200,7 +200,7 @@ def test_render_booking_confirmation_en_omits_optional_schedule_rows() -> None:
 
 def test_build_booking_confirmation_ics_primary_session_and_location() -> None:
     ics = build_booking_confirmation_ics(
-        course_label="Workshop A",
+        title="Workshop A",
         primary_session_iso="2026-04-16T10:00:00Z",
         location_line="Venue, Hong Kong",
     )
@@ -219,7 +219,7 @@ def test_build_booking_confirmation_ics_primary_session_and_location() -> None:
 
 def test_build_booking_confirmation_ics_uses_primary_session_end_iso() -> None:
     ics = build_booking_confirmation_ics(
-        course_label="X",
+        title="X",
         primary_session_iso="2026-04-16T10:00:00Z",
         primary_session_end_iso="2026-04-16T11:30:00Z",
         location_line=None,
@@ -231,7 +231,7 @@ def test_build_booking_confirmation_ics_uses_primary_session_end_iso() -> None:
 def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_limit() -> None:
     course = "课" * 40
     ics = build_booking_confirmation_ics(
-        course_label=course,
+        title=course,
         primary_session_iso="2026-04-16T10:00:00Z",
         location_line=None,
     )
@@ -245,7 +245,7 @@ def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_lim
 def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
     assert (
         build_booking_confirmation_ics(
-            course_label="Y",
+            title="Y",
             primary_session_iso=None,
             location_line=None,
         )
@@ -256,10 +256,10 @@ def test_build_booking_confirmation_ics_returns_none_without_iso() -> None:
 def test_build_booking_confirmation_ics_skips_consultation_bookings() -> None:
     assert (
         build_booking_confirmation_ics(
-            course_label="Consultation",
+            title="Consultation",
             primary_session_iso="2026-04-12T10:30:00+08:00",
             location_line="HK",
-            course_slug="consultation-booking",
+            booking_system="consultation-booking",
         )
         is None
     )
@@ -269,9 +269,9 @@ def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="C",
-        schedule_date_label="May 1",
-        schedule_time_label="10:00",
+        title="C",
+        schedule_date="May 1",
+        schedule_time="10:00",
         primary_session_iso=None,
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -284,9 +284,9 @@ def test_booking_confirmation_template_merge_calendar_fallback_hint() -> None:
     data2 = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="C",
-        schedule_date_label="May 1",
-        schedule_time_label="10:00",
+        title="C",
+        schedule_date="May 1",
+        schedule_time="10:00",
         primary_session_iso="2026-05-01T10:00:00+08:00",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -301,9 +301,9 @@ def test_render_booking_confirmation_includes_ics_note_when_flagged() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         location_name=None,
         location_address=None,
         primary_session_iso="2026-04-10T14:00:00+08:00",
@@ -326,13 +326,13 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="zh-CN",
         full_name="王",
-        course_label="课程",
-        schedule_date_label="2026年4月",
-        schedule_time_label="ignored",
+        title="课程",
+        schedule_date="2026年4月",
+        schedule_time="ignored",
         location_name="场地",
         location_address="香港",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie-booking",
+        booking_system="my-best-auntie-booking",
         service_tier_label="1-3",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -340,7 +340,7 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -350,24 +350,24 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
     assert "第一节" in plain
 
 
-def test_render_booking_confirmation_event_multi_part_course_sessions() -> None:
+def test_render_booking_confirmation_event_multi_part_session_slots() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="Event",
-        schedule_date_label="ignored",
-        schedule_time_label="ignored",
+        title="Event",
+        schedule_date="ignored",
+        schedule_time="ignored",
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -382,18 +382,18 @@ def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
     data = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="MBA",
-        schedule_date_label="Apr",
-        schedule_time_label="x",
+        title="MBA",
+        schedule_date="Apr",
+        schedule_time="x",
         location_name="V",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie-booking",
+        booking_system="my-best-auntie-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -405,13 +405,13 @@ def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
     data_single = booking_confirmation_template_merge_data(
         locale="en",
         full_name="A",
-        course_label="E",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="E",
+        schedule_date=None,
+        schedule_time=None,
         location_name="V",
         location_address="Hong Kong",
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
@@ -425,13 +425,13 @@ def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="MBA",
-        schedule_date_label="Apr, 2026",
-        schedule_time_label="ignored",
+        title="MBA",
+        schedule_date="Apr, 2026",
+        schedule_time="ignored",
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie-booking",
+        booking_system="my-best-auntie-booking",
         service_tier_label="18-24 months",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -439,7 +439,7 @@ def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -455,13 +455,13 @@ def test_render_booking_confirmation_consultation_am_pm_from_iso() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Consultation",
-        schedule_date_label="Apr 2026",
-        schedule_time_label="ignored",
+        title="Consultation",
+        schedule_date="Apr 2026",
+        schedule_time="ignored",
         location_name="HK",
         location_address="Hong Kong",
         primary_session_iso="2026-04-12T14:30:00+08:00",
-        course_slug="consultation-booking",
+        booking_system="consultation-booking",
         payment_method_code="stripe",
         total_amount="HK$100.00",
         is_pending_payment=False,
@@ -478,13 +478,13 @@ def test_render_booking_confirmation_location_includes_directions_link() -> None
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         location_name="Venue",
         location_address="Sheung Wan, Hong Kong",
         primary_session_iso="2026-04-16T18:00:00+08:00",
-        course_slug="event-booking",
+        booking_system="event-booking",
         payment_method_code="stripe",
         total_amount="HK$50.00",
         is_pending_payment=False,
@@ -502,9 +502,9 @@ def test_render_booking_confirmation_email_free_omits_payment_and_pending() -> N
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="Pat",
-        course_label="Workshop",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="Workshop",
+        schedule_date=None,
+        schedule_time=None,
         location_name=None,
         payment_method_code="free",
         total_amount="HK$0.00",
@@ -527,9 +527,9 @@ def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:
     _s, html_doc, _p = render_booking_confirmation_email(
         locale="en",
         full_name="A",
-        course_label="B",
-        schedule_date_label=None,
-        schedule_time_label=None,
+        title="B",
+        schedule_date=None,
+        schedule_time=None,
         payment_method_code="m",
         total_amount="HK$1",
         is_pending_payment=False,

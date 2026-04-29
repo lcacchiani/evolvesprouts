@@ -157,16 +157,16 @@ def send_booking_confirmation_email(
     *,
     to_email: str,
     full_name: str,
-    course_label: str,
+    title: str,
     service_key: str | None = None,
     service_type: str | None = None,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
-    course_slug: str | None = None,
+    booking_system: str | None = None,
     service_tier_label: str | None = None,
     payment_method: str,
     total_amount: str,
@@ -175,7 +175,7 @@ def send_booking_confirmation_email(
     fps_qr_image_data_url: str | None = None,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
-    course_sessions: list[dict[str, str]] | None = None,
+    session_slots: list[dict[str, str]] | None = None,
     location_url: str | None = None,
     is_free: bool = False,
 ) -> None:
@@ -190,16 +190,16 @@ def send_booking_confirmation_email(
     data: dict[str, Any] = booking_confirmation_template_merge_data(
         locale=loc,
         full_name=full_name,
-        course_label=course_label,
+        title=title,
         service_key=service_key,
         service_type=service_type,
-        schedule_date_label=schedule_date_label,
-        schedule_time_label=schedule_time_label,
+        schedule_date=schedule_date,
+        schedule_time=schedule_time,
         location_name=location_name,
         location_address=location_address,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        course_slug=course_slug,
+        booking_system=booking_system,
         service_tier_label=service_tier_label,
         payment_method_code=payment_method,
         total_amount=total_amount,
@@ -207,7 +207,7 @@ def send_booking_confirmation_email(
         whatsapp_url=resolve_whatsapp_url_for_template(),
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         location_url=location_url,
         is_free=is_free,
     )
@@ -217,11 +217,11 @@ def send_booking_confirmation_email(
         location_address=location_address,
     )
     ics_bytes = build_booking_confirmation_ics(
-        course_label=course_label,
+        title=title,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         location_line=loc_line_for_ics,
-        course_slug=course_slug,
+        booking_system=booking_system,
     )
     if ics_bytes is not None:
         data["include_calendar_note_after_schedule_html"] = True
@@ -257,16 +257,16 @@ def send_booking_confirmation_email(
         subject, html_doc, plain_text = render_booking_confirmation_email(
             locale=loc,
             full_name=full_name,
-            course_label=course_label,
+            title=title,
             service_key=service_key,
             service_type=service_type,
-            schedule_date_label=schedule_date_label,
-            schedule_time_label=schedule_time_label,
+            schedule_date=schedule_date,
+            schedule_time=schedule_time,
             location_name=location_name,
             location_address=location_address,
             primary_session_iso=primary_session_iso,
             primary_session_end_iso=primary_session_end_iso,
-            course_slug=course_slug,
+            booking_system=booking_system,
             service_tier_label=service_tier_label,
             payment_method_code=payment_method,
             total_amount=total_amount,
@@ -277,7 +277,7 @@ def send_booking_confirmation_email(
             consultation_writing_focus_label=consultation_writing_focus_label,
             consultation_level_label=consultation_level_label,
             attach_calendar_invite_ics=attach_ics,
-            course_sessions=course_sessions,
+            session_slots=session_slots,
             location_url=location_url,
             is_free=is_free,
         )
@@ -334,14 +334,11 @@ def mailchimp_tag_for_contact_signup_intent(signup_intent: str | None) -> str:
 
 
 def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
-    """Build ``public-www-booking-customer-{slug}`` from stable booking identifiers."""
-    service_key = normalize_public_slug(
-        payload.get("service_key") or payload.get("serviceKey")
+    """Build ``public-www-booking-customer-{slug}`` from the public instance slug."""
+    instance_slug = normalize_public_slug(
+        payload.get("service_instance_slug") or payload.get("serviceInstanceSlug")
     )
-    course_slug = normalize_public_slug(
-        payload.get("course_slug") or payload.get("courseSlug")
-    )
-    slug_part = service_key or course_slug or "unknown"
+    slug_part = instance_slug or "unknown"
     return f"{TAG_BOOKING_PREFIX}{slug_part}"
 
 

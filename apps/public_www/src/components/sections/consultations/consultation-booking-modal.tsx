@@ -477,7 +477,7 @@ export function ConsultationBookingModal({
         bookingSystem={CONSULTATION_BOOKING_SYSTEM}
         serviceInstanceSlug={bookingPayload.instanceSlug}
         eventSubtitle={bookingPayload.subtitle}
-        courseSessions={rebasedParts.map((part) => {
+        sessionSlots={rebasedParts.map((part) => {
           return {
             dateStartTime: part.startDateTime,
             dateEndTime: part.endDateTime,

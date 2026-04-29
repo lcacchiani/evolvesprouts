@@ -199,6 +199,17 @@ OpenAPI spec: [`docs/api/admin.yaml`](../api/admin.yaml) — search for
 **Note:** Sensitive fields (password, secret, token, api_key) are
 automatically redacted from `old_values` and `new_values` in API responses.
 
+### Sales lead event metadata (public reservations)
+
+`POST /v1/reservations` creates a `PROGRAM_ENROLLMENT` sales lead with a
+`CREATED` lead event whose `metadata` JSON may include (when present on the
+request): `payment_method`, `title`, `locale`, `service_key`, `service_type`,
+`service_instance_slug`, `service_instance_cohort`, `booking_system`, `discount_code`,
+`discount_code_id`.
+These keys are application-defined payloads on the lead event, not columns on
+`audit_log`; they are useful for support triage and should stay aligned with the
+current public reservation OpenAPI (`docs/api/public.yaml`).
+
 ---
 
 ## Migration

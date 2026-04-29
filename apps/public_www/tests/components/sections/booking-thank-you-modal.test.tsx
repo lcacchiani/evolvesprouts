@@ -38,7 +38,7 @@ describe('BookingThankYouModal', () => {
       eventTitle: 'Consultation',
       bookingSystem: 'consultation-booking',
       dateStartTime: '2026-05-16T02:00:00Z',
-      courseSessions: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
+      sessionSlots: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
     };
 
     render(
@@ -68,7 +68,7 @@ describe('BookingThankYouModal', () => {
       eventTitle: '咨询',
       bookingSystem: 'consultation-booking',
       dateStartTime: '2026-05-16T02:00:00Z',
-      courseSessions: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
+      sessionSlots: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
     };
 
     render(
@@ -94,7 +94,7 @@ describe('BookingThankYouModal', () => {
       totalAmount: 1,
       eventTitle: 'MBA',
       bookingSystem: 'my-best-auntie-booking',
-      courseSessions: [
+      sessionSlots: [
         { dateStartTime: '2026-04-10T06:00:00Z' },
         { dateStartTime: '2026-05-01T06:00:00Z' },
       ],
@@ -153,7 +153,7 @@ describe('BookingThankYouModal', () => {
       totalAmount: 50,
       eventTitle: 'Workshop',
       bookingSystem: 'event-booking',
-      courseSessions: [{ dateStartTime: '2026-06-01T10:00:00.000Z' }],
+      sessionSlots: [{ dateStartTime: '2026-06-01T10:00:00.000Z' }],
     };
 
     const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');

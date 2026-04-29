@@ -85,7 +85,7 @@ def test_run_reservation_post_success_hooks_sets_pending_without_stripe(
             "service_tier": "3",
             "payment_method": "fps_qr",
             "total_amount": Decimal("15234.50"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "stripe_payment_intent_id": None,
         }
@@ -128,7 +128,7 @@ def test_run_reservation_post_success_hooks_free_sets_is_free(
             "service_tier": "3",
             "payment_method": "free",
             "total_amount": Decimal("0"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "stripe_payment_intent_id": None,
         }
@@ -172,7 +172,7 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
             "service_tier": "3",
             "payment_method": "stripe",
             "total_amount": Decimal("0"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "stripe_payment_intent_id": "pi_abc123",
         }
@@ -215,7 +215,7 @@ def test_run_reservation_post_success_hooks_accepts_null_service_tier(
             "service_tier": None,
             "payment_method": "bank_transfer",
             "total_amount": Decimal("100"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "stripe_payment_intent_id": None,
         }

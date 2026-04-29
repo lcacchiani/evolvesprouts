@@ -72,12 +72,12 @@ implementation.
 
 | # | Decision | Detail |
 |---|----------|--------|
-| D1 | Legacy APIs tolerate unknown fields | The new fields (`marketing_opt_in`, `locale`, `course_label`, etc.) can be forwarded to the legacy API without stripping. |
+| D1 | Legacy APIs tolerate unknown fields | The new fields (`marketing_opt_in`, `locale`, `title`, etc.) can be forwarded to the legacy API without stripping. |
 | D2 | Welcome journey not yet created | Deploy with empty placeholder values for `MAILCHIMP_WELCOME_JOURNEY_ID` and `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (empty disables the trigger). The existing `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` and `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` GitHub vars and CDK parameters stay unchanged — they serve the media download delivery during the transition period and are a separate journey. |
 | D3 | WhatsApp URL — no new CDK parameter | Use the same hardcoded fallback URL as the website content JSON (`whatsappContact.href` in `en.json`): `https://wa.me/message/ZQHVW4DEORD5A1?src=qr`. Define this as a module constant in a shared email template utilities module (`backend/src/app/templates/constants.py`). Keep it in sync with `apps/public_www/src/content/en.json` → `whatsappContact.href`. This mirrors how the website treats it as a brand-level fallback constant. |
 | D4 | Email sender: `hello@evolvesprouts.com` | Customer-facing confirmation emails use the `AuthEmailFromAddress` parameter (`hello@evolvesprouts.com`). Internal notifications continue using `SesSenderEmail` (`no-reply@`). The SES domain identity ARN (`identity/evolvesprouts.com`) already covers both addresses. |
 | D5 | Legacy APIs accept `first_name` | Making `first_name` required on the Contact Us form and forwarding it in the body is safe. |
-| D6 | Booking display fields tolerated | Adding `course_label`, `schedule_date_label`, `schedule_time_label`, and `location_name` to the reservation POST body is safe. |
+| D6 | Booking display fields tolerated | Adding `title`, `schedule_date`, `schedule_time`, and `location_name` to the reservation POST body is safe. |
 | D7 | Email templates: SES native templates (Handlebars) | Use SES stored templates with Handlebars syntax (`{{variable}}`, `{{#if}}`, `{{#each}}`). The `send_templated_email` function already exists in `backend/src/app/services/email.py`. Templates are created/updated via a CDK custom resource at deploy time. This is the AWS-native approach and avoids maintaining complex HTML in Python string-format templates. See §6.6 for details. |
 | D8 | SES is in production mode | No sending limit concerns. |
 | D9 | Marketing opt-in checkbox: unchecked by default | True opt-in across all three forms. |
@@ -185,8 +185,8 @@ After:  { first_name, email, resource_key?, marketing_opt_in }
 | File | Change |
 |------|--------|
 | `apps/public_www/src/components/sections/booking-modal/reservation-form-fields.tsx` | Add marketing opt-in checkbox. Place it after the topics textarea and before the payment section. Visually distinguish from the required terms checkbox (terms has `*`, marketing does not). Pass `marketingOptIn` and `onMarketingOptInChange` as new props. |
-| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Add `marketingOptIn` boolean state (default `false`). Include `marketing_opt_in` in the reservation payload. Pass the `locale` prop value into the POST body as `locale` (string, e.g. `"en"`, `"zh-CN"`, `"zh-HK"`). Include display fields from `reservationSummary`: `course_label`, `schedule_date_label`, `schedule_time_label`, `location_name`. |
-| `apps/public_www/src/lib/reservations-data.ts` | Add to `ReservationSubmissionPayload`: `marketing_opt_in?: boolean`, `locale?: string`, `course_label?: string`, `schedule_date_label?: string`, `schedule_time_label?: string`, `location_name?: string`. |
+| `apps/public_www/src/components/sections/booking-modal/reservation-form.tsx` | Add `marketingOptIn` boolean state (default `false`). Include `marketing_opt_in` in the reservation payload. Pass the `locale` prop value into the POST body as `locale` (string, e.g. `"en"`, `"zh-CN"`, `"zh-HK"`). Include display fields from `reservationSummary`: `title`, `schedule_date`, `schedule_time`, `location_name`. |
+| `apps/public_www/src/lib/reservations-data.ts` | Add to `ReservationSubmissionPayload`: `marketing_opt_in?: boolean`, `locale?: string`, `title?: string`, `schedule_date?: string`, `schedule_time?: string`, `location_name?: string`. |
 | `apps/public_www/src/content/en.json` | Add under `bookingModal.paymentModal`: `marketingOptInLabel` ("Keep me updated with parenting tips and resources"). |
 | `apps/public_www/src/content/zh-CN.json` | Chinese Simplified translation. |
 | `apps/public_www/src/content/zh-HK.json` | Chinese Traditional translation. |
@@ -197,8 +197,8 @@ After:  { first_name, email, resource_key?, marketing_opt_in }
 ```
 Before: { full_name, email, phone_number, cohort_age, cohort_date, ... }
 After:  { full_name, email, phone_number, cohort_age, cohort_date, ...,
-          marketing_opt_in, locale, course_label, schedule_date_label,
-          schedule_time_label, location_name }
+          marketing_opt_in, locale, title, schedule_date,
+          schedule_time, location_name }
 ```
 
 `locale` is passed from the frontend so the backend can select the correct
@@ -348,7 +348,7 @@ Template data variables:
 
 Content:
 - Subject: "Your free guide is ready — Evolve Sprouts"
-- Banner title: "YOUR FREE GUIDE IS HERE!" (localized for `zh-CN` / `zh-HK`).
+- Banner headline: "YOUR FREE GUIDE IS HERE!" (localized for `zh-CN` / `zh-HK`).
 - Body: Greeting with first name. "Here is your download link for
   {{media_name}}." Left-aligned CTA: "Download your free guide". Fallback URL
   copy. Horizontal rule, then "What you'll find inside", numbered suggestions,
@@ -362,16 +362,16 @@ Template name pattern: `evolvesprouts-booking-confirmation-{locale}`
 
 Template data variables:
 - `{{full_name}}`
-- `{{course_label}}`
-- `{{schedule_date_label}}` (optional — use `{{#if}}`)
-- `{{schedule_time_label}}` (optional)
+- `{{title}}`
+- `{{schedule_date}}` (optional — use `{{#if}}`)
+- `{{schedule_time}}` (optional)
 - `{{payment_method}}`
 - `{{total_amount}}`
 - `{{is_pending_payment}}` (boolean — for non-Stripe note)
 - `{{whatsapp_url}}`
 
 Content:
-- Subject: "Booking confirmed — {{course_label}} — Evolve Sprouts"
+- Subject: "Booking confirmed — {{title}} — Evolve Sprouts"
 - Body: Greeting with full name. "Thank you for your booking!" Details table:
   course/event name, date/time, payment amount (HKD), payment method.
   `{{#if is_pending_payment}}` block: "Your reservation is pending until
@@ -443,8 +443,8 @@ Modify `handle_legacy_reservations`:
 
 Same pattern as Contact Us. After successful proxy response:
 
-1. Extract `full_name`, `email`, `course_label`, `schedule_date_label`,
-   `schedule_time_label`, `payment_method`, `price`,
+1. Extract `full_name`, `email`, `title`, `schedule_date`,
+   `schedule_time`, `payment_method`, `price`,
    `stripe_payment_intent_id`, `marketing_opt_in`, `locale` from the
    original parsed body.
 2. Derive first name from `full_name` by splitting on first whitespace.
@@ -635,7 +635,7 @@ including a hash of the template source as a property.
 
 | File | Change |
 |------|--------|
-| `docs/api/public.yaml` | Add `marketing_opt_in` (boolean, optional, default false) to `ContactUsSubmissionRequest` and `MediaRequestSubmissionRequest`. Mark `first_name` as required on Contact Us. Add `marketing_opt_in`, `locale`, `course_label`, `schedule_date_label`, `schedule_time_label`, `location_name` to the reservation body description. Add `locale` to `MediaRequestSubmissionRequest`. Document confirmation email behavior in endpoint descriptions. |
+| `docs/api/public.yaml` | Add `marketing_opt_in` (boolean, optional, default false) to `ContactUsSubmissionRequest` and `MediaRequestSubmissionRequest`. Mark `first_name` as required on Contact Us. Add `marketing_opt_in`, `locale`, `title`, `schedule_date`, `schedule_time`, `location_name` to the reservation body description. Add `locale` to `MediaRequestSubmissionRequest`. Document confirmation email behavior in endpoint descriptions. |
 | `docs/architecture/aws-messaging.md` | Add section for contact-us and booking transactional emails (SES, synchronous from Admin Lambda). Update media flow: SES sends download link directly, Mailchimp conditional on consent (with transition note). Document the SES template management custom resource. |
 | `docs/architecture/lambdas.md` | Update Admin Lambda: add SES permissions, new env vars. Update Media Processor: add `CONFIRMATION_EMAIL_FROM_ADDRESS`, `MAILCHIMP_REQUIRE_MARKETING_CONSENT`, welcome journey vars, `ses:SendTemplatedEmail`. Add SES template manager Lambda entry. |
 | `docs/architecture/aws-assets-map.md` | Add new CfnParameters: `MailchimpWelcomeJourneyId`, `MailchimpWelcomeJourneyStepId`, `MailchimpRequireMarketingConsent`. Add SES template custom resource. |

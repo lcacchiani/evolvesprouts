@@ -38,7 +38,11 @@ confirmation or download-link emails
 through **Amazon SES templated send** (`SendTemplatedEmail`). Templates are
 stored in SES and upserted at deploy time by a **CloudFormation custom
 resource** (`SesTemplateManagerFunction`) so runtime Lambdas only reference
-template names.
+template names. **Deploy ordering:** ship the stack that upserts SES templates
+(or run the template manager custom resource) **before** or together with
+Lambda code that references new template merge fields (for example subject
+placeholders); otherwise `SendTemplatedEmail` can fail with missing-variable
+errors until templates catch up.
 
 - **From address**: `CONFIRMATION_EMAIL_FROM_ADDRESS` on the relevant Lambdas,
   sourced from the stack `AuthEmailFromAddress` parameter (SES-verified

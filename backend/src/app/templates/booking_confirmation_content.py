@@ -253,16 +253,14 @@ def resolve_service_type_label(loc: str, service_type: str | None) -> str:
     return mapped.strip() if isinstance(mapped, str) and mapped.strip() else ""
 
 
-def resolve_service_row_label(
-    loc: str, service_type: str | None, course_label: str
-) -> str:
+def resolve_service_row_label(loc: str, service_type: str | None, title: str) -> str:
     """Backward-compatible booking title for SES templates using {{service_row_label}}."""
-    return (course_label or "").strip()
+    return (title or "").strip()
 
 
-def resolve_service_title_label(course_label: str) -> str:
-    """Customer-visible booking title (same as course_label in API payloads)."""
-    return (course_label or "").strip()
+def resolve_service_title_label(title: str) -> str:
+    """Customer-visible booking title (same as ``title`` in reservation API payloads)."""
+    return (title or "").strip()
 
 
 def normalize_booking_locale(locale: str) -> str:

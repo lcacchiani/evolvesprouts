@@ -346,9 +346,7 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         lines.append(f"Child age group: {service_tier_recap}")
     lines.extend(
         [
-            f"Package: {payload.get('package_label', '') or '(not set)'}",
-            f"Month: {payload.get('month_label', '') or '(not set)'}",
-            f"Course: {payload.get('course_label', '')}",
+            f"Title: {payload.get('title', '')}",
             f"Payment method: {payment_recap}",
             f"Total amount: {total_recap}",
         ]
@@ -359,10 +357,12 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         lines.append(f"Discount code: {payload['discount_code']}")
     if payload.get("service_key"):
         lines.append(f"Service key: {payload['service_key']}")
-    if payload.get("course_slug"):
-        lines.append(f"Course slug: {payload['course_slug']}")
+    if payload.get("service_instance_cohort"):
+        lines.append(f"Service instance cohort: {payload['service_instance_cohort']}")
     if payload.get("service_instance_slug"):
         lines.append(f"Service instance slug: {payload['service_instance_slug']}")
+    if payload.get("booking_system"):
+        lines.append(f"Booking system: {payload['booking_system']}")
     loc_name = str(payload.get("location_name") or "").strip()
     loc_addr = str(payload.get("location_address") or "").strip()
     if loc_name or loc_addr:
@@ -388,9 +388,9 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
     stripe_pi = payload.get("stripe_payment_intent_id")
     if stripe_pi:
         lines.append(f"Stripe PaymentIntent ID: {stripe_pi}")
-    if payload.get("schedule_date_label"):
-        lines.append(f"Schedule date: {payload['schedule_date_label']}")
-    if payload.get("schedule_time_label"):
-        lines.append(f"Schedule time: {payload['schedule_time_label']}")
+    if payload.get("schedule_date"):
+        lines.append(f"Schedule date: {payload['schedule_date']}")
+    if payload.get("schedule_time"):
+        lines.append(f"Schedule time: {payload['schedule_time']}")
     lines.extend(["", f"{question_heading}:", topics or "(not provided)"])
     return lines

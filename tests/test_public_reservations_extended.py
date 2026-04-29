@@ -46,12 +46,35 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
         "serviceTier": "3-5 years",
         "paymentMethod": "bank_transfer",
         "totalAmount": 100,
-        "courseLabel": "Course",
+        "title": "Course",
         "agreedToTermsAndConditions": True,
         "locale": "en",
     }
     base.update(overrides)
     return base
+
+
+def test_validate_reservation_payload_rejects_unknown_booking_system() -> None:
+    from app.exceptions import ValidationError
+
+    body = _reservation_body(bookingSystem="not-a-real-flow")
+    with pytest.raises(ValidationError) as excinfo:
+        _validate_reservation_payload(body)
+    assert getattr(excinfo.value, "field", None) == "bookingSystem"
+
+
+def test_validate_reservation_payload_normalizes_booking_system_case() -> None:
+    body = _reservation_body(bookingSystem="EVENT-BOOKING")
+    out = _validate_reservation_payload(body)
+    assert out["booking_system"] == "event-booking"
+
+
+def test_validate_reservation_payload_accepts_service_instance_cohort() -> None:
+    body = _reservation_body(
+        serviceInstanceCohort="  April MBA  ",
+    )
+    out = _validate_reservation_payload(body)
+    assert out["service_instance_cohort"] == "April MBA"
 
 
 def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> None:
@@ -676,7 +699,7 @@ def test_discount_redemption_rejects_service_scope_mismatch(
     payload = {
         "discount_code": "SAVE",
         "service_key": "my-best-auntie-training-course",
-        "course_slug": "my-best-auntie-booking",
+        "booking_system": "my-best-auntie-booking",
     }
     with pytest.raises(ValidationError):
         _validate_discount_code_redemption_scope(object(), payload, resolved_instance=resolved)

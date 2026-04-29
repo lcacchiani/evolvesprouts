@@ -186,7 +186,7 @@ export function MyBestAuntieBookingModal({
               referralAppliedNote={referralAppliedNote}
               referralAppliedAnnouncement={referralAppliedAnnouncement}
               eventSubtitle={modalContent.subtitle}
-              courseSessions={(selectedCohort?.dates ?? []).map((part) => {
+              sessionSlots={(selectedCohort?.dates ?? []).map((part) => {
                 return {
                   dateStartTime: part.start_datetime,
                   dateEndTime: part.end_datetime,

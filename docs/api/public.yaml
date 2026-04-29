@@ -1298,7 +1298,7 @@ components:
         - attendeePhone
         - paymentMethod
         - totalAmount
-        - courseLabel
+        - title
         - agreedToTermsAndConditions
         - serviceKey
         - serviceInstanceSlug
@@ -1328,12 +1328,6 @@ components:
             Optional; event flows without a tier selector may omit it. Flows that
             collect a service tier label (for example My Best Auntie or consultation)
             should send the selected label.
-        packageLabel:
-          type: string
-          maxLength: 200
-        monthLabel:
-          type: string
-          maxLength: 200
         paymentMethod:
           type: string
           maxLength: 100
@@ -1347,18 +1341,19 @@ components:
           type: number
           minimum: 0
           maximum: 1000000
-        courseLabel:
+        title:
           type: string
           maxLength: 200
+          description: Customer-visible booking title (shown in confirmation email and subject).
         stripePaymentIntentId:
           type: string
           maxLength: 200
           description: Required when payment method implies Stripe; PaymentIntent id.
           pattern: '^pi_[A-Za-z0-9]+$'
-        scheduleDateLabel:
+        scheduleDate:
           type: string
           maxLength: 200
-        scheduleTimeLabel:
+        scheduleTime:
           type: string
           maxLength: 200
         interestedTopics:
@@ -1395,6 +1390,13 @@ components:
             Public `service_instances.slug` for the booked cohort/instance. Required with
             `serviceKey` to resolve booking identity; backend resolves to the instance id for
             enrollment and discount scope checks.
+        serviceInstanceCohort:
+          type: string
+          maxLength: 200
+          description: >
+            Optional human-readable cohort label for the booked instance (for example the MBA
+            cohort title shown in the booking UI). Included in the internal sales recap and may
+            be stored on the enrollment lead event metadata; not used for booking identity.
         marketingOptIn:
           type: boolean
           default: false
@@ -1411,19 +1413,17 @@ components:
           description: >
             Parent service public key; must pair with `serviceInstanceSlug` to resolve a real
             instance (same rules as discount validate).
-        courseSlug:
-          type: string
-          maxLength: 100
-          description: >
-            Optional marketing-flow label only (for example confirmation email "back to course"
-            links). Not used for booking identity.
         bookingSystem:
           type: string
           maxLength: 100
+          enum:
+            - consultation-booking
+            - event-booking
+            - my-best-auntie-booking
           description: >
-            Optional booking flow code (for example `my-best-auntie-booking`, `consultation-booking`,
-            `event-booking`). When set, it is preferred over `courseSlug` for confirmation email and
-            internal metadata that still key off the legacy `course_slug` field.
+            Optional booking flow code. When set, must be exactly one of the enum values
+            (case-insensitive on input; stored lowercased). Drives confirmation email formatting
+            (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
         locationName:
           type: string
           maxLength: 200
@@ -1440,8 +1440,11 @@ components:
         primarySessionEndIso:
           type: string
           maxLength: 50
-        courseSessions:
+        sessionSlots:
           type: array
+          description: >
+            Optional list of session parts (ISO start/end per slot) for multi-line schedule
+            in confirmation email (e.g. MBA multi-session, multi-part events).
           items:
             type: object
             required:
