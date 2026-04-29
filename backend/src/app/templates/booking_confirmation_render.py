@@ -373,7 +373,7 @@ def format_booking_datetime_display_multi(
     plain_lines: list[str] = []
 
     if (
-        slug == "my-best-auntie"
+        _course_slug_is_mba_booking_flow(course_slug)
         and not sessions
         and (primary_session_iso or "").strip()
     ):
@@ -385,7 +385,7 @@ def format_booking_datetime_display_multi(
             }
         ]
 
-    if slug == "my-best-auntie" and sessions:
+    if _course_slug_is_mba_booking_flow(course_slug) and sessions:
         template = GROUP_SESSION_LABEL_TEMPLATE.get(
             loc, GROUP_SESSION_LABEL_TEMPLATE["en"]
         )
@@ -556,6 +556,12 @@ def _normalize_course_slug(course_slug: str | None) -> str:
     return (course_slug or "").strip().lower()
 
 
+def _course_slug_is_mba_booking_flow(course_slug: str | None) -> bool:
+    """True for MBA confirmation paths (wire booking_system or legacy marketing slug)."""
+    slug = _normalize_course_slug(course_slug)
+    return slug in {"my-best-auntie-booking", "my-best-auntie"}
+
+
 def _consultation_details_segments(
     *,
     loc: str,
@@ -596,7 +602,7 @@ def _cohort_label_for_mba_details(
     course_slug: str | None,
     schedule_date_label: str | None,
 ) -> str | None:
-    if _normalize_course_slug(course_slug) != "my-best-auntie":
+    if not _course_slug_is_mba_booking_flow(course_slug):
         return None
     s = (schedule_date_label or "").strip()
     return s or None
@@ -613,7 +619,7 @@ def format_booking_details_html_cell(
 ) -> str:
     slug = _normalize_course_slug(course_slug)
     cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if slug == "my-best-auntie":
+    if _course_slug_is_mba_booking_flow(course_slug):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
@@ -644,7 +650,7 @@ def format_booking_details_plain(
 ) -> str:
     slug = _normalize_course_slug(course_slug)
     cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if slug == "my-best-auntie":
+    if _course_slug_is_mba_booking_flow(course_slug):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,

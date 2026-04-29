@@ -33,6 +33,11 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
+# MBA training template: canonical public key; legacy seed value still supported for defaults.
+_MBA_TRAINING_SERVICE_KEYS = frozenset(
+    {"my-best-auntie", "my-best-auntie-training-course"}
+)
+
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _PUBLIC_INSTANCE_SLUG_MAX_LEN = 128  # matches service_instances.slug varchar(128)
 _SERVICE_KEY_MAX_LEN = 80  # matches services.service_key varchar(80)
@@ -222,7 +227,8 @@ def _resolve_booking_system(service: Service) -> str | None:
     if service.service_type == ServiceType.EVENT:
         return "event-booking"
     if service.service_type == ServiceType.TRAINING_COURSE:
-        if service.service_key == "my-best-auntie":
+        key = (service.service_key or "").strip().lower()
+        if key in _MBA_TRAINING_SERVICE_KEYS:
             return "my-best-auntie-booking"
         return None
     return None
@@ -289,7 +295,10 @@ def _derive_training_service_tier_from_instance_slug(
     service_key: str | None,
 ) -> str | None:
     """Infer age tier from instance slug when parent ``services.service_tier`` is unset."""
-    if not instance_slug or service_key != "my-best-auntie":
+    if not instance_slug:
+        return None
+    key = (service_key or "").strip().lower()
+    if key not in _MBA_TRAINING_SERVICE_KEYS:
         return None
     prefix = "my-best-auntie-"
     if not instance_slug.startswith(prefix):

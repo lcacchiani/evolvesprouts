@@ -128,6 +128,28 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     assert "First group session:" in plain
     assert "10 April @ 14:00 HKT" in plain
 
+    _s_wire, html_wire, _plain_wire = render_booking_confirmation_email(
+        locale="en",
+        full_name="A",
+        course_label="MBA",
+        schedule_date_label="Apr, 2026",
+        schedule_time_label="ignored when iso",
+        location_name="Venue",
+        location_address="1 Road, Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="my-best-auntie-booking",
+        service_tier_label="18-24 months",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+    )
+    assert "Cohort" in html_wire
+    assert "Apr, 2026" in html_wire
+    assert "First group session:" in html_wire
+
     _s2, html2, _p2 = render_booking_confirmation_email(
         locale="en",
         full_name="A",
