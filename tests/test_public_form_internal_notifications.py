@@ -261,12 +261,14 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
             "schedule_time_label": "T",
             "interested_topics": "sleep",
             "comments_field_label": "What should we know?",
+            "course_slug": "event-booking",
         }
     )
     body = "\n".join(lines)
     assert "pi_x" in body and "sleep" in body
     assert "Telephone: 1" in body
     assert "Question (What should we know?):" in body
+    assert "Course slug" not in body
 
 
 def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
