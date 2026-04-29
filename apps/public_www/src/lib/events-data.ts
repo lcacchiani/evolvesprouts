@@ -1691,12 +1691,9 @@ function recordToMyBestAuntieEventCohort(
     return null;
   }
 
-  const service = readCandidateText(record, ['service']) ?? 'training-course';
-
   return {
     slug,
     service_tier: serviceTier,
-    service,
     title,
     description,
     cohort: cohortValue,

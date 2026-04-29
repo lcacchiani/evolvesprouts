@@ -28,6 +28,7 @@ describe('reservations-data', () => {
         paymentMethod: 'stripe',
         stripePaymentIntentId: 'pi_test_123',
         serviceKey: 'cohort-or-event-id',
+        serviceInstanceSlug: 'test-instance-slug',
       },
       turnstileToken: 'mock-turnstile-token',
     });
@@ -60,6 +61,8 @@ describe('reservations-data', () => {
         reservationPendingUntilPaymentConfirmed: false,
         agreedToTermsAndConditions: true,
         paymentMethod: 'free',
+        serviceKey: 'free-course-key',
+        serviceInstanceSlug: 'free-instance-slug',
       },
       turnstileToken: 'mock-turnstile-token',
     });
