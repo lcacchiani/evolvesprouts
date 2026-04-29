@@ -1,11 +1,9 @@
 import {
-  CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
-  createPublicCrmApiClient,
-} from '@/lib/crm-api-client';
-import {
   type CalendarUnavailableSlot,
   parsePublicCalendarBlockersPayload,
 } from '@/lib/calendar-availability';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS } from '@/lib/events-data';
 
 export const CALENDAR_BLOCKERS_API_PATH = '/v1/calendar/blockers';
 
