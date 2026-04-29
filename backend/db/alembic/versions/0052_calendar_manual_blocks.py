@@ -73,5 +73,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("calendar_manual_blocks_purpose_date_idx", table_name="calendar_manual_blocks")
+    op.drop_index(
+        "calendar_manual_blocks_purpose_date_idx", table_name="calendar_manual_blocks"
+    )
     op.drop_table("calendar_manual_blocks")

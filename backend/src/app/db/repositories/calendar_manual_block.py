@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models.calendar_manual_block import CalendarManualBlock
@@ -30,14 +30,16 @@ class CalendarManualBlockRepository(BaseRepository[CalendarManualBlock]):
             .where(CalendarManualBlock.purpose == purpose)
             .where(CalendarManualBlock.block_date >= start_date)
             .where(CalendarManualBlock.block_date <= end_date)
-            .order_by(CalendarManualBlock.block_date.asc(), CalendarManualBlock.period.asc())
+            .order_by(
+                CalendarManualBlock.block_date.asc(), CalendarManualBlock.period.asc()
+            )
         )
         return list(self._session.execute(statement).scalars().all())
 
     def get_by_id(self, row_id: UUID) -> CalendarManualBlock | None:
         return self._session.get(CalendarManualBlock, row_id)
 
-    def create(
+    def create_block(
         self,
         *,
         purpose: str,
@@ -74,9 +76,3 @@ class CalendarManualBlockRepository(BaseRepository[CalendarManualBlock]):
         self._session.flush()
         self._session.refresh(row)
         return row
-
-    def delete_by_id(self, row_id: UUID) -> bool:
-        result = self._session.execute(
-            delete(CalendarManualBlock).where(CalendarManualBlock.id == row_id)
-        )
-        return result.rowcount > 0

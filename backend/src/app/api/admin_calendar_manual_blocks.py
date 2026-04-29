@@ -132,7 +132,9 @@ def _list_blocks(event: Mapping[str, Any]) -> dict[str, Any]:
 
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
-        rows = repo.list_for_purpose_between(purpose=purpose, start_date=start, end_date=end)
+        rows = repo.list_for_purpose_between(
+            purpose=purpose, start_date=start, end_date=end
+        )
         items = [_serialize_block(r) for r in rows]
         session.commit()
 
@@ -144,7 +146,7 @@ def _get_block(event: Mapping[str, Any], *, block_id: UUID) -> dict[str, Any]:
         repo = CalendarManualBlockRepository(session)
         row = repo.get_by_id(block_id)
         if row is None:
-            raise NotFoundError("Block not found")
+            raise NotFoundError("Calendar manual block", str(block_id))
         payload = _serialize_block(row)
         session.commit()
     return json_response(200, {"block": payload}, event=event)
@@ -166,7 +168,9 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
         try:
-            row = repo.create(purpose=purpose, block_date=block_date, period=period, note=note)
+            row = repo.create_block(
+                purpose=purpose, block_date=block_date, period=period, note=note
+            )
         except IntegrityError as exc:
             session.rollback()
             raise ValidationError(
@@ -196,7 +200,7 @@ def _update_block(
         row = repo.get_by_id(block_id)
         if row is None:
             session.rollback()
-            raise NotFoundError("Block not found")
+            raise NotFoundError("Calendar manual block", str(block_id))
         if row.purpose != consultation_booking_purpose():
             session.rollback()
             raise ValidationError("Block purpose cannot be changed", field="purpose")
@@ -224,6 +228,6 @@ def _delete_block(event: Mapping[str, Any], *, block_id: UUID) -> dict[str, Any]
         deleted = repo.delete_by_id(block_id)
         if not deleted:
             session.rollback()
-            raise NotFoundError("Block not found")
+            raise NotFoundError("Calendar manual block", str(block_id))
         session.commit()
     return json_response(200, {"deleted": True}, event=event)

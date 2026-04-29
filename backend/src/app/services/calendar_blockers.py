@@ -56,7 +56,9 @@ def _window_utc_for_local_hours(
         day_local = date(y, m, d_part)
     except ValueError:
         return None
-    start_local = datetime.combine(day_local, time(hour=start_hour, minute=0), tzinfo=zone)
+    start_local = datetime.combine(
+        day_local, time(hour=start_hour, minute=0), tzinfo=zone
+    )
     end_local = datetime.combine(day_local, time(hour=end_hour, minute=0), tzinfo=zone)
     if end_local <= start_local:
         return None
@@ -133,7 +135,9 @@ def merge_calendar_blockers_for_purpose(
         select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
         .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
         .join(Service, ServiceInstance.service_id == Service.id)
-        .where(Service.service_type.in_((ServiceType.EVENT, ServiceType.TRAINING_COURSE)))
+        .where(
+            Service.service_type.in_((ServiceType.EVENT, ServiceType.TRAINING_COURSE))
+        )
         .where(Service.status == ServiceStatus.PUBLISHED)
         .where(ServiceInstance.status != InstanceStatus.CANCELLED)
         .where(

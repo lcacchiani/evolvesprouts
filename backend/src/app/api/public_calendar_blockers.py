@@ -55,7 +55,9 @@ def handle_public_calendar_blockers(
     to_raw = query.get("to") if isinstance(query, Mapping) else None
     today = datetime.now(tz=UTC).date()
     start_date = _parse_iso_date(from_raw, default=today)
-    end_date = _parse_iso_date(to_raw, default=start_date + timedelta(days=_DEFAULT_RANGE_DAYS))
+    end_date = _parse_iso_date(
+        to_raw, default=start_date + timedelta(days=_DEFAULT_RANGE_DAYS)
+    )
     if end_date < start_date:
         return public_cacheable_json_response(
             400, {"error": "to must be on or after from"}, event=event
