@@ -308,7 +308,7 @@ paths:
           description: >
             Restrict the feed to instances of a single service whose key matches
             `service_key` case-insensitively against `services.service_key` in Aurora
-            (e.g. `my-best-auntie`). Combines with `service_type` and
+            (e.g. `my-best-auntie-training-course`). Combines with `service_type` and
             `slug` via logical AND; contradictory combinations return
             `events: []`. Unknown keys return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
@@ -384,7 +384,7 @@ paths:
           description: >
             Restrict the feed to instances of a single service whose key matches
             `service_key` case-insensitively against `services.service_key` in Aurora
-            (e.g. `my-best-auntie`). Combines with `service_type` and
+            (e.g. `my-best-auntie-training-course`). Combines with `service_type` and
             `slug` via logical AND; contradictory combinations return
             `events: []`. Unknown keys return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
@@ -1215,7 +1215,7 @@ components:
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Parent service public key (e.g. `my-best-auntie`). Matched case-insensitively
+            Parent service public key (e.g. `my-best-auntie-training-course`). Matched case-insensitively
             against `services.service_key`. Must pair with `service_instance_slug` to resolve
             a real instance whose parent service has this key.
         service_instance_slug:
@@ -1467,7 +1467,7 @@ components:
           maxLength: 100
           description: >
             Optional public service slug for Stripe `metadata.service_key` (e.g.
-            `my-best-auntie`); not used for discount scope validation on this endpoint.
+            `my-best-auntie-training-course`); not used for discount scope validation on this endpoint.
         cohort_id:
           type: string
           maxLength: 120

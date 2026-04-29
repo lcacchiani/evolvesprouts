@@ -36,8 +36,7 @@ WHERE s.id = pick.id
       )
   ) = 1;
 
--- Correct legacy MBA key if a prior seed run set `my-best-auntie` (public site uses
--- `my-best-auntie-training-course` for booking identity).
+-- One-time corrective update if any row still has the pre-rename MBA key string.
 UPDATE services s
 SET service_key = 'my-best-auntie-training-course'
 WHERE lower(trim(coalesce(s.service_key, ''))) = 'my-best-auntie'

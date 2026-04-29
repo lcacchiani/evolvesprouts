@@ -4311,7 +4311,7 @@ export interface components {
             id: string;
             service_type: components["schemas"]["ServiceType"];
             title: string;
-            /** @description Optional lowercase public service key for URLs and booking identity (e.g. `my-best-auntie`). Uniqueness is enforced case-insensitively in Aurora (with `service_tier`). */
+            /** @description Optional lowercase public service key for URLs and booking identity (e.g. `my-best-auntie-training-course`). Uniqueness is enforced case-insensitively in Aurora (with `service_tier`). */
             service_key?: string | null;
             /** @description Optional label for which booking system or flow applies to this service (free-form text, same max length as service key). */
             booking_system?: string | null;

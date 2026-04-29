@@ -523,11 +523,11 @@ def test_handle_public_events_service_key_passthrough(
     public_events.handle_public_events(
         api_gateway_event(
             method="GET",
-            query_params={"service_key": "my-best-auntie"},
+            query_params={"service_key": "my-best-auntie-training-course"},
         ),
         "GET",
     )
-    assert captured["service_key"] == "my-best-auntie"
+    assert captured["service_key"] == "my-best-auntie-training-course"
 
 
 def test_handle_public_events_service_key_trims_and_lowercases(
@@ -578,7 +578,7 @@ def test_handle_public_events_service_key_trims_and_lowercases(
         ),
         "GET",
     )
-    assert captured["service_key"] == "my-best-auntie"
+    assert captured["service_key"] == "my-best-auntie-training-course"
 
 
 def test_handle_public_events_service_key_invalid_ignored(
@@ -842,14 +842,14 @@ def test_handle_public_events_combined_filters(
         api_gateway_event(
             method="GET",
             query_params={
-                "service_key": "my-best-auntie",
+                "service_key": "my-best-auntie-training-course",
                 "service_type": "training_course",
                 "slug": "foo-bar",
             },
         ),
         "GET",
     )
-    assert captured["service_key"] == "my-best-auntie"
+    assert captured["service_key"] == "my-best-auntie-training-course"
     assert captured["service_types"] == {ServiceType.TRAINING_COURSE}
     assert captured["slug"] == "foo-bar"
 
@@ -859,7 +859,9 @@ def test_parse_service_key_none() -> None:
 
 
 def test_parse_service_key_trims_and_lowercases() -> None:
-    assert public_events._parse_service_key("  My-Best-Auntie  ") == "my-best-auntie"
+    assert public_events._parse_service_key("  My-Best-Auntie-Training-Course  ") == (
+        "my-best-auntie-training-course"
+    )
 
 
 def test_parse_service_key_invalid_pattern() -> None:
@@ -877,4 +879,4 @@ def test_parse_service_key_blank_and_whitespace_only() -> None:
 
 
 def test_parse_service_key_valid_slug() -> None:
-    assert public_events._parse_service_key("my-best-auntie") == "my-best-auntie"
+    assert public_events._parse_service_key("my-best-auntie") == "my-best-auntie-training-course"

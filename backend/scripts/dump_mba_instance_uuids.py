@@ -68,11 +68,7 @@ def _fetch_rows() -> list[RowOut]:
         stmt = (
             select(ServiceInstance, Service.title)
             .join(Service, Service.id == ServiceInstance.service_id)
-            .where(
-                Service.service_key.in_(
-                    ("my-best-auntie", "my-best-auntie-training-course")
-                )
-            )
+            .where(Service.service_key == "my-best-auntie-training-course")
             .order_by(ServiceInstance.created_at.asc())
         )
         rows: list[RowOut] = []

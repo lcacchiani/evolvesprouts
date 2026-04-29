@@ -87,7 +87,7 @@ Migration `0049_inst_slug_not_null` sets `service_instances.slug` to `NOT NULL` 
 the backfill succeeds.
 
 Migration `0050_fix_mba_service_key` updates `services.service_key` from the legacy
-`my-best-auntie` value to `my-best-auntie-training-course` for matching training-course
+legacy MBA key string to `my-best-auntie-training-course` for matching training-course
 titles (idempotent; aligns with the public booking constant).
 
 Migration `0032_services_booking` adds nullable `services.booking_system` (varchar(80))

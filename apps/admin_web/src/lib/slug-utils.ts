@@ -71,7 +71,9 @@ export function computeSuggestedInstanceSlug(
     if (!service) {
       return slugifyForInstance(instanceForm.cohort.trim() || instanceForm.title);
     }
-    const base = slugifyForInstance((service.serviceKey ?? '').trim() || service.title || '');
+    const slugifiedKey = slugifyForInstance((service.serviceKey ?? '').trim() || service.title || '');
+    const base =
+      slugifiedKey === 'my-best-auntie-training-course' ? 'my-best-auntie' : slugifiedKey;
     const tierRaw = (service.serviceTier ?? '').trim();
     const tierPart = tierRaw ? slugifyForInstance(tierRaw) : '';
     const cohortRaw = instanceForm.cohort.trim();

@@ -33,9 +33,9 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
-# MBA training template: canonical public key; legacy seed value still supported for defaults.
-_MBA_TRAINING_SERVICE_KEYS = frozenset(
-    {"my-best-auntie", "my-best-auntie-training-course"}
+_MBA_TRAINING_SERVICE_KEY = "my-best-auntie-training-course"
+_LEGACY_MBA_SERVICE_SLUG = (
+    "my-best-auntie"  # old public filter value; normalized in _parse_service_key only
 )
 
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -138,6 +138,8 @@ def _parse_service_key(raw: str | None) -> str | None:
     # Lowercase before pattern match so mixed-case input (e.g. MY-BEST-AUNTIE)
     # is accepted; the OpenAPI pattern is lowercase-only.
     normalized = trimmed.lower()
+    if normalized == _LEGACY_MBA_SERVICE_SLUG:
+        normalized = _MBA_TRAINING_SERVICE_KEY
     if not _SERVICE_KEY_PATTERN.fullmatch(normalized):
         return None
     return normalized
@@ -228,7 +230,7 @@ def _resolve_booking_system(service: Service) -> str | None:
         return "event-booking"
     if service.service_type == ServiceType.TRAINING_COURSE:
         key = (service.service_key or "").strip().lower()
-        if key in _MBA_TRAINING_SERVICE_KEYS:
+        if key == _MBA_TRAINING_SERVICE_KEY:
             return "my-best-auntie-booking"
         return None
     return None
@@ -298,7 +300,7 @@ def _derive_training_service_tier_from_instance_slug(
     if not instance_slug:
         return None
     key = (service_key or "").strip().lower()
-    if key not in _MBA_TRAINING_SERVICE_KEYS:
+    if key != _MBA_TRAINING_SERVICE_KEY:
         return None
     prefix = "my-best-auntie-"
     if not instance_slug.startswith(prefix):

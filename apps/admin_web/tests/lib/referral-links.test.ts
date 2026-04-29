@@ -61,11 +61,11 @@ describe('buildPublicReferralUrlWithSlug', () => {
       buildPublicReferralUrlWithSlug({
         baseUrl: 'https://www.example.com',
         locale: 'en',
-        serviceKey: 'my-best-auntie',
+        serviceKey: 'my-best-auntie-training-course',
         code: 'SAVE10',
         paramName: 'ref',
       }),
-    ).toBe('https://www.example.com/en/services/my-best-auntie?ref=SAVE10');
+    ).toBe('https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10');
   });
 
   it('builds locale home when service key is null', () => {

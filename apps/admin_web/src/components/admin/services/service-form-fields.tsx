@@ -32,7 +32,7 @@ export function ServiceKeyField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onBlur={() => onChange(value.trim().toLowerCase())}
-        placeholder='e.g. my-best-auntie'
+        placeholder='e.g. my-best-auntie-training-course'
         autoComplete='off'
       />
       {value.trim() && !SERVICE_KEY_PATTERN.test(value.trim()) ? (

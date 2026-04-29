@@ -10,7 +10,7 @@ from uuid import UUID, uuid4
 from app.api import public_discount_validate
 from app.db.models.enums import DiscountType
 
-_DEFAULT_VALIDATE_SERVICE_KEY = "my-best-auntie"
+_DEFAULT_VALIDATE_SERVICE_KEY = "my-best-auntie-training-course"
 _DEFAULT_VALIDATE_INSTANCE_SLUG = "mba-apr-26"
 
 
@@ -774,14 +774,14 @@ def _patch_discount_validate_repositories(
             inst_id = inst_map.get(key)
             if inst_id is None:
                 return None
-            if "my-best-auntie" in svc_map:
-                svc_id = svc_map["my-best-auntie"]
-                svc_key = "my-best-auntie"
+            if "my-best-auntie-training-course" in svc_map:
+                svc_id = svc_map["my-best-auntie-training-course"]
+                svc_key = "my-best-auntie-training-course"
             elif svc_map:
                 svc_key, svc_id = next(iter(svc_map.items()))
             else:
                 svc_id = uuid4()
-                svc_key = "my-best-auntie"
+                svc_key = "my-best-auntie-training-course"
             return SimpleNamespace(
                 id=inst_id,
                 service=SimpleNamespace(id=svc_id, service_key=svc_key),
@@ -829,7 +829,7 @@ def test_public_discount_validate_unscoped_code_ignores_service_key(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": uuid4()},
+        slug_to_service_id={"my-best-auntie-training-course": uuid4()},
     )
 
     event = api_gateway_event(
@@ -850,7 +850,7 @@ def test_public_discount_validate_returns_404_when_service_key_does_not_match_in
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": uuid4()},
+        slug_to_service_id={"my-best-auntie-training-course": uuid4()},
     )
 
     event = api_gateway_event(
@@ -873,7 +873,7 @@ def test_public_discount_validate_service_scoped_match(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
     )
 
     event = api_gateway_event(
@@ -894,7 +894,7 @@ def test_public_discount_validate_service_scoped_mismatch_returns_404(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": other},
+        slug_to_service_id={"my-best-auntie-training-course": other},
     )
 
     event = api_gateway_event(
@@ -936,7 +936,7 @@ def test_public_discount_validate_instance_scoped_missing_instance_returns_404(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={"other-cohort": inst},
     )
 
@@ -959,7 +959,7 @@ def test_public_discount_validate_instance_scoped_match_returns_200(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={"mba-apr-26": inst},
     )
 
@@ -983,7 +983,7 @@ def test_public_discount_validate_instance_scoped_wrong_service_key_returns_404(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={"mba-apr-26": inst},
     )
 
@@ -1013,7 +1013,7 @@ def test_public_discount_validate_instance_scoped_mismatch_returns_404(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={"mba-other": other_inst},
     )
 
@@ -1036,7 +1036,7 @@ def test_public_discount_validate_instance_scoped_unknown_instance_slug_returns_
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={},
     )
 
@@ -1103,7 +1103,7 @@ def test_public_discount_validate_instance_slug_mixed_case_resolves(
     _patch_discount_validate_repositories(
         monkeypatch,
         discount_row=row,
-        slug_to_service_id={"my-best-auntie": svc},
+        slug_to_service_id={"my-best-auntie-training-course": svc},
         slug_to_instance_id={"mba-apr-26": inst},
     )
 

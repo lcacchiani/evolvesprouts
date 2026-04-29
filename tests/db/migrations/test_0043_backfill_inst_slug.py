@@ -147,7 +147,7 @@ def test_0043_backfill_service_instance_slugs() -> None:
               cover_image_s3_key, delivery_mode, status, created_by,
               service_tier, location_id
             ) VALUES
-            (%s, 'training_course', 'MBA', 'my-best-auntie', NULL, NULL, NULL,
+            (%s, 'training_course', 'MBA', 'my-best-auntie-training-course', NULL, NULL, NULL,
              'online', 'published', 'test', NULL, NULL),
             (%s, 'event', 'Event Svc', 'evt-svc-0043', NULL, NULL, NULL,
              'in_person', 'published', 'test', NULL, NULL),

@@ -557,9 +557,8 @@ def _normalize_course_slug(course_slug: str | None) -> str:
 
 
 def _course_slug_is_mba_booking_flow(course_slug: str | None) -> bool:
-    """True for MBA confirmation paths (wire booking_system or legacy marketing slug)."""
-    slug = _normalize_course_slug(course_slug)
-    return slug in {"my-best-auntie-booking", "my-best-auntie"}
+    """True when reservation ``course_slug`` is the MBA booking flow code."""
+    return _normalize_course_slug(course_slug) == "my-best-auntie-booking"
 
 
 def _consultation_details_segments(

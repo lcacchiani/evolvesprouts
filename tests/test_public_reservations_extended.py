@@ -22,7 +22,7 @@ def _resolved_instance_stub(
     instance_id: object,
     service_id: object,
     *,
-    service_key: str = "my-best-auntie",
+    service_key: str = "my-best-auntie-training-course",
     service_type_value: str = "training_course",
 ) -> SimpleNamespace:
     return SimpleNamespace(
@@ -41,7 +41,7 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
         "attendeeEmail": "u@example.com",
         "attendeePhone": "91234567",
         "attendeeCountry": "HK",
-        "serviceKey": "my-best-auntie",
+        "serviceKey": "my-best-auntie-training-course",
         "serviceInstanceSlug": "test-cohort",
         "serviceTier": "3-5 years",
         "paymentMethod": "bank_transfer",
@@ -675,8 +675,8 @@ def test_discount_redemption_rejects_service_scope_mismatch(
     resolved = _resolved_instance_stub(uuid4(), other)
     payload = {
         "discount_code": "SAVE",
-        "service_key": "my-best-auntie",
-        "course_slug": "my-best-auntie",
+        "service_key": "my-best-auntie-training-course",
+        "course_slug": "my-best-auntie-booking",
     }
     with pytest.raises(ValidationError):
         _validate_discount_code_redemption_scope(object(), payload, resolved_instance=resolved)

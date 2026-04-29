@@ -36,7 +36,7 @@ describe('computeSuggestedInstanceSlug', () => {
   it('builds MBA slug from service tier and cohort', () => {
     const svc: ServiceSummary = {
       ...baseService,
-      serviceKey: 'my-best-auntie',
+      serviceKey: 'my-best-auntie-training-course',
       serviceTier: '1-3',
     };
     expect(
