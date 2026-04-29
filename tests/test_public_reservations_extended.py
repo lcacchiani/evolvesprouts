@@ -46,7 +46,7 @@ def _reservation_body(**overrides: object) -> dict[str, Any]:
         "serviceTier": "3-5 years",
         "paymentMethod": "bank_transfer",
         "totalAmount": 100,
-        "courseLabel": "Course",
+        "title": "Course",
         "agreedToTermsAndConditions": True,
         "locale": "en",
     }

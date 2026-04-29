@@ -158,7 +158,7 @@ def _format_ics_utc(dt: datetime) -> str:
 
 def build_booking_confirmation_ics(
     *,
-    course_label: str,
+    title: str,
     primary_session_iso: str | None,
     primary_session_end_iso: str | None = None,
     location_line: str | None = None,
@@ -176,7 +176,7 @@ def build_booking_confirmation_ics(
     if end_dt is None or end_dt <= start_dt:
         end_dt = start_dt + timedelta(hours=1)
 
-    summary = (course_label or "").strip() or "Booking"
+    summary = (title or "").strip() or "Booking"
     location = (location_line or "").strip()
 
     uid_seed = "|".join(
@@ -239,12 +239,12 @@ def resolve_payment_method_display(payment_method_code: str) -> str:
 
 
 def format_schedule_datetime_line(
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
 ) -> str | None:
     """Single schedule line: date+time, time-only, or date-only (first session rules)."""
-    date_s = (schedule_date_label or "").strip()
-    time_s = (schedule_time_label or "").strip()
+    date_s = (schedule_date or "").strip()
+    time_s = (schedule_time or "").strip()
     if date_s and time_s:
         return f"{date_s} {time_s}"
     if time_s:
@@ -361,8 +361,8 @@ def format_booking_datetime_display_multi(
     course_sessions: list[dict[str, str]] | None,
     primary_session_iso: str | None,
     primary_session_end_iso: str | None,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_use_hkt: bool,
     locale: str,
 ) -> tuple[str | None, str | None]:
@@ -429,8 +429,8 @@ def format_booking_datetime_display_multi(
                 else:
                     one = format_booking_datetime_display(
                         primary_session_iso=start_raw,
-                        schedule_date_label=None,
-                        schedule_time_label=None,
+                        schedule_date=None,
+                        schedule_time=None,
                         location_use_hkt=location_use_hkt,
                     )
                     if one:
@@ -440,8 +440,8 @@ def format_booking_datetime_display_multi(
         else:
             fallback = format_booking_datetime_display(
                 primary_session_iso=primary_session_iso,
-                schedule_date_label=schedule_date_label,
-                schedule_time_label=schedule_time_label,
+                schedule_date=schedule_date,
+                schedule_time=schedule_time,
                 location_use_hkt=location_use_hkt,
             )
             if fallback:
@@ -534,8 +534,8 @@ def format_booking_location_plain_block(
 def format_booking_datetime_display(
     *,
     primary_session_iso: str | None,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_use_hkt: bool,
 ) -> str | None:
     """Schedule line for email; HKT formatting when the booking is in Hong Kong."""
@@ -543,13 +543,13 @@ def format_booking_datetime_display(
         parsed = _parse_iso_datetime(primary_session_iso)
         if parsed is not None:
             return _format_hkt_email_line(parsed)
-        line = format_schedule_datetime_line(schedule_date_label, schedule_time_label)
+        line = format_schedule_datetime_line(schedule_date, schedule_time)
         if not line:
             return None
         if "hkt" not in line.lower():
             return f"{line} HKT"
         return line
-    return format_schedule_datetime_line(schedule_date_label, schedule_time_label)
+    return format_schedule_datetime_line(schedule_date, schedule_time)
 
 
 def _normalize_booking_system(booking_system: str | None) -> str:
@@ -599,11 +599,11 @@ def _my_best_auntie_details_segments(
 
 def _cohort_label_for_mba_details(
     booking_system: str | None,
-    schedule_date_label: str | None,
+    schedule_date: str | None,
 ) -> str | None:
     if not _booking_system_is_mba_booking_flow(booking_system):
         return None
-    s = (schedule_date_label or "").strip()
+    s = (schedule_date or "").strip()
     return s or None
 
 
@@ -611,13 +611,13 @@ def format_booking_details_html_cell(
     *,
     loc: str,
     booking_system: str | None,
-    schedule_date_label: str | None,
+    schedule_date: str | None,
     service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
     slug = _normalize_booking_system(booking_system)
-    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date_label)
+    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date)
     if _booking_system_is_mba_booking_flow(booking_system):
         segments = _my_best_auntie_details_segments(
             loc=loc,
@@ -642,13 +642,13 @@ def format_booking_details_plain(
     *,
     loc: str,
     booking_system: str | None,
-    schedule_date_label: str | None,
+    schedule_date: str | None,
     service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
     slug = _normalize_booking_system(booking_system)
-    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date_label)
+    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date)
     if _booking_system_is_mba_booking_flow(booking_system):
         segments = _my_best_auntie_details_segments(
             loc=loc,
@@ -678,7 +678,7 @@ def format_consultation_details_html_cell(
     return format_booking_details_html_cell(
         loc=loc,
         booking_system="consultation-booking",
-        schedule_date_label=None,
+        schedule_date=None,
         service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -694,7 +694,7 @@ def format_consultation_details_plain(
     return format_booking_details_plain(
         loc=loc,
         booking_system="consultation-booking",
-        schedule_date_label=None,
+        schedule_date=None,
         service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -724,12 +724,12 @@ def booking_confirmation_template_merge_data(
     *,
     locale: str,
     full_name: str,
-    course_label: str,
+    title: str,
     service_key: str
     | None = None,  # canonical template service key (reserved for future use)
     service_type: str | None = None,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
@@ -748,9 +748,9 @@ def booking_confirmation_template_merge_data(
 ) -> dict[str, Any]:
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
-    service_row_label = resolve_service_row_label(loc, service_type, course_label)
+    service_row_label = resolve_service_row_label(loc, service_type, title)
     service_type_label = resolve_service_type_label(loc, service_type)
-    service_title_label = resolve_service_title_label(course_label)
+    service_title_label = resolve_service_title_label(title)
     pm_display = resolve_payment_method_display(payment_method_code)
     use_hkt = location_suggests_hong_kong(
         location_name=location_name,
@@ -761,8 +761,8 @@ def booking_confirmation_template_merge_data(
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        schedule_date_label=schedule_date_label,
-        schedule_time_label=schedule_time_label,
+        schedule_date=schedule_date,
+        schedule_time=schedule_time,
         location_use_hkt=use_hkt,
         locale=loc,
     )
@@ -781,7 +781,7 @@ def booking_confirmation_template_merge_data(
     details_html = format_booking_details_html_cell(
         loc=loc,
         booking_system=booking_system,
-        schedule_date_label=schedule_date_label,
+        schedule_date=schedule_date,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -789,7 +789,7 @@ def booking_confirmation_template_merge_data(
     details_plain = format_booking_details_plain(
         loc=loc,
         booking_system=booking_system,
-        schedule_date_label=schedule_date_label,
+        schedule_date=schedule_date,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -802,7 +802,7 @@ def booking_confirmation_template_merge_data(
     free_label = FREE_TOTAL_LABEL[loc]
     data: dict[str, Any] = {
         "full_name": full_name.strip(),
-        "course_label": course_label.strip(),
+        "title": title.strip(),
         "service_row_label": service_row_label,
         "service_type_label": service_type_label,
         "service_title_label": service_title_label,
@@ -863,11 +863,11 @@ def render_booking_confirmation_email(
     *,
     locale: str,
     full_name: str,
-    course_label: str,
+    title: str,
     service_key: str | None = None,
     service_type: str | None = None,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_name: str | None = None,
     location_address: str | None = None,
     primary_session_iso: str | None = None,
@@ -892,7 +892,7 @@ def render_booking_confirmation_email(
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
     service_type_label = resolve_service_type_label(loc, service_type)
-    service_title_label = resolve_service_title_label(course_label)
+    service_title_label = resolve_service_title_label(title)
     service_table_left_label = service_type_label or labels["service"]
     esc_service_title = html.escape(service_title_label)
     pm_display = resolve_payment_method_display(payment_method_code)
@@ -917,8 +917,8 @@ def render_booking_confirmation_email(
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        schedule_date_label=schedule_date_label,
-        schedule_time_label=schedule_time_label,
+        schedule_date=schedule_date,
+        schedule_time=schedule_time,
         location_use_hkt=use_hkt,
         locale=loc,
     )
@@ -929,7 +929,7 @@ def render_booking_confirmation_email(
     details_cell = format_booking_details_html_cell(
         loc=loc,
         booking_system=booking_system,
-        schedule_date_label=schedule_date_label,
+        schedule_date=schedule_date,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -1029,7 +1029,7 @@ def render_booking_confirmation_email(
         inner_html=inner_html,
     )
 
-    subject = f"{SUBJECT_PREFIX[loc]}{course_label.strip()}{SUBJECT_SUFFIX}"
+    subject = f"{SUBJECT_PREFIX[loc]}{title.strip()}{SUBJECT_SUFFIX}"
 
     text_lines = _build_plain_text(
         loc=loc,
@@ -1037,8 +1037,8 @@ def render_booking_confirmation_email(
         full_name=full_name.strip(),
         service_type_label=service_type_label,
         service_title_label=service_title_label,
-        schedule_date_label=schedule_date_label,
-        schedule_time_label=schedule_time_label,
+        schedule_date=schedule_date,
+        schedule_time=schedule_time,
         location_name=location_name,
         location_address=location_address,
         primary_session_iso=primary_session_iso,
@@ -1086,8 +1086,8 @@ def _build_plain_text(
     full_name: str,
     service_type_label: str,
     service_title_label: str,
-    schedule_date_label: str | None,
-    schedule_time_label: str | None,
+    schedule_date: str | None,
+    schedule_time: str | None,
     location_name: str | None,
     location_address: str | None,
     primary_session_iso: str | None,
@@ -1121,7 +1121,7 @@ def _build_plain_text(
     details_plain = format_booking_details_plain(
         loc=loc,
         booking_system=booking_system,
-        schedule_date_label=schedule_date_label,
+        schedule_date=schedule_date,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
@@ -1138,8 +1138,8 @@ def _build_plain_text(
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        schedule_date_label=schedule_date_label,
-        schedule_time_label=schedule_time_label,
+        schedule_date=schedule_date,
+        schedule_time=schedule_time,
         location_use_hkt=use_hkt,
         locale=loc,
     )

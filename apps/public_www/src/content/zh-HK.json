@@ -1619,7 +1619,7 @@
       "closeLabel": "關閉",
       "title": "多謝！",
       "messageTemplate": "確認電郵已發送至 {email}",
-      "courseLabel": "我的最佳姨姨培訓課程。",
+      "bookingTitleFallback": "我的最佳姨姨培訓課程。",
       "serviceLabels": {
         "event": "活動",
         "training-course": "培訓課程",

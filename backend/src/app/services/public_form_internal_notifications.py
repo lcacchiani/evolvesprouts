@@ -348,7 +348,7 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         [
             f"Package: {payload.get('package_label', '') or '(not set)'}",
             f"Month: {payload.get('month_label', '') or '(not set)'}",
-            f"Course: {payload.get('course_label', '')}",
+            f"Title: {payload.get('title', '')}",
             f"Payment method: {payment_recap}",
             f"Total amount: {total_recap}",
         ]
@@ -386,9 +386,9 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
     stripe_pi = payload.get("stripe_payment_intent_id")
     if stripe_pi:
         lines.append(f"Stripe PaymentIntent ID: {stripe_pi}")
-    if payload.get("schedule_date_label"):
-        lines.append(f"Schedule date: {payload['schedule_date_label']}")
-    if payload.get("schedule_time_label"):
-        lines.append(f"Schedule time: {payload['schedule_time_label']}")
+    if payload.get("schedule_date"):
+        lines.append(f"Schedule date: {payload['schedule_date']}")
+    if payload.get("schedule_time"):
+        lines.append(f"Schedule time: {payload['schedule_time']}")
     lines.extend(["", f"{question_heading}:", topics or "(not provided)"])
     return lines

@@ -1619,7 +1619,7 @@
       "closeLabel": "Close",
       "title": "Thank you!",
       "messageTemplate": "A confirmation email has been sent to {email}",
-      "courseLabel": "My Best Auntie Training Course.",
+      "bookingTitleFallback": "My Best Auntie Training Course.",
       "serviceLabels": {
         "event": "Event",
         "training-course": "Training Course",

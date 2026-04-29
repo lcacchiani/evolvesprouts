@@ -31,15 +31,15 @@ export interface ReservationSubmissionPayload {
   stripePaymentIntentId?: string;
   marketingOptIn?: boolean;
   locale?: string;
-  courseLabel?: string;
+  title?: string;
   /** Parent service public key (required; identity with serviceInstanceSlug). */
   serviceKey: string;
   /** Optional booking flow code (e.g. event vs MBA vs consultation). */
   bookingSystem?: string;
   /** Public service_instances.slug (required; identity with serviceKey). */
   serviceInstanceSlug: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
+  scheduleDate?: string;
+  scheduleTime?: string;
   /** Consultation booking: writing focus title for confirmation email Details row. */
   consultationWritingFocusLabel?: string;
   /** Consultation booking: level title for confirmation email Details row. */

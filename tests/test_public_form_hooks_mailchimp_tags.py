@@ -148,7 +148,7 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
             "service_tier": "3",
             "payment_method": "fps_qr",
             "total_amount": Decimal("150"),
-            "course_label": "Course",
+            "title": "Course",
             "locale": "en",
             "marketing_opt_in": True,
             "service_key": "easter-workshop",

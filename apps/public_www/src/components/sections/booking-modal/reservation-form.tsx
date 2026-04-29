@@ -1245,7 +1245,7 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
-    const scheduleTimeLabel = (() => {
+    const scheduleTime = (() => {
       if (!primarySession) {
         return sanitizeSingleLineValue(selectedDateStartTime) || undefined;
       }
@@ -1277,7 +1277,7 @@ export function BookingReservationForm({
       stripePaymentIntentId: undefined,
       marketingOptIn: marketingOptIn,
       locale,
-      courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
+      title: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey);
         const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
@@ -1287,8 +1287,8 @@ export function BookingReservationForm({
           serviceInstanceSlug: instanceSlug,
         };
       })(),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
-      scheduleTimeLabel: scheduleTimeLabel,
+      scheduleDate: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
+      scheduleTime: scheduleTime,
       locationName: sanitizeSingleLineValue(venueName) || undefined,
       locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
       primarySessionStartIso: sanitizeSingleLineValue(primarySession?.dateStartTime)

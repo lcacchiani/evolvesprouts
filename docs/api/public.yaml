@@ -1298,7 +1298,7 @@ components:
         - attendeePhone
         - paymentMethod
         - totalAmount
-        - courseLabel
+        - title
         - agreedToTermsAndConditions
         - serviceKey
         - serviceInstanceSlug
@@ -1347,18 +1347,19 @@ components:
           type: number
           minimum: 0
           maximum: 1000000
-        courseLabel:
+        title:
           type: string
           maxLength: 200
+          description: Customer-visible booking title (shown in confirmation email and subject).
         stripePaymentIntentId:
           type: string
           maxLength: 200
           description: Required when payment method implies Stripe; PaymentIntent id.
           pattern: '^pi_[A-Za-z0-9]+$'
-        scheduleDateLabel:
+        scheduleDate:
           type: string
           maxLength: 200
-        scheduleTimeLabel:
+        scheduleTime:
           type: string
           maxLength: 200
         interestedTopics:

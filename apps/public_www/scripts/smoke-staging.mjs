@@ -482,7 +482,7 @@ function buildApiCases(turnstileToken) {
         interestedTopics: 'Smoke test reservation',
         totalAmount: 1,
         paymentMethod: 'bank_transfer',
-        courseLabel: 'Smoke test course',
+        title: 'Smoke test course',
         reservationPendingUntilPaymentConfirmed: true,
         agreedToTermsAndConditions: true,
         locale: 'en',

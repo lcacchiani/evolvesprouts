@@ -278,7 +278,7 @@ def _handle_public_reservation(
 
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
-                "course_label": reservation_payload["course_label"],
+                "title": reservation_payload["title"],
                 "locale": reservation_payload["locale"],
             }
             if reservation_payload.get("service_key"):
@@ -326,7 +326,7 @@ def _handle_public_reservation(
         extra={
             "attendee_email": mask_email(reservation_payload["attendee_email"]),
             "attendee_phone": mask_pii(reservation_payload["attendee_phone"]),
-            "course_label": reservation_payload["course_label"],
+            "title": reservation_payload["title"],
         },
     )
 
@@ -342,9 +342,9 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     email = str(payload.get("attendee_email") or "").strip()
     full_name = str(payload.get("attendee_name") or "").strip()
     locale = normalize_body_locale(payload.get("locale"))
-    course_label = str(payload.get("course_label") or "").strip() or "Your booking"
-    schedule_date = _optional_str(payload.get("schedule_date_label"))
-    schedule_time = _optional_str(payload.get("schedule_time_label"))
+    title = str(payload.get("title") or "").strip() or "Your booking"
+    schedule_date = _optional_str(payload.get("schedule_date"))
+    schedule_time = _optional_str(payload.get("schedule_time"))
     location_name = _optional_str(payload.get("location_name"))
     location_address = _optional_str(payload.get("location_address"))
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
@@ -373,11 +373,11 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
             send_booking_confirmation_email(
                 to_email=email,
                 full_name=full_name,
-                course_label=course_label,
+                title=title,
                 service_key=service_key_for_email,
                 service_type=service_type_for_email,
-                schedule_date_label=schedule_date,
-                schedule_time_label=schedule_time,
+                schedule_date=schedule_date,
+                schedule_time=schedule_time,
                 location_name=location_name,
                 location_address=location_address,
                 primary_session_iso=primary_session_iso,
@@ -508,21 +508,21 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "paymentMethod",
         _MAX_PAYMENT_METHOD_LENGTH,
     )
-    course_label = _require_text(
-        body.get("courseLabel"),
-        "courseLabel",
+    title = _require_text(
+        body.get("title"),
+        "title",
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
     stripe_payment_intent_id = _stripe_payment_intent_id_from_body(body)
-    schedule_date_label = _optional_text(
-        body.get("scheduleDateLabel"),
-        "scheduleDateLabel",
+    schedule_date = _optional_text(
+        body.get("scheduleDate"),
+        "scheduleDate",
         _MAX_LABEL_LENGTH,
     )
-    schedule_time_label = _optional_text(
-        body.get("scheduleTimeLabel"),
-        "scheduleTimeLabel",
+    schedule_time = _optional_text(
+        body.get("scheduleTime"),
+        "scheduleTime",
         _MAX_LABEL_LENGTH,
     )
     interested_topics = _optional_text(
@@ -650,9 +650,9 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "month_label": month_label,
         "payment_method": payment_method,
         "total_amount": total_amount,
-        "course_label": course_label,
-        "schedule_date_label": schedule_date_label,
-        "schedule_time_label": schedule_time_label,
+        "title": title,
+        "schedule_date": schedule_date,
+        "schedule_time": schedule_time,
         "interested_topics": interested_topics,
         "stripe_payment_intent_id": stripe_payment_intent_id,
         "consultation_writing_focus_label": consultation_writing_focus_label,

@@ -235,13 +235,14 @@ def test_build_reservation_recap_lines_omits_service_tier_when_empty() -> None:
             "service_tier": None,
             "package_label": "P",
             "month_label": "M",
-            "course_label": "C",
+            "title": "C",
             "payment_method": "fps",
             "total_amount": "100",
         }
     )
     body = "\n".join(lines)
     assert "Child age group" not in body
+    assert "Title: C" in body
 
 
 def test_build_reservation_recap_lines_optional_fields() -> None:
@@ -253,18 +254,19 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
             "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
-            "course_label": "C",
+            "title": "C",
             "payment_method": "fps",
             "total_amount": "100",
             "stripe_payment_intent_id": "pi_x",
-            "schedule_date_label": "D",
-            "schedule_time_label": "T",
+            "schedule_date": "D",
+            "schedule_time": "T",
             "interested_topics": "sleep",
             "comments_field_label": "What should we know?",
             "booking_system": "event-booking",
         }
     )
     body = "\n".join(lines)
+    assert "Title: C" in body
     assert "pi_x" in body and "sleep" in body
     assert "Telephone: 1" in body
     assert "Question (What should we know?):" in body
@@ -280,7 +282,7 @@ def test_build_reservation_recap_lines_consultation_focus_and_level() -> None:
             "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
-            "course_label": "C",
+            "title": "C",
             "payment_method": "fps",
             "total_amount": "100",
             "consultation_writing_focus_label": "Home routines",
@@ -301,7 +303,7 @@ def test_build_reservation_recap_lines_free_booking() -> None:
             "service_tier": "2",
             "package_label": "P",
             "month_label": "M",
-            "course_label": "C",
+            "title": "C",
             "payment_method": "free",
             "total_amount": "0",
         }
