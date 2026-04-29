@@ -9,7 +9,6 @@ from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 
