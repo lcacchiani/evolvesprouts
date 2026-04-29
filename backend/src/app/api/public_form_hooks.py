@@ -166,7 +166,7 @@ def send_booking_confirmation_email(
     location_address: str | None = None,
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
-    course_slug: str | None = None,
+    booking_system: str | None = None,
     service_tier_label: str | None = None,
     payment_method: str,
     total_amount: str,
@@ -199,7 +199,7 @@ def send_booking_confirmation_email(
         location_address=location_address,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        course_slug=course_slug,
+        booking_system=booking_system,
         service_tier_label=service_tier_label,
         payment_method_code=payment_method,
         total_amount=total_amount,
@@ -221,7 +221,7 @@ def send_booking_confirmation_email(
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         location_line=loc_line_for_ics,
-        course_slug=course_slug,
+        booking_system=booking_system,
     )
     if ics_bytes is not None:
         data["include_calendar_note_after_schedule_html"] = True
@@ -266,7 +266,7 @@ def send_booking_confirmation_email(
             location_address=location_address,
             primary_session_iso=primary_session_iso,
             primary_session_end_iso=primary_session_end_iso,
-            course_slug=course_slug,
+            booking_system=booking_system,
             service_tier_label=service_tier_label,
             payment_method_code=payment_method,
             total_amount=total_amount,
@@ -338,10 +338,10 @@ def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
     service_key = normalize_public_slug(
         payload.get("service_key") or payload.get("serviceKey")
     )
-    course_slug = normalize_public_slug(
-        payload.get("course_slug") or payload.get("courseSlug")
+    booking_system = normalize_public_slug(
+        payload.get("booking_system") or payload.get("bookingSystem")
     )
-    slug_part = service_key or course_slug or "unknown"
+    slug_part = service_key or booking_system or "unknown"
     return f"{TAG_BOOKING_PREFIX}{slug_part}"
 
 

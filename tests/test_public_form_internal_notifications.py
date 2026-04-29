@@ -261,7 +261,7 @@ def test_build_reservation_recap_lines_optional_fields() -> None:
             "schedule_time_label": "T",
             "interested_topics": "sleep",
             "comments_field_label": "What should we know?",
-            "course_slug": "event-booking",
+            "booking_system": "event-booking",
         }
     )
     body = "\n".join(lines)

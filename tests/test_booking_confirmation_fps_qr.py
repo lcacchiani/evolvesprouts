@@ -139,7 +139,7 @@ def test_send_booking_confirmation_consultation_skips_ics_attachment(
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="consultation-booking",
+        booking_system="consultation-booking",
         payment_method="stripe",
         total_amount="HK$1.00",
         is_pending_payment=False,

@@ -1411,19 +1411,13 @@ components:
           description: >
             Parent service public key; must pair with `serviceInstanceSlug` to resolve a real
             instance (same rules as discount validate).
-        courseSlug:
-          type: string
-          maxLength: 100
-          description: >
-            Optional marketing-flow label only (for example confirmation email "back to course"
-            links). Not used for booking identity.
         bookingSystem:
           type: string
           maxLength: 100
           description: >
             Optional booking flow code (for example `my-best-auntie-booking`, `consultation-booking`,
-            `event-booking`). When set, it is preferred over `courseSlug` for confirmation email and
-            internal metadata that still key off the legacy `course_slug` field.
+            `event-booking`). Drives confirmation email formatting (schedule/details) when set; not
+            used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
         locationName:
           type: string
           maxLength: 200

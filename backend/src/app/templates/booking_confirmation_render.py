@@ -162,10 +162,10 @@ def build_booking_confirmation_ics(
     primary_session_iso: str | None,
     primary_session_end_iso: str | None = None,
     location_line: str | None = None,
-    course_slug: str | None = None,
+    booking_system: str | None = None,
 ) -> bytes | None:
     """Build a single-event UTF-8 .ics for the primary session, or None if no start ISO."""
-    if _normalize_course_slug(course_slug) == "consultation-booking":
+    if _normalize_booking_system(booking_system) == "consultation-booking":
         return None
 
     start_dt = _parse_iso_to_utc_datetime(primary_session_iso)
@@ -357,7 +357,7 @@ def _normalize_http_location_url(value: str | None) -> str | None:
 
 def format_booking_datetime_display_multi(
     *,
-    course_slug: str | None,
+    booking_system: str | None,
     course_sessions: list[dict[str, str]] | None,
     primary_session_iso: str | None,
     primary_session_end_iso: str | None,
@@ -368,12 +368,12 @@ def format_booking_datetime_display_multi(
 ) -> tuple[str | None, str | None]:
     """Return (schedule_html, schedule_plain); lines joined with <br/> / newlines."""
     loc = normalize_booking_locale(locale)
-    slug = _normalize_course_slug(course_slug)
+    slug = _normalize_booking_system(booking_system)
     sessions = list(course_sessions or [])
     plain_lines: list[str] = []
 
     if (
-        _course_slug_is_mba_booking_flow(course_slug)
+        _booking_system_is_mba_booking_flow(booking_system)
         and not sessions
         and (primary_session_iso or "").strip()
     ):
@@ -385,7 +385,7 @@ def format_booking_datetime_display_multi(
             }
         ]
 
-    if _course_slug_is_mba_booking_flow(course_slug) and sessions:
+    if _booking_system_is_mba_booking_flow(booking_system) and sessions:
         template = GROUP_SESSION_LABEL_TEMPLATE.get(
             loc, GROUP_SESSION_LABEL_TEMPLATE["en"]
         )
@@ -552,13 +552,13 @@ def format_booking_datetime_display(
     return format_schedule_datetime_line(schedule_date_label, schedule_time_label)
 
 
-def _normalize_course_slug(course_slug: str | None) -> str:
-    return (course_slug or "").strip().lower()
+def _normalize_booking_system(booking_system: str | None) -> str:
+    return (booking_system or "").strip().lower()
 
 
-def _course_slug_is_mba_booking_flow(course_slug: str | None) -> bool:
-    """True when reservation ``course_slug`` is the MBA booking flow code."""
-    return _normalize_course_slug(course_slug) == "my-best-auntie-booking"
+def _booking_system_is_mba_booking_flow(booking_system: str | None) -> bool:
+    """True when reservation ``booking_system`` is the MBA booking flow code."""
+    return _normalize_booking_system(booking_system) == "my-best-auntie-booking"
 
 
 def _consultation_details_segments(
@@ -598,10 +598,10 @@ def _my_best_auntie_details_segments(
 
 
 def _cohort_label_for_mba_details(
-    course_slug: str | None,
+    booking_system: str | None,
     schedule_date_label: str | None,
 ) -> str | None:
-    if not _course_slug_is_mba_booking_flow(course_slug):
+    if not _booking_system_is_mba_booking_flow(booking_system):
         return None
     s = (schedule_date_label or "").strip()
     return s or None
@@ -610,15 +610,15 @@ def _cohort_label_for_mba_details(
 def format_booking_details_html_cell(
     *,
     loc: str,
-    course_slug: str | None,
+    booking_system: str | None,
     schedule_date_label: str | None,
     service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
-    slug = _normalize_course_slug(course_slug)
-    cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if _course_slug_is_mba_booking_flow(course_slug):
+    slug = _normalize_booking_system(booking_system)
+    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date_label)
+    if _booking_system_is_mba_booking_flow(booking_system):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
@@ -641,15 +641,15 @@ def format_booking_details_html_cell(
 def format_booking_details_plain(
     *,
     loc: str,
-    course_slug: str | None,
+    booking_system: str | None,
     schedule_date_label: str | None,
     service_tier_label: str | None,
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
 ) -> str:
-    slug = _normalize_course_slug(course_slug)
-    cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if _course_slug_is_mba_booking_flow(course_slug):
+    slug = _normalize_booking_system(booking_system)
+    cohort_for_mba = _cohort_label_for_mba_details(booking_system, schedule_date_label)
+    if _booking_system_is_mba_booking_flow(booking_system):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
@@ -677,7 +677,7 @@ def format_consultation_details_html_cell(
     """Backward-compatible alias for consultation-only formatting."""
     return format_booking_details_html_cell(
         loc=loc,
-        course_slug="consultation-booking",
+        booking_system="consultation-booking",
         schedule_date_label=None,
         service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -693,7 +693,7 @@ def format_consultation_details_plain(
 ) -> str:
     return format_booking_details_plain(
         loc=loc,
-        course_slug="consultation-booking",
+        booking_system="consultation-booking",
         schedule_date_label=None,
         service_tier_label=None,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -734,7 +734,7 @@ def booking_confirmation_template_merge_data(
     location_address: str | None = None,
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
-    course_slug: str | None = None,
+    booking_system: str | None = None,
     service_tier_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
@@ -757,7 +757,7 @@ def booking_confirmation_template_merge_data(
         location_address=location_address,
     )
     schedule_html, schedule_plain = format_booking_datetime_display_multi(
-        course_slug=course_slug,
+        booking_system=booking_system,
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
@@ -780,7 +780,7 @@ def booking_confirmation_template_merge_data(
     )
     details_html = format_booking_details_html_cell(
         loc=loc,
-        course_slug=course_slug,
+        booking_system=booking_system,
         schedule_date_label=schedule_date_label,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -788,7 +788,7 @@ def booking_confirmation_template_merge_data(
     )
     details_plain = format_booking_details_plain(
         loc=loc,
-        course_slug=course_slug,
+        booking_system=booking_system,
         schedule_date_label=schedule_date_label,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -872,7 +872,7 @@ def render_booking_confirmation_email(
     location_address: str | None = None,
     primary_session_iso: str | None = None,
     primary_session_end_iso: str | None = None,
-    course_slug: str | None = None,
+    booking_system: str | None = None,
     service_tier_label: str | None = None,
     payment_method_code: str,
     total_amount: str,
@@ -913,7 +913,7 @@ def render_booking_confirmation_email(
         location_address=location_address,
     )
     schedule_html, _schedule_plain_preview = format_booking_datetime_display_multi(
-        course_slug=course_slug,
+        booking_system=booking_system,
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
@@ -928,7 +928,7 @@ def render_booking_confirmation_email(
     ]
     details_cell = format_booking_details_html_cell(
         loc=loc,
-        course_slug=course_slug,
+        booking_system=booking_system,
         schedule_date_label=schedule_date_label,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -1043,7 +1043,7 @@ def render_booking_confirmation_email(
         location_address=location_address,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
-        course_slug=course_slug,
+        booking_system=booking_system,
         service_tier_label=service_tier_label,
         payment_method_display=pm_display,
         total_amount=total_amount,
@@ -1092,7 +1092,7 @@ def _build_plain_text(
     location_address: str | None,
     primary_session_iso: str | None,
     primary_session_end_iso: str | None,
-    course_slug: str | None,
+    booking_system: str | None,
     service_tier_label: str | None,
     payment_method_display: str,
     total_amount: str,
@@ -1120,7 +1120,7 @@ def _build_plain_text(
 
     details_plain = format_booking_details_plain(
         loc=loc,
-        course_slug=course_slug,
+        booking_system=booking_system,
         schedule_date_label=schedule_date_label,
         service_tier_label=service_tier_label,
         consultation_writing_focus_label=consultation_writing_focus_label,
@@ -1134,7 +1134,7 @@ def _build_plain_text(
         location_address=location_address,
     )
     _schedule_html, schedule_plain = format_booking_datetime_display_multi(
-        course_slug=course_slug,
+        booking_system=booking_system,
         course_sessions=course_sessions,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,

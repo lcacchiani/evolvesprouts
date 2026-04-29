@@ -529,8 +529,8 @@ Website form submit
    Aurora persistence, then `run_contact_us_post_success` for SES + Mailchimp tags
    from `signup_intent`). **Booking** submissions use `/www/v1/reservations`; after
    persistence, booking confirmation + optional Mailchimp subscribe use
-   `public-www-booking-customer-{slug}` from optional `serviceKey` / `courseSlug`
-   (camelCase) or legacy snake_case keys in internal payloads.
+   `public-www-booking-customer-{slug}` from optional `serviceKey` / `bookingSystem`
+   (camelCase) or legacy `booking_system` in internal payloads.
 2. For media: the admin Lambda publishes to SNS, which delivers to the SQS queue.
 3. The media processor Lambda picks up the message and:
    - Upserts the contact in the database

@@ -30,12 +30,12 @@ def test_mailchimp_booking_tag_from_payload() -> None:
         == "public-www-booking-customer-my-service"
     )
     assert (
-        plc.mailchimp_booking_tag_from_payload({"course_slug": "mba-0-1"})
+        plc.mailchimp_booking_tag_from_payload({"booking_system": "mba-0-1"})
         == "public-www-booking-customer-mba-0-1"
     )
     assert (
         plc.mailchimp_booking_tag_from_payload(
-            {"service_key": "primary", "course_slug": "ignored"}
+            {"service_key": "primary", "booking_system": "ignored"}
         )
         == "public-www-booking-customer-primary"
     )
@@ -45,7 +45,7 @@ def test_mailchimp_booking_tag_from_payload() -> None:
         == "public-www-booking-customer-from-camel"
     )
     assert (
-        plc.mailchimp_booking_tag_from_payload({"courseSlug": "mba-track"})
+        plc.mailchimp_booking_tag_from_payload({"bookingSystem": "mba-track"})
         == "public-www-booking-customer-mba-track"
     )
 
@@ -156,7 +156,7 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
             "locale": "en",
             "marketing_opt_in": True,
             "service_key": "easter-workshop",
-            "course_slug": "event-booking",
+            "booking_system": "event-booking",
             "stripe_payment_intent_id": None,
         }
     )

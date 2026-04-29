@@ -289,8 +289,8 @@ def _handle_public_reservation(
                 lead_metadata["service_instance_slug"] = reservation_payload[
                     "service_instance_slug"
                 ]
-            if reservation_payload.get("course_slug"):
-                lead_metadata["course_slug"] = reservation_payload["course_slug"]
+            if reservation_payload.get("booking_system"):
+                lead_metadata["booking_system"] = reservation_payload["booking_system"]
             if dc_text and str(dc_text).strip():
                 lead_metadata["discount_code"] = str(dc_text).strip()
                 if dc_row is not None:
@@ -349,7 +349,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     location_address = _optional_str(payload.get("location_address"))
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
     primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
-    course_slug = _optional_str(payload.get("course_slug"))
+    booking_system_for_email = _optional_str(payload.get("booking_system"))
     service_key_for_email = _optional_str(payload.get("service_key"))
     service_type_for_email = _optional_str(payload.get("service_type"))
     service_tier_label = _optional_str(payload.get("service_tier"))
@@ -382,7 +382,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 location_address=location_address,
                 primary_session_iso=primary_session_iso,
                 primary_session_end_iso=primary_session_end_iso,
-                course_slug=course_slug,
+                booking_system=booking_system_for_email,
                 service_tier_label=service_tier_label,
                 payment_method=payment_method,
                 total_amount=total_amount,
@@ -563,17 +563,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             "serviceKey must match the public service key pattern",
             field="serviceKey",
         )
-    course_slug = _optional_text(
-        body.get("courseSlug"),
-        "courseSlug",
-        _MAX_SLUG_KEY_LENGTH,
-    )
     booking_system = _optional_text(
         body.get("bookingSystem") or body.get("booking_system"),
         "bookingSystem",
         _MAX_SLUG_KEY_LENGTH,
     )
-    effective_course_slug = booking_system or course_slug
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -666,7 +660,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "comments_field_label": comments_field_label,
         "cohort_date": cohort_date,
         "service_key": service_key,
-        "course_slug": effective_course_slug,
+        "booking_system": booking_system,
         "location_name": location_name,
         "location_address": location_address,
         "location_url": location_url,

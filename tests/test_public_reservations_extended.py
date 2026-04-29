@@ -676,7 +676,7 @@ def test_discount_redemption_rejects_service_scope_mismatch(
     payload = {
         "discount_code": "SAVE",
         "service_key": "my-best-auntie-training-course",
-        "course_slug": "my-best-auntie-booking",
+        "booking_system": "my-best-auntie-booking",
     }
     with pytest.raises(ValidationError):
         _validate_discount_code_redemption_scope(object(), payload, resolved_instance=resolved)
