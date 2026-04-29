@@ -1390,6 +1390,13 @@ components:
             Public `service_instances.slug` for the booked cohort/instance. Required with
             `serviceKey` to resolve booking identity; backend resolves to the instance id for
             enrollment and discount scope checks.
+        serviceInstanceCohort:
+          type: string
+          maxLength: 200
+          description: >
+            Optional human-readable cohort label for the booked instance (for example the MBA
+            cohort title shown in the booking UI). Included in the internal sales recap and may
+            be stored on the enrollment lead event metadata; not used for booking identity.
         marketingOptIn:
           type: boolean
           default: false

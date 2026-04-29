@@ -296,6 +296,10 @@ def _handle_public_reservation(
                 lead_metadata["service_instance_slug"] = reservation_payload[
                     "service_instance_slug"
                 ]
+            if reservation_payload.get("service_instance_cohort"):
+                lead_metadata["service_instance_cohort"] = reservation_payload[
+                    "service_instance_cohort"
+                ]
             if reservation_payload.get("booking_system"):
                 lead_metadata["booking_system"] = reservation_payload["booking_system"]
             if dc_text and str(dc_text).strip():
@@ -619,6 +623,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             "serviceInstanceSlug must match the public slug pattern",
             field="serviceInstanceSlug",
         )
+    service_instance_cohort = _optional_text(
+        body.get("serviceInstanceCohort") or body.get("service_instance_cohort"),
+        "serviceInstanceCohort",
+        _MAX_LABEL_LENGTH,
+    )
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
@@ -676,6 +685,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "locale": locale,
         "discount_code": discount_code,
         "service_instance_slug": service_instance_slug,
+        "service_instance_cohort": service_instance_cohort,
         "agreed_to_terms_and_conditions": True,
         "reservation_pending_until_payment_confirmed": reservation_pending,
     }

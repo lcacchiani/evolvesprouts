@@ -1285,6 +1285,11 @@ export function BookingReservationForm({
           serviceKey: sanitizedServiceKey,
           bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
           serviceInstanceSlug: instanceSlug,
+          ...(sanitizeSingleLineValue(selectedCohortDateLabel)
+            ? {
+                serviceInstanceCohort: sanitizeSingleLineValue(selectedCohortDateLabel),
+              }
+            : {}),
         };
       })(),
       scheduleDate: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,

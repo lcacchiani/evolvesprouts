@@ -69,6 +69,14 @@ def test_validate_reservation_payload_normalizes_booking_system_case() -> None:
     assert out["booking_system"] == "event-booking"
 
 
+def test_validate_reservation_payload_accepts_service_instance_cohort() -> None:
+    body = _reservation_body(
+        serviceInstanceCohort="  April MBA  ",
+    )
+    out = _validate_reservation_payload(body)
+    assert out["service_instance_cohort"] == "April MBA"
+
+
 def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> None:
     body = _reservation_body(
         serviceInstanceSlug="My-Cohort-Slug",

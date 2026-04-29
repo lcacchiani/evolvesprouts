@@ -273,6 +273,7 @@ const expectedMbaMarketingFields = {
   bookingSystem: 'my-best-auntie-booking',
   serviceKey: 'my-best-auntie-training-course',
   serviceInstanceSlug: selectedCohort.slug,
+  serviceInstanceCohort: 'Apr, 2026',
   scheduleDate: 'Apr, 2026',
   scheduleTime: expectedMbaScheduleTimeLabel,
   locationName: selectedCohort.location_name,

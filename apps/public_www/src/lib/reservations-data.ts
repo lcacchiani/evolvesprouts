@@ -38,6 +38,11 @@ export interface ReservationSubmissionPayload {
   bookingSystem?: string;
   /** Public service_instances.slug (required; identity with serviceKey). */
   serviceInstanceSlug: string;
+  /**
+   * Optional cohort display label for the selected instance (e.g. MBA cohort title).
+   * Shown on internal sales recap; not used for booking identity.
+   */
+  serviceInstanceCohort?: string;
   scheduleDate?: string;
   scheduleTime?: string;
   /** Consultation booking: writing focus title for confirmation email Details row. */

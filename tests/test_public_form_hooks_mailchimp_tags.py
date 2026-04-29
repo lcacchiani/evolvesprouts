@@ -153,6 +153,7 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
             "marketing_opt_in": True,
             "service_key": "easter-workshop",
             "service_instance_slug": "easter-2026-instance",
+            "service_instance_cohort": "April cohort",
             "booking_system": "event-booking",
             "stripe_payment_intent_id": None,
         }
