@@ -333,7 +333,7 @@ Public website Mailchimp **audience tags** (applied via `add_subscriber_with_tag
 | Contact form + marketing opt-in | `public-www-contact-inquiry` |
 | Sprouts Squad / monthly newsletter (email + marketing checkbox) | `public-www-community-newsletter` (when `marketing_opt_in`) |
 | Events “get notified” (email + marketing checkbox) | `public-www-event-notification` (when `marketing_opt_in`) |
-| Booking + marketing opt-in | `public-www-booking-customer-{service_key}` (`service_key` from reservation JSON; fallback `unknown`) |
+| Booking + marketing opt-in | `public-www-booking-customer-{service_instance_slug}` (`serviceInstanceSlug` from reservation JSON; fallback `unknown`) |
 | Free guide / media | `public-www-media-{resource_key}` |
 
 Legacy `contact-us-inquiry`, `booking-customer`, and `public-www-media-{key}-requested` may still exist on historical members; use dual-match segments in Mailchimp during transition.
@@ -529,8 +529,8 @@ Website form submit
    Aurora persistence, then `run_contact_us_post_success` for SES + Mailchimp tags
    from `signup_intent`). **Booking** submissions use `/www/v1/reservations`; after
    persistence, booking confirmation + optional Mailchimp subscribe use
-   `public-www-booking-customer-{slug}` from optional `serviceKey` / `bookingSystem`
-   (camelCase) or legacy `booking_system` in internal payloads.
+   `public-www-booking-customer-{slug}` from `serviceInstanceSlug` / `service_instance_slug`
+   (the public cohort/instance slug).
 2. For media: the admin Lambda publishes to SNS, which delivers to the SQS queue.
 3. The media processor Lambda picks up the message and:
    - Upserts the contact in the database

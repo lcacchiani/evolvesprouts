@@ -334,14 +334,11 @@ def mailchimp_tag_for_contact_signup_intent(signup_intent: str | None) -> str:
 
 
 def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
-    """Build ``public-www-booking-customer-{slug}`` from stable booking identifiers."""
-    service_key = normalize_public_slug(
-        payload.get("service_key") or payload.get("serviceKey")
+    """Build ``public-www-booking-customer-{slug}`` from the public instance slug."""
+    instance_slug = normalize_public_slug(
+        payload.get("service_instance_slug") or payload.get("serviceInstanceSlug")
     )
-    booking_system = normalize_public_slug(
-        payload.get("booking_system") or payload.get("bookingSystem")
-    )
-    slug_part = service_key or booking_system or "unknown"
+    slug_part = instance_slug or "unknown"
     return f"{TAG_BOOKING_PREFIX}{slug_part}"
 
 
