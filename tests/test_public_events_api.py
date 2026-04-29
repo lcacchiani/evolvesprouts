@@ -21,6 +21,7 @@ def _instance_row(
     delivery_mode_value: str = "in_person",
     max_capacity: int | None = 10,
     slug: str | None = "spring-workshop",
+    service_key: str | None = None,
 ) -> Any:
     starts = datetime(2026, 4, 20, 18, 0, tzinfo=UTC)
     ends = datetime(2026, 4, 20, 20, 0, tzinfo=UTC)
@@ -31,7 +32,7 @@ def _instance_row(
         title="Parent Service",
         description="Parent description",
         service_type=ServiceType.EVENT,
-        service_key=None,
+        service_key=service_key,
         booking_system=None,
         event_details=SimpleNamespace(event_category=SimpleNamespace(value="workshop")),
         delivery_mode=SimpleNamespace(value=delivery_mode_value),
@@ -118,8 +119,16 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
             assert service_types is None
             assert service_key is None
             return [
-                _instance_row(status=public_events.InstanceStatus.OPEN, with_eventbrite_url=True),
-                _instance_row(status=public_events.InstanceStatus.FULL),
+                _instance_row(
+                    status=public_events.InstanceStatus.OPEN,
+                    with_eventbrite_url=True,
+                    service_key="spring-parent-key",
+                ),
+                _instance_row(
+                    status=public_events.InstanceStatus.FULL,
+                    slug="summer-workshop",
+                    service_key="summer-parent-key",
+                ),
             ]
 
         def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
@@ -155,6 +164,8 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert body["items"][0]["service_type"] == "event"
     assert "service_instance_id" not in body["items"][0]
     assert body["items"][0]["slug"] == "spring-workshop"
+    assert body["items"][0]["service_key"] == "spring-parent-key"
+    assert body["items"][1]["service_key"] == "summer-parent-key"
 
 
 def test_handle_public_events_skips_instances_without_valid_slug(

@@ -8,6 +8,7 @@ import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/th
 import enContent from '@/content/en.json';
 import type { EventCalendarBookingModalPayload } from '@/lib/events-data';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { validateDiscountCode } from '@/lib/discounts-data';
 import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
 import { submitReservation } from '@/lib/reservations-data';
 
@@ -163,6 +164,7 @@ const eventPayload: EventCalendarBookingModalPayload = {
 
 describe('EventBookingModal', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+  const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
   const mockedGenerateFpsQr = vi.mocked(generateFpsQrImageDataUrl);
   const mockedSubmitReservationFn = vi.mocked(submitReservation);
 
@@ -328,5 +330,33 @@ describe('EventBookingModal', () => {
         }),
       }),
     );
+  });
+
+  it('shows discount unavailable copy and skips validate when serviceKey is empty', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'ok' });
+    mockedCreateCrmApiClient.mockReturnValue({ request: requestSpy });
+    mockedValidateDiscountCode.mockClear();
+
+    render(
+      <EventBookingModal
+        paymentModalContent={paymentModal}
+        bookingPayload={{ ...eventPayload, serviceKey: '' }}
+        thankYouRecapLabels={buildThankYouRecapLabels(thankYouModalContent)}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(paymentModal.discountCodePlaceholder), {
+      target: { value: 'SAVE10' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: paymentModal.applyDiscountLabel }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(paymentModal.discountUnavailableLabel);
+    });
+
+    expect(mockedValidateDiscountCode).not.toHaveBeenCalled();
+    expect(requestSpy).not.toHaveBeenCalled();
   });
 });

@@ -1573,6 +1573,8 @@
       "applyDiscountLabel": "套用",
       "applyDiscountLoadingLabel": "正在套用優惠碼",
       "invalidDiscountLabel": "優惠碼無效",
+      "discountUnavailableLabel": "目前無法為此預約使用優惠碼。請稍後再試或聯絡我們。",
+      "bookingUnavailableLabel": "目前無法完成此預約。請稍後再試或聯絡我們。",
       "referralAppliedNote": "已透過你的推薦連結套用。",
       "discountAppliedLabel": "優惠已套用",
       "priceBreakdownPriceLabel": "原價",

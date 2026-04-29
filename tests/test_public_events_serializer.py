@@ -83,6 +83,8 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
     assert "service_instance_id" not in out
     assert out["slug"] == "my-event"
     assert out["service_type"] == "event"
+    assert "service_key" in out
+    assert out["service_key"] is None
     assert out["booking_system"] == "event-booking"
     assert out["categories"] == ["workshop"]
     assert out["price"] == 250
@@ -186,7 +188,17 @@ def test_tags_include_service_tier_when_set() -> None:
     assert out["tags"] == ["Alpha", "premium", "zebra"]
 
 
-def test_service_tier_tag_dedupes_instance_tag_same_name() -> None:
+def test_serialized_event_includes_service_key_from_parent() -> None:
+    """Calendar JSON always includes service_key (nullable) from parent service."""
+    service = _event_service()
+    service.service_key = "easter-workshops"
+    inst = _minimal_instance(service)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert "service_key" in out
+    assert out["service_key"] == "easter-workshops"
+
+
+def test_training_course_tags_dedupe_tier_with_instance_tags() -> None:
     service = SimpleNamespace(
         title="MBA",
         description="Course",
@@ -240,6 +252,7 @@ def test_training_mba_booking_and_category() -> None:
     )
     out = public_events._serialize_public_event(inst, enrollment_counts={})
     assert out["service_type"] == "training_course"
+    assert out["service_key"] == "my-best-auntie-training-course"
     assert out["booking_system"] == "my-best-auntie-booking"
     assert out["categories"] == ["Training Course"]
     assert out["price"] == 350

@@ -414,6 +414,7 @@ def _serialize_public_event(
     payload: dict[str, Any] = {
         "slug": slug,
         "service_type": service.service_type.value,
+        "service_key": service.service_key,
         "title": title,
         "summary": summary,
         "description": summary,

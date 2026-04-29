@@ -374,6 +374,73 @@ describe('ServiceDetailPanel', () => {
     expect(defaultPrice.compareDocumentPosition(defaultLocation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('warns and disables save when publishing an event without a service key', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn();
+    render(
+      <ServiceDetailPanel
+        service={buildService({
+          serviceType: 'event',
+          status: 'draft',
+          serviceKey: null,
+          eventDetails: {
+            eventCategory: 'workshop',
+            defaultPrice: '10',
+            defaultCurrency: 'HKD',
+          },
+        })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    await user.selectOptions(screen.getByLabelText('Status'), 'Published');
+    expect(
+      screen.getByText(
+        'A service key is required to take public bookings (discount validation and reservation submission). Set one before publishing.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Update service/i })).toBeDisabled();
+  });
+
+  it('enables update when published event has a valid service key', async () => {
+    const user = userEvent.setup();
+    render(
+      <ServiceDetailPanel
+        service={buildService({
+          serviceType: 'event',
+          status: 'published',
+          serviceKey: 'spring-workshop',
+          eventDetails: {
+            eventCategory: 'workshop',
+            defaultPrice: '10',
+            defaultCurrency: 'HKD',
+          },
+        })}
+        isLoading={false}
+        error=''
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onUploadCover={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        'A service key is required to take public bookings (discount validation and reservation submission). Set one before publishing.',
+      ),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Update service/i })).toBeEnabled();
+    await user.clear(screen.getByLabelText('Service key'));
+    await user.type(screen.getByLabelText('Service key'), 'new-event-key');
+    expect(screen.getByRole('button', { name: /Update service/i })).toBeEnabled();
+  });
+
   it('consultation shows currency when hourly and a service tier field in Row1', async () => {
     const user = userEvent.setup();
     render(

@@ -275,6 +275,10 @@ paths:
 
         Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
+
+        Each returned event includes `slug` and `service_key` (nullable) from the
+        parent service; together they identify the bookable instance for
+        `POST /v1/discounts/validate` and `POST /v1/reservations`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -351,6 +355,10 @@ paths:
 
         Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
+
+        Each returned event includes `slug` and `service_key` (nullable) from the
+        parent service; together they identify the bookable instance for
+        `POST /v1/discounts/validate` and `POST /v1/reservations`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -1162,6 +1170,16 @@ components:
             Stable public identifier for the offering. Maps to `service_instances.slug`.
             The calendar feed omits rows where the instance slug is empty or does not match
             this public pattern (invalid values are filtered server-side).
+        service_key:
+          type: string
+          nullable: true
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Parent service public key (`services.service_key`); nullable when the parent
+            service has no key. Required by `POST /v1/discounts/validate` and
+            `POST /v1/reservations` for booking identity, so consumers should treat a
+            null value as "this offering cannot be booked through the public flows yet."
         service_tier:
           type: string
           nullable: true

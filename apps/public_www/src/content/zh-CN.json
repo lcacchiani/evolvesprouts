@@ -1573,6 +1573,8 @@
       "applyDiscountLabel": "应用",
       "applyDiscountLoadingLabel": "正在应用优惠码",
       "invalidDiscountLabel": "优惠码无效",
+      "discountUnavailableLabel": "目前无法为此预约使用优惠码。请稍后再试或联系我们。",
+      "bookingUnavailableLabel": "目前无法完成此预约。请稍后再试或联系我们。",
       "referralAppliedNote": "已通过你的推荐链接应用。",
       "discountAppliedLabel": "优惠已应用",
       "priceBreakdownPriceLabel": "原价",
