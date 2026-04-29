@@ -22,6 +22,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { type EntityTagRef } from '@/lib/entity-api';
 import { formatEnumLabel } from '@/lib/format';
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 import type { PartnerFilters } from '@/types/partners';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -79,7 +80,7 @@ export function PartnersPanel({
   const [name, setName] = useState('');
   const [organizationType, setOrganizationType] =
     useState<ApiSchemas['EntityOrganizationType']>('company');
-  const [slug, setSlug] = useState('');
+  const [partnerKey, setPartnerKey] = useState('');
   const [website, setWebsite] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
@@ -98,6 +99,10 @@ export function PartnersPanel({
     () => [...rows].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     [rows]
   );
+
+  const partnerKeyTrimmed = partnerKey.trim().toLowerCase();
+  const partnerKeyPatternInvalid =
+    Boolean(partnerKeyTrimmed) && !INSTANCE_SLUG_PATTERN.test(partnerKeyTrimmed);
 
   const inlineLocationStateKey = editorMode === 'create' ? 'partner-new' : `partner:${selectedId ?? 'none'}`;
   const ownerPartnerOrganizationId = editorMode === 'edit' ? selectedId : null;
@@ -173,7 +178,7 @@ export function PartnersPanel({
     setSelectedId(null);
     setName('');
     setOrganizationType('company');
-    setSlug('');
+    setPartnerKey('');
     setWebsite('');
     setPendingLocationId(null);
     setOptimisticLocationSummary(null);
@@ -190,7 +195,7 @@ export function PartnersPanel({
           name: name.trim(),
           organization_type: organizationType,
           relationship_type: 'partner',
-          slug: slug.trim() || null,
+          partner_key: partnerKey.trim() || null,
           website: website.trim() || null,
           location_id: loc,
           tag_ids: tagIds,
@@ -205,7 +210,7 @@ export function PartnersPanel({
         name: name.trim(),
         organization_type: organizationType,
         relationship_type: 'partner',
-        slug: slug.trim() || null,
+        partner_key: partnerKey.trim() || null,
         website: website.trim() || null,
         location_id: loc,
         active,
@@ -251,7 +256,7 @@ export function PartnersPanel({
     setEditorMode('edit');
     setName(row.name);
     setOrganizationType(row.organization_type);
-    setSlug(row.slug ?? '');
+    setPartnerKey(row.partner_key ?? '');
     setWebsite(row.website ?? '');
     setPendingLocationId(row.location_id ?? null);
     setOptimisticLocationSummary(null);
@@ -305,14 +310,20 @@ export function PartnersPanel({
             />
           </div>
           <div className='lg:col-span-1'>
-            <Label htmlFor='svc-partner-slug'>Slug</Label>
+            <Label htmlFor='svc-partner-key'>Partner key</Label>
             <Input
-              id='svc-partner-slug'
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              id='svc-partner-key'
+              value={partnerKey}
+              onChange={(e) => setPartnerKey(e.target.value)}
               autoComplete='off'
               placeholder='e.g. acme-partners'
             />
+            {partnerKeyPatternInvalid ? (
+              <p className='mt-1 text-xs text-red-600'>
+                Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+                hyphen).
+              </p>
+            ) : null}
           </div>
           <div className='lg:col-span-2'>
             <Label htmlFor='svc-partner-web'>Website</Label>

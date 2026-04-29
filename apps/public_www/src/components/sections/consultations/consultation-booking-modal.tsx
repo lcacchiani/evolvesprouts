@@ -22,7 +22,10 @@ import type {
 } from '@/content';
 import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
 import { buildUnavailableSlotMap } from '@/lib/calendar-availability';
-import type { ConsultationEventBookingModalPayload } from '@/lib/events-data';
+import {
+  CONSULTATION_BOOKING_SYSTEM,
+  type ConsultationEventBookingModalPayload,
+} from '@/lib/events-data';
 import {
   buildConsultationPickerWeeks,
   collectDistinctYearMonthsFromYmds,
@@ -469,9 +472,10 @@ export function ConsultationBookingModal({
         locale={locale}
         content={paymentModalContent}
         eventTitle={bookingPayload.title}
-        reservationServiceKey={bookingPayload.serviceKey}
-        courseSlug='consultation-booking'
-        serviceSlug={bookingPayload.service}
+        serviceKey={bookingPayload.serviceKey}
+        serviceTypeLabelKey='consultation'
+        bookingSystem={CONSULTATION_BOOKING_SYSTEM}
+        serviceInstanceSlug={bookingPayload.instanceSlug}
         eventSubtitle={bookingPayload.subtitle}
         courseSessions={rebasedParts.map((part) => {
           return {

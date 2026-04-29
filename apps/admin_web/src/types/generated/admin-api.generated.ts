@@ -1421,7 +1421,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
+                /** @description Service key and service tier conflict with another service (unique index on case-insensitive service_key and tier, NULL tiers treated as one bucket). Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1501,7 +1501,7 @@ export interface paths {
         };
         /**
          * Discount code usage summary for a service
-         * @description Returns aggregate `current_uses` across discount codes scoped to this service (`service_id` set) and how many such codes exist. Used by the admin UI before changing a service referral slug.
+         * @description Returns aggregate `current_uses` across discount codes scoped to this service (`service_id` set) and how many such codes exist. Used by the admin UI before changing a service `service_key`.
          */
         get: {
             parameters: {
@@ -1603,7 +1603,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
+                /** @description Service key and service tier conflict with another service (unique index on case-insensitive service_key and tier, NULL tiers treated as one bucket). Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1680,7 +1680,7 @@ export interface paths {
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Referral slug and service tier conflict with another service (unique index on case-insensitive slug and tier, NULL tiers treated as one bucket). Error body uses `field` value `slug_tier` (see `ErrorResponse.field`). */
+                /** @description Service key and service tier conflict with another service (unique index on case-insensitive service_key and tier, NULL tiers treated as one bucket). Error body uses `field` value `service_key_tier` (see `ErrorResponse.field`). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4311,9 +4311,9 @@ export interface components {
             id: string;
             service_type: components["schemas"]["ServiceType"];
             title: string;
-            /** @description Optional lowercase referral slug for public URLs (e.g. `my-best-auntie`). Uniqueness is enforced case-insensitively in Aurora. */
-            slug?: string | null;
-            /** @description Optional label for which booking system or flow applies to this service (free-form text, same max length as referral slug). */
+            /** @description Optional lowercase public service key for URLs and booking identity (e.g. `my-best-auntie-training-course`). Uniqueness is enforced case-insensitively in Aurora (with `service_tier`). */
+            service_key?: string | null;
+            /** @description Optional label for which booking system or flow applies to this service (free-form text, same max length as service key). */
             booking_system?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
@@ -4358,8 +4358,8 @@ export interface components {
         CreateServiceRequest: {
             service_type: components["schemas"]["ServiceType"];
             title: string;
-            /** @description Optional referral slug (lowercase letters, numbers, hyphens). */
-            slug?: string | null;
+            /** @description Optional service key (lowercase letters, numbers, hyphens). */
+            service_key?: string | null;
             /** @description Optional booking system label (free-form text). */
             booking_system?: string | null;
             description?: string | null;
@@ -4382,7 +4382,7 @@ export interface components {
         UpdateServiceRequest: components["schemas"]["CreateServiceRequest"];
         PartialUpdateServiceRequest: {
             title?: string;
-            slug?: string | null;
+            service_key?: string | null;
             booking_system?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
@@ -4470,8 +4470,8 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
-            /** @description Required for event and training_course instances; optional for consultations. Public-calendar visibility depends on this field. URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
-            slug?: string | null;
+            /** @description Public instance slug (required for all service types). URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances. */
+            slug: string;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status: components["schemas"]["InstanceStatus"];
@@ -4503,8 +4503,8 @@ export interface components {
             resolved_description?: string | null;
             resolved_cover_image_s3_key?: string | null;
             resolved_delivery_mode?: string | null;
-            /** @description Effective referral slug: instance slug when set, otherwise the parent service slug. */
-            resolved_slug?: string | null;
+            /** @description Public instance slug; same as `slug`. Kept for backwards compatibility. */
+            resolved_slug: string;
             /**
              * Format: uuid
              * @description Effective venue: instance location_id when set, otherwise the parent service default location_id.
@@ -4546,6 +4546,8 @@ export interface components {
             parent_service_tier?: string | null;
             /** @description Parent service type (present on cross-service list responses). */
             parent_service_type?: components["schemas"]["ServiceType"] | null;
+            /** @description Parent service public key (`services.service_key`) when set; mirrors the parent service row for cross-service instance list responses. */
+            parent_service_key?: string | null;
         };
         InstanceListResponse: {
             items: components["schemas"]["ServiceInstance"][];
@@ -4555,11 +4557,11 @@ export interface components {
         InstanceResponse: {
             instance: components["schemas"]["ServiceInstance"];
         };
-        /** @description Instance create body for `POST /v1/admin/services/{id}/instances`. The parent service `service_type` determines slug rules: `slug` is required for `event` and `training_course` (400 with `field: slug` when missing or invalid); optional for `consultation`. Duplicate instance slugs return 409 with `field: slug`. */
+        /** @description Instance create body for `POST /v1/admin/services/{id}/instances`. `slug` is required for all service types (400 with `field: slug` when missing or invalid). Duplicate instance slugs return 409 with `field: slug`. */
         CreateInstanceRequest: {
             title?: string | null;
-            /** @description Required for event and training_course instances; optional for consultations. Public-calendar visibility depends on this field. URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances when set. */
-            slug?: string | null;
+            /** @description Public instance slug (required). URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances. */
+            slug: string;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status?: components["schemas"]["InstanceStatus"];
@@ -4592,7 +4594,7 @@ export interface components {
                 package_sessions?: number | null;
             } | null;
         };
-        /** @description Clearing `slug` to null on event or training_course instances returns 400 with `field: slug`. */
+        /** @description Clearing `slug` to null returns 400 with `field: slug`. */
         UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;
         Enrollment: {
             /** Format: uuid */
@@ -5327,8 +5329,8 @@ export interface components {
             name: string;
             organization_type: components["schemas"]["EntityOrganizationType"];
             relationship_type: components["schemas"]["EntityRelationshipType"];
-            /** @description Optional URL-safe identifier for partner organisations only (lowercase letters, digits, single hyphens between segments). Null when not a partner or unset. Uniqueness is enforced case-insensitively among partner rows. */
-            slug?: string | null;
+            /** @description Optional URL-safe partner key for partner organisations only (lowercase letters, digits, single hyphens between segments). Null when not a partner or unset. Uniqueness is enforced case-insensitively among partner rows. */
+            partner_key?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -5356,8 +5358,8 @@ export interface components {
             name: string;
             organization_type: components["schemas"]["EntityOrganizationType"];
             relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
-            /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
-            slug?: string | null;
+            /** @description Optional partner-only key. Omit or null to clear. Must be null when relationship_type is not partner. */
+            partner_key?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -5369,8 +5371,8 @@ export interface components {
             name?: string;
             organization_type?: components["schemas"]["EntityOrganizationType"];
             relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
-            /** @description Optional partner-only slug. Omit or null to clear. Must be null when relationship_type is not partner. */
-            slug?: string | null;
+            /** @description Optional partner-only key. Omit or null to clear. Must be null when relationship_type is not partner. */
+            partner_key?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -5394,7 +5396,7 @@ export interface components {
         ErrorResponse: {
             error: string;
             detail?: string | null;
-            /** @description Optional input field key for validation-style errors. Duplicate service slug+tier conflicts use the literal `slug_tier` (not `slug` or `service_tier`). */
+            /** @description Optional input field key for validation-style errors. Duplicate service service_key+tier conflicts use the literal `service_key_tier` (not `service_key` or `service_tier`). */
             field?: string | null;
         };
         HealthResponse: {

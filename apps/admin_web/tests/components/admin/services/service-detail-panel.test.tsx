@@ -12,7 +12,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
-    slug: null,
+    serviceKey: null,
     bookingSystem: null,
     description: 'Alpha description',
     coverImageS3Key: null,
@@ -47,7 +47,7 @@ describe('ServiceDetailPanel', () => {
   it('prefills create form from createPrefillFromService with draft title suffix and copied slug', async () => {
     const template = buildService({
       title: 'Original',
-      slug: 'original-slug',
+      serviceKey: 'original-slug',
       status: 'published',
       serviceTier: 'tier-a',
       trainingDetails: {
@@ -74,7 +74,7 @@ describe('ServiceDetailPanel', () => {
       expect(screen.getByLabelText('Title')).toHaveValue('Original (copy)');
     });
     expect(screen.getByLabelText('Service tier')).toHaveValue('tier-a');
-    expect(screen.getByLabelText('Slug')).toHaveValue('original-slug');
+    expect(screen.getByLabelText('Service key')).toHaveValue('original-slug');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
     expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
     expect(screen.getByLabelText('Default price')).toHaveValue('88');

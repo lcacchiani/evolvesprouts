@@ -39,7 +39,6 @@ def test_list_public_offerings_default_types_and_ordering_sql() -> None:
     assert "instance_session_slots.ends_at >=" in sql
     assert "ORDER BY" in sql.upper()
     assert "service_instances.id ASC" in sql
-    assert "service_instances.slug IS NOT NULL" in sql
     assert "service_instances.slug != ''" in sql
 
 
@@ -69,11 +68,11 @@ def test_list_public_offerings_service_key_filter() -> None:
 
     repo = ServiceInstanceRepository(mock_session)
     now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
-    repo.list_public_offerings(limit=5, now=now, service_key="my-best-auntie")
+    repo.list_public_offerings(limit=5, now=now, service_key="my-best-auntie-training-course")
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
-    assert "lower(services.slug) = 'my-best-auntie'" in sql
+    assert "lower(services.service_key) = 'my-best-auntie-training-course'" in sql
     assert "services.service_type IN ('event', 'training_course')" in sql
     assert "services.status = 'published'" in sql
 
@@ -91,12 +90,12 @@ def test_list_public_offerings_service_key_combines_with_other_filters() -> None
         now=now,
         service_types={ServiceType.TRAINING_COURSE},
         slug="foo-bar",
-        service_key="my-best-auntie",
+        service_key="my-best-auntie-training-course",
     )
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
-    assert "lower(services.slug) = 'my-best-auntie'" in sql
+    assert "lower(services.service_key) = 'my-best-auntie-training-course'" in sql
     assert "lower(service_instances.slug) = 'foo-bar'" in sql
     assert "services.service_type IN ('training_course')" in sql
 
@@ -113,7 +112,7 @@ def test_list_public_offerings_service_key_not_applied_when_none() -> None:
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
-    assert "lower(services.slug)" not in sql
+    assert "lower(services.service_key)" not in sql
 
 
 def test_list_public_offerings_slug_filter() -> None:

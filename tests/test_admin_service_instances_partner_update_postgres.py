@@ -96,7 +96,7 @@ def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
                 id=service_id,
                 service_type=ServiceType.EVENT,
                 title="Integration Event Service",
-                slug=f"int-evt-{instance_id.hex[:8]}",
+                service_key=f"int-evt-{instance_id.hex[:8]}",
                 booking_system=None,
                 description=None,
                 cover_image_s3_key=None,
@@ -153,7 +153,7 @@ def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
                     organization_type=OrganizationType.COMPANY,
                     relationship_type=RelationshipType.PARTNER,
                     website=None,
-                    slug=None,
+                    partner_key=None,
                     location_id=loc_id,
                     archived_at=None,
                 )
@@ -242,7 +242,7 @@ def test_location_repository_two_partners_same_venue_distinct_ids() -> None:
                 organization_type=OrganizationType.NGO,
                 relationship_type=RelationshipType.PARTNER,
                 website=None,
-                slug=None,
+                partner_key=None,
                 location_id=loc_id,
                 archived_at=None,
             )
@@ -254,7 +254,7 @@ def test_location_repository_two_partners_same_venue_distinct_ids() -> None:
                 organization_type=OrganizationType.NGO,
                 relationship_type=RelationshipType.PARTNER,
                 website=None,
-                slug=None,
+                partner_key=None,
                 location_id=loc_id,
                 archived_at=None,
             )

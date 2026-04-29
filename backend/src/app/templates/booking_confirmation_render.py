@@ -373,7 +373,7 @@ def format_booking_datetime_display_multi(
     plain_lines: list[str] = []
 
     if (
-        slug == "my-best-auntie"
+        _course_slug_is_mba_booking_flow(course_slug)
         and not sessions
         and (primary_session_iso or "").strip()
     ):
@@ -385,7 +385,7 @@ def format_booking_datetime_display_multi(
             }
         ]
 
-    if slug == "my-best-auntie" and sessions:
+    if _course_slug_is_mba_booking_flow(course_slug) and sessions:
         template = GROUP_SESSION_LABEL_TEMPLATE.get(
             loc, GROUP_SESSION_LABEL_TEMPLATE["en"]
         )
@@ -556,6 +556,11 @@ def _normalize_course_slug(course_slug: str | None) -> str:
     return (course_slug or "").strip().lower()
 
 
+def _course_slug_is_mba_booking_flow(course_slug: str | None) -> bool:
+    """True when reservation ``course_slug`` is the MBA booking flow code."""
+    return _normalize_course_slug(course_slug) == "my-best-auntie-booking"
+
+
 def _consultation_details_segments(
     *,
     loc: str,
@@ -596,7 +601,7 @@ def _cohort_label_for_mba_details(
     course_slug: str | None,
     schedule_date_label: str | None,
 ) -> str | None:
-    if _normalize_course_slug(course_slug) != "my-best-auntie":
+    if not _course_slug_is_mba_booking_flow(course_slug):
         return None
     s = (schedule_date_label or "").strip()
     return s or None
@@ -613,7 +618,7 @@ def format_booking_details_html_cell(
 ) -> str:
     slug = _normalize_course_slug(course_slug)
     cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if slug == "my-best-auntie":
+    if _course_slug_is_mba_booking_flow(course_slug):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
@@ -644,7 +649,7 @@ def format_booking_details_plain(
 ) -> str:
     slug = _normalize_course_slug(course_slug)
     cohort_for_mba = _cohort_label_for_mba_details(course_slug, schedule_date_label)
-    if slug == "my-best-auntie":
+    if _course_slug_is_mba_booking_flow(course_slug):
         segments = _my_best_auntie_details_segments(
             loc=loc,
             cohort_label=cohort_for_mba,
@@ -720,7 +725,9 @@ def booking_confirmation_template_merge_data(
     locale: str,
     full_name: str,
     course_label: str,
-    service_slug: str | None = None,
+    service_key: str
+    | None = None,  # canonical template service key (reserved for future use)
+    service_type: str | None = None,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
@@ -741,8 +748,8 @@ def booking_confirmation_template_merge_data(
 ) -> dict[str, Any]:
     """Build SES template_data (before shell merge)."""
     loc = normalize_booking_locale(locale)
-    service_row_label = resolve_service_row_label(loc, service_slug, course_label)
-    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_row_label = resolve_service_row_label(loc, service_type, course_label)
+    service_type_label = resolve_service_type_label(loc, service_type)
     service_title_label = resolve_service_title_label(course_label)
     pm_display = resolve_payment_method_display(payment_method_code)
     use_hkt = location_suggests_hong_kong(
@@ -857,7 +864,8 @@ def render_booking_confirmation_email(
     locale: str,
     full_name: str,
     course_label: str,
-    service_slug: str | None = None,
+    service_key: str | None = None,
+    service_type: str | None = None,
     schedule_date_label: str | None,
     schedule_time_label: str | None,
     location_name: str | None = None,
@@ -883,7 +891,7 @@ def render_booking_confirmation_email(
     loc = normalize_booking_locale(locale)
     labels = TABLE_LABELS[loc]
     esc_name = html.escape(full_name.strip())
-    service_type_label = resolve_service_type_label(loc, service_slug)
+    service_type_label = resolve_service_type_label(loc, service_type)
     service_title_label = resolve_service_title_label(course_label)
     service_table_left_label = service_type_label or labels["service"]
     esc_service_title = html.escape(service_title_label)

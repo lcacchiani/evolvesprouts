@@ -9,7 +9,6 @@ from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -32,16 +31,14 @@ from app.api.public_form_hooks import (
     send_booking_confirmation_email,
 )
 from app.db.engine import get_engine
-from app.db.models import Enrollment
+from app.db.models import Enrollment, ServiceInstance
 from app.db.repositories import (
     DiscountCodeRepository,
     EnrollmentRepository,
-    ServiceRepository,
 )
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.api.discount_enrollment_scope import (
     ensure_discount_code_eligible_for_instance,
-    service_id_for_instance,
 )
 from app.db.models.enums import (
     ContactSource,
@@ -92,8 +89,59 @@ _MAX_TOTAL_AMOUNT = Decimal("1000000")
 _STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
 _STRIPE_PAYMENT_INTENT_ID_PATTERN = re.compile(r"^pi_[A-Za-z0-9]+$")
 _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
-_ALLOWED_SERVICE_SLUGS = frozenset({"event", "training-course", "consultation"})
 _PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
+_MAX_SERVICE_KEY_LENGTH = 80
+_SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
+def _resolve_booking_identity(
+    session: Session, payload: Mapping[str, Any]
+) -> ServiceInstance:
+    """Resolve ``service_key`` + ``service_instance_slug`` to a loaded instance + parent service."""
+    raw_key = payload.get("service_key")
+    service_key_str = str(raw_key).strip().lower() if raw_key not in (None, "") else ""
+    if not service_key_str:
+        raise ValidationError("serviceKey is required", field="serviceKey")
+    if len(service_key_str) > _MAX_SERVICE_KEY_LENGTH:
+        raise ValidationError("serviceKey is too long", field="serviceKey")
+    if not _SERVICE_KEY_PATTERN.fullmatch(service_key_str):
+        raise ValidationError(
+            "serviceKey must match the public service key pattern",
+            field="serviceKey",
+        )
+
+    raw_slug = payload.get("service_instance_slug")
+    slug_str = str(raw_slug).strip().lower() if raw_slug not in (None, "") else ""
+    if not slug_str:
+        raise ValidationError(
+            "serviceInstanceSlug is required", field="serviceInstanceSlug"
+        )
+    if len(slug_str) > _MAX_INSTANCE_SLUG_LENGTH:
+        raise ValidationError(
+            "serviceInstanceSlug is too long", field="serviceInstanceSlug"
+        )
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug_str):
+        raise ValidationError(
+            "serviceInstanceSlug must match the public slug pattern",
+            field="serviceInstanceSlug",
+        )
+
+    instance_repo = ServiceInstanceRepository(session)
+    resolved = instance_repo.get_with_service_by_slug(slug_str)
+    if resolved is None:
+        raise ValidationError(
+            "service_instance_slug_mismatch",
+            field="serviceInstanceSlug",
+            status_code=400,
+        )
+    parent_key = (resolved.service.service_key or "").strip().lower()
+    if parent_key != service_key_str:
+        raise ValidationError(
+            "service_instance_slug_mismatch",
+            field="serviceInstanceSlug",
+            status_code=400,
+        )
+    return resolved
 
 
 def _handle_public_reservation(
@@ -142,7 +190,14 @@ def _handle_public_reservation(
 
     try:
         with Session(get_engine()) as session:
-            _validate_discount_code_redemption_scope(session, reservation_payload)
+            resolved_instance = _resolve_booking_identity(session, reservation_payload)
+            reservation_payload = {
+                **reservation_payload,
+                "service_type": resolved_instance.service.service_type.value,
+            }
+            _validate_discount_code_redemption_scope(
+                session, reservation_payload, resolved_instance=resolved_instance
+            )
             contact_repo = ContactRepository(session)
             lead_repo = SalesLeadRepository(session)
             contact, _created = contact_repo.upsert_by_email(
@@ -167,25 +222,15 @@ def _handle_public_reservation(
                 dc_lookup = DiscountCodeRepository(session)
                 dc_row = dc_lookup.get_by_code(str(dc_text))
 
-            raw_slug = reservation_payload.get("service_instance_slug")
-            instance_id_resolved: UUID | None = None
-            if raw_slug and str(raw_slug).strip():
-                instance_id_resolved = ServiceInstanceRepository(
-                    session
-                ).get_id_by_slug(str(raw_slug).strip())
+            instance_id_resolved = resolved_instance.id
 
             enrollment_repo = EnrollmentRepository(session)
             discount_repo = DiscountCodeRepository(session)
-            if (
-                instance_id_resolved is not None
-                and not enrollment_repo.contact_has_enrollment_for_instance(
-                    instance_id=instance_id_resolved,
-                    contact_id=contact.id,
-                )
+            if not enrollment_repo.contact_has_enrollment_for_instance(
+                instance_id=instance_id_resolved,
+                contact_id=contact.id,
             ):
-                instance_service_id = service_id_for_instance(
-                    session, instance_id_resolved
-                )
+                instance_service_id = resolved_instance.service.id
                 if dc_row is not None:
                     ensure_discount_code_eligible_for_instance(
                         session,
@@ -238,10 +283,14 @@ def _handle_public_reservation(
             }
             if reservation_payload.get("service_key"):
                 lead_metadata["service_key"] = reservation_payload["service_key"]
+            if reservation_payload.get("service_type"):
+                lead_metadata["service_type"] = reservation_payload["service_type"]
+            if reservation_payload.get("service_instance_slug"):
+                lead_metadata["service_instance_slug"] = reservation_payload[
+                    "service_instance_slug"
+                ]
             if reservation_payload.get("course_slug"):
                 lead_metadata["course_slug"] = reservation_payload["course_slug"]
-            if reservation_payload.get("service"):
-                lead_metadata["service"] = reservation_payload["service"]
             if dc_text and str(dc_text).strip():
                 lead_metadata["discount_code"] = str(dc_text).strip()
                 if dc_row is not None:
@@ -301,7 +350,8 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     primary_session_iso = _optional_str(payload.get("primary_session_start_iso"))
     primary_session_end_iso = _optional_str(payload.get("primary_session_end_iso"))
     course_slug = _optional_str(payload.get("course_slug"))
-    service_slug = _optional_str(payload.get("service"))
+    service_key_for_email = _optional_str(payload.get("service_key"))
+    service_type_for_email = _optional_str(payload.get("service_type"))
     service_tier_label = _optional_str(payload.get("service_tier"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
@@ -324,7 +374,8 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 to_email=email,
                 full_name=full_name,
                 course_label=course_label,
-                service_slug=service_slug,
+                service_key=service_key_for_email,
+                service_type=service_type_for_email,
                 schedule_date_label=schedule_date,
                 schedule_time_label=schedule_time,
                 location_name=location_name,
@@ -501,30 +552,28 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "cohortDate",
         _MAX_COHORT_DATE,
     )
-    service_key = _optional_text(
+    service_key_raw = _require_text(
         body.get("serviceKey"),
         "serviceKey",
-        _MAX_SLUG_KEY_LENGTH,
+        _MAX_SERVICE_KEY_LENGTH,
     )
+    service_key = service_key_raw.strip().lower()
+    if not _SERVICE_KEY_PATTERN.fullmatch(service_key):
+        raise ValidationError(
+            "serviceKey must match the public service key pattern",
+            field="serviceKey",
+        )
     course_slug = _optional_text(
         body.get("courseSlug"),
         "courseSlug",
         _MAX_SLUG_KEY_LENGTH,
     )
-    service_raw = _optional_text(
-        body.get("service"),
-        "service",
+    booking_system = _optional_text(
+        body.get("bookingSystem") or body.get("booking_system"),
+        "bookingSystem",
         _MAX_SLUG_KEY_LENGTH,
     )
-    service_slug: str | None = None
-    if service_raw is not None:
-        normalized_service = service_raw.strip().lower()
-        if normalized_service not in _ALLOWED_SERVICE_SLUGS:
-            raise ValidationError(
-                "service must be one of: event, training-course, consultation",
-                field="service",
-            )
-        service_slug = normalized_service
+    effective_course_slug = booking_system or course_slug
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -559,19 +608,17 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "discountCode",
         _MAX_DISCOUNT_CODE,
     )
-    service_instance_slug = _optional_text(
+    service_instance_slug_raw = _require_text(
         body.get("serviceInstanceSlug"),
         "serviceInstanceSlug",
         _MAX_INSTANCE_SLUG_LENGTH,
     )
-    if service_instance_slug:
-        normalized_instance_slug = service_instance_slug.strip().lower()
-        if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(normalized_instance_slug):
-            raise ValidationError(
-                "serviceInstanceSlug must match the public slug pattern",
-                field="serviceInstanceSlug",
-            )
-        service_instance_slug = normalized_instance_slug
+    service_instance_slug = service_instance_slug_raw.strip().lower()
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(service_instance_slug):
+        raise ValidationError(
+            "serviceInstanceSlug must match the public slug pattern",
+            field="serviceInstanceSlug",
+        )
     agreed = body.get("agreedToTermsAndConditions")
     if agreed is not True:
         raise ValidationError(
@@ -619,8 +666,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "comments_field_label": comments_field_label,
         "cohort_date": cohort_date,
         "service_key": service_key,
-        "course_slug": course_slug,
-        "service": service_slug,
+        "course_slug": effective_course_slug,
         "location_name": location_name,
         "location_address": location_address,
         "location_url": location_url,
@@ -637,27 +683,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _resolve_service_id_for_discount_scope(
-    session: Session, payload: Mapping[str, Any]
-) -> UUID | None:
-    service_repo = ServiceRepository(session)
-    service_key = payload.get("service_key")
-    course_slug = payload.get("course_slug")
-    service_key_str = (
-        str(service_key).strip() if service_key not in (None, "") else None
-    )
-    if service_key_str:
-        svc = service_repo.get_by_slug(service_key_str)
-        return svc.id if svc is not None else None
-    slug = str(course_slug).strip().lower() if course_slug not in (None, "") else ""
-    if slug:
-        svc = service_repo.get_by_slug(slug)
-        return svc.id if svc is not None else None
-    return None
-
-
 def _validate_discount_code_redemption_scope(
-    session: Session, payload: Mapping[str, Any]
+    session: Session,
+    payload: Mapping[str, Any],
+    *,
+    resolved_instance: ServiceInstance,
 ) -> None:
     """Ensure discount code scope matches the reservation context."""
     code = payload.get("discount_code")
@@ -673,21 +703,7 @@ def _validate_discount_code_redemption_scope(
         raise ValidationError("Invalid discount code", field="discountCode")
 
     if row.instance_id is not None:
-        raw_slug = payload.get("service_instance_slug")
-        if not raw_slug or not str(raw_slug).strip():
-            raise ValidationError(
-                "serviceInstanceSlug is required for this discount code",
-                field="serviceInstanceSlug",
-            )
-        slug = str(raw_slug).strip()
-        instance_repo = ServiceInstanceRepository(session)
-        request_instance_id = instance_repo.get_id_by_slug(slug)
-        if request_instance_id is None:
-            raise ValidationError(
-                "Discount code is not valid for this booking",
-                field="discountCode",
-            )
-        if request_instance_id != row.instance_id:
+        if resolved_instance.id != row.instance_id:
             raise ValidationError(
                 "Discount code is not valid for this booking",
                 field="discountCode",
@@ -697,8 +713,7 @@ def _validate_discount_code_redemption_scope(
     if row.service_id is None:
         return
 
-    resolved = _resolve_service_id_for_discount_scope(session, payload)
-    if resolved is None or resolved != row.service_id:
+    if resolved_instance.service.id != row.service_id:
         raise ValidationError(
             "Discount code is not valid for this booking",
             field="discountCode",

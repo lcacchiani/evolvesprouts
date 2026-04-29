@@ -121,7 +121,7 @@ export function DiscountCodesPanel({
   const [instanceId, setInstanceId] = useState('');
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
-  const [referralServiceSlug, setReferralServiceSlug] = useState<string | null>(null);
+  const [referralServiceKey, setReferralServiceKey] = useState<string | null>(null);
   const [referralDiscountType, setReferralDiscountType] = useState<DiscountType>('percentage');
   const [isBatchCreating, setIsBatchCreating] = useState(false);
   const { copiedKey: copiedDiscountCodeId, markCopied: markDiscountCodeCopied } = useCopyFeedback(1000);
@@ -396,8 +396,8 @@ export function DiscountCodesPanel({
   function openReferralDialog(entry: DiscountCode) {
     setReferralCode(entry.code);
     setReferralDiscountType(entry.discountType);
-    const slug = entry.serviceId ? serviceById.get(entry.serviceId)?.slug?.trim() ?? null : null;
-    setReferralServiceSlug(slug && slug.length ? slug : null);
+    const slug = entry.serviceId ? serviceById.get(entry.serviceId)?.serviceKey?.trim() ?? null : null;
+    setReferralServiceKey(slug && slug.length ? slug : null);
     setReferralOpen(true);
   }
 
@@ -718,7 +718,7 @@ export function DiscountCodesPanel({
       <ReferralLinkQrDialog
         open={referralOpen}
         discountCode={referralCode}
-        serviceSlug={referralServiceSlug}
+        serviceKey={referralServiceKey}
         discountType={referralDiscountType}
         onClose={() => setReferralOpen(false)}
       />

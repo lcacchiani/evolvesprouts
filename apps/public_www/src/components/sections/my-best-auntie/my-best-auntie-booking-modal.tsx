@@ -30,7 +30,11 @@ import type {
   Locale,
   MyBestAuntieModalContent,
 } from '@/content';
-import type { MyBestAuntieEventCohort } from '@/lib/events-data';
+import {
+  MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY,
+  MY_BEST_AUNTIE_BOOKING_SYSTEM,
+  type MyBestAuntieEventCohort,
+} from '@/lib/events-data';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   formatCohortValue,
@@ -173,12 +177,11 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
-              reservationServiceKey='my-best-auntie'
+              serviceKey={MY_BEST_AUNTIE_TRAINING_COURSE_CALENDAR_SERVICE_KEY}
               cohortId={selectedCohort?.slug ?? ''}
-              courseSlug='my-best-auntie'
-              serviceSlug={selectedCohort?.service ?? 'training-course'}
-              discountValidationServiceKey='my-best-auntie'
-              serviceInstanceSlug={selectedCohort?.slug ?? null}
+              serviceTypeLabelKey='training-course'
+              bookingSystem={MY_BEST_AUNTIE_BOOKING_SYSTEM}
+              serviceInstanceSlug={selectedCohort?.slug ?? ''}
               prefilledDiscountCode={prefilledDiscountCode}
               referralAppliedNote={referralAppliedNote}
               referralAppliedAnnouncement={referralAppliedAnnouncement}

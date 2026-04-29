@@ -68,7 +68,7 @@ def _fetch_rows() -> list[RowOut]:
         stmt = (
             select(ServiceInstance, Service.title)
             .join(Service, Service.id == ServiceInstance.service_id)
-            .where(Service.slug == "my-best-auntie")
+            .where(Service.service_key == "my-best-auntie-training-course")
             .order_by(ServiceInstance.created_at.asc())
         )
         rows: list[RowOut] = []
@@ -93,7 +93,7 @@ def _build_fragment(rows: list[RowOut]) -> dict[str, Any]:
     for row in rows:
         by_key[row.suggested_key] = row.service_instance_id
     return {
-        "service_slug": "my-best-auntie",
+        "service_key": "my-best-auntie-training-course",
         "service_instance_id_by_suggested_key": by_key,
         "instances": [
             {

@@ -46,7 +46,7 @@ describe('DiscountCodesPanel', () => {
     instancesCount: 0,
     serviceType: 'training_course' as const,
     title: 'My Best Auntie',
-    slug: 'my-best-auntie' as string | null,
+    serviceKey: 'my-best-auntie-training-course' as string | null,
     bookingSystem: null,
     description: null,
     coverImageS3Key: null,
@@ -412,7 +412,7 @@ describe('DiscountCodesPanel', () => {
     await vi.waitFor(() => {
       expect(
         screen.getByRole('link', {
-          name: 'https://www.example.com/en/services/my-best-auntie?ref=SAVE10',
+          name: 'https://www.example.com/en/services/my-best-auntie-training-course?ref=SAVE10',
         }),
       ).toBeInTheDocument();
     });

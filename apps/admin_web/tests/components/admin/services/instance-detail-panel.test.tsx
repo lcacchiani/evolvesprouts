@@ -24,7 +24,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
-    slug: null,
+    serviceKey: null,
     bookingSystem: null,
     description: null,
     coverImageS3Key: null,
@@ -436,7 +436,7 @@ describe('InstanceDetailPanel', () => {
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
       resolvedTitle: null,
-      resolvedSlug: null,
+      resolvedSlug: '',
       resolvedDescription: null,
       resolvedCoverImageS3Key: null,
       resolvedDeliveryMode: null,
@@ -475,7 +475,7 @@ describe('InstanceDetailPanel', () => {
         instance={null}
         createPrefillInstance={prefill}
         selectedServiceId='service-1'
-        serviceOptions={[buildServiceSummary({ slug: 'my-course', serviceTier: '1-3' })]}
+        serviceOptions={[buildServiceSummary({ serviceKey: 'my-course', serviceTier: '1-3' })]}
         locationOptions={[buildLocationSummary()]}
         isLoadingLocations={false}
         serviceType='training_course'
@@ -492,7 +492,9 @@ describe('InstanceDetailPanel', () => {
       expect(screen.getByLabelText('Title')).toHaveValue('Workshop A');
     });
     await waitFor(() => {
-      expect(screen.getByLabelText(/^slug/i)).toHaveValue('my-course-1-3-spring-2026');
+      expect(
+        screen.getByPlaceholderText('e.g. spring-workshop-2026-04-20'),
+      ).toHaveValue('my-course-1-3-spring-2026');
     });
     expect(screen.getByLabelText('Description')).toHaveValue('Body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
@@ -539,7 +541,7 @@ describe('InstanceDetailPanel', () => {
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
       resolvedTitle: null,
-      resolvedSlug: null,
+      resolvedSlug: '',
       resolvedDescription: null,
       resolvedCoverImageS3Key: null,
       resolvedDeliveryMode: null,
@@ -686,7 +688,7 @@ describe('InstanceDetailPanel', () => {
           buildServiceSummary({
             id: 'svc-1',
             title: 'Training',
-            slug: 'training-template',
+            serviceKey: 'training-template',
             serviceTier: null,
           }),
         ]}
@@ -703,7 +705,9 @@ describe('InstanceDetailPanel', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/^slug/i)).toHaveValue('training-template');
+      expect(
+        screen.getByPlaceholderText('e.g. spring-workshop-2026-04-20'),
+      ).toHaveValue('training-template');
     });
 
     rerender(
@@ -715,7 +719,7 @@ describe('InstanceDetailPanel', () => {
           buildServiceSummary({
             id: 'svc-1',
             title: 'Training',
-            slug: 'bla-bla-bla',
+            serviceKey: 'bla-bla-bla',
             serviceTier: '1-3',
           }),
         ]}
@@ -731,7 +735,9 @@ describe('InstanceDetailPanel', () => {
       />
     );
 
-    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    const slugInput = screen.getByPlaceholderText(
+      'e.g. spring-workshop-2026-04-20',
+    ) as HTMLInputElement;
     await waitFor(() => {
       expect(slugInput).toHaveValue('bla-bla-bla-1-3');
     });
@@ -760,7 +766,7 @@ describe('InstanceDetailPanel', () => {
             id: 'evt-svc',
             serviceType: 'event',
             title: 'Events',
-            slug: 'events',
+            serviceKey: 'events',
             trainingDetails: null,
             eventDetails: {
               eventCategory: 'open_house',
@@ -781,7 +787,9 @@ describe('InstanceDetailPanel', () => {
       />
     );
 
-    const slugInput = screen.getByLabelText(/^slug/i) as HTMLInputElement;
+    const slugInput = screen.getByPlaceholderText(
+      'e.g. spring-workshop-2026-04-20',
+    ) as HTMLInputElement;
     await waitFor(() => {
       expect(slugInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
@@ -822,7 +830,7 @@ describe('InstanceDetailPanel', () => {
             id: 'evt-svc-2',
             serviceType: 'event',
             title: 'Events',
-            slug: 'events',
+            serviceKey: 'events',
             trainingDetails: null,
             eventDetails: {
               eventCategory: 'open_house',
@@ -843,7 +851,7 @@ describe('InstanceDetailPanel', () => {
       />
     );
 
-    const slugInput = screen.getByLabelText(/^slug/i);
+    const slugInput = screen.getByPlaceholderText('e.g. spring-workshop-2026-04-20');
     await waitFor(() => {
       expect((slugInput as HTMLInputElement).value.length).toBeGreaterThan(0);
     });
@@ -854,12 +862,12 @@ describe('InstanceDetailPanel', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Add instance' }));
     expect(
-      screen.getByText(/slug is required for event and training_course instances/i)
+      screen.getByText(/^slug is required$/i),
     ).toBeInTheDocument();
     expect(onCreate).not.toHaveBeenCalled();
   });
 
-  it('does not require slug for consultation create', async () => {
+  it('requires slug for consultation create', async () => {
     const user = userEvent.setup();
     const onCreate = vi.fn().mockResolvedValue(undefined);
 
@@ -887,13 +895,15 @@ describe('InstanceDetailPanel', () => {
       />
     );
 
-    const slugLabel = screen.getByText('Slug');
-    expect(slugLabel.parentElement?.textContent).not.toMatch(/\*/);
+    const slugInput = screen.getByPlaceholderText(
+      'e.g. spring-workshop-2026-04-20',
+    ) as HTMLInputElement;
 
+    await user.type(slugInput, 'consultation-instance-1');
     await user.click(screen.getByRole('button', { name: 'Add instance' }));
     expect(onCreate).toHaveBeenCalledWith(
       'service-1',
-      expect.objectContaining({ slug: null })
+      expect.objectContaining({ slug: 'consultation-instance-1' }),
     );
   });
 });

@@ -521,25 +521,20 @@ export function InstanceDetailPanel({
     }
     setSessionSlotsError('');
     const slugTrimmed = instanceForm.slug.trim().toLowerCase();
-    if (effectiveServiceType === 'event' || effectiveServiceType === 'training_course') {
-      if (!slugTrimmed) {
-        setSlugSubmitError('slug is required for event and training_course instances');
-        return null;
-      }
-      if (!INSTANCE_SLUG_PATTERN.test(slugTrimmed)) {
-        setSlugSubmitError(
-          'Use lowercase letters, digits, and single hyphens between segments.'
-        );
-        return null;
-      }
+    if (!slugTrimmed) {
+      setSlugSubmitError('slug is required');
+      return null;
+    }
+    if (!INSTANCE_SLUG_PATTERN.test(slugTrimmed)) {
+      setSlugSubmitError(
+        'Use lowercase letters, digits, and single hyphens between segments.'
+      );
+      return null;
     }
     const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
-      slug:
-        effectiveServiceType === 'consultation'
-          ? slugTrimmed || null
-          : slugTrimmed,
+      slug: slugTrimmed,
       description: instanceForm.description.trim() || null,
       status: instanceForm.status,
       delivery_mode: instanceForm.deliveryMode || undefined,
@@ -642,8 +637,6 @@ export function InstanceDetailPanel({
   const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
 
-  const slugFieldMode =
-    effectiveServiceType === 'consultation' ? 'optional' : 'required';
   const slugFieldError = [slugSubmitError, slugConflictError].filter(Boolean).join(' ');
 
   const runCreate = async () => {
@@ -757,7 +750,6 @@ export function InstanceDetailPanel({
           }
           setInstanceForm(next);
         }}
-        slugFieldMode={slugFieldMode}
         slugFieldError={slugFieldError}
       />
 

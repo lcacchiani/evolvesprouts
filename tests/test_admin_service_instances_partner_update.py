@@ -39,7 +39,7 @@ def _minimal_event_service() -> Service:
         id=sid,
         service_type=ServiceType.EVENT,
         title="Event",
-        slug="evt",
+        service_key="evt",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,

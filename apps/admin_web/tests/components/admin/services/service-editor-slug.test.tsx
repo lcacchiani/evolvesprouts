@@ -13,7 +13,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
     instancesCount: 0,
     serviceType: 'training_course',
     title: 'Alpha service',
-    slug: 'old-slug',
+    serviceKey: 'old-slug',
     bookingSystem: null,
     description: null,
     coverImageS3Key: null,
@@ -37,7 +37,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
   };
 }
 
-describe('ServiceDetailPanel referral slug', () => {
+describe('ServiceDetailPanel service key', () => {
   beforeEach(() => {
     vi.spyOn(servicesApi, 'getServiceDiscountCodeUsageSummary').mockResolvedValue({
       summary: { totalCurrentUses: 0, referencingCodeCount: 0 },
@@ -49,8 +49,7 @@ describe('ServiceDetailPanel referral slug', () => {
     vi.restoreAllMocks();
   });
 
-  it('lowercases slug on blur and blocks invalid patterns', () => {
-
+  it('lowercases service key on blur and blocks invalid patterns', () => {
     render(
       <ServiceDetailPanel
         service={buildService()}
@@ -63,20 +62,20 @@ describe('ServiceDetailPanel referral slug', () => {
       />,
     );
 
-    const slugInput = screen.getByLabelText('Slug');
-    fireEvent.change(slugInput, { target: { value: 'My-Slug' } });
-    fireEvent.blur(slugInput);
+    const keyInput = screen.getByLabelText('Service key');
+    fireEvent.change(keyInput, { target: { value: 'My-Slug' } });
+    fireEvent.blur(keyInput);
 
-    expect(slugInput).toHaveValue('my-slug');
+    expect(keyInput).toHaveValue('my-slug');
 
-    fireEvent.change(slugInput, { target: { value: 'Bad_' } });
-    fireEvent.blur(slugInput);
+    fireEvent.change(keyInput, { target: { value: 'Bad_' } });
+    fireEvent.blur(keyInput);
 
     expect(screen.getByText(/Use lowercase letters and numbers/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
   });
 
-  it('confirms slug change when discount usage exists', async () => {
+  it('confirms service key change when discount usage exists', async () => {
     const user = userEvent.setup();
     vi.mocked(servicesApi.getServiceDiscountCodeUsageSummary).mockResolvedValue({
       summary: { totalCurrentUses: 2, referencingCodeCount: 1 },
@@ -100,22 +99,22 @@ describe('ServiceDetailPanel referral slug', () => {
       expect(servicesApi.getServiceDiscountCodeUsageSummary).toHaveBeenCalledWith('service-1');
     });
 
-    const slugInput = screen.getByLabelText('Slug');
-    fireEvent.change(slugInput, { target: { value: 'new-slug' } });
+    const keyInput = screen.getByLabelText('Service key');
+    fireEvent.change(keyInput, { target: { value: 'new-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
     expect(
-      await screen.findByText(/Changing the slug will break any existing printed QR codes/),
+      await screen.findByText(/Changing the key will break any existing printed QR codes/),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     await vi.waitFor(() => {
       expect(onUpdate).toHaveBeenCalled();
     });
-    expect(onUpdate.mock.calls[0][0]).toMatchObject({ slug: 'new-slug' });
+    expect(onUpdate.mock.calls[0][0]).toMatchObject({ service_key: 'new-slug' });
   });
 
-  it('confirms slug change when discount usage summary fails to load', async () => {
+  it('confirms service key change when discount usage summary fails to load', async () => {
     const user = userEvent.setup();
     vi.mocked(servicesApi.getServiceDiscountCodeUsageSummary).mockResolvedValue({
       summary: null,
@@ -143,8 +142,8 @@ describe('ServiceDetailPanel referral slug', () => {
       await screen.findByText(/Could not load discount code usage/),
     ).toBeInTheDocument();
 
-    const slugInput = screen.getByLabelText('Slug');
-    fireEvent.change(slugInput, { target: { value: 'new-slug' } });
+    const keyInput = screen.getByLabelText('Service key');
+    fireEvent.change(keyInput, { target: { value: 'new-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
     expect(
@@ -157,7 +156,7 @@ describe('ServiceDetailPanel referral slug', () => {
     });
   });
 
-  it('shows inline slug+tier conflict error and blocks save until slug or tier changes after 409', async () => {
+  it('shows inline service key+tier conflict error and blocks save until key or tier changes after 409', async () => {
     const user = userEvent.setup();
     const onUpdate = vi
       .fn()
@@ -165,8 +164,9 @@ describe('ServiceDetailPanel referral slug', () => {
         new AdminApiError({
           statusCode: 409,
           payload: {
-            error: 'Another service already uses this referral slug with the same tier.',
-            field: 'slug_tier',
+            error:
+              'Another service already uses this service key with the same tier. Change the key or use a different tier.',
+            field: 'service_key_tier',
           },
           message: 'Conflict',
         }),
@@ -175,7 +175,7 @@ describe('ServiceDetailPanel referral slug', () => {
 
     render(
       <ServiceDetailPanel
-        service={buildService({ slug: 'old-slug', serviceTier: 'cohort-a' })}
+        service={buildService({ serviceKey: 'old-slug', serviceTier: 'cohort-a' })}
         isLoading={false}
         error=''
         onCancelSelection={vi.fn()}
@@ -185,12 +185,12 @@ describe('ServiceDetailPanel referral slug', () => {
       />,
     );
 
-    const slugInput = screen.getByLabelText('Slug');
-    fireEvent.change(slugInput, { target: { value: 'taken-slug' } });
+    const keyInput = screen.getByLabelText('Service key');
+    fireEvent.change(keyInput, { target: { value: 'taken-slug' } });
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
     expect(
-      await screen.findByText(/This slug and tier are already used by another service/),
+      await screen.findByText(/This service key and tier are already used by another service/),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
 
@@ -204,14 +204,15 @@ describe('ServiceDetailPanel referral slug', () => {
     });
   });
 
-  it('shows empty-tier conflict on tier field when API returns slug_tier 409 for blank tier', async () => {
+  it('shows empty-tier conflict on tier field when API returns service_key_tier 409 for blank tier', async () => {
     const user = userEvent.setup();
     const onUpdate = vi.fn().mockRejectedValueOnce(
       new AdminApiError({
         statusCode: 409,
         payload: {
-          error: 'Another service already uses this referral slug with an empty tier.',
-          field: 'slug_tier',
+          error:
+            'Another service already uses this service key with an empty tier. Set a tier or change the key.',
+          field: 'service_key_tier',
         },
         message: 'Conflict',
       }),
@@ -219,7 +220,7 @@ describe('ServiceDetailPanel referral slug', () => {
 
     render(
       <ServiceDetailPanel
-        service={buildService({ slug: 'shared-slug', serviceTier: '' })}
+        service={buildService({ serviceKey: 'shared-slug', serviceTier: '' })}
         isLoading={false}
         error=''
         onCancelSelection={vi.fn()}
@@ -232,7 +233,7 @@ describe('ServiceDetailPanel referral slug', () => {
     await user.click(screen.getByRole('button', { name: 'Update service' }));
 
     expect(
-      await screen.findByText(/Another service uses this slug with an empty tier/),
+      await screen.findByText(/Another service uses this service key with an empty tier/),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Update service' })).toBeDisabled();
   });

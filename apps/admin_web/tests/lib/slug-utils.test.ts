@@ -17,7 +17,7 @@ describe('computeSuggestedInstanceSlug', () => {
     instancesCount: 0,
     serviceType: 'training_course',
     title: 'My Course',
-    slug: 'my-course',
+    serviceKey: 'my-course',
     bookingSystem: null,
     description: null,
     coverImageS3Key: null,
@@ -36,7 +36,7 @@ describe('computeSuggestedInstanceSlug', () => {
   it('builds MBA slug from service tier and cohort', () => {
     const svc: ServiceSummary = {
       ...baseService,
-      slug: 'my-best-auntie',
+      serviceKey: 'my-best-auntie-training-course',
       serviceTier: '1-3',
     };
     expect(
@@ -51,7 +51,7 @@ describe('computeSuggestedInstanceSlug', () => {
   it('appends tier to service slug for training_course when cohort is empty', () => {
     const svc: ServiceSummary = {
       ...baseService,
-      slug: 'bla-bla-bla',
+      serviceKey: 'bla-bla-bla',
       serviceTier: '1-3',
     };
     expect(
@@ -66,7 +66,7 @@ describe('computeSuggestedInstanceSlug', () => {
   it('appends cohort after tier as cohort is typed for training_course', () => {
     const svc: ServiceSummary = {
       ...baseService,
-      slug: 'bla-bla-bla',
+      serviceKey: 'bla-bla-bla',
       serviceTier: '1-3',
     };
     expect(
@@ -81,7 +81,7 @@ describe('computeSuggestedInstanceSlug', () => {
   it('drops cohort segment from training_course slug when cohort is cleared', () => {
     const svc: ServiceSummary = {
       ...baseService,
-      slug: 'bla-bla-bla',
+      serviceKey: 'bla-bla-bla',
       serviceTier: '1-3',
     };
     expect(

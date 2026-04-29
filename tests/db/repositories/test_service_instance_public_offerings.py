@@ -47,7 +47,7 @@ def _sqlalchemy_engine_url(url: str) -> str:
 
 
 @pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
-def test_list_public_offerings_omits_null_slug_instances() -> None:
+def test_list_public_offerings_omits_empty_slug_instances() -> None:
     url = _database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
@@ -92,7 +92,7 @@ def test_list_public_offerings_omits_null_slug_instances() -> None:
                 id=service_id,
                 service_type=ServiceType.EVENT,
                 title="Public Feed Svc",
-                slug=f"pub-feed-{service_id.hex[:8]}",
+                service_key=f"pub-feed-{service_id.hex[:8]}",
                 booking_system=None,
                 description=None,
                 cover_image_s3_key=None,
@@ -114,8 +114,8 @@ def test_list_public_offerings_omits_null_slug_instances() -> None:
             ServiceInstance(
                 id=inst_null,
                 service_id=service_id,
-                title="No slug",
-                slug=None,
+                title="Empty slug",
+                slug="",
                 description=None,
                 cover_image_s3_key=None,
                 status=InstanceStatus.SCHEDULED,

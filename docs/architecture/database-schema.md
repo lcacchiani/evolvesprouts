@@ -72,6 +72,24 @@ Migration `0042_slug_nulls_nd` recreates `services_slug_tier_unique_idx` with
 rejects duplicate real tier values case-insensitively. Upgrade runs a guard that fails
 when duplicate `(lower(slug), service_tier)` groups already exist among slugged rows.
 
+Migration `0046_services_slug_to_key` renames `services.slug` to `services.service_key`
+and renames the composite unique index to `services_service_key_tier_unique_idx`.
+
+Migration `0047_orgs_slug_to_partner_key` renames `organizations.slug` to
+`organizations.partner_key` and renames the partial unique index to
+`organizations_partner_key_unique_idx`.
+
+Migration `0048_inst_slug_backfill_consult` backfills NULL/empty `service_instances.slug`
+values (primarily consultations) with deterministic kebab-case slugs, then asserts no
+NULL/empty rows remain.
+
+Migration `0049_inst_slug_not_null` sets `service_instances.slug` to `NOT NULL` after
+the backfill succeeds.
+
+Migration `0050_fix_mba_service_key` updates `services.service_key` from the legacy
+legacy MBA key string to `my-best-auntie-training-course` for matching training-course
+titles (idempotent; aligns with the public booking constant).
+
 Migration `0032_services_booking` adds nullable `services.booking_system` (varchar(80))
 for an optional admin-visible booking-system label.
 
@@ -422,9 +440,10 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 
 - `organizations` stores external organization entities.
 - Activeness is derived from `archived_at` (no separate `status` column).
-- `organizations.slug` is an optional URL-safe identifier used when
+- `organizations.partner_key` is an optional URL-safe identifier used when
   `relationship_type` is `partner`; uniqueness is enforced case-insensitively
-  among partner rows with a non-null slug (partial unique index).
+  among partner rows with a non-null key (partial unique index
+  `organizations_partner_key_unique_idx`).
 - `organizations.location_id` optionally links an organization to a canonical
   row in `locations` for address management.
 - `organization_members` links contacts to organizations with role/title and an optional
@@ -458,9 +477,10 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 
 - `services` stores reusable templates (title/description/cover image, type,
   delivery mode, status).
-- Optional `slug` for public referral URLs; uniqueness is case-insensitive on the
-  pair `(slug, service_tier)` when `slug` is set (`services_slug_tier_unique_idx` with
-  `NULLS NOT DISTINCT` from migration `0042_slug_nulls_nd`, so NULL tier is one bucket).
+- Optional `service_key` for public referral URLs and booking identity; uniqueness is
+  case-insensitive on the pair `(service_key, service_tier)` when `service_key` is set
+  (`services_service_key_tier_unique_idx` with `NULLS NOT DISTINCT` from migrations
+  `0042_slug_nulls_nd` then `0046_services_slug_to_key`, so NULL tier is one bucket).
 - Optional `booking_system` varchar(80) for an admin-visible booking-system label.
 - Optional `service_tier` varchar(128): slug-like tier id shared by all instances.
 - Optional `location_id` UUID FK to `locations.id` ON DELETE SET NULL: default venue for
@@ -476,13 +496,12 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - `service_instances` stores dated offerings linked to a `services` template.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
-- Optional public-site field: `slug` (unique when set via partial unique index
-  `svc_instances_slug_uq`; **canonical public identifier** for calendar/discount/reservation
-  instance scope and public website marketing routes). For **event** and
-  **training_course** rows, a non-empty slug is required in practice for public
-  calendar visibility; legacy NULL slugs were backfilled by migration
-  `0043_backfill_inst_slug`. **Consultation** instances may keep `slug` NULL
-  (consultations are not exposed on the public calendar feed).
+- Required public-site field: `slug` (varchar(128), `NOT NULL` from migration
+  `0049_inst_slug_not_null`; unique via `svc_instances_slug_uq`; **canonical public
+  identifier** for calendar/discount/reservation instance scope and public website
+  marketing routes). Legacy NULL slugs for events and training courses were backfilled by
+  migration `0043_backfill_inst_slug`; consultation NULL/empty slugs were backfilled by
+  migration `0048_inst_slug_backfill_consult` before the NOT NULL constraint landed.
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL

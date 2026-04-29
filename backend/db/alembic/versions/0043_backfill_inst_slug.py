@@ -107,7 +107,7 @@ computed AS (
     b.id,
     CASE
       WHEN b.stype = 'training_course'
-        AND b.s_slug = 'my-best-auntie'
+        AND b.s_slug = 'my-best-auntie-training-course'
         AND nullif(trim(coalesce(b.service_tier, substring(b.si_title FROM '(\d+-\d+)'), '')), '')
           IS NOT NULL
         AND nullif(

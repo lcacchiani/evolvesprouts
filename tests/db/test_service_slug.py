@@ -1,4 +1,4 @@
-"""Unit tests for service slug resolution (no live database required)."""
+"""Unit tests for service key resolution (no live database required)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from app.db.models import Service
 from app.db.repositories.service import ServiceRepository
 
 
-def test_get_by_slug_queries_lowered_slug() -> None:
+def test_get_by_service_key_queries_lowered_key() -> None:
     svc_id = uuid4()
     mock_row = MagicMock(spec=Service)
     mock_row.id = svc_id
@@ -18,7 +18,7 @@ def test_get_by_slug_queries_lowered_slug() -> None:
     mock_session.execute.return_value.scalar_one_or_none.return_value = mock_row
 
     repo = ServiceRepository(mock_session)
-    found = repo.get_by_slug("My-Best-Auntie")
+    found = repo.get_by_service_key("My-Best-Auntie")
 
     assert found is mock_row
     mock_session.execute.assert_called_once()
@@ -27,9 +27,9 @@ def test_get_by_slug_queries_lowered_slug() -> None:
     assert "lower" in compiled.lower()
 
 
-def test_get_by_slug_blank_returns_none() -> None:
+def test_get_by_service_key_blank_returns_none() -> None:
     mock_session = MagicMock()
     repo = ServiceRepository(mock_session)
-    assert repo.get_by_slug("") is None
-    assert repo.get_by_slug("   ") is None
+    assert repo.get_by_service_key("") is None
+    assert repo.get_by_service_key("   ") is None
     mock_session.execute.assert_not_called()

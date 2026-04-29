@@ -21,8 +21,8 @@ export interface ReferralLinkQrDialogProps {
   open: boolean;
   onClose: () => void;
   discountCode: string;
-  /** Public `services.slug` for deep link, or null for locale home. */
-  serviceSlug: string | null;
+  /** Public `services.service_key` for deep link, or null for locale home. */
+  serviceKey: string | null;
   discountType: DiscountType;
 }
 
@@ -30,7 +30,7 @@ export function ReferralLinkQrDialog({
   open,
   onClose,
   discountCode,
-  serviceSlug,
+  serviceKey,
   discountType,
 }: ReferralLinkQrDialogProps) {
   const [locale, setLocale] = useState<MyBestAuntieReferralLocale>('en');
@@ -44,17 +44,17 @@ export function ReferralLinkQrDialog({
     return buildPublicReferralUrlWithSlug({
       baseUrl,
       locale,
-      serviceSlug,
+      serviceKey,
       code: discountCode,
       paramName,
     });
-  }, [baseUrl, discountCode, locale, paramName, serviceSlug]);
+  }, [baseUrl, discountCode, locale, paramName, serviceKey]);
 
-  const analyticsSlugTag = serviceSlug?.trim().toLowerCase() || 'home';
+  const analyticsSlugTag = serviceKey?.trim().toLowerCase() || 'home';
 
   useEffect(() => {
     if (open) {
-      trackAdminAnalyticsEvent('admin_referral_qr_opened', { service_slug: analyticsSlugTag });
+      trackAdminAnalyticsEvent('admin_referral_qr_opened', { service_key: analyticsSlugTag });
     }
   }, [analyticsSlugTag, open]);
 
@@ -64,8 +64,8 @@ export function ReferralLinkQrDialog({
 
   const previewAriaLabel = `QR code preview for referral link (${analyticsSlugTag})`;
 
-  const destinationHint = serviceSlug?.trim()
-    ? `Opens the public service page for “${serviceSlug.trim()}”.`
+  const destinationHint = serviceKey?.trim()
+    ? `Opens the public service page for “${serviceKey.trim()}”.`
     : 'Opens the public site home for the selected locale.';
 
   return (
@@ -105,7 +105,7 @@ export function ReferralLinkQrDialog({
           downloadFilenameBase={`referral-${discountCode.trim().toUpperCase()}`}
           downloadEvent='admin_referral_qr_downloaded'
           analyticsParams={{
-            service_slug: analyticsSlugTag,
+            service_key: analyticsSlugTag,
           }}
           fieldIds={{
             includeLogo: 'referral-qr-include-logo',

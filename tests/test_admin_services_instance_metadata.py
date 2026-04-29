@@ -44,7 +44,7 @@ def _minimal_training_service() -> Service:
         id=sid,
         service_type=ServiceType.TRAINING_COURSE,
         title="Course",
-        slug=None,
+        service_key="course-template",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -153,7 +153,7 @@ def test_training_instance_round_trip_cohort_tags_in_memory() -> None:
         id=inst_id,
         service_id=service.id,
         title=None,
-        slug=None,
+        slug="cohort-instance-1",
         description=None,
         cover_image_s3_key=None,
         status=InstanceStatus.SCHEDULED,
@@ -210,7 +210,7 @@ def test_serialize_instance_resolves_from_parent_service_when_missing() -> None:
         id=sid,
         service_type=ServiceType.TRAINING_COURSE,
         title="Parent title",
-        slug="parent-slug",
+        service_key="parent-slug",
         booking_system=None,
         description="Parent body",
         cover_image_s3_key=None,
@@ -231,7 +231,7 @@ def test_serialize_instance_resolves_from_parent_service_when_missing() -> None:
         id=inst_id,
         service_id=sid,
         title=None,
-        slug=None,
+        slug="instance-public-slug",
         description=None,
         cover_image_s3_key=None,
         status=InstanceStatus.SCHEDULED,
@@ -253,7 +253,7 @@ def test_serialize_instance_resolves_from_parent_service_when_missing() -> None:
 
     payload = serialize_instance(instance)
     assert payload["resolved_title"] == "Parent title"
-    assert payload["resolved_slug"] == "parent-slug"
+    assert payload["resolved_slug"] == "instance-public-slug"
     assert payload["resolved_description"] == "Parent body"
     assert payload["resolved_delivery_mode"] == "in_person"
     assert payload["resolved_location_id"] == str(loc_id)
@@ -276,7 +276,7 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
         id=sid,
         service_type=ServiceType.EVENT,
         title="Evt",
-        slug=None,
+        service_key="evt-template",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -294,7 +294,7 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
         id=inst_id,
         service_id=sid,
         title="Inst",
-        slug=None,
+        slug="open-house-instance",
         description=None,
         cover_image_s3_key=None,
         status=InstanceStatus.SCHEDULED,
@@ -328,7 +328,7 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
         id=csid,
         service_type=ServiceType.CONSULTATION,
         title="Cons",
-        slug=None,
+        service_key="cons-template",
         booking_system=None,
         description=None,
         cover_image_s3_key=None,
@@ -351,7 +351,7 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
         id=cinst,
         service_id=csid,
         title="C",
-        slug=None,
+        slug="cons-instance-1",
         description=None,
         cover_image_s3_key=None,
         status=InstanceStatus.SCHEDULED,

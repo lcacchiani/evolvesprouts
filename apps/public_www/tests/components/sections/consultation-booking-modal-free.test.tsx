@@ -243,7 +243,8 @@ describe('ConsultationBookingModal free price', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
-          service: 'consultation',
+          serviceKey: 'consultations',
+          serviceInstanceSlug: 'consultation-essentials-package',
         }),
       }),
     );

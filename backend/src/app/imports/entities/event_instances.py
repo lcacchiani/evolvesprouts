@@ -70,13 +70,13 @@ class EventInstancesImporter:
         if not svc_ids:
             return ImporterContext()
         rows = session.execute(
-            select(Service.id, Service.slug).where(Service.id.in_(svc_ids)),
+            select(Service.id, Service.service_key).where(Service.id.in_(svc_ids)),
         ).all()
-        for sid, slug in rows:
-            if slug:
+        for sid, svc_key in rows:
+            if svc_key:
                 key = str(sid if isinstance(sid, UUID) else UUID(str(sid)))
-                slug_by[key] = str(slug).strip()
-        return ImporterContext(event_service_slug_by_uuid=slug_by)
+                slug_by[key] = str(svc_key).strip()
+        return ImporterContext(event_service_key_by_uuid=slug_by)
 
     def apply(
         self,
@@ -93,18 +93,20 @@ class EventInstancesImporter:
         if not org_refs and refs.has_mapping(session, "organizations"):
             org_refs = dict(refs.load_mapping(session, "organizations"))
 
-        slug_by_uuid = dict(ctx.event_service_slug_by_uuid)
+        slug_by_uuid = dict(ctx.event_service_key_by_uuid)
         if not slug_by_uuid and svc_refs and not dry_run:
             svc_ids = [
                 v if isinstance(v, UUID) else UUID(str(v)) for v in svc_refs.values()
             ]
             if svc_ids:
-                for sid, slug in session.execute(
-                    select(Service.id, Service.slug).where(Service.id.in_(svc_ids)),
+                for sid, svc_key in session.execute(
+                    select(Service.id, Service.service_key).where(
+                        Service.id.in_(svc_ids)
+                    ),
                 ).all():
-                    if slug:
+                    if svc_key:
                         key = str(sid if isinstance(sid, UUID) else UUID(str(sid)))
-                        slug_by_uuid[key] = str(slug).strip()
+                        slug_by_uuid[key] = str(svc_key).strip()
 
         event_org: dict[int, int] = {}
         if ctx.source_sql_text:

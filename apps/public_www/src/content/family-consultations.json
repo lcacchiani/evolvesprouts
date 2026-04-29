@@ -3,14 +3,16 @@
   "data": [
     {
       "tier_id": "essentials",
-      "service": "consultation",
+      "service_key": "consultations",
+      "instance_slug": "consultation-essentials-package",
       "location_name": "Your Home",
       "location_address": "Hong Kong",
       "dates": []
     },
     {
       "tier_id": "deep_dive",
-      "service": "consultation",
+      "service_key": "consultations",
+      "instance_slug": "consultation-deep-dive-package",
       "location_name": "Your Home",
       "location_address": "Hong Kong",
       "dates": []

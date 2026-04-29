@@ -234,9 +234,17 @@ _SERVICE_TYPE_LABELS: Final[dict[str, dict[str, str]]] = {
 }
 
 
-def resolve_service_type_label(loc: str, service_slug: str | None) -> str:
-    """Localized high-level booking category (event, training-course, consultation)."""
-    raw = (service_slug or "").strip().lower()
+def resolve_service_type_label(loc: str, service_type: str | None) -> str:
+    """Localized high-level booking category (event, training-course, consultation).
+
+    ``service_type`` is the Aurora enum value: ``event``, ``training_course``,
+    or ``consultation`` (mapped to template label keys).
+    """
+    raw_in = (service_type or "").strip().lower()
+    if raw_in == "training_course":
+        raw = "training-course"
+    else:
+        raw = raw_in
     if not raw:
         return ""
     locale_key = normalize_booking_locale(loc)
@@ -246,7 +254,7 @@ def resolve_service_type_label(loc: str, service_slug: str | None) -> str:
 
 
 def resolve_service_row_label(
-    loc: str, service_slug: str | None, course_label: str
+    loc: str, service_type: str | None, course_label: str
 ) -> str:
     """Backward-compatible booking title for SES templates using {{service_row_label}}."""
     return (course_label or "").strip()

@@ -33,9 +33,14 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 
 logger = get_logger(__name__)
 
+_MBA_TRAINING_SERVICE_KEY = "my-best-auntie-training-course"
+_LEGACY_MBA_SERVICE_SLUG = (
+    "my-best-auntie"  # old public filter value; normalized in _parse_service_key only
+)
+
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _PUBLIC_INSTANCE_SLUG_MAX_LEN = 128  # matches service_instances.slug varchar(128)
-_SERVICE_KEY_MAX_LEN = 80  # matches services.slug varchar(80)
+_SERVICE_KEY_MAX_LEN = 80  # matches services.service_key varchar(80)
 
 
 def handle_public_events(
@@ -119,7 +124,7 @@ def _parse_service_type_filter(raw: str | None) -> set[ServiceType] | None:
 def _parse_service_key(raw: str | None) -> str | None:
     """Normalize and validate the `service_key` query parameter.
 
-    Returns a lowercase slug ready for comparison against ``lower(services.slug)``
+    Returns a lowercase key ready for comparison against ``lower(services.service_key)``
     in the repository, or None when input is missing, blank, too long, or
     malformed. Trims whitespace, then lowercases before pattern validation so
     mixed-case slugs are accepted. Follows the silent-ignore policy used for
@@ -133,6 +138,8 @@ def _parse_service_key(raw: str | None) -> str | None:
     # Lowercase before pattern match so mixed-case input (e.g. MY-BEST-AUNTIE)
     # is accepted; the OpenAPI pattern is lowercase-only.
     normalized = trimmed.lower()
+    if normalized == _LEGACY_MBA_SERVICE_SLUG:
+        normalized = _MBA_TRAINING_SERVICE_KEY
     if not _SERVICE_KEY_PATTERN.fullmatch(normalized):
         return None
     return normalized
@@ -159,7 +166,8 @@ def _fetch_public_offerings(
     )
     out: list[dict[str, Any]] = []
     for instance in rows:
-        slug = (instance.slug or "").strip()
+        raw_slug = instance.slug
+        slug = (raw_slug or "").strip()
         if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
             logger.warning(
                 "Public calendar feed skipped instance without valid slug",
@@ -221,7 +229,8 @@ def _resolve_booking_system(service: Service) -> str | None:
     if service.service_type == ServiceType.EVENT:
         return "event-booking"
     if service.service_type == ServiceType.TRAINING_COURSE:
-        if service.slug == "my-best-auntie":
+        key = (service.service_key or "").strip().lower()
+        if key == _MBA_TRAINING_SERVICE_KEY:
             return "my-best-auntie-booking"
         return None
     return None
@@ -253,9 +262,9 @@ def _resolve_tags(
 
 def _resolve_partners(instance: ServiceInstance) -> list[str]:
     return [
-        link.organization.slug
+        link.organization.partner_key
         for link in instance.partner_organization_links
-        if link.organization is not None and link.organization.slug
+        if link.organization is not None and link.organization.partner_key
     ]
 
 
@@ -285,10 +294,13 @@ def _resolve_external_url(instance: ServiceInstance) -> str | None:
 
 def _derive_training_service_tier_from_instance_slug(
     instance_slug: str | None,
-    service_slug: str | None,
+    service_key: str | None,
 ) -> str | None:
     """Infer age tier from instance slug when parent ``services.service_tier`` is unset."""
-    if not instance_slug or service_slug != "my-best-auntie":
+    if not instance_slug:
+        return None
+    key = (service_key or "").strip().lower()
+    if key != _MBA_TRAINING_SERVICE_KEY:
         return None
     prefix = "my-best-auntie-"
     if not instance_slug.startswith(prefix):
@@ -306,7 +318,7 @@ def _resolve_public_calendar_service_tier(instance: ServiceInstance) -> str | No
         return service.service_tier
     return _derive_training_service_tier_from_instance_slug(
         instance.slug,
-        getattr(service, "slug", None),
+        getattr(service, "service_key", None),
     )
 
 
@@ -392,7 +404,7 @@ def _serialize_public_event(
         "fully_booked" if instance.status == InstanceStatus.FULL else "open"
     )
 
-    slug = (instance.slug or "").strip()
+    slug = instance.slug.strip()
     if not slug or not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(slug):
         raise ValueError(
             "Public calendar serialization requires a non-empty slug matching "

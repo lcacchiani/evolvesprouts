@@ -269,7 +269,7 @@ paths:
         Calendar feed for public consumers (direct API).
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
-        included). Instances without a non-null `service_instances.slug` are
+        included). Instances with an empty `service_instances.slug` are
         omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
@@ -306,14 +306,14 @@ paths:
             maxLength: 80
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Restrict the feed to instances of a single service whose slug matches
-            `service_key` case-insensitively against `services.slug` in Aurora
-            (e.g. `my-best-auntie`). Combines with `service_type` and
+            Restrict the feed to instances of a single service whose key matches
+            `service_key` case-insensitively against `services.service_key` in Aurora
+            (e.g. `my-best-auntie-training-course`). Combines with `service_type` and
             `slug` via logical AND; contradictory combinations return
-            `events: []`. Unknown slugs return `events: []`. Invalid values
+            `events: []`. Unknown keys return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
             applied, consistent with `service_type` and `slug`.
-            Same case-insensitive `services.slug` mapping as the `service_key` field
+            Same case-insensitive `services.service_key` mapping as the `service_key` field
             on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
@@ -345,7 +345,7 @@ paths:
         Same as `GET /v1/calendar/public` for same-origin calls from `public_www`.
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
-        included). Instances without a non-null `service_instances.slug` are
+        included). Instances with an empty `service_instances.slug` are
         omitted from this feed. Results are ordered by the earliest upcoming session slot,
         then `service_instances.id` for a stable tie-break.
 
@@ -382,14 +382,14 @@ paths:
             maxLength: 80
             pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Restrict the feed to instances of a single service whose slug matches
-            `service_key` case-insensitively against `services.slug` in Aurora
-            (e.g. `my-best-auntie`). Combines with `service_type` and
+            Restrict the feed to instances of a single service whose key matches
+            `service_key` case-insensitively against `services.service_key` in Aurora
+            (e.g. `my-best-auntie-training-course`). Combines with `service_type` and
             `slug` via logical AND; contradictory combinations return
-            `events: []`. Unknown slugs return `events: []`. Invalid values
+            `events: []`. Unknown keys return `events: []`. Invalid values
             (wrong shape, too long) are silently ignored and the filter is not
             applied, consistent with `service_type` and `slug`.
-            Same case-insensitive `services.slug` mapping as the `service_key` field
+            Same case-insensitive `services.service_key` mapping as the `service_key` field
             on `POST /v1/discounts/validate` (JSON body), not the same parameter surface.
       responses:
         "200":
@@ -425,16 +425,17 @@ paths:
         succeeds only while the server UTC instant is **on or after** `valid_from` and
         **on or before** `valid_until` (both ends inclusive).
 
+        **Identity:** every request must include `service_key` and `service_instance_slug`.
+        The pair must resolve to a real `service_instances` row whose parent service's
+        `services.service_key` matches `service_key` case-insensitively; otherwise **404**
+        with `rejection_reason` `unknown_service_instance_slug` or `service_key_instance_mismatch`
+        (same generic `error` message as inactive codes).
+
         **Service scoping:** codes may be limited to a service and/or instance in Aurora.
-        Unscoped codes (no `service_id` / `instance_id`) validate regardless of
-        `service_key` (unknown slugs are ignored). When the code is scoped to a
-        **service only**, the request must include a matching `service_key` (matched
-        case-insensitively against `services.slug`). When the code is scoped to an
-        **instance**, the request must include `service_instance_slug` that resolves to
-        the code's `instance_id` (case-insensitive match on `service_instances.slug`);
-        `service_key` is optional and not used to reject unknown slugs. An unknown
-        instance slug for an instance-scoped code yields **404** (same generic message as
-        inactive codes).
+        Unscoped codes (no `service_id` / `instance_id`) validate as long as the pair resolves.
+        When the code is scoped to a **service only**, `services.service_key` must match the
+        resolved parent service. When scoped to an **instance**, `service_instances.slug` must
+        match the resolved instance.
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -455,7 +456,10 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Code not found, inactive, expired, or fully used.
+          description: >
+            Code not found, inactive, expired, fully used, or identity/scoping mismatch.
+            When `rejection_reason` is present it may be `unknown_service_instance_slug` or
+            `service_key_instance_mismatch` (other rejections use the same generic body without this field).
           content:
             application/json:
               schema:
@@ -488,7 +492,10 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Code not found, inactive, expired, or fully used.
+          description: >
+            Code not found, inactive, expired, fully used, or identity/scoping mismatch.
+            When `rejection_reason` is present it may be `unknown_service_instance_slug` or
+            `service_key_instance_mismatch` (other rejections use the same generic body without this field).
           content:
             application/json:
               schema:
@@ -1003,6 +1010,19 @@ components:
         detail:
           type: string
           nullable: true
+        field:
+          type: string
+          nullable: true
+        rejection_reason:
+          type: string
+          nullable: true
+          description: >
+            Optional machine-readable reason on some 404 responses (for example discount validate).
+            For `POST /v1/discounts/validate` and `POST /www/v1/discounts/validate`, when present on
+            a 404 the value is one of: `unknown_service_instance_slug`, `service_key_instance_mismatch`.
+            The Lambda also logs other reasons (`code_not_found`, `referral_type_not_allowed`, `inactive`,
+            `not_yet_valid`, `expired`, `max_uses_exhausted`, `instance_scope_mismatch`, `service_scope_mismatch`)
+            without returning them in the JSON body.
     PublicCalendarEventDate:
       type: object
       required:
@@ -1132,7 +1152,7 @@ components:
           items:
             type: string
           description: >
-            Partner organization slugs linked via
+            Partner organization keys (`organizations.partner_key`) linked via
             `service_instance_organizations`, ordered by `sort_order`.
         slug:
           type: string
@@ -1140,7 +1160,7 @@ components:
           maxLength: 128
           description: >
             Stable public identifier for the offering. Maps to `service_instances.slug`.
-            The calendar feed omits rows where the instance slug is missing or does not match
+            The calendar feed omits rows where the instance slug is empty or does not match
             this public pattern (invalid values are filtered server-side).
         service_tier:
           type: string
@@ -1184,24 +1204,28 @@ components:
       type: object
       required:
         - code
+        - service_key
+        - service_instance_slug
       properties:
         code:
           type: string
           maxLength: 100
         service_key:
           type: string
-          maxLength: 120
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Public slug for the booked offering (e.g. `my-best-auntie`). Matched
-            case-insensitively against `services.slug` in Aurora for **service-scoped**
-            discount codes.
+            Parent service public key (e.g. `my-best-auntie-training-course`). Matched case-insensitively
+            against `services.service_key`. Must pair with `service_instance_slug` to resolve
+            a real instance whose parent service has this key.
         service_instance_slug:
           type: string
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           maxLength: 128
           description: >
-            Public instance slug (`service_instances.slug`). Required for instance-scoped
-            codes; backend resolves it to the underlying instance id.
+            Public instance slug (`service_instances.slug`). Matched case-insensitively;
+            combined with `service_key` must resolve to an instance whose parent service's
+            `service_key` matches.
     DiscountRule:
       type: object
       additionalProperties: false
@@ -1258,6 +1282,8 @@ components:
         - totalAmount
         - courseLabel
         - agreedToTermsAndConditions
+        - serviceKey
+        - serviceInstanceSlug
       properties:
         attendeeName:
           type: string
@@ -1348,9 +1374,9 @@ components:
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           maxLength: 128
           description: >
-            Public `service_instances.slug` for the booked cohort/instance. Required when
-            redeeming an instance-scoped discount code; backend resolves to the instance id
-            for scope checks only.
+            Public `service_instances.slug` for the booked cohort/instance. Required with
+            `serviceKey` to resolve booking identity; backend resolves to the instance id for
+            enrollment and discount scope checks.
         marketingOptIn:
           type: boolean
           default: false
@@ -1362,23 +1388,24 @@ components:
             - zh-HK
         serviceKey:
           type: string
-          maxLength: 100
+          maxLength: 80
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: >
+            Parent service public key; must pair with `serviceInstanceSlug` to resolve a real
+            instance (same rules as discount validate).
         courseSlug:
           type: string
           maxLength: 100
-        service:
+          description: >
+            Optional marketing-flow label only (for example confirmation email "back to course"
+            links). Not used for booking identity.
+        bookingSystem:
           type: string
           maxLength: 100
-          enum:
-            - event
-            - training-course
-            - consultation
           description: >
-            Optional high-level booking category for localized confirmation email copy.
-            When present, the confirmation email first table row uses a localized type label
-            (event, training course, consultation) in the left column and `courseLabel` as the
-            title in the right column. When omitted, the left column falls back to a generic
-            "Service" label and the right column shows `courseLabel`.
+            Optional booking flow code (for example `my-best-auntie-booking`, `consultation-booking`,
+            `event-booking`). When set, it is preferred over `courseSlug` for confirmation email and
+            internal metadata that still key off the legacy `course_slug` field.
         locationName:
           type: string
           maxLength: 200
@@ -1440,7 +1467,7 @@ components:
           maxLength: 100
           description: >
             Optional public service slug for Stripe `metadata.service_key` (e.g.
-            `my-best-auntie`); not used for discount scope validation on this endpoint.
+            `my-best-auntie-training-course`); not used for discount scope validation on this endpoint.
         cohort_id:
           type: string
           maxLength: 120

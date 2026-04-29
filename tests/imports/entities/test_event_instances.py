@@ -67,7 +67,7 @@ def test_status_cancelled_overrides_past(monkeypatch: pytest.MonkeyPatch) -> Non
             "venues": {},
             "organizations": {},
         },
-        event_service_slug_by_uuid={str(svc_id): "evt"},
+        event_service_key_by_uuid={str(svc_id): "evt"},
         source_sql_text="",
     )
     importer.apply(session, rows, ctx, dry_run=False)
@@ -211,7 +211,7 @@ INSERT INTO `event` (`id`,`name`,`description`,`category`,`default_price`,`defau
             "venues": {},
             "organizations": {"88": org_id},
         },
-        event_service_slug_by_uuid={str(svc_id): "myevt"},
+        event_service_key_by_uuid={str(svc_id): "myevt"},
         source_sql_text=sql,
     )
     stats = importer.apply(session, rows, ctx, dry_run=False)
@@ -281,7 +281,7 @@ INSERT INTO `event` (`id`,`name`,`description`,`category`,`default_price`,`defau
             "venues": {},
             "organizations": {},
         },
-        event_service_slug_by_uuid={str(svc_id): "myevt"},
+        event_service_key_by_uuid={str(svc_id): "myevt"},
         source_sql_text=sql,
     )
     stats = importer.apply(session, rows, ctx, dry_run=False)
@@ -320,7 +320,7 @@ def test_dry_run_preview_includes_slug(monkeypatch: pytest.MonkeyPatch) -> None:
             "venues": {},
             "organizations": {},
         },
-        event_service_slug_by_uuid={str(svc_id): "slugbase"},
+        event_service_key_by_uuid={str(svc_id): "slugbase"},
         source_sql_text="",
     )
     stats = importer.apply(session, rows, ctx, dry_run=True)

@@ -57,7 +57,7 @@ def test_render_booking_confirmation_service_row_type_and_title() -> None:
         locale="en",
         full_name="Pat",
         course_label="Spring Playdate",
-        service_slug="event",
+        service_type="event",
         schedule_date_label=None,
         schedule_time_label=None,
         primary_session_iso="2026-04-16T18:00:00+08:00",
@@ -109,7 +109,7 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
         location_name="Venue",
         location_address="1 Road, Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie",
+        course_slug="my-best-auntie-booking",
         service_tier_label="18-24 months",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -127,6 +127,28 @@ def test_render_booking_confirmation_mba_details_and_skips_for_events() -> None:
     assert "Cohort" in plain
     assert "First group session:" in plain
     assert "10 April @ 14:00 HKT" in plain
+
+    _s_wire, html_wire, _plain_wire = render_booking_confirmation_email(
+        locale="en",
+        full_name="A",
+        course_label="MBA",
+        schedule_date_label="Apr, 2026",
+        schedule_time_label="ignored when iso",
+        location_name="Venue",
+        location_address="1 Road, Hong Kong",
+        primary_session_iso="2026-04-10T14:00:00+08:00",
+        course_slug="my-best-auntie-booking",
+        service_tier_label="18-24 months",
+        payment_method_code="stripe",
+        total_amount="HK$1",
+        is_pending_payment=False,
+        whatsapp_url="https://wa.me/1",
+        faq_url="https://site.example/faq",
+        include_fps_qr_image=False,
+    )
+    assert "Cohort" in html_wire
+    assert "Apr, 2026" in html_wire
+    assert "First group session:" in html_wire
 
     _s2, html2, _p2 = render_booking_confirmation_email(
         locale="en",
@@ -310,7 +332,7 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
         location_name="场地",
         location_address="香港",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie",
+        course_slug="my-best-auntie-booking",
         service_tier_label="1-3",
         payment_method_code="stripe",
         total_amount="HK$1",
@@ -366,7 +388,7 @@ def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
         location_name="V",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie",
+        course_slug="my-best-auntie-booking",
         payment_method_code="stripe",
         total_amount="HK$1",
         is_pending_payment=False,
@@ -409,7 +431,7 @@ def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
         location_name="Venue",
         location_address="Hong Kong",
         primary_session_iso="2026-04-10T14:00:00+08:00",
-        course_slug="my-best-auntie",
+        course_slug="my-best-auntie-booking",
         service_tier_label="18-24 months",
         payment_method_code="stripe",
         total_amount="HK$1",

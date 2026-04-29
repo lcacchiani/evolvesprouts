@@ -13,6 +13,8 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
+import { SERVICE_KEY_PATTERN } from '@/lib/service-key-utils';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
@@ -44,7 +46,7 @@ import {
   DEFAULT_SERVICE_FORM,
   DEFAULT_TRAINING_FORM,
 } from './form-defaults';
-import { ServiceReferralSlugField, type ServiceFormState } from './service-form-fields';
+import { ServiceKeyField, type ServiceFormState } from './service-form-fields';
 import {
   TrainingCurrencyControl,
   TrainingPriceControl,
@@ -55,12 +57,10 @@ import { ServiceTierControl } from './service-tier-control';
 
 type ApiSchemas = components['schemas'];
 
-const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-
-const SLUG_TIER_PAIR_CONFLICT_MSG =
-  'This slug and tier are already used by another service. Change the slug or tier.';
+const SERVICE_KEY_TIER_PAIR_CONFLICT_MSG =
+  'This service key and tier are already used by another service. Change the key or tier.';
 const EMPTY_TIER_CONFLICT_MSG =
-  'Another service uses this slug with an empty tier. Add a tier or use a different slug.';
+  'Another service uses this service key with an empty tier. Add a tier or use a different key.';
 
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
@@ -100,7 +100,7 @@ export function ServiceDetailPanel({
       ? {
           title: service.title,
           description: service.description ?? '',
-          slug: service.slug ?? '',
+          serviceKey: service.serviceKey ?? '',
           deliveryMode: service.deliveryMode,
           status: service.status,
         }
@@ -147,11 +147,11 @@ export function ServiceDetailPanel({
     referencingCodeCount: number;
   } | null>(null);
   const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
-  /** Last slug+tier 409 (`field: slug_tier`); messages shown only while inputs match this pair. */
-  const [slugTierConflict, setSlugTierConflict] = useState<{
-    slug: string;
+  /** Last service_key+tier 409 (`field: service_key_tier`); messages shown only while inputs match this pair. */
+  const [serviceKeyTierConflict, setServiceKeyTierConflict] = useState<{
+    serviceKey: string;
     tierNormalized: string;
-    variant: 'slug_tier_same' | 'slug_tier_empty';
+    variant: 'tier_same' | 'tier_empty';
   } | null>(null);
 
   useEffect(() => {
@@ -197,7 +197,7 @@ export function ServiceDetailPanel({
         setServiceForm({
           title: `${p.title} (copy)`,
           description: p.description ?? '',
-          slug: p.slug ?? '',
+          serviceKey: p.serviceKey ?? '',
           deliveryMode: p.deliveryMode,
           status: 'draft',
         });
@@ -233,7 +233,7 @@ export function ServiceDetailPanel({
               }
             : DEFAULT_CONSULTATION_FORM
         );
-        setSlugTierConflict(null);
+        setServiceKeyTierConflict(null);
         return;
       }
       if (!service) {
@@ -245,7 +245,7 @@ export function ServiceDetailPanel({
         setBookingSystem('');
         setServiceTier('');
         setLocationId('');
-        setSlugTierConflict(null);
+        setServiceKeyTierConflict(null);
         return;
       }
       setServiceType(service.serviceType);
@@ -255,7 +255,7 @@ export function ServiceDetailPanel({
       setServiceForm({
         title: service.title,
         description: service.description ?? '',
-        slug: service.slug ?? '',
+        serviceKey: service.serviceKey ?? '',
         deliveryMode: service.deliveryMode,
         status: service.status,
       });
@@ -279,70 +279,71 @@ export function ServiceDetailPanel({
         defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
         defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
       });
-      setSlugTierConflict(null);
+      setServiceKeyTierConflict(null);
     });
     return () => {
       cancelled = true;
     };
   }, [service, createPrefillFromService]);
 
-  const slugPayloadValue = useMemo(() => {
-    const t = serviceForm.slug.trim().toLowerCase();
+  const serviceKeyPayloadValue = useMemo(() => {
+    const t = serviceForm.serviceKey.trim().toLowerCase();
     return t.length ? t : null;
-  }, [serviceForm.slug]);
+  }, [serviceForm.serviceKey]);
 
-  const normalizedSlugInput = serviceForm.slug.trim().toLowerCase();
+  const normalizedServiceKeyInput = serviceForm.serviceKey.trim().toLowerCase();
   const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
 
-  const slugTierConflictActive = useMemo(() => {
-    if (!slugTierConflict) {
+  const serviceKeyTierConflictActive = useMemo(() => {
+    if (!serviceKeyTierConflict) {
       return false;
     }
     return (
-      normalizedSlugInput === slugTierConflict.slug &&
-      tierTrimmedForValidation === slugTierConflict.tierNormalized
+      normalizedServiceKeyInput === serviceKeyTierConflict.serviceKey &&
+      tierTrimmedForValidation === serviceKeyTierConflict.tierNormalized
     );
-  }, [slugTierConflict, normalizedSlugInput, tierTrimmedForValidation]);
+  }, [serviceKeyTierConflict, normalizedServiceKeyInput, tierTrimmedForValidation]);
 
-  const slugConflictInline = useMemo(() => {
-    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_same') {
+  const serviceKeyConflictInline = useMemo(() => {
+    if (!serviceKeyTierConflictActive || !serviceKeyTierConflict || serviceKeyTierConflict.variant !== 'tier_same') {
       return undefined;
     }
-    return SLUG_TIER_PAIR_CONFLICT_MSG;
-  }, [slugTierConflictActive, slugTierConflict]);
+    return SERVICE_KEY_TIER_PAIR_CONFLICT_MSG;
+  }, [serviceKeyTierConflictActive, serviceKeyTierConflict]);
 
   const tierConflictInline = useMemo(() => {
-    if (!slugTierConflictActive || !slugTierConflict || slugTierConflict.variant !== 'slug_tier_empty') {
+    if (!serviceKeyTierConflictActive || !serviceKeyTierConflict || serviceKeyTierConflict.variant !== 'tier_empty') {
       return undefined;
     }
     return EMPTY_TIER_CONFLICT_MSG;
-  }, [slugTierConflictActive, slugTierConflict]);
+  }, [serviceKeyTierConflictActive, serviceKeyTierConflict]);
 
   const hasLocationOptions = locationOptions.length > 0;
   const locationExists = locationOptions.some((entry) => entry.id === locationId);
   const selectedLocationValue = locationExists ? locationId : locationId || '';
   const showDefaultLocationField = serviceForm.deliveryMode !== 'online';
 
-  const saveBlockedByPairConflict = slugTierConflictActive;
+  const saveBlockedByPairConflict = serviceKeyTierConflictActive;
 
-  const tierInvalid = Boolean(tierTrimmedForValidation) && !SLUG_PATTERN.test(tierTrimmedForValidation);
+  const tierInvalid =
+    Boolean(tierTrimmedForValidation) && !INSTANCE_SLUG_PATTERN.test(tierTrimmedForValidation);
 
-  function applySlugTierConflictFromApiError(
+  function applyServiceKeyTierConflictFromApiError(
     caught: unknown,
-    pair: { slug: string | null; tierNormalized: string | null },
+    pair: { serviceKey: string | null; tierNormalized: string | null },
   ): boolean {
     if (!(caught instanceof AdminApiError) || caught.statusCode !== 409) {
       return false;
     }
     const field = readAdminApiErrorField(caught);
-    if (field !== 'slug_tier') {
+    if (field !== 'service_key_tier') {
       return false;
     }
     const tierNorm = pair.tierNormalized ?? '';
-    setSlugTierConflict({
-      slug: pair.slug ?? '',
+    setServiceKeyTierConflict({
+      serviceKey: pair.serviceKey ?? '',
       tierNormalized: tierNorm,
-      variant: tierNorm.length > 0 ? 'slug_tier_same' : 'slug_tier_empty',
+      variant: tierNorm.length > 0 ? 'tier_same' : 'tier_empty',
     });
     return true;
   }
@@ -467,16 +468,16 @@ export function ServiceDetailPanel({
     };
   };
 
-  async function confirmSlugChangeIfNeeded(newSlug: string | null, oldSlug: string | null): Promise<boolean> {
-    if (newSlug === oldSlug) {
+  async function confirmServiceKeyChangeIfNeeded(newServiceKey: string | null, oldServiceKey: string | null): Promise<boolean> {
+    if (newServiceKey === oldServiceKey) {
       return true;
     }
     const usageUnknown = discountUsageLoadState === 'error' || discountUsageSummary === null;
     if (usageUnknown) {
       const confirmed = await requestConfirm({
-        title: 'Change referral slug?',
+        title: 'Change service key?',
         description:
-          "We couldn't verify current discount code usage — if this slug is referenced by active codes, changing it may break printed QR codes and links. Continue?",
+          "We couldn't verify current discount code usage — if this service key is referenced by active codes, changing it may break printed QR codes and links. Continue?",
         confirmLabel: 'Continue',
         cancelLabel: 'Cancel',
         variant: 'default',
@@ -485,8 +486,8 @@ export function ServiceDetailPanel({
     }
     if (discountUsageSummary.totalCurrentUses > 0) {
       const confirmed = await requestConfirm({
-        title: 'Change referral slug?',
-        description: `This service has active discount code usage (${discountUsageSummary.totalCurrentUses} past redemptions). Changing the slug will break any existing printed QR codes and links. Continue?`,
+        title: 'Change service key?',
+        description: `This service has active discount code usage (${discountUsageSummary.totalCurrentUses} past redemptions). Changing the key will break any existing printed QR codes and links. Continue?`,
         confirmLabel: 'Continue',
         cancelLabel: 'Cancel',
         variant: 'default',
@@ -500,14 +501,14 @@ export function ServiceDetailPanel({
     if (!service) {
       return;
     }
-    const slugTrimmed = serviceForm.slug.trim();
-    if (slugTrimmed && !SLUG_PATTERN.test(slugTrimmed.toLowerCase())) {
+    const serviceKeyTrimmed = serviceForm.serviceKey.trim();
+    if (serviceKeyTrimmed && !SERVICE_KEY_PATTERN.test(serviceKeyTrimmed.toLowerCase())) {
       return;
     }
-    const newSlug = slugTrimmed.toLowerCase() || null;
+    const newServiceKey = serviceKeyTrimmed.toLowerCase() || null;
     const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
-    const oldSlug = (service.slug ?? '').trim().toLowerCase() || null;
-    const ok = await confirmSlugChangeIfNeeded(newSlug, oldSlug);
+    const oldServiceKey = (service.serviceKey ?? '').trim().toLowerCase() || null;
+    const ok = await confirmServiceKeyChangeIfNeeded(newServiceKey, oldServiceKey);
     if (!ok) {
       return;
     }
@@ -515,7 +516,7 @@ export function ServiceDetailPanel({
       await onUpdate({
         title: serviceForm.title.trim(),
         description: serviceForm.description.trim() || null,
-        slug: newSlug,
+        service_key: newServiceKey,
         booking_system: bookingSystem.trim() || null,
         service_tier: serviceTier.trim() || null,
         location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
@@ -523,9 +524,14 @@ export function ServiceDetailPanel({
         status: serviceForm.status,
         ...buildTypeSpecificPayload(service.serviceType),
       });
-      setSlugTierConflict(null);
+      setServiceKeyTierConflict(null);
     } catch (caught) {
-      if (applySlugTierConflictFromApiError(caught, { slug: newSlug, tierNormalized: tierPayloadNormalized })) {
+      if (
+        applyServiceKeyTierConflictFromApiError(caught, {
+          serviceKey: newServiceKey,
+          tierNormalized: tierPayloadNormalized,
+        })
+      ) {
         return;
       }
       throw caught;
@@ -539,7 +545,7 @@ export function ServiceDetailPanel({
         service_type: serviceType,
         title: serviceForm.title.trim(),
         description: serviceForm.description.trim() || null,
-        slug: slugPayloadValue,
+        service_key: serviceKeyPayloadValue,
         booking_system: bookingSystem.trim() || null,
         service_tier: serviceTier.trim() || null,
         location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
@@ -547,11 +553,11 @@ export function ServiceDetailPanel({
         status: serviceForm.status,
         ...buildTypeSpecificPayload(serviceType),
       });
-      setSlugTierConflict(null);
+      setServiceKeyTierConflict(null);
     } catch (caught) {
       if (
-        applySlugTierConflictFromApiError(caught, {
-          slug: slugPayloadValue,
+        applyServiceKeyTierConflictFromApiError(caught, {
+          serviceKey: serviceKeyPayloadValue,
           tierNormalized: tierPayloadNormalized,
         })
       ) {
@@ -580,7 +586,10 @@ export function ServiceDetailPanel({
                     !service ||
                     saveBlockedByPairConflict ||
                     tierInvalid ||
-                    Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
+                    Boolean(
+                      serviceForm.serviceKey.trim() &&
+                        !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
+                    )
                   }
                   onClick={() => void submitUpdate()}
                 >
@@ -603,7 +612,10 @@ export function ServiceDetailPanel({
                   saveBlockedByPairConflict ||
                   tierInvalid ||
                   !serviceForm.title.trim() ||
-                  Boolean(serviceForm.slug.trim() && !SLUG_PATTERN.test(serviceForm.slug.trim().toLowerCase()))
+                  Boolean(
+                    serviceForm.serviceKey.trim() &&
+                      !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
+                  )
                 }
                 onClick={() => void submitCreate()}
               >
@@ -637,15 +649,15 @@ export function ServiceDetailPanel({
               onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
             />
           </div>
-          <ServiceReferralSlugField
-            value={serviceForm.slug}
-            onChange={(next) => setServiceForm({ ...serviceForm, slug: next })}
-            slugUsageLoadError={
+          <ServiceKeyField
+            value={serviceForm.serviceKey}
+            onChange={(next) => setServiceForm({ ...serviceForm, serviceKey: next })}
+            serviceKeyUsageLoadError={
               discountUsageLoadState === 'error'
                 ? 'Could not load discount code usage. Try again later.'
                 : undefined
             }
-            slugConflictError={slugConflictInline}
+            serviceKeyConflictError={serviceKeyConflictInline}
           />
           <div>
             <div className='relative mb-1'>

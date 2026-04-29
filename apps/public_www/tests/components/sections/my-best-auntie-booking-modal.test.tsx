@@ -228,7 +228,7 @@ const reservationSummary: ReservationSummary = {
   serviceTier: '1-3',
   paymentMethod: 'Pay via FPS QR',
   paymentMethodCode: 'fps_qr',
-  courseSlug: 'my-best-auntie',
+  bookingSystem: 'my-best-auntie-booking',
   totalAmount: 9000,
   eventTitle: 'My Best Auntie',
   dateStartTime: selectedCohort.dates[0]?.start_datetime,
@@ -270,9 +270,8 @@ const expectedMbaMarketingFields = {
   marketingOptIn: false,
   locale: 'en' as const,
   courseLabel: myBestAuntieModalContent.title,
-  courseSlug: 'my-best-auntie',
-  service: 'training-course',
-  serviceKey: 'my-best-auntie',
+  bookingSystem: 'my-best-auntie-booking',
+  serviceKey: 'my-best-auntie-training-course',
   serviceInstanceSlug: selectedCohort.slug,
   scheduleDateLabel: 'Apr, 2026',
   scheduleTimeLabel: expectedMbaScheduleTimeLabel,
@@ -765,7 +764,7 @@ describe('my-best-auntie booking modals footer content', () => {
         expect.objectContaining({ request: expect.any(Function) }),
         {
           code: 'SAVE10',
-          serviceKey: 'my-best-auntie',
+          serviceKey: 'my-best-auntie-training-course',
           serviceInstanceSlug: selectedCohort.slug ?? undefined,
         },
       );
@@ -854,12 +853,11 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     expect(mockedSubmitReservation).toHaveBeenCalledWith(
-      expect.anything(),
+      expect.objectContaining({ request: expect.any(Function) }),
       expect.objectContaining({
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
-          service: 'training-course',
         }),
       }),
     );
@@ -934,12 +932,11 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     expect(mockedSubmitReservation).toHaveBeenCalledWith(
-      expect.anything(),
+      expect.objectContaining({ request: expect.any(Function) }),
       expect.objectContaining({
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
-          service: 'training-course',
         }),
       }),
     );
@@ -1451,7 +1448,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(mockedCreateReservationPaymentIntent.mock.calls[0][1]).toEqual(
       expect.objectContaining({
         payload: expect.objectContaining({
-          service_key: 'my-best-auntie',
+          service_key: 'my-best-auntie-training-course',
           cohort_id: selectedCohort.slug,
         }),
       }),
@@ -2033,11 +2030,14 @@ describe('my-best-auntie booking modals footer content', () => {
     await waitFor(() => {
       expect(mockedValidateDiscountCode).toHaveBeenCalledTimes(1);
     });
-    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
-      code: 'REFSAVE',
-      serviceKey: 'my-best-auntie',
-      serviceInstanceSlug: selectedCohort.slug ?? undefined,
-    });
+    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
+      expect.objectContaining({ request: expect.any(Function) }),
+      {
+        code: 'REFSAVE',
+        serviceKey: 'my-best-auntie-training-course',
+        serviceInstanceSlug: selectedCohort.slug ?? undefined,
+      },
+    );
 
     await waitFor(() => {
       expect(
@@ -2078,11 +2078,14 @@ describe('my-best-auntie booking modals footer content', () => {
     await waitFor(() => {
       expect(mockedValidateDiscountCode).toHaveBeenCalled();
     });
-    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(expect.anything(), {
-      code: 'REFSAVE',
-      serviceKey: 'my-best-auntie',
-      serviceInstanceSlug: 'mba-test-cohort-slug',
-    });
+    expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
+      expect.objectContaining({ request: expect.any(Function) }),
+      {
+        code: 'REFSAVE',
+        serviceKey: 'my-best-auntie-training-course',
+        serviceInstanceSlug: 'mba-test-cohort-slug',
+      },
+    );
   });
 
   it('records auto-apply error when prefilled referral code is invalid', async () => {

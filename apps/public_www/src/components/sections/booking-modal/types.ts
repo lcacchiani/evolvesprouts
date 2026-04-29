@@ -22,10 +22,12 @@ export interface ReservationSummary {
   courseSessions?: ReservationCourseSession[];
   /** Subtitle shown under the title in the booking modal (course / event). */
   eventSubtitle?: string;
-  /** Booking flow slug (e.g. my-best-auntie, consultation-booking, event-booking). */
-  courseSlug?: string;
-  /** High-level service category for thank-you / email (event, training-course, consultation). */
-  serviceSlug?: string;
+  /** Booking system code from the flow (e.g. my-best-auntie-booking, consultation-booking). */
+  bookingSystem?: string;
+  /** Parent service public key (informational). */
+  serviceKey?: string;
+  /** Keys into `thankYouModal.serviceLabels` for the service type row. */
+  serviceTypeLabelKey?: 'event' | 'training-course' | 'consultation';
   locationName?: string;
   locationAddress?: string;
   /** Maps or venue URL for “Get directions” on the thank-you step. */

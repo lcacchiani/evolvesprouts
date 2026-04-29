@@ -16,11 +16,14 @@ export function buildConsultationsBookingModalPayload(
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
   const familyTier = resolveFamilyConsultationTier(tierId);
+  const instanceSlug =
+    (familyTier?.instance_slug?.trim() || firstPart?.id?.trim() || '').trim();
+  const serviceKey = familyTier?.service_key?.trim() ?? '';
   const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
-    serviceKey: `consultation-${tierId}`,
-    service: familyTier?.service ?? 'consultation',
+    serviceKey,
+    instanceSlug,
     title: reservation.modalTitle,
     subtitle: reservation.modalSubtitle,
     originalAmount: tier.priceHkd,

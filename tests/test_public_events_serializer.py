@@ -18,10 +18,10 @@ def _tag_link(name: str) -> Any:
     return SimpleNamespace(tag=SimpleNamespace(name=name))
 
 
-def _partner_link(slug: str, sort_order: int) -> Any:
+def _partner_link(partner_key: str, sort_order: int) -> Any:
     return SimpleNamespace(
         sort_order=sort_order,
-        organization=SimpleNamespace(slug=slug),
+        organization=SimpleNamespace(partner_key=partner_key),
     )
 
 
@@ -30,7 +30,7 @@ def test_event_ticket_tier_price_and_booking_system_default() -> None:
         title="Svc",
         description="Desc",
         service_type=ServiceType.EVENT,
-        slug=None,
+        service_key=None,
         booking_system=None,
         event_details=SimpleNamespace(
             event_category=SimpleNamespace(value="workshop"),
@@ -97,7 +97,7 @@ def test_event_default_price_when_no_tiers() -> None:
         title="Svc",
         description="Desc",
         service_type=ServiceType.EVENT,
-        slug="x",
+        service_key="x",
         booking_system=None,
         event_details=SimpleNamespace(
             event_category=SimpleNamespace(value="seminar"),
@@ -120,7 +120,7 @@ def test_event_no_price_when_no_tiers_and_no_default() -> None:
         title="Svc",
         description="Desc",
         service_type=ServiceType.EVENT,
-        slug="x",
+        service_key="x",
         booking_system=None,
         event_details=SimpleNamespace(
             event_category=SimpleNamespace(value="seminar"),
@@ -191,7 +191,7 @@ def test_service_tier_tag_dedupes_instance_tag_same_name() -> None:
         title="MBA",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="my-best-auntie",
+        service_key="my-best-auntie-training-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -226,7 +226,7 @@ def test_training_mba_booking_and_category() -> None:
         title="MBA",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="my-best-auntie",
+        service_key="my-best-auntie-training-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -256,7 +256,7 @@ def test_public_calendar_title_appends_tier_and_formatted_cohort() -> None:
         title="bla bla bla",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="my-best-auntie",
+        service_key="my-best-auntie-training-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -275,7 +275,7 @@ def test_public_calendar_title_unchanged_without_tier_or_cohort() -> None:
         title="Only Base",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="my-best-auntie",
+        service_key="my-best-auntie-training-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -297,7 +297,7 @@ def test_training_non_mba_omits_booking_system() -> None:
         title="Other",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="other-course",
+        service_key="other-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -318,7 +318,7 @@ def test_training_mba_infers_service_tier_from_instance_slug() -> None:
         title="MBA",
         description="Course",
         service_type=ServiceType.TRAINING_COURSE,
-        slug="my-best-auntie",
+        service_key="my-best-auntie-training-course",
         booking_system=None,
         event_details=None,
         delivery_mode=SimpleNamespace(value="in_person"),
@@ -343,7 +343,7 @@ def test_virtual_clears_location_and_url_even_with_coords() -> None:
         title="Svc",
         description="D",
         service_type=ServiceType.EVENT,
-        slug="e",
+        service_key="e",
         booking_system=None,
         event_details=SimpleNamespace(
             event_category=SimpleNamespace(value="workshop"),
@@ -458,7 +458,7 @@ def test_partner_venue_location_name_falls_back_to_organization_name() -> None:
     )
     org = SimpleNamespace(
         name="Springfield Community Center",
-        slug="springfield-cc",
+        partner_key="springfield-cc",
         location_id=loc_id,
     )
     link = SimpleNamespace(sort_order=0, organization=org)
@@ -485,7 +485,7 @@ def test_location_without_partner_match_does_not_use_partner_name() -> None:
     )
     org = SimpleNamespace(
         name="Partner Org",
-        slug="partner",
+        partner_key="partner",
         location_id=other_id,
     )
     link = SimpleNamespace(sort_order=0, organization=org)
@@ -581,7 +581,7 @@ def _event_service() -> Any:
         title="Svc",
         description="Desc",
         service_type=ServiceType.EVENT,
-        slug="slug",
+        service_key="slug",
         booking_system=None,
         event_details=SimpleNamespace(
             event_category=SimpleNamespace(value="workshop"),

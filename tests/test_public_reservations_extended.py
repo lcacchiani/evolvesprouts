@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -17,12 +18,31 @@ from app.api.public_reservations import (
 from app.db.models.enums import DiscountType
 
 
+def _resolved_instance_stub(
+    instance_id: object,
+    service_id: object,
+    *,
+    service_key: str = "my-best-auntie-training-course",
+    service_type_value: str = "training_course",
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        id=instance_id,
+        service=SimpleNamespace(
+            id=service_id,
+            service_key=service_key,
+            service_type=SimpleNamespace(value=service_type_value),
+        ),
+    )
+
+
 def _reservation_body(**overrides: object) -> dict[str, Any]:
     base: dict[str, Any] = {
         "attendeeName": "Test User",
         "attendeeEmail": "u@example.com",
         "attendeePhone": "91234567",
         "attendeeCountry": "HK",
+        "serviceKey": "my-best-auntie-training-course",
+        "serviceInstanceSlug": "test-cohort",
         "serviceTier": "3-5 years",
         "paymentMethod": "bank_transfer",
         "totalAmount": 100,
@@ -75,7 +95,9 @@ def _patch_public_reservation_db_helpers(monkeypatch: pytest.MonkeyPatch) -> Non
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_id_by_slug(self, _slug: str) -> None:
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
+            if slug.strip().lower() == "test-cohort":
+                return _resolved_instance_stub(uuid4(), uuid4())
             return None
 
     class _FakeEnrollmentRepo:
@@ -87,6 +109,11 @@ def _patch_public_reservation_db_helpers(monkeypatch: pytest.MonkeyPatch) -> Non
 
         def create_enrollment(self, _enrollment: object) -> object:
             return _enrollment
+
+        def try_create_enrollment_with_capacity_guard(
+            self, enrollment: object
+        ) -> tuple[object | None, str | None]:
+            return enrollment, None
 
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
@@ -126,8 +153,10 @@ def test_handle_public_reservation_returns_409_when_instance_capacity_full(
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_id_by_slug(self, slug: str) -> object | None:
-            return instance_uuid if slug == "full-cohort" else None
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
+            if slug == "full-cohort":
+                return _resolved_instance_stub(instance_uuid, uuid4())
+            return None
 
     class _FakeEnrollmentRepo:
         def __init__(self, _session: object) -> None:
@@ -207,10 +236,6 @@ def test_handle_public_reservation_returns_409_when_instance_capacity_full(
     monkeypatch.setattr(
         "app.api.public_reservations.get_engine",
         lambda: object(),
-    )
-    monkeypatch.setattr(
-        "app.api.public_reservations.service_id_for_instance",
-        lambda _session, _iid: uuid4(),
     )
 
     body = _reservation_body(serviceInstanceSlug="full-cohort")
@@ -642,51 +667,28 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         def get_by_code(self, _code: str) -> object:
             return _FakeRow()
 
-    class _FakeServiceRepo:
-        def __init__(self, _session: object) -> None:
-            pass
-
-        def get_by_slug(self, slug: str) -> object | None:
-            if slug.strip().lower() == "my-best-auntie":
-                return type("S", (), {"id": other})()
-            return None
-
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
         _FakeDiscountRepo,
     )
-    monkeypatch.setattr(
-        "app.api.public_reservations.ServiceRepository",
-        _FakeServiceRepo,
-    )
 
-    class _FakeInstanceRepo:
-        def __init__(self, _session: object) -> None:
-            pass
-
-        def get_id_by_slug(self, _slug: str) -> object | None:
-            return None
-
-    monkeypatch.setattr(
-        "app.api.public_reservations.ServiceInstanceRepository",
-        _FakeInstanceRepo,
-    )
-
+    resolved = _resolved_instance_stub(uuid4(), other)
     payload = {
         "discount_code": "SAVE",
-        "service_key": "my-best-auntie",
-        "course_slug": "my-best-auntie",
+        "service_key": "my-best-auntie-training-course",
+        "course_slug": "my-best-auntie-booking",
     }
     with pytest.raises(ValidationError):
-        _validate_discount_code_redemption_scope(object(), payload)
+        _validate_discount_code_redemption_scope(object(), payload, resolved_instance=resolved)
 
 
-def test_discount_redemption_requires_instance_slug_for_instance_scoped_code(
+def test_discount_redemption_rejects_instance_scope_mismatch(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.exceptions import ValidationError
 
     inst = uuid4()
+    other_inst = uuid4()
 
     class _FakeRow:
         service_id = uuid4()
@@ -705,37 +707,18 @@ def test_discount_redemption_requires_instance_slug_for_instance_scoped_code(
         def get_by_code(self, _code: str) -> object:
             return _FakeRow()
 
-    class _FakeServiceRepo:
-        def __init__(self, _session: object) -> None:
-            pass
-
-        def get_by_slug(self, slug: str) -> object | None:
-            return None
-
-    class _FakeInstanceRepo:
-        def __init__(self, _session: object) -> None:
-            pass
-
-        def get_id_by_slug(self, _slug: str) -> object | None:
-            return None
-
     monkeypatch.setattr(
         "app.api.public_reservations.DiscountCodeRepository",
         _FakeDiscountRepo,
     )
-    monkeypatch.setattr(
-        "app.api.public_reservations.ServiceRepository",
-        _FakeServiceRepo,
-    )
-    monkeypatch.setattr(
-        "app.api.public_reservations.ServiceInstanceRepository",
-        _FakeInstanceRepo,
-    )
 
+    resolved = _resolved_instance_stub(other_inst, uuid4())
     payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
     with pytest.raises(ValidationError) as excinfo:
-        _validate_discount_code_redemption_scope(object(), payload)
-    assert getattr(excinfo.value, "field", None) == "serviceInstanceSlug"
+        _validate_discount_code_redemption_scope(
+            object(), payload, resolved_instance=resolved
+        )
+    assert getattr(excinfo.value, "field", None) == "discountCode"
 
 
 def test_discount_redemption_rejects_referral_type(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -764,7 +747,11 @@ def test_discount_redemption_rejects_referral_type(monkeypatch: pytest.MonkeyPat
     )
 
     with pytest.raises(ValidationError) as excinfo:
-        _validate_discount_code_redemption_scope(object(), {"discount_code": "REF"})
+        _validate_discount_code_redemption_scope(
+            object(),
+            {"discount_code": "REF"},
+            resolved_instance=_resolved_instance_stub(uuid4(), uuid4()),
+        )
     assert getattr(excinfo.value, "field", None) == "discountCode"
 
 
@@ -821,9 +808,9 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_id_by_slug(self, slug: str) -> object | None:
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
             if slug == "cohort-a":
-                return instance_uuid
+                return _resolved_instance_stub(instance_uuid, uuid4())
             return None
 
     created_enrollments: list[object] = []
@@ -918,10 +905,6 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
     monkeypatch.setattr(
         "app.api.public_reservations.get_engine",
         lambda: object(),
-    )
-    monkeypatch.setattr(
-        "app.api.public_reservations.service_id_for_instance",
-        lambda _session, _iid: uuid4(),
     )
     monkeypatch.setattr(
         "app.api.public_reservations.ensure_discount_code_eligible_for_instance",
