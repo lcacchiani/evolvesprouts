@@ -1328,12 +1328,6 @@ components:
             Optional; event flows without a tier selector may omit it. Flows that
             collect a service tier label (for example My Best Auntie or consultation)
             should send the selected label.
-        packageLabel:
-          type: string
-          maxLength: 200
-        monthLabel:
-          type: string
-          maxLength: 200
         paymentMethod:
           type: string
           maxLength: 100

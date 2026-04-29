@@ -500,16 +500,6 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "serviceTier",
         _MAX_LABEL_LENGTH,
     )
-    package_label = _optional_text(
-        body.get("packageLabel"),
-        "packageLabel",
-        _MAX_LABEL_LENGTH,
-    )
-    month_label = _optional_text(
-        body.get("monthLabel"),
-        "monthLabel",
-        _MAX_LABEL_LENGTH,
-    )
     payment_method = _require_text(
         body.get("paymentMethod"),
         "paymentMethod",
@@ -662,8 +652,6 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "phone_region": phone_region,
         "phone_national_number": phone_national_number,
         "service_tier": service_tier,
-        "package_label": package_label,
-        "month_label": month_label,
         "payment_method": payment_method,
         "total_amount": total_amount,
         "title": title,

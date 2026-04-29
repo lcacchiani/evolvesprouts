@@ -346,8 +346,6 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         lines.append(f"Child age group: {service_tier_recap}")
     lines.extend(
         [
-            f"Package: {payload.get('package_label', '') or '(not set)'}",
-            f"Month: {payload.get('month_label', '') or '(not set)'}",
             f"Title: {payload.get('title', '')}",
             f"Payment method: {payment_recap}",
             f"Total amount: {total_recap}",
