@@ -1406,6 +1406,7 @@ components:
             Optional booking flow code (for example `my-best-auntie-booking`, `consultation-booking`,
             `event-booking`). When set, it is preferred over `courseSlug` for confirmation email and
             internal metadata that still key off the legacy `course_slug` field.
+        locationName:
           type: string
           maxLength: 200
         locationAddress:

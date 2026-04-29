@@ -36,6 +36,17 @@ WHERE s.id = pick.id
       )
   ) = 1;
 
+-- Correct legacy MBA key if a prior seed run set `my-best-auntie` (public site uses
+-- `my-best-auntie-training-course` for booking identity).
+UPDATE services s
+SET service_key = 'my-best-auntie-training-course'
+WHERE lower(trim(coalesce(s.service_key, ''))) = 'my-best-auntie'
+  AND s.service_type = 'training_course'
+  AND (
+    lower(coalesce(s.title, '')) LIKE '%best auntie%'
+    OR lower(coalesce(s.title, '')) LIKE '%my best auntie%'
+  );
+
 UPDATE services s
 SET service_key = 'consultations'
 FROM (

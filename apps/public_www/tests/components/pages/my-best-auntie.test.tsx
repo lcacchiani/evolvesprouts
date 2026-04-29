@@ -90,7 +90,6 @@ const testCohorts = [
     location_name: 'Venue',
     location_address: 'Addr',
     location_url: '',
-    service: 'training-course',
     dates: [{ part: 1, start_datetime: '2026-04-19T01:00:00Z', end_datetime: '2026-04-19T03:00:00Z' }],
   },
   {
@@ -111,7 +110,6 @@ const testCohorts = [
     location_name: 'Venue',
     location_address: 'Addr',
     location_url: '',
-    service: 'training-course',
     dates: [{ part: 1, start_datetime: '2026-05-17T01:00:00Z', end_datetime: '2026-05-17T03:00:00Z' }],
   },
 ];

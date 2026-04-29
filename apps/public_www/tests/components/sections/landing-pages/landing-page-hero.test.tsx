@@ -43,7 +43,6 @@ describe('LandingPageHero section', () => {
     const bookingPayload: EventBookingModalPayload = {
       variant: 'event',
       bookingSystem: 'event-booking',
-      service: 'event',
       serviceKey: 'easter-workshop-test',
       title: eventContent.title,
       subtitle: 'A practical workshop',
@@ -140,7 +139,6 @@ describe('LandingPageHero section', () => {
     const bookingPayload: EventBookingModalPayload = {
       variant: 'event',
       bookingSystem: 'event-booking',
-      service: 'event',
       serviceKey: 'easter-workshop-test',
       title: eventContent.title,
       subtitle: 'A practical workshop',
@@ -195,7 +193,6 @@ describe('LandingPageHero section', () => {
     const bookingPayload: EventBookingModalPayload = {
       variant: 'event',
       bookingSystem: 'event-booking',
-      service: 'event',
       serviceKey: 'the-missing-piece-test',
       title: eventContent.title,
       subtitle: 'Workshop',

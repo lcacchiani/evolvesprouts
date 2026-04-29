@@ -90,6 +90,8 @@ interface BookingReservationFormProps {
   cohortId?: string;
   /** Which booking flow built this submission (drives thank-you recap detail lines and optional `bookingSystem` on submit). */
   bookingSystem: string;
+  /** Thank-you service type row label key (`thankYouModal.serviceLabels`). */
+  serviceTypeLabelKey: 'event' | 'training-course' | 'consultation';
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
   selectedServiceTierLabel: string;
@@ -1162,7 +1164,6 @@ export function BookingReservationForm({
       paymentMethodCode: isFreeReservation ? PAYMENT_METHOD_FREE : selectedPaymentMethod,
       totalAmount: isFreeReservation ? 0 : totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
-      bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
       courseSessions:

@@ -41,7 +41,7 @@ export function normalizePublicSiteLocale(locale: string): MyBestAuntieReferralL
  * Always includes the locale prefix segment for deterministic QR payloads.
  * Returns empty string when locale is not in the allowed set or base URL is blank.
  */
-const SERVICE_SLUG_PATH = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SERVICE_KEY_PATH_SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export interface BuildPublicReferralUrlInput {
   baseUrl: string;
@@ -76,7 +76,7 @@ export function buildPublicReferralUrlWithSlug(input: BuildPublicReferralUrlInpu
   const param = input.paramName === 'discount' ? 'discount' : 'ref';
   const rawKey = input.serviceKey?.trim().toLowerCase() ?? '';
   const path =
-    rawKey && SERVICE_SLUG_PATH.test(rawKey)
+    rawKey && SERVICE_KEY_PATH_SEGMENT.test(rawKey)
       ? `/${locale}/services/${rawKey}`
       : `/${locale}/`;
   const url = new URL(path, `${base}/`);

@@ -92,7 +92,6 @@ const mockBookingEventContent = {
   bookingPayload: {
     variant: 'event' as const,
     bookingSystem: 'event-booking' as const,
-    service: 'event',
     serviceKey: 'mock-event',
     title: 'Mock Event Title',
     subtitle: 'Mock subtitle',

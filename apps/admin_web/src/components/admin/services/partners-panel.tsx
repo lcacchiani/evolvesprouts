@@ -22,6 +22,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { type EntityTagRef } from '@/lib/entity-api';
 import { formatEnumLabel } from '@/lib/format';
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 import type { PartnerFilters } from '@/types/partners';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
@@ -98,6 +99,10 @@ export function PartnersPanel({
     () => [...rows].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     [rows]
   );
+
+  const partnerKeyTrimmed = partnerKey.trim().toLowerCase();
+  const partnerKeyPatternInvalid =
+    Boolean(partnerKeyTrimmed) && !INSTANCE_SLUG_PATTERN.test(partnerKeyTrimmed);
 
   const inlineLocationStateKey = editorMode === 'create' ? 'partner-new' : `partner:${selectedId ?? 'none'}`;
   const ownerPartnerOrganizationId = editorMode === 'edit' ? selectedId : null;
@@ -313,6 +318,12 @@ export function PartnersPanel({
               autoComplete='off'
               placeholder='e.g. acme-partners'
             />
+            {partnerKeyPatternInvalid ? (
+              <p className='mt-1 text-xs text-red-600'>
+                Use lowercase letters and numbers, with single hyphens between segments (no leading or trailing
+                hyphen).
+              </p>
+            ) : null}
           </div>
           <div className='lg:col-span-2'>
             <Label htmlFor='svc-partner-web'>Website</Label>

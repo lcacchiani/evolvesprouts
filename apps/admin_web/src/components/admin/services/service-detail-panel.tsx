@@ -13,6 +13,8 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
+import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
+import { SERVICE_KEY_PATTERN } from '@/lib/service-key-utils';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
@@ -54,8 +56,6 @@ import {
 import { ServiceTierControl } from './service-tier-control';
 
 type ApiSchemas = components['schemas'];
-
-const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const SERVICE_KEY_TIER_PAIR_CONFLICT_MSG =
   'This service key and tier are already used by another service. Change the key or tier.';
@@ -325,7 +325,8 @@ export function ServiceDetailPanel({
 
   const saveBlockedByPairConflict = serviceKeyTierConflictActive;
 
-  const tierInvalid = Boolean(tierTrimmedForValidation) && !SLUG_PATTERN.test(tierTrimmedForValidation);
+  const tierInvalid =
+    Boolean(tierTrimmedForValidation) && !INSTANCE_SLUG_PATTERN.test(tierTrimmedForValidation);
 
   function applyServiceKeyTierConflictFromApiError(
     caught: unknown,
@@ -501,7 +502,7 @@ export function ServiceDetailPanel({
       return;
     }
     const serviceKeyTrimmed = serviceForm.serviceKey.trim();
-    if (serviceKeyTrimmed && !SLUG_PATTERN.test(serviceKeyTrimmed.toLowerCase())) {
+    if (serviceKeyTrimmed && !SERVICE_KEY_PATTERN.test(serviceKeyTrimmed.toLowerCase())) {
       return;
     }
     const newServiceKey = serviceKeyTrimmed.toLowerCase() || null;
@@ -585,7 +586,10 @@ export function ServiceDetailPanel({
                     !service ||
                     saveBlockedByPairConflict ||
                     tierInvalid ||
-                    Boolean(serviceForm.serviceKey.trim() && !SLUG_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()))
+                    Boolean(
+                      serviceForm.serviceKey.trim() &&
+                        !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
+                    )
                   }
                   onClick={() => void submitUpdate()}
                 >
@@ -608,7 +612,10 @@ export function ServiceDetailPanel({
                   saveBlockedByPairConflict ||
                   tierInvalid ||
                   !serviceForm.title.trim() ||
-                  Boolean(serviceForm.serviceKey.trim() && !SLUG_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()))
+                  Boolean(
+                    serviceForm.serviceKey.trim() &&
+                      !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
+                  )
                 }
                 onClick={() => void submitCreate()}
               >
