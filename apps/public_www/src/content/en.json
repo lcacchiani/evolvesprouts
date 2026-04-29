@@ -1573,6 +1573,8 @@
       "applyDiscountLabel": "Apply",
       "applyDiscountLoadingLabel": "Applying discount code",
       "invalidDiscountLabel": "Invalid discount code",
+      "discountUnavailableLabel": "Discount codes aren't available for this booking right now. Please try again later or contact us.",
+      "bookingUnavailableLabel": "This booking isn't available right now. Please try again later or contact us.",
       "referralAppliedNote": "Applied from your referral link.",
       "discountAppliedLabel": "Discount applied",
       "priceBreakdownPriceLabel": "Price",

@@ -16,6 +16,8 @@ export interface ServiceKeyFieldProps {
   onChange: (next: string) => void;
   serviceKeyUsageLoadError?: string;
   serviceKeyConflictError?: string;
+  /** When set with empty value, show amber warning (e.g. published bookable types). */
+  publishedBookableKeyWarning?: string;
 }
 
 export function ServiceKeyField({
@@ -23,6 +25,7 @@ export function ServiceKeyField({
   onChange,
   serviceKeyUsageLoadError,
   serviceKeyConflictError,
+  publishedBookableKeyWarning,
 }: ServiceKeyFieldProps) {
   return (
     <div>
@@ -42,6 +45,9 @@ export function ServiceKeyField({
         </p>
       ) : null}
       {serviceKeyUsageLoadError ? <p className='mt-1 text-xs text-amber-700'>{serviceKeyUsageLoadError}</p> : null}
+      {publishedBookableKeyWarning ? (
+        <p className='mt-1 text-xs text-amber-700'>{publishedBookableKeyWarning}</p>
+      ) : null}
       {serviceKeyConflictError ? <p className='mt-1 text-xs text-red-600'>{serviceKeyConflictError}</p> : null}
     </div>
   );
@@ -61,6 +67,7 @@ export interface ServiceFormFieldsProps {
   hideTitle?: boolean;
   serviceKeyUsageLoadError?: string;
   serviceKeyConflictError?: string;
+  publishedBookableKeyWarning?: string;
 }
 
 export function ServiceFormFields({
@@ -69,6 +76,7 @@ export function ServiceFormFields({
   hideTitle = false,
   serviceKeyUsageLoadError,
   serviceKeyConflictError,
+  publishedBookableKeyWarning,
 }: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
@@ -98,6 +106,7 @@ export function ServiceFormFields({
         onChange={(next) => onChange({ ...value, serviceKey: next })}
         serviceKeyUsageLoadError={serviceKeyUsageLoadError}
         serviceKeyConflictError={serviceKeyConflictError}
+        publishedBookableKeyWarning={publishedBookableKeyWarning}
       />
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>

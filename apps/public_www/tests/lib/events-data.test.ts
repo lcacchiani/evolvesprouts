@@ -510,6 +510,66 @@ describe('events-data', () => {
     expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
   });
 
+  it('public calendar fixture rows include service_key (API wire contract)', () => {
+    for (const row of publicCalendarFixture.data) {
+      expect(row).toHaveProperty('service_key');
+    }
+  });
+
+  it('resolves event booking modal serviceKey from calendar service_key and empty when omitted', () => {
+    const withKey = getLandingPageBookingEventContentFromPayload(
+      {
+        status: 'success',
+        data: [
+          {
+            title: 'Keyed event',
+            service_type: 'event',
+            service_key: 'my-key',
+            slug: 'keyed-event-slug',
+            booking_system: 'event-booking',
+            dates: [
+              {
+                start_datetime: '2026-08-01T10:00:00Z',
+                end_datetime: '2026-08-01T11:00:00Z',
+                part: 1,
+              },
+            ],
+            location: 'virtual',
+          },
+        ],
+      },
+      'keyed-event-slug',
+      'en',
+    );
+    expect(withKey?.bookingPayload?.variant).toBe('event');
+    expect(withKey?.bookingPayload?.serviceKey).toBe('my-key');
+
+    const withoutKey = getLandingPageBookingEventContentFromPayload(
+      {
+        status: 'success',
+        data: [
+          {
+            title: 'No key event',
+            service_type: 'event',
+            slug: 'no-key-event-slug',
+            booking_system: 'event-booking',
+            dates: [
+              {
+                start_datetime: '2026-08-02T10:00:00Z',
+                end_datetime: '2026-08-02T11:00:00Z',
+                part: 1,
+              },
+            ],
+            location: 'virtual',
+          },
+        ],
+      },
+      'no-key-event-slug',
+      'en',
+    );
+    expect(withoutKey?.bookingPayload?.serviceKey).toBe('');
+  });
+
   it('resolves landing page hero content from calendar payload using slug', () => {
     const heroEventContent = getLandingPageHeroEventContentFromPayload(
       publicCalendarFixture,

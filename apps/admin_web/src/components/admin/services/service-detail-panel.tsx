@@ -323,6 +323,16 @@ export function ServiceDetailPanel({
   const selectedLocationValue = locationExists ? locationId : locationId || '';
   const showDefaultLocationField = serviceForm.deliveryMode !== 'online';
 
+  const saveBlockedByPublishedBookableMissingKey = useMemo(() => {
+    if (serviceForm.status !== 'published') {
+      return false;
+    }
+    if (serviceType !== 'event' && serviceType !== 'training_course') {
+      return false;
+    }
+    return serviceForm.serviceKey.trim() === '';
+  }, [serviceForm.status, serviceForm.serviceKey, serviceType]);
+
   const saveBlockedByPairConflict = serviceKeyTierConflictActive;
 
   const tierInvalid =
@@ -585,6 +595,7 @@ export function ServiceDetailPanel({
                     isLoading ||
                     !service ||
                     saveBlockedByPairConflict ||
+                    saveBlockedByPublishedBookableMissingKey ||
                     tierInvalid ||
                     Boolean(
                       serviceForm.serviceKey.trim() &&
@@ -610,6 +621,7 @@ export function ServiceDetailPanel({
                 disabled={
                   isLoading ||
                   saveBlockedByPairConflict ||
+                  saveBlockedByPublishedBookableMissingKey ||
                   tierInvalid ||
                   !serviceForm.title.trim() ||
                   Boolean(
@@ -658,6 +670,13 @@ export function ServiceDetailPanel({
                 : undefined
             }
             serviceKeyConflictError={serviceKeyConflictInline}
+            publishedBookableKeyWarning={
+              (serviceType === 'event' || serviceType === 'training_course') &&
+              serviceForm.status === 'published' &&
+              !serviceForm.serviceKey.trim()
+                ? 'A service key is required to take public bookings (discount validation and reservation submission). Set one before publishing.'
+                : undefined
+            }
           />
           <div>
             <div className='relative mb-1'>

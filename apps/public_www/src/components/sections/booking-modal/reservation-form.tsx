@@ -828,9 +828,29 @@ export function BookingReservationForm({
       try {
         if (!scopeKey || !instanceSlugForValidate) {
           setDiscountRule(null);
-          if (!options.autoApply) {
-            setDiscountError(content.invalidDiscountLabel);
+          if (options.autoApply) {
+            trackAnalyticsEvent('booking_discount_autoapply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'service_key_missing',
+              },
+            });
+          } else {
+            trackAnalyticsEvent('booking_discount_apply_error', {
+              sectionId: analyticsSectionId,
+              ctaLocation: options.ctaLocation,
+              params: {
+                error_type: 'service_key_missing',
+              },
+            });
           }
+          if (!options.autoApply) {
+            setDiscountError(content.discountUnavailableLabel);
+          }
+          console.warn(
+            '[reservation-form] discount validate skipped: missing serviceKey or serviceInstanceSlug (calendar feed identity)',
+          );
           return;
         }
         const validatedRule = await validateDiscountCode(crmApiClient, {
@@ -924,6 +944,7 @@ export function BookingReservationForm({
     },
     [
       analyticsSectionId,
+      content.discountUnavailableLabel,
       content.invalidDiscountLabel,
       discountRule,
       serviceKey,
@@ -1011,6 +1032,26 @@ export function BookingReservationForm({
           error_type: 'validation_error',
         },
       });
+      return;
+    }
+
+    const sanitizedSubmitServiceKey = sanitizeSingleLineValue(serviceKey);
+    const sanitizedSubmitInstanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
+    if (!sanitizedSubmitServiceKey || !sanitizedSubmitInstanceSlug) {
+      trackPublicFormOutcome('booking_submit_error', {
+        formKind: 'reservation',
+        formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
+        sectionId: analyticsSectionId,
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: paymentMethodForAnalytics,
+          service_tier: selectedServiceTierLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'service_key_missing',
+        },
+      });
+      setSubmissionError(content.bookingUnavailableLabel);
       return;
     }
 

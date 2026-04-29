@@ -124,7 +124,9 @@ their primary responsibilities.
   **training_course** `service_instances` for published services; consultation
   is intentionally excluded. Instances with an empty `service_instances.slug` are omitted.
   Each item includes `service_type`,
-  `slug` (public instance slug from `service_instances.slug`), `partners`, `service_tier`
+  `slug` (public instance slug from `service_instances.slug`), parent `service_key`
+  (nullable `services.service_key`; required for public discount validate and reservation
+  submission when non-null), `partners`, `service_tier`
   (from parent service, or inferred from instance slug for My Best Auntie) / `cohort`,
   and `title` augmented with the tier, a spaced hyphen, and a title-cased cohort label
   when both `service_tier` and `cohort` are present (cohort hyphen segments capitalized,
