@@ -88,11 +88,7 @@ interface BookingReservationFormProps {
   serviceKey: string;
   /** Instance or cohort stable id for Stripe PaymentIntent metadata (`cohort_id`). */
   cohortId?: string;
-  /** Marketing-flow slug for thank-you recap branching and optional confirmation links (e.g. `my-best-auntie`). */
-  courseSlug?: string;
-  /** Thank-you service type row label key (`thankYouModal.serviceLabels`). */
-  serviceTypeLabelKey: 'event' | 'training-course' | 'consultation';
-  /** Which booking flow built this submission (drives thank-you recap detail lines). */
+  /** Which booking flow built this submission (drives thank-you recap detail lines and optional `bookingSystem` on submit). */
   bookingSystem: string;
   eventSubtitle?: string;
   courseSessions?: ReservationCourseSession[];
@@ -435,7 +431,6 @@ export function BookingReservationForm({
   eventTitle,
   serviceKey,
   cohortId = '',
-  courseSlug,
   serviceTypeLabelKey,
   bookingSystem,
   eventSubtitle = '',
@@ -744,7 +739,6 @@ export function BookingReservationForm({
     content.submitErrorMessage,
     discountRule?.code,
     cohortId,
-    courseSlug,
     serviceKey,
     paymentIntentServiceKey,
     captchaToken,
@@ -1157,6 +1151,7 @@ export function BookingReservationForm({
       attendeeCountry: phoneCountry,
       serviceKey: sanitizeSingleLineValue(serviceKey) || undefined,
       serviceTypeLabelKey,
+      bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
       serviceTier: sanitizeSingleLineValue(selectedServiceTierLabel) || undefined,
       cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: isFreeReservation
@@ -1167,7 +1162,7 @@ export function BookingReservationForm({
       paymentMethodCode: isFreeReservation ? PAYMENT_METHOD_FREE : selectedPaymentMethod,
       totalAmount: isFreeReservation ? 0 : totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
-      courseSlug: sanitizeSingleLineValue(courseSlug ?? '') || undefined,
+      bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
       courseSessions:
@@ -1243,11 +1238,10 @@ export function BookingReservationForm({
       courseLabel: sanitizeSingleLineValue(eventTitle) || undefined,
       ...(() => {
         const sanitizedServiceKey = sanitizeSingleLineValue(serviceKey);
-        const sanitizedCourseSlug = sanitizeSingleLineValue(courseSlug ?? '');
         const instanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
         return {
           serviceKey: sanitizedServiceKey,
-          ...(sanitizedCourseSlug ? { courseSlug: sanitizedCourseSlug } : {}),
+          bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
           serviceInstanceSlug: instanceSlug,
         };
       })(),

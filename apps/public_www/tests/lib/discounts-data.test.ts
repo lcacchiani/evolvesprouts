@@ -93,7 +93,7 @@ describe('discounts-data', () => {
 
     const rule = await validateDiscountCode(crmApiClient, {
       code: ' FEIER10 ',
-      serviceKey: 'my-best-auntie',
+      serviceKey: 'my-best-auntie-training-course',
       serviceInstanceSlug: 'test-instance-slug',
       signal: new AbortController().signal,
     });
@@ -104,7 +104,7 @@ describe('discounts-data', () => {
         method: 'POST',
         body: JSON.stringify({
           code: 'FEIER10',
-          service_key: 'my-best-auntie',
+          service_key: 'my-best-auntie-training-course',
           service_instance_slug: 'test-instance-slug',
         }),
         headers: expect.objectContaining({
@@ -155,7 +155,7 @@ describe('discounts-data', () => {
 
     await validateDiscountCode(crmApiClient, {
       code: 'SAVE',
-      serviceKey: 'my-best-auntie',
+      serviceKey: 'my-best-auntie-training-course',
       serviceInstanceSlug: 'my-best-auntie-1-3-04-26',
     });
 
@@ -165,14 +165,14 @@ describe('discounts-data', () => {
         method: 'POST',
         body: JSON.stringify({
           code: 'SAVE',
-          service_key: 'my-best-auntie',
+          service_key: 'my-best-auntie-training-course',
           service_instance_slug: 'my-best-auntie-1-3-04-26',
         }),
       }),
     );
   });
 
-  it('does not send service_instance_slug when slug option is absent', async () => {
+  it('rejects validateDiscountCode when serviceInstanceSlug is empty', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -201,13 +201,14 @@ describe('discounts-data', () => {
       throw new Error('Expected CRM API client configuration to be valid');
     }
 
-    await validateDiscountCode(crmApiClient, {
-      code: 'SAVE',
-      serviceKey: 'my-best-auntie',
+    const rule = await validateDiscountCode(crmApiClient, {
+      code: ' SAVE ',
+      serviceKey: 'my-best-auntie-training-course',
+      serviceInstanceSlug: '',
     });
 
-    const body = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body ?? '{}'));
-    expect(body).not.toHaveProperty('service_instance_slug');
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(rule).toBeNull();
   });
 
   it('rejects invalid CRM API client configuration', () => {

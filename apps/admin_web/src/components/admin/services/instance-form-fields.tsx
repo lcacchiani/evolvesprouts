@@ -57,8 +57,6 @@ export interface InstanceFormFieldsProps {
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
-  /** When `required`, show a required marker; consultations stay `optional`. */
-  slugFieldMode?: 'required' | 'optional';
   /** Inline message under the slug field (for example submit validation or API field errors). */
   slugFieldError?: string;
 }
@@ -126,7 +124,6 @@ export function InstanceFormFields({
   isLoadingInstructors = false,
   onSelectService,
   onChange,
-  slugFieldMode = 'optional',
   slugFieldError = '',
 }: InstanceFormFieldsProps) {
   const canSelectService = Boolean(onSelectService);
@@ -243,12 +240,10 @@ export function InstanceFormFields({
       <div>
         <Label htmlFor='instance-slug'>
           Slug
-          {slugFieldMode === 'required' ? (
-            <span className='text-red-600' aria-hidden>
-              {' '}
-              *
-            </span>
-          ) : null}
+          <span className='text-red-600' aria-hidden>
+            {' '}
+            *
+          </span>
         </Label>
         <Input
           id='instance-slug'

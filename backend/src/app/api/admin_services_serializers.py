@@ -275,6 +275,7 @@ def serialize_instance(
         "parent_service_title": service.title,
         "parent_service_tier": service.service_tier,
         "parent_service_type": service.service_type.value,
+        "parent_service_key": service.service_key,
         "title": instance.title,
         "slug": instance.slug,
         "description": instance.description,

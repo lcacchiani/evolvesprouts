@@ -92,7 +92,6 @@ describe('OrganizationsPanel', () => {
         name: 'Acme',
         organization_type: 'company',
         relationship_type: 'prospect',
-        slug: null,
       })
     );
   });
@@ -143,7 +142,7 @@ describe('OrganizationsPanel', () => {
       name: 'Venue Org',
       organization_type: 'company',
       relationship_type: 'client',
-      slug: null,
+      partner_key: null,
       website: null,
       location_id: 'loc-1',
       location_summary: {
@@ -211,7 +210,7 @@ describe('OrganizationsPanel', () => {
       name: 'School Co',
       organization_type: 'school',
       relationship_type: 'client',
-      slug: null,
+      partner_key: null,
       website: null,
       location_id: 'loc-2',
       location_summary: {
@@ -287,7 +286,7 @@ describe('OrganizationsPanel', () => {
       name: 'Delete Org',
       organization_type: 'company',
       relationship_type: 'client',
-      slug: null,
+      partner_key: null,
       website: null,
       location_id: null,
       location_summary: null,

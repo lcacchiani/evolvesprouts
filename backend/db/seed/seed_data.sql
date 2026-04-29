@@ -13,7 +13,7 @@ WHERE NOT EXISTS (SELECT 1 FROM tags WHERE lower(name) = lower('client_document'
 -- Referral service keys on services (nullable column). Only set when exactly one row matches,
 -- so seed never assigns the same key to multiple services.
 UPDATE services s
-SET service_key = 'my-best-auntie'
+SET service_key = 'my-best-auntie-training-course'
 FROM (
   SELECT id
   FROM services

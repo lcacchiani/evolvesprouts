@@ -36,7 +36,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'stripe',
       totalAmount: 100,
       eventTitle: 'Consultation',
-      courseSlug: 'consultation-booking',
+      bookingSystem: 'consultation-booking',
       dateStartTime: '2026-05-16T02:00:00Z',
       courseSessions: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
     };
@@ -66,7 +66,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'stripe',
       totalAmount: 100,
       eventTitle: '咨询',
-      courseSlug: 'consultation-booking',
+      bookingSystem: 'consultation-booking',
       dateStartTime: '2026-05-16T02:00:00Z',
       courseSessions: [{ dateStartTime: '2026-05-16T02:00:00Z' }],
     };
@@ -93,7 +93,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'fps_qr',
       totalAmount: 1,
       eventTitle: 'MBA',
-      courseSlug: 'my-best-auntie',
+      bookingSystem: 'my-best-auntie-booking',
       courseSessions: [
         { dateStartTime: '2026-04-10T06:00:00Z' },
         { dateStartTime: '2026-05-01T06:00:00Z' },
@@ -123,7 +123,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'bank_transfer',
       totalAmount: 50,
       eventTitle: 'Workshop',
-      courseSlug: 'event-booking',
+      bookingSystem: 'event-booking',
     };
 
     render(
@@ -152,7 +152,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'bank_transfer',
       totalAmount: 50,
       eventTitle: 'Workshop',
-      courseSlug: 'event-booking',
+      bookingSystem: 'event-booking',
       courseSessions: [{ dateStartTime: '2026-06-01T10:00:00.000Z' }],
     };
 
@@ -198,7 +198,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'free',
       totalAmount: 0,
       eventTitle: 'Workshop',
-      courseSlug: 'event-booking',
+      bookingSystem: 'event-booking',
     };
 
     render(
@@ -226,7 +226,7 @@ describe('BookingThankYouModal', () => {
       paymentMethodCode: 'stripe',
       totalAmount: 100,
       eventTitle: 'Family Consultation — long title',
-      courseSlug: 'consultation-booking',
+      bookingSystem: 'consultation-booking',
       serviceTypeLabelKey: 'consultation',
     };
 

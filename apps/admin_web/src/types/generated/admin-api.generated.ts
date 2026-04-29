@@ -4504,7 +4504,7 @@ export interface components {
             resolved_cover_image_s3_key?: string | null;
             resolved_delivery_mode?: string | null;
             /** @description Public instance slug; same as `slug`. Kept for backwards compatibility. */
-            resolved_slug?: string;
+            resolved_slug: string;
             /**
              * Format: uuid
              * @description Effective venue: instance location_id when set, otherwise the parent service default location_id.
@@ -4546,6 +4546,8 @@ export interface components {
             parent_service_tier?: string | null;
             /** @description Parent service type (present on cross-service list responses). */
             parent_service_type?: components["schemas"]["ServiceType"] | null;
+            /** @description Parent service public key (`services.service_key`) when set; mirrors the parent service row for cross-service instance list responses. */
+            parent_service_key?: string | null;
         };
         InstanceListResponse: {
             items: components["schemas"]["ServiceInstance"][];

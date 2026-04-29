@@ -27,7 +27,7 @@ function cohortFixture(
     location_name: '',
     location_address: '',
     location_url: '',
-    service: 'training-course',
+    dates: [],
     ...overrides,
   };
 }

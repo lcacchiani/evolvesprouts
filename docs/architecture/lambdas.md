@@ -114,7 +114,10 @@ their primary responsibilities.
   `service_key_instance_mismatch`. Scoped codes compare against the resolved service/instance
   ids; codes with `discount_type` `referral` are rejected with the same 404
   envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
-  `Public discount validate rejected` entry with `rejection_reason`, `code_hash`,
+  `Public discount validate rejected` entry with `rejection_reason` (for example
+  `code_not_found`, `referral_type_not_allowed`, `inactive`, `not_yet_valid`, `expired`,
+  `max_uses_exhausted`, `unknown_service_instance_slug`, `service_key_instance_mismatch`,
+  `instance_scope_mismatch`, `service_scope_mismatch`), `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
@@ -131,7 +134,7 @@ their primary responsibilities.
   no name but is that partner's `organizations.location`. `booking_system` comes
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.service_key` is
-  `my-best-auntie`). Results order by earliest upcoming session slot ascending
+  `my-best-auntie-training-course`). Results order by earliest upcoming session slot ascending
   with `service_instances.id` as tie-break. Optional query filters:
   `slug` (matched case-insensitively against `service_instances.slug`), `service_type`,
   `service_key` (matched case-insensitively against `services.service_key`; invalid values

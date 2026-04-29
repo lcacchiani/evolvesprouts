@@ -280,9 +280,27 @@ function parseServiceDetail(value: unknown): ServiceDetail {
   };
 }
 
+function requireNonEmptyApiString(
+  value: unknown,
+  fieldName: string,
+  context: string,
+): string {
+  const parsed = asNullableString(value);
+  if (!parsed || !parsed.trim()) {
+    throw new Error(`Admin services API response missing ${fieldName} for ${context}.`);
+  }
+  return parsed;
+}
+
 function parseInstance(value: unknown): ServiceInstance {
   const item = isRecord(value) ? value : {};
   const parentTypeRaw = asNullableString(item.parent_service_type);
+  const slug = requireNonEmptyApiString(item.slug, 'slug', 'service instance');
+  const resolvedSlug = requireNonEmptyApiString(
+    item.resolved_slug,
+    'resolved_slug',
+    'service instance',
+  );
   return {
     id: asNullableString(item.id) ?? '',
     serviceId: asNullableString(item.service_id) ?? '',
@@ -291,8 +309,9 @@ function parseInstance(value: unknown): ServiceInstance {
     parentServiceType: parentTypeRaw
       ? (parentTypeRaw as ServiceInstance['parentServiceType'])
       : null,
+    parentServiceKey: asNullableString(item.parent_service_key),
     title: asNullableString(item.title),
-    slug: asNullableString(item.slug) ?? '',
+    slug,
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     status: (asNullableString(item.status) ?? 'scheduled') as ServiceInstance['status'],
@@ -318,7 +337,7 @@ function parseInstance(value: unknown): ServiceInstance {
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
     resolvedTitle: asNullableString(item.resolved_title),
-    resolvedSlug: asNullableString(item.resolved_slug) ?? asNullableString(item.slug) ?? '',
+    resolvedSlug,
     resolvedDescription: asNullableString(item.resolved_description),
     resolvedCoverImageS3Key: asNullableString(item.resolved_cover_image_s3_key),
     resolvedDeliveryMode: asNullableString(item.resolved_delivery_mode),

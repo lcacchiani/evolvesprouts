@@ -263,6 +263,8 @@ export interface ServiceInstance {
   parentServiceTitle: string | null;
   parentServiceTier: string | null;
   parentServiceType: ServiceType | null;
+  /** Parent service public key when set on the service row. */
+  parentServiceKey: string | null;
   title: string | null;
   /** Public instance slug from Aurora (required). */
   slug: string;
