@@ -358,7 +358,7 @@ def _normalize_http_location_url(value: str | None) -> str | None:
 def format_booking_datetime_display_multi(
     *,
     booking_system: str | None,
-    course_sessions: list[dict[str, str]] | None,
+    session_slots: list[dict[str, str]] | None,
     primary_session_iso: str | None,
     primary_session_end_iso: str | None,
     schedule_date: str | None,
@@ -369,7 +369,7 @@ def format_booking_datetime_display_multi(
     """Return (schedule_html, schedule_plain); lines joined with <br/> / newlines."""
     loc = normalize_booking_locale(locale)
     slug = _normalize_booking_system(booking_system)
-    sessions = list(course_sessions or [])
+    sessions = list(session_slots or [])
     plain_lines: list[str] = []
 
     if (
@@ -414,7 +414,7 @@ def format_booking_datetime_display_multi(
             am_pm = _hkt_consultation_day_part_label(parsed, loc)
             plain_lines.append(f"{date_part} {am_pm}")
     else:
-        # Events and other flows: all course_sessions when present, else primary only
+        # Events and other flows: all session_slots when present, else primary only
         event_sessions = sessions if sessions else []
         if not event_sessions and (primary_session_iso or "").strip():
             event_sessions = [{"start_iso": (primary_session_iso or "").strip()}]
@@ -742,7 +742,7 @@ def booking_confirmation_template_merge_data(
     whatsapp_url: str,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
-    course_sessions: list[dict[str, str]] | None = None,
+    session_slots: list[dict[str, str]] | None = None,
     location_url: str | None = None,
     is_free: bool = False,
 ) -> dict[str, Any]:
@@ -758,7 +758,7 @@ def booking_confirmation_template_merge_data(
     )
     schedule_html, schedule_plain = format_booking_datetime_display_multi(
         booking_system=booking_system,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         schedule_date=schedule_date,
@@ -883,7 +883,7 @@ def render_booking_confirmation_email(
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
     attach_calendar_invite_ics: bool = False,
-    course_sessions: list[dict[str, str]] | None = None,
+    session_slots: list[dict[str, str]] | None = None,
     location_url: str | None = None,
     is_free: bool = False,
 ) -> tuple[str, str, str]:
@@ -914,7 +914,7 @@ def render_booking_confirmation_email(
     )
     schedule_html, _schedule_plain_preview = format_booking_datetime_display_multi(
         booking_system=booking_system,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         schedule_date=schedule_date,
@@ -1054,7 +1054,7 @@ def render_booking_confirmation_email(
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
         attach_calendar_invite_ics=attach_calendar_invite_ics,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         location_url=location_url,
         is_free=is_free,
         free_total_label=free_label,
@@ -1103,7 +1103,7 @@ def _build_plain_text(
     consultation_writing_focus_label: str | None,
     consultation_level_label: str | None,
     attach_calendar_invite_ics: bool,
-    course_sessions: list[dict[str, str]] | None,
+    session_slots: list[dict[str, str]] | None,
     location_url: str | None,
     is_free: bool = False,
     free_total_label: str = "",
@@ -1135,7 +1135,7 @@ def _build_plain_text(
     )
     _schedule_html, schedule_plain = format_booking_datetime_display_multi(
         booking_system=booking_system,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         primary_session_iso=primary_session_iso,
         primary_session_end_iso=primary_session_end_iso,
         schedule_date=schedule_date,

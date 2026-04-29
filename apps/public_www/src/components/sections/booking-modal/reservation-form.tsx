@@ -93,7 +93,7 @@ interface BookingReservationFormProps {
   /** Thank-you service type row label key (`thankYouModal.serviceLabels`). */
   serviceTypeLabelKey: 'event' | 'training-course' | 'consultation';
   eventSubtitle?: string;
-  courseSessions?: ReservationCourseSession[];
+  sessionSlots?: ReservationCourseSession[];
   selectedServiceTierLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
@@ -436,7 +436,7 @@ export function BookingReservationForm({
   serviceTypeLabelKey,
   bookingSystem,
   eventSubtitle = '',
-  courseSessions,
+  sessionSlots,
   selectedServiceTierLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
@@ -1123,8 +1123,8 @@ export function BookingReservationForm({
     }
 
     const resolvedCourseSessions: ReservationCourseSession[] = [];
-    if (courseSessions && courseSessions.length > 0) {
-      for (const session of courseSessions) {
+    if (sessionSlots && sessionSlots.length > 0) {
+      for (const session of sessionSlots) {
         const sessionStart = sanitizeSingleLineValue(session.dateStartTime);
         if (!sessionStart) {
           continue;
@@ -1207,7 +1207,7 @@ export function BookingReservationForm({
       eventTitle: sanitizeSingleLineValue(eventTitle),
       dateStartTime: primarySession?.dateStartTime,
       dateEndTime: primarySession?.dateEndTime,
-      courseSessions:
+      sessionSlots:
         resolvedCourseSessions.length > 0 ? resolvedCourseSessions : undefined,
       eventSubtitle: sanitizeSingleLineValue(eventSubtitle) || undefined,
       ...(!isFreeReservation &&
@@ -1313,7 +1313,7 @@ export function BookingReservationForm({
         }
 
         return {
-          courseSessions: resolvedCourseSessions.map((s) => {
+          sessionSlots: resolvedCourseSessions.map((s) => {
             return {
               startIso: s.dateStartTime,
               ...(s.dateEndTime ? { endIso: s.dateEndTime } : {}),

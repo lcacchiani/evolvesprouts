@@ -110,7 +110,7 @@ export function EventBookingModal({
         bookingSystem={EVENT_BOOKING_SYSTEM}
         serviceInstanceSlug={bookingPayload.instanceSlug}
         eventSubtitle={bookingPayload.subtitle}
-        courseSessions={bookingPayload.dateParts.map((part) => {
+        sessionSlots={bookingPayload.dateParts.map((part) => {
           return {
             dateStartTime: part.startDateTime,
             dateEndTime: part.endDateTime,

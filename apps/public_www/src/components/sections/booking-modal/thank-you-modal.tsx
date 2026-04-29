@@ -96,8 +96,8 @@ function resolveThankYouCourseSessions(summary: ReservationSummary | null): Rese
     return [];
   }
 
-  if (summary.courseSessions && summary.courseSessions.length > 0) {
-    return summary.courseSessions;
+  if (summary.sessionSlots && summary.sessionSlots.length > 0) {
+    return summary.sessionSlots;
   }
 
   const start = summary.dateStartTime?.trim() ?? '';

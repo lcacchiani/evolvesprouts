@@ -355,7 +355,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     service_tier_label = _optional_str(payload.get("service_tier"))
     consultation_focus = _optional_str(payload.get("consultation_writing_focus_label"))
     consultation_level = _optional_str(payload.get("consultation_level_label"))
-    course_sessions = _course_sessions_for_email(payload.get("course_sessions"))
+    session_slots = _session_slots_for_email(payload.get("session_slots"))
     location_url = _optional_str(payload.get("location_url"))
     payment_method = str(payload.get("payment_method") or "").strip() or "unknown"
     total_dec = payload["total_amount"]
@@ -391,7 +391,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 fps_qr_image_data_url=fps_qr_data_url,
                 consultation_writing_focus_label=consultation_focus,
                 consultation_level_label=consultation_level,
-                course_sessions=course_sessions,
+                session_slots=session_slots,
                 location_url=location_url,
                 is_free=is_free,
             )
@@ -439,7 +439,7 @@ def _optional_str(value: Any) -> str | None:
     return s or None
 
 
-def _course_sessions_for_email(
+def _session_slots_for_email(
     raw: Any,
 ) -> list[dict[str, str]] | None:
     if not isinstance(raw, list) or not raw:
@@ -593,7 +593,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "primarySessionEndIso",
         _MAX_ISO_FIELD,
     )
-    course_sessions = _parse_course_sessions(body.get("courseSessions"))
+    session_slots = _parse_session_slots(body.get("sessionSlots"))
     fps_qr_image_data_url = _optional_fps_qr_data_url(body.get("fpsQrImageDataUrl"))
     marketing_opt_in = _parse_bool_opt(body.get("marketingOptIn"), default=False)
     locale = _normalize_locale_field(body.get("locale"))
@@ -666,7 +666,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "location_url": location_url,
         "primary_session_start_iso": primary_session_start_iso,
         "primary_session_end_iso": primary_session_end_iso,
-        "course_sessions": course_sessions,
+        "session_slots": session_slots,
         "fps_qr_image_data_url": fps_qr_image_data_url,
         "marketing_opt_in": marketing_opt_in,
         "locale": locale,
@@ -746,43 +746,43 @@ def _parse_bool_opt(value: Any, *, default: bool) -> bool:
     return default
 
 
-def _parse_course_sessions(raw: Any) -> list[dict[str, str]] | None:
+def _parse_session_slots(raw: Any) -> list[dict[str, str]] | None:
     if raw is None:
         return None
     if not isinstance(raw, list):
-        raise ValidationError("courseSessions must be an array", field="courseSessions")
+        raise ValidationError("sessionSlots must be an array", field="sessionSlots")
     out: list[dict[str, str]] = []
     for idx, item in enumerate(raw):
         if not isinstance(item, Mapping):
             raise ValidationError(
-                "courseSessions items must be objects",
-                field="courseSessions",
+                "sessionSlots items must be objects",
+                field="sessionSlots",
             )
         start = item.get("startIso")
         if not isinstance(start, str) or not start.strip():
             raise ValidationError(
-                f"courseSessions[{idx}].startIso is required",
-                field="courseSessions",
+                f"sessionSlots[{idx}].startIso is required",
+                field="sessionSlots",
             )
         start_norm = start.strip()
         if len(start_norm) > _MAX_ISO_FIELD:
             raise ValidationError(
-                f"courseSessions[{idx}].startIso is too long",
-                field="courseSessions",
+                f"sessionSlots[{idx}].startIso is too long",
+                field="sessionSlots",
             )
         row: dict[str, str] = {"start_iso": start_norm}
         end_raw = item.get("endIso")
         if end_raw is not None:
             if not isinstance(end_raw, str):
                 raise ValidationError(
-                    f"courseSessions[{idx}].endIso must be a string",
-                    field="courseSessions",
+                    f"sessionSlots[{idx}].endIso must be a string",
+                    field="sessionSlots",
                 )
             end_norm = end_raw.strip()
             if len(end_norm) > _MAX_ISO_FIELD:
                 raise ValidationError(
-                    f"courseSessions[{idx}].endIso is too long",
-                    field="courseSessions",
+                    f"sessionSlots[{idx}].endIso is too long",
+                    field="sessionSlots",
                 )
             if end_norm:
                 row["end_iso"] = end_norm

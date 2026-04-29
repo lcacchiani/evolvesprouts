@@ -340,7 +340,7 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -350,7 +350,7 @@ def test_render_booking_confirmation_mba_zh_cn_uses_localized_ordinals() -> None
     assert "第一节" in plain
 
 
-def test_render_booking_confirmation_event_multi_part_course_sessions() -> None:
+def test_render_booking_confirmation_event_multi_part_session_slots() -> None:
     _s, html_doc, plain = render_booking_confirmation_email(
         locale="en",
         full_name="A",
@@ -367,7 +367,7 @@ def test_render_booking_confirmation_event_multi_part_course_sessions() -> None:
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -393,7 +393,7 @@ def test_booking_confirmation_merge_data_sets_multiline_flags_for_ses() -> None:
         total_amount="HK$1",
         is_pending_payment=False,
         whatsapp_url="https://wa.me/1",
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],
@@ -439,7 +439,7 @@ def test_render_booking_confirmation_mba_multi_session_email_lines() -> None:
         whatsapp_url="https://wa.me/1",
         faq_url="https://site.example/faq",
         include_fps_qr_image=False,
-        course_sessions=[
+        session_slots=[
             {"start_iso": "2026-04-10T14:00:00+08:00"},
             {"start_iso": "2026-05-01T14:00:00+08:00"},
         ],

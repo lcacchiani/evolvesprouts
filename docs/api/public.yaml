@@ -1435,8 +1435,11 @@ components:
         primarySessionEndIso:
           type: string
           maxLength: 50
-        courseSessions:
+        sessionSlots:
           type: array
+          description: >
+            Optional list of session parts (ISO start/end per slot) for multi-line schedule
+            in confirmation email (e.g. MBA multi-session, multi-part events).
           items:
             type: object
             required:

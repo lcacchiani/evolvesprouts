@@ -233,7 +233,7 @@ const reservationSummary: ReservationSummary = {
   eventTitle: 'My Best Auntie',
   dateStartTime: selectedCohort.dates[0]?.start_datetime,
   dateEndTime: selectedCohort.dates[0]?.end_datetime,
-  courseSessions: selectedCohort.dates.slice(0, 2).map((part) => {
+  sessionSlots: selectedCohort.dates.slice(0, 2).map((part) => {
     return {
       dateStartTime: part.start_datetime,
       dateEndTime: part.end_datetime,
@@ -281,7 +281,7 @@ const expectedMbaMarketingFields = {
   primarySessionStartIso: primarySessionPart?.start_datetime,
   primarySessionEndIso: primarySessionPart?.end_datetime,
   commentsFieldLabel: bookingModalContent.topicsInterestLabel,
-  courseSessions: selectedCohort.dates.map((part) => {
+  sessionSlots: selectedCohort.dates.map((part) => {
     return {
       startIso: part.start_datetime,
       endIso: part.end_datetime,
@@ -1877,7 +1877,7 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
     const sessionLines =
-      reservationSummary.courseSessions?.map((session, index) => {
+      reservationSummary.sessionSlots?.map((session, index) => {
         const dateTime = formatPartDateTimeLabel(session.dateStartTime, 'en');
         const ordinal = thankYouModalContent.groupSessionOrdinals[index] ?? '';
         return formatContentTemplate(thankYouModalContent.groupSessionLabelTemplate, {

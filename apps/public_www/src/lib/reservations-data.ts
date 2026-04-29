@@ -59,7 +59,7 @@ export interface ReservationSubmissionPayload {
   /** Primary session end as ISO 8601 when known (e.g. multi-hour session). Used for email .ics DTEND. */
   primarySessionEndIso?: string;
   /** All session parts for multi-line schedule in confirmation email (MBA, etc.). */
-  courseSessions?: Array<{ startIso: string; endIso?: string }>;
+  sessionSlots?: Array<{ startIso: string; endIso?: string }>;
   /** Maps URL for optional "Get directions" link in confirmation email. */
   locationUrl?: string;
   /**

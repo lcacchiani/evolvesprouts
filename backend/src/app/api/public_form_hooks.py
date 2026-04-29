@@ -175,7 +175,7 @@ def send_booking_confirmation_email(
     fps_qr_image_data_url: str | None = None,
     consultation_writing_focus_label: str | None = None,
     consultation_level_label: str | None = None,
-    course_sessions: list[dict[str, str]] | None = None,
+    session_slots: list[dict[str, str]] | None = None,
     location_url: str | None = None,
     is_free: bool = False,
 ) -> None:
@@ -207,7 +207,7 @@ def send_booking_confirmation_email(
         whatsapp_url=resolve_whatsapp_url_for_template(),
         consultation_writing_focus_label=consultation_writing_focus_label,
         consultation_level_label=consultation_level_label,
-        course_sessions=course_sessions,
+        session_slots=session_slots,
         location_url=location_url,
         is_free=is_free,
     )
@@ -277,7 +277,7 @@ def send_booking_confirmation_email(
             consultation_writing_focus_label=consultation_writing_focus_label,
             consultation_level_label=consultation_level_label,
             attach_calendar_invite_ics=attach_ics,
-            course_sessions=course_sessions,
+            session_slots=session_slots,
             location_url=location_url,
             is_free=is_free,
         )
