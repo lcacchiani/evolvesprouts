@@ -101,7 +101,7 @@ def test_0048_backfills_null_consultation_instance_slug() -> None:
               instructor_id, cohort, notes, created_by, created_at,
               eventbrite_event_id, eventbrite_event_url, eventbrite_sync_status
             ) VALUES
-            (%s, %s, 'Consult row', NULL, NULL, NULL, NULL, 'scheduled', NULL, NULL,
+            (%s, %s, 'Consult row', NULL, NULL, NULL, 'scheduled', NULL, NULL,
              NULL, false, NULL, NULL, NULL, 'test', TIMESTAMPTZ '2026-01-01 00:00:00Z',
              NULL, NULL, 'pending')
             """,
