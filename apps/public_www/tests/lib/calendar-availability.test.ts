@@ -4,7 +4,6 @@ import {
   buildUnavailableSlotMap,
   normalizeAvailabilityYmd,
   parsePublicCalendarBlockersPayload,
-  unavailableSlotMapToSlots,
 } from '@/lib/calendar-availability';
 
 describe('calendar-availability', () => {
@@ -26,26 +25,21 @@ describe('calendar-availability', () => {
     expect(map.get('2026-04-11')).toEqual({ am: true, pm: true });
   });
 
-  it('parsePublicCalendarBlockersPayload reads blockers or legacy unavailable_slots', () => {
+  it('parsePublicCalendarBlockersPayload reads blockers array', () => {
     expect(
       parsePublicCalendarBlockersPayload({
         blockers: [{ date: '2026-05-01', period: 'pm' }],
       }),
     ).toEqual([{ date: '2026-05-01', period: 'pm' }]);
-    expect(
-      parsePublicCalendarBlockersPayload({
-        unavailable_slots: [{ date: '2026-05-02', period: 'am' }],
-      }),
-    ).toEqual([{ date: '2026-05-02', period: 'am' }]);
+    expect(parsePublicCalendarBlockersPayload({ unavailable_slots: [] })).toEqual([]);
   });
 
-  it('unavailableSlotMapToSlots emits sorted both/am/pm rows', () => {
-    const map = new Map<string, { am: boolean; pm: boolean }>();
-    map.set('2026-05-03', { am: true, pm: true });
-    map.set('2026-05-02', { am: true, pm: false });
-    expect(unavailableSlotMapToSlots(map)).toEqual([
-      { date: '2026-05-02', period: 'am' },
+  it('buildUnavailableSlotMap round-trips sorted slot list semantics', () => {
+    const map = buildUnavailableSlotMap([
       { date: '2026-05-03', period: 'both' },
+      { date: '2026-05-02', period: 'am' },
     ]);
+    expect(map.get('2026-05-02')).toEqual({ am: true, pm: false });
+    expect(map.get('2026-05-03')).toEqual({ am: true, pm: true });
   });
 });

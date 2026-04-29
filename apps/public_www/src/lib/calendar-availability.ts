@@ -16,7 +16,7 @@ export interface PublicCalendarBlockersApiPayload {
   };
 }
 
-/** Shape of `src/content/calendar-availability.json` (legacy fallback / tests). */
+/** Props shape for the consultation booking modal (picker unavailable half-days). */
 export interface CalendarAvailabilityPayload {
   unavailable_slots: CalendarUnavailableSlot[];
 }
@@ -78,7 +78,7 @@ export function parsePublicCalendarBlockersPayload(
   if (!isRecord(payload)) {
     return [];
   }
-  const raw = payload.blockers ?? payload.unavailable_slots;
+  const raw = payload.blockers;
   if (!Array.isArray(raw)) {
     return [];
   }
@@ -93,26 +93,6 @@ export function parsePublicCalendarBlockersPayload(
       continue;
     }
     out.push({ date, period });
-  }
-  return out;
-}
-
-export function unavailableSlotMapToSlots(
-  map: Map<string, { am: boolean; pm: boolean }>,
-): CalendarUnavailableSlot[] {
-  const out: CalendarUnavailableSlot[] = [];
-  for (const ymd of [...map.keys()].sort()) {
-    const row = map.get(ymd);
-    if (!row) {
-      continue;
-    }
-    if (row.am && row.pm) {
-      out.push({ date: ymd, period: 'both' });
-    } else if (row.am) {
-      out.push({ date: ymd, period: 'am' });
-    } else if (row.pm) {
-      out.push({ date: ymd, period: 'pm' });
-    }
   }
   return out;
 }

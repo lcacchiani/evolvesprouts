@@ -1,14 +1,10 @@
-import calendarAvailabilityFallback from '@/content/calendar-availability.json';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   createPublicCrmApiClient,
-  CrmApiRequestError,
 } from '@/lib/crm-api-client';
 import {
   type CalendarUnavailableSlot,
-  buildUnavailableSlotMap,
   parsePublicCalendarBlockersPayload,
-  unavailableSlotMapToSlots,
 } from '@/lib/calendar-availability';
 
 export const CALENDAR_BLOCKERS_API_PATH = '/v1/calendar/blockers';
@@ -37,7 +33,7 @@ export function buildCalendarBlockersApiPath(params: {
 
 /**
  * Fetches merged manual + session calendar blockers for the public website.
- * Returns empty slots when the CRM client is missing or the request fails.
+ * Returns an empty list when the CRM client is missing or the request fails.
  */
 export async function fetchConsultationCalendarBlockersSlots(
   signal: AbortSignal,
@@ -62,21 +58,9 @@ export async function fetchConsultationCalendarBlockersSlots(
       method: 'GET',
       signal,
     });
-    const remote = parsePublicCalendarBlockersPayload(payload);
-    const merged = buildUnavailableSlotMap([
-      ...calendarAvailabilityFallback.unavailable_slots,
-      ...remote,
-    ]);
-    return unavailableSlotMapToSlots(merged);
-  } catch (error) {
-    if (error instanceof CrmApiRequestError && error.statusCode === 404) {
-      return unavailableSlotMapToSlots(
-        buildUnavailableSlotMap(calendarAvailabilityFallback.unavailable_slots),
-      );
-    }
-    return unavailableSlotMapToSlots(
-      buildUnavailableSlotMap(calendarAvailabilityFallback.unavailable_slots),
-    );
+    return parsePublicCalendarBlockersPayload(payload);
+  } catch {
+    return [];
   }
 }
 

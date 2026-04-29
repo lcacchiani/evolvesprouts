@@ -22,7 +22,6 @@ import type {
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import calendarAvailabilityFallback from '@/content/calendar-availability.json';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchConsultationCalendarBlockersSlots,
@@ -157,7 +156,7 @@ export function ConsultationsBooking({
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [calendarAvailability, setCalendarAvailability] = useState(() => ({
-    unavailable_slots: [...calendarAvailabilityFallback.unavailable_slots],
+    unavailable_slots: [] as { date: string; period: 'am' | 'pm' | 'both' }[],
   }));
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
     null,
