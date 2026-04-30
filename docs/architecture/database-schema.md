@@ -150,6 +150,21 @@ Indexes:
 - `access_grants_unique` unique index on
   (`asset_id`, `grant_type`, `COALESCE(grantee_id, '')`)
 
+## Table: audit_log
+
+Purpose: Append-only change history. Rows are written by PostgreSQL triggers on
+`assets` and `asset_access_grants` (when `set_audit_context` supplies session
+variables) and by application code via `AuditService` (`source` = `trigger` or
+`application`). Created by migration `0054_add_audit_log`.
+
+Columns (summary): `id` (UUID), `timestamp` (timestamptz), `table_name`, `record_id`,
+`action`, optional `user_id` / `request_id`, JSONB `old_values` / `new_values`,
+`changed_fields` (text array, updates only), `source`, optional `ip_address` /
+`user_agent`.
+
+Indexes: `audit_log_table_record_idx`, `audit_log_timestamp_idx`,
+`audit_log_user_id_idx`, `audit_log_action_idx`.
+
 ## Table: asset_share_links
 
 Purpose: Stores stable bearer links for assets that can be shared externally.
