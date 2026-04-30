@@ -2917,6 +2917,17 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    const adminAuditLogs = admin.addResource("audit-logs");
+    adminAuditLogs.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminAuditLogById = adminAuditLogs.addResource("{id}");
+    adminAuditLogById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     // Admin service routes
     const adminServices = admin.addResource("services");
     adminServices.addMethod("GET", adminIntegration, {

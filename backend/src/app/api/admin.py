@@ -32,6 +32,7 @@ from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
 from app.api.public_free_assets import handle_public_free_assets_list_request
 from app.api.public_discount_validate import handle_public_discount_validate
+from app.api.admin_audit_logs import handle_admin_audit_logs_request
 from app.api.admin_calendar_manual_blocks import (
     handle_admin_calendar_manual_blocks_request,
 )
@@ -166,6 +167,11 @@ _ROUTES: tuple[
         "/v1/admin/instructors",
         False,
         handle_admin_instructors_request,
+    ),
+    (
+        "/v1/admin/audit-logs",
+        False,
+        handle_admin_audit_logs_request,
     ),
     (
         "/v1/admin/services",

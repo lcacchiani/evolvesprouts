@@ -13,6 +13,9 @@ info:
     - `POST /v1/admin/locations/geocode`
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET /v1/admin/users`
+    - `GET /v1/admin/instructors`
+    - `GET /v1/admin/audit-logs` (optional `table`, `record_id`, `user_id`, `action`, `since`, `cursor`, `limit`)
+    - `GET /v1/admin/audit-logs/{id}`
     - `GET|POST /v1/admin/services`
     - `GET /v1/admin/services/instances`
     - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}`
@@ -776,6 +779,100 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminUserListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/audit-logs:
+    get:
+      summary: List audit log entries
+      description: >
+        Returns database audit history (trigger- and application-sourced rows in
+        `audit_log`). Optional filters combine as in the admin Lambda handler:
+        when `record_id` is set, `table` is required; `user_id` is a Cognito subject
+        (sub), not an email address.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque continuation token from `next_cursor` for the default recent listing.
+          schema:
+            type: string
+        - name: table
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [assets, asset_access_grants, calendar_manual_blocks]
+        - name: record_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [INSERT, UPDATE, DELETE]
+        - name: since
+          in: query
+          required: false
+          description: ISO 8601 timestamp; only entries at or after this time are returned where applicable.
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Paginated audit log list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/audit-logs/{id}:
+    get:
+      summary: Get audit log entry by id
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Audit log entry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLog"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -4710,6 +4807,69 @@ components:
           nullable: true
         active:
           type: boolean
+    AuditLog:
+      type: object
+      required:
+        - id
+        - table_name
+        - record_id
+        - action
+        - source
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: uuid
+        table_name:
+          type: string
+        record_id:
+          type: string
+        action:
+          type: string
+          enum: [INSERT, UPDATE, DELETE]
+        user_id:
+          type: string
+          nullable: true
+        request_id:
+          type: string
+          nullable: true
+        old_values:
+          type: object
+          additionalProperties: true
+          nullable: true
+        new_values:
+          type: object
+          additionalProperties: true
+          nullable: true
+        changed_fields:
+          type: array
+          items:
+            type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          type: string
+          description: Source of the row (`trigger` or `application`).
+        ip_address:
+          type: string
+          nullable: true
+        user_agent:
+          type: string
+          nullable: true
+    AuditLogListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        next_cursor:
+          type: string
+          nullable: true
     AdminUser:
       type: object
       required:

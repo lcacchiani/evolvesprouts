@@ -87,6 +87,7 @@ their primary responsibilities.
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
   membership fields such as primary contact),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
+  `GET /v1/admin/audit-logs` and `GET /v1/admin/audit-logs/{id}` (read-only `audit_log` history; list supports filters `table`, `record_id`, `user_id`, `action`, `since`, `cursor`, `limit`),
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
   filters; instance create/update accepts optional `cohort`, and

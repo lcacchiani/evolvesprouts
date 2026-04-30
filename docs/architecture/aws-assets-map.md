@@ -469,6 +469,9 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/users` | GET | Admin Group | `EvolvesproutsAdminFunction` | Assignee lookup for sales lead workflows |
+| `/v1/admin/instructors` | GET | Admin Group | `EvolvesproutsAdminFunction` | Instructor Cognito group listing for service instance assignment |
+| `/v1/admin/audit-logs` | GET | Admin Group | `EvolvesproutsAdminFunction` | Paginated `audit_log` listing (filters: `table`, `record_id`, `user_id`, `action`, `since`, `cursor`, `limit`) |
+| `/v1/admin/audit-logs/{id}` | GET | Admin Group | `EvolvesproutsAdminFunction` | Single `audit_log` row by UUID |
 | `/v1/admin/tags` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | CRM tag catalog; GET supports `include_archived` and `archived_only` (mutually exclusive) |
 | `/v1/admin/calendar/manual-blocks` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Manual blocks; GET requires `purpose`, `from`, `to`; writes append `audit_log` rows |
 | `/v1/admin/calendar/manual-blocks/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Manual block read/update/delete; PATCH/DELETE append `audit_log` rows |
