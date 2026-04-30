@@ -37,6 +37,7 @@ from typing import Any
 from collections.abc import Sequence
 from uuid import UUID
 
+from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import tuple_
@@ -347,7 +348,8 @@ class AuditLogRepository:
         if cursor is not None:
             cursor_ts, cursor_id = cursor
             query = query.where(
-                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+                tuple_(AuditLog.timestamp, AuditLog.id)
+                < tuple_(literal(cursor_ts), literal(cursor_id))
             )
         return self._session.execute(query).scalars().all()
 
@@ -380,7 +382,8 @@ class AuditLogRepository:
         if cursor is not None:
             cursor_ts, cursor_id = cursor
             query = query.where(
-                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+                tuple_(AuditLog.timestamp, AuditLog.id)
+                < tuple_(literal(cursor_ts), literal(cursor_id))
             )
         return self._session.execute(query).scalars().all()
 
@@ -417,7 +420,8 @@ class AuditLogRepository:
         if cursor is not None:
             cursor_ts, cursor_id = cursor
             query = query.where(
-                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+                tuple_(AuditLog.timestamp, AuditLog.id)
+                < tuple_(literal(cursor_ts), literal(cursor_id))
             )
         return self._session.execute(query).scalars().all()
 
@@ -447,7 +451,8 @@ class AuditLogRepository:
         if cursor is not None:
             cursor_ts, cursor_id = cursor
             query = query.where(
-                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+                tuple_(AuditLog.timestamp, AuditLog.id)
+                < tuple_(literal(cursor_ts), literal(cursor_id))
             )
         return self._session.execute(query).scalars().all()
 
