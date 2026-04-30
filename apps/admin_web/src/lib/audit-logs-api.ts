@@ -4,6 +4,7 @@ import { isRecord } from './type-guards';
 import type { AuditLogsFilters } from '@/types/audit-log';
 import type { components } from '@/types/generated/admin-api.generated';
 
+export type { AuditLogsFilters };
 export type AuditLog = components['schemas']['AuditLog'];
 
 export interface AuditLogsResponse {
