@@ -113,11 +113,6 @@ repo root
   - Use `*_assets.py` for route modules and `assets_common.py` for shared
     helpers.
   - Keep `backend/src/app/api/admin.py` focused on request dispatch orchestration.
-- When adding admin API Gateway routes, if the `ApiStack` template approaches
-  CloudFormation's 500-resource limit, add new large subtrees to a nested stack under
-  `backend/infrastructure/lib/api-admin-*-stack.ts` (see `ApiAdminServicesStack` /
-  `ApiAdminCrmStack`) rather than growing the parent template indefinitely.
-
 ### CDK Lambda physical names (`backend/infrastructure/**`)
 
 - Stack helpers set physical Lambda names to `${resourcePrefix}-${constructId}` (CloudWatch log groups follow `/aws/lambda/${functionName}`). **Do not** use construct ids that repeat the product or `resourcePrefix` token (for example `EvolvesproutsFooFunction` when `resourcePrefix` is `evolvesprouts`), or the deployed name becomes redundant (`evolvesprouts-EvolvesproutsFooFunction`). Prefer a single descriptive PascalCase id without a second product prefix (for example `ImportLegacyVenuesFunction`, `AwsApiProxyFunction`).
