@@ -150,6 +150,14 @@ def _patch_public_reservation_db_helpers(monkeypatch: pytest.MonkeyPatch) -> Non
         "app.api.public_reservations.EnrollmentRepository",
         _FakeEnrollmentRepo,
     )
+    monkeypatch.setattr(
+        "app.api.public_reservations.record_reservation_customer_payment",
+        lambda *a, **k: (None, None),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.set_audit_context",
+        lambda *a, **k: None,
+    )
 
 
 def test_handle_public_reservation_returns_409_when_instance_capacity_full(
@@ -204,6 +212,14 @@ def test_handle_public_reservation_returns_409_when_instance_capacity_full(
     monkeypatch.setattr(
         "app.api.public_reservations.EnrollmentRepository",
         _FakeEnrollmentRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.record_reservation_customer_payment",
+        lambda *a, **k: (None, None),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.set_audit_context",
+        lambda *a, **k: None,
     )
 
     class _FakeContactRepo:
@@ -862,6 +878,14 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
     monkeypatch.setattr(
         "app.api.public_reservations.EnrollmentRepository",
         _FakeEnrollmentRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.record_reservation_customer_payment",
+        lambda *a, **k: (None, None),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.set_audit_context",
+        lambda *a, **k: None,
     )
 
     class _FakeContactRepo:

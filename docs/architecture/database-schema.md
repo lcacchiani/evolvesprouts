@@ -578,6 +578,8 @@ without breaking existing junction references.
 
 - Registration/booking rows linked to a `service_instances` row.
 - Supports parent linkage to one of contact/family/organization.
+- Optional bill-to fields (`bill_to_kind`, `bill_to_contact_id`, `bill_to_family_id`,
+  `bill_to_organization_id`) for AR invoicing (migration `0055_customer_billing_ar`).
 - Optional links to event ticket tiers and discount codes.
 - Migration `0045_enroll_inst_contact_uidx` adds partial unique index
   `enrollments_instance_contact_uidx` on `(instance_id, contact_id)` where
@@ -592,6 +594,23 @@ without breaking existing junction references.
   writes also append rows to `audit_log` (application source).
 - Unique on `(purpose, block_date, period)`; merged at read time with session slots for
   public `GET /v1/calendar/blockers` (see `app.services.calendar_blockers`).
+
+### Customer billing (AR)
+
+Migration `0055_customer_billing_ar` introduces:
+
+- `customer_payments`: inbound payments and refunds (`direction`, `original_payment_id`,
+  `stripe_payment_intent_id`, `stripe_refund_id`), linked optionally to `enrollments` and `contacts`.
+- `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
+- `payment_allocations`: links payments to invoices with **positive-only** `allocated_amount`
+  (partial allocation); refunds are modeled as separate `customer_payments` rows, not negative allocations.
+- `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
+- `document_counters`: serialized invoice/receipt numbering per scope and year.
+- Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.
+
+**Public booking receipts:** At booking time the system persists the inbound `customer_payments`
+row only; the receipt row (and PDF that lists applied invoice numbers) is created when staff
+confirm the payment via `POST /v1/admin/billing/payments/{id}/confirm` or an equivalent succeeded path.
 
 ### `service_tags` + `service_assets`
 

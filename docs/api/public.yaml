@@ -732,7 +732,10 @@ paths:
         `serviceInstanceSlug` resolves to a `service_instances` row and the
         contact has no existing enrollment for that instance, inserts an
         `enrollments` row (`created_by`: `public-reservation`) with optional
-        `discount_code_id` and paid amount, then returns **202** on success.
+        `discount_code_id` and paid amount, currency, optional bill-to fields, then returns **202** on success.
+        When enrollment is created, records a **`customer_payments`** row (Stripe succeeded,
+        free, or pending for offline rails), generates a **receipt PDF** for succeeded inbound
+        payments when configured, and sends a **best-effort receipt email** after commit.
         Referral-type discount codes are rejected like the public validate endpoint.
         Returns **409** when the instance is full and public bookings may not waitlist.
         Best-effort SES booking
@@ -1510,6 +1513,30 @@ components:
           type: number
           minimum: 0
           maximum: 1000000
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: >
+            ISO 4217 sale currency for enrollment and billing (defaults to HKD when omitted).
+        billToKind:
+          type: string
+          enum: [contact, family, organization]
+          description: >
+            Optional AR bill-to override; defaults to contact (attendee). When `family` or
+            `organization`, send the matching id field.
+        billToContactId:
+          type: string
+          format: uuid
+          nullable: true
+        billToFamilyId:
+          type: string
+          format: uuid
+          nullable: true
+        billToOrganizationId:
+          type: string
+          format: uuid
+          nullable: true
         title:
           type: string
           maxLength: 200

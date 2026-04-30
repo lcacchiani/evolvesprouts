@@ -157,6 +157,13 @@ The following tables have audit triggers:
 
 - `assets`
 - `asset_access_grants`
+- `customer_payments`
+- `customer_invoices`
+- `customer_invoice_lines`
+- `payment_allocations`
+- `customer_receipts`
+
+Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code.
 
 ## Performance Considerations
 
@@ -221,11 +228,14 @@ current public reservation OpenAPI (`docs/api/public.yaml`).
 
 ## Migration
 
-The `audit_log` table and trigger function are created by Alembic revision
-`0054_add_audit_log` in `backend/db/alembic/versions/0054_add_audit_log.py`
-(`down_revision`: `0053_manual_block_audit`). That revision replaces the legacy
-pre-baseline migration `0010_add_audit_logging` (removed when the migration
-chain was reset); triggers attach only to `assets` and `asset_access_grants`.
+The `audit_log` table and shared trigger function `audit_trigger_func()` are created by
+Alembic revision `0054_add_audit_log` in `backend/db/alembic/versions/0054_add_audit_log.py`
+(`down_revision`: `0053_manual_block_audit`). That revision attaches triggers to `assets`
+and `asset_access_grants`.
+
+Customer billing (AR) tables receive the same `audit_trigger_func()` triggers from revision
+`0055_customer_billing_ar` (`down_revision`: `0054_add_audit_log`); that migration does not
+recreate `audit_log`.
 
 To apply:
 ```bash
@@ -233,8 +243,14 @@ cd backend/db
 alembic upgrade head
 ```
 
-To rollback (drops `audit_log` and triggers; leaves prior revisions applied):
+To rollback `audit_log` and asset triggers (leaves prior revisions applied):
 ```bash
 cd backend/db
 alembic downgrade 0053_manual_block_audit
+```
+
+To rollback only the billing schema after `0055_customer_billing_ar` is applied:
+```bash
+cd backend/db
+alembic downgrade 0054_add_audit_log
 ```

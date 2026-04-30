@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP, Numeric
 
 from app.db.base import Base
-from app.db.models.enums import EnrollmentStatus
+from app.db.models.enums import BillingBillToKind, EnrollmentStatus
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
@@ -28,6 +28,12 @@ if TYPE_CHECKING:
 def _enum_values(enum_cls: Iterable[EnrollmentStatus]) -> list[str]:
     """Return enum labels stored in PostgreSQL."""
     return [member.value for member in enum_cls]
+
+
+def _billing_bill_to_kind_values(
+    _enum_cls: type[BillingBillToKind] | None = None,
+) -> list[str]:
+    return [member.value for member in BillingBillToKind]
 
 
 class Enrollment(Base):
@@ -88,6 +94,30 @@ class Enrollment(Base):
         ForeignKey("discount_codes.id", ondelete="SET NULL"),
         nullable=True,
     )
+    bill_to_kind: Mapped[BillingBillToKind | None] = mapped_column(
+        Enum(
+            BillingBillToKind,
+            name="billing_bill_to_kind",
+            values_callable=_billing_bill_to_kind_values,
+            create_type=False,
+        ),
+        nullable=True,
+    )
+    bill_to_contact_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("contacts.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    bill_to_family_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("families.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    bill_to_organization_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     status: Mapped[EnrollmentStatus] = mapped_column(
         Enum(
             EnrollmentStatus,
@@ -126,9 +156,30 @@ class Enrollment(Base):
         "ServiceInstance",
         back_populates="enrollments",
     )
-    contact: Mapped[Contact | None] = relationship("Contact")
-    family: Mapped[Family | None] = relationship("Family")
-    organization: Mapped[Organization | None] = relationship("Organization")
+    contact: Mapped[Contact | None] = relationship(
+        "Contact",
+        foreign_keys="[Enrollment.contact_id]",
+    )
+    bill_to_contact: Mapped[Contact | None] = relationship(
+        "Contact",
+        foreign_keys="[Enrollment.bill_to_contact_id]",
+    )
+    family: Mapped[Family | None] = relationship(
+        "Family",
+        foreign_keys="[Enrollment.family_id]",
+    )
+    bill_to_family: Mapped[Family | None] = relationship(
+        "Family",
+        foreign_keys="[Enrollment.bill_to_family_id]",
+    )
+    organization: Mapped[Organization | None] = relationship(
+        "Organization",
+        foreign_keys="[Enrollment.organization_id]",
+    )
+    bill_to_organization: Mapped[Organization | None] = relationship(
+        "Organization",
+        foreign_keys="[Enrollment.bill_to_organization_id]",
+    )
     ticket_tier: Mapped[EventTicketTier | None] = relationship(
         "EventTicketTier",
         back_populates="enrollments",

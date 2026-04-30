@@ -9,6 +9,7 @@ from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -30,6 +31,7 @@ from app.api.public_form_hooks import (
     normalize_body_locale,
     send_booking_confirmation_email,
 )
+from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment, ServiceInstance
 from app.db.repositories import (
@@ -41,6 +43,7 @@ from app.api.discount_enrollment_scope import (
     ensure_discount_code_eligible_for_instance,
 )
 from app.db.models.enums import (
+    BillingBillToKind,
     ContactSource,
     ContactType,
     DiscountType,
@@ -59,6 +62,7 @@ from app.services.calendar_blockers import (
     raise_if_consultation_reservation_blocked,
     validate_session_slot_chronology,
 )
+from app.services.customer_billing import record_reservation_customer_payment
 from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
     send_sales_form_recap_email,
@@ -156,6 +160,86 @@ def _resolve_booking_identity(
     return resolved
 
 
+def _parse_bill_to_fields(
+    body: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Optional bill-to for enrollment (family/organization). Defaults to contact at persist."""
+    raw_kind = body.get("billToKind") or body.get("bill_to_kind")
+    if raw_kind is None or str(raw_kind).strip() == "":
+        return {
+            "bill_to_kind": BillingBillToKind.CONTACT,
+            "bill_to_contact_id": None,
+            "bill_to_family_id": None,
+            "bill_to_organization_id": None,
+        }
+    s = str(raw_kind).strip().lower()
+    if s == "contact":
+        k = BillingBillToKind.CONTACT
+    elif s == "family":
+        k = BillingBillToKind.FAMILY
+    elif s == "organization":
+        k = BillingBillToKind.ORGANIZATION
+    else:
+        raise ValidationError(
+            "billToKind must be contact, family, or organization",
+            field="billToKind",
+        )
+
+    def _opt_uuid(field_camel: str, field_snake: str) -> UUID | None:
+        raw = body.get(field_camel) or body.get(field_snake)
+        if raw is None or str(raw).strip() == "":
+            return None
+        try:
+            return UUID(str(raw).strip())
+        except ValueError as exc:
+            raise ValidationError(
+                f"{field_camel} must be a valid UUID", field=field_camel
+            ) from exc
+
+    return {
+        "bill_to_kind": k,
+        "bill_to_contact_id": _opt_uuid("billToContactId", "bill_to_contact_id"),
+        "bill_to_family_id": _opt_uuid("billToFamilyId", "bill_to_family_id"),
+        "bill_to_organization_id": _opt_uuid(
+            "billToOrganizationId", "bill_to_organization_id"
+        ),
+    }
+
+
+def _apply_enrollment_bill_to(
+    enrollment: Enrollment,
+    *,
+    contact_id: UUID,
+    bill: Mapping[str, Any],
+) -> None:
+    kind: BillingBillToKind = bill["bill_to_kind"]
+    enrollment.bill_to_kind = kind
+    if kind == BillingBillToKind.CONTACT:
+        enrollment.bill_to_contact_id = bill.get("bill_to_contact_id") or contact_id
+        enrollment.bill_to_family_id = None
+        enrollment.bill_to_organization_id = None
+    elif kind == BillingBillToKind.FAMILY:
+        fid = bill.get("bill_to_family_id")
+        if fid is None:
+            raise ValidationError(
+                "billToFamilyId is required when billToKind is family",
+                field="billToFamilyId",
+            )
+        enrollment.bill_to_family_id = fid
+        enrollment.bill_to_contact_id = None
+        enrollment.bill_to_organization_id = None
+    else:
+        oid = bill.get("bill_to_organization_id")
+        if oid is None:
+            raise ValidationError(
+                "billToOrganizationId is required when billToKind is organization",
+                field="billToOrganizationId",
+            )
+        enrollment.bill_to_organization_id = oid
+        enrollment.bill_to_contact_id = None
+        enrollment.bill_to_family_id = None
+
+
 def _handle_public_reservation(
     event: Mapping[str, Any],
     method: str,
@@ -201,7 +285,13 @@ def _handle_public_reservation(
         )
 
     try:
+        request_id_str = str(event.get("requestContext", {}).get("requestId") or "")
         with Session(get_engine()) as session:
+            set_audit_context(
+                session,
+                user_id=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
+                request_id=request_id_str or None,
+            )
             resolved_instance = _resolve_booking_identity(session, reservation_payload)
             reservation_payload = {
                 **reservation_payload,
@@ -285,10 +375,29 @@ def _handle_public_reservation(
                     discount_code_id=None,
                     status=EnrollmentStatus.REGISTERED,
                     amount_paid=reservation_payload["total_amount"],
-                    currency="HKD",
+                    currency=reservation_payload["currency"],
                     notes=None,
                     created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
                 )
+                try:
+                    _apply_enrollment_bill_to(
+                        enrollment_row,
+                        contact_id=contact.id,
+                        bill={
+                            "bill_to_kind": reservation_payload["bill_to_kind"],
+                            "bill_to_contact_id": reservation_payload[
+                                "bill_to_contact_id"
+                            ],
+                            "bill_to_family_id": reservation_payload[
+                                "bill_to_family_id"
+                            ],
+                            "bill_to_organization_id": reservation_payload[
+                                "bill_to_organization_id"
+                            ],
+                        },
+                    )
+                except ValidationError as exc:
+                    return json_response(exc.status_code, exc.to_dict(), event=event)
                 created_enrollment, create_err = (
                     enrollment_repo.try_create_enrollment_with_capacity_guard(
                         enrollment_row
@@ -313,6 +422,18 @@ def _handle_public_reservation(
                             )
                         created_enrollment.discount_code_id = dc_row.id
                         session.flush()
+                    record_reservation_customer_payment(
+                        session,
+                        enrollment_id=created_enrollment.id,
+                        contact_id=contact.id,
+                        currency=reservation_payload["currency"],
+                        total_amount=reservation_payload["total_amount"],
+                        payment_method=reservation_payload["payment_method"],
+                        stripe_payment_intent_id=reservation_payload.get(
+                            "stripe_payment_intent_id"
+                        ),
+                        stripe_currency=reservation_payload.get("stripe_currency"),
+                    )
 
             lead_metadata: dict[str, object] = {
                 "payment_method": reservation_payload["payment_method"],
@@ -546,6 +667,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
+    sale_currency = _optional_currency(body.get("currency"))
     stripe_payment_intent_id = _stripe_payment_intent_id_from_body(body)
     schedule_date = _optional_text(
         body.get("scheduleDate"),
@@ -684,6 +806,8 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     if pm_lower == "free":
         reservation_pending = False
 
+    bill = _parse_bill_to_fields(body)
+
     return {
         "attendee_name": attendee_name,
         "attendee_email": attendee_email,
@@ -694,6 +818,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "service_tier": service_tier,
         "payment_method": payment_method,
         "total_amount": total_amount,
+        "currency": sale_currency,
         "title": title,
         "schedule_date": schedule_date,
         "schedule_time": schedule_time,
@@ -719,6 +844,10 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "service_instance_cohort": service_instance_cohort,
         "agreed_to_terms_and_conditions": True,
         "reservation_pending_until_payment_confirmed": reservation_pending,
+        "bill_to_kind": bill["bill_to_kind"],
+        "bill_to_contact_id": bill["bill_to_contact_id"],
+        "bill_to_family_id": bill["bill_to_family_id"],
+        "bill_to_organization_id": bill["bill_to_organization_id"],
     }
 
 
@@ -855,9 +984,9 @@ def _optional_fps_qr_data_url(value: Any) -> str | None:
 
 def _validate_payment_confirmation(
     event: Mapping[str, Any],
-    reservation_payload: Mapping[str, Any],
+    reservation_payload: dict[str, Any],
 ) -> None:
-    """Validate Stripe payment confirmation details for Stripe reservations."""
+    """Validate Stripe payment confirmation; attach ``stripe_currency`` when Stripe."""
     payment_method = (
         str(reservation_payload.get("payment_method") or "").strip().lower()
     )
@@ -899,6 +1028,8 @@ def _validate_payment_confirmation(
         stripe_intent=stripe_intent,
         reservation_payload=reservation_payload,
     )
+    cur = str(stripe_intent.get("currency") or "hkd").upper()[:3]
+    reservation_payload["stripe_currency"] = cur
 
 
 def _retrieve_stripe_payment_intent(
@@ -1011,6 +1142,19 @@ def _optional_text(value: Any, field_name: str, max_length: int) -> str | None:
         max_length=max_length,
         required=False,
     )
+
+
+def _optional_currency(raw: Any) -> str:
+    """ISO 4217 currency; default HKD for legacy clients."""
+    if raw is None or str(raw).strip() == "":
+        return "HKD"
+    s = str(raw).strip().upper()
+    if len(s) != 3 or not s.isalpha():
+        raise ValidationError(
+            "currency must be a 3-letter ISO 4217 code",
+            field="currency",
+        )
+    return s
 
 
 def _parse_total_amount(value: Any) -> Decimal:
