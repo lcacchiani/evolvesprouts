@@ -3859,7 +3859,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Export billing CSV (payments and allocations) */
+        /**
+         * Export billing CSV (v1 — payments and allocations only)
+         * @description `export_version` is `1`. Rows include `document_type` `payment` and `allocation` only; invoices, receipts, and dedicated refund tagging are not included in this version (see product roadmap for export v2).
+         */
         get: {
             parameters: {
                 query?: never;
@@ -4195,7 +4198,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Void issued invoice */
+        /**
+         * Void invoice (draft or issued)
+         * @description Voids a draft or issued invoice. Returns 400 if already void. Application audit rows distinguish `VOID_FROM_DRAFT` vs `VOID_FROM_ISSUED`.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -5798,9 +5804,13 @@ export interface components {
             method?: string;
             stripeRefundId?: string | null;
         };
+        /** @description Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
         CreateDraftInvoiceRequest: {
             enrollmentIds: string[];
             currency: string;
+            lineTotalsByEnrollmentId?: {
+                [key: string]: string;
+            };
         };
         CreatePaymentAllocationRequest: {
             /** Format: uuid */

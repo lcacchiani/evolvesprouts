@@ -144,7 +144,7 @@ def test_create_invoice_draft_rejects_currency_mismatch(
 
         def _exec(_stmt: Any, *a: Any, **k: Any) -> MagicMock:
             out = MagicMock()
-            out.unique.return_value.scalar_one_or_none.return_value = fake_en
+            out.unique.return_value.scalars.return_value.all.return_value = [fake_en]
             return out
 
         s.execute.side_effect = _exec
@@ -186,7 +186,6 @@ def test_create_invoice_draft_rejects_billto_mismatch(
 
     en1 = _make_en(e1, fam1)
     en2 = _make_en(e2, fam2)
-    queue = [en1, en2]
 
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
@@ -194,8 +193,7 @@ def test_create_invoice_draft_rejects_billto_mismatch(
 
         def _exec(_stmt: Any, *a: Any, **k: Any) -> MagicMock:
             out = MagicMock()
-            en = queue.pop(0)
-            out.unique.return_value.scalar_one_or_none.return_value = en
+            out.unique.return_value.scalars.return_value.all.return_value = [en1, en2]
             return out
 
         s.execute.side_effect = _exec
@@ -265,6 +263,11 @@ def test_confirm_payment_creates_receipt_for_pending_inbound(
         admin_billing,
         "create_receipt_for_succeeded_inbound_payment",
         _create_rcpt,
+    )
+    monkeypatch.setattr(
+        admin_billing,
+        "finalize_receipt_pdf_upload",
+        lambda *_a, **_k: None,
     )
 
     ev = api_gateway_event(

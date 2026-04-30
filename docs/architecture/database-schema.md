@@ -604,9 +604,13 @@ Migration `0055_customer_billing_ar` introduces:
 - `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
 - `payment_allocations`: links payments to invoices with **positive-only** `allocated_amount`
   (partial allocation); refunds are modeled as separate `customer_payments` rows, not negative allocations.
+  **`payment_unapplied_amount`** sums allocations **matching the parent payment's currency** only
+  (one currency per payment; multi-currency allocation is not supported).
 - `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
 - `document_counters`: serialized invoice/receipt numbering per scope and year.
 - Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.
+- Migration `0056_tighten_invoice_billto` replaces `customer_invoices_bill_to_one_chk` so non-draft
+  rows have exactly one bill-to FK populated (exclusive branches per `bill_to_kind`).
 
 **Public booking receipts:** At booking time the system persists the inbound `customer_payments`
 row only; the receipt row (and PDF that lists applied invoice numbers) is created when staff

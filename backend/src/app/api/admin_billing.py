@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import csv
 import io
+from contextlib import contextmanager
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -20,7 +21,9 @@ from app.db.engine import get_engine
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
-from app.db.models import Enrollment
+from app.db.models import Contact, Enrollment, Family, Organization
+from app.db.models.family import FamilyMember
+from app.db.models.organization import OrganizationMember
 from app.db.models.enums import (
     BillingBillToKind,
     BillingInvoiceStatus,
@@ -31,6 +34,7 @@ from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
     create_receipt_for_succeeded_inbound_payment,
+    finalize_receipt_pdf_upload,
     next_invoice_number,
     payment_unapplied_amount,
     refresh_invoice_pdf,
@@ -119,10 +123,13 @@ def handle_admin_billing_request(
     return json_response(404, {"error": "Not found"}, event=event)
 
 
-def _session_with_audit(user_sub: str, request_id_val: str | None) -> Session:
-    session = Session(get_engine())
-    set_audit_context(session, user_id=user_sub, request_id=request_id_val)
-    return session
+@contextmanager
+def _session_with_audit(user_sub: str, request_id_val: str | None):
+    """Open a session + transaction and set audit context inside the transaction."""
+    with Session(get_engine()) as session:
+        with session.begin():
+            set_audit_context(session, user_id=user_sub, request_id=request_id_val)
+            yield session
 
 
 def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
@@ -253,7 +260,6 @@ def _create_payment(
             new_values={"original_payment_id": str(orig_id), "amount": str(amount)},
         )
         payload = _serialize_payment(refund)
-        session.commit()
     return json_response(201, {"payment": payload}, event=event)
 
 
@@ -265,6 +271,7 @@ def _confirm_payment(
     request_id: str | None,
 ) -> dict[str, Any]:
     body = parse_body(event) if event.get("body") else {}
+    receipt_id_for_upload: UUID | None = None
     with _session_with_audit(user_sub, request_id) as session:
         p = session.get(CustomerPayment, payment_id)
         if p is None:
@@ -285,9 +292,21 @@ def _confirm_payment(
             select(CustomerReceipt).where(CustomerReceipt.customer_payment_id == p.id)
         ).scalar_one_or_none()
         if existing_receipt is None:
-            create_receipt_for_succeeded_inbound_payment(session, payment=p)
+            rcpt = create_receipt_for_succeeded_inbound_payment(session, payment=p)
+            receipt_id_for_upload = rcpt.id
         out = _serialize_payment(p)
-        session.commit()
+    if receipt_id_for_upload is not None:
+        try:
+            with Session(get_engine()) as upload_session:
+                finalize_receipt_pdf_upload(
+                    upload_session, receipt_id=receipt_id_for_upload
+                )
+                upload_session.commit()
+        except Exception:
+            logger.exception(
+                "Receipt PDF S3 finalize failed after payment confirm",
+                extra={"receipt_id": str(receipt_id_for_upload)},
+            )
     return json_response(200, {"payment": out}, event=event)
 
 
@@ -299,6 +318,132 @@ def _enrollment_merge_key(en: Enrollment) -> tuple[Any, ...]:
         en.bill_to_family_id,
         en.bill_to_organization_id,
     )
+
+
+def _contact_display_name(c: Contact) -> str | None:
+    return " ".join(x for x in [c.first_name, c.last_name] if x).strip() or None
+
+
+def _resolve_bill_to_party_for_draft(
+    session: Session, *, inv: CustomerInvoice, first: Enrollment
+) -> None:
+    """Set bill_to_email and bill_to_display_name for contact, family, or org."""
+    if inv.bill_to_kind == BillingBillToKind.CONTACT:
+        cid = inv.bill_to_contact_id or first.contact_id
+        if cid:
+            c = session.get(Contact, cid)
+            if c and c.email:
+                inv.bill_to_email = c.email
+                inv.bill_to_display_name = _contact_display_name(c)
+        return
+    if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
+        fam = session.get(Family, inv.bill_to_family_id)
+        if fam is None:
+            return
+        inv.bill_to_display_name = fam.family_name
+        stmt = (
+            select(Contact)
+            .join(FamilyMember, FamilyMember.contact_id == Contact.id)
+            .where(FamilyMember.family_id == inv.bill_to_family_id)
+            .where(FamilyMember.is_primary_contact.is_(True))
+            .limit(1)
+        )
+        primary = session.execute(stmt).scalar_one_or_none()
+        if primary and primary.email:
+            inv.bill_to_email = primary.email
+        return
+    if (
+        inv.bill_to_kind == BillingBillToKind.ORGANIZATION
+        and inv.bill_to_organization_id
+    ):
+        org = session.get(Organization, inv.bill_to_organization_id)
+        if org is None:
+            return
+        inv.bill_to_display_name = org.name
+        stmt = (
+            select(Contact)
+            .join(
+                OrganizationMember,
+                OrganizationMember.contact_id == Contact.id,
+            )
+            .where(OrganizationMember.organization_id == inv.bill_to_organization_id)
+            .where(OrganizationMember.is_primary_contact.is_(True))
+            .limit(1)
+        )
+        primary = session.execute(stmt).scalar_one_or_none()
+        if primary and primary.email:
+            inv.bill_to_email = primary.email
+
+
+def _validate_bill_to_fk_for_issue(inv: CustomerInvoice) -> None:
+    if inv.bill_to_kind == BillingBillToKind.CONTACT:
+        if inv.bill_to_contact_id is None:
+            raise ValidationError(
+                "Invoice bill-to contact is required before issue",
+                field="invoiceId",
+            )
+        if inv.bill_to_family_id is not None or inv.bill_to_organization_id is not None:
+            raise ValidationError(
+                "Invoice has inconsistent bill-to foreign keys",
+                field="invoiceId",
+            )
+        return
+    if inv.bill_to_kind == BillingBillToKind.FAMILY:
+        if inv.bill_to_family_id is None:
+            raise ValidationError(
+                "Invoice bill-to family is required before issue",
+                field="invoiceId",
+            )
+        if (
+            inv.bill_to_contact_id is not None
+            or inv.bill_to_organization_id is not None
+        ):
+            raise ValidationError(
+                "Invoice has inconsistent bill-to foreign keys",
+                field="invoiceId",
+            )
+        return
+    if inv.bill_to_kind == BillingBillToKind.ORGANIZATION:
+        if inv.bill_to_organization_id is None:
+            raise ValidationError(
+                "Invoice bill-to organization is required before issue",
+                field="invoiceId",
+            )
+        if inv.bill_to_contact_id is not None or inv.bill_to_family_id is not None:
+            raise ValidationError(
+                "Invoice has inconsistent bill-to foreign keys",
+                field="invoiceId",
+            )
+
+
+def _build_bill_to_snapshot(session: Session, inv: CustomerInvoice) -> dict[str, Any]:
+    snap: dict[str, Any] = {
+        "kind": inv.bill_to_kind.value,
+        "display_name": inv.bill_to_display_name,
+        "email": inv.bill_to_email,
+        "snapshot_at": datetime.now(UTC).isoformat(),
+    }
+    if inv.bill_to_kind == BillingBillToKind.CONTACT and inv.bill_to_contact_id:
+        c = session.get(Contact, inv.bill_to_contact_id)
+        if c:
+            snap["contact"] = {
+                "id": str(c.id),
+                "first_name": c.first_name,
+                "last_name": c.last_name,
+                "email": c.email,
+            }
+    elif inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
+        fam = session.get(Family, inv.bill_to_family_id)
+        if fam:
+            snap["family"] = {"id": str(fam.id), "family_name": fam.family_name}
+    elif (
+        inv.bill_to_kind == BillingBillToKind.ORGANIZATION
+        and inv.bill_to_organization_id
+    ):
+        org = session.get(Organization, inv.bill_to_organization_id)
+        if org:
+            snap["organization"] = {"id": str(org.id), "name": org.name}
+    return snap
 
 
 def _create_invoice_draft(
@@ -313,32 +458,51 @@ def _create_invoice_draft(
     if len(currency) != 3:
         raise ValidationError("currency is required", field="currency")
 
-    with _session_with_audit(user_sub, request_id) as session:
-        enrollments: list[Enrollment] = []
-        for eid in eids:
-            en = (
-                session.execute(
-                    select(Enrollment)
-                    .where(Enrollment.id == eid)
-                    .options(
-                        joinedload(Enrollment.instance),
-                        joinedload(Enrollment.contact),
-                    )
-                )
-                .unique()
-                .scalar_one_or_none()
-            )
-            if en is None:
+    overrides_raw = body.get("lineTotalsByEnrollmentId") or body.get(
+        "line_totals_by_enrollment_id"
+    )
+    line_overrides: dict[UUID, Decimal] = {}
+    if isinstance(overrides_raw, Mapping):
+        for k, v in overrides_raw.items():
+            try:
+                eid_key = UUID(str(k))
+                line_overrides[eid_key] = Decimal(str(v))
+            except (ValueError, TypeError, InvalidOperation):
                 raise ValidationError(
-                    f"Enrollment not found: {eid}", field="enrollmentIds"
+                    "lineTotalsByEnrollmentId must map enrollment UUID strings to amounts",
+                    field="lineTotalsByEnrollmentId",
+                ) from None
+
+    with _session_with_audit(user_sub, request_id) as session:
+        rows = list(
+            session.execute(
+                select(Enrollment)
+                .where(Enrollment.id.in_(eids))
+                .options(
+                    joinedload(Enrollment.instance),
+                    joinedload(Enrollment.contact),
                 )
+            )
+            .unique()
+            .scalars()
+            .all()
+        )
+        by_id = {row.id: row for row in rows}
+        missing = [eid for eid in eids if eid not in by_id]
+        if missing:
+            raise ValidationError(
+                f"Enrollment not found: {missing[0]}",
+                field="enrollmentIds",
+            )
+        enrollments = [by_id[eid] for eid in eids]
+
+        for en in enrollments:
             ec = (en.currency or "HKD").upper()[:3]
             if ec != currency:
                 raise ValidationError(
                     "All enrollments must match invoice currency",
                     field="currency",
                 )
-            enrollments.append(en)
 
         keys = {_enrollment_merge_key(e) for e in enrollments}
         if len(keys) != 1:
@@ -360,14 +524,7 @@ def _create_invoice_draft(
             bill_to_family_id=first.bill_to_family_id,
             bill_to_organization_id=first.bill_to_organization_id,
         )
-        if first.contact and first.contact.email:
-            inv.bill_to_email = first.contact.email
-            inv.bill_to_display_name = (
-                " ".join(
-                    x for x in [first.contact.first_name, first.contact.last_name] if x
-                ).strip()
-                or None
-            )
+        _resolve_bill_to_party_for_draft(session, inv=inv, first=first)
 
         session.add(inv)
         session.flush()
@@ -378,7 +535,10 @@ def _create_invoice_draft(
             title = ""
             if en.instance:
                 title = (en.instance.title or "").strip()
-            line_total = en.amount_paid or Decimal("0")
+            if en.id in line_overrides:
+                line_total = line_overrides[en.id]
+            else:
+                line_total = en.amount_paid or Decimal("0")
             desc = title or "Enrollment"
             line = CustomerInvoiceLine(
                 invoice_id=inv.id,
@@ -405,7 +565,6 @@ def _create_invoice_draft(
             action="DRAFT_CREATED",
             new_values={"enrollment_ids": [str(x) for x in eids]},
         )
-        session.commit()
 
         return json_response(
             201,
@@ -428,6 +587,9 @@ def _issue_invoice(
         if inv.status != BillingInvoiceStatus.DRAFT:
             raise ValidationError("Invoice is not draft", field="invoiceId")
 
+        _validate_bill_to_fk_for_issue(inv)
+        inv.bill_to_snapshot = _build_bill_to_snapshot(session, inv)
+
         num, seq = next_invoice_number(session, currency=inv.currency)
         inv.invoice_number = num
         inv.invoice_sequence = seq
@@ -435,7 +597,6 @@ def _issue_invoice(
         inv.issued_at = datetime.now(UTC)
         session.flush()
         refresh_invoice_pdf(session, inv)
-        session.commit()
 
         return json_response(
             200,
@@ -463,10 +624,23 @@ def _void_invoice(
         inv = session.get(CustomerInvoice, invoice_id)
         if inv is None:
             raise NotFoundError("CustomerInvoice", str(invoice_id))
+        if inv.status == BillingInvoiceStatus.VOID:
+            raise ValidationError("Invoice is already void", field="invoiceId")
+        prev = inv.status
         inv.status = BillingInvoiceStatus.VOID
         inv.voided_at = datetime.now(UTC)
         inv.void_reason = reason[:2000]
-        session.commit()
+        audit = AuditService(session, user_id=user_sub, request_id=request_id)
+        audit.log_custom(
+            table_name="customer_invoices",
+            record_id=inv.id,
+            action=(
+                "VOID_FROM_DRAFT"
+                if prev == BillingInvoiceStatus.DRAFT
+                else "VOID_FROM_ISSUED"
+            ),
+            new_values={"reason": inv.void_reason},
+        )
         return json_response(
             200, {"invoiceId": str(inv.id), "status": "void"}, event=event
         )
@@ -485,7 +659,6 @@ def _email_invoice(
         raise ValidationError("toEmail is required", field="toEmail")
     with _session_with_audit(user_sub, request_id) as session:
         send_invoice_email(session, invoice_id=invoice_id, to_email=to_email)
-        session.commit()
         return json_response(200, {"sent": True}, event=event)
 
 
@@ -528,7 +701,6 @@ def _create_allocation(
         )
         session.add(alloc)
         session.flush()
-        session.commit()
         return json_response(
             201,
             {"allocationId": str(alloc.id)},

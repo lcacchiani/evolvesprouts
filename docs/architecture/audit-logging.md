@@ -165,6 +165,11 @@ The following tables have audit triggers:
 
 Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code.
 
+**Public reservations:** Trigger-written `audit_log` rows for enrollments and related tables
+use `user_id = NULL` (no Cognito actor); correlate using `request_id` from API Gateway. Optional
+`AuditService.log_custom` rows (e.g. `PUBLIC_RESERVATION_PERSISTED` on `enrollments`) add
+application-sourced markers with details in `new_values`.
+
 ## Performance Considerations
 
 1. **Trigger Overhead**: Minimal (~1-2ms per operation)

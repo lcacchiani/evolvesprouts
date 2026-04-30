@@ -18,6 +18,14 @@ from app.api.public_reservations import (
 from app.db.models.enums import DiscountType
 
 
+class _FakeBeginNestedCM:
+    def __enter__(self) -> None:
+        return None
+
+    def __exit__(self, *_a: object) -> bool:
+        return False
+
+
 def _resolved_instance_stub(
     instance_id: object,
     service_id: object,
@@ -253,6 +261,12 @@ def test_handle_public_reservation_returns_409_when_instance_capacity_full(
         def commit(self) -> None:
             return None
 
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
             return _FakeSession()
@@ -335,6 +349,12 @@ def test_handle_public_reservation_accepts_free_payment_zero_total(
     class _FakeSession:
         def commit(self) -> None:
             return None
+
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
 
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
@@ -460,6 +480,12 @@ def test_handle_public_reservation_forces_pending_false_for_free_even_if_client_
         def commit(self) -> None:
             return None
 
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
             return _FakeSession()
@@ -547,6 +573,12 @@ def test_handle_public_reservation_runs_hooks_after_persist(
         def commit(self) -> None:
             return None
 
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
             return _FakeSession()
@@ -631,6 +663,12 @@ def test_handle_public_reservation_accepts_missing_service_tier(
     class _FakeSession:
         def commit(self) -> None:
             return None
+
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
 
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:
@@ -924,11 +962,17 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
         def commit(self) -> None:
             return None
 
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
         def flush(self) -> None:
             return None
 
         def delete(self, *_a: object, **_k: object) -> None:
             return None
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
 
     class _FakeSessionCM:
         def __enter__(self) -> _FakeSession:

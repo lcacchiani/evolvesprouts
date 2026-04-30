@@ -12,6 +12,7 @@ from uuid import UUID
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
@@ -223,7 +224,11 @@ def create_receipt_for_succeeded_inbound_payment(
     *,
     payment: CustomerPayment,
 ) -> CustomerReceipt:
-    """Create receipt row + PDF + S3 for an inbound succeeded payment."""
+    """Create receipt row, PDF bytes, and SHA-256 inside the DB transaction.
+
+    Does **not** upload to S3 (defer to :func:`finalize_receipt_pdf_upload` after
+    ``commit``) so S3 failures do not roll back payment confirmation.
+    """
     if payment.direction != BillingPaymentDirection.INBOUND:
         raise ValueError("Receipt only for inbound payments")
     if payment.status != BillingPaymentStatus.SUCCEEDED:
@@ -254,15 +259,48 @@ def create_receipt_for_succeeded_inbound_payment(
     )
     digest = _sha256_bytes(pdf_bytes)
     key = f"billing/receipts/{receipt.id}.pdf"
-    store_pdf_in_assets_bucket(
-        s3_key=key,
-        body=pdf_bytes,
-        content_type="application/pdf",
-    )
-    receipt.issued_pdf_s3_key = key
     receipt.issued_pdf_sha256 = digest
     session.flush()
+    # Stash for post-commit upload (not a mapped column)
+    setattr(receipt, "_pending_receipt_pdf_bytes", pdf_bytes)
+    setattr(receipt, "_pending_receipt_s3_key", key)
     return receipt
+
+
+def finalize_receipt_pdf_upload(session: Session, *, receipt_id: UUID) -> None:
+    """Upload receipt PDF to S3 and set ``issued_pdf_s3_key`` (call after main commit)."""
+    receipt = session.get(CustomerReceipt, receipt_id)
+    if receipt is None or receipt.issued_pdf_s3_key:
+        return
+    payment = session.get(CustomerPayment, receipt.customer_payment_id)
+    if payment is None:
+        return
+    pdf_bytes = getattr(receipt, "_pending_receipt_pdf_bytes", None)
+    key = (
+        getattr(receipt, "_pending_receipt_s3_key", None)
+        or f"billing/receipts/{receipt.id}.pdf"
+    )
+    if pdf_bytes is None:
+        labels = allocation_invoice_labels_for_payment(session, payment.id)
+        pdf_bytes = render_receipt_pdf(
+            receipt=receipt,
+            payment=payment,
+            allocation_invoice_numbers=labels,
+        )
+    try:
+        store_pdf_in_assets_bucket(
+            s3_key=key,
+            body=pdf_bytes,
+            content_type="application/pdf",
+        )
+    except Exception:
+        logger.exception(
+            "Receipt S3 upload failed after commit",
+            extra={"receipt_id": str(receipt_id), "s3_key": key},
+        )
+        return
+    receipt.issued_pdf_s3_key = key
+    session.flush()
 
 
 def send_receipt_email(session: Session, *, receipt_id: UUID, to_email: str) -> None:
@@ -347,6 +385,13 @@ def record_reservation_customer_payment(
     pay_currency = (stripe_currency or currency or "HKD").upper()[:3]
 
     if expects_stripe and stripe_payment_intent_id:
+        existing_pi = session.execute(
+            select(CustomerPayment).where(
+                CustomerPayment.stripe_payment_intent_id == stripe_payment_intent_id
+            )
+        ).scalar_one_or_none()
+        if existing_pi is not None:
+            return existing_pi, None
         pay = CustomerPayment(
             direction=BillingPaymentDirection.INBOUND,
             status=BillingPaymentStatus.SUCCEEDED,
@@ -379,8 +424,20 @@ def record_reservation_customer_payment(
             enrollment_id=enrollment_id,
             contact_id=contact_id,
         )
-    session.add(pay)
-    session.flush()
+    try:
+        with session.begin_nested():
+            session.add(pay)
+            session.flush()
+    except IntegrityError:
+        if expects_stripe and stripe_payment_intent_id:
+            dup = session.execute(
+                select(CustomerPayment).where(
+                    CustomerPayment.stripe_payment_intent_id == stripe_payment_intent_id
+                )
+            ).scalar_one_or_none()
+            if dup is not None:
+                return dup, None
+        raise
     return pay, None
 
 
@@ -440,8 +497,8 @@ def payment_unapplied_amount(session: Session, payment_id: UUID) -> Decimal:
     if pay is None:
         return Decimal("0")
     allocated = session.execute(
-        select(func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0)).where(
-            PaymentAllocation.payment_id == payment_id
-        )
+        select(func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0))
+        .where(PaymentAllocation.payment_id == payment_id)
+        .where(PaymentAllocation.currency == pay.currency)
     ).scalar_one()
     return Decimal(str(pay.amount)) - Decimal(str(allocated))
