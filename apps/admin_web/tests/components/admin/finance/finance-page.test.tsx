@@ -104,6 +104,7 @@ describe('FinancePage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
     expect(screen.getByRole('heading', { name: 'Client Invoices' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Client billing actions' })).toBeInTheDocument();
     expect(window.location.search).toBe('?tab=client-invoices');
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
