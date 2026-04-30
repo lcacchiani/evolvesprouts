@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.sql import ColumnElement
 
 from app.db.models import (
     ConsultationInstanceDetails,
@@ -31,6 +32,41 @@ InstanceDetails = (
     TrainingInstanceDetails | ConsultationInstanceDetails | list[EventTicketTier] | None
 )
 
+_PUBLIC_CALENDAR_BLOCKER_DEFAULT_TYPES: tuple[ServiceType, ...] = (
+    ServiceType.EVENT,
+    ServiceType.TRAINING_COURSE,
+)
+
+
+def public_calendar_blocker_instance_predicates(
+    *,
+    service_types: tuple[ServiceType, ...] | None = None,
+) -> tuple[ColumnElement[bool], ...]:
+    """Shared filters for published event/training instances (public calendar + blockers).
+
+    Pass ``service_types`` to mirror :meth:`ServiceInstanceRepository.list_public_offerings`
+    (when ``None``, defaults to event + training_course). Excludes list limit, slug,
+    service_key filters, earliest-slot ordering, and the ``ends_at >= now`` feed filter.
+    """
+    types_tuple = (
+        _PUBLIC_CALENDAR_BLOCKER_DEFAULT_TYPES if not service_types else service_types
+    )
+    return (
+        Service.service_type.in_(types_tuple),
+        Service.status == ServiceStatus.PUBLISHED,
+        ServiceInstance.status != InstanceStatus.CANCELLED,
+        ServiceInstance.status.in_(
+            [
+                InstanceStatus.SCHEDULED,
+                InstanceStatus.OPEN,
+                InstanceStatus.FULL,
+                InstanceStatus.IN_PROGRESS,
+                InstanceStatus.COMPLETED,
+            ]
+        ),
+        ServiceInstance.slug != "",
+    )
+
 
 def select_public_calendar_blocker_session_slots(
     *,
@@ -39,31 +75,14 @@ def select_public_calendar_blocker_session_slots(
 ):
     """Session slot rows for public calendar blocker merge (published event/training).
 
-    Must stay aligned with :meth:`ServiceInstanceRepository.list_public_offerings`
-    instance + service eligibility (excluding ``limit``, ``slug``, ``service_key``,
-    ``earliest_upcoming_slot`` ordering, and the ``ends_at >= now`` feed filter).
+    Uses :func:`public_calendar_blocker_instance_predicates` — same eligibility as
+    :meth:`ServiceInstanceRepository.list_public_offerings` (see that docstring).
     """
     return (
         select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
         .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
         .join(Service, ServiceInstance.service_id == Service.id)
-        .where(
-            Service.service_type.in_((ServiceType.EVENT, ServiceType.TRAINING_COURSE))
-        )
-        .where(Service.status == ServiceStatus.PUBLISHED)
-        .where(ServiceInstance.status != InstanceStatus.CANCELLED)
-        .where(
-            ServiceInstance.status.in_(
-                [
-                    InstanceStatus.SCHEDULED,
-                    InstanceStatus.OPEN,
-                    InstanceStatus.FULL,
-                    InstanceStatus.IN_PROGRESS,
-                    InstanceStatus.COMPLETED,
-                ]
-            )
-        )
-        .where(ServiceInstance.slug != "")
+        .where(and_(*public_calendar_blocker_instance_predicates()))
         .where(InstanceSessionSlot.starts_at < range_end_utc)
         .where(InstanceSessionSlot.ends_at > range_start_utc)
     )
@@ -268,18 +287,11 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         statement = (
             select(ServiceInstance)
             .join(Service, ServiceInstance.service_id == Service.id)
-            .where(Service.service_type.in_(types_tuple))
-            .where(Service.status == ServiceStatus.PUBLISHED)
-            .where(ServiceInstance.status != InstanceStatus.CANCELLED)
             .where(
-                ServiceInstance.status.in_(
-                    [
-                        InstanceStatus.SCHEDULED,
-                        InstanceStatus.OPEN,
-                        InstanceStatus.FULL,
-                        InstanceStatus.IN_PROGRESS,
-                        InstanceStatus.COMPLETED,
-                    ]
+                and_(
+                    *public_calendar_blocker_instance_predicates(
+                        service_types=types_tuple
+                    )
                 )
             )
             .where(

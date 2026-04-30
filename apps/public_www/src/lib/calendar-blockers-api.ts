@@ -23,6 +23,25 @@ function ymdFromLocalDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Monday 00:00 local of the week containing `d` (local calendar). */
+function startOfWeekMondayLocal(d: Date): Date {
+  const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dow = copy.getDay(); // 0 Sun .. 6 Sat
+  const offsetFromMonday = (dow + 6) % 7;
+  copy.setDate(copy.getDate() - offsetFromMonday);
+  return copy;
+}
+
+/** Inclusive end date: start Monday + 119 days (17 weeks − 1 day), still ≤120-day API span. */
+export function buildConsultationBlockersQueryRange(now: Date): {
+  fromYmd: string;
+  toYmd: string;
+} {
+  const start = startOfWeekMondayLocal(now);
+  const end = new Date(start.getTime() + 119 * 86400000);
+  return { fromYmd: ymdFromLocalDate(start), toYmd: ymdFromLocalDate(end) };
+}
+
 export function buildCalendarBlockersApiPath(params: {
   purpose: string;
   fromYmd: string;
@@ -47,10 +66,7 @@ export async function fetchConsultationCalendarBlockersSlots(
     return { slots: [], fetchFailed: true };
   }
 
-  const today = new Date();
-  const fromYmd = ymdFromLocalDate(today);
-  const end = new Date(today.getTime() + 120 * 86400000);
-  const toYmd = ymdFromLocalDate(end);
+  const { fromYmd, toYmd } = buildConsultationBlockersQueryRange(new Date());
 
   try {
     const payload = await client.request({

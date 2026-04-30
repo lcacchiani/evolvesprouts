@@ -7,13 +7,16 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import and_, exists, or_, select
 from sqlalchemy.orm import Session
 
 from app.db.models.calendar_manual_block import CalendarManualBlock
+from app.db.models import InstanceSessionSlot, Service, ServiceInstance
 from app.db.repositories.service_instance import (
+    public_calendar_blocker_instance_predicates,
     select_public_calendar_blocker_session_slots,
 )
+from app.exceptions import ValidationError
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -179,24 +182,29 @@ def merge_calendar_blockers_for_purpose(
     return _merge_period_map(by_date)
 
 
-def half_day_period_for_consultation_iso(
+def classify_consultation_start_local_half_day(
     *,
     start_iso: str,
     wall_zone: str | None = None,
-) -> tuple[date, CalendarBlockPeriod] | None:
-    """Map an ISO instant to (local calendar date, am|pm) for consultation windows.
+    field: str = "primarySessionStartIso",
+) -> tuple[date, CalendarBlockPeriod]:
+    """Map an ISO instant to (local calendar date, am|pm) using wall-clock hour rules.
 
-    AM = local hour in [09:00, 12:00); PM = [14:00, 18:00). The gap 12:00–14:00
-    and outside 09–18 are invalid (returns None).
+    Morning = local hour before 12; afternoon = local hour 14 or later.
+    Local hours 12--13 (noon gap) and invalid timestamps raise ``ValidationError``.
     """
     try:
         start = datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
     except ValueError:
         logger.info(
             "consultation_slot_classification_failed",
-            extra={"reason": "iso_parse_error"},
+            extra={"reason": "iso_parse_error", "field": field},
         )
-        return None
+        raise ValidationError(
+            "Invalid consultation session start time format.",
+            field=field,
+        ) from None
+
     if start.tzinfo is None:
         start = start.replace(tzinfo=UTC)
     else:
@@ -208,9 +216,16 @@ def half_day_period_for_consultation_iso(
     except Exception:
         logger.warning(
             "consultation_slot_classification_failed",
-            extra={"reason": "invalid_wall_zone", "wall_zone": zone_name},
+            extra={
+                "reason": "invalid_wall_zone",
+                "wall_zone": zone_name,
+                "field": field,
+            },
         )
-        return None
+        raise ValidationError(
+            "Consultation booking time could not be interpreted (invalid timezone).",
+            field=field,
+        ) from None
 
     local = start.astimezone(zone)
     ymd = local.strftime("%Y-%m-%d")
@@ -218,109 +233,169 @@ def half_day_period_for_consultation_iso(
         y, m, d_part = (int(ymd[0:4]), int(ymd[5:7]), int(ymd[8:10]))
         day_local = date(y, m, d_part)
     except (ValueError, IndexError):
-        return None
-
-    hour = local.hour
-    minute = local.minute
-    second = local.second
-    if second != 0 or minute != 0:
         logger.info(
             "consultation_slot_classification_failed",
-            extra={"reason": "non_zero_subminute", "ymd": ymd},
+            extra={"reason": "invalid_local_date", "field": field},
         )
-        return None
+        raise ValidationError(
+            "Invalid consultation session start time format.",
+            field=field,
+        ) from None
 
-    if _AM_START_HOUR <= hour < _AM_END_HOUR:
-        return day_local, "am"
-    if _PM_START_HOUR <= hour < _PM_END_HOUR:
-        return day_local, "pm"
+    hour = local.hour
+    if hour < 12:
+        period: CalendarBlockPeriod = "am"
+    elif hour >= 14:
+        period = "pm"
+    else:
+        logger.info(
+            "consultation_slot_classification_failed",
+            extra={
+                "reason": "noon_gap_not_bookable",
+                "field": field,
+                "ymd": ymd,
+                "hour": hour,
+            },
+        )
+        raise ValidationError(
+            "Consultation booking times must be in the morning (before noon) or "
+            "afternoon (2pm or later) in the site calendar timezone.",
+            field=field,
+        )
 
-    logger.info(
-        "consultation_slot_classification_failed",
-        extra={
-            "reason": "outside_am_pm_windows",
-            "ymd": ymd,
-            "hour": hour,
-        },
-    )
-    return None
-
-
-def _blocked_ymd_period_set(
-    session: Session,
-    *,
-    purpose: str,
-    from_date: date,
-    to_date: date,
-) -> set[tuple[str, CalendarBlockPeriod]]:
-    """Single merge for a date range; returns {(ymd, am|pm)} blocked half-days."""
-    blockers = merge_calendar_blockers_for_purpose(
-        session,
-        purpose=purpose,
-        from_date=from_date,
-        to_date=to_date,
-    )
-    out: set[tuple[str, CalendarBlockPeriod]] = set()
-    for b in blockers:
-        d = str(b.get("date") or "")
-        p = str(b.get("period") or "")
-        if not d:
-            continue
-        if p == "both":
-            out.add((d, "am"))
-            out.add((d, "pm"))
-        elif p == "am":
-            out.add((d, "am"))
-        elif p == "pm":
-            out.add((d, "pm"))
-    return out
+    return day_local, period
 
 
-def consultation_datetime_blocked(
+def half_day_period_for_consultation_iso(
     *,
     start_iso: str,
-    purpose: str,
+    wall_zone: str | None = None,
+) -> tuple[date, CalendarBlockPeriod] | None:
+    """Best-effort map for read paths; returns ``None`` when classification fails."""
+    try:
+        return classify_consultation_start_local_half_day(
+            start_iso=start_iso, wall_zone=wall_zone
+        )
+    except ValidationError:
+        return None
+
+
+def _manual_block_exists_for_half_day(
     session: Session,
+    *,
+    purpose: str,
+    day_local: date,
+    period: CalendarBlockPeriod,
 ) -> bool:
-    """True when the instant maps to a blocked consultation half-day."""
-    classified = half_day_period_for_consultation_iso(start_iso=start_iso)
-    if classified is None:
-        return True
-    day_local, period = classified
-    blocked = _blocked_ymd_period_set(
-        session,
-        purpose=purpose,
-        from_date=day_local,
-        to_date=day_local,
+    """True when a manual row blocks this calendar half-day."""
+    if period == "am":
+        half_cond = or_(
+            CalendarManualBlock.period == "am",
+            CalendarManualBlock.period == "both",
+        )
+    else:
+        half_cond = or_(
+            CalendarManualBlock.period == "pm",
+            CalendarManualBlock.period == "both",
+        )
+    stmt = select(
+        exists().where(
+            CalendarManualBlock.purpose == purpose,
+            CalendarManualBlock.block_date == day_local,
+            half_cond,
+        )
     )
-    return (day_local.isoformat(), period) in blocked
+    return bool(session.execute(stmt).scalar())
 
 
-def consultation_reservation_has_blocked_slot(
+def _session_blocks_half_day(
+    session: Session,
+    *,
+    day_local: date,
+    period: CalendarBlockPeriod,
+) -> bool:
+    """True when any eligible published session slot intersects the nominal AM/PM window."""
+    zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
+    ymd = day_local.isoformat()
+    if period == "am":
+        win = _window_utc_for_local_hours(
+            ymd,
+            start_hour=_AM_START_HOUR,
+            end_hour=_AM_END_HOUR,
+            zone=zone,
+        )
+    else:
+        win = _window_utc_for_local_hours(
+            ymd,
+            start_hour=_PM_START_HOUR,
+            end_hour=_PM_END_HOUR,
+            zone=zone,
+        )
+    if win is None:
+        return False
+    w0, w1 = win
+    overlap = and_(
+        InstanceSessionSlot.starts_at < w1,
+        InstanceSessionSlot.ends_at > w0,
+    )
+    stmt = (
+        select(InstanceSessionSlot.id)
+        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
+        .where(and_(*public_calendar_blocker_instance_predicates()))
+        .where(overlap)
+        .limit(1)
+    )
+    return session.execute(stmt).first() is not None
+
+
+def is_consultation_half_day_blocked(
+    session: Session,
+    *,
+    purpose: str,
+    day_local: date,
+    period: CalendarBlockPeriod,
+) -> bool:
+    """Whether the given local calendar half-day is blocked (manual ∪ session-derived)."""
+    if _manual_block_exists_for_half_day(
+        session, purpose=purpose, day_local=day_local, period=period
+    ):
+        return True
+    return _session_blocks_half_day(session, day_local=day_local, period=period)
+
+
+def raise_if_consultation_reservation_blocked(
     *,
     session: Session,
     purpose: str,
     primary_start_iso: str | None,
     session_slots: list[dict[str, str]] | None,
-) -> bool:
-    """True if any primary or session slot start maps to a blocked half-day."""
-    starts: list[str] = []
+) -> None:
+    """Raise ``ValidationError`` if any slot maps to a blocked half-day or invalid time."""
+    starts: list[tuple[str, str]] = []
     if primary_start_iso and str(primary_start_iso).strip():
-        starts.append(str(primary_start_iso).strip())
-    for row in session_slots or []:
+        starts.append((str(primary_start_iso).strip(), "primarySessionStartIso"))
+    for idx, row in enumerate(session_slots or []):
         s = row.get("start_iso")
         if isinstance(s, str) and s.strip():
-            starts.append(s.strip())
-    for iso in starts:
-        if consultation_datetime_blocked(
-            start_iso=iso, purpose=purpose, session=session
+            starts.append((s.strip(), f"sessionSlots[{idx}].startIso"))
+
+    for iso, field in starts:
+        day_local, period = classify_consultation_start_local_half_day(
+            start_iso=iso, field=field
+        )
+        if is_consultation_half_day_blocked(
+            session, purpose=purpose, day_local=day_local, period=period
         ):
             logger.info(
                 "consultation_reservation_blocked_slot",
-                extra={"reason": "blocked_half_day"},
+                extra={"reason": "blocked_half_day", "field": field},
             )
-            return True
-    return False
+            raise ValidationError(
+                "The selected consultation time is no longer available. "
+                "Please pick another slot.",
+                field=field,
+            )
 
 
 def validate_session_slot_chronology(

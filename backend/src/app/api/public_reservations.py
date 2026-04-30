@@ -56,7 +56,7 @@ from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.calendar_blockers import (
     consultation_booking_purpose,
-    consultation_reservation_has_blocked_slot,
+    raise_if_consultation_reservation_blocked,
     validate_session_slot_chronology,
 )
 from app.services.public_form_internal_notifications import (
@@ -227,17 +227,12 @@ def _handle_public_reservation(
                         "Invalid session slot date format",
                         field="sessionSlots",
                     )
-                if consultation_reservation_has_blocked_slot(
+                raise_if_consultation_reservation_blocked(
                     session=session,
                     purpose=consultation_booking_purpose(),
                     primary_start_iso=str(start_iso),
                     session_slots=reservation_payload.get("session_slots"),
-                ):
-                    raise ValidationError(
-                        "The selected consultation time is no longer available. "
-                        "Please pick another slot.",
-                        field="primarySessionStartIso",
-                    )
+                )
             _validate_discount_code_redemption_scope(
                 session, reservation_payload, resolved_instance=resolved_instance
             )

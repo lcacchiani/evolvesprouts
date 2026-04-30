@@ -573,6 +573,8 @@ without breaking existing junction references.
 
 - Purpose-scoped manual half-day blocks (`purpose` varchar(64), `block_date` date,
   `period` in `am` / `pm` / `both`, optional `note`).
+- Optional `created_by` / `updated_by` (Cognito sub) for admin accountability; admin API
+  writes also append rows to `audit_log` (application source).
 - Unique on `(purpose, block_date, period)`; merged at read time with session slots for
   public `GET /v1/calendar/blockers` (see `app.services.calendar_blockers`).
 

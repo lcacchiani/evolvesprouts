@@ -559,6 +559,44 @@ match the instance’s parent service returns **404** with structured rejection 
 Unscoped codes still validate once the pair resolves; scoped codes compare against the
 resolved `services.id` / `service_instances.id` as before.
 
+## Public calendar blockers and consultation half-day contract
+
+**Decision:** `GET /v1/calendar/blockers` (and `/www/v1/calendar/blockers`) merge
+`calendar_manual_blocks` with published **event** and **training_course** session slots
+that intersect nominal local windows (09:00–12:00 → `am`, 14:00–18:00 → `pm`) in
+`CALENDAR_BLOCKERS_WALL_TIMEZONE` (default `Asia/Hong_Kong`). Session-derived eligibility
+reuses the same SQL predicates as `ServiceInstanceRepository.list_public_offerings`
+(via `public_calendar_blocker_instance_predicates`), excluding feed-only filters
+(``ends_at >= now``, slug/service_key/limit).
+
+**Public `purpose`:** Only `consultation_booking` is allowed in this release; other
+values return **400**.
+
+**Caching:** Responses for `purpose=consultation_booking` use `Cache-Control: no-store`
+so CloudFront does not retain stale blocker lists after admin edits.
+
+**Reservations (`bookingSystem=consultation-booking`):** Each `primarySessionStartIso`
+and every `sessionSlots[].startIso` must classify to **morning** (local hour before 12)
+or **afternoon** (local hour 14 or later) in the wall zone; local hours **12–13**
+return **400** (`primarySessionStartIso` or the corresponding `sessionSlots[n].startIso`
+field). Sub-minute times are allowed within those bands. Blocked half-days reject with
+the same user-facing message; structured logs distinguish classification vs blocked.
+
+**Client / CDN:** The public website requests blockers with `from` aligned to the Monday
+of the current local week and `to` = `from + 119` days so the URL (and CloudFront cache
+key when applicable) stays stable for seven days. The CRM GET client uses
+`bypassGetCache` on this request so in-memory GET caching does not hide fresh blockers
+when reopening the booking modal. When `NEXT_PUBLIC_WWW_CRM_API_KEY` is unset at
+runtime, the client cannot call the API and treats the outcome as a fetch failure
+(empty slots + user-visible warning; server validation remains authoritative).
+
+**TOCTOU:** Between validation and commit another writer may add a conflicting session;
+enrollment is not serialised against the calendar blocker rows. Mitigations are short
+TTL on any cacheable reads and `no-store` for the consultation purpose.
+
+**CloudFront path allowlist:** The viewer function matches the path segment **exactly**
+(e.g. `/www/v1/calendar/blockers`); trailing slash variants are not allowlisted.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

@@ -440,6 +440,10 @@ paths:
 
         Optional `from` / `to` (`YYYY-MM-DD`) bound the response window (defaults: `from=today`,
         `to=from+120 days`, capped to 120 days). Invalid dates fall back to defaults.
+
+        **Cache keys:** The public website aligns `from` to the Monday of the current local week
+        and sets `to` = `from + 119` days so the query string stays stable for seven days at a time
+        (still within the 120-day cap).
       security:
         - ApiKeyAuth: []
       parameters:
@@ -1603,8 +1607,12 @@ components:
           maxLength: 50
           description: >
             Required when `bookingSystem` is `consultation-booking` (home-visit slot start in
-            ISO-8601). Must fall on a non-blocked half-day for `purpose=consultation_booking`
-            per `GET /v1/calendar/blockers`.
+            ISO-8601). Interpreted in `CALENDAR_BLOCKERS_WALL_TIMEZONE` (default `Asia/Hong_Kong`):
+            local wall-clock hour **before 12** counts as **morning (AM)**; hour **14 or later**
+            counts as **afternoon (PM)**. Local hours **12–13** (inclusive) are invalid and return
+            **400** on `POST /v1/reservations`. Each `sessionSlots[].startIso` (when present) uses
+            the same rule with field `sessionSlots[n].startIso`. Must not fall on a blocked
+            half-day for `purpose=consultation_booking` per `GET /v1/calendar/blockers`.
         primarySessionEndIso:
           type: string
           maxLength: 50
@@ -1621,6 +1629,10 @@ components:
               startIso:
                 type: string
                 maxLength: 50
+                description: >
+                  Same local half-day classification as `primarySessionStartIso` when
+                  `bookingSystem` is `consultation-booking` (morning before noon, afternoon from 2pm;
+                  noon–1pm local invalid).
               endIso:
                 type: string
                 maxLength: 50

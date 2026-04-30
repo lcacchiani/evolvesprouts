@@ -11,9 +11,11 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import parse_body, parse_uuid, query_param
-from app.api.assets.assets_common import extract_identity, split_route_parts
+from app.api.admin_request import parse_body, parse_uuid, query_param, request_id
+from app.api.shared_request import extract_identity, split_route_parts
+from app.db.audit import AuditService
 from app.db.engine import get_engine
+from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.repositories.calendar_manual_block import CalendarManualBlockRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.calendar_blockers import consultation_booking_purpose
@@ -172,14 +174,21 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
 
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
+        audit = AuditService(
+            session,
+            user_id=actor_sub,
+            request_id=request_id(event),
+        )
         try:
-            row = repo.create_block(
+            row = CalendarManualBlock(
                 purpose=purpose,
                 block_date=block_date,
                 period=period,
                 note=note,
                 created_by=actor_sub,
+                updated_by=None,
             )
+            row = repo.create(row)
         except IntegrityError as exc:
             session.rollback()
             raise ValidationError(
@@ -187,6 +196,16 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
                 "Choose a different period or delete the existing row first.",
                 field="period",
             ) from exc
+        audit.log_create(
+            "calendar_manual_blocks",
+            row.id,
+            new_values={
+                "purpose": row.purpose,
+                "block_date": row.block_date.isoformat(),
+                "period": row.period,
+                "note": row.note,
+            },
+        )
         payload = _serialize_block(row)
         session.commit()
 
@@ -223,6 +242,12 @@ def _update_block(
         if row.purpose != consultation_booking_purpose():
             raise ValidationError("Block purpose cannot be changed", field="purpose")
 
+        old_values = {
+            "block_date": row.block_date.isoformat(),
+            "period": row.period,
+            "note": row.note,
+        }
+
         if "blockDate" in body or "block_date" in body:
             row.block_date = _parse_block_date(
                 body.get("blockDate") or body.get("block_date")
@@ -245,6 +270,22 @@ def _update_block(
                 field="period",
             ) from exc
         session.refresh(row)
+        new_values = {
+            "block_date": row.block_date.isoformat(),
+            "period": row.period,
+            "note": row.note,
+        }
+        audit = AuditService(
+            session,
+            user_id=actor_sub,
+            request_id=request_id(event),
+        )
+        audit.log_update(
+            "calendar_manual_blocks",
+            row.id,
+            old_values=old_values,
+            new_values=new_values,
+        )
         payload = _serialize_block(row)
         session.commit()
 
@@ -267,8 +308,23 @@ def _delete_block(
     )
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
+        row = repo.get_by_id(block_id)
+        if row is None:
+            raise NotFoundError("Calendar manual block", str(block_id))
+        old_values = {
+            "purpose": row.purpose,
+            "block_date": row.block_date.isoformat(),
+            "period": row.period,
+            "note": row.note,
+        }
         deleted = repo.delete_by_id(block_id)
         if not deleted:
             raise NotFoundError("Calendar manual block", str(block_id))
+        audit = AuditService(
+            session,
+            user_id=actor_sub,
+            request_id=request_id(event),
+        )
+        audit.log_delete("calendar_manual_blocks", block_id, old_values=old_values)
         session.commit()
     return json_response(200, {"deleted": True}, event=event)

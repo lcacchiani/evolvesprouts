@@ -463,15 +463,15 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
 | `/v1/assets/free/request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
 | `/v1/calendar/public` | GET | None + API key | `EvolvesproutsAdminFunction` | Public event feed for `service_type=event` instances |
-| `/v1/calendar/blockers` | GET | None + API key | `EvolvesproutsAdminFunction` | Merged manual + session half-day blockers (`purpose` query); `purpose=consultation_booking` is `Cache-Control: no-store` on 200 |
+| `/v1/calendar/blockers` | GET | None + API key | `EvolvesproutsAdminFunction` | Merged blockers; `purpose` allowlist is `consultation_booking` only (400 otherwise); `purpose=consultation_booking` → `Cache-Control: no-store` on 200 |
 | `/v1/assets/free` | GET | None + API key | `EvolvesproutsAdminFunction` | Lists public `client_document`-tagged assets; optional `language` query |
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/users` | GET | Admin Group | `EvolvesproutsAdminFunction` | Assignee lookup for sales lead workflows |
 | `/v1/admin/tags` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | CRM tag catalog; GET supports `include_archived` and `archived_only` (mutually exclusive) |
-| `/v1/admin/calendar/manual-blocks` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Manual calendar blocks; GET requires `purpose`, `from`, `to` |
-| `/v1/admin/calendar/manual-blocks/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Manual block read/update/delete |
+| `/v1/admin/calendar/manual-blocks` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Manual blocks; GET requires `purpose`, `from`, `to`; writes append `audit_log` rows |
+| `/v1/admin/calendar/manual-blocks/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Manual block read/update/delete; PATCH/DELETE append `audit_log` rows |
 | `/v1/admin/tags/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Tag detail/update; DELETE returns JSON with `deleted` and `usage_count` |
 | `/v1/admin/leads` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Lead list/create |
 | `/v1/admin/leads/analytics` | GET | Admin Group | `EvolvesproutsAdminFunction` | Funnel analytics and KPI summary |
