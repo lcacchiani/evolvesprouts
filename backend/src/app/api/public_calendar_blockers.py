@@ -121,6 +121,9 @@ def handle_public_calendar_blockers(
             event=event,
         )
     return public_cacheable_json_response(200, body, event=event)
+
+
+def _parse_iso_date(raw: Any, *, default: date) -> date:
     if raw is None or raw == "":
         return default
     if not isinstance(raw, str):
