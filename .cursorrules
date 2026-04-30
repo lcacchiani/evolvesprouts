@@ -123,7 +123,7 @@ repo root
 
 - Alembic revision IDs must be <= 32 characters.
   - Format: `NNNN_short_description`
-  - Example: `0010_add_audit_logging`
+  - Example: `0054_add_audit_log`
   - Validate length with:
     `echo -n "revision_id" | wc -c`
 - Seed-data assessment is required for EVERY DB change.

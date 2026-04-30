@@ -214,7 +214,11 @@ current public reservation OpenAPI (`docs/api/public.yaml`).
 
 ## Migration
 
-The audit logging is added via Alembic migration `0010_add_audit_logging.py`.
+The `audit_log` table and trigger function are created by Alembic revision
+`0054_add_audit_log` in `backend/db/alembic/versions/0054_add_audit_log.py`
+(`down_revision`: `0053_manual_block_audit`). That revision replaces the legacy
+pre-baseline migration `0010_add_audit_logging` (removed when the migration
+chain was reset); triggers attach only to `assets` and `asset_access_grants`.
 
 To apply:
 ```bash
@@ -222,7 +226,8 @@ cd backend/db
 alembic upgrade head
 ```
 
-To rollback:
+To rollback (drops `audit_log` and triggers; leaves prior revisions applied):
 ```bash
-alembic downgrade 0009_rename_owner_to_manager
+cd backend/db
+alembic downgrade 0053_manual_block_audit
 ```
