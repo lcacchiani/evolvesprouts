@@ -1,0 +1,81 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const { mockListAuditLogs } = vi.hoisted(() => ({
+  mockListAuditLogs: vi.fn(),
+}));
+
+vi.mock('@/lib/audit-logs-api', () => ({
+  listAuditLogs: mockListAuditLogs,
+}));
+
+import { AuditLogsPage } from '@/components/admin/audit/audit-logs-page';
+
+describe('AuditLogsPage', () => {
+  beforeEach(() => {
+    mockListAuditLogs.mockResolvedValue({ items: [], next_cursor: null });
+  });
+
+  it('renders audit logs heading', async () => {
+    render(<AuditLogsPage />);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Audit logs' })).toBeInTheDocument();
+    });
+  });
+
+  it('passes email filter to listAuditLogs when user types email and applies', async () => {
+    const user = userEvent.setup();
+    render(<AuditLogsPage />);
+    await waitFor(() => {
+      expect(mockListAuditLogs).toHaveBeenCalled();
+    });
+
+    await user.type(screen.getByLabelText('User email'), 'ops@example.com');
+    await user.click(screen.getByRole('button', { name: 'Apply filters' }));
+
+    await waitFor(() => {
+      expect(mockListAuditLogs).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'ops@example.com' }),
+        undefined,
+        50
+      );
+    });
+  });
+
+  it('appends items when Load more is used with next_cursor', async () => {
+    const user = userEvent.setup();
+    const first = {
+      id: '00000000-0000-4000-8000-000000000001',
+      table_name: 'assets',
+      record_id: 'r1',
+      action: 'INSERT' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
+      source: 'trigger',
+    };
+    const second = {
+      id: '00000000-0000-4000-8000-000000000002',
+      table_name: 'asset_access_grants',
+      record_id: 'r2',
+      action: 'UPDATE' as const,
+      timestamp: '2024-01-02T00:00:00.000Z',
+      source: 'trigger',
+    };
+    mockListAuditLogs.mockReset();
+    mockListAuditLogs
+      .mockResolvedValueOnce({ items: [first], next_cursor: 'cursor-token' })
+      .mockResolvedValueOnce({ items: [second], next_cursor: null })
+      .mockResolvedValue({ items: [], next_cursor: null });
+
+    render(<AuditLogsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('assets')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /load more/i }));
+    await waitFor(() => {
+      expect(mockListAuditLogs).toHaveBeenNthCalledWith(2, expect.anything(), 'cursor-token', 50);
+      expect(screen.getByText('Showing 2 entries')).toBeInTheDocument();
+    });
+  });
+});

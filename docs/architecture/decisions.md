@@ -604,6 +604,18 @@ TTL on any cacheable reads and `no-store` for the consultation purpose.
 **CloudFront path allowlist:** The viewer function matches the path segment **exactly**
 (e.g. `/www/v1/calendar/blockers`); trailing slash variants are not allowlisted.
 
+## API admin route groups in NestedStacks (CloudFormation quota)
+
+**Decision:** Move large, self-contained admin API Gateway subtrees into CDK nested stacks
+(`ApiAdminServicesStack` for `/v1/admin/services/**`, `ApiAdminCrmStack` for CRM
+`/contacts/**`, `/families/**`, `/organizations/**`) so the parent `ApiStack` stays
+under CloudFormation's 500-resource limit. URLs, integrations, and authorizers are
+unchanged; routes attach to the same `RestApi` via `Resource.fromResourceAttributes` so
+methods synthesize into the nested templates.
+
+**Why:** The stack already approaches the quota; nested stacks split the CloudFormation
+surface area while keeping a single API Gateway deployment.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

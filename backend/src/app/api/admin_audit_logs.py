@@ -1,0 +1,348 @@
+"""Admin audit log read API (database change history)."""
+
+from __future__ import annotations
+
+import os
+from datetime import datetime
+from typing import Any
+from collections.abc import Mapping
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from app.api.admin_request import (
+    encode_created_cursor,
+    parse_created_cursor,
+    parse_limit,
+    parse_uuid,
+    query_param,
+    request_id,
+)
+from app.api.assets.assets_common import extract_identity, split_route_parts
+from app.db.audit import AuditLogRepository, set_audit_context
+from app.db.engine import get_engine
+from app.db.models import AuditLog
+from app.exceptions import NotFoundError, ValidationError
+from app.services import aws_proxy
+from app.services.aws_proxy import AwsProxyError
+from app.utils import json_response, parse_datetime
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+AUDIT_REDACTED_FIELDS: frozenset[str] = frozenset(
+    ("password", "secret", "token", "api_key")
+)
+
+AUDITABLE_TABLES: frozenset[str] = frozenset(
+    ("assets", "asset_access_grants", "calendar_manual_blocks")
+)
+
+_DEFAULT_LIMIT = 50
+_MAX_LIMIT = 100
+
+
+def handle_admin_audit_logs_request(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> dict[str, Any]:
+    """Handle ``/v1/admin/audit-logs`` and ``/v1/admin/audit-logs/{id}``."""
+    parts = split_route_parts(path)
+    if len(parts) < 2 or parts[0] != "admin" or parts[1] != "audit-logs":
+        return json_response(404, {"error": "Not found"}, event=event)
+
+    identity = extract_identity(event)
+    if not identity.user_sub:
+        raise ValidationError("Authenticated user is required", field="authorization")
+
+    if len(parts) == 2:
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _list_audit_logs(event, actor_sub=identity.user_sub)
+
+    if len(parts) == 3:
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _get_audit_log_by_id(
+            event, audit_id=parts[2], actor_sub=identity.user_sub
+        )
+
+    return json_response(404, {"error": "Not found"}, event=event)
+
+
+def _get_audit_log_by_id(
+    event: Mapping[str, Any],
+    *,
+    audit_id: str,
+    actor_sub: str,
+) -> dict[str, Any]:
+    parsed_id = parse_uuid(audit_id)
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
+        repo = AuditLogRepository(session)
+        entry = repo.get_by_id(parsed_id)
+        if entry is None:
+            raise NotFoundError("audit_log", audit_id)
+        email_map = _cognito_emails_for_subs([entry.user_id] if entry.user_id else [])
+        return json_response(
+            200, _serialize_audit_log(entry, email_map=email_map), event=event
+        )
+
+
+def _validate_email_filter(email_raw: str) -> str:
+    email = email_raw.strip()
+    if not email:
+        raise ValidationError("email is required when provided", field="email")
+    if '"' in email or "\\" in email:
+        raise ValidationError("email contains invalid characters", field="email")
+    if "@" not in email or len(email) > 254:
+        raise ValidationError("invalid email", field="email")
+    return email
+
+
+def _cognito_sub_for_email(email: str) -> str | None:
+    user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
+    if not user_pool_id:
+        raise ValidationError(
+            "COGNITO_USER_POOL_ID is not configured",
+            field="COGNITO_USER_POOL_ID",
+        )
+    try:
+        response = aws_proxy.invoke(
+            "cognito-idp",
+            "list_users",
+            {
+                "UserPoolId": user_pool_id,
+                "Filter": f'email = "{email}"',
+                "Limit": 1,
+            },
+        )
+    except AwsProxyError:
+        raise ValidationError("user lookup failed", field="email") from None
+
+    users = response.get("Users") or []
+    if len(users) == 0:
+        return None
+    if len(users) > 1:
+        raise ValidationError("multiple users matched email", field="email")
+    attrs = users[0].get("Attributes", [])
+    sub = _cognito_attr(attrs, "sub")
+    if not sub:
+        raise ValidationError("user lookup failed", field="email")
+    return sub
+
+
+def _cognito_attr(attributes: Any, key: str) -> str | None:
+    if not isinstance(attributes, list):
+        return None
+    for item in attributes:
+        if not isinstance(item, Mapping):
+            continue
+        if item.get("Name") != key:
+            continue
+        value = item.get("Value")
+        if isinstance(value, str):
+            return value
+    return None
+
+
+def _cognito_emails_for_subs(subs: list[str]) -> dict[str, str]:
+    """Best-effort map Cognito sub -> email for display (empty on failure)."""
+    user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
+    if not user_pool_id or not subs:
+        return {}
+    out: dict[str, str] = {}
+    for sub in subs:
+        if not sub or '"' in sub:
+            continue
+        try:
+            response = aws_proxy.invoke(
+                "cognito-idp",
+                "list_users",
+                {
+                    "UserPoolId": user_pool_id,
+                    "Filter": f'sub = "{sub}"',
+                    "Limit": 1,
+                },
+            )
+        except AwsProxyError:
+            continue
+        users = response.get("Users") or []
+        if len(users) != 1:
+            continue
+        email = _cognito_attr(users[0].get("Attributes", []), "email")
+        if email:
+            out[sub] = email
+    return out
+
+
+def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
+    limit = parse_limit(event, default=_DEFAULT_LIMIT, max_limit=_MAX_LIMIT)
+
+    table_name = query_param(event, "table")
+    record_id = query_param(event, "record_id")
+    user_id = query_param(event, "user_id")
+    email_raw = query_param(event, "email")
+    action = query_param(event, "action")
+    since_str = query_param(event, "since")
+
+    if table_name and table_name not in AUDITABLE_TABLES:
+        raise ValidationError(
+            (
+                f"Invalid table: {table_name}. Must be one of: "
+                f"{', '.join(sorted(AUDITABLE_TABLES))}"
+            ),
+            field="table",
+        )
+
+    if record_id and not table_name:
+        raise ValidationError(
+            "table parameter is required when filtering by record_id",
+            field="table",
+        )
+
+    valid_actions = {"INSERT", "UPDATE", "DELETE"}
+    if action and action.upper() not in valid_actions:
+        raise ValidationError(
+            f"Invalid action: {action}. Must be one of: INSERT, UPDATE, DELETE",
+            field="action",
+        )
+
+    since = None
+    if since_str:
+        since = parse_datetime(since_str)
+        if since is None:
+            raise ValidationError(
+                "Invalid since format. Use ISO 8601 format (e.g., 2024-01-01T00:00:00Z)",
+                field="since",
+            )
+
+    if email_raw is not None and email_raw.strip():
+        if user_id:
+            raise ValidationError(
+                "cannot combine email and user_id",
+                field="email",
+            )
+        email = _validate_email_filter(email_raw)
+        resolved = _cognito_sub_for_email(email)
+        if resolved is None:
+            return json_response(
+                200,
+                {"items": [], "next_cursor": None},
+                event=event,
+            )
+        user_id = resolved
+
+    cursor_ts, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    cursor: tuple[datetime, UUID] | None = None
+    if cursor_ts is not None and cursor_id is not None:
+        cursor = (cursor_ts, cursor_id)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
+        repo = AuditLogRepository(session)
+
+        if record_id and table_name:
+            rows = repo.get_record_history(
+                table_name=table_name,
+                record_id=record_id,
+                limit=limit + 1,
+                cursor=cursor,
+            )
+        elif user_id:
+            rows = repo.get_user_activity(
+                user_id=user_id,
+                limit=limit + 1,
+                since=since,
+                cursor=cursor,
+            )
+        elif table_name:
+            rows = repo.get_table_activity(
+                table_name=table_name,
+                limit=limit + 1,
+                since=since,
+                action=action.upper() if action else None,
+                cursor=cursor,
+            )
+        else:
+            rows = repo.get_recent_activity(
+                limit=limit + 1,
+                since=since,
+                cursor=cursor,
+            )
+
+    has_more = len(rows) > limit
+    trimmed = list(rows)[:limit]
+
+    logger.info(
+        "Audit logs query returned %s entries (has_more=%s)",
+        len(trimmed),
+        has_more,
+        extra={
+            "table": table_name,
+            "action": action,
+            "since": since_str,
+            "result_count": len(trimmed),
+        },
+    )
+
+    distinct_subs = sorted({r.user_id for r in trimmed if r.user_id})
+    email_map = _cognito_emails_for_subs(distinct_subs)
+
+    last_row = trimmed[-1]
+    last_id = last_row.id if isinstance(last_row.id, UUID) else UUID(str(last_row.id))
+    next_cursor = (
+        encode_created_cursor(last_row.timestamp, last_id)
+        if has_more and trimmed
+        else None
+    )
+    return json_response(
+        200,
+        {
+            "items": [
+                _serialize_audit_log(row, email_map=email_map) for row in trimmed
+            ],
+            "next_cursor": next_cursor,
+        },
+        event=event,
+    )
+
+
+def _serialize_audit_log(
+    entry: AuditLog,
+    *,
+    email_map: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    old_values = entry.old_values or {}
+    new_values = entry.new_values or {}
+    emails = email_map or {}
+
+    def redact_values(values: dict[str, Any]) -> dict[str, Any]:
+        redacted: dict[str, Any] = {}
+        for key, value in values.items():
+            if key.lower() in AUDIT_REDACTED_FIELDS:
+                redacted[key] = "***REDACTED***"
+            else:
+                redacted[key] = value
+        return redacted
+
+    user_id_val = entry.user_id
+    payload: dict[str, Any] = {
+        "id": str(entry.id),
+        "table_name": entry.table_name,
+        "record_id": entry.record_id,
+        "action": entry.action,
+        "user_id": user_id_val,
+        "request_id": entry.request_id,
+        "old_values": redact_values(dict(old_values)),
+        "new_values": redact_values(dict(new_values)),
+        "changed_fields": entry.changed_fields,
+        "timestamp": entry.timestamp,
+        "source": entry.source,
+        "ip_address": entry.ip_address,
+        "user_agent": entry.user_agent,
+    }
+    if user_id_val and user_id_val in emails:
+        payload["user_email"] = emails[user_id_val]
+    return payload

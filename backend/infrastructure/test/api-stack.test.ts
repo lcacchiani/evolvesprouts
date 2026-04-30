@@ -106,8 +106,32 @@ function assertStageHasCheckovCkv120Suppression(template: Template): void {
   }
 }
 
+function assertParentStackResourceCountUnder500(template: Template): void {
+  const resources = template.toJSON().Resources as Record<string, unknown> | undefined;
+  const count = resources ? Object.keys(resources).length : 0;
+  if (count > 500) {
+    throw new Error(
+      `Expected TestApi template to have at most 500 CloudFormation resources (hard quota); found ${count}`,
+    );
+  }
+}
+
+function assertAdminApiNestedStacksExist(template: Template): void {
+  const stacks = template.findResources("AWS::CloudFormation::Stack");
+  const ids = Object.keys(stacks);
+  const hasServices = ids.some((id) => id.includes("ApiAdminServicesStack"));
+  const hasCrm = ids.some((id) => id.includes("ApiAdminCrmStack"));
+  if (!hasServices || !hasCrm) {
+    throw new Error(
+      `Expected ApiAdminServicesStack and ApiAdminCrmStack nested stacks; found: ${ids.join(", ")}`,
+    );
+  }
+}
+
 function main(): void {
   const template = synthApiTemplate();
+  assertParentStackResourceCountUnder500(template);
+  assertAdminApiNestedStacksExist(template);
   assertStageHasNoApiGatewayCacheCluster(template);
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);

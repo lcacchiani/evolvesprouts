@@ -6,7 +6,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 **Primary API Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
 **Stack Definition:** `backend/infrastructure/lib/api-stack.ts`  
-**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`.
+**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`; `ApiAdminServicesStack` and `ApiAdminCrmStack` in `api-admin-services-stack.ts` / `api-admin-crm-stack.ts` (admin API Gateway routes under `/v1/admin/services/**` and CRM `/contacts`, `/families`, `/organizations`).
 
 ### GitHub Actions `GitHubActionsRole` (manual IAM)
 
@@ -454,6 +454,8 @@ For each function above, the following resources are created:
 
 ### API Gateway Resources and Methods
 
+Large admin route groups (`/v1/admin/services/**` and CRM `/contacts/**`, `/families/**`, `/organizations/**`) are wired in **CDK nested stacks** (`ApiAdminServicesStack`, `ApiAdminCrmStack`) so the parent `ApiStack` template stays under CloudFormation's 500-resource quota while other `/v1/admin/**` routes (for example assets, leads, audit logs) remain on the parent stack. See `docs/architecture/decisions.md` ("API admin route groups in NestedStacks").
+
 For the complete list of endpoints with request/response schemas, see
 the OpenAPI specs: [`docs/api/public.yaml`](../api/public.yaml)
 and [`docs/api/admin.yaml`](../api/admin.yaml).
@@ -469,6 +471,9 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/users` | GET | Admin Group | `EvolvesproutsAdminFunction` | Assignee lookup for sales lead workflows |
+| `/v1/admin/instructors` | GET | Admin Group | `EvolvesproutsAdminFunction` | Instructor Cognito group listing for service instance assignment |
+| `/v1/admin/audit-logs` | GET | Admin Group | `EvolvesproutsAdminFunction` | Paginated `audit_log` listing (filters: `table`, `record_id`, `user_id`, `email`, `action`, `since`, `cursor`, `limit`); `email` is resolved to Cognito sub via proxy `list_users`; optional `user_email` on each item |
+| `/v1/admin/audit-logs/{id}` | GET | Admin Group | `EvolvesproutsAdminFunction` | Single `audit_log` row by UUID |
 | `/v1/admin/tags` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | CRM tag catalog; GET supports `include_archived` and `archived_only` (mutually exclusive) |
 | `/v1/admin/calendar/manual-blocks` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Manual blocks; GET requires `purpose`, `from`, `to`; writes append `audit_log` rows |
 | `/v1/admin/calendar/manual-blocks/{id}` | GET, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Manual block read/update/delete; PATCH/DELETE append `audit_log` rows |

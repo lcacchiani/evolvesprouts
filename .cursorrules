@@ -113,6 +113,10 @@ repo root
   - Use `*_assets.py` for route modules and `assets_common.py` for shared
     helpers.
   - Keep `backend/src/app/api/admin.py` focused on request dispatch orchestration.
+- When adding admin API Gateway routes, if the `ApiStack` template approaches
+  CloudFormation's 500-resource limit, add new large subtrees to a nested stack under
+  `backend/infrastructure/lib/api-admin-*-stack.ts` (see `ApiAdminServicesStack` /
+  `ApiAdminCrmStack`) rather than growing the parent template indefinitely.
 
 ### CDK Lambda physical names (`backend/infrastructure/**`)
 
@@ -279,7 +283,7 @@ should extend the shared primitives rather than reintroducing one-off layouts.
 
 - **Top-level navigation** (`ADMIN_NAV_ITEMS` in `apps/admin_web/src/lib/admin-nav.ts`, rendered by
   `apps/admin_web/src/components/admin-authenticated-shell.tsx`) must list areas
-  alphabetically: **Assets**, **Calendar**, **Contacts**, **Finance**, **Sales**, **Services**, **Tags**, **Website**. The default
+  alphabetically: **Assets**, **Audit**, **Calendar**, **Contacts**, **Finance**, **Sales**, **Services**, **Tags**, **Website**. The default
   section after sign-in is **Finance** unless product requirements change.
 - **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
   must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`

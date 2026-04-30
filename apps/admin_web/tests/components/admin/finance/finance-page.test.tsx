@@ -2,7 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockUseExpenses, expensesState, mockUseVendors, vendorsState, mockListAllAdminExpenses } = vi.hoisted(() => {
+const {
+  mockUseExpenses,
+  expensesState,
+  mockUseVendors,
+  vendorsState,
+  mockListAllAdminExpenses,
+} = vi.hoisted(() => {
   const state = {
     items: [],
     filters: { query: '', status: '', parseStatus: '' },

@@ -1065,6 +1065,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List audit log entries
+         * @description Returns database audit history (trigger- and application-sourced rows in `audit_log`). Optional filters combine as in the admin Lambda handler: when `record_id` is set, `table` is required; `user_id` is a Cognito subject (sub), not an email address. Use `email` to filter by Cognito email (server resolves to sub); do not pass `user_id` together with `email`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    /** @description Opaque continuation token from `next_cursor` for the default recent listing. */
+                    cursor?: string;
+                    table?: "assets" | "asset_access_grants" | "calendar_manual_blocks";
+                    record_id?: string;
+                    user_id?: string;
+                    /** @description Filter by the user's Cognito email address. The server resolves this to a Cognito `sub` via `list_users`. Mutually exclusive with `user_id`. When no user matches, the response is an empty list. */
+                    email?: string;
+                    action?: "INSERT" | "UPDATE" | "DELETE";
+                    /** @description ISO 8601 timestamp; only entries at or after this time are returned where applicable. */
+                    since?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Paginated audit log list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditLogListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get audit log entry by id */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Audit log entry. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditLog"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/leads": {
         parameters: {
             query?: never;
@@ -4917,6 +5012,35 @@ export interface components {
             instance_id?: string | null;
             max_uses?: number | null;
             active?: boolean;
+        };
+        AuditLog: {
+            /** Format: uuid */
+            id: string;
+            table_name: string;
+            record_id: string;
+            /** @enum {string} */
+            action: "INSERT" | "UPDATE" | "DELETE";
+            user_id?: string | null;
+            /** @description Cognito email when resolved for this response (optional). */
+            user_email?: string | null;
+            request_id?: string | null;
+            old_values?: {
+                [key: string]: unknown;
+            } | null;
+            new_values?: {
+                [key: string]: unknown;
+            } | null;
+            changed_fields?: string[] | null;
+            /** Format: date-time */
+            timestamp: string;
+            /** @description Source of the row (`trigger` or `application`). */
+            source: string;
+            ip_address?: string | null;
+            user_agent?: string | null;
+        };
+        AuditLogListResponse: {
+            items: components["schemas"]["AuditLog"][];
+            next_cursor?: string | null;
         };
         AdminUser: {
             sub: string;

@@ -21,6 +21,8 @@ import { Construct, IConstruct } from "constructs";
 import * as path from "path";
 import { hashDirectory, hashFile, hashValue } from "./cdk-source-hash";
 import { DatabaseConstruct, PythonLambdaFactory, STANDARD_LOG_RETENTION } from "./constructs";
+import { ApiAdminCrmStack } from "./api-admin-crm-stack";
+import { ApiAdminServicesStack } from "./api-admin-services-stack";
 import { MessagingNestedStack } from "./messaging-stack";
 import { sesVerifiedAddressAndDomainIdentityArns } from "./ses-identity-arns";
 
@@ -2917,95 +2919,13 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
-    // Admin service routes
-    const adminServices = admin.addResource("services");
-    adminServices.addMethod("GET", adminIntegration, {
+    const adminAuditLogs = admin.addResource("audit-logs");
+    adminAuditLogs.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
-    adminServices.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServicesAllInstances = adminServices.addResource("instances");
-    adminServicesAllInstances.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServiceById = adminServices.addResource("{id}");
-    adminServiceById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceById.addMethod("PUT", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServiceCoverImage = adminServiceById.addResource("cover-image");
-    adminServiceCoverImage.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServiceDiscountCodeUsageSummary = adminServiceById.addResource(
-      "discount-code-usage-summary",
-    );
-    adminServiceDiscountCodeUsageSummary.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServiceInstances = adminServiceById.addResource("instances");
-    adminServiceInstances.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceInstances.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminServiceInstanceById = adminServiceInstances.addResource("{instanceId}");
-    adminServiceInstanceById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceInstanceById.addMethod("PUT", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminServiceInstanceById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminInstanceEnrollments = adminServiceInstanceById.addResource("enrollments");
-    adminInstanceEnrollments.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminInstanceEnrollments.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminEnrollmentById = adminInstanceEnrollments.addResource("{enrollmentId}");
-    adminEnrollmentById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminEnrollmentById.addMethod("DELETE", adminIntegration, {
+    const adminAuditLogById = adminAuditLogs.addResource("{id}");
+    adminAuditLogById.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
@@ -3079,142 +2999,6 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
-    // Admin CRM contacts / families / organizations (non-vendor)
-    const adminContacts = admin.addResource("contacts");
-    adminContacts.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminContacts.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminContactsTags = adminContacts.addResource("tags");
-    adminContactsTags.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminContactsSearch = adminContacts.addResource("search");
-    adminContactsSearch.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminContactById = adminContacts.addResource("{id}");
-    adminContactById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminContactById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminContactById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminContactNotes = adminContactById.addResource("notes");
-    adminContactNotes.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminContactNotes.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminContactNoteById = adminContactNotes.addResource("{noteId}");
-    adminContactNoteById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminContactNoteById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminFamilies = admin.addResource("families");
-    const adminFamiliesPicker = adminFamilies.addResource("picker");
-    adminFamiliesPicker.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminFamilies.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminFamilies.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminFamilyById = adminFamilies.addResource("{id}");
-    adminFamilyById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminFamilyById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminFamilyById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminFamilyMembers = adminFamilyById.addResource("members");
-    adminFamilyMembers.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminFamilyMemberById = adminFamilyMembers.addResource("{memberId}");
-    adminFamilyMemberById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminFamilyMemberById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const adminOrganizationsCrm = admin.addResource("organizations");
-    const adminOrganizationsCrmPicker = adminOrganizationsCrm.addResource("picker");
-    adminOrganizationsCrmPicker.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminOrganizationsCrm.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminOrganizationsCrm.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminOrganizationCrmById = adminOrganizationsCrm.addResource("{id}");
-    adminOrganizationCrmById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminOrganizationCrmById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminOrganizationCrmById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminOrganizationCrmMembers = adminOrganizationCrmById.addResource("members");
-    adminOrganizationCrmMembers.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminOrganizationCrmMemberById = adminOrganizationCrmMembers.addResource("{memberId}");
-    adminOrganizationCrmMemberById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    adminOrganizationCrmMemberById.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
     // Admin expense routes
     const adminExpenses = admin.addResource("expenses");
     adminExpenses.addMethod("GET", adminIntegration, {
@@ -3249,6 +3033,19 @@ export class ApiStack extends cdk.Stack {
     adminExpenseById.addResource("amend").addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
+    });
+
+    new ApiAdminServicesStack(this, "ApiAdminServicesStack", {
+      restApi: api,
+      adminResource: admin,
+      adminIntegration,
+      adminAuthorizer,
+    });
+    new ApiAdminCrmStack(this, "ApiAdminCrmStack", {
+      restApi: api,
+      adminResource: admin,
+      adminIntegration,
+      adminAuthorizer,
     });
 
     // User asset routes

@@ -6,6 +6,7 @@ describe('adminSectionKeyFromPathname', () => {
   it('maps known dashboard paths to section keys', () => {
     expect(adminSectionKeyFromPathname('/sales')).toBe('sales');
     expect(adminSectionKeyFromPathname('/assets')).toBe('assets');
+    expect(adminSectionKeyFromPathname('/audit')).toBe('audit');
     expect(adminSectionKeyFromPathname('/calendar')).toBe('calendar');
     expect(adminSectionKeyFromPathname('/contacts')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance')).toBe('finance');
@@ -17,6 +18,7 @@ describe('adminSectionKeyFromPathname', () => {
   it('matches paths served with a trailing slash (next.config trailingSlash: true)', () => {
     expect(adminSectionKeyFromPathname('/sales/')).toBe('sales');
     expect(adminSectionKeyFromPathname('/assets/')).toBe('assets');
+    expect(adminSectionKeyFromPathname('/audit/')).toBe('audit');
     expect(adminSectionKeyFromPathname('/calendar/')).toBe('calendar');
     expect(adminSectionKeyFromPathname('/contacts/')).toBe('contacts');
     expect(adminSectionKeyFromPathname('/finance/')).toBe('finance');
