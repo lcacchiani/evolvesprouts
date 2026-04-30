@@ -106,8 +106,19 @@ function assertStageHasCheckovCkv120Suppression(template: Template): void {
   }
 }
 
+function assertParentStackResourceCountUnder500(template: Template): void {
+  const resources = template.toJSON().Resources as Record<string, unknown> | undefined;
+  const count = resources ? Object.keys(resources).length : 0;
+  if (count > 500) {
+    throw new Error(
+      `Expected TestApi template to have at most 500 CloudFormation resources (hard quota); found ${count}`,
+    );
+  }
+}
+
 function main(): void {
   const template = synthApiTemplate();
+  assertParentStackResourceCountUnder500(template);
   assertStageHasNoApiGatewayCacheCluster(template);
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);

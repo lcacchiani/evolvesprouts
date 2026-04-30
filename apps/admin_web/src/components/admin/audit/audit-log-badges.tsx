@@ -1,7 +1,9 @@
-import type { AuditLog } from '@/types/audit-log';
+import type { components } from '@/types/generated/admin-api.generated';
 
-export function ActionBadge({ action }: { action: AuditLog['action'] }) {
-  const colors: Record<AuditLog['action'], string> = {
+type AuditLogAction = components['schemas']['AuditLog']['action'];
+
+export function ActionBadge({ action }: { action: AuditLogAction }) {
+  const colors: Record<AuditLogAction, string> = {
     INSERT: 'bg-green-100 text-green-800',
     UPDATE: 'bg-blue-100 text-blue-800',
     DELETE: 'bg-red-100 text-red-800',
@@ -16,7 +18,7 @@ export function ActionBadge({ action }: { action: AuditLog['action'] }) {
   );
 }
 
-export function SourceBadge({ source }: { source: AuditLog['source'] | string }) {
+export function SourceBadge({ source }: { source: string }) {
   const colors: Record<string, string> = {
     trigger: 'bg-slate-100 text-slate-700',
     application: 'bg-purple-100 text-purple-700',

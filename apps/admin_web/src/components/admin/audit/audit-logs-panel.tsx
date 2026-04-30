@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { AuditLogDetailDialog } from '@/components/admin/finance/audit-log-detail-dialog';
-import { ActionBadge } from '@/components/admin/finance/audit-log-badges';
+import { AuditLogDetailDialog } from '@/components/admin/audit/audit-log-detail-dialog';
+import { ActionBadge } from '@/components/admin/audit/audit-log-badges';
 import { ViewIcon } from '@/components/icons/action-icons';
-import { StatusBanner } from '@/components/status-banner';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +14,10 @@ import { Select } from '@/components/ui/select';
 import { AdminApiError } from '@/lib/api-admin-client';
 import { listAuditLogs, type AuditLogsFilters } from '@/lib/audit-logs-api';
 import { formatDate } from '@/lib/format';
-import { listAdminUsers, listInstructorUsers } from '@/lib/users-api';
 
-import type { AuditLog } from '@/types/audit-log';
+import type { components } from '@/types/generated/admin-api.generated';
+
+type AuditLog = components['schemas']['AuditLog'];
 
 export interface AuditLogsPanelProps {
   auditableTables: readonly string[];
@@ -69,11 +69,6 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [userLookupError, setUserLookupError] = useState('');
-  const [userEmailById, setUserEmailById] = useState<Record<string, string>>({});
-  const userLookupPromise = useRef<Promise<Record<string, string>> | null>(null);
-  const userLookupRef = useRef<Record<string, string>>({});
-  const isMountedRef = useRef(true);
 
   const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
   const [tableFilter, setTableFilter] = useState<string>('all');
@@ -81,50 +76,9 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
   const [recordIdFilter, setRecordIdFilter] = useState('');
   const [timeRange, setTimeRange] = useState('24h');
 
-  const loadUserDirectory = useCallback(async (showError = false) => {
-    if (Object.keys(userLookupRef.current).length > 0) {
-      return userLookupRef.current;
-    }
-    if (userLookupPromise.current) {
-      return userLookupPromise.current;
-    }
+  const filtersInvalid = Boolean(recordIdFilter.trim() && tableFilter === 'all');
 
-    userLookupPromise.current = (async () => {
-      const emailById: Record<string, string> = {};
-      try {
-        const [admins, instructors] = await Promise.all([
-          listAdminUsers(),
-          listInstructorUsers(),
-        ]);
-        for (const batch of [admins.items, instructors.items]) {
-          for (const user of batch) {
-            if (!user.email) {
-              continue;
-            }
-            emailById[user.sub] = user.email;
-          }
-        }
-        userLookupRef.current = emailById;
-        if (isMountedRef.current) {
-          setUserEmailById(emailById);
-        }
-        return emailById;
-      } catch (err) {
-        if (showError && isMountedRef.current) {
-          setUserLookupError(
-            err instanceof AdminApiError ? err.message : 'Failed to load user directory.'
-          );
-        }
-        return {};
-      } finally {
-        userLookupPromise.current = null;
-      }
-    })();
-
-    return userLookupPromise.current;
-  }, []);
-
-  const buildFilters = useCallback(async (): Promise<AuditLogsFilters> => {
+  const buildFilters = useCallback((): AuditLogsFilters => {
     const filters: AuditLogsFilters = {};
     if (actionFilter !== 'all') {
       filters.action = actionFilter;
@@ -132,17 +86,9 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
     if (tableFilter !== 'all') {
       filters.table = tableFilter;
     }
-    if (userEmailFilter.trim()) {
-      const email = userEmailFilter.trim().toLowerCase();
-      const directory = await loadUserDirectory(true);
-      const matchSub = Object.keys(directory).find(
-        (sub) => directory[sub]?.trim().toLowerCase() === email
-      );
-      if (matchSub) {
-        filters.user_id = matchSub;
-      } else {
-        filters.user_id = '__no_match__';
-      }
+    const email = userEmailFilter.trim();
+    if (email) {
+      filters.email = email;
     }
     if (recordIdFilter.trim()) {
       filters.record_id = recordIdFilter.trim();
@@ -152,19 +98,20 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
       filters.since = since;
     }
     return filters;
-  }, [actionFilter, tableFilter, userEmailFilter, recordIdFilter, timeRange, loadUserDirectory]);
+  }, [actionFilter, tableFilter, userEmailFilter, recordIdFilter, timeRange]);
 
-  const loadItems = useCallback(
-    async (cursor?: string, reset = false) => {
+  const fetchWithFilters = useCallback(
+    async (filters: AuditLogsFilters, cursor?: string, reset = false) => {
+      if (filtersInvalid && filters.record_id) {
+        return;
+      }
       if (reset || !cursor) {
         setIsLoading(true);
       } else {
         setIsLoadingMore(true);
       }
       setError('');
-      setUserLookupError('');
       try {
-        const filters = await buildFilters();
         const response = await listAuditLogs(filters, cursor, 50);
         setItems((prev) =>
           reset || !cursor ? response.items : [...prev, ...response.items]
@@ -179,18 +126,22 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
         setIsLoadingMore(false);
       }
     },
-    [buildFilters]
+    [filtersInvalid]
   );
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    void loadUserDirectory(false);
-  }, [loadUserDirectory]);
+  const loadItems = useCallback(
+    async (cursor?: string, reset = false) => {
+      if (filtersInvalid) {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        setItems([]);
+        setNextCursor(null);
+        return;
+      }
+      await fetchWithFilters(buildFilters(), cursor, reset);
+    },
+    [buildFilters, fetchWithFilters, filtersInvalid]
+  );
 
   useEffect(() => {
     void loadItems(undefined, true);
@@ -206,19 +157,18 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
     setUserEmailFilter('');
     setRecordIdFilter('');
     setTimeRange('24h');
+    const since = getTimestamp('24h');
+    void fetchWithFilters(since ? { since } : {}, undefined, true);
   };
 
   const timestampHeader = useMemo(() => `Timestamp (${formatGmtOffset()})`, []);
 
-  const getUserEmail = useCallback(
-    (userId: string | null | undefined) => {
-      if (!userId) {
-        return '—';
-      }
-      return userEmailById[userId] || '—';
-    },
-    [userEmailById]
-  );
+  const getUserEmail = useCallback((row: AuditLog) => {
+    if (row.user_email) {
+      return row.user_email;
+    }
+    return '—';
+  }, []);
 
   return (
     <div className='space-y-6'>
@@ -233,12 +183,10 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
         onLoadMore={() => loadItems(nextCursor ?? undefined, false)}
         toolbar={
           <div className='mb-6 space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4'>
-            {userLookupError ? (
-              <div className='mb-2'>
-                <StatusBanner variant='error' title='User lookup'>
-                  {userLookupError}
-                </StatusBanner>
-              </div>
+            {filtersInvalid ? (
+              <p className='mb-2 text-sm text-amber-800' role='alert'>
+                Select a table before filtering by record ID.
+              </p>
             ) : null}
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
               <div>
@@ -289,7 +237,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                   id='audit-user-email-filter'
                   type='text'
                   autoComplete='off'
-                  placeholder='Filter by directory email…'
+                  placeholder='Filter by Cognito email…'
                   value={userEmailFilter}
                   onChange={(e) => setUserEmailFilter(e.target.value)}
                 />
@@ -312,6 +260,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                   type='button'
                   variant='primary'
                   onClick={handleApplyFilters}
+                  disabled={filtersInvalid}
                   className='flex-1 sm:flex-initial'
                 >
                   Apply filters
@@ -365,7 +314,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                       <ActionBadge action={item.action} />
                     </td>
                     <td className='px-4 py-3 font-mono text-xs text-slate-600'>
-                      {getUserEmail(item.user_id)}
+                      {getUserEmail(item)}
                     </td>
                     <td className='hidden px-4 py-3 text-slate-500 md:table-cell'>
                       {item.changed_fields?.length ? item.changed_fields.join(', ') : '—'}
@@ -391,11 +340,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
       </PaginatedTableCard>
 
       {selectedLog ? (
-        <AuditLogDetailDialog
-          log={selectedLog}
-          onClose={() => setSelectedLog(null)}
-          userEmailById={userEmailById}
-        />
+        <AuditLogDetailDialog log={selectedLog} onClose={() => setSelectedLog(null)} />
       ) : null}
     </div>
   );

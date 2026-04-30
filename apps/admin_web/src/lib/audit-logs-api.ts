@@ -1,7 +1,10 @@
 import { adminApiRequest, AdminApiError } from './api-admin-client';
 import { isRecord } from './type-guards';
 
-import type { AuditLog, AuditLogsFilters } from '@/types/audit-log';
+import type { AuditLogsFilters } from '@/types/audit-log';
+import type { components } from '@/types/generated/admin-api.generated';
+
+export type AuditLog = components['schemas']['AuditLog'];
 
 export interface AuditLogsResponse {
   items: AuditLog[];
@@ -28,6 +31,9 @@ function buildAuditLogsPath(
   }
   if (filters?.user_id) {
     params.set('user_id', filters.user_id);
+  }
+  if (filters?.email) {
+    params.set('email', filters.email);
   }
   if (filters?.action) {
     params.set('action', filters.action);
@@ -58,6 +64,8 @@ function parseAuditLog(raw: unknown): AuditLog | null {
     return null;
   }
   const user_id = typeof raw.user_id === 'string' ? raw.user_id : null;
+  const user_email =
+    typeof raw.user_email === 'string' ? raw.user_email : raw.user_email === null ? null : undefined;
   const request_id = typeof raw.request_id === 'string' ? raw.request_id : null;
   const old_values = isRecord(raw.old_values) ? raw.old_values : null;
   const new_values = isRecord(raw.new_values) ? raw.new_values : null;
@@ -68,21 +76,25 @@ function parseAuditLog(raw: unknown): AuditLog | null {
   const user_agent = typeof raw.user_agent === 'string' ? raw.user_agent : null;
   const source = typeof raw.source === 'string' ? raw.source : 'trigger';
 
-  return {
+  const row: AuditLog = {
     id,
     table_name,
     record_id,
     action: action as AuditLog['action'],
-    user_id,
-    request_id,
-    old_values,
-    new_values,
-    changed_fields,
+    user_id: user_id ?? undefined,
+    request_id: request_id ?? undefined,
+    old_values: old_values ?? undefined,
+    new_values: new_values ?? undefined,
+    changed_fields: changed_fields ?? undefined,
     timestamp,
     source,
-    ip_address,
-    user_agent,
+    ip_address: ip_address ?? undefined,
+    user_agent: user_agent ?? undefined,
   };
+  if (user_email !== undefined) {
+    row.user_email = user_email;
+  }
+  return row;
 }
 
 function parseListPayload(raw: unknown): AuditLogsResponse {

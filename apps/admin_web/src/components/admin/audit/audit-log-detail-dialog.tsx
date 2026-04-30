@@ -1,15 +1,16 @@
 'use client';
 
-import { ActionBadge, SourceBadge } from '@/components/admin/finance/audit-log-badges';
+import { ActionBadge, SourceBadge } from '@/components/admin/audit/audit-log-badges';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { formatDate } from '@/lib/format';
 
-import type { AuditLog } from '@/types/audit-log';
+import type { components } from '@/types/generated/admin-api.generated';
+
+type AuditLog = components['schemas']['AuditLog'];
 
 interface AuditLogDetailDialogProps {
   log: AuditLog;
   onClose: () => void;
-  userEmailById: Record<string, string>;
 }
 
 function formatJson(obj: Record<string, unknown> | null | undefined): string {
@@ -19,8 +20,8 @@ function formatJson(obj: Record<string, unknown> | null | undefined): string {
   return JSON.stringify(obj, null, 2);
 }
 
-export function AuditLogDetailDialog({ log, onClose, userEmailById }: AuditLogDetailDialogProps) {
-  const userEmail = log.user_id ? userEmailById[log.user_id] : null;
+export function AuditLogDetailDialog({ log, onClose }: AuditLogDetailDialogProps) {
+  const userEmail = log.user_email ?? null;
 
   return (
     <ConfirmDialog
@@ -93,7 +94,7 @@ export function AuditLogDetailDialog({ log, onClose, userEmailById }: AuditLogDe
           <div>
             <span className='font-medium text-slate-500'>Old values</span>
             <pre className='mt-1 max-h-40 overflow-auto rounded bg-red-50 p-3 text-xs text-red-900'>
-              {formatJson(log.old_values)}
+              {formatJson(log.old_values as Record<string, unknown>)}
             </pre>
           </div>
         ) : null}
@@ -102,7 +103,7 @@ export function AuditLogDetailDialog({ log, onClose, userEmailById }: AuditLogDe
           <div>
             <span className='font-medium text-slate-500'>New values</span>
             <pre className='mt-1 max-h-40 overflow-auto rounded bg-green-50 p-3 text-xs text-green-900'>
-              {formatJson(log.new_values)}
+              {formatJson(log.new_values as Record<string, unknown>)}
             </pre>
           </div>
         ) : null}

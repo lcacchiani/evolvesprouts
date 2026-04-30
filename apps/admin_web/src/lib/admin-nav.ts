@@ -1,5 +1,6 @@
 export const ADMIN_NAV_ITEMS = [
   { key: 'assets', label: 'Assets', href: '/assets' },
+  { key: 'audit', label: 'Audit', href: '/audit' },
   { key: 'calendar', label: 'Calendar', href: '/calendar' },
   { key: 'contacts', label: 'Contacts', href: '/contacts' },
   { key: 'finance', label: 'Finance', href: '/finance' },

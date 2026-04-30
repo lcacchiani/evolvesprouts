@@ -191,7 +191,14 @@ This implementation supports:
 
 ## Admin API Endpoints
 
-Audit logs can be queried via the admin API at `/v1/admin/audit-logs`.
+Audit logs can be queried via the admin API at `/v1/admin/audit-logs`. The admin web
+viewer lives under **Audit** at `/audit` (top-level navigation).
+
+The admin UI can filter by Cognito email using the `email` query parameter; the server
+resolves it to a Cognito `sub` via `aws_proxy.invoke('cognito-idp', 'list_users', ...)`
+and returns an empty list when no user matches. List responses may include optional
+`user_email` on each row when the server resolves the actor's email for display.
+
 For full endpoint details (parameters, request/response schemas), see the
 OpenAPI spec: [`docs/api/admin.yaml`](../api/admin.yaml) — search for
 `/v1/admin/audit-logs`.

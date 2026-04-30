@@ -1074,7 +1074,7 @@ export interface paths {
         };
         /**
          * List audit log entries
-         * @description Returns database audit history (trigger- and application-sourced rows in `audit_log`). Optional filters combine as in the admin Lambda handler: when `record_id` is set, `table` is required; `user_id` is a Cognito subject (sub), not an email address.
+         * @description Returns database audit history (trigger- and application-sourced rows in `audit_log`). Optional filters combine as in the admin Lambda handler: when `record_id` is set, `table` is required; `user_id` is a Cognito subject (sub), not an email address. Use `email` to filter by Cognito email (server resolves to sub); do not pass `user_id` together with `email`.
          */
         get: {
             parameters: {
@@ -1085,6 +1085,8 @@ export interface paths {
                     table?: "assets" | "asset_access_grants" | "calendar_manual_blocks";
                     record_id?: string;
                     user_id?: string;
+                    /** @description Filter by the user's Cognito email address. The server resolves this to a Cognito `sub` via `list_users`. Mutually exclusive with `user_id`. When no user matches, the response is an empty list. */
+                    email?: string;
                     action?: "INSERT" | "UPDATE" | "DELETE";
                     /** @description ISO 8601 timestamp; only entries at or after this time are returned where applicable. */
                     since?: string;
@@ -5019,6 +5021,8 @@ export interface components {
             /** @enum {string} */
             action: "INSERT" | "UPDATE" | "DELETE";
             user_id?: string | null;
+            /** @description Cognito email when resolved for this response (optional). */
+            user_email?: string | null;
             request_id?: string | null;
             old_values?: {
                 [key: string]: unknown;

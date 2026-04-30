@@ -39,6 +39,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy import text
+from sqlalchemy import tuple_
 from sqlalchemy.orm import Session
 
 from app.db.models import AuditLog
@@ -323,6 +324,7 @@ class AuditLogRepository:
         table_name: str,
         record_id: str | UUID,
         limit: int = 100,
+        cursor: tuple[datetime, UUID] | None = None,
     ) -> Sequence[AuditLog]:
         """Get the audit history for a specific record.
 
@@ -330,6 +332,7 @@ class AuditLogRepository:
             table_name: Name of the table.
             record_id: Primary key of the record.
             limit: Maximum entries to return.
+            cursor: Return rows strictly older than this (timestamp, id) pair.
 
         Returns:
             Audit log entries in reverse chronological order.
@@ -338,9 +341,14 @@ class AuditLogRepository:
             select(AuditLog)
             .where(AuditLog.table_name == table_name)
             .where(AuditLog.record_id == str(record_id))
-            .order_by(AuditLog.timestamp.desc())
+            .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())
             .limit(limit)
         )
+        if cursor is not None:
+            cursor_ts, cursor_id = cursor
+            query = query.where(
+                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+            )
         return self._session.execute(query).scalars().all()
 
     def get_user_activity(
@@ -348,6 +356,7 @@ class AuditLogRepository:
         user_id: str,
         limit: int = 100,
         since: datetime | None = None,
+        cursor: tuple[datetime, UUID] | None = None,
     ) -> Sequence[AuditLog]:
         """Get audit logs for a specific user.
 
@@ -355,6 +364,7 @@ class AuditLogRepository:
             user_id: Cognito user sub.
             limit: Maximum entries to return.
             since: Only return entries after this timestamp.
+            cursor: Return rows strictly older than this (timestamp, id) pair.
 
         Returns:
             Audit log entries in reverse chronological order.
@@ -362,11 +372,16 @@ class AuditLogRepository:
         query = (
             select(AuditLog)
             .where(AuditLog.user_id == user_id)
-            .order_by(AuditLog.timestamp.desc())
+            .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())
             .limit(limit)
         )
-        if since:
+        if since is not None:
             query = query.where(AuditLog.timestamp >= since)
+        if cursor is not None:
+            cursor_ts, cursor_id = cursor
+            query = query.where(
+                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+            )
         return self._session.execute(query).scalars().all()
 
     def get_table_activity(
@@ -375,6 +390,7 @@ class AuditLogRepository:
         limit: int = 100,
         since: datetime | None = None,
         action: str | None = None,
+        cursor: tuple[datetime, UUID] | None = None,
     ) -> Sequence[AuditLog]:
         """Get audit logs for a specific table.
 
@@ -383,6 +399,7 @@ class AuditLogRepository:
             limit: Maximum entries to return.
             since: Only return entries after this timestamp.
             action: Filter by action type (INSERT, UPDATE, DELETE).
+            cursor: Return rows strictly older than this (timestamp, id) pair.
 
         Returns:
             Audit log entries in reverse chronological order.
@@ -390,39 +407,48 @@ class AuditLogRepository:
         query = (
             select(AuditLog)
             .where(AuditLog.table_name == table_name)
-            .order_by(AuditLog.timestamp.desc())
+            .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())
             .limit(limit)
         )
-        if since:
+        if since is not None:
             query = query.where(AuditLog.timestamp >= since)
         if action:
             query = query.where(AuditLog.action == action)
+        if cursor is not None:
+            cursor_ts, cursor_id = cursor
+            query = query.where(
+                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+            )
         return self._session.execute(query).scalars().all()
 
     def get_recent_activity(
         self,
         limit: int = 100,
         since: datetime | None = None,
-        cursor: UUID | None = None,
+        cursor: tuple[datetime, UUID] | None = None,
     ) -> Sequence[AuditLog]:
         """Get recent audit log entries.
 
         Args:
             limit: Maximum entries to return.
             since: Only return entries after this timestamp.
-            cursor: Pagination cursor (audit log ID).
+            cursor: Return rows strictly older than this (timestamp, id) pair.
 
         Returns:
             Audit log entries in reverse chronological order.
         """
-        query = select(AuditLog).order_by(AuditLog.timestamp.desc()).limit(limit)
-        if since:
+        query = (
+            select(AuditLog)
+            .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())
+            .limit(limit)
+        )
+        if since is not None:
             query = query.where(AuditLog.timestamp >= since)
-        if cursor:
-            # For cursor pagination, get the timestamp of the cursor entry
-            cursor_entry = self.get_by_id(cursor)
-            if cursor_entry:
-                query = query.where(AuditLog.timestamp < cursor_entry.timestamp)
+        if cursor is not None:
+            cursor_ts, cursor_id = cursor
+            query = query.where(
+                tuple_(AuditLog.timestamp, AuditLog.id) < tuple_(cursor_ts, cursor_id)
+            )
         return self._session.execute(query).scalars().all()
 
     def count_by_table(

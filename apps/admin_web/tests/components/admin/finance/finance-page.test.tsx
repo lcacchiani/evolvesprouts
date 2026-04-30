@@ -8,8 +8,6 @@ const {
   mockUseVendors,
   vendorsState,
   mockListAllAdminExpenses,
-  mockListAdminUsers,
-  mockListInstructorUsers,
 } = vi.hoisted(() => {
   const state = {
     items: [],
@@ -61,8 +59,6 @@ const {
     vendorsState,
     mockUseVendors: vi.fn(() => vendorsState),
     mockListAllAdminExpenses: vi.fn().mockResolvedValue([]),
-    mockListAdminUsers: vi.fn().mockResolvedValue({ items: [] }),
-    mockListInstructorUsers: vi.fn().mockResolvedValue({ items: [] }),
   };
 });
 
@@ -81,21 +77,10 @@ vi.mock('@/lib/expenses-api', async () => {
   };
 });
 
-vi.mock('@/lib/audit-logs-api', () => ({
-  listAuditLogs: vi.fn(),
-}));
-
-vi.mock('@/lib/users-api', () => ({
-  listAdminUsers: mockListAdminUsers,
-  listInstructorUsers: mockListInstructorUsers,
-}));
-
 import { FinancePage } from '@/components/admin/finance/finance-page';
-import { listAuditLogs } from '@/lib/audit-logs-api';
 
 describe('FinancePage', () => {
   beforeEach(() => {
-    vi.mocked(listAuditLogs).mockResolvedValue({ items: [], next_cursor: null });
     window.history.replaceState(null, '', '/finance');
   });
 
@@ -107,7 +92,6 @@ describe('FinancePage', () => {
     const user = userEvent.setup();
     render(<FinancePage />);
 
-    expect(screen.getByRole('button', { name: 'Audit logs' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Expenses' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vendors' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Client Invoices' })).toBeInTheDocument();
@@ -124,15 +108,6 @@ describe('FinancePage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
     expect(window.location.search).toBe('');
-  });
-
-  it('switches to audit logs tab', async () => {
-    const user = userEvent.setup();
-    render(<FinancePage />);
-
-    await user.click(screen.getByRole('button', { name: 'Audit logs' }));
-    expect(screen.getByRole('heading', { name: 'Audit logs' })).toBeInTheDocument();
-    expect(window.location.search).toBe('?tab=audit-logs');
   });
 
   it('seeds the active tab from the URL query parameter on mount', async () => {

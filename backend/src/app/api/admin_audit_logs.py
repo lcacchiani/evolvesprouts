@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import os
+from datetime import datetime
 from typing import Any
 from collections.abc import Mapping
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import (
-    encode_cursor,
-    parse_cursor,
+    encode_created_cursor,
+    parse_created_cursor,
     parse_limit,
     parse_uuid,
     query_param,
@@ -20,6 +23,8 @@ from app.db.audit import AuditLogRepository, set_audit_context
 from app.db.engine import get_engine
 from app.db.models import AuditLog
 from app.exceptions import NotFoundError, ValidationError
+from app.services import aws_proxy
+from app.services.aws_proxy import AwsProxyError
 from app.utils import json_response, parse_datetime
 from app.utils.logging import get_logger
 
@@ -79,7 +84,97 @@ def _get_audit_log_by_id(
         entry = repo.get_by_id(parsed_id)
         if entry is None:
             raise NotFoundError("audit_log", audit_id)
-        return json_response(200, _serialize_audit_log(entry), event=event)
+        email_map = _cognito_emails_for_subs([entry.user_id] if entry.user_id else [])
+        return json_response(
+            200, _serialize_audit_log(entry, email_map=email_map), event=event
+        )
+
+
+def _validate_email_filter(email_raw: str) -> str:
+    email = email_raw.strip()
+    if not email:
+        raise ValidationError("email is required when provided", field="email")
+    if '"' in email or "\\" in email:
+        raise ValidationError("email contains invalid characters", field="email")
+    if "@" not in email or len(email) > 254:
+        raise ValidationError("invalid email", field="email")
+    return email
+
+
+def _cognito_sub_for_email(email: str) -> str | None:
+    user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
+    if not user_pool_id:
+        raise ValidationError(
+            "COGNITO_USER_POOL_ID is not configured",
+            field="COGNITO_USER_POOL_ID",
+        )
+    try:
+        response = aws_proxy.invoke(
+            "cognito-idp",
+            "list_users",
+            {
+                "UserPoolId": user_pool_id,
+                "Filter": f'email = "{email}"',
+                "Limit": 2,
+            },
+        )
+    except AwsProxyError:
+        raise ValidationError("user lookup failed", field="email") from None
+
+    users = response.get("Users") or []
+    if len(users) == 0:
+        return None
+    if len(users) > 1:
+        raise ValidationError("multiple users matched email", field="email")
+    attrs = users[0].get("Attributes", [])
+    sub = _cognito_attr(attrs, "sub")
+    if not sub:
+        raise ValidationError("user lookup failed", field="email")
+    return sub
+
+
+def _cognito_attr(attributes: Any, key: str) -> str | None:
+    if not isinstance(attributes, list):
+        return None
+    for item in attributes:
+        if not isinstance(item, Mapping):
+            continue
+        if item.get("Name") != key:
+            continue
+        value = item.get("Value")
+        if isinstance(value, str):
+            return value
+    return None
+
+
+def _cognito_emails_for_subs(subs: list[str]) -> dict[str, str]:
+    """Best-effort map Cognito sub -> email for display (empty on failure)."""
+    user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
+    if not user_pool_id or not subs:
+        return {}
+    out: dict[str, str] = {}
+    for sub in subs:
+        if not sub or '"' in sub:
+            continue
+        try:
+            response = aws_proxy.invoke(
+                "cognito-idp",
+                "list_users",
+                {
+                    "UserPoolId": user_pool_id,
+                    "Filter": f'sub = "{sub}"',
+                    "Limit": 1,
+                },
+            )
+        except AwsProxyError:
+            continue
+        users = response.get("Users") or []
+        if len(users) != 1:
+            continue
+        email = _cognito_attr(users[0].get("Attributes", []), "email")
+        if email:
+            out[sub] = email
+    return out
 
 
 def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
@@ -88,6 +183,7 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
     table_name = query_param(event, "table")
     record_id = query_param(event, "record_id")
     user_id = query_param(event, "user_id")
+    email_raw = query_param(event, "email")
     action = query_param(event, "action")
     since_str = query_param(event, "since")
 
@@ -122,14 +218,26 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
                 field="since",
             )
 
-    if user_id == "__no_match__":
-        return json_response(
-            200,
-            {"items": [], "next_cursor": None},
-            event=event,
-        )
+    if email_raw is not None and email_raw.strip():
+        if user_id:
+            raise ValidationError(
+                "cannot combine email and user_id",
+                field="email",
+            )
+        email = _validate_email_filter(email_raw)
+        resolved = _cognito_sub_for_email(email)
+        if resolved is None:
+            return json_response(
+                200,
+                {"items": [], "next_cursor": None},
+                event=event,
+            )
+        user_id = resolved
 
-    cursor = parse_cursor(query_param(event, "cursor"))
+    cursor_ts, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    cursor: tuple[datetime, UUID] | None = None
+    if cursor_ts is not None and cursor_id is not None:
+        cursor = (cursor_ts, cursor_id)
 
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
@@ -140,12 +248,14 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
                 table_name=table_name,
                 record_id=record_id,
                 limit=limit + 1,
+                cursor=cursor,
             )
         elif user_id:
             rows = repo.get_user_activity(
                 user_id=user_id,
                 limit=limit + 1,
                 since=since,
+                cursor=cursor,
             )
         elif table_name:
             rows = repo.get_table_activity(
@@ -153,6 +263,7 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
                 limit=limit + 1,
                 since=since,
                 action=action.upper() if action else None,
+                cursor=cursor,
             )
         else:
             rows = repo.get_recent_activity(
@@ -176,20 +287,34 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
         },
     )
 
-    next_cursor = encode_cursor(trimmed[-1].id) if has_more and trimmed else None
+    distinct_subs = sorted({r.user_id for r in trimmed if r.user_id})
+    email_map = _cognito_emails_for_subs(distinct_subs)
+
+    next_cursor = (
+        encode_created_cursor(trimmed[-1].timestamp, trimmed[-1].id)
+        if has_more and trimmed
+        else None
+    )
     return json_response(
         200,
         {
-            "items": [_serialize_audit_log(row) for row in trimmed],
+            "items": [
+                _serialize_audit_log(row, email_map=email_map) for row in trimmed
+            ],
             "next_cursor": next_cursor,
         },
         event=event,
     )
 
 
-def _serialize_audit_log(entry: AuditLog) -> dict[str, Any]:
+def _serialize_audit_log(
+    entry: AuditLog,
+    *,
+    email_map: dict[str, str] | None = None,
+) -> dict[str, Any]:
     old_values = entry.old_values or {}
     new_values = entry.new_values or {}
+    emails = email_map or {}
 
     def redact_values(values: dict[str, Any]) -> dict[str, Any]:
         redacted: dict[str, Any] = {}
@@ -200,12 +325,13 @@ def _serialize_audit_log(entry: AuditLog) -> dict[str, Any]:
                 redacted[key] = value
         return redacted
 
-    return {
+    user_id_val = entry.user_id
+    payload: dict[str, Any] = {
         "id": str(entry.id),
         "table_name": entry.table_name,
         "record_id": entry.record_id,
         "action": entry.action,
-        "user_id": entry.user_id,
+        "user_id": user_id_val,
         "request_id": entry.request_id,
         "old_values": redact_values(dict(old_values)),
         "new_values": redact_values(dict(new_values)),
@@ -215,3 +341,6 @@ def _serialize_audit_log(entry: AuditLog) -> dict[str, Any]:
         "ip_address": entry.ip_address,
         "user_agent": entry.user_agent,
     }
+    if user_id_val and user_id_val in emails:
+        payload["user_email"] = emails[user_id_val]
+    return payload

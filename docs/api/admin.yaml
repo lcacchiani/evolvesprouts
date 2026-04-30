@@ -14,7 +14,7 @@ info:
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET /v1/admin/users`
     - `GET /v1/admin/instructors`
-    - `GET /v1/admin/audit-logs` (optional `table`, `record_id`, `user_id`, `action`, `since`, `cursor`, `limit`)
+    - `GET /v1/admin/audit-logs` (optional `table`, `record_id`, `user_id`, `email`, `action`, `since`, `cursor`, `limit`)
     - `GET /v1/admin/audit-logs/{id}`
     - `GET|POST /v1/admin/services`
     - `GET /v1/admin/services/instances`
@@ -793,7 +793,8 @@ paths:
         Returns database audit history (trigger- and application-sourced rows in
         `audit_log`). Optional filters combine as in the admin Lambda handler:
         when `record_id` is set, `table` is required; `user_id` is a Cognito subject
-        (sub), not an email address.
+        (sub), not an email address. Use `email` to filter by Cognito email (server
+        resolves to sub); do not pass `user_id` together with `email`.
       security:
         - AdminBearerAuth: []
       parameters:
@@ -825,6 +826,15 @@ paths:
         - name: user_id
           in: query
           required: false
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          description: >
+            Filter by the user's Cognito email address. The server resolves this to a
+            Cognito `sub` via `list_users`. Mutually exclusive with `user_id`. When no
+            user matches, the response is an empty list.
           schema:
             type: string
         - name: action
@@ -4830,6 +4840,10 @@ components:
         user_id:
           type: string
           nullable: true
+        user_email:
+          type: string
+          nullable: true
+          description: Cognito email when resolved for this response (optional).
         request_id:
           type: string
           nullable: true

@@ -11,7 +11,6 @@ import { useVendors } from '@/hooks/use-vendors';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
 import type { Expense } from '@/types/expenses';
 
-import { AuditLogsPanel } from './audit-logs-panel';
 import { ExpensesEditorPanel } from './expenses-editor-panel';
 import { ExpensesListPanel } from './expenses-list-panel';
 import {
@@ -21,7 +20,6 @@ import {
   type FinanceView,
 } from './finance-header';
 import { VendorsPanel } from './vendors-panel';
-import { AUDITABLE_AUDIT_LOG_TABLES } from '@/types/audit-log';
 
 export function FinancePage() {
   const [activeView, setActiveView] = useQueryTabState<FinanceView>(
@@ -70,15 +68,6 @@ export function FinancePage() {
       cancelled = true;
     };
   }, [activeView]);
-
-  if (activeView === 'audit-logs') {
-    return (
-      <div className='space-y-6'>
-        <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
-        <AuditLogsPanel auditableTables={AUDITABLE_AUDIT_LOG_TABLES} />
-      </div>
-    );
-  }
 
   if (activeView === 'client-invoices') {
     return (
