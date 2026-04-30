@@ -4,29 +4,59 @@ import { Construct } from "constructs";
 
 export interface ApiAdminCrmStackProps extends cdk.NestedStackProps {
   restApi: apigateway.IRestApi;
-  adminResource: apigateway.IResource;
+  /** The `/v1/admin/contacts` resource created in the parent stack. */
+  contactsResource: apigateway.IResource;
+  /** The `/v1/admin/families` resource created in the parent stack. */
+  familiesResource: apigateway.IResource;
+  /** The `/v1/admin/organizations` resource created in the parent stack. */
+  organizationsResource: apigateway.IResource;
   adminIntegration: apigateway.Integration;
   adminAuthorizer: apigateway.IAuthorizer;
 }
 
 /**
- * Admin CRM routes (`/v1/admin/contacts/**`, `/families/**`, `/organizations/**`) in a
- * nested stack to keep the parent ApiStack under CloudFormation's 500-resource quota.
+ * Admin CRM methods and sub-resources (`/v1/admin/contacts/**`, `/families/**`,
+ * `/organizations/**`) in a nested stack to keep the parent ApiStack under
+ * CloudFormation's 500-resource quota.
+ *
+ * The top-level `contacts`, `families`, and `organizations` resources live in the parent
+ * stack so their CloudFormation logical IDs are stable across the migration from inline
+ * routes to a nested stack.
  */
 export class ApiAdminCrmStack extends cdk.NestedStack {
   public constructor(scope: Construct, id: string, props: ApiAdminCrmStackProps) {
     super(scope, id, props);
 
-    const { restApi, adminResource, adminIntegration, adminAuthorizer } = props;
-
-    const adminAttach = apigateway.Resource.fromResourceAttributes(this, "AdminRouteParent", {
+    const {
       restApi,
-      resourceId: adminResource.resourceId,
-      path: adminResource.path,
-    });
+      contactsResource,
+      familiesResource,
+      organizationsResource,
+      adminIntegration,
+      adminAuthorizer,
+    } = props;
 
-    // Admin CRM contacts / families / organizations (non-vendor)
-    const adminContacts = adminAttach.addResource("contacts");
+    this.wireContacts(restApi, contactsResource, adminIntegration, adminAuthorizer);
+    this.wireFamilies(restApi, familiesResource, adminIntegration, adminAuthorizer);
+    this.wireOrganizations(restApi, organizationsResource, adminIntegration, adminAuthorizer);
+  }
+
+  private wireContacts(
+    restApi: apigateway.IRestApi,
+    contactsResource: apigateway.IResource,
+    adminIntegration: apigateway.Integration,
+    adminAuthorizer: apigateway.IAuthorizer,
+  ): void {
+    const adminContacts = apigateway.Resource.fromResourceAttributes(
+      this,
+      "ContactsRouteParent",
+      {
+        restApi,
+        resourceId: contactsResource.resourceId,
+        path: contactsResource.path,
+      },
+    );
+
     adminContacts.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
@@ -76,8 +106,24 @@ export class ApiAdminCrmStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+  }
 
-    const adminFamilies = adminAttach.addResource("families");
+  private wireFamilies(
+    restApi: apigateway.IRestApi,
+    familiesResource: apigateway.IResource,
+    adminIntegration: apigateway.Integration,
+    adminAuthorizer: apigateway.IAuthorizer,
+  ): void {
+    const adminFamilies = apigateway.Resource.fromResourceAttributes(
+      this,
+      "FamiliesRouteParent",
+      {
+        restApi,
+        resourceId: familiesResource.resourceId,
+        path: familiesResource.path,
+      },
+    );
+
     const adminFamiliesPicker = adminFamilies.addResource("picker");
     adminFamiliesPicker.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
@@ -118,8 +164,24 @@ export class ApiAdminCrmStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+  }
 
-    const adminOrganizationsCrm = adminAttach.addResource("organizations");
+  private wireOrganizations(
+    restApi: apigateway.IRestApi,
+    organizationsResource: apigateway.IResource,
+    adminIntegration: apigateway.Integration,
+    adminAuthorizer: apigateway.IAuthorizer,
+  ): void {
+    const adminOrganizationsCrm = apigateway.Resource.fromResourceAttributes(
+      this,
+      "OrganizationsRouteParent",
+      {
+        restApi,
+        resourceId: organizationsResource.resourceId,
+        path: organizationsResource.path,
+      },
+    );
+
     const adminOrganizationsCrmPicker = adminOrganizationsCrm.addResource("picker");
     adminOrganizationsCrmPicker.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
