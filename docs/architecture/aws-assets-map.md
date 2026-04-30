@@ -495,6 +495,16 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/expenses/{id}/mark-paid` | POST | Admin Group | `EvolvesproutsAdminFunction` | Mark expense paid |
 | `/v1/admin/expenses/{id}/reparse` | POST | Admin Group | `EvolvesproutsAdminFunction` | Requeue parse |
 | `/v1/admin/expenses/{id}/amend` | POST | Admin Group | `EvolvesproutsAdminFunction` | Create amendment |
+| `/v1/admin/billing/export` | GET | Admin Group | `EvolvesproutsAdminFunction` | Customer AR CSV export (`exportVersion=2` default: payments, refunds, invoices, lines, receipts, allocations; `exportVersion=1` legacy) |
+| `/v1/admin/billing/payments` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | List payments; record refund |
+| `/v1/admin/billing/payments/{id}` | GET | Admin Group | `EvolvesproutsAdminFunction` | Payment detail + unapplied |
+| `/v1/admin/billing/payments/{id}/unapplied` | GET | Admin Group | `EvolvesproutsAdminFunction` | Unapplied amount |
+| `/v1/admin/billing/payments/{id}/confirm` | POST | Admin Group | `EvolvesproutsAdminFunction` | Confirm pending payment |
+| `/v1/admin/billing/invoices` | POST | Admin Group | `EvolvesproutsAdminFunction` | Create draft invoice |
+| `/v1/admin/billing/invoices/{id}/issue` | POST | Admin Group | `EvolvesproutsAdminFunction` | Issue invoice |
+| `/v1/admin/billing/invoices/{id}/void` | POST | Admin Group | `EvolvesproutsAdminFunction` | Void invoice |
+| `/v1/admin/billing/invoices/{id}/email` | POST | Admin Group | `EvolvesproutsAdminFunction` | Email invoice PDF |
+| `/v1/admin/billing/allocations` | POST | Admin Group | `EvolvesproutsAdminFunction` | Allocate payment to invoice |
 | `/v1/user/assets` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |

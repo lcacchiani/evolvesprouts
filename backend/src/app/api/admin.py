@@ -22,6 +22,7 @@ from app.api.admin_users import (
     handle_admin_instructors_request,
     handle_admin_users_request,
 )
+from app.api.admin_billing import handle_admin_billing_request
 from app.api.admin_contacts import handle_admin_contacts_request
 from app.api.admin_tags import handle_admin_tags_request
 from app.api.admin_families import handle_admin_families_request
@@ -187,6 +188,11 @@ _ROUTES: tuple[
         "/v1/admin/expenses",
         False,
         handle_admin_expenses_request,
+    ),
+    (
+        "/v1/admin/billing",
+        False,
+        handle_admin_billing_request,
     ),
     (
         "/v1/admin/tags",

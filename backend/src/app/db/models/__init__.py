@@ -4,6 +4,9 @@ from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
 from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.models.audit_log import AuditLog
 from app.db.models.contact import Contact
+from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
+from app.db.models.customer_payment import CustomerPayment
+from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.discount_code import DiscountCode
 from app.db.models.enrollment import Enrollment
 from app.db.models.expense import Expense, ExpenseAttachment
@@ -12,6 +15,10 @@ from app.db.models.enums import (
     AccessGrantType,
     AssetType,
     AssetVisibility,
+    BillingBillToKind,
+    BillingInvoiceStatus,
+    BillingPaymentDirection,
+    BillingPaymentStatus,
     ConsultationFormat,
     ConsultationPricingModel,
     ContactSource,
@@ -44,6 +51,7 @@ from app.db.models.legacy_import_ref import LegacyImportRef
 from app.db.models.location import Location
 from app.db.models.note import Note
 from app.db.models.organization import Organization, OrganizationMember
+from app.db.models.payment_allocation import DocumentCounter, PaymentAllocation
 from app.db.models.sales_lead import SalesLead, SalesLeadEvent
 from app.db.models.service import (
     ConsultationDetails,
@@ -73,6 +81,10 @@ __all__ = [
     "AssetType",
     "AssetVisibility",
     "AuditLog",
+    "BillingBillToKind",
+    "BillingInvoiceStatus",
+    "BillingPaymentDirection",
+    "BillingPaymentStatus",
     "CalendarManualBlock",
     "ConsultationDetails",
     "ConsultationFormat",
@@ -82,8 +94,13 @@ __all__ = [
     "ContactSource",
     "ContactTag",
     "ContactType",
+    "CustomerInvoice",
+    "CustomerInvoiceLine",
+    "CustomerPayment",
+    "CustomerReceipt",
     "DiscountCode",
     "DiscountType",
+    "DocumentCounter",
     "EventbriteSyncStatus",
     "Expense",
     "ExpenseAttachment",
@@ -115,6 +132,7 @@ __all__ = [
     "OrganizationRole",
     "OrganizationTag",
     "OrganizationType",
+    "PaymentAllocation",
     "RelationshipType",
     "SalesLead",
     "SalesLeadEvent",

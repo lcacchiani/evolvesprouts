@@ -35,7 +35,16 @@ AUDIT_REDACTED_FIELDS: frozenset[str] = frozenset(
 )
 
 AUDITABLE_TABLES: frozenset[str] = frozenset(
-    ("assets", "asset_access_grants", "calendar_manual_blocks")
+    (
+        "assets",
+        "asset_access_grants",
+        "calendar_manual_blocks",
+        "customer_invoice_lines",
+        "customer_invoices",
+        "customer_payments",
+        "customer_receipts",
+        "payment_allocations",
+    )
 )
 
 _DEFAULT_LIMIT = 50

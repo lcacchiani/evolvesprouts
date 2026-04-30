@@ -732,13 +732,19 @@ paths:
         `serviceInstanceSlug` resolves to a `service_instances` row and the
         contact has no existing enrollment for that instance, inserts an
         `enrollments` row (`created_by`: `public-reservation`) with optional
-        `discount_code_id` and paid amount, then returns **202** on success.
+        `discount_code_id` and paid amount, currency, optional bill-to fields, then returns **202** on success.
+        When enrollment is created, records a **`customer_payments`** row (Stripe succeeded,
+        free, or pending for offline rails). Receipt PDF upload for succeeded inbound
+        payments is finalized after staff confirm via admin billing (not at booking time).
+        If the same Stripe PaymentIntent id was already stored, returns **200** with
+        `duplicateStripePaymentIntent: true` and `customerPaymentId` (idempotent client retries).
         Referral-type discount codes are rejected like the public validate endpoint.
         Returns **409** when the instance is full and public bookings may not waitlist.
         Best-effort SES booking
         confirmation to the attendee, optional Mailchimp subscribe, and plain-text
         **sales recap** to `ADMIN_GROUP` verified emails run after commit (hook
-        failures are logged; HTTP **202** is still returned). Returns **500** when
+        failures are logged; HTTP **202** is still returned for normal submissions, **200**
+        when `duplicateStripePaymentIntent` applies). Returns **500** when
         Aurora persistence fails. Requires Turnstile, `agreedToTermsAndConditions:
         true`, and Stripe PaymentIntent verification when the payment method implies
         Stripe.
@@ -754,6 +760,13 @@ paths:
             schema:
               $ref: "#/components/schemas/PublicReservationSubmissionRequest"
       responses:
+        "200":
+          description: >
+            Idempotent retry: same Stripe PaymentIntent already linked (`duplicateStripePaymentIntent`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
         "202":
           description: Reservation submitted.
           content:
@@ -796,6 +809,12 @@ paths:
             schema:
               $ref: "#/components/schemas/PublicReservationSubmissionRequest"
       responses:
+        "200":
+          description: Same idempotent Stripe PaymentIntent response as `POST /v1/reservations`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
         "202":
           description: Reservation submitted.
           content:
@@ -1510,6 +1529,30 @@ components:
           type: number
           minimum: 0
           maximum: 1000000
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: >
+            ISO 4217 sale currency for enrollment and billing (defaults to HKD when omitted).
+        billToKind:
+          type: string
+          enum: [contact, family, organization]
+          description: >
+            Optional AR bill-to override; defaults to contact (attendee). When `family` or
+            `organization`, send the matching id field.
+        billToContactId:
+          type: string
+          format: uuid
+          nullable: true
+        billToFamilyId:
+          type: string
+          format: uuid
+          nullable: true
+        billToOrganizationId:
+          type: string
+          format: uuid
+          nullable: true
         title:
           type: string
           maxLength: 200
@@ -1796,3 +1839,10 @@ components:
       properties:
         message:
           type: string
+        duplicateStripePaymentIntent:
+          type: boolean
+          description: True when the Stripe PaymentIntent was already linked to a customer payment.
+        customerPaymentId:
+          type: string
+          format: uuid
+          description: Existing customer payment row when `duplicateStripePaymentIntent` is true.

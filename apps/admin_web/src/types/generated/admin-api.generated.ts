@@ -1082,7 +1082,7 @@ export interface paths {
                     limit?: number;
                     /** @description Opaque continuation token from `next_cursor` for the default recent listing. */
                     cursor?: string;
-                    table?: "assets" | "asset_access_grants" | "calendar_manual_blocks";
+                    table?: "assets" | "asset_access_grants" | "calendar_manual_blocks" | "customer_invoice_lines" | "customer_invoices" | "customer_payments" | "customer_receipts" | "payment_allocations";
                     record_id?: string;
                     user_id?: string;
                     /** @description Filter by the user's Cognito email address. The server resolves this to a Cognito `sub` via `list_users`. Mutually exclusive with `user_id`. When no user matches, the response is an empty list. */
@@ -3852,6 +3852,497 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/admin/billing/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export billing CSV (default export v2)
+         * @description Default `export_version` is **2** (`?exportVersion=2` or omit). v2 rows include `document_type` in `payment`, `refund`, `invoice`, `invoice_line`, `receipt`, and `allocation` with columns for `payment_method`, `bank_reference` (payment `external_reference`), `counterparty_name_snapshot` (invoice line description or invoice snapshot display name), `tax_amount`, `created_by` (payment `confirmed_by`), bill-to fields on invoice rows, and Stripe / linkage ids. Pass `exportVersion=1` for the legacy payments+allocations-only shape.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description `1` (legacy) or `2` (default). */
+                    exportVersion?: "1" | "2";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounting-oriented CSV payload. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            csv: string;
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent customer payments */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Payment rows. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["CustomerPaymentSummary"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Record refund payment row */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCustomerRefundRequest"];
+                };
+            };
+            responses: {
+                /** @description Refund created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            payment?: components["schemas"]["CustomerPaymentSummary"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get customer payment with unapplied balance */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Payment detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerPaymentSummary"] & {
+                            unappliedAmount?: string;
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/payments/{id}/unapplied": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unapplied amount for a payment */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Unapplied remainder. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            paymentId?: string;
+                            unappliedAmount?: string;
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/payments/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm pending inbound payment (offline rails) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        externalReference?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Payment confirmed and receipt generated when applicable. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            payment?: components["schemas"]["CustomerPaymentSummary"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create draft invoice from enrollments */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateDraftInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description Draft invoice created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            invoiceId?: string;
+                            /** @enum {string} */
+                            status?: "draft";
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/invoices/{id}/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue invoice (assign number, PDF hash) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Invoice issued. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            invoiceId?: string;
+                            invoiceNumber?: string;
+                            issuedPdfSha256?: string | null;
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/invoices/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void invoice (draft or issued)
+         * @description Voids a draft or issued invoice. Returns 400 if already void. Application audit rows distinguish `VOID_FROM_DRAFT` vs `VOID_FROM_ISSUED`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Invoice voided. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            invoiceId?: string;
+                            /** @enum {string} */
+                            status?: "void";
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/invoices/{id}/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Email issued invoice PDF */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        toEmail: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Email sent (best-effort). */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sent?: boolean;
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/allocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Allocate payment amount to invoice */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePaymentAllocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Allocation created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            allocationId?: string;
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/expenses": {
         parameters: {
             query?: never;
@@ -5282,6 +5773,57 @@ export interface components {
         };
         ExpenseResponse: {
             expense: components["schemas"]["Expense"];
+        };
+        CustomerPaymentSummary: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            direction?: "inbound" | "refund";
+            /** @enum {string} */
+            status?: "pending" | "succeeded" | "failed";
+            method?: string;
+            amount?: string;
+            currency?: string;
+            /** Format: uuid */
+            originalPaymentId?: string | null;
+            stripePaymentIntentId?: string | null;
+            stripeRefundId?: string | null;
+            /** Format: uuid */
+            enrollmentId?: string | null;
+            /** Format: uuid */
+            contactId?: string | null;
+            /** Format: date-time */
+            succeededAt?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        CreateCustomerRefundRequest: {
+            /** @enum {string} */
+            direction: "refund";
+            /** Format: uuid */
+            originalPaymentId: string;
+            amount: string;
+            currency: string;
+            method?: string;
+            stripeRefundId?: string | null;
+        };
+        /** @description Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
+        CreateDraftInvoiceRequest: {
+            enrollmentIds: string[];
+            currency: string;
+            lineTotalsByEnrollmentId?: {
+                [key: string]: string;
+            };
+        };
+        CreatePaymentAllocationRequest: {
+            /** Format: uuid */
+            paymentId: string;
+            /** Format: uuid */
+            invoiceId: string;
+            /** Format: uuid */
+            invoiceLineId?: string | null;
+            allocatedAmount: string;
+            currency: string;
         };
         ExpenseListResponse: {
             items: components["schemas"]["Expense"][];

@@ -280,3 +280,34 @@ class InboundEmailStatus(str, enum.Enum):
     STORED = "stored"
     SKIPPED = "skipped"
     FAILED = "failed"
+
+
+class BillingPaymentDirection(str, enum.Enum):
+    """Customer payment row direction (matches ``billing_payment_direction``)."""
+
+    INBOUND = "inbound"
+    REFUND = "refund"
+
+
+class BillingPaymentStatus(str, enum.Enum):
+    """Customer payment status (matches ``billing_payment_status``)."""
+
+    PENDING = "pending"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
+class BillingBillToKind(str, enum.Enum):
+    """Invoice bill-to (matches ``billing_bill_to_kind``)."""
+
+    CONTACT = "contact"
+    FAMILY = "family"
+    ORGANIZATION = "organization"
+
+
+class BillingInvoiceStatus(str, enum.Enum):
+    """Customer invoice status (matches ``billing_invoice_status``)."""
+
+    DRAFT = "draft"
+    ISSUED = "issued"
+    VOID = "void"
