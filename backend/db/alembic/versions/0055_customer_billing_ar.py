@@ -406,12 +406,12 @@ def upgrade() -> None:
     )
 
     for _, ddl in _audit_trigger_statements():
-        op.execute(sa.text(ddl))
+        op.execute(ddl)
 
 
 def downgrade() -> None:
     for stmt in _audit_trigger_drop_statements():
-        op.execute(sa.text(stmt))
+        op.execute(stmt)
 
     op.execute(
         sa.text(
