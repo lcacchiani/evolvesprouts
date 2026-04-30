@@ -28,13 +28,65 @@ down_revision: Union[str, None] = "0054_add_audit_log"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-BILLING_AUDITED_TABLES: tuple[str, ...] = (
-    "customer_payments",
-    "customer_invoices",
-    "customer_invoice_lines",
-    "payment_allocations",
-    "customer_receipts",
-)
+
+def _audit_trigger_statements() -> tuple[tuple[str, str], ...]:
+    """Literal CREATE/DROP trigger DDL per audited table (fixed identifiers).
+
+    Kept as explicit strings so static analysis does not treat identifiers as
+    interpolated into ``sqlalchemy.text`` (Semgrep: avoid-sqlalchemy-text).
+    """
+    return (
+        (
+            "customer_payments",
+            """
+            CREATE TRIGGER customer_payments_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON customer_payments
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+            """,
+        ),
+        (
+            "customer_invoices",
+            """
+            CREATE TRIGGER customer_invoices_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON customer_invoices
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+            """,
+        ),
+        (
+            "customer_invoice_lines",
+            """
+            CREATE TRIGGER customer_invoice_lines_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON customer_invoice_lines
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+            """,
+        ),
+        (
+            "payment_allocations",
+            """
+            CREATE TRIGGER payment_allocations_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON payment_allocations
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+            """,
+        ),
+        (
+            "customer_receipts",
+            """
+            CREATE TRIGGER customer_receipts_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON customer_receipts
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+            """,
+        ),
+    )
+
+
+def _audit_trigger_drop_statements() -> tuple[str, ...]:
+    return (
+        "DROP TRIGGER IF EXISTS customer_receipts_audit_trigger ON customer_receipts;",
+        "DROP TRIGGER IF EXISTS payment_allocations_audit_trigger ON payment_allocations;",
+        "DROP TRIGGER IF EXISTS customer_invoice_lines_audit_trigger ON customer_invoice_lines;",
+        "DROP TRIGGER IF EXISTS customer_invoices_audit_trigger ON customer_invoices;",
+        "DROP TRIGGER IF EXISTS customer_payments_audit_trigger ON customer_payments;",
+    )
 
 
 def upgrade() -> None:
@@ -353,25 +405,13 @@ def upgrade() -> None:
         )
     )
 
-    for table_name in BILLING_AUDITED_TABLES:
-        op.execute(
-            sa.text(
-                f"""
-            CREATE TRIGGER {table_name}_audit_trigger
-            AFTER INSERT OR UPDATE OR DELETE ON {table_name}
-            FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
-            """
-            )
-        )
+    for _, ddl in _audit_trigger_statements():
+        op.execute(sa.text(ddl))
 
 
 def downgrade() -> None:
-    for table_name in reversed(BILLING_AUDITED_TABLES):
-        op.execute(
-            sa.text(
-                f"DROP TRIGGER IF EXISTS {table_name}_audit_trigger ON {table_name};"
-            )
-        )
+    for stmt in _audit_trigger_drop_statements():
+        op.execute(sa.text(stmt))
 
     op.execute(
         sa.text(
