@@ -51,3 +51,5 @@ class CalendarManualBlock(Base):
         onupdate=func.now(),
     )
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    updated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)

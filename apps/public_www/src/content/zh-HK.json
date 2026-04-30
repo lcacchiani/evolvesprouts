@@ -1337,6 +1337,8 @@
     "booking": {
       "eyebrow": "家庭諮詢",
       "title": "預約你的家庭諮詢",
+      "calendarBlockersLoadingMessage": "正在載入可預約日期…",
+      "calendarBlockersErrorMessage": "暫時無法載入可用時段。你仍可繼續；若所選時間不可用，結帳時會提示。",
       "step1Title": "選擇你的方向：",
       "focusAreas": [
         {

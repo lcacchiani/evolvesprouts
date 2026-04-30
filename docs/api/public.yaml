@@ -474,8 +474,10 @@ paths:
               schema:
                 type: string
               description: >
-                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
-                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
+                For `purpose=consultation_booking`, `no-store` so manual blockers are not
+                edge-cached. For other supported purposes, the same value as other public
+                cacheable GETs: `public, max-age=60, s-maxage=300, stale-while-revalidate=600`
+                (TTL capped by cache policy on `/www/*`).
           content:
             application/json:
               schema:
@@ -524,8 +526,10 @@ paths:
               schema:
                 type: string
               description: >
-                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
-                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
+                For `purpose=consultation_booking`, `no-store` so manual blockers are not
+                edge-cached. For other supported purposes, the same value as other public
+                cacheable GETs: `public, max-age=60, s-maxage=300, stale-while-revalidate=600`
+                (TTL capped by cache policy on `/www/*`).
           content:
             application/json:
               schema:

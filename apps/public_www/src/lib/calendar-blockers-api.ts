@@ -10,6 +10,12 @@ export const CALENDAR_BLOCKERS_API_PATH = '/v1/calendar/blockers';
 /** Must match `app.services.calendar_blockers.consultation_booking_purpose()`. */
 export const CONSULTATION_BOOKING_BLOCKERS_PURPOSE = 'consultation_booking';
 
+export interface ConsultationCalendarBlockersFetchResult {
+  slots: CalendarUnavailableSlot[];
+  /** True when the CRM client is missing or the HTTP request failed. */
+  fetchFailed: boolean;
+}
+
 function ymdFromLocalDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -31,14 +37,14 @@ export function buildCalendarBlockersApiPath(params: {
 
 /**
  * Fetches merged manual + session calendar blockers for the public website.
- * Returns an empty list when the CRM client is missing or the request fails.
+ * Returns empty slots with `fetchFailed` when the CRM client is missing or the request fails.
  */
 export async function fetchConsultationCalendarBlockersSlots(
   signal: AbortSignal,
-): Promise<CalendarUnavailableSlot[]> {
+): Promise<ConsultationCalendarBlockersFetchResult> {
   const client = createPublicCrmApiClient();
   if (!client) {
-    return [];
+    return { slots: [], fetchFailed: true };
   }
 
   const today = new Date();
@@ -55,10 +61,11 @@ export async function fetchConsultationCalendarBlockersSlots(
       }),
       method: 'GET',
       signal,
+      bypassGetCache: true,
     });
-    return parsePublicCalendarBlockersPayload(payload);
+    return { slots: parsePublicCalendarBlockersPayload(payload), fetchFailed: false };
   } catch {
-    return [];
+    return { slots: [], fetchFailed: true };
   }
 }
 

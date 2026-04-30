@@ -10,9 +10,13 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import InstanceSessionSlot, Service, ServiceInstance
 from app.db.models.calendar_manual_block import CalendarManualBlock
-from app.db.models.enums import InstanceStatus, ServiceStatus, ServiceType
+from app.db.repositories.service_instance import (
+    select_public_calendar_blocker_session_slots,
+)
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 CalendarBlockPeriod = Literal["am", "pm", "both"]
 
@@ -27,6 +31,10 @@ _PM_END_HOUR = 18
 
 _PURPOSE_CONSULTATION_BOOKING = "consultation_booking"
 
+_ALLOWED_PUBLIC_BLOCKER_PURPOSES: frozenset[str] = frozenset(
+    {_PURPOSE_CONSULTATION_BOOKING}
+)
+
 
 def resolve_calendar_blockers_wall_timezone() -> str:
     raw = os.getenv(_ENV_CALENDAR_BLOCKERS_WALL_TIMEZONE, "").strip()
@@ -35,6 +43,10 @@ def resolve_calendar_blockers_wall_timezone() -> str:
 
 def consultation_booking_purpose() -> str:
     return _PURPOSE_CONSULTATION_BOOKING
+
+
+def is_public_blockers_purpose_allowed(purpose: str) -> bool:
+    return purpose.strip().lower() in _ALLOWED_PUBLIC_BLOCKER_PURPOSES
 
 
 def _ymd_in_zone(instant: datetime, zone: ZoneInfo) -> str:
@@ -131,28 +143,9 @@ def merge_calendar_blockers_for_purpose(
     range_start_utc = range_start_local.astimezone(UTC)
     range_end_utc = range_end_local.astimezone(UTC)
 
-    slot_stmt = (
-        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
-        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
-        .join(Service, ServiceInstance.service_id == Service.id)
-        .where(
-            Service.service_type.in_((ServiceType.EVENT, ServiceType.TRAINING_COURSE))
-        )
-        .where(Service.status == ServiceStatus.PUBLISHED)
-        .where(ServiceInstance.status != InstanceStatus.CANCELLED)
-        .where(
-            ServiceInstance.status.in_(
-                [
-                    InstanceStatus.SCHEDULED,
-                    InstanceStatus.OPEN,
-                    InstanceStatus.FULL,
-                    InstanceStatus.IN_PROGRESS,
-                    InstanceStatus.COMPLETED,
-                ]
-            )
-        )
-        .where(InstanceSessionSlot.starts_at < range_end_utc)
-        .where(InstanceSessionSlot.ends_at > range_start_utc)
+    slot_stmt = select_public_calendar_blocker_session_slots(
+        range_start_utc=range_start_utc,
+        range_end_utc=range_end_utc,
     )
     for starts_at, ends_at in session.execute(slot_stmt).all():
         if starts_at is None or ends_at is None:
@@ -186,52 +179,172 @@ def merge_calendar_blockers_for_purpose(
     return _merge_period_map(by_date)
 
 
-def consultation_slot_blocked(
+def half_day_period_for_consultation_iso(
     *,
-    primary_start_iso: str,
-    purpose: str,
-    session: Session,
-) -> bool:
-    """True when the consultation primary session instant falls on a blocked half-day."""
+    start_iso: str,
+    wall_zone: str | None = None,
+) -> tuple[date, CalendarBlockPeriod] | None:
+    """Map an ISO instant to (local calendar date, am|pm) for consultation windows.
+
+    AM = local hour in [09:00, 12:00); PM = [14:00, 18:00). The gap 12:00–14:00
+    and outside 09–18 are invalid (returns None).
+    """
     try:
-        start = datetime.fromisoformat(primary_start_iso.replace("Z", "+00:00"))
+        start = datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
     except ValueError:
-        return True
+        logger.info(
+            "consultation_slot_classification_failed",
+            extra={"reason": "iso_parse_error"},
+        )
+        return None
     if start.tzinfo is None:
         start = start.replace(tzinfo=UTC)
     else:
         start = start.astimezone(UTC)
 
-    zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
-    ymd = _ymd_in_zone(start, zone)
+    zone_name = (wall_zone or "").strip() or resolve_calendar_blockers_wall_timezone()
+    try:
+        zone = ZoneInfo(zone_name)
+    except Exception:
+        logger.warning(
+            "consultation_slot_classification_failed",
+            extra={"reason": "invalid_wall_zone", "wall_zone": zone_name},
+        )
+        return None
+
+    local = start.astimezone(zone)
+    ymd = local.strftime("%Y-%m-%d")
     try:
         y, m, d_part = (int(ymd[0:4]), int(ymd[5:7]), int(ymd[8:10]))
         day_local = date(y, m, d_part)
     except (ValueError, IndexError):
-        return True
+        return None
 
-    hour = start.astimezone(zone).hour
-    minute = start.astimezone(zone).minute
-    second = start.astimezone(zone).second
-    if hour == _AM_START_HOUR and minute == 0 and second == 0:
-        period: CalendarBlockPeriod = "am"
-    elif hour == _PM_START_HOUR and minute == 0 and second == 0:
-        period = "pm"
-    else:
-        return True
+    hour = local.hour
+    minute = local.minute
+    second = local.second
+    if second != 0 or minute != 0:
+        logger.info(
+            "consultation_slot_classification_failed",
+            extra={"reason": "non_zero_subminute", "ymd": ymd},
+        )
+        return None
 
+    if _AM_START_HOUR <= hour < _AM_END_HOUR:
+        return day_local, "am"
+    if _PM_START_HOUR <= hour < _PM_END_HOUR:
+        return day_local, "pm"
+
+    logger.info(
+        "consultation_slot_classification_failed",
+        extra={
+            "reason": "outside_am_pm_windows",
+            "ymd": ymd,
+            "hour": hour,
+        },
+    )
+    return None
+
+
+def _blocked_ymd_period_set(
+    session: Session,
+    *,
+    purpose: str,
+    from_date: date,
+    to_date: date,
+) -> set[tuple[str, CalendarBlockPeriod]]:
+    """Single merge for a date range; returns {(ymd, am|pm)} blocked half-days."""
     blockers = merge_calendar_blockers_for_purpose(
+        session,
+        purpose=purpose,
+        from_date=from_date,
+        to_date=to_date,
+    )
+    out: set[tuple[str, CalendarBlockPeriod]] = set()
+    for b in blockers:
+        d = str(b.get("date") or "")
+        p = str(b.get("period") or "")
+        if not d:
+            continue
+        if p == "both":
+            out.add((d, "am"))
+            out.add((d, "pm"))
+        elif p in ("am", "pm"):
+            out.add((d, p))
+    return out
+
+
+def consultation_datetime_blocked(
+    *,
+    start_iso: str,
+    purpose: str,
+    session: Session,
+) -> bool:
+    """True when the instant maps to a blocked consultation half-day."""
+    classified = half_day_period_for_consultation_iso(start_iso=start_iso)
+    if classified is None:
+        return True
+    day_local, period = classified
+    blocked = _blocked_ymd_period_set(
         session,
         purpose=purpose,
         from_date=day_local,
         to_date=day_local,
     )
-    for b in blockers:
-        if b.get("date") != ymd:
-            continue
-        p = str(b.get("period") or "")
-        if p == "both":
-            return True
-        if p == period:
+    return (day_local.isoformat(), period) in blocked
+
+
+def consultation_reservation_has_blocked_slot(
+    *,
+    session: Session,
+    purpose: str,
+    primary_start_iso: str | None,
+    session_slots: list[dict[str, str]] | None,
+) -> bool:
+    """True if any primary or session slot start maps to a blocked half-day."""
+    starts: list[str] = []
+    if primary_start_iso and str(primary_start_iso).strip():
+        starts.append(str(primary_start_iso).strip())
+    for row in session_slots or []:
+        s = row.get("start_iso")
+        if isinstance(s, str) and s.strip():
+            starts.append(s.strip())
+    for iso in starts:
+        if consultation_datetime_blocked(
+            start_iso=iso, purpose=purpose, session=session
+        ):
+            logger.info(
+                "consultation_reservation_blocked_slot",
+                extra={"reason": "blocked_half_day"},
+            )
             return True
     return False
+
+
+def validate_session_slot_chronology(
+    session_slots: list[dict[str, str]] | None,
+) -> str | None:
+    """Return error message key if any slot has end before or equal to start."""
+    for row in session_slots or []:
+        start_s = row.get("start_iso")
+        end_s = row.get("end_iso")
+        if not isinstance(start_s, str) or not start_s.strip():
+            continue
+        if not isinstance(end_s, str) or not end_s.strip():
+            continue
+        try:
+            s0 = datetime.fromisoformat(start_s.strip().replace("Z", "+00:00"))
+            s1 = datetime.fromisoformat(end_s.strip().replace("Z", "+00:00"))
+        except ValueError:
+            return "invalid_session_slot_iso"
+        if s0.tzinfo is None:
+            s0 = s0.replace(tzinfo=UTC)
+        else:
+            s0 = s0.astimezone(UTC)
+        if s1.tzinfo is None:
+            s1 = s1.replace(tzinfo=UTC)
+        else:
+            s1 = s1.astimezone(UTC)
+        if s1 <= s0:
+            return "session_slot_end_before_start"
+    return None

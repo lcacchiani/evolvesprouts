@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Any
 from uuid import UUID
 
@@ -18,7 +18,7 @@ from app.db.repositories.calendar_manual_block import CalendarManualBlockReposit
 from app.exceptions import NotFoundError, ValidationError
 from app.services.calendar_blockers import consultation_booking_purpose
 from app.utils import json_response
-from app.utils.logging import get_logger
+from app.utils.logging import get_logger, mask_pii
 
 logger = get_logger(__name__)
 
@@ -61,7 +61,7 @@ def handle_admin_calendar_manual_blocks_request(
         if method == "PATCH":
             return _update_block(event, block_id=block_id, actor_sub=identity.user_sub)
         if method == "DELETE":
-            return _delete_block(event, block_id=block_id)
+            return _delete_block(event, block_id=block_id, actor_sub=identity.user_sub)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
@@ -116,6 +116,8 @@ def _serialize_block(row: Any) -> dict[str, Any]:
         "note": row.note,
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+        "created_by": row.created_by,
+        "updated_by": row.updated_by,
     }
 
 
@@ -136,7 +138,6 @@ def _list_blocks(event: Mapping[str, Any]) -> dict[str, Any]:
             purpose=purpose, start_date=start, end_date=end
         )
         items = [_serialize_block(r) for r in rows]
-        session.commit()
 
     return json_response(200, {"items": items}, event=event)
 
@@ -148,12 +149,11 @@ def _get_block(event: Mapping[str, Any], *, block_id: UUID) -> dict[str, Any]:
         if row is None:
             raise NotFoundError("Calendar manual block", str(block_id))
         payload = _serialize_block(row)
-        session.commit()
+
     return json_response(200, {"block": payload}, event=event)
 
 
 def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
-    _ = actor_sub
     body = parse_body(event)
     purpose = _parse_purpose(body.get("purpose"))
     if purpose != consultation_booking_purpose():
@@ -165,16 +165,26 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
     period = _parse_period(body.get("period"))
     note = _optional_note(body.get("note"))
 
+    logger.info(
+        "calendar_manual_block_create",
+        extra={"actor_sub": mask_pii(actor_sub, visible_chars=6)},
+    )
+
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
         try:
             row = repo.create_block(
-                purpose=purpose, block_date=block_date, period=period, note=note
+                purpose=purpose,
+                block_date=block_date,
+                period=period,
+                note=note,
+                created_by=actor_sub,
             )
         except IntegrityError as exc:
             session.rollback()
             raise ValidationError(
-                "A block for this purpose, date, and period already exists",
+                "That date and period already has a manual block. "
+                "Choose a different period or delete the existing row first.",
                 field="period",
             ) from exc
         payload = _serialize_block(row)
@@ -189,30 +199,49 @@ def _update_block(
     block_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    _ = actor_sub
     body = parse_body(event)
-    block_date = _parse_block_date(body.get("blockDate") or body.get("block_date"))
-    period = _parse_period(body.get("period"))
-    note = _optional_note(body.get("note"))
+
+    if not any(k in body for k in ("blockDate", "block_date", "period", "note")):
+        raise ValidationError(
+            "At least one of blockDate, period, or note must be provided",
+            field="blockDate",
+        )
+
+    logger.info(
+        "calendar_manual_block_update",
+        extra={
+            "actor_sub": mask_pii(actor_sub, visible_chars=6),
+            "block_id": str(block_id),
+        },
+    )
 
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
         row = repo.get_by_id(block_id)
         if row is None:
-            session.rollback()
             raise NotFoundError("Calendar manual block", str(block_id))
         if row.purpose != consultation_booking_purpose():
-            session.rollback()
             raise ValidationError("Block purpose cannot be changed", field="purpose")
-        row.block_date = block_date
-        row.period = period
-        row.note = note
+
+        if "blockDate" in body or "block_date" in body:
+            row.block_date = _parse_block_date(
+                body.get("blockDate") or body.get("block_date")
+            )
+        if "period" in body:
+            row.period = _parse_period(body.get("period"))
+        if "note" in body:
+            row.note = _optional_note(body.get("note"))
+
+        row.updated_by = actor_sub
+        row.updated_at = datetime.now(tz=UTC)
+
         try:
             session.flush()
         except IntegrityError as exc:
             session.rollback()
             raise ValidationError(
-                "A block for this purpose, date, and period already exists",
+                "That date and period already has a manual block. "
+                "Choose a different combination or delete the conflicting row.",
                 field="period",
             ) from exc
         session.refresh(row)
@@ -222,12 +251,24 @@ def _update_block(
     return json_response(200, {"block": payload}, event=event)
 
 
-def _delete_block(event: Mapping[str, Any], *, block_id: UUID) -> dict[str, Any]:
+def _delete_block(
+    event: Mapping[str, Any],
+    *,
+    block_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    _ = event
+    logger.info(
+        "calendar_manual_block_delete",
+        extra={
+            "actor_sub": mask_pii(actor_sub, visible_chars=6),
+            "block_id": str(block_id),
+        },
+    )
     with Session(get_engine()) as session:
         repo = CalendarManualBlockRepository(session)
         deleted = repo.delete_by_id(block_id)
         if not deleted:
-            session.rollback()
             raise NotFoundError("Calendar manual block", str(block_id))
         session.commit()
     return json_response(200, {"deleted": True}, event=event)

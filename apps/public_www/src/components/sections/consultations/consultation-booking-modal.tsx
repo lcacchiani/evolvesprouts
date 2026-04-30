@@ -65,8 +65,14 @@ interface ConsultationBookingModalProps {
   bookingPayload: ConsultationEventBookingModalPayload;
   /** Picker labels (AM/PM, weekdays, aria). */
   pickerContent: ConsultationBookingPickerContent;
-  /** Unavailability list (from JSON now; API later). Dates are YYYY-MM-DD. */
+  /** Unavailability list from merged manual + session blockers. Dates are YYYY-MM-DD. */
   calendarAvailability: CalendarAvailabilityPayload;
+  /** Blocker fetch lifecycle from the parent (public API). */
+  calendarBlockersStatus?: 'idle' | 'loading' | 'ready' | 'error';
+  /** Locale string while blockers are loading (`calendarBlockersStatus === 'loading'`). */
+  calendarBlockersLoadingMessage?: string;
+  /** Locale string when the blockers request failed (`calendarBlockersStatus === 'error'`). */
+  calendarBlockersErrorMessage?: string;
   /** Selection context: focus label, level features, upgrade label. */
   selectionInfo?: ConsultationBookingModalSelectionInfo;
   /**
@@ -107,6 +113,7 @@ function ConsultationDatePickerGrid({
   unavailableByYmd,
   selectedYmd,
   dayPeriod,
+  interactionDisabled,
   onSelectYmd,
   onSelectPeriod,
 }: {
@@ -116,6 +123,8 @@ function ConsultationDatePickerGrid({
   unavailableByYmd: ConsultationUnavailableByYmd;
   selectedYmd: string;
   dayPeriod: ConsultationDayPeriod;
+  /** When true, day and period controls are disabled (e.g. while blockers load). */
+  interactionDisabled: boolean;
   onSelectYmd: (ymd: string) => void;
   onSelectPeriod: (period: ConsultationDayPeriod) => void;
 }) {
@@ -186,7 +195,8 @@ function ConsultationDatePickerGrid({
               <tr key={`w-${rowIndex}`}>
                 {row.days.map((cell) => {
                   const isSelected = cell.ymd === selectedYmd;
-                  const ariaDayLabel = cell.isDisabled
+                  const isDayDisabled = cell.isDisabled || interactionDisabled;
+                  const ariaDayLabel = isDayDisabled
                     ? content.datePickerUnavailableDayTemplate.replace(
                         '{day}',
                         String(cell.dayOfMonth),
@@ -199,20 +209,20 @@ function ConsultationDatePickerGrid({
                     <td key={cell.ymd} className='p-1'>
                       <button
                         type='button'
-                        disabled={cell.isDisabled}
+                        disabled={isDayDisabled}
                         aria-pressed={isSelected}
                         aria-label={ariaDayLabel}
                         className={mergeClassNames(
                           'flex h-10 w-full min-w-[2.25rem] items-center justify-center rounded-lg text-base font-semibold transition-colors',
-                          cell.isDisabled
+                          isDayDisabled
                             ? 'cursor-not-allowed opacity-30'
                             : 'es-text-heading hover:es-bg-surface-muted',
-                          isSelected && !cell.isDisabled
+                          isSelected && !isDayDisabled
                             ? 'border-2 es-border-warm-2 es-bg-brand-orange-soft'
                             : 'border border-transparent',
                         )}
                         onClick={() => {
-                          if (!cell.isDisabled) {
+                          if (!isDayDisabled) {
                             onSelectYmd(cell.ymd);
                           }
                         }}
@@ -241,12 +251,15 @@ function ConsultationDatePickerGrid({
           <button
             type='button'
             disabled={
+              interactionDisabled ||
               !selectedYmd ||
               isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
             }
             className={mergeClassNames(
               'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-              !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
+              interactionDisabled ||
+                !selectedYmd ||
+                isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
                 ? 'cursor-not-allowed opacity-40'
                 : dayPeriod === 'am'
                   ? 'es-bg-brand-orange-soft es-text-body opacity-80 shadow-sm'
@@ -262,12 +275,15 @@ function ConsultationDatePickerGrid({
           <button
             type='button'
             disabled={
+              interactionDisabled ||
               !selectedYmd ||
               isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
             }
             className={mergeClassNames(
               'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-              !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
+              interactionDisabled ||
+                !selectedYmd ||
+                isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
                 ? 'cursor-not-allowed opacity-40'
                 : dayPeriod === 'pm'
                   ? 'es-bg-brand-orange-soft es-text-body opacity-80 shadow-sm'
@@ -315,6 +331,9 @@ export function ConsultationBookingModal({
   bookingPayload,
   pickerContent,
   calendarAvailability,
+  calendarBlockersStatus = 'ready',
+  calendarBlockersLoadingMessage = '',
+  calendarBlockersErrorMessage = '',
   selectionInfo,
   levelFeaturesEnterAnimationNonce = 0,
   analyticsSectionId = 'consultations-booking',
@@ -354,6 +373,22 @@ export function ConsultationBookingModal({
 
   const selectedYmd = pickerSelection?.ymd ?? defaultSelection?.ymd ?? '';
   const dayPeriod = pickerSelection?.period ?? defaultSelection?.period ?? 'am';
+
+  const pickerInteractionDisabled = calendarBlockersStatus === 'loading';
+
+  const blockersStatusMessage = useMemo(() => {
+    if (calendarBlockersStatus === 'loading' && calendarBlockersLoadingMessage.trim()) {
+      return calendarBlockersLoadingMessage;
+    }
+    if (calendarBlockersStatus === 'error' && calendarBlockersErrorMessage.trim()) {
+      return calendarBlockersErrorMessage;
+    }
+    return null;
+  }, [
+    calendarBlockersStatus,
+    calendarBlockersLoadingMessage,
+    calendarBlockersErrorMessage,
+  ]);
 
   function handleSelectYmd(ymd: string) {
     setPickerSelection((prev) => {
@@ -397,16 +432,29 @@ export function ConsultationBookingModal({
   const selectedDateStartTime = rebasedParts[0]?.startDateTime ?? '';
 
   const pickerSlot = (
-    <ConsultationDatePickerGrid
-      locale={locale}
-      content={pickerContent}
-      timeZone={timeZone}
-      unavailableByYmd={unavailableByYmd}
-      selectedYmd={selectedYmd}
-      dayPeriod={dayPeriod}
-      onSelectYmd={handleSelectYmd}
-      onSelectPeriod={handleSelectPeriod}
-    />
+    <div className='flex flex-col gap-4'>
+      {blockersStatusMessage ? (
+        <p
+          className='rounded-lg border border-black/15 px-4 py-3 text-sm font-medium leading-snug es-text-body'
+          role='status'
+          aria-live='polite'
+          data-testid='consultation-calendar-blockers-status'
+        >
+          {blockersStatusMessage}
+        </p>
+      ) : null}
+      <ConsultationDatePickerGrid
+        locale={locale}
+        content={pickerContent}
+        timeZone={timeZone}
+        unavailableByYmd={unavailableByYmd}
+        selectedYmd={selectedYmd}
+        dayPeriod={dayPeriod}
+        interactionDisabled={pickerInteractionDisabled}
+        onSelectYmd={handleSelectYmd}
+        onSelectPeriod={handleSelectPeriod}
+      />
+    </div>
   );
 
   const subtitleSlot = selectionInfo ? (

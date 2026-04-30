@@ -61,9 +61,16 @@ export function CalendarManualBlocksPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
 
+  const editorIsBusy = isSaving || deleteBusyId !== null;
+
   const loadRows = useCallback(async () => {
     setIsLoading(true);
     setError('');
+    if (listTo < listFrom) {
+      setError('“To” must be on or after “From”.');
+      setIsLoading(false);
+      return;
+    }
     try {
       const items = await listCalendarManualBlocks({
         purpose: CONSULTATION_BOOKING_BLOCK_PURPOSE,
@@ -121,12 +128,29 @@ export function CalendarManualBlocksPage() {
       if (!selectedId) {
         return;
       }
-      const body: ApiSchemas['UpdateAdminCalendarManualBlockRequest'] = {
-        blockDate: blockDate.trim(),
-        period,
-        note: note.trim() === '' ? null : note.trim(),
-      };
-      await updateCalendarManualBlock(selectedId, body);
+      const prev = rows.find((r) => r.id === selectedId);
+      const body: Partial<ApiSchemas['UpdateAdminCalendarManualBlockRequest']> = {};
+      const nextDate = blockDate.trim();
+      const nextPeriod = period;
+      const nextNoteTrim = note.trim();
+      if (nextDate && nextDate !== (prev?.block_date ?? '')) {
+        body.blockDate = nextDate;
+      }
+      if (nextPeriod !== (prev?.period as BlockPeriod | undefined)) {
+        body.period = nextPeriod;
+      }
+      const prevNote = prev?.note?.trim() ?? '';
+      if (nextNoteTrim !== prevNote) {
+        body.note = nextNoteTrim === '' ? null : nextNoteTrim;
+      }
+      if (Object.keys(body).length === 0) {
+        setSaveError('Change at least one field before saving.');
+        return;
+      }
+      await updateCalendarManualBlock(
+        selectedId,
+        body as ApiSchemas['UpdateAdminCalendarManualBlockRequest'],
+      );
       await loadRows();
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Save failed.';

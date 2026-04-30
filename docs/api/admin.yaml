@@ -5519,6 +5519,16 @@ components:
           type: string
           format: date-time
           nullable: true
+        created_by:
+          type: string
+          nullable: true
+          maxLength: 128
+          description: Cognito subject of the admin who created the row (when known).
+        updated_by:
+          type: string
+          nullable: true
+          maxLength: 128
+          description: Cognito subject of the admin who last updated the row (when known).
     AdminCalendarManualBlockListResponse:
       type: object
       required:
@@ -5565,9 +5575,9 @@ components:
           maxLength: 500
     UpdateAdminCalendarManualBlockRequest:
       type: object
-      required:
-        - blockDate
-        - period
+      description: >
+        Partial update: include only fields to change. Omitted fields are left unchanged.
+        At least one of `blockDate`, `period`, or `note` must be present.
       properties:
         blockDate:
           type: string

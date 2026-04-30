@@ -5261,6 +5261,10 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+            /** @description Cognito subject of the admin who created the row (when known). */
+            created_by?: string | null;
+            /** @description Cognito subject of the admin who last updated the row (when known). */
+            updated_by?: string | null;
         };
         AdminCalendarManualBlockListResponse: {
             items: components["schemas"]["AdminCalendarManualBlockRef"][];
@@ -5279,11 +5283,12 @@ export interface components {
             period: "am" | "pm" | "both";
             note?: string | null;
         };
+        /** @description Partial update: include only fields to change. Omitted fields are left unchanged. At least one of `blockDate`, `period`, or `note` must be present. */
         UpdateAdminCalendarManualBlockRequest: {
             /** Format: date */
-            blockDate: string;
+            blockDate?: string;
             /** @enum {string} */
-            period: "am" | "pm" | "both";
+            period?: "am" | "pm" | "both";
             note?: string | null;
         };
         AdminTagDeleteResponse: {

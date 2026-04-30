@@ -46,33 +46,17 @@ class CalendarManualBlockRepository(BaseRepository[CalendarManualBlock]):
         block_date: date,
         period: str,
         note: str | None,
+        created_by: str | None = None,
     ) -> CalendarManualBlock:
         row = CalendarManualBlock(
             purpose=purpose,
             block_date=block_date,
             period=period,
             note=note,
+            created_by=created_by,
+            updated_by=None,
         )
         self._session.add(row)
-        self._session.flush()
-        self._session.refresh(row)
-        return row
-
-    def update_row(
-        self,
-        row_id: UUID,
-        *,
-        block_date: date,
-        period: str,
-        note: str | None,
-    ) -> CalendarManualBlock | None:
-        row = self.get_by_id(row_id)
-        if row is None:
-            return None
-        row.block_date = block_date
-        row.period = period
-        row.note = note
-        row.updated_at = datetime.now(tz=UTC)
         self._session.flush()
         self._session.refresh(row)
         return row

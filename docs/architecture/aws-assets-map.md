@@ -463,7 +463,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
 | `/v1/assets/free/request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
 | `/v1/calendar/public` | GET | None + API key | `EvolvesproutsAdminFunction` | Public event feed for `service_type=event` instances |
-| `/v1/calendar/blockers` | GET | None + API key | `EvolvesproutsAdminFunction` | Merged manual + session half-day blockers (`purpose` query) |
+| `/v1/calendar/blockers` | GET | None + API key | `EvolvesproutsAdminFunction` | Merged manual + session half-day blockers (`purpose` query); `purpose=consultation_booking` is `Cache-Control: no-store` on 200 |
 | `/v1/assets/free` | GET | None + API key | `EvolvesproutsAdminFunction` | Lists public `client_document`-tagged assets; optional `language` query |
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |

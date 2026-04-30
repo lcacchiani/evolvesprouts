@@ -27,7 +27,9 @@ vi.mock('@/lib/meta-pixel', () => ({
 
 vi.mock('@/lib/calendar-blockers-api', () => ({
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 5000,
-  fetchConsultationCalendarBlockersSlots: vi.fn().mockResolvedValue([]),
+  fetchConsultationCalendarBlockersSlots: vi
+    .fn()
+    .mockResolvedValue({ slots: [], fetchFailed: false }),
 }));
 
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);

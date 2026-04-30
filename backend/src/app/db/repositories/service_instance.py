@@ -32,6 +32,43 @@ InstanceDetails = (
 )
 
 
+def select_public_calendar_blocker_session_slots(
+    *,
+    range_start_utc: datetime,
+    range_end_utc: datetime,
+):
+    """Session slot rows for public calendar blocker merge (published event/training).
+
+    Must stay aligned with :meth:`ServiceInstanceRepository.list_public_offerings`
+    instance + service eligibility (excluding ``limit``, ``slug``, ``service_key``,
+    ``earliest_upcoming_slot`` ordering, and the ``ends_at >= now`` feed filter).
+    """
+    return (
+        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
+        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
+        .where(
+            Service.service_type.in_((ServiceType.EVENT, ServiceType.TRAINING_COURSE))
+        )
+        .where(Service.status == ServiceStatus.PUBLISHED)
+        .where(ServiceInstance.status != InstanceStatus.CANCELLED)
+        .where(
+            ServiceInstance.status.in_(
+                [
+                    InstanceStatus.SCHEDULED,
+                    InstanceStatus.OPEN,
+                    InstanceStatus.FULL,
+                    InstanceStatus.IN_PROGRESS,
+                    InstanceStatus.COMPLETED,
+                ]
+            )
+        )
+        .where(ServiceInstance.slug != "")
+        .where(InstanceSessionSlot.starts_at < range_end_utc)
+        .where(InstanceSessionSlot.ends_at > range_start_utc)
+    )
+
+
 class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
     """Repository for service-instance operations."""
 

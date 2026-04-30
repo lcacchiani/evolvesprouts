@@ -155,6 +155,9 @@ export function ConsultationsBooking({
   commonAccessibility = enContent.common.accessibility,
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [calendarBlockersStatus, setCalendarBlockersStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle');
   const [calendarAvailability, setCalendarAvailability] = useState(() => ({
     unavailable_slots: [] as { date: string; period: 'am' | 'pm' | 'both' }[],
   }));
@@ -183,11 +186,17 @@ export function ConsultationsBooking({
       controller.abort();
     }, CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS);
 
-    void fetchConsultationCalendarBlockersSlots(controller.signal).then((slots) => {
-      setCalendarAvailability({ unavailable_slots: slots });
+    let cancelled = false;
+    void fetchConsultationCalendarBlockersSlots(controller.signal).then((result) => {
+      if (cancelled) {
+        return;
+      }
+      setCalendarAvailability({ unavailable_slots: result.slots });
+      setCalendarBlockersStatus(result.fetchFailed ? 'error' : 'ready');
     });
 
     return () => {
+      cancelled = true;
       window.clearTimeout(timeoutId);
       controller.abort();
     };
@@ -546,6 +555,7 @@ export function ConsultationsBooking({
                     quantity: 1,
                   }],
                 });
+                setCalendarBlockersStatus('loading');
                 setIsBookingModalOpen(true);
               }}
             >
@@ -561,6 +571,9 @@ export function ConsultationsBooking({
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
           calendarAvailability={calendarAvailability}
+          calendarBlockersStatus={calendarBlockersStatus}
+          calendarBlockersLoadingMessage={content.calendarBlockersLoadingMessage}
+          calendarBlockersErrorMessage={content.calendarBlockersErrorMessage}
           pickerContent={consultationPickerContent}
           selectionInfo={modalSelectionInfo}
           levelFeaturesEnterAnimationNonce={consultationModalLevelFeaturesAnimNonce}
@@ -570,10 +583,12 @@ export function ConsultationsBooking({
           thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsBookingModalOpen(false);
+            setCalendarBlockersStatus('idle');
             setConsultationModalLevelFeaturesAnimNonce(0);
           }}
           onSubmitReservation={(summary) => {
             setIsBookingModalOpen(false);
+            setCalendarBlockersStatus('idle');
             setThankYouSummary(summary);
             setIsThankYouOpen(true);
           }}

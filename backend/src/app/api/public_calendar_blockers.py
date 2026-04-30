@@ -12,11 +12,14 @@ from sqlalchemy.orm import Session
 from app.db.engine import get_engine
 from app.services.calendar_blockers import (
     consultation_booking_purpose,
+    is_public_blockers_purpose_allowed,
     merge_calendar_blockers_for_purpose,
     resolve_calendar_blockers_wall_timezone,
 )
+from app.utils import json_response
 from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
+from app.utils.public_http_cache import CACHE_CONTROL_NO_STORE
 
 logger = get_logger(__name__)
 
@@ -50,6 +53,12 @@ def handle_public_calendar_blockers(
         return public_cacheable_json_response(
             400, {"error": "purpose must be a kebab-case identifier"}, event=event
         )
+    if not is_public_blockers_purpose_allowed(purpose):
+        return public_cacheable_json_response(
+            400,
+            {"error": "Unsupported purpose for public calendar blockers"},
+            event=event,
+        )
 
     from_raw = query.get("from") if isinstance(query, Mapping) else None
     to_raw = query.get("to") if isinstance(query, Mapping) else None
@@ -64,6 +73,17 @@ def handle_public_calendar_blockers(
         )
     max_end = start_date + timedelta(days=_DEFAULT_RANGE_DAYS)
     if end_date > max_end:
+        if isinstance(to_raw, str) and to_raw.strip():
+            return public_cacheable_json_response(
+                400,
+                {
+                    "error": (
+                        f"Date range exceeds maximum of {_DEFAULT_RANGE_DAYS} days "
+                        "from from; narrow to or to omit to for the default window."
+                    ),
+                },
+                event=event,
+            )
         end_date = max_end
 
     logger.info(
@@ -91,14 +111,16 @@ def handle_public_calendar_blockers(
     if purpose == consultation_booking_purpose():
         meta["wall_time_zone"] = resolve_calendar_blockers_wall_timezone()
 
-    return public_cacheable_json_response(
-        200,
-        {"blockers": blockers, "meta": meta},
-        event=event,
-    )
+    body: dict[str, Any] = {"blockers": blockers, "meta": meta}
 
-
-def _parse_iso_date(raw: Any, *, default: date) -> date:
+    if purpose == consultation_booking_purpose():
+        return json_response(
+            200,
+            body,
+            headers={"Cache-Control": CACHE_CONTROL_NO_STORE},
+            event=event,
+        )
+    return public_cacheable_json_response(200, body, event=event)
     if raw is None or raw == "":
         return default
     if not isinstance(raw, str):

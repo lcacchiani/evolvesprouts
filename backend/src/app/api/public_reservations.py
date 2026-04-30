@@ -56,7 +56,8 @@ from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.calendar_blockers import (
     consultation_booking_purpose,
-    consultation_slot_blocked,
+    consultation_reservation_has_blocked_slot,
+    validate_session_slot_chronology,
 )
 from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
@@ -213,10 +214,24 @@ def _handle_public_reservation(
                         "primarySessionStartIso is required for consultation bookings",
                         field="primarySessionStartIso",
                     )
-                if consultation_slot_blocked(
-                    primary_start_iso=str(start_iso),
-                    purpose=consultation_booking_purpose(),
+                slot_err = validate_session_slot_chronology(
+                    reservation_payload.get("session_slots")
+                )
+                if slot_err == "session_slot_end_before_start":
+                    raise ValidationError(
+                        "Each session slot must end after its start time",
+                        field="sessionSlots",
+                    )
+                if slot_err == "invalid_session_slot_iso":
+                    raise ValidationError(
+                        "Invalid session slot date format",
+                        field="sessionSlots",
+                    )
+                if consultation_reservation_has_blocked_slot(
                     session=session,
+                    purpose=consultation_booking_purpose(),
+                    primary_start_iso=str(start_iso),
+                    session_slots=reservation_payload.get("session_slots"),
                 ):
                     raise ValidationError(
                         "The selected consultation time is no longer available. "
