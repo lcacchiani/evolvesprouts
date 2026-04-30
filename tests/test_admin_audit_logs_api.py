@@ -179,6 +179,223 @@ def test_recent_list_cursor_second_page(
     assert c_id == id1
 
 
+def test_user_id_filter_cursor_second_page(
+    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    t1 = datetime(2024, 2, 2, tzinfo=timezone.utc)
+    t2 = datetime(2024, 2, 1, tzinfo=timezone.utc)
+    id1 = uuid4()
+    id2 = uuid4()
+    row1 = _row(rid=id1, ts=t1)
+    row2 = _row(rid=id2, ts=t2)
+    calls: list[dict[str, Any]] = []
+
+    class _Session:
+        def __init__(self, *_a: object, **_k: object) -> None:
+            pass
+
+        def __enter__(self) -> "_Session":
+            return self
+
+        def __exit__(self, *_a: object) -> None:
+            return None
+
+        def execute(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _Repo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_user_activity(self, **kwargs: Any) -> list[AuditLog]:
+            calls.append(kwargs)
+            if kwargs.get("cursor") is None:
+                return [row1, row2]
+            return [row2]
+
+    monkeypatch.setattr(admin_audit_logs, "Session", _Session)
+    monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+
+    uid = "user-sub-abc"
+    r1 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={"limit": "1", "user_id": uid},
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body1 = json.loads(r1["body"])
+    assert body1["next_cursor"]
+    assert body1["items"][0]["id"] == str(id1)
+
+    r2 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={"limit": "1", "user_id": uid, "cursor": body1["next_cursor"]},
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body2 = json.loads(r2["body"])
+    assert body2["next_cursor"] is None
+    assert body2["items"][0]["id"] == str(id2)
+    assert calls[0]["user_id"] == uid
+    assert calls[1]["cursor"] is not None
+
+
+def test_table_filter_cursor_second_page(
+    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    t1 = datetime(2024, 3, 2, tzinfo=timezone.utc)
+    t2 = datetime(2024, 3, 1, tzinfo=timezone.utc)
+    id1 = uuid4()
+    id2 = uuid4()
+    row1 = _row(rid=id1, ts=t1)
+    row2 = _row(rid=id2, ts=t2)
+    calls: list[dict[str, Any]] = []
+
+    class _Session:
+        def __init__(self, *_a: object, **_k: object) -> None:
+            pass
+
+        def __enter__(self) -> "_Session":
+            return self
+
+        def __exit__(self, *_a: object) -> None:
+            return None
+
+        def execute(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _Repo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_table_activity(self, **kwargs: Any) -> list[AuditLog]:
+            calls.append(kwargs)
+            if kwargs.get("cursor") is None:
+                return [row1, row2]
+            return [row2]
+
+    monkeypatch.setattr(admin_audit_logs, "Session", _Session)
+    monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+
+    r1 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={"limit": "1", "table": "assets"},
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body1 = json.loads(r1["body"])
+    assert body1["next_cursor"]
+    assert body1["items"][0]["id"] == str(id1)
+
+    r2 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={"limit": "1", "table": "assets", "cursor": body1["next_cursor"]},
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body2 = json.loads(r2["body"])
+    assert body2["next_cursor"] is None
+    assert body2["items"][0]["id"] == str(id2)
+    assert calls[0]["table_name"] == "assets"
+    assert calls[1]["cursor"] is not None
+
+
+def test_record_id_table_cursor_second_page(
+    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    t1 = datetime(2024, 4, 2, tzinfo=timezone.utc)
+    t2 = datetime(2024, 4, 1, tzinfo=timezone.utc)
+    id1 = uuid4()
+    id2 = uuid4()
+    row1 = _row(rid=id1, ts=t1)
+    row2 = _row(rid=id2, ts=t2)
+    calls: list[dict[str, Any]] = []
+
+    class _Session:
+        def __init__(self, *_a: object, **_k: object) -> None:
+            pass
+
+        def __enter__(self) -> "_Session":
+            return self
+
+        def __exit__(self, *_a: object) -> None:
+            return None
+
+        def execute(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _Repo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_record_history(self, **kwargs: Any) -> list[AuditLog]:
+            calls.append(kwargs)
+            if kwargs.get("cursor") is None:
+                return [row1, row2]
+            return [row2]
+
+    monkeypatch.setattr(admin_audit_logs, "Session", _Session)
+    monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+
+    rid = "rec-xyz"
+    r1 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={"limit": "1", "table": "assets", "record_id": rid},
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body1 = json.loads(r1["body"])
+    assert body1["next_cursor"]
+    assert body1["items"][0]["id"] == str(id1)
+
+    r2 = admin_audit_logs.handle_admin_audit_logs_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/audit-logs",
+            query_params={
+                "limit": "1",
+                "table": "assets",
+                "record_id": rid,
+                "cursor": body1["next_cursor"],
+            },
+            authorizer_context=admin_identity,
+        ),
+        "GET",
+        "/v1/admin/audit-logs",
+    )
+    body2 = json.loads(r2["body"])
+    assert body2["next_cursor"] is None
+    assert body2["items"][0]["id"] == str(id2)
+    assert calls[0]["record_id"] == rid
+    assert calls[1]["cursor"] is not None
+
+
 def test_table_filter_cursor_passed(
     api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -21,6 +21,8 @@ import { Construct, IConstruct } from "constructs";
 import * as path from "path";
 import { hashDirectory, hashFile, hashValue } from "./cdk-source-hash";
 import { DatabaseConstruct, PythonLambdaFactory, STANDARD_LOG_RETENTION } from "./constructs";
+import { ApiAdminCrmStack } from "./api-admin-crm-stack";
+import { ApiAdminServicesStack } from "./api-admin-services-stack";
 import { MessagingNestedStack } from "./messaging-stack";
 import { sesVerifiedAddressAndDomainIdentityArns } from "./ses-identity-arns";
 
@@ -2831,15 +2833,219 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
-    // Remaining `/v1/admin/*` routes (everything except `/v1/admin/assets/**`, which
-    // stays explicit above) are registered as a single greedy `{proxy+}` + `ANY`
-    // integration so the stack stays under CloudFormation's 500-resource limit.
-    // Nested stacks do not reduce that count for API Gateway children; collapsing
-    // many `Resource` + `Method` nodes is the durable fix.
-    const adminCatchAll = admin.addResource("{proxy+}");
-    adminCatchAll.addMethod("ANY", adminIntegration, {
+    const adminGeographicAreas = admin.addResource("geographic-areas");
+    adminGeographicAreas.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
+    });
+
+    const adminLocations = admin.addResource("locations");
+    adminLocations.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLocations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLocationsGeocode = adminLocations.addResource("geocode");
+    adminLocationsGeocode.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLocationById = adminLocations.addResource("{id}");
+    adminLocationById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLocationById.addMethod("PUT", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLocationById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLocationById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin lead routes
+    const adminLeads = admin.addResource("leads");
+    adminLeads.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLeads.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadAnalytics = adminLeads.addResource("analytics");
+    adminLeadAnalytics.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadExport = adminLeads.addResource("export");
+    adminLeadExport.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadById = adminLeads.addResource("{id}");
+    adminLeadById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLeadById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadNotes = adminLeadById.addResource("notes");
+    adminLeadNotes.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin users route for assignee picker
+    const adminUsers = admin.addResource("users");
+    adminUsers.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    const adminInstructors = admin.addResource("instructors");
+    adminInstructors.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    const adminAuditLogs = admin.addResource("audit-logs");
+    adminAuditLogs.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminAuditLogById = adminAuditLogs.addResource("{id}");
+    adminAuditLogById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin discount code routes
+    const adminDiscountCodes = admin.addResource("discount-codes");
+    adminDiscountCodes.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminDiscountCodes.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminDiscountCodeById = adminDiscountCodes.addResource("{id}");
+    adminDiscountCodeById.addMethod("PUT", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminDiscountCodeById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin calendar manual blocks (purpose-scoped; merged with session slots for public reads)
+    const adminCalendar = admin.addResource("calendar");
+    const adminCalendarManualBlocks = adminCalendar.addResource("manual-blocks");
+    adminCalendarManualBlocks.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlocks.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminCalendarManualBlockById = adminCalendarManualBlocks.addResource("{id}");
+    adminCalendarManualBlockById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlockById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlockById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin CRM tags catalog (shared across contacts, services, assets, etc.)
+    const adminTags = admin.addResource("tags");
+    adminTags.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTags.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminTagById = adminTags.addResource("{id}");
+    adminTagById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTagById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminTagById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin expense routes
+    const adminExpenses = admin.addResource("expenses");
+    adminExpenses.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenses.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminExpenseById = adminExpenses.addResource("{id}");
+    adminExpenseById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("cancel").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("mark-paid").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("reparse").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("amend").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    new ApiAdminServicesStack(this, "ApiAdminServicesStack", {
+      restApi: api,
+      adminResource: admin,
+      adminIntegration,
+      adminAuthorizer,
+    });
+    new ApiAdminCrmStack(this, "ApiAdminCrmStack", {
+      restApi: api,
+      adminResource: admin,
+      adminIntegration,
+      adminAuthorizer,
     });
 
     // User asset routes

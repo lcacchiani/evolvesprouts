@@ -604,17 +604,17 @@ TTL on any cacheable reads and `no-store` for the consultation purpose.
 **CloudFront path allowlist:** The viewer function matches the path segment **exactly**
 (e.g. `/www/v1/calendar/blockers`); trailing slash variants are not allowlisted.
 
-## API Gateway: admin catch-all to stay under CloudFormation resource limits
+## API admin route groups in NestedStacks (CloudFormation quota)
 
-**Decision:** After explicit `/v1/admin/assets/**` resources, register the rest of
-`/v1/admin/**` with a single greedy `{proxy+}` resource and one `ANY` method wired to
-the admin Lambda (same integration and Cognito authorizer as before). URLs and Lambda
-routing are unchanged; this avoids hundreds of separate `AWS::ApiGateway::Resource` and
-`Method` entries that would exceed the 500-resource stack quota.
+**Decision:** Move large, self-contained admin API Gateway subtrees into CDK nested stacks
+(`ApiAdminServicesStack` for `/v1/admin/services/**`, `ApiAdminCrmStack` for CRM
+`/contacts/**`, `/families/**`, `/organizations/**`) so the parent `ApiStack` stays
+under CloudFormation's 500-resource limit. URLs, integrations, and authorizers are
+unchanged; routes attach to the same `RestApi` via `Resource.fromResourceAttributes` so
+methods synthesize into the nested templates.
 
-**Why:** Nested stacks still count API Gateway child resources toward the parent stack
-limit, so splitting routes alone does not solve the quota. A catch-all is a standard
-API Gateway pattern for large REST surfaces.
+**Why:** The stack already approaches the quota; nested stacks split the CloudFormation
+surface area while keeping a single API Gateway deployment.
 
 ## Keeping Documentation Up to Date
 

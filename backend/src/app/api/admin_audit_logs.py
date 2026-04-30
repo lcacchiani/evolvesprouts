@@ -115,7 +115,7 @@ def _cognito_sub_for_email(email: str) -> str | None:
             {
                 "UserPoolId": user_pool_id,
                 "Filter": f'email = "{email}"',
-                "Limit": 2,
+                "Limit": 1,
             },
         )
     except AwsProxyError:

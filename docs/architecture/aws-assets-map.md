@@ -6,7 +6,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 **Primary API Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
 **Stack Definition:** `backend/infrastructure/lib/api-stack.ts`  
-**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`.
+**Nested stacks (same CDK app):** `MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts` (media, expense parser, SES templates); `EventbriteSyncNestedStack` in `api-stack.ts`; `ApiAdminServicesStack` and `ApiAdminCrmStack` in `api-admin-services-stack.ts` / `api-admin-crm-stack.ts` (admin API Gateway routes under `/v1/admin/services/**` and CRM `/contacts`, `/families`, `/organizations`).
 
 ### GitHub Actions `GitHubActionsRole` (manual IAM)
 
@@ -454,11 +454,7 @@ For each function above, the following resources are created:
 
 ### API Gateway Resources and Methods
 
-Most `/v1/admin/**` routes (everything except `/v1/admin/assets/**`, which remains
-explicit for granular authorizer wiring) are implemented as a single greedy
-`{proxy+}` resource with one `ANY` method on the admin Lambda integration. This keeps
-the CloudFormation stack under the 500-resource limit while preserving URL paths. See
-`docs/architecture/decisions.md` ("API Gateway: admin catch-all").
+Large admin route groups (`/v1/admin/services/**` and CRM `/contacts/**`, `/families/**`, `/organizations/**`) are wired in **CDK nested stacks** (`ApiAdminServicesStack`, `ApiAdminCrmStack`) so the parent `ApiStack` template stays under CloudFormation's 500-resource quota while other `/v1/admin/**` routes (for example assets, leads, audit logs) remain on the parent stack. See `docs/architecture/decisions.md` ("API admin route groups in NestedStacks").
 
 For the complete list of endpoints with request/response schemas, see
 the OpenAPI specs: [`docs/api/public.yaml`](../api/public.yaml)

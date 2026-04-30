@@ -116,9 +116,22 @@ function assertParentStackResourceCountUnder500(template: Template): void {
   }
 }
 
+function assertAdminApiNestedStacksExist(template: Template): void {
+  const stacks = template.findResources("AWS::CloudFormation::Stack");
+  const ids = Object.keys(stacks);
+  const hasServices = ids.some((id) => id.includes("ApiAdminServicesStack"));
+  const hasCrm = ids.some((id) => id.includes("ApiAdminCrmStack"));
+  if (!hasServices || !hasCrm) {
+    throw new Error(
+      `Expected ApiAdminServicesStack and ApiAdminCrmStack nested stacks; found: ${ids.join(", ")}`,
+    );
+  }
+}
+
 function main(): void {
   const template = synthApiTemplate();
   assertParentStackResourceCountUnder500(template);
+  assertAdminApiNestedStacksExist(template);
   assertStageHasNoApiGatewayCacheCluster(template);
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);

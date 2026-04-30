@@ -114,10 +114,9 @@ repo root
     helpers.
   - Keep `backend/src/app/api/admin.py` focused on request dispatch orchestration.
 - When adding admin API Gateway routes, if the `ApiStack` template approaches
-  CloudFormation's 500-resource limit, prefer consolidating additional
-  `/v1/admin/**` paths into the existing greedy `{proxy+}` + `ANY` integration
-  (see `backend/infrastructure/lib/api-stack.ts`) rather than adding many new
-  `ApiGateway::Resource` / `Method` nodes; keep `/v1/admin/assets/**` explicit.
+  CloudFormation's 500-resource limit, add new large subtrees to a nested stack under
+  `backend/infrastructure/lib/api-admin-*-stack.ts` (see `ApiAdminServicesStack` /
+  `ApiAdminCrmStack`) rather than growing the parent template indefinitely.
 
 ### CDK Lambda physical names (`backend/infrastructure/**`)
 
