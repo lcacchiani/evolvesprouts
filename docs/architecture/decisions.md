@@ -572,6 +572,12 @@ reuses the same SQL predicates as `ServiceInstanceRepository.list_public_offerin
 **Public `purpose`:** Only `consultation_booking` is allowed in this release; other
 values return **400**.
 
+**Wall-clock alignment:** The public website picker uses `PUBLIC_SITE_IANA_TIMEZONE`
+(`site-datetime.ts`). The API merge uses `CALENDAR_BLOCKERS_WALL_TIMEZONE` (default
+`Asia/Hong_Kong`). **Operations must keep these identical** (same zone string); if the env
+is set to a different zone than the site build constant, AM/PM boundaries and blocker
+rows can disagree between UI and API.
+
 **Caching:** Responses for `purpose=consultation_booking` use `Cache-Control: no-store`
 so CloudFront does not retain stale blocker lists after admin edits.
 
@@ -582,9 +588,10 @@ return **400** (`primarySessionStartIso` or the corresponding `sessionSlots[n].s
 field). Sub-minute times are allowed within those bands. Blocked half-days reject with
 the same user-facing message; structured logs distinguish classification vs blocked.
 
-**Client / CDN:** The public website requests blockers with `from` aligned to the Monday
-of the current local week and `to` = `from + 119` days so the URL (and CloudFront cache
-key when applicable) stays stable for seven days. The CRM GET client uses
+**Client / CDN:** The public website requests blockers with `from` / `to` derived in
+**the site IANA zone** (same calendar as the consultation modal), aligned to the Monday
+of the current week and `to` = `from + 119` days so the URL (and CloudFront cache key when
+applicable) stays stable for seven days. The CRM GET client uses
 `bypassGetCache` on this request so in-memory GET caching does not hide fresh blockers
 when reopening the booking modal. When `NEXT_PUBLIC_WWW_CRM_API_KEY` is unset at
 runtime, the client cannot call the API and treats the outcome as a fetch failure

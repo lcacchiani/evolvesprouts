@@ -188,7 +188,7 @@ export function ConsultationsBooking({
 
     let cancelled = false;
     void fetchConsultationCalendarBlockersSlots(controller.signal).then((result) => {
-      if (cancelled) {
+      if (cancelled || controller.signal.aborted) {
         return;
       }
       setCalendarAvailability({ unavailable_slots: result.slots });

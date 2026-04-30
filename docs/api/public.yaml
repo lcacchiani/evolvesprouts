@@ -441,8 +441,9 @@ paths:
         Optional `from` / `to` (`YYYY-MM-DD`) bound the response window (defaults: `from=today`,
         `to=from+120 days`, capped to 120 days). Invalid dates fall back to defaults.
 
-        **Cache keys:** The public website aligns `from` to the Monday of the current local week
-        and sets `to` = `from + 119` days so the query string stays stable for seven days at a time
+        **Cache keys:** The public website aligns `from` to the Monday of the current week in
+        the site IANA zone (`Asia/Hong_Kong`, same as the consultation picker) and sets
+        `to` = `from + 119` days so the query string stays stable for seven days at a time
         (still within the 120-day cap).
       security:
         - ApiKeyAuth: []
