@@ -18,7 +18,10 @@ from app.db.engine import get_engine
 from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.repositories.calendar_manual_block import CalendarManualBlockRepository
 from app.exceptions import NotFoundError, ValidationError
-from app.services.calendar_blockers import consultation_booking_purpose
+from app.services.calendar_blockers import (
+    allowed_manual_block_creation_purposes,
+    consultation_booking_purpose,
+)
 from app.utils import json_response
 from app.utils.logging import get_logger, mask_pii
 
@@ -158,7 +161,7 @@ def _get_block(event: Mapping[str, Any], *, block_id: UUID) -> dict[str, Any]:
 def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     body = parse_body(event)
     purpose = _parse_purpose(body.get("purpose"))
-    if purpose != consultation_booking_purpose():
+    if purpose not in allowed_manual_block_creation_purposes():
         raise ValidationError(
             "Only consultation_booking purpose is supported in this release",
             field="purpose",
@@ -195,6 +198,7 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
                 "That date and period already has a manual block. "
                 "Choose a different period or delete the existing row first.",
                 field="period",
+                status_code=409,
             ) from exc
         audit.log_create(
             "calendar_manual_blocks",
@@ -268,6 +272,7 @@ def _update_block(
                 "That date and period already has a manual block. "
                 "Choose a different combination or delete the conflicting row.",
                 field="period",
+                status_code=409,
             ) from exc
         session.refresh(row)
         new_values = {
@@ -298,7 +303,6 @@ def _delete_block(
     block_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    _ = event
     logger.info(
         "calendar_manual_block_delete",
         extra={

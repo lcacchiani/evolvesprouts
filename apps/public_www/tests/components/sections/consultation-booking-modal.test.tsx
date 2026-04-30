@@ -36,6 +36,7 @@ function buildPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    datePickerLoadingDayTemplate: p.datePickerLoadingDayTemplate,
     dateConfirmationNote: p.dateConfirmationNote,
   };
 }
@@ -106,7 +107,7 @@ describe('ConsultationBookingModal', () => {
     expect(screen.getByTestId('consultation-calendar-blockers-status')).toHaveTextContent(
       loadingMessage,
     );
-    const day9 = screen.getByRole('button', { name: 'Day 9 unavailable' });
+    const day9 = screen.getByRole('button', { name: 'Day 9, loading availability' });
     expect(day9).toBeDisabled();
   });
 

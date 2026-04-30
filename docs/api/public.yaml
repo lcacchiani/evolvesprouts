@@ -463,7 +463,7 @@ paths:
           schema:
             type: string
             format: date
-          description: Inclusive range start (`YYYY-MM-DD`). Defaults to today (UTC date).
+          description: Inclusive range start (`YYYY-MM-DD`). Defaults to today in the server wall-clock zone (`CALENDAR_BLOCKERS_WALL_TIMEZONE`, default `Asia/Hong_Kong`) when omitted.
         - name: to
           in: query
           required: false

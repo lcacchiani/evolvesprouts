@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
@@ -62,7 +63,8 @@ def handle_public_calendar_blockers(
 
     from_raw = query.get("from") if isinstance(query, Mapping) else None
     to_raw = query.get("to") if isinstance(query, Mapping) else None
-    today = datetime.now(tz=UTC).date()
+    wall_zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
+    today = datetime.now(tz=wall_zone).date()
     start_date = _parse_iso_date(from_raw, default=today)
     end_date = _parse_iso_date(
         to_raw, default=start_date + timedelta(days=_DEFAULT_RANGE_DAYS)
@@ -86,7 +88,7 @@ def handle_public_calendar_blockers(
             )
         end_date = max_end
 
-    logger.info(
+    logger.debug(
         "Handling public calendar blockers",
         extra={
             "purpose": purpose,

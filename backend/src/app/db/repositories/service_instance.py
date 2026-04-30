@@ -328,7 +328,6 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             statement = statement.where(
                 func.lower(Service.service_key) == service_key.lower()
             )
-        statement = statement.where(ServiceInstance.slug != "")
         return list(self._session.execute(statement).unique().scalars().all())
 
     def get_with_service_by_slug(self, slug: str) -> ServiceInstance | None:

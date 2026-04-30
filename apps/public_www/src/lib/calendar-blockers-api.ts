@@ -44,9 +44,29 @@ const _WEEKDAY_TO_OFFSET: Record<string, number> = {
   Sat: 6,
 };
 
-/** Noon on `ymd` in the site zone (HKT has no DST; fixed +08:00). */
+const _SITE_YMD_ONLY = new Intl.DateTimeFormat('en-CA', {
+  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** UTC instant when the calendar date is `ymd` at 00:00 in {@link PUBLIC_SITE_IANA_TIMEZONE}. */
+function utcMillisForSiteWallMidnight(ymd: string): number {
+  const [y, mo, d] = ymd.split('-').map((part) => Number(part));
+  let utc = Date.UTC(y, mo - 1, d, 0, 0, 0);
+  for (let i = 0; i < 48; i += 1) {
+    if (_SITE_YMD_ONLY.format(new Date(utc)) === ymd) {
+      return utc;
+    }
+    utc += 3600000;
+  }
+  return Date.UTC(y, mo - 1, d, 0, 0, 0);
+}
+
+/** Noon on `ymd` in the site IANA zone (works for DST zones; not hardcoded to +08). */
 function noonSiteOnYmd(ymd: string): Date {
-  return new Date(`${ymd}T12:00:00+08:00`);
+  return new Date(utcMillisForSiteWallMidnight(ymd) + 12 * 3600000);
 }
 
 /**

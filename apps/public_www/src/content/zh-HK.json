@@ -1614,6 +1614,7 @@
         "datePickerLegend": "首選上門評估日期與時段",
         "datePickerDayTemplate": "選擇 {day} 日",
         "datePickerUnavailableDayTemplate": "{day} 日不可選",
+        "datePickerLoadingDayTemplate": "{day} 日，正在載入可預約狀態",
         "dateConfirmationNote": "完成預約後先會最終確認日期同時間。"
       }
     },

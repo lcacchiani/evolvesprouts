@@ -133,6 +133,7 @@ function buildConsultationPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    datePickerLoadingDayTemplate: p.datePickerLoadingDayTemplate,
     dateConfirmationNote: p.dateConfirmationNote,
   };
 }
@@ -555,8 +556,8 @@ export function ConsultationsBooking({
                     quantity: 1,
                   }],
                 });
-                setCalendarBlockersStatus('loading');
                 setIsBookingModalOpen(true);
+                setCalendarBlockersStatus('loading');
               }}
             >
               {content.reservation.ctaLabel}

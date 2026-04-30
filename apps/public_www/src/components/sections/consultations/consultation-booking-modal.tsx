@@ -102,6 +102,8 @@ export interface ConsultationBookingPickerContent {
   datePickerDayTemplate: string;
   /** Interpolate `{day}`; use when the day is unavailable (past or fully blocked). */
   datePickerUnavailableDayTemplate: string;
+  /** Interpolate `{day}` when the grid is disabled because availability is still loading. */
+  datePickerLoadingDayTemplate: string;
   /** Shown under the selected date summary; same tone as payment modal refund hint. */
   dateConfirmationNote: string;
 }
@@ -196,15 +198,23 @@ function ConsultationDatePickerGrid({
                 {row.days.map((cell) => {
                   const isSelected = cell.ymd === selectedYmd;
                   const isDayDisabled = cell.isDisabled || interactionDisabled;
-                  const ariaDayLabel = isDayDisabled
-                    ? content.datePickerUnavailableDayTemplate.replace(
-                        '{day}',
-                        String(cell.dayOfMonth),
-                      )
-                    : content.datePickerDayTemplate.replace(
-                        '{day}',
-                        String(cell.dayOfMonth),
-                      );
+                  let ariaDayLabel: string;
+                  if (interactionDisabled && !cell.isDisabled) {
+                    ariaDayLabel = content.datePickerLoadingDayTemplate.replace(
+                      '{day}',
+                      String(cell.dayOfMonth),
+                    );
+                  } else if (isDayDisabled) {
+                    ariaDayLabel = content.datePickerUnavailableDayTemplate.replace(
+                      '{day}',
+                      String(cell.dayOfMonth),
+                    );
+                  } else {
+                    ariaDayLabel = content.datePickerDayTemplate.replace(
+                      '{day}',
+                      String(cell.dayOfMonth),
+                    );
+                  }
                   return (
                     <td key={cell.ymd} className='p-1'>
                       <button

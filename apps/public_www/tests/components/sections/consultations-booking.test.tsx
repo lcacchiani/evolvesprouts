@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
@@ -7,13 +7,20 @@ import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
-vi.mock('next/dynamic', () => ({
-  default: () => {
-    function MockDynamic() {
-      return null;
-    }
-    return MockDynamic;
-  },
+vi.mock('@/components/sections/consultations/consultation-booking-modal', () => ({
+  ConsultationBookingModal: (props: {
+    calendarBlockersStatus?: string;
+    onClose: () => void;
+  }) => (
+    <div
+      data-testid='consultation-booking-modal-stub'
+      data-calendar-blockers-status={props.calendarBlockersStatus ?? ''}
+    >
+      <button type='button' onClick={props.onClose}>
+        Close stub modal
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/lib/analytics', () => ({
@@ -25,11 +32,13 @@ vi.mock('@/lib/meta-pixel', () => ({
   trackMetaPixelEvent: vi.fn(),
 }));
 
+const { mockFetchConsultationCalendarBlockersSlots } = vi.hoisted(() => ({
+  mockFetchConsultationCalendarBlockersSlots: vi.fn(),
+}));
+
 vi.mock('@/lib/calendar-blockers-api', () => ({
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 5000,
-  fetchConsultationCalendarBlockersSlots: vi
-    .fn()
-    .mockResolvedValue({ slots: [], fetchFailed: false }),
+  fetchConsultationCalendarBlockersSlots: mockFetchConsultationCalendarBlockersSlots,
 }));
 
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -60,6 +69,11 @@ afterEach(() => {
   mockedTrackAnalyticsEvent.mockReset();
   mockedTrackEcommerceEvent.mockReset();
   mockedTrackMetaPixelEvent.mockReset();
+  mockFetchConsultationCalendarBlockersSlots.mockReset();
+  mockFetchConsultationCalendarBlockersSlots.mockResolvedValue({
+    slots: [],
+    fetchFailed: false,
+  });
 
   if (originalMatchMedia) {
     Object.defineProperty(window, 'matchMedia', {
@@ -331,6 +345,68 @@ describe('ConsultationsBooking', () => {
         price: deepDiveTier.priceHkd,
         quantity: 1,
       }],
+    });
+
+    expect(mockedTrackMetaPixelEvent).toHaveBeenCalledWith('InitiateCheckout', {
+      content_name: 'consultation_booking',
+    });
+  });
+
+  it('sets calendar blockers status loading then ready when booking CTA opens', async () => {
+    mockViewportMdUp(true);
+    const booking = enContent.consultations.booking;
+    let resolveFetch: (v: { slots: { date: string; period: 'am' }[]; fetchFailed: boolean }) => void;
+    const fetchPromise = new Promise<{ slots: { date: string; period: 'am' }[]; fetchFailed: boolean }>(
+      (resolve) => {
+        resolveFetch = resolve;
+      },
+    );
+    mockFetchConsultationCalendarBlockersSlots.mockReturnValue(fetchPromise as unknown as Promise<{
+      slots: { date: string; period: 'am' }[];
+      fetchFailed: boolean;
+    }>);
+
+    render(
+      <ConsultationsBooking
+        locale='en'
+        content={booking}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: booking.reservation.ctaLabel }));
+
+    const stub = await screen.findByTestId('consultation-booking-modal-stub');
+    expect(stub).toHaveAttribute('data-calendar-blockers-status', 'loading');
+
+    resolveFetch!({ slots: [{ date: '2026-04-09', period: 'am' }], fetchFailed: false });
+
+    await waitFor(() => {
+      expect(stub).toHaveAttribute('data-calendar-blockers-status', 'ready');
+    });
+  });
+
+  it('sets calendar blockers status to error when fetch fails', async () => {
+    mockViewportMdUp(true);
+    const booking = enContent.consultations.booking;
+    mockFetchConsultationCalendarBlockersSlots.mockResolvedValue({
+      slots: [],
+      fetchFailed: true,
+    });
+
+    render(
+      <ConsultationsBooking
+        locale='en'
+        content={booking}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: booking.reservation.ctaLabel }));
+
+    const stub = await screen.findByTestId('consultation-booking-modal-stub');
+    await waitFor(() => {
+      expect(stub).toHaveAttribute('data-calendar-blockers-status', 'error');
     });
   });
 });

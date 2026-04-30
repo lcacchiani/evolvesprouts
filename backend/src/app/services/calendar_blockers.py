@@ -39,6 +39,11 @@ _ALLOWED_PUBLIC_BLOCKER_PURPOSES: frozenset[str] = frozenset(
 )
 
 
+def allowed_manual_block_creation_purposes() -> frozenset[str]:
+    """Purposes allowed for admin-created manual blocks (keep in sync with public read allowlist)."""
+    return _ALLOWED_PUBLIC_BLOCKER_PURPOSES
+
+
 def resolve_calendar_blockers_wall_timezone() -> str:
     raw = os.getenv(_ENV_CALENDAR_BLOCKERS_WALL_TIMEZONE, "").strip()
     return raw or _DEFAULT_WALL_TIMEZONE
