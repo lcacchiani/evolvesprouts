@@ -4,30 +4,35 @@ import { Construct } from "constructs";
 
 export interface ApiAdminServicesStackProps extends cdk.NestedStackProps {
   restApi: apigateway.IRestApi;
-  /** Parent `v1.addResource("admin")` — only `resourceId` / `path` are used for import. */
-  adminResource: apigateway.IResource;
+  /** The `/v1/admin/services` resource created in the parent stack. */
+  servicesResource: apigateway.IResource;
   adminIntegration: apigateway.Integration;
   adminAuthorizer: apigateway.IAuthorizer;
 }
 
 /**
- * `/v1/admin/services/**` API Gateway routes (nested stack) to keep the parent ApiStack
- * under CloudFormation's 500-resource quota.
+ * `/v1/admin/services/**` API Gateway methods and sub-resources (nested stack) to keep the
+ * parent ApiStack under CloudFormation's 500-resource quota.
+ *
+ * The top-level `services` resource lives in the parent stack so its CloudFormation logical
+ * ID is stable across the migration from inline routes to a nested stack.
  */
 export class ApiAdminServicesStack extends cdk.NestedStack {
   public constructor(scope: Construct, id: string, props: ApiAdminServicesStackProps) {
     super(scope, id, props);
 
-    const { restApi, adminResource, adminIntegration, adminAuthorizer } = props;
+    const { restApi, servicesResource, adminIntegration, adminAuthorizer } = props;
 
-    const adminAttach = apigateway.Resource.fromResourceAttributes(this, "AdminRouteParent", {
-      restApi,
-      resourceId: adminResource.resourceId,
-      path: adminResource.path,
-    });
+    const adminServices = apigateway.Resource.fromResourceAttributes(
+      this,
+      "ServicesRouteParent",
+      {
+        restApi,
+        resourceId: servicesResource.resourceId,
+        path: servicesResource.path,
+      },
+    );
 
-    // Admin service routes
-    const adminServices = adminAttach.addResource("services");
     adminServices.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,

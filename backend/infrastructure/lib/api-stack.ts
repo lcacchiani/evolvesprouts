@@ -3035,15 +3035,22 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    const adminServices = admin.addResource("services");
+    const adminContacts = admin.addResource("contacts");
+    const adminFamilies = admin.addResource("families");
+    const adminOrganizations = admin.addResource("organizations");
+
     new ApiAdminServicesStack(this, "ApiAdminServicesStack", {
       restApi: api,
-      adminResource: admin,
+      servicesResource: adminServices,
       adminIntegration,
       adminAuthorizer,
     });
     new ApiAdminCrmStack(this, "ApiAdminCrmStack", {
       restApi: api,
-      adminResource: admin,
+      contactsResource: adminContacts,
+      familiesResource: adminFamilies,
+      organizationsResource: adminOrganizations,
       adminIntegration,
       adminAuthorizer,
     });
