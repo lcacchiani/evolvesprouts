@@ -3225,6 +3225,59 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    // Admin customer billing (AR)
+    const adminBilling = admin.addResource("billing");
+    const adminBillingExport = adminBilling.addResource("export");
+    adminBillingExport.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminBillingPayments = adminBilling.addResource("payments");
+    adminBillingPayments.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminBillingPayments.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminBillingPaymentById = adminBillingPayments.addResource("{id}");
+    adminBillingPaymentById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminBillingPaymentById.addResource("unapplied").addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminBillingPaymentById.addResource("confirm").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminBillingInvoices = adminBilling.addResource("invoices");
+    adminBillingInvoices.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminBillingInvoiceById = adminBillingInvoices.addResource("{id}");
+    adminBillingInvoiceById.addResource("issue").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminBillingInvoiceById.addResource("void").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminBillingInvoiceById.addResource("email").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminBillingAllocations = adminBilling.addResource("allocations");
+    adminBillingAllocations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     // User asset routes
     const user = v1.addResource("user");
     const userAssets = user.addResource("assets");

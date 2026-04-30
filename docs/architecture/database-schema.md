@@ -559,15 +559,34 @@ without breaking existing junction references.
   `0025_discount_codes_value_check` (replace CHECK) are split because PostgreSQL
   does not allow referencing a newly added enum value in the same transaction.
 
+- Migration `0052_customer_billing_ar` adds `audit_log` (if missing), customer billing
+  tables, `document_counters`, enrollment bill-to columns, and audit triggers for billing
+  tables.
+
 ### `enrollments`
 
 - Registration/booking rows linked to a `service_instances` row.
 - Supports parent linkage to one of contact/family/organization.
+- Optional bill-to fields (`bill_to_kind`, `bill_to_contact_id`, `bill_to_family_id`,
+  `bill_to_organization_id`) for AR invoicing (migration `0052_customer_billing_ar`).
 - Optional links to event ticket tiers and discount codes.
 - Migration `0045_enroll_inst_contact_uidx` adds partial unique index
   `enrollments_instance_contact_uidx` on `(instance_id, contact_id)` where
   `contact_id` is not null (at most one enrollment per contact per instance when
   the parent is a contact).
+
+### Customer billing (AR)
+
+Migration `0052_customer_billing_ar` introduces:
+
+- `customer_payments`: inbound payments and refunds (`direction`, `original_payment_id`,
+  `stripe_payment_intent_id`, `stripe_refund_id`), linked optionally to `enrollments` and `contacts`.
+- `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
+- `payment_allocations`: links payments to invoices with allocated amounts (partial allocation).
+- `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
+- `document_counters`: serialized invoice/receipt numbering per scope and year.
+- `audit_log`: central audit table (created when missing) with triggers on billing tables via
+  `billing_audit_row_change()`.
 
 ### `service_tags` + `service_assets`
 

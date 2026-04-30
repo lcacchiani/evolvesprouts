@@ -157,6 +157,13 @@ The following tables have audit triggers:
 
 - `assets`
 - `asset_access_grants`
+- `customer_payments`
+- `customer_invoices`
+- `customer_invoice_lines`
+- `payment_allocations`
+- `customer_receipts`
+
+Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code.
 
 ## Performance Considerations
 
@@ -214,7 +221,8 @@ current public reservation OpenAPI (`docs/api/public.yaml`).
 
 ## Migration
 
-The audit logging is added via Alembic migration `0010_add_audit_logging.py`.
+The original audit logging migration name referenced in older docs may differ; migration
+`0052_customer_billing_audit` creates `audit_log` when missing and wires billing-table triggers.
 
 To apply:
 ```bash
@@ -222,7 +230,6 @@ cd backend/db
 alembic upgrade head
 ```
 
-To rollback:
-```bash
-alembic downgrade 0009_rename_owner_to_manager
-```
+To rollback the billing/audit migration only (after prior head includes it), use the
+revision that immediately precedes `0052_customer_billing_ar` in your branch (for example
+`alembic downgrade 0051_backfill_event_service_key` when that is the down_revision).
