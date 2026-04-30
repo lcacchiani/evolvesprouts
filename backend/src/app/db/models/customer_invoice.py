@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
@@ -15,9 +15,6 @@ from sqlalchemy.types import TIMESTAMP, Numeric
 
 from app.db.base import Base
 from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
-
-if TYPE_CHECKING:
-    from app.db.models.enrollment import Enrollment
 
 
 def _kind_values(_enum_cls: type[BillingBillToKind] | None = None) -> list[str]:

@@ -7,7 +7,6 @@ import io
 import os
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
 from uuid import UUID
 
 from reportlab.lib.pagesizes import A4
