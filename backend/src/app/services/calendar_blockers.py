@@ -269,8 +269,10 @@ def _blocked_ymd_period_set(
         if p == "both":
             out.add((d, "am"))
             out.add((d, "pm"))
-        elif p in ("am", "pm"):
-            out.add((d, p))
+        elif p == "am":
+            out.add((d, "am"))
+        elif p == "pm":
+            out.add((d, "pm"))
     return out
 
 
