@@ -371,11 +371,16 @@ def record_reservation_customer_payment(
     payment_method: str,
     stripe_payment_intent_id: str | None,
     stripe_currency: str | None,
-) -> tuple[CustomerPayment | None, UUID | None]:
+) -> tuple[CustomerPayment | None, UUID | None, bool]:
     """Insert customer_payment for a new enrollment.
 
     Receipts are not created at booking time; staff create them after invoice
     reconciliation via admin confirm or equivalent succeeded paths.
+
+    Returns:
+        Tuple of (payment or existing row, receipt_id always None here,
+        duplicate_stripe_payment_intent) where the third flag is True when an
+        existing row was returned for the same Stripe payment intent id.
     """
     pm_lower = (payment_method or "").strip().lower()
     is_free = pm_lower == "free" or total_amount == Decimal("0")
@@ -391,7 +396,7 @@ def record_reservation_customer_payment(
             )
         ).scalar_one_or_none()
         if existing_pi is not None:
-            return existing_pi, None
+            return existing_pi, None, True
         pay = CustomerPayment(
             direction=BillingPaymentDirection.INBOUND,
             status=BillingPaymentStatus.SUCCEEDED,
@@ -436,9 +441,9 @@ def record_reservation_customer_payment(
                 )
             ).scalar_one_or_none()
             if dup is not None:
-                return dup, None
+                return dup, None, True
         raise
-    return pay, None
+    return pay, None, False
 
 
 def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:

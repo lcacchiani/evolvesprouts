@@ -612,7 +612,10 @@ Migration `0055_customer_billing_ar` introduces:
 - Migration `0056_tighten_invoice_billto` replaces `customer_invoices_bill_to_one_chk` so non-draft
   rows have exactly one bill-to FK populated (exclusive branches per `bill_to_kind`).
 
-**Public booking receipts:** At booking time the system persists the inbound `customer_payments`
+**CSV export (admin):** `GET /v1/admin/billing/export` defaults to **`export_version=2`**
+(query `exportVersion`, default `2`). v2 emits `payment`, `refund`, `invoice`,
+`invoice_line`, `receipt`, and `allocation` rows with bill-to, tax, and linkage columns;
+`exportVersion=1` retains the legacy payments+allocations-only columns.
 row only; the receipt row (and PDF that lists applied invoice numbers) is created when staff
 confirm the payment via `POST /v1/admin/billing/payments/{id}/confirm` or an equivalent succeeded path.
 

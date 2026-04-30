@@ -2756,13 +2756,26 @@ paths:
 
   /v1/admin/billing/export:
     get:
-      summary: Export billing CSV (v1 — payments and allocations only)
+      summary: Export billing CSV (default export v2)
       description: >
-        `export_version` is `1`. Rows include `document_type` `payment` and
-        `allocation` only; invoices, receipts, and dedicated refund tagging are
-        not included in this version (see product roadmap for export v2).
+        Default `export_version` is **2** (`?exportVersion=2` or omit). v2 rows include
+        `document_type` in `payment`, `refund`, `invoice`, `invoice_line`, `receipt`,
+        and `allocation` with columns for `payment_method`, `bank_reference` (payment
+        `external_reference`), `counterparty_name_snapshot` (invoice line description or
+        invoice snapshot display name), `tax_amount`, `created_by` (payment `confirmed_by`),
+        bill-to fields on invoice rows, and Stripe / linkage ids. Pass `exportVersion=1`
+        for the legacy payments+allocations-only shape.
       security:
         - AdminBearerAuth: []
+      parameters:
+        - name: exportVersion
+          in: query
+          required: false
+          description: "`1` (legacy) or `2` (default)."
+          schema:
+            type: string
+            enum: ["1", "2"]
+            default: "2"
       responses:
         "200":
           description: Accounting-oriented CSV payload.

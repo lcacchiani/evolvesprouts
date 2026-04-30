@@ -327,6 +327,8 @@ def _handle_public_reservation(
     try:
         request_id_str = str(event.get("requestContext", {}).get("requestId") or "")
         created_enrollment_id: UUID | None = None
+        stripe_pi_idempotent_hit: bool = False
+        stripe_pi_existing_payment_id: UUID | None = None
         with Session(get_engine()) as session:
             with session.begin():
                 set_audit_context(
@@ -479,7 +481,7 @@ def _handle_public_reservation(
                                 )
                             created_enrollment.discount_code_id = dc_row.id
                             session.flush()
-                        record_reservation_customer_payment(
+                        _pay, _, _dup_pi = record_reservation_customer_payment(
                             session,
                             enrollment_id=created_enrollment.id,
                             contact_id=contact.id,
@@ -491,6 +493,9 @@ def _handle_public_reservation(
                             ),
                             stripe_currency=reservation_payload.get("stripe_currency"),
                         )
+                        if _dup_pi and _pay is not None:
+                            stripe_pi_idempotent_hit = True
+                            stripe_pi_existing_payment_id = _pay.id
 
                 lead_metadata: dict[str, object] = {
                     "payment_method": reservation_payload["payment_method"],
@@ -565,6 +570,17 @@ def _handle_public_reservation(
             "title": reservation_payload["title"],
         },
     )
+
+    if stripe_pi_idempotent_hit and stripe_pi_existing_payment_id is not None:
+        return json_response(
+            200,
+            {
+                "message": "Reservation submitted",
+                "duplicateStripePaymentIntent": True,
+                "customerPaymentId": str(stripe_pi_existing_payment_id),
+            },
+            event=event,
+        )
 
     return json_response(
         202,

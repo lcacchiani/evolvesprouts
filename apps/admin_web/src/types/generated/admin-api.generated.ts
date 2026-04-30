@@ -3860,12 +3860,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Export billing CSV (v1 — payments and allocations only)
-         * @description `export_version` is `1`. Rows include `document_type` `payment` and `allocation` only; invoices, receipts, and dedicated refund tagging are not included in this version (see product roadmap for export v2).
+         * Export billing CSV (default export v2)
+         * @description Default `export_version` is **2** (`?exportVersion=2` or omit). v2 rows include `document_type` in `payment`, `refund`, `invoice`, `invoice_line`, `receipt`, and `allocation` with columns for `payment_method`, `bank_reference` (payment `external_reference`), `counterparty_name_snapshot` (invoice line description or invoice snapshot display name), `tax_amount`, `created_by` (payment `confirmed_by`), bill-to fields on invoice rows, and Stripe / linkage ids. Pass `exportVersion=1` for the legacy payments+allocations-only shape.
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description `1` (legacy) or `2` (default). */
+                    exportVersion?: "1" | "2";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;

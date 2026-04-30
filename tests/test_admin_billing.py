@@ -316,3 +316,24 @@ def test_refund_create_rejects_currency_mismatch_with_original(
     )
     with pytest.raises(ValidationError, match="currency"):
         admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+
+
+def test_export_csv_rejects_invalid_export_version(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        yield MagicMock()
+
+    monkeypatch.setattr(admin_billing, "_session_with_audit", _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/export",
+        query_params={"exportVersion": "9"},
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="exportVersion"):
+        admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/export")
