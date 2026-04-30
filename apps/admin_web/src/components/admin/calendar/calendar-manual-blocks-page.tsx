@@ -252,7 +252,7 @@ export function CalendarManualBlocksPage() {
       </AdminEditorCard>
 
       <PaginatedTableCard
-        title='Consultation manual blocks'
+        title='Manual blocks'
         isLoading={isLoading}
         isLoadingMore={false}
         hasMore={false}
@@ -289,7 +289,7 @@ export function CalendarManualBlocksPage() {
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Date</th>
-              <th className='px-4 py-3 font-semibold'>Period</th>
+              <th className='px-4 py-3 font-semibold'>AM/PM</th>
               <th className='px-4 py-3 font-semibold'>Note</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
