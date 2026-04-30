@@ -152,6 +152,7 @@ function buildPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    datePickerLoadingDayTemplate: p.datePickerLoadingDayTemplate,
     dateConfirmationNote: p.dateConfirmationNote,
   };
 }

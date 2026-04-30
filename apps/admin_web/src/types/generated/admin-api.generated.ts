@@ -2217,6 +2217,191 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/calendar/manual-blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List manual calendar blocks for a purpose
+         * @description Returns **manual** rows from `calendar_manual_blocks` only (session-derived blockers
+         *     are exposed on `GET /v1/calendar/blockers`). Current release supports `purpose=consultation_booking` only.
+         */
+        get: {
+            parameters: {
+                query: {
+                    purpose: string;
+                    from: string;
+                    to: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Manual block list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCalendarManualBlockListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create manual calendar block */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdminCalendarManualBlockRequest"];
+                };
+            };
+            responses: {
+                /** @description Block created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCalendarManualBlockResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                /** @description Duplicate purpose/date/period. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/calendar/manual-blocks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Get manual calendar block by id */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Block detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCalendarManualBlockResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete manual calendar block */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCalendarManualBlockDeleteResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update manual calendar block */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminCalendarManualBlockRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated block. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminCalendarManualBlockResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Duplicate purpose/date/period. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/v1/admin/tags": {
         parameters: {
             query?: never;
@@ -5062,6 +5247,49 @@ export interface components {
             usage_count: number;
             /** @description True for reserved asset-pipeline tags (`expense_attachment`, `client_document`). These cannot be renamed, archived, or deleted via the admin API. */
             is_system: boolean;
+        };
+        AdminCalendarManualBlockRef: {
+            /** Format: uuid */
+            id: string;
+            purpose: string;
+            /** Format: date */
+            block_date: string;
+            /** @enum {string} */
+            period: "am" | "pm" | "both";
+            note?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            /** @description Cognito subject of the admin who created the row (when known). */
+            created_by?: string | null;
+            /** @description Cognito subject of the admin who last updated the row (when known). */
+            updated_by?: string | null;
+        };
+        AdminCalendarManualBlockListResponse: {
+            items: components["schemas"]["AdminCalendarManualBlockRef"][];
+        };
+        AdminCalendarManualBlockResponse: {
+            block: components["schemas"]["AdminCalendarManualBlockRef"];
+        };
+        AdminCalendarManualBlockDeleteResponse: {
+            deleted: boolean;
+        };
+        CreateAdminCalendarManualBlockRequest: {
+            purpose: string;
+            /** Format: date */
+            blockDate: string;
+            /** @enum {string} */
+            period: "am" | "pm" | "both";
+            note?: string | null;
+        };
+        /** @description Partial update: include only fields to change. Omitted fields are left unchanged. At least one of `blockDate`, `period`, or `note` must be present. */
+        UpdateAdminCalendarManualBlockRequest: {
+            /** Format: date */
+            blockDate?: string;
+            /** @enum {string} */
+            period?: "am" | "pm" | "both";
+            note?: string | null;
         };
         AdminTagDeleteResponse: {
             /** @description True when the tag row was removed from the database. */

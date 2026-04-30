@@ -1337,6 +1337,8 @@
     "booking": {
       "eyebrow": "Family Consultations",
       "title": "Book Your Family Consultation",
+      "calendarBlockersLoadingMessage": "Loading available dates…",
+      "calendarBlockersErrorMessage": "We could not load availability. You can still continue; if a time is no longer available, checkout will tell you.",
       "step1Title": "Choose your focus:",
       "focusAreas": [
         {
@@ -1612,6 +1614,7 @@
         "datePickerLegend": "Preferred home visit date and time of day",
         "datePickerDayTemplate": "Select day {day}",
         "datePickerUnavailableDayTemplate": "Day {day} unavailable",
+        "datePickerLoadingDayTemplate": "Day {day}, loading availability",
         "dateConfirmationNote": "Date/time confirmed once booking is complete."
       }
     },

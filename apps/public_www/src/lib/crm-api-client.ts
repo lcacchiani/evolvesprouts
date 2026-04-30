@@ -15,6 +15,8 @@ export interface CrmApiRequestOptions {
   headers?: Record<string, string>;
   turnstileToken?: string;
   expectedSuccessStatuses?: readonly number[];
+  /** When true, skip in-memory GET response cache (e.g. frequently invalidated public data). */
+  bypassGetCache?: boolean;
 }
 
 export interface CrmApiClient {
@@ -296,7 +298,10 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
       }
 
       const cacheKey = buildGetCacheKey(normalizedApiKey, requestUrl);
-      if (method === 'GET') {
+      if (method === 'GET' && options.bypassGetCache) {
+        getRequestCache.delete(cacheKey);
+      }
+      if (method === 'GET' && !options.bypassGetCache) {
         const now = Date.now();
         const cachedEntry = getRequestCache.get(cacheKey);
         if (cachedEntry && cachedEntry.expiresAt > now) {
@@ -354,7 +359,7 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
         });
       }
 
-      if (method === 'GET') {
+      if (method === 'GET' && !options.bypassGetCache) {
         setGetCacheEntry(cacheKey, payload);
       } else {
         getRequestCache.delete(cacheKey);

@@ -1337,6 +1337,8 @@
     "booking": {
       "eyebrow": "家庭諮詢",
       "title": "預約你的家庭諮詢",
+      "calendarBlockersLoadingMessage": "正在載入可預約日期…",
+      "calendarBlockersErrorMessage": "暫時無法載入可用時段。你仍可繼續；若所選時間不可用，結帳時會提示。",
       "step1Title": "選擇你的方向：",
       "focusAreas": [
         {
@@ -1612,6 +1614,7 @@
         "datePickerLegend": "首選上門評估日期與時段",
         "datePickerDayTemplate": "選擇 {day} 日",
         "datePickerUnavailableDayTemplate": "{day} 日不可選",
+        "datePickerLoadingDayTemplate": "{day} 日，正在載入可預約狀態",
         "dateConfirmationNote": "完成預約後先會最終確認日期同時間。"
       }
     },

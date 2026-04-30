@@ -36,6 +36,7 @@ function buildPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    datePickerLoadingDayTemplate: p.datePickerLoadingDayTemplate,
     dateConfirmationNote: p.dateConfirmationNote,
   };
 }
@@ -80,6 +81,62 @@ describe('ConsultationBookingModal', () => {
         enContent.bookingModal.paymentModal.consultationPicker.dateConfirmationNote,
       ),
     ).toBeInTheDocument();
+  });
+
+  it('shows loading message and disables date picker while blockers are loading', () => {
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+    );
+    const loadingMessage = enContent.consultations.booking.calendarBlockersLoadingMessage;
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        calendarBlockersStatus='loading'
+        calendarBlockersLoadingMessage={loadingMessage}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('consultation-calendar-blockers-status')).toHaveTextContent(
+      loadingMessage,
+    );
+    const day9 = screen.getByRole('button', { name: 'Day 9, loading availability' });
+    expect(day9).toBeDisabled();
+  });
+
+  it('shows error message when blockers failed to load but keeps picker interactive', () => {
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+    );
+    const errorMessage = enContent.consultations.booking.calendarBlockersErrorMessage;
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        calendarBlockersStatus='error'
+        calendarBlockersErrorMessage={errorMessage}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('consultation-calendar-blockers-status')).toHaveTextContent(
+      errorMessage,
+    );
+    const day9 = screen.getByRole('button', { name: 'Select day 9' });
+    expect(day9).not.toBeDisabled();
   });
 
   it('selects PM when only the afternoon slot is available for that day', () => {

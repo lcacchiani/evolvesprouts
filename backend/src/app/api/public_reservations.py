@@ -54,6 +54,11 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
+from app.services.calendar_blockers import (
+    consultation_booking_purpose,
+    raise_if_consultation_reservation_blocked,
+    validate_session_slot_chronology,
+)
 from app.services.public_form_internal_notifications import (
     build_reservation_recap_lines,
     send_sales_form_recap_email,
@@ -202,6 +207,32 @@ def _handle_public_reservation(
                 **reservation_payload,
                 "service_type": resolved_instance.service.service_type.value,
             }
+            if reservation_payload.get("booking_system") == "consultation-booking":
+                start_iso = reservation_payload.get("primary_session_start_iso")
+                if not start_iso:
+                    raise ValidationError(
+                        "primarySessionStartIso is required for consultation bookings",
+                        field="primarySessionStartIso",
+                    )
+                slot_err = validate_session_slot_chronology(
+                    reservation_payload.get("session_slots")
+                )
+                if slot_err == "session_slot_end_before_start":
+                    raise ValidationError(
+                        "Each session slot must end after its start time",
+                        field="sessionSlots",
+                    )
+                if slot_err == "invalid_session_slot_iso":
+                    raise ValidationError(
+                        "Invalid session slot date format",
+                        field="sessionSlots",
+                    )
+                raise_if_consultation_reservation_blocked(
+                    session=session,
+                    purpose=consultation_booking_purpose(),
+                    primary_start_iso=str(start_iso),
+                    session_slots=reservation_payload.get("session_slots"),
+                )
             _validate_discount_code_redemption_scope(
                 session, reservation_payload, resolved_instance=resolved_instance
             )

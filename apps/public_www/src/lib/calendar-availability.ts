@@ -5,7 +5,18 @@ export interface CalendarUnavailableSlot {
   period: CalendarUnavailablePeriod;
 }
 
-/** Shape of `src/content/calendar-availability.json` (and future API payloads). */
+/** Public API `GET /v1/calendar/blockers` success body (and meta). */
+export interface PublicCalendarBlockersApiPayload {
+  blockers: CalendarUnavailableSlot[];
+  meta?: {
+    purpose?: string;
+    from?: string;
+    to?: string;
+    wall_time_zone?: string;
+  };
+}
+
+/** Props shape for the consultation booking modal (picker unavailable half-days). */
 export interface CalendarAvailabilityPayload {
   unavailable_slots: CalendarUnavailableSlot[];
 }
@@ -52,4 +63,36 @@ export function buildUnavailableSlotMap(
   }
 
   return map;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Parses public calendar blockers API JSON into slot rows for {@link buildUnavailableSlotMap}.
+ */
+export function parsePublicCalendarBlockersPayload(
+  payload: unknown,
+): CalendarUnavailableSlot[] {
+  if (!isRecord(payload)) {
+    return [];
+  }
+  const raw = payload.blockers;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: CalendarUnavailableSlot[] = [];
+  for (const item of raw) {
+    if (!isRecord(item)) {
+      continue;
+    }
+    const date = typeof item.date === 'string' ? item.date : '';
+    const period = item.period;
+    if (!date || !isValidPeriod(period)) {
+      continue;
+    }
+    out.push({ date, period });
+  }
+  return out;
 }

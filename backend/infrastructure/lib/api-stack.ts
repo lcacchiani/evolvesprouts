@@ -2733,6 +2733,7 @@ export class ApiStack extends cdk.Stack {
 
     const calendar = v1.addResource("calendar");
     addPublicApiKeyMethod(calendar.addResource("public"), "GET");
+    addPublicApiKeyMethod(calendar.addResource("blockers"), "GET");
     const reservations = v1.addResource("reservations");
     addPublicApiKeyMethod(reservations, "POST");
     addPublicApiKeyMethod(reservations.addResource("payment-intent"), "POST");
@@ -3025,6 +3026,31 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminDiscountCodeById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin calendar manual blocks (purpose-scoped; merged with session slots for public reads)
+    const adminCalendar = admin.addResource("calendar");
+    const adminCalendarManualBlocks = adminCalendar.addResource("manual-blocks");
+    adminCalendarManualBlocks.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlocks.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminCalendarManualBlockById = adminCalendarManualBlocks.addResource("{id}");
+    adminCalendarManualBlockById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlockById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminCalendarManualBlockById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

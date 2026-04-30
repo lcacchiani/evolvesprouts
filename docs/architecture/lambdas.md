@@ -35,6 +35,11 @@ their primary responsibilities.
   `/v1/reservations/payment-intent`,
   `/v1/calendar/public` (same public calendar feed and contract as
   `/www/v1/calendar/public`; see that entry below for payload, ordering, and query filters),
+  `/v1/calendar/blockers` (merged manual + session half-day blockers; `purpose` allowlist
+  is `consultation_booking` only in this release—other values return 400; same contract as
+  `/www/v1/calendar/blockers`; `purpose=consultation_booking` uses `Cache-Control: no-store`
+  on success so admin-driven blockers are not edge-cached; other allowed purposes use the same cache headers
+  as `GET /v1/calendar/public`),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,
@@ -60,6 +65,9 @@ their primary responsibilities.
   `/v1/admin/tags/*` for CRM tag catalog administration (list with optional `include_archived` or
   `archived_only`, create, update, `PATCH` `archived` to restore, delete returns `deleted` +
   `usage_count`; system tag names are protected),
+  `/v1/admin/calendar/manual-blocks` and `/v1/admin/calendar/manual-blocks/{id}` for purpose-scoped
+  manual calendar blocks (list requires `purpose`, `from`, `to`; create supports `consultation_booking`
+  in the current release; merged public read is `GET /v1/calendar/blockers`),
   `GET /v1/admin/contacts/tags` for tag pickers (active tags only),
   `GET /v1/admin/contacts/search` for contact picker search,
   `GET|POST /v1/admin/contacts/{id}/notes` and `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
@@ -144,12 +152,17 @@ their primary responsibilities.
   when `max_capacity` is set,
   using the same enrollment statuses as capacity checks: registered, confirmed,
   completed),
+  `/www/v1/calendar/blockers` (requires `purpose`; allowlist is `consultation_booking` only in this release;
+  merges `calendar_manual_blocks` with published event/training `instance_session_slots` intersecting nominal AM/PM local windows;
+  `meta.wall_time_zone` documents the wall-clock zone for consultation purposes;
+  `purpose=consultation_booking` responses use `Cache-Control: no-store` on success),
   `/www/v1/assets/free` (lists public assets tagged `client_document`;
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
   `zh-CN`, or `zh-HK`; downloads
   remain on `/v1/assets/public/{id}/download` with device attestation),
   Allowlisted public GETs behind `/www/*` (`GET /v1/calendar/public`,
+  `GET /v1/calendar/blockers` (edge-cacheable on 200 except `purpose=consultation_booking`, which is `no-store`),
   `GET /v1/assets/free`, and `/www/v1/...`) emit `Cache-Control` on success and
   `no-store` on handler error paths; new allowlisted GETs must follow the same
   contract,

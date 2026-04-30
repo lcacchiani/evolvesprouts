@@ -1,6 +1,7 @@
 """SQLAlchemy models."""
 
 from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
+from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.models.audit_log import AuditLog
 from app.db.models.contact import Contact
 from app.db.models.discount_code import DiscountCode
@@ -72,6 +73,7 @@ __all__ = [
     "AssetType",
     "AssetVisibility",
     "AuditLog",
+    "CalendarManualBlock",
     "ConsultationDetails",
     "ConsultationFormat",
     "ConsultationInstanceDetails",

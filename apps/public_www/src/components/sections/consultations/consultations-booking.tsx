@@ -22,7 +22,10 @@ import type {
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
+import {
+  CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
+  fetchConsultationCalendarBlockersSlots,
+} from '@/lib/calendar-blockers-api';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,
@@ -130,6 +133,7 @@ function buildConsultationPickerContent(
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
+    datePickerLoadingDayTemplate: p.datePickerLoadingDayTemplate,
     dateConfirmationNote: p.dateConfirmationNote,
   };
 }
@@ -138,7 +142,6 @@ interface ConsultationsBookingProps {
   locale: Locale;
   content: ConsultationsBookingContent;
   bookingModalContent: BookingModalContent;
-  calendarAvailability: CalendarAvailabilityPayload;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
   commonAccessibility?: CommonAccessibilityContent;
@@ -148,12 +151,17 @@ export function ConsultationsBooking({
   locale,
   content,
   bookingModalContent,
-  calendarAvailability,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
   commonAccessibility = enContent.common.accessibility,
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [calendarBlockersStatus, setCalendarBlockersStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle');
+  const [calendarAvailability, setCalendarAvailability] = useState(() => ({
+    unavailable_slots: [] as { date: string; period: 'am' | 'pm' | 'both' }[],
+  }));
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
     null,
   );
@@ -169,6 +177,31 @@ export function ConsultationsBooking({
     useState(false);
   const [consultationModalLevelFeaturesAnimNonce, setConsultationModalLevelFeaturesAnimNonce] =
     useState(0);
+
+  useEffect(() => {
+    if (!isBookingModalOpen) {
+      return;
+    }
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS);
+
+    let cancelled = false;
+    void fetchConsultationCalendarBlockersSlots(controller.signal).then((result) => {
+      if (cancelled || controller.signal.aborted) {
+        return;
+      }
+      setCalendarAvailability({ unavailable_slots: result.slots });
+      setCalendarBlockersStatus(result.fetchFailed ? 'error' : 'ready');
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [isBookingModalOpen]);
 
   useEffect(() => {
     if (!isThankYouOpen || !thankYouSummary) {
@@ -524,6 +557,7 @@ export function ConsultationsBooking({
                   }],
                 });
                 setIsBookingModalOpen(true);
+                setCalendarBlockersStatus('loading');
               }}
             >
               {content.reservation.ctaLabel}
@@ -538,6 +572,9 @@ export function ConsultationsBooking({
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
           calendarAvailability={calendarAvailability}
+          calendarBlockersStatus={calendarBlockersStatus}
+          calendarBlockersLoadingMessage={content.calendarBlockersLoadingMessage}
+          calendarBlockersErrorMessage={content.calendarBlockersErrorMessage}
           pickerContent={consultationPickerContent}
           selectionInfo={modalSelectionInfo}
           levelFeaturesEnterAnimationNonce={consultationModalLevelFeaturesAnimNonce}
@@ -547,10 +584,12 @@ export function ConsultationsBooking({
           thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
           onClose={() => {
             setIsBookingModalOpen(false);
+            setCalendarBlockersStatus('idle');
             setConsultationModalLevelFeaturesAnimNonce(0);
           }}
           onSubmitReservation={(summary) => {
             setIsBookingModalOpen(false);
+            setCalendarBlockersStatus('idle');
             setThankYouSummary(summary);
             setIsThankYouOpen(true);
           }}
