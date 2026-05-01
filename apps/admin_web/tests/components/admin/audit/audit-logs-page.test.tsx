@@ -75,7 +75,7 @@ describe('AuditLogsPage', () => {
     await user.click(screen.getByRole('button', { name: /load more/i }));
     await waitFor(() => {
       expect(mockListAuditLogs).toHaveBeenNthCalledWith(2, expect.anything(), 'cursor-token', 50);
-      expect(screen.getByText('Showing 2 entries')).toBeInTheDocument();
+      expect(screen.getByText('asset_access_grants')).toBeInTheDocument();
     });
   });
 });
