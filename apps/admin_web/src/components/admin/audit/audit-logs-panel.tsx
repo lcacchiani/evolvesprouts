@@ -281,61 +281,58 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
         {items.length === 0 && !isLoading ? (
           <p className='text-sm text-slate-600'>No audit logs match the current filters.</p>
         ) : (
-          <>
-            <AdminDataTable>
-              <AdminDataTableHead>
-                <tr>
-                  <th className='px-4 py-3' scope='col'>
-                    {timestampHeader}
-                  </th>
-                  <th className='px-4 py-3' scope='col'>
-                    Table
-                  </th>
-                  <th className='px-4 py-3' scope='col'>
-                    Action
-                  </th>
-                  <th className='px-4 py-3' scope='col'>
-                    User email
-                  </th>
-                  <th className='hidden px-4 py-3 md:table-cell' scope='col'>
-                    Changed fields
-                  </th>
-                  <th className='px-4 py-3 text-right' scope='col'>
-                    Operations
-                  </th>
+          <AdminDataTable>
+            <AdminDataTableHead>
+              <tr>
+                <th className='px-4 py-3' scope='col'>
+                  {timestampHeader}
+                </th>
+                <th className='px-4 py-3' scope='col'>
+                  Table
+                </th>
+                <th className='px-4 py-3' scope='col'>
+                  Action
+                </th>
+                <th className='px-4 py-3' scope='col'>
+                  User email
+                </th>
+                <th className='hidden px-4 py-3 md:table-cell' scope='col'>
+                  Changed fields
+                </th>
+                <th className='px-4 py-3 text-right' scope='col'>
+                  Operations
+                </th>
+              </tr>
+            </AdminDataTableHead>
+            <AdminDataTableBody>
+              {items.map((item) => (
+                <tr key={item.id} className='hover:bg-slate-50'>
+                  <td className='px-4 py-3 text-slate-600'>{formatDate(item.timestamp)}</td>
+                  <td className='px-4 py-3 font-medium text-slate-900'>{item.table_name}</td>
+                  <td className='px-4 py-3'>
+                    <ActionBadge action={item.action} />
+                  </td>
+                  <td className='px-4 py-3 font-mono text-xs text-slate-600'>
+                    {getUserEmail(item)}
+                  </td>
+                  <td className='hidden px-4 py-3 text-slate-500 md:table-cell'>
+                    {item.changed_fields?.length ? item.changed_fields.join(', ') : '—'}
+                  </td>
+                  <td className='px-4 py-3 text-right'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='ghost'
+                      onClick={() => setSelectedLog(item)}
+                      aria-label='View details'
+                    >
+                      <ViewIcon className='h-4 w-4' />
+                    </Button>
+                  </td>
                 </tr>
-              </AdminDataTableHead>
-              <AdminDataTableBody>
-                {items.map((item) => (
-                  <tr key={item.id} className='hover:bg-slate-50'>
-                    <td className='px-4 py-3 text-slate-600'>{formatDate(item.timestamp)}</td>
-                    <td className='px-4 py-3 font-medium text-slate-900'>{item.table_name}</td>
-                    <td className='px-4 py-3'>
-                      <ActionBadge action={item.action} />
-                    </td>
-                    <td className='px-4 py-3 font-mono text-xs text-slate-600'>
-                      {getUserEmail(item)}
-                    </td>
-                    <td className='hidden px-4 py-3 text-slate-500 md:table-cell'>
-                      {item.changed_fields?.length ? item.changed_fields.join(', ') : '—'}
-                    </td>
-                    <td className='px-4 py-3 text-right'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='ghost'
-                        onClick={() => setSelectedLog(item)}
-                        aria-label='View details'
-                      >
-                        <ViewIcon className='h-4 w-4' />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </AdminDataTableBody>
-            </AdminDataTable>
-            <p className='mt-2 text-xs text-slate-500'>Showing {items.length} entries</p>
-          </>
+              ))}
+            </AdminDataTableBody>
+          </AdminDataTable>
         )}
       </PaginatedTableCard>
 
