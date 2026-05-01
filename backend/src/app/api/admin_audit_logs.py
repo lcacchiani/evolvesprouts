@@ -299,13 +299,13 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
     distinct_subs = sorted({r.user_id for r in trimmed if r.user_id})
     email_map = _cognito_emails_for_subs(distinct_subs)
 
-    last_row = trimmed[-1]
-    last_id = last_row.id if isinstance(last_row.id, UUID) else UUID(str(last_row.id))
-    next_cursor = (
-        encode_created_cursor(last_row.timestamp, last_id)
-        if has_more and trimmed
-        else None
-    )
+    next_cursor: str | None = None
+    if has_more and trimmed:
+        last_row = trimmed[-1]
+        last_id = (
+            last_row.id if isinstance(last_row.id, UUID) else UUID(str(last_row.id))
+        )
+        next_cursor = encode_created_cursor(last_row.timestamp, last_id)
     return json_response(
         200,
         {
