@@ -4106,7 +4106,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List customer invoices
+         * @description Cursor-paginated list ordered by `created_at` descending, then `id` descending. Pass `next_cursor` from the previous response as `cursor` for the next page.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "draft" | "issued" | "void";
+                    /** @description Three-letter ISO currency code (for example HKD). */
+                    currency?: string;
+                    /** @description Opaque cursor from a prior `next_cursor` value. */
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Invoice summaries. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["CustomerInvoiceSummary"][];
+                            next_cursor?: string | null;
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
         put?: never;
         /** Create draft invoice from enrollments */
         post: {
@@ -4140,6 +4175,48 @@ export interface paths {
                 403: components["responses"]["Forbidden"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/billing/invoices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get customer invoice with lines */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Invoice detail including line items. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            invoice: components["schemas"]["CustomerInvoiceDetail"];
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5796,6 +5873,68 @@ export interface components {
             succeededAt?: string | null;
             /** Format: date-time */
             createdAt?: string;
+        };
+        CustomerInvoiceLine: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            invoiceId?: string;
+            /** Format: uuid */
+            enrollmentId?: string;
+            lineOrder?: number;
+            description?: string;
+            quantity?: string;
+            unitAmount?: string;
+            lineTotal?: string;
+            discountAmount?: string | null;
+            taxRate?: string | null;
+            taxAmount?: string | null;
+            currency?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CustomerInvoiceSummary: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            status?: "draft" | "issued" | "void";
+            invoiceNumber?: string | null;
+            invoiceSequence?: number | null;
+            currency?: string;
+            subtotal?: string;
+            taxTotal?: string;
+            total?: string;
+            /** @enum {string} */
+            billToKind?: "contact" | "family" | "organization";
+            /** Format: uuid */
+            billToContactId?: string | null;
+            /** Format: uuid */
+            billToFamilyId?: string | null;
+            /** Format: uuid */
+            billToOrganizationId?: string | null;
+            billToDisplayName?: string | null;
+            billToEmail?: string | null;
+            /** Format: date-time */
+            issuedAt?: string | null;
+            /** Format: date-time */
+            voidedAt?: string | null;
+            issuedPdfSha256?: string | null;
+            lineCount?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CustomerInvoiceDetail: components["schemas"]["CustomerInvoiceSummary"] & {
+            voidReason?: string | null;
+            billToSnapshot?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            emailSentAt?: string | null;
+            lines?: components["schemas"]["CustomerInvoiceLine"][];
         };
         CreateCustomerRefundRequest: {
             /** @enum {string} */

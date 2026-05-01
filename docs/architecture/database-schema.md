@@ -616,8 +616,14 @@ Migration `0055_customer_billing_ar` introduces:
 (query `exportVersion`, default `2`). v2 emits `payment`, `refund`, `invoice`,
 `invoice_line`, `receipt`, and `allocation` rows with bill-to, tax, and linkage columns;
 `exportVersion=1` retains the legacy payments+allocations-only columns.
-row only; the receipt row (and PDF that lists applied invoice numbers) is created when staff
-confirm the payment via `POST /v1/admin/billing/payments/{id}/confirm` or an equivalent succeeded path.
+
+**Invoice reads (admin):** `GET /v1/admin/billing/invoices` lists invoice summaries with optional
+`status`, `currency`, and cursor pagination (`cursor`, `limit`). `GET /v1/admin/billing/invoices/{id}`
+returns the invoice with line items (for example allocation line UUIDs).
+
+For offline inbound payments, the `customer_payments` row may be **pending** until staff
+confirm the payment via `POST /v1/admin/billing/payments/{id}/confirm` or an equivalent succeeded path;
+the receipt row (and PDF that lists applied invoice numbers) follows server rules after confirmation.
 
 ### `service_tags` + `service_assets`
 

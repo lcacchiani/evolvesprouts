@@ -23,12 +23,16 @@ import {
   createPaymentAllocation,
   emailInvoice,
   exportBillingCsv,
+  getCustomerInvoice,
   getCustomerPayment,
   issueInvoice,
+  listCustomerInvoices,
   listCustomerPayments,
   parseEnrollmentIdList,
   parseLineTotalsOverridesJson,
   voidInvoice,
+  type CustomerInvoiceDetail,
+  type CustomerInvoiceSummary,
   type CustomerPaymentDetail,
   type CustomerPaymentSummary,
 } from '@/lib/billing-api';
@@ -68,6 +72,16 @@ export function ClientInvoicesPanel() {
   const [payments, setPayments] = useState<CustomerPaymentSummary[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
+  const [invoices, setInvoices] = useState<CustomerInvoiceSummary[]>([]);
+  const [invoiceListLoading, setInvoiceListLoading] = useState(true);
+  const [invoiceListLoadingMore, setInvoiceListLoadingMore] = useState(false);
+  const [invoiceListError, setInvoiceListError] = useState('');
+  const [invoiceListCursor, setInvoiceListCursor] = useState<string | null>(null);
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<'draft' | 'issued' | 'void' | ''>('');
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [invoiceDetail, setInvoiceDetail] = useState<CustomerInvoiceDetail | null>(null);
+  const [invoiceDetailLoading, setInvoiceDetailLoading] = useState(false);
+  const [invoiceDetailError, setInvoiceDetailError] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CustomerPaymentDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -104,6 +118,79 @@ export function ClientInvoicesPanel() {
   const [refundCurrency, setRefundCurrency] = useState(defaultCurrency);
   const [refundMethod, setRefundMethod] = useState('');
   const [refundStripeId, setRefundStripeId] = useState('');
+
+  const loadInvoicesFirstPage = useCallback(async () => {
+    setInvoiceListLoading(true);
+    setInvoiceListError('');
+    setInvoiceListCursor(null);
+    try {
+      const { items, next_cursor } = await listCustomerInvoices({
+        status: invoiceStatusFilter === '' ? undefined : invoiceStatusFilter,
+        limit: 50,
+      });
+      setInvoices(items);
+      setInvoiceListCursor(next_cursor);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Failed to load invoices.';
+      setInvoiceListError(message);
+      setInvoices([]);
+    } finally {
+      setInvoiceListLoading(false);
+    }
+  }, [invoiceStatusFilter]);
+
+  const loadMoreInvoices = useCallback(async () => {
+    if (!invoiceListCursor) {
+      return;
+    }
+    setInvoiceListLoadingMore(true);
+    setInvoiceListError('');
+    try {
+      const { items, next_cursor } = await listCustomerInvoices({
+        status: invoiceStatusFilter === '' ? undefined : invoiceStatusFilter,
+        cursor: invoiceListCursor,
+        limit: 50,
+      });
+      setInvoices((prev) => [...prev, ...items]);
+      setInvoiceListCursor(next_cursor);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Failed to load more invoices.';
+      setInvoiceListError(message);
+    } finally {
+      setInvoiceListLoadingMore(false);
+    }
+  }, [invoiceListCursor, invoiceStatusFilter]);
+
+  useEffect(() => {
+    void loadInvoicesFirstPage();
+  }, [loadInvoicesFirstPage]);
+
+  const loadInvoiceDetail = useCallback(async (id: string) => {
+    setInvoiceDetailLoading(true);
+    setInvoiceDetailError('');
+    try {
+      const inv = await getCustomerInvoice(id);
+      setInvoiceDetail(inv);
+      if (inv.billToEmail?.trim()) {
+        setEmailTo(inv.billToEmail.trim());
+      }
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Failed to load invoice.';
+      setInvoiceDetailError(message);
+      setInvoiceDetail(null);
+    } finally {
+      setInvoiceDetailLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedInvoiceId) {
+      setInvoiceDetail(null);
+      setInvoiceDetailError('');
+      return;
+    }
+    void loadInvoiceDetail(selectedInvoiceId);
+  }, [selectedInvoiceId, loadInvoiceDetail]);
 
   const loadPayments = useCallback(async () => {
     setListLoading(true);
@@ -188,6 +275,10 @@ export function ClientInvoicesPanel() {
       setActionMessage(`Invoice voided: ${id}`);
       closeVoidInvoiceDialog();
       await loadPayments();
+      await loadInvoicesFirstPage();
+      if (selectedInvoiceId === id) {
+        await loadInvoiceDetail(id);
+      }
     } catch (caught) {
       setVoidError(caught instanceof Error ? caught.message : 'Void failed.');
     } finally {
@@ -259,8 +350,10 @@ export function ClientInvoicesPanel() {
       }
       const result = await createDraftInvoice(body);
       setInvoiceIdInput(result.invoiceId);
+      setSelectedInvoiceId(result.invoiceId);
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
       await loadPayments();
+      await loadInvoicesFirstPage();
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Create draft failed.');
     } finally {
@@ -285,6 +378,10 @@ export function ClientInvoicesPanel() {
           (out.issuedPdfSha256 ? ` (SHA-256: ${out.issuedPdfSha256.slice(0, 16)}…)` : ''),
       );
       await loadPayments();
+      await loadInvoicesFirstPage();
+      if (selectedInvoiceId === id) {
+        await loadInvoiceDetail(id);
+      }
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Issue failed.');
     } finally {
@@ -310,6 +407,10 @@ export function ClientInvoicesPanel() {
     try {
       const out = await emailInvoice(id, to);
       setActionMessage(out.sent ? 'Email send accepted.' : 'Email was not confirmed sent.');
+      if (selectedInvoiceId === id) {
+        await loadInvoiceDetail(id);
+      }
+      await loadInvoicesFirstPage();
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Email failed.');
     } finally {
@@ -347,6 +448,10 @@ export function ClientInvoicesPanel() {
       setActionMessage(`Allocation created: ${out.allocationId}`);
       await loadPayments();
       await loadDetail(selectedId);
+      await loadInvoicesFirstPage();
+      if (selectedInvoiceId === invId) {
+        await loadInvoiceDetail(invId);
+      }
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Allocation failed.');
     } finally {
@@ -420,7 +525,7 @@ export function ClientInvoicesPanel() {
       <h2 className='text-lg font-semibold text-slate-900'>Client Invoices</h2>
       <AdminEditorCard
         title='Client billing actions'
-        description='Create merged draft invoices from enrollments, issue and email PDFs, record allocations and refunds, and confirm offline inbound payments. Row actions apply per payment; invoice id fields accept any draft or issued invoice UUID.'
+        description='Create merged draft invoices from enrollments, issue and email PDFs, record allocations and refunds, and confirm offline inbound payments. Pick an invoice from the list or paste a UUID; line ids for allocation appear in the selected invoice detail.'
       >
         {actionMessage ? (
           <StatusBanner variant='success' title='Billing'>
@@ -721,6 +826,176 @@ export function ClientInvoicesPanel() {
           </AdminCollapsibleSection>
         </div>
       </AdminEditorCard>
+
+      <PaginatedTableCard
+        title='Customer invoices'
+        description='Cursor-paginated invoices (newest first). Select a row to load lines and pre-fill the invoice id field.'
+        isLoading={invoiceListLoading}
+        isLoadingMore={invoiceListLoadingMore}
+        hasMore={Boolean(invoiceListCursor)}
+        error={invoiceListError}
+        onLoadMore={() => void loadMoreInvoices()}
+        toolbar={
+          <div className='mb-3 flex flex-wrap items-end gap-4'>
+            <div>
+              <Label htmlFor='billing-invoice-status-filter'>Status</Label>
+              <Select
+                id='billing-invoice-status-filter'
+                className='mt-1 w-44'
+                value={invoiceStatusFilter}
+                onChange={(e) =>
+                  setInvoiceStatusFilter(
+                    e.target.value === '' ? '' : (e.target.value as 'draft' | 'issued' | 'void'),
+                  )
+                }
+              >
+                <option value=''>All</option>
+                <option value='draft'>Draft</option>
+                <option value='issued'>Issued</option>
+                <option value='void'>Void</option>
+              </Select>
+            </div>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => void loadInvoicesFirstPage()}
+              disabled={invoiceListLoading}
+            >
+              Refresh invoices
+            </Button>
+          </div>
+        }
+      >
+        <AdminDataTable tableClassName='min-w-[900px]'>
+          <AdminDataTableHead>
+            <tr>
+              <th className='px-3 py-2'>Invoice</th>
+              <th className='px-3 py-2'>Status</th>
+              <th className='px-3 py-2'>Number</th>
+              <th className='px-3 py-2'>Bill to</th>
+              <th className='px-3 py-2'>Total</th>
+              <th className='px-3 py-2'>Lines</th>
+              <th className='px-3 py-2'>Created</th>
+            </tr>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {invoices.map((inv, index) => {
+              const id = inv.id ?? '';
+              const selected = id && selectedInvoiceId === id;
+              return (
+                <tr
+                  key={id || `invoice-row-${String(index)}`}
+                  className={selected ? 'bg-sky-50' : undefined}
+                >
+                  <td className='px-3 py-2'>
+                    <button
+                      type='button'
+                      className='font-mono text-left text-xs text-sky-800 underline decoration-sky-300 hover:decoration-sky-600'
+                      onClick={() => {
+                        setSelectedInvoiceId(id || null);
+                        if (id) {
+                          setInvoiceIdInput(id);
+                          setAllocateInvoiceId(id);
+                        }
+                      }}
+                    >
+                      {formatPaymentRowId(id)}
+                    </button>
+                  </td>
+                  <td className='px-3 py-2'>{inv.status}</td>
+                  <td className='px-3 py-2 text-xs'>{inv.invoiceNumber ?? '—'}</td>
+                  <td className='px-3 py-2 text-xs text-slate-700'>
+                    {inv.billToDisplayName ?? inv.billToEmail ?? '—'}
+                  </td>
+                  <td className='px-3 py-2'>
+                    {inv.total} {inv.currency}
+                  </td>
+                  <td className='px-3 py-2'>{inv.lineCount ?? 0}</td>
+                  <td className='px-3 py-2 text-xs text-slate-600'>{inv.createdAt?.slice(0, 19) ?? '—'}</td>
+                </tr>
+              );
+            })}
+          </AdminDataTableBody>
+        </AdminDataTable>
+      </PaginatedTableCard>
+
+      <Card
+        title='Selected invoice'
+        className='border-slate-200 bg-slate-50/80 p-3 shadow-none sm:p-4'
+      >
+        {!selectedInvoiceId ? (
+          <p className='text-sm text-slate-600'>Select an invoice row above to load line items and UUIDs.</p>
+        ) : invoiceDetailLoading ? (
+          <p className='text-sm text-slate-600'>Loading invoice…</p>
+        ) : invoiceDetailError ? (
+          <AdminInlineError>{invoiceDetailError}</AdminInlineError>
+        ) : invoiceDetail ? (
+          <div className='space-y-4'>
+            <dl className='grid gap-1 text-sm text-slate-700 sm:grid-cols-2'>
+              <div>
+                <dt className='text-xs uppercase text-slate-500'>Id</dt>
+                <dd className='font-mono text-xs'>{invoiceDetail.id}</dd>
+              </div>
+              <div>
+                <dt className='text-xs uppercase text-slate-500'>Status</dt>
+                <dd>{invoiceDetail.status}</dd>
+              </div>
+              <div>
+                <dt className='text-xs uppercase text-slate-500'>Number</dt>
+                <dd>{invoiceDetail.invoiceNumber ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className='text-xs uppercase text-slate-500'>Total</dt>
+                <dd>
+                  {invoiceDetail.total} {invoiceDetail.currency}
+                </dd>
+              </div>
+              <div className='sm:col-span-2'>
+                <dt className='text-xs uppercase text-slate-500'>Bill to</dt>
+                <dd>{invoiceDetail.billToDisplayName ?? invoiceDetail.billToEmail ?? '—'}</dd>
+              </div>
+            </dl>
+            <div>
+              <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600'>Lines</p>
+              <AdminDataTable tableClassName='min-w-[640px]'>
+                <AdminDataTableHead>
+                  <tr>
+                    <th className='px-2 py-1.5'>Line id</th>
+                    <th className='px-2 py-1.5'>Enrollment</th>
+                    <th className='px-2 py-1.5'>Description</th>
+                    <th className='px-2 py-1.5'>Total</th>
+                  </tr>
+                </AdminDataTableHead>
+                <AdminDataTableBody>
+                  {(invoiceDetail.lines ?? []).map((ln) => (
+                    <tr key={ln.id}>
+                      <td className='px-2 py-1.5'>
+                        <button
+                          type='button'
+                          className='max-w-[140px] truncate font-mono text-left text-xs text-sky-800 underline decoration-sky-300 hover:decoration-sky-600'
+                          title={ln.id}
+                          onClick={() => {
+                            if (ln.id) {
+                              setAllocateLineId(ln.id);
+                            }
+                          }}
+                        >
+                          {formatPaymentRowId(ln.id)}
+                        </button>
+                      </td>
+                      <td className='px-2 py-1.5 font-mono text-xs'>{formatPaymentRowId(ln.enrollmentId)}</td>
+                      <td className='px-2 py-1.5 text-xs'>{ln.description}</td>
+                      <td className='px-2 py-1.5 text-xs'>
+                        {ln.lineTotal} {ln.currency}
+                      </td>
+                    </tr>
+                  ))}
+                </AdminDataTableBody>
+              </AdminDataTable>
+            </div>
+          </div>
+        ) : null}
+      </Card>
 
       <PaginatedTableCard
         title='Customer payments'

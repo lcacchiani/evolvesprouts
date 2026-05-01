@@ -12,6 +12,61 @@ export type CustomerPaymentDetail = CustomerPaymentSummary & {
   unappliedAmount?: string;
 };
 
+export type CustomerInvoiceSummary = ApiSchemas['CustomerInvoiceSummary'];
+
+export type CustomerInvoiceDetail = ApiSchemas['CustomerInvoiceDetail'];
+
+export async function listCustomerInvoices(
+  params: {
+    status?: 'draft' | 'issued' | 'void';
+    currency?: string;
+    cursor?: string | null;
+    limit?: number;
+  } = {},
+  signal?: AbortSignal,
+): Promise<{ items: CustomerInvoiceSummary[]; next_cursor: string | null }> {
+  const query = new URLSearchParams();
+  if (params.status) {
+    query.set('status', params.status);
+  }
+  if (params.currency && params.currency.trim() !== '') {
+    query.set('currency', params.currency.trim().toUpperCase());
+  }
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
+  if (params.limit != null) {
+    query.set('limit', String(params.limit));
+  }
+  const qs = query.toString();
+  const payload = await adminApiRequest<{
+    items?: CustomerInvoiceSummary[];
+    next_cursor?: string | null;
+  }>({
+    endpointPath: qs ? `/v1/admin/billing/invoices?${qs}` : '/v1/admin/billing/invoices',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return {
+    items: Array.isArray(root.items) ? root.items : [],
+    next_cursor: root.next_cursor ?? null,
+  };
+}
+
+export async function getCustomerInvoice(id: string, signal?: AbortSignal): Promise<CustomerInvoiceDetail> {
+  const payload = await adminApiRequest<{ invoice?: CustomerInvoiceDetail }>({
+    endpointPath: `/v1/admin/billing/invoices/${id}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  if (!root.invoice) {
+    throw new Error('Invoice response missing invoice.');
+  }
+  return root.invoice;
+}
+
 export async function listCustomerPayments(signal?: AbortSignal): Promise<CustomerPaymentSummary[]> {
   const payload = await adminApiRequest<{ items?: CustomerPaymentSummary[] }>({
     endpointPath: '/v1/admin/billing/payments',

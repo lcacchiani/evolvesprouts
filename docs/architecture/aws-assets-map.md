@@ -500,7 +500,8 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/billing/payments/{id}` | GET | Admin Group | `EvolvesproutsAdminFunction` | Payment detail + unapplied |
 | `/v1/admin/billing/payments/{id}/unapplied` | GET | Admin Group | `EvolvesproutsAdminFunction` | Unapplied amount |
 | `/v1/admin/billing/payments/{id}/confirm` | POST | Admin Group | `EvolvesproutsAdminFunction` | Confirm pending payment |
-| `/v1/admin/billing/invoices` | POST | Admin Group | `EvolvesproutsAdminFunction` | Create draft invoice |
+| `/v1/admin/billing/invoices` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | List invoices (cursor) or create draft |
+| `/v1/admin/billing/invoices/{id}` | GET | Admin Group | `EvolvesproutsAdminFunction` | Get invoice with lines |
 | `/v1/admin/billing/invoices/{id}/issue` | POST | Admin Group | `EvolvesproutsAdminFunction` | Issue invoice |
 | `/v1/admin/billing/invoices/{id}/void` | POST | Admin Group | `EvolvesproutsAdminFunction` | Void invoice |
 | `/v1/admin/billing/invoices/{id}/email` | POST | Admin Group | `EvolvesproutsAdminFunction` | Email invoice PDF |

@@ -11,10 +11,18 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import Session, joinedload, selectinload
 
-from app.api.admin_request import parse_body, parse_uuid, query_param, request_id
+from app.api.admin_request import (
+    encode_created_cursor,
+    parse_body,
+    parse_created_cursor,
+    parse_limit,
+    parse_uuid,
+    query_param,
+    request_id,
+)
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import AuditService, set_audit_context
 from app.db.engine import get_engine
@@ -96,9 +104,18 @@ def handle_admin_billing_request(
             )
 
     if sub == "invoices" and len(parts) == 3:
+        if method == "GET":
+            return _list_invoices(event, user_sub=identity.user_sub, request_id=req)
         if method == "POST":
             return _create_invoice_draft(
                 event, user_sub=identity.user_sub, request_id=req
+            )
+
+    if sub == "invoices" and len(parts) == 4:
+        inv_id = parse_uuid(parts[3])
+        if method == "GET":
+            return _get_invoice(
+                event, inv_id, user_sub=identity.user_sub, request_id=req
             )
 
     if sub == "invoices" and len(parts) == 5:
@@ -150,6 +167,170 @@ def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
         "succeededAt": p.succeeded_at.isoformat() if p.succeeded_at else None,
         "createdAt": p.created_at.isoformat(),
     }
+
+
+def _serialize_invoice_line(line: CustomerInvoiceLine) -> dict[str, Any]:
+    return {
+        "id": str(line.id),
+        "invoiceId": str(line.invoice_id),
+        "enrollmentId": str(line.enrollment_id),
+        "lineOrder": line.line_order,
+        "description": line.description,
+        "quantity": str(line.quantity),
+        "unitAmount": str(line.unit_amount),
+        "lineTotal": str(line.line_total),
+        "discountAmount": str(line.discount_amount)
+        if line.discount_amount is not None
+        else None,
+        "taxRate": str(line.tax_rate) if line.tax_rate is not None else None,
+        "taxAmount": str(line.tax_amount) if line.tax_amount is not None else None,
+        "currency": line.currency,
+        "createdAt": line.created_at.isoformat(),
+        "updatedAt": line.updated_at.isoformat(),
+    }
+
+
+def _serialize_invoice_summary(
+    inv: CustomerInvoice, *, line_count: int
+) -> dict[str, Any]:
+    return {
+        "id": str(inv.id),
+        "status": inv.status.value,
+        "invoiceNumber": inv.invoice_number,
+        "invoiceSequence": inv.invoice_sequence,
+        "currency": inv.currency,
+        "subtotal": str(inv.subtotal),
+        "taxTotal": str(inv.tax_total),
+        "total": str(inv.total),
+        "billToKind": inv.bill_to_kind.value,
+        "billToContactId": str(inv.bill_to_contact_id)
+        if inv.bill_to_contact_id
+        else None,
+        "billToFamilyId": str(inv.bill_to_family_id) if inv.bill_to_family_id else None,
+        "billToOrganizationId": str(inv.bill_to_organization_id)
+        if inv.bill_to_organization_id
+        else None,
+        "billToDisplayName": inv.bill_to_display_name,
+        "billToEmail": inv.bill_to_email,
+        "issuedAt": inv.issued_at.isoformat() if inv.issued_at else None,
+        "voidedAt": inv.voided_at.isoformat() if inv.voided_at else None,
+        "issuedPdfSha256": inv.issued_pdf_sha256,
+        "lineCount": line_count,
+        "createdAt": inv.created_at.isoformat(),
+        "updatedAt": inv.updated_at.isoformat(),
+    }
+
+
+def _serialize_invoice_detail(inv: CustomerInvoice) -> dict[str, Any]:
+    lines = sorted(inv.lines, key=lambda ln: (ln.line_order, ln.id))
+    return {
+        **_serialize_invoice_summary(inv, line_count=len(lines)),
+        "voidReason": inv.void_reason,
+        "billToSnapshot": inv.bill_to_snapshot,
+        "emailSentAt": inv.email_sent_at.isoformat() if inv.email_sent_at else None,
+        "lines": [_serialize_invoice_line(ln) for ln in lines],
+    }
+
+
+def _parse_optional_invoice_status(raw: str | None) -> BillingInvoiceStatus | None:
+    if raw is None or str(raw).strip() == "":
+        return None
+    key = str(raw).strip().lower()
+    try:
+        return BillingInvoiceStatus(key)
+    except ValueError as exc:
+        raise ValidationError(
+            "status must be one of: draft, issued, void",
+            field="status",
+        ) from exc
+
+
+def _list_invoices(
+    event: Mapping[str, Any], *, user_sub: str, request_id: str | None
+) -> dict[str, Any]:
+    limit = parse_limit(event, default=_DEFAULT_LIMIT, max_limit=100)
+    status_filter = _parse_optional_invoice_status(query_param(event, "status"))
+    currency_raw = query_param(event, "currency")
+    currency = (
+        str(currency_raw).strip().upper()[:3]
+        if currency_raw and str(currency_raw).strip()
+        else None
+    )
+    if currency is not None and len(currency) != 3:
+        raise ValidationError("currency must be a 3-letter ISO code", field="currency")
+
+    cursor_ts, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+
+    with _session_with_audit(user_sub, request_id) as session:
+        stmt = select(CustomerInvoice)
+        if status_filter is not None:
+            stmt = stmt.where(CustomerInvoice.status == status_filter)
+        if currency is not None:
+            stmt = stmt.where(CustomerInvoice.currency == currency)
+        if cursor_ts is not None and cursor_id is not None:
+            stmt = stmt.where(
+                or_(
+                    CustomerInvoice.created_at < cursor_ts,
+                    and_(
+                        CustomerInvoice.created_at == cursor_ts,
+                        CustomerInvoice.id < cursor_id,
+                    ),
+                )
+            )
+        stmt = stmt.order_by(
+            CustomerInvoice.created_at.desc(), CustomerInvoice.id.desc()
+        ).limit(limit + 1)
+        rows = list(session.execute(stmt).scalars().all())
+        has_more = len(rows) > limit
+        page = rows[:limit]
+        ids = [r.id for r in page]
+        count_map: dict[UUID, int] = {}
+        if ids:
+            cnt_rows = session.execute(
+                select(
+                    CustomerInvoiceLine.invoice_id, func.count(CustomerInvoiceLine.id)
+                )
+                .where(CustomerInvoiceLine.invoice_id.in_(ids))
+                .group_by(CustomerInvoiceLine.invoice_id)
+            ).all()
+            count_map = {row[0]: int(row[1]) for row in cnt_rows}
+
+        items = [
+            _serialize_invoice_summary(inv, line_count=count_map.get(inv.id, 0))
+            for inv in page
+        ]
+        next_cursor = None
+        if has_more and page:
+            last = page[-1]
+            next_cursor = encode_created_cursor(last.created_at, last.id)
+        return json_response(
+            200,
+            {"items": items, "next_cursor": next_cursor},
+            event=event,
+        )
+
+
+def _get_invoice(
+    event: Mapping[str, Any],
+    invoice_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    with _session_with_audit(user_sub, request_id) as session:
+        stmt = (
+            select(CustomerInvoice)
+            .where(CustomerInvoice.id == invoice_id)
+            .options(selectinload(CustomerInvoice.lines))
+        )
+        inv = session.execute(stmt).scalar_one_or_none()
+        if inv is None:
+            raise NotFoundError("CustomerInvoice", str(invoice_id))
+        return json_response(
+            200,
+            {"invoice": _serialize_invoice_detail(inv)},
+            event=event,
+        )
 
 
 def _list_payments(

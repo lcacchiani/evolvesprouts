@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from unittest.mock import MagicMock
@@ -14,6 +15,7 @@ import pytest
 from app.api import admin_billing
 from app.db.models.enums import (
     BillingBillToKind,
+    BillingInvoiceStatus,
     BillingPaymentDirection,
     BillingPaymentStatus,
 )
@@ -316,6 +318,135 @@ def test_refund_create_rejects_currency_mismatch_with_original(
     )
     with pytest.raises(ValidationError, match="currency"):
         admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+
+
+def test_list_invoices_returns_items_and_cursor(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    created = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
+
+    class _Inv:
+        id = inv_id
+        status = BillingInvoiceStatus.DRAFT
+        invoice_number = None
+        invoice_sequence = None
+        currency = "HKD"
+        subtotal = Decimal("100")
+        tax_total = Decimal("0")
+        total = Decimal("100")
+        bill_to_kind = BillingBillToKind.CONTACT
+        bill_to_contact_id = uuid4()
+        bill_to_family_id = None
+        bill_to_organization_id = None
+        bill_to_display_name = "Test"
+        bill_to_email = "t@example.com"
+        issued_at = None
+        voided_at = None
+        void_reason = None
+        issued_pdf_sha256 = None
+        created_at = created
+        updated_at = created
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.execute.side_effect = [
+            MagicMock(scalars=lambda: MagicMock(all=lambda: [_Inv()])),
+            MagicMock(all=lambda: [(inv_id, 2)]),
+        ]
+        yield s
+
+    monkeypatch.setattr(admin_billing, "_session_with_audit", _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/invoices",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert len(body["items"]) == 1
+    assert body["items"][0]["id"] == str(inv_id)
+    assert body["items"][0]["lineCount"] == 2
+    assert body["next_cursor"] is None
+
+
+def test_get_invoice_returns_detail_with_lines(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    line_id = uuid4()
+    en_id = uuid4()
+    ts = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
+
+    class _Line:
+        id = line_id
+        invoice_id = inv_id
+        enrollment_id = en_id
+        line_order = 1
+        description = "Course"
+        quantity = Decimal("1")
+        unit_amount = Decimal("100")
+        line_total = Decimal("100")
+        discount_amount = None
+        tax_rate = None
+        tax_amount = None
+        currency = "HKD"
+        created_at = ts
+        updated_at = ts
+
+    class _Inv:
+        id = inv_id
+        status = BillingInvoiceStatus.DRAFT
+        invoice_number = None
+        invoice_sequence = None
+        currency = "HKD"
+        subtotal = Decimal("100")
+        tax_total = Decimal("0")
+        total = Decimal("100")
+        bill_to_kind = BillingBillToKind.CONTACT
+        bill_to_contact_id = uuid4()
+        bill_to_family_id = None
+        bill_to_organization_id = None
+        bill_to_display_name = "Test"
+        bill_to_email = "t@example.com"
+        issued_at = None
+        voided_at = None
+        void_reason = None
+        bill_to_snapshot = {"kind": "contact"}
+        issued_pdf_sha256 = None
+        email_sent_at = None
+        created_at = ts
+        updated_at = ts
+        lines = [_Line()]
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.execute.return_value.scalar_one_or_none.return_value = _Inv()
+        yield s
+
+    monkeypatch.setattr(admin_billing, "_session_with_audit", _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path=f"/v1/admin/billing/invoices/{inv_id}",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", f"/v1/admin/billing/invoices/{inv_id}"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert body["invoice"]["id"] == str(inv_id)
+    assert len(body["invoice"]["lines"]) == 1
+    assert body["invoice"]["lines"][0]["id"] == str(line_id)
 
 
 def test_export_csv_rejects_invalid_export_version(
