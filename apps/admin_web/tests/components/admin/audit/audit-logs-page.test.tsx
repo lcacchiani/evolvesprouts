@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -69,13 +69,15 @@ describe('AuditLogsPage', () => {
 
     render(<AuditLogsPage />);
     await waitFor(() => {
-      expect(screen.getByText('assets')).toBeInTheDocument();
+      const table = screen.getByRole('table');
+      expect(within(table).getByText('assets')).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: /load more/i }));
     await waitFor(() => {
       expect(mockListAuditLogs).toHaveBeenNthCalledWith(2, expect.anything(), 'cursor-token', 50);
-      expect(screen.getByText('asset_access_grants')).toBeInTheDocument();
+      const table = screen.getByRole('table');
+      expect(within(table).getByText('asset_access_grants')).toBeInTheDocument();
     });
   });
 });
