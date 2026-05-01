@@ -180,9 +180,7 @@ def _create_invoice_draft(
                 "enrollmentIds must be a list of UUID strings",
                 field="enrollmentIds",
             ) from exc
-    currency = str(body.get("currency") or "").upper()[:3]
-    if len(currency) != 3:
-        raise ValidationError("currency is required", field="currency")
+    currency_raw = str(body.get("currency") or "").strip().upper()[:3]
 
     overrides_raw = body.get("lineTotalsByEnrollmentId") or body.get(
         "line_totals_by_enrollment_id"
@@ -222,13 +220,19 @@ def _create_invoice_draft(
             )
         enrollments = [by_id[eid] for eid in eids]
 
-        for en in enrollments:
-            ec = (en.currency or "HKD").upper()[:3]
-            if ec != currency:
-                raise ValidationError(
-                    "All enrollments must match invoice currency",
-                    field="currency",
-                )
+        derived_currencies = {(en.currency or "HKD").upper()[:3] for en in enrollments}
+        if len(derived_currencies) != 1:
+            raise ValidationError(
+                "All enrollments must use the same currency",
+                field="enrollmentIds",
+            )
+        derived_currency = next(iter(derived_currencies))
+        if currency_raw and currency_raw != derived_currency:
+            raise ValidationError(
+                "currency must match all enrollments",
+                field="currency",
+            )
+        currency = derived_currency
 
         keys = {_enrollment_merge_key(e) for e in enrollments}
         if len(keys) != 1:

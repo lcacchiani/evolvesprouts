@@ -15,22 +15,11 @@ const billingMocks = vi.hoisted(() => ({
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
   exportBillingCsv: vi.fn(),
+  listRecentEnrollmentsForInvoicing: vi.fn(),
 }));
 
 vi.mock('@/lib/billing-api', () => ({
   ...billingMocks,
-  parseEnrollmentIdList: (raw: string) =>
-    raw
-      .split(/[\s,;]+/u)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0),
-  parseLineTotalsOverridesJson: (raw: string) => {
-    const t = raw.trim();
-    if (t === '') {
-      return { ok: true as const, overrides: null };
-    }
-    return { ok: false as const, error: 'bad' };
-  },
 }));
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
@@ -43,6 +32,7 @@ describe('ClientInvoicesPanel', () => {
     }
     billingMocks.listCustomerPayments.mockResolvedValue([]);
     billingMocks.listCustomerInvoices.mockResolvedValue({ items: [], next_cursor: null });
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue([]);
     billingMocks.getCustomerInvoice.mockResolvedValue({
       id: 'placeholder',
       status: 'draft',
@@ -91,7 +81,8 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.listCustomerInvoices).toHaveBeenCalled();
     });
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await userEvent.click(within(invoiceTable).getByRole('button', { name: /aaaaaaaa/i }));
 
     await waitFor(() => {
@@ -282,7 +273,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
@@ -487,7 +479,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
@@ -604,14 +597,14 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
-  it('shows billing error when create draft submitted with empty enrollments', async () => {
+  it('shows billing error when create draft submitted with no enrollments selected', async () => {
     render(<ClientInvoicesPanel />);
 
     await waitFor(() => screen.getByRole('button', { name: /create draft invoice/i }));
     await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Enter at least one enrollment UUID.')).toBeInTheDocument();
+      expect(screen.getByText('Select at least one enrollment.')).toBeInTheDocument();
     });
     expect(billingMocks.createDraftInvoice).not.toHaveBeenCalled();
   });

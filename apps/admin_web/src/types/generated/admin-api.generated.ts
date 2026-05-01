@@ -4099,6 +4099,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/billing/enrollments/recent-for-invoicing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List recent enrollments for draft invoice picker
+         * @description Returns non-cancelled enrollments with `enrolled_at` within the last 90 days, ordered by `enrolled_at` descending. Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer invoice line (void invoices do not block).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollment rows for invoicing UI. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["BillingEnrollmentPickerRow"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/billing/invoices": {
         parameters: {
             query?: never;
@@ -5946,10 +5988,29 @@ export interface components {
             method?: string;
             stripeRefundId?: string | null;
         };
-        /** @description Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
+        BillingEnrollmentPickerRow: {
+            /** Format: uuid */
+            enrollmentId: string;
+            /** @description Contact, family, or organization display name for bill-to / enrollment party. */
+            partyDisplayName: string;
+            /** Format: email */
+            partyEmail?: string | null;
+            instanceTitle?: string | null;
+            serviceTierName?: string | null;
+            instanceCohort?: string | null;
+            /** @description Decimal amount as string; mirrors enrollment `amount_paid`. */
+            amountPaid?: string | null;
+            currency: string;
+            /** Format: date-time */
+            enrolledAt?: string | null;
+            /** @description True when linked to a draft or issued invoice line. */
+            invoiceLinked: boolean;
+        };
+        /** @description Invoice currency defaults to the shared enrollment currency (all enrollments must match). Optional `currency` must equal that currency when provided. Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
         CreateDraftInvoiceRequest: {
             enrollmentIds: string[];
-            currency: string;
+            /** @description Optional; must match every enrollment currency when set. */
+            currency?: string;
             lineTotalsByEnrollmentId?: {
                 [key: string]: string;
             };

@@ -59,7 +59,8 @@ info:
     - `GET /v1/admin/billing/payments/{id}`
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
-    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`)
+    - `GET /v1/admin/billing/enrollments/recent-for-invoicing`
+    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`; POST `currency` optional when derived from enrollments)
     - `GET /v1/admin/billing/invoices/{id}`
     - `POST /v1/admin/billing/invoices/{id}/issue`
     - `POST /v1/admin/billing/invoices/{id}/void`
@@ -2932,6 +2933,32 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /v1/admin/billing/enrollments/recent-for-invoicing:
+    get:
+      summary: List recent enrollments for draft invoice picker
+      description: >
+        Returns non-cancelled enrollments with `enrolled_at` within the last 90 days,
+        ordered by `enrolled_at` descending. Includes `invoiceLinked` when the enrollment
+        already appears on a draft or issued customer invoice line (void invoices do not block).
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Enrollment rows for invoicing UI.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingEnrollmentPickerRow"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /v1/admin/billing/invoices:
     get:
@@ -6113,12 +6140,55 @@ components:
         stripeRefundId:
           type: string
           nullable: true
+    BillingEnrollmentPickerRow:
+      type: object
+      required:
+        - enrollmentId
+        - partyDisplayName
+        - invoiceLinked
+        - currency
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+        partyDisplayName:
+          type: string
+          description: Contact, family, or organization display name for bill-to / enrollment party.
+        partyEmail:
+          type: string
+          format: email
+          nullable: true
+        instanceTitle:
+          type: string
+          nullable: true
+        serviceTierName:
+          type: string
+          nullable: true
+        instanceCohort:
+          type: string
+          nullable: true
+        amountPaid:
+          type: string
+          description: Decimal amount as string; mirrors enrollment `amount_paid`.
+          nullable: true
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        enrolledAt:
+          type: string
+          format: date-time
+          nullable: true
+        invoiceLinked:
+          type: boolean
+          description: True when linked to a draft or issued invoice line.
     CreateDraftInvoiceRequest:
       type: object
       required:
         - enrollmentIds
-        - currency
       description: >
+        Invoice currency defaults to the shared enrollment currency (all enrollments must match).
+        Optional `currency` must equal that currency when provided.
         Line totals default to each enrollment's `amount_paid` at draft time.
         Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal
         amounts to override mispriced or stale `amount_paid` before issue.
@@ -6133,6 +6203,7 @@ components:
           type: string
           minLength: 3
           maxLength: 3
+          description: Optional; must match every enrollment currency when set.
         lineTotalsByEnrollmentId:
           type: object
           additionalProperties:

@@ -118,6 +118,20 @@ export async function createCustomerRefund(
   return root.payment;
 }
 
+export type BillingEnrollmentPickerRow = ApiSchemas['BillingEnrollmentPickerRow'];
+
+export async function listRecentEnrollmentsForInvoicing(
+  signal?: AbortSignal,
+): Promise<BillingEnrollmentPickerRow[]> {
+  const payload = await adminApiRequest<{ items?: BillingEnrollmentPickerRow[] }>({
+    endpointPath: '/v1/admin/billing/enrollments/recent-for-invoicing',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items : [];
+}
+
 export async function createDraftInvoice(
   body: ApiSchemas['CreateDraftInvoiceRequest'],
 ): Promise<{ invoiceId: string; status: string }> {

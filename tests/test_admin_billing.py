@@ -14,6 +14,7 @@ import pytest
 
 from app.api import admin_billing
 from app.api import admin_billing_allocations as admin_billing_allocations_mod
+from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
 from app.api import admin_billing_export as admin_billing_export_mod
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
@@ -35,6 +36,7 @@ def _patch_billing_sessions(monkeypatch: pytest.MonkeyPatch, fake_session: Any) 
         admin_billing_invoices_mod,
         admin_billing_allocations_mod,
         admin_billing_export_mod,
+        admin_billing_enrollment_queries_mod,
     ):
         monkeypatch.setattr(mod, "_session_with_audit", fake_session)
 
