@@ -2939,10 +2939,34 @@ paths:
       summary: List recent enrollments for draft invoice picker
       description: >
         Returns non-cancelled enrollments with `enrolled_at` within the last 90 days,
-        ordered by `enrolled_at` descending. Includes `invoiceLinked` when the enrollment
-        already appears on a draft or issued customer invoice line (void invoices do not block).
+        ordered by `enrolled_at` descending (cursor pagination). At most `limit` rows per response
+        (default and maximum 500). Pass `next_cursor` from the prior response as `cursor`.
+        Optional `q` filters server-side by enrollment UUID substring, instance title, or cohort.
+        Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer
+        invoice line (void invoices do not block).
       security:
         - AdminBearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque cursor from a prior `next_cursor` value.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 500
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive partial match on enrollment id, instance title, or cohort.
+          schema:
+            type: string
       responses:
         "200":
           description: Enrollment rows for invoicing UI.
@@ -2952,11 +2976,21 @@ paths:
                 type: object
                 required:
                   - items
+                  - truncated
                 properties:
                   items:
                     type: array
                     items:
                       $ref: "#/components/schemas/BillingEnrollmentPickerRow"
+                  truncated:
+                    type: boolean
+                    description: True when another page may exist (results reached `limit`).
+                  next_cursor:
+                    type: string
+                    nullable: true
+                    description: Cursor for the next page when `truncated` is true.
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
 
@@ -6142,11 +6176,13 @@ components:
           nullable: true
     BillingEnrollmentPickerRow:
       type: object
+      additionalProperties: false
       required:
         - enrollmentId
         - partyDisplayName
         - invoiceLinked
         - currency
+        - billToMergeKey
       properties:
         enrollmentId:
           type: string
@@ -6182,6 +6218,9 @@ components:
         invoiceLinked:
           type: boolean
           description: True when linked to a draft or issued invoice line.
+        billToMergeKey:
+          type: string
+          description: Stable client-side key for matching bill-to identity across enrollments.
     CreateDraftInvoiceRequest:
       type: object
       required:
@@ -6201,9 +6240,9 @@ components:
           minItems: 1
         currency:
           type: string
-          minLength: 3
-          maxLength: 3
-          description: Optional; must match every enrollment currency when set.
+          nullable: true
+          description: Optional ISO currency code; when set must match every enrollment. Omit to derive.
+          pattern: "^[A-Z]{3}$"
         lineTotalsByEnrollmentId:
           type: object
           additionalProperties:

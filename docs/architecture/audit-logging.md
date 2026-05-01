@@ -259,3 +259,10 @@ To rollback only the billing schema after `0055_customer_billing_ar` is applied:
 cd backend/db
 alembic downgrade 0054_add_audit_log
 ```
+
+## Admin read endpoints without audit rows
+
+Some admin GET endpoints return operational data without inserting application audit rows
+(for example `GET /v1/admin/billing/enrollments/recent-for-invoicing`). Access remains gated by
+API Gateway admin authorization; whether to add explicit read-access audit logging for bulk PII
+exports is a product decision tracked separately.

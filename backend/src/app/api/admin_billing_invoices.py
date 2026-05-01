@@ -11,7 +11,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.api.admin_billing_common import _session_with_audit
+from app.api.admin_billing_common import _session_with_audit, contact_display_name
+from app.config import get_default_currency_code
 from app.api.admin_request import parse_body
 from app.db.audit import AuditService
 from app.db.models import Contact, Enrollment, Family, Organization
@@ -38,10 +39,6 @@ def _enrollment_merge_key(en: Enrollment) -> tuple[Any, ...]:
     )
 
 
-def _contact_display_name(c: Contact) -> str | None:
-    return " ".join(x for x in [c.first_name, c.last_name] if x).strip() or None
-
-
 def _resolve_bill_to_party_for_draft(
     session: Session, *, inv: CustomerInvoice, first: Enrollment
 ) -> None:
@@ -52,7 +49,7 @@ def _resolve_bill_to_party_for_draft(
             c = session.get(Contact, cid)
             if c and c.email:
                 inv.bill_to_email = c.email
-                inv.bill_to_display_name = _contact_display_name(c)
+                inv.bill_to_display_name = contact_display_name(c)
         return
     if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
         fam = session.get(Family, inv.bill_to_family_id)
@@ -180,7 +177,16 @@ def _create_invoice_draft(
                 "enrollmentIds must be a list of UUID strings",
                 field="enrollmentIds",
             ) from exc
-    currency_raw = str(body.get("currency") or "").strip().upper()[:3]
+    raw_currency = body.get("currency")
+    if raw_currency is None:
+        currency_raw = ""
+    else:
+        currency_raw = str(raw_currency).strip().upper()
+    if currency_raw != "" and len(currency_raw) != 3:
+        raise ValidationError(
+            "currency must be a 3-letter ISO code when provided",
+            field="currency",
+        )
 
     overrides_raw = body.get("lineTotalsByEnrollmentId") or body.get(
         "line_totals_by_enrollment_id"
@@ -220,14 +226,17 @@ def _create_invoice_draft(
             )
         enrollments = [by_id[eid] for eid in eids]
 
-        derived_currencies = {(en.currency or "HKD").upper()[:3] for en in enrollments}
+        default_ccy = get_default_currency_code()
+        derived_currencies = {
+            (en.currency or default_ccy).upper()[:3] for en in enrollments
+        }
         if len(derived_currencies) != 1:
             raise ValidationError(
                 "All enrollments must use the same currency",
                 field="enrollmentIds",
             )
         derived_currency = next(iter(derived_currencies))
-        if currency_raw and currency_raw != derived_currency:
+        if currency_raw != "" and currency_raw != derived_currency:
             raise ValidationError(
                 "currency must match all enrollments",
                 field="currency",

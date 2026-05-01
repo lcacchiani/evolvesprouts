@@ -61,6 +61,24 @@ function currencySelectValue(
   return options.some((o) => o.value === normalized) ? normalized : fallback;
 }
 
+function enrollmentNeedsAmountConfirmation(row: BillingEnrollmentPickerRow): boolean {
+  const ap = row.amountPaid?.trim() ?? '';
+  if (ap === '') {
+    return true;
+  }
+  const n = Number.parseFloat(ap);
+  return Number.isNaN(n) || n === 0;
+}
+
+function parseAmountInput(raw: string): number | null {
+  const t = raw.trim();
+  if (t === '') {
+    return null;
+  }
+  const n = Number.parseFloat(t);
+  return Number.isNaN(n) ? null : n;
+}
+
 function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
   return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
 }
@@ -116,6 +134,7 @@ export function ClientInvoicesPanel() {
   const [confirmPaymentError, setConfirmPaymentError] = useState('');
 
   const [enrollmentPickerRows, setEnrollmentPickerRows] = useState<BillingEnrollmentPickerRow[]>([]);
+  const [enrollmentPickerTruncated, setEnrollmentPickerTruncated] = useState(false);
   const [enrollmentPickerLoading, setEnrollmentPickerLoading] = useState(true);
   const [enrollmentPickerError, setEnrollmentPickerError] = useState('');
   const [enrollmentFilter, setEnrollmentFilter] = useState('');
@@ -170,10 +189,21 @@ export function ClientInvoicesPanel() {
     setEnrollmentPickerLoading(true);
     setEnrollmentPickerError('');
     try {
-      const items = await listRecentEnrollmentsForInvoicing(signal);
+      const { items, truncated } = await listRecentEnrollmentsForInvoicing(signal);
       setEnrollmentPickerRows(items);
-      setSelectedEnrollmentIds(new Set());
-      setLineOverrideByEnrollmentId({});
+      setEnrollmentPickerTruncated(truncated);
+      setSelectedEnrollmentIds((prev) => {
+        const allowed = new Set(
+          items.filter((r) => !r.invoiceLinked).map((r) => r.enrollmentId),
+        );
+        const next = new Set<string>();
+        for (const id of prev) {
+          if (allowed.has(id)) {
+            next.add(id);
+          }
+        }
+        return next;
+      });
     } catch (caught) {
       if (caught instanceof Error && caught.name === 'AbortError') {
         return;
@@ -182,6 +212,7 @@ export function ClientInvoicesPanel() {
         caught instanceof Error ? caught.message : 'Failed to load enrollments for invoicing.';
       setEnrollmentPickerError(message);
       setEnrollmentPickerRows([]);
+      setEnrollmentPickerTruncated(false);
     } finally {
       setEnrollmentPickerLoading(false);
     }
@@ -240,8 +271,26 @@ export function ClientInvoicesPanel() {
     if (currencies.size > 1) {
       return 'Selected enrollments must share one currency.';
     }
+    const billKeys = new Set(selectedEnrollmentRows.map((r) => r.billToMergeKey));
+    if (billKeys.size > 1) {
+      return 'Selected enrollments must share the same bill-to (contact/family/organization).';
+    }
     return '';
   }, [selectedEnrollmentRows]);
+
+  const draftAmountIssue = useMemo(() => {
+    for (const row of selectedEnrollmentRows) {
+      if (!enrollmentNeedsAmountConfirmation(row)) {
+        continue;
+      }
+      const raw = lineOverrideByEnrollmentId[row.enrollmentId] ?? defaultLineAmount(row);
+      const amt = parseAmountInput(raw);
+      if (amt === null || amt === 0) {
+        return 'Enter a non-zero line total for enrollments with no recorded amount.';
+      }
+    }
+    return '';
+  }, [selectedEnrollmentRows, lineOverrideByEnrollmentId]);
 
   const loadInvoicesFirstPage = useCallback(async (signal?: AbortSignal) => {
     setInvoiceListLoading(true);
@@ -567,6 +616,10 @@ export function ClientInvoicesPanel() {
       setActionError(draftSelectionIssue);
       return;
     }
+    if (draftAmountIssue) {
+      setActionError(draftAmountIssue);
+      return;
+    }
     setBusy('draft');
     try {
       const body: Parameters<typeof createDraftInvoice>[0] = {
@@ -708,7 +761,7 @@ export function ClientInvoicesPanel() {
           <Button
             type='submit'
             form={DRAFT_FORM_ID}
-            disabled={editorBusy || Boolean(draftSelectionIssue)}
+            disabled={editorBusy || Boolean(draftSelectionIssue) || Boolean(draftAmountIssue)}
           >
             {busyAction === 'draft' ? 'Creating…' : 'Create draft invoice'}
           </Button>
@@ -734,15 +787,29 @@ export function ClientInvoicesPanel() {
             <Button
               type='button'
               variant='outline'
+              disabled={editorBusy}
+              onClick={() => {
+                setSelectedEnrollmentIds(new Set());
+                setLineOverrideByEnrollmentId({});
+              }}
+            >
+              Clear selection
+            </Button>
+            <span className='text-sm text-slate-600' aria-live='polite'>
+              {selectedEnrollmentIds.size} selected
+            </span>
+            <Button
+              type='button'
+              variant='outline'
               disabled={editorBusy || enrollmentPickerLoading}
               onClick={() => void loadEnrollmentPicker()}
             >
               Refresh enrollments
             </Button>
           </div>
-          {enrollmentPickerError ? (
-            <p className='text-sm text-red-600' role='alert'>
-              {enrollmentPickerError}
+          {enrollmentPickerTruncated ? (
+            <p className='text-sm text-amber-800' role='status'>
+              Enrollment list may be incomplete (server capped additional pages). Refresh after filtering or contact support for full exports.
             </p>
           ) : null}
           <section aria-label='Enrollment picker'>
@@ -805,6 +872,7 @@ export function ClientInvoicesPanel() {
                 filteredEnrollmentRows.map((row) => {
                   const blocked = row.invoiceLinked;
                   const checked = selectedEnrollmentIds.has(row.enrollmentId);
+                  const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
                   const priceLabel =
                     row.amountPaid != null && row.amountPaid.trim() !== ''
                       ? `${row.amountPaid} ${row.currency}`
@@ -818,6 +886,7 @@ export function ClientInvoicesPanel() {
                         <input
                           type='checkbox'
                           aria-label={`Select enrollment ${row.enrollmentId}`}
+                          aria-describedby={blocked ? blockedNoteId : undefined}
                           checked={checked}
                           disabled={editorBusy || blocked}
                           onChange={(event) => {
@@ -833,6 +902,11 @@ export function ClientInvoicesPanel() {
                             });
                           }}
                         />
+                        {blocked ? (
+                          <span id={blockedNoteId} className='sr-only'>
+                            Already on a draft or issued invoice.
+                          </span>
+                        ) : null}
                       </td>
                       <td className='px-3 py-2 align-top'>{row.partyDisplayName}</td>
                       <td className='px-3 py-2 align-top font-mono text-xs'>{row.partyEmail ?? '—'}</td>
@@ -856,6 +930,9 @@ export function ClientInvoicesPanel() {
           {draftSelectionIssue ? (
             <p className='text-sm text-amber-800'>{draftSelectionIssue}</p>
           ) : null}
+          {draftAmountIssue ? (
+            <p className='text-sm text-amber-800'>{draftAmountIssue}</p>
+          ) : null}
           <div className='space-y-2'>
             <Label>Line totals override</Label>
             <p className='text-xs text-slate-600'>
@@ -865,13 +942,23 @@ export function ClientInvoicesPanel() {
               <p className='text-sm text-slate-600'>Select enrollments above to override line amounts.</p>
             ) : (
               <div className='space-y-2'>
-                {selectedEnrollmentRows.map((row) => (
+                {selectedEnrollmentRows.map((row) => {
+                  const needsAmt = enrollmentNeedsAmountConfirmation(row);
+                  return (
                   <div
                     key={row.enrollmentId}
-                    className='flex flex-wrap items-center gap-3 border border-slate-200 px-3 py-2'
+                    className={`flex flex-wrap items-center gap-3 border px-3 py-2 ${
+                      needsAmt ? 'border-amber-300 bg-amber-50' : 'border-slate-200'
+                    }`}
                   >
                     <span className='min-w-[180px] flex-1 text-sm'>{row.partyDisplayName}</span>
                     <span className='font-mono text-xs text-slate-600'>{row.enrollmentId}</span>
+                    {needsAmt ? (
+                      <p className='w-full text-xs text-amber-900'>
+                        This enrollment has no recorded amount (or amount is zero); set a value or it will create a
+                        0.00 line.
+                      </p>
+                    ) : null}
                     <div className='flex items-center gap-2'>
                       <Label className='sr-only' htmlFor={`billing-line-override-${row.enrollmentId}`}>
                         Line total for {row.partyDisplayName}
@@ -894,7 +981,8 @@ export function ClientInvoicesPanel() {
                       <span className='text-xs text-slate-600'>{row.currency}</span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

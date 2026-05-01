@@ -4108,11 +4108,17 @@ export interface paths {
         };
         /**
          * List recent enrollments for draft invoice picker
-         * @description Returns non-cancelled enrollments with `enrolled_at` within the last 90 days, ordered by `enrolled_at` descending. Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer invoice line (void invoices do not block).
+         * @description Returns non-cancelled enrollments with `enrolled_at` within the last 90 days, ordered by `enrolled_at` descending (cursor pagination). At most `limit` rows per response (default and maximum 500). Pass `next_cursor` from the prior response as `cursor`. Optional `q` filters server-side by enrollment UUID substring, instance title, or cohort. Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer invoice line (void invoices do not block).
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Opaque cursor from a prior `next_cursor` value. */
+                    cursor?: string;
+                    limit?: number;
+                    /** @description Case-insensitive partial match on enrollment id, instance title, or cohort. */
+                    q?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -4127,9 +4133,14 @@ export interface paths {
                     content: {
                         "application/json": {
                             items: components["schemas"]["BillingEnrollmentPickerRow"][];
+                            /** @description True when another page may exist (results reached `limit`). */
+                            truncated: boolean;
+                            /** @description Cursor for the next page when `truncated` is true. */
+                            next_cursor?: string | null;
                         };
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
             };
         };
@@ -6005,12 +6016,14 @@ export interface components {
             enrolledAt?: string | null;
             /** @description True when linked to a draft or issued invoice line. */
             invoiceLinked: boolean;
+            /** @description Stable client-side key for matching bill-to identity across enrollments. */
+            billToMergeKey: string;
         };
         /** @description Invoice currency defaults to the shared enrollment currency (all enrollments must match). Optional `currency` must equal that currency when provided. Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
         CreateDraftInvoiceRequest: {
             enrollmentIds: string[];
-            /** @description Optional; must match every enrollment currency when set. */
-            currency?: string;
+            /** @description Optional ISO currency code; when set must match every enrollment. Omit to derive. */
+            currency?: string | null;
             lineTotalsByEnrollmentId?: {
                 [key: string]: string;
             };
