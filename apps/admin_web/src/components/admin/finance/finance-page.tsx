@@ -19,6 +19,7 @@ import {
   FinanceHeader,
   type FinanceView,
 } from './finance-header';
+import { ClientInvoicesPanel } from './client-invoices-panel';
 import { VendorsPanel } from './vendors-panel';
 
 export function FinancePage() {
@@ -73,17 +74,7 @@ export function FinancePage() {
     return (
       <div className='space-y-6'>
         <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
-        <Card
-          title='Client Invoices'
-          description='Scaffold ready'
-          className='space-y-2'
-        >
-          <p className='text-sm text-slate-600'>
-            Client invoice management is intentionally scaffolded in this iteration.
-            Expense ingestion, parsing, verification, amendment, and history are fully
-            available in the Expenses tab.
-          </p>
-        </Card>
+        <ClientInvoicesPanel />
       </div>
     );
   }

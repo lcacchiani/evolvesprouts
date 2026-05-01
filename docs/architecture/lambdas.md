@@ -112,7 +112,8 @@ their primary responsibilities.
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
   `/v1/admin/expenses/*`,
-  `/v1/admin/billing/*` (customer AR: payments, invoices, allocations, export),
+  `/v1/admin/billing/*` (customer AR: payments, invoices list/detail, allocations, export;
+  handler code split across `admin_billing*.py` modules under `app.api`, same Lambda),
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
   and `GET /v1/assets/free`,
