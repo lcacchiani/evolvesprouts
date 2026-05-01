@@ -151,7 +151,17 @@ export async function issueInvoice(invoiceId: string): Promise<{
     endpointPath: `/v1/admin/billing/invoices/${invoiceId}/issue`,
     method: 'POST',
   });
-  return unwrapPayload(payload);
+  const root = unwrapPayload(payload);
+  const id =
+    typeof root.invoiceId === 'string' && root.invoiceId.trim() !== '' ? root.invoiceId : invoiceId;
+  if (!id) {
+    throw new Error('Issue invoice response missing invoiceId.');
+  }
+  return {
+    invoiceId: id,
+    invoiceNumber: root.invoiceNumber,
+    issuedPdfSha256: root.issuedPdfSha256,
+  };
 }
 
 export async function voidInvoice(invoiceId: string, reason: string): Promise<{ invoiceId: string; status: string }> {
