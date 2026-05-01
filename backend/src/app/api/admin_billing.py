@@ -8,6 +8,9 @@ from collections.abc import Mapping
 from app.api.admin_billing_allocations import _create_allocation
 from app.api.admin_billing_export import _export_csv
 from app.api.admin_billing_invoice_queries import get_invoice, list_invoices
+from app.api.admin_billing_enrollment_queries import (
+    list_recent_enrollments_for_invoicing,
+)
 from app.api.admin_billing_invoices import (
     _create_invoice_draft,
     _email_invoice,
@@ -89,6 +92,16 @@ def handle_admin_billing_request(
             return _create_invoice_draft(
                 event, user_sub=identity.user_sub, request_id=req
             )
+
+    if (
+        sub == "enrollments"
+        and len(parts) == 4
+        and parts[3] == "recent-for-invoicing"
+        and method == "GET"
+    ):
+        return list_recent_enrollments_for_invoicing(
+            event, user_sub=identity.user_sub, request_id=req
+        )
 
     if sub == "invoices" and len(parts) == 4:
         inv_id = parse_uuid(parts[3])

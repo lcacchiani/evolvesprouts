@@ -27,9 +27,9 @@ import {
   issueInvoice,
   listCustomerInvoices,
   listCustomerPayments,
-  parseEnrollmentIdList,
-  parseLineTotalsOverridesJson,
+  listRecentEnrollmentsForInvoicing,
   voidInvoice,
+  type BillingEnrollmentPickerRow,
   type CustomerInvoiceDetail,
   type CustomerInvoiceSummary,
   type CustomerPaymentDetail,
@@ -61,8 +61,41 @@ function currencySelectValue(
   return options.some((o) => o.value === normalized) ? normalized : fallback;
 }
 
+function enrollmentNeedsAmountConfirmation(row: BillingEnrollmentPickerRow): boolean {
+  const ap = row.amountPaid?.trim() ?? '';
+  if (ap === '') {
+    return true;
+  }
+  const n = Number.parseFloat(ap);
+  return Number.isNaN(n) || n === 0;
+}
+
+function parseAmountInput(raw: string): number | null {
+  const t = raw.trim();
+  if (t === '') {
+    return null;
+  }
+  const n = Number.parseFloat(t);
+  return Number.isNaN(n) ? null : n;
+}
+
+function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
+  return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
+}
+
+function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): boolean {
+  const trimmed = input.trim();
+  const baseline = defaultLineAmount(row);
+  const a = Number.parseFloat(trimmed === '' ? baseline : trimmed);
+  const b = Number.parseFloat(baseline);
+  if (!Number.isNaN(a) && !Number.isNaN(b)) {
+    return Math.abs(a - b) > 1e-9;
+  }
+  return trimmed !== '' && trimmed !== baseline;
+}
+
 export function ClientInvoicesPanel() {
-  const draftDescriptionId = useId();
+  const draftFilterId = useId();
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const defaultCurrency = useMemo(() => getAdminDefaultCurrencyCode(), []);
 
@@ -100,9 +133,13 @@ export function ClientInvoicesPanel() {
   const [confirmPaymentExternalRef, setConfirmPaymentExternalRef] = useState('');
   const [confirmPaymentError, setConfirmPaymentError] = useState('');
 
-  const [enrollmentIdsText, setEnrollmentIdsText] = useState('');
-  const [draftCurrency, setDraftCurrency] = useState(defaultCurrency);
-  const [lineTotalsJson, setLineTotalsJson] = useState('');
+  const [enrollmentPickerRows, setEnrollmentPickerRows] = useState<BillingEnrollmentPickerRow[]>([]);
+  const [enrollmentPickerTruncated, setEnrollmentPickerTruncated] = useState(false);
+  const [enrollmentPickerLoading, setEnrollmentPickerLoading] = useState(true);
+  const [enrollmentPickerError, setEnrollmentPickerError] = useState('');
+  const [enrollmentFilter, setEnrollmentFilter] = useState('');
+  const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<Set<string>>(() => new Set());
+  const [lineOverrideByEnrollmentId, setLineOverrideByEnrollmentId] = useState<Record<string, string>>({});
 
   const [invoiceIdInput, setInvoiceIdInput] = useState('');
   const [emailTo, setEmailTo] = useState('');
@@ -147,6 +184,106 @@ export function ClientInvoicesPanel() {
     void loadPayments(ac.signal);
     return () => ac.abort();
   }, [loadPayments]);
+
+  const [debouncedEnrollmentFilter, setDebouncedEnrollmentFilter] = useState('');
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedEnrollmentFilter(enrollmentFilter.trim()), 350);
+    return () => window.clearTimeout(t);
+  }, [enrollmentFilter]);
+
+  const loadEnrollmentPicker = useCallback(
+    async (signal?: AbortSignal, overrideServerQuery?: string) => {
+      setEnrollmentPickerLoading(true);
+      setEnrollmentPickerError('');
+      const serverQuery =
+        overrideServerQuery !== undefined ? overrideServerQuery : debouncedEnrollmentFilter;
+      try {
+        const { items, truncated } = await listRecentEnrollmentsForInvoicing(
+          signal,
+          serverQuery === '' ? undefined : { q: serverQuery },
+        );
+        setEnrollmentPickerRows(items);
+        setEnrollmentPickerTruncated(truncated);
+        setSelectedEnrollmentIds((prev) => {
+          const allowed = new Set(
+            items.filter((r) => !r.invoiceLinked).map((r) => r.enrollmentId),
+          );
+          const next = new Set<string>();
+          for (const id of prev) {
+            if (allowed.has(id)) {
+              next.add(id);
+            }
+          }
+          return next;
+        });
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === 'AbortError') {
+          return;
+        }
+        const message =
+          caught instanceof Error ? caught.message : 'Failed to load enrollments for invoicing.';
+        setEnrollmentPickerError(message);
+        setEnrollmentPickerRows([]);
+        setEnrollmentPickerTruncated(false);
+      } finally {
+        setEnrollmentPickerLoading(false);
+      }
+    },
+    [debouncedEnrollmentFilter],
+  );
+
+  useEffect(() => {
+    const ac = new AbortController();
+    void loadEnrollmentPicker(ac.signal);
+    return () => ac.abort();
+  }, [loadEnrollmentPicker]);
+
+  const selectableFilteredRows = useMemo(
+    () => enrollmentPickerRows.filter((row) => !row.invoiceLinked),
+    [enrollmentPickerRows],
+  );
+
+  const selectedEnrollmentRows = useMemo(() => {
+    const map = new Map(enrollmentPickerRows.map((r) => [r.enrollmentId, r]));
+    const out: BillingEnrollmentPickerRow[] = [];
+    for (const id of selectedEnrollmentIds) {
+      const row = map.get(id);
+      if (row) {
+        out.push(row);
+      }
+    }
+    return out;
+  }, [enrollmentPickerRows, selectedEnrollmentIds]);
+
+  const draftSelectionIssue = useMemo(() => {
+    if (selectedEnrollmentRows.length === 0) {
+      return '';
+    }
+    const currencies = new Set(selectedEnrollmentRows.map((r) => r.currency));
+    if (currencies.size > 1) {
+      return 'Selected enrollments must share one currency.';
+    }
+    const billKeys = new Set(selectedEnrollmentRows.map((r) => r.billToMergeKey));
+    if (billKeys.size > 1) {
+      return 'Selected enrollments must share the same bill-to (contact/family/organization).';
+    }
+    return '';
+  }, [selectedEnrollmentRows]);
+
+  const draftAmountIssue = useMemo(() => {
+    for (const row of selectedEnrollmentRows) {
+      if (!enrollmentNeedsAmountConfirmation(row)) {
+        continue;
+      }
+      const raw = lineOverrideByEnrollmentId[row.enrollmentId] ?? defaultLineAmount(row);
+      const amt = parseAmountInput(raw);
+      if (amt === null || amt === 0) {
+        return 'Enter a non-zero line total for enrollments with no recorded amount.';
+      }
+    }
+    return '';
+  }, [selectedEnrollmentRows, lineOverrideByEnrollmentId]);
 
   const loadInvoicesFirstPage = useCallback(async (signal?: AbortSignal) => {
     setInvoiceListLoading(true);
@@ -449,24 +586,47 @@ export function ClientInvoicesPanel() {
     event.preventDefault();
     setActionError('');
     setActionMessage('');
-    const ids = parseEnrollmentIdList(enrollmentIdsText);
+    const ids = [...selectedEnrollmentIds];
     if (ids.length === 0) {
-      setActionError('Enter at least one enrollment UUID.');
+      setActionError('Select at least one enrollment.');
       return;
     }
-    const parsed = parseLineTotalsOverridesJson(lineTotalsJson);
-    if (!parsed.ok) {
-      setActionError(parsed.error);
+    const rowsById = new Map(enrollmentPickerRows.map((r) => [r.enrollmentId, r]));
+    for (const id of ids) {
+      const row = rowsById.get(id);
+      if (!row || row.invoiceLinked) {
+        setActionError('Selection is out of date; refresh enrollments and try again.');
+        return;
+      }
+    }
+    const overrides: Record<string, string> = {};
+    for (const id of ids) {
+      const row = rowsById.get(id);
+      if (!row) {
+        continue;
+      }
+      const raw = lineOverrideByEnrollmentId[id] ?? defaultLineAmount(row);
+      const trimmed = raw.trim();
+      const normalized = trimmed === '' ? defaultLineAmount(row) : trimmed;
+      if (lineAmountsDiffer(normalized, row)) {
+        overrides[id] = normalized;
+      }
+    }
+    if (draftSelectionIssue) {
+      setActionError(draftSelectionIssue);
+      return;
+    }
+    if (draftAmountIssue) {
+      setActionError(draftAmountIssue);
       return;
     }
     setBusy('draft');
     try {
       const body: Parameters<typeof createDraftInvoice>[0] = {
         enrollmentIds: ids,
-        currency: draftCurrency.trim().toUpperCase() || defaultCurrency,
       };
-      if (parsed.overrides) {
-        body.lineTotalsByEnrollmentId = parsed.overrides;
+      if (Object.keys(overrides).length > 0) {
+        body.lineTotalsByEnrollmentId = overrides;
       }
       const result = await createDraftInvoice(body);
       setInvoiceIdInput(result.invoiceId);
@@ -475,6 +635,7 @@ export function ClientInvoicesPanel() {
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
       await loadPayments();
       await loadInvoicesFirstPage();
+      await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Create draft failed.');
     } finally {
@@ -595,61 +756,235 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title='Create draft invoice from enrollments'
-        description='Enrollments must share the same bill-to and currency. Optional JSON overrides default line totals (enrollment UUID keys, decimal string values).'
+        description='Shown: enrollments from the last 90 days (by enrolled date), excluding cancelled. Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to and currency on the server.'
         actions={
-          <Button type='submit' form={DRAFT_FORM_ID} disabled={editorBusy}>
+          <Button
+            type='submit'
+            form={DRAFT_FORM_ID}
+            disabled={editorBusy || Boolean(draftSelectionIssue) || Boolean(draftAmountIssue)}
+          >
             {busyAction === 'draft' ? 'Creating…' : 'Create draft invoice'}
           </Button>
         }
       >
-        <p id={draftDescriptionId} className='text-xs text-slate-600'>
-          Use enrollment UUIDs separated by commas or newlines.
-        </p>
         <form
           id={DRAFT_FORM_ID}
-          className='space-y-3'
+          className='space-y-4'
           onSubmit={(e) => void handleCreateDraft(e)}
-          aria-describedby={draftDescriptionId}
         >
-          <div>
-            <Label htmlFor='billing-enrollment-ids'>Enrollment UUIDs</Label>
-            <Textarea
-              id='billing-enrollment-ids'
-              value={enrollmentIdsText}
-              onChange={(e) => setEnrollmentIdsText(e.target.value)}
-              rows={3}
-              className='mt-1 font-mono text-xs'
-              placeholder='Comma or newline separated UUIDs'
+          <div className='flex flex-wrap items-end gap-3'>
+            <div className='min-w-[220px] flex-1'>
+              <Label htmlFor={draftFilterId}>Filter enrollments</Label>
+              <Input
+                id={draftFilterId}
+                className='mt-1'
+                value={enrollmentFilter}
+                onChange={(e) => setEnrollmentFilter(e.target.value)}
+                placeholder='Search name, email, title, tier, cohort…'
+                disabled={editorBusy}
+              />
+            </div>
+            <Button
+              type='button'
+              variant='outline'
               disabled={editorBusy}
-            />
-          </div>
-          <div>
-            <Label htmlFor='billing-draft-currency'>Currency</Label>
-            <Select
-              id='billing-draft-currency'
-              className='mt-1 max-w-xs'
-              value={draftCurrency}
-              onChange={(e) => setDraftCurrency(e.target.value)}
-              disabled={editorBusy}
+              onClick={() => {
+                setSelectedEnrollmentIds(new Set());
+                setLineOverrideByEnrollmentId({});
+              }}
             >
-              {currencyOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
+              Clear selection
+            </Button>
+            <span className='text-sm text-slate-600' aria-live='polite'>
+              {selectedEnrollmentIds.size} selected
+            </span>
+            <Button
+              type='button'
+              variant='outline'
+              disabled={editorBusy || enrollmentPickerLoading}
+              onClick={() => void loadEnrollmentPicker(undefined, enrollmentFilter.trim())}
+            >
+              Refresh enrollments
+            </Button>
           </div>
-          <div>
-            <Label htmlFor='billing-line-overrides'>Line totals override (JSON, optional)</Label>
-            <Textarea
-              id='billing-line-overrides'
-              value={lineTotalsJson}
-              onChange={(e) => setLineTotalsJson(e.target.value)}
-              rows={2}
-              className='mt-1 font-mono text-xs'
-              placeholder='{"uuid-enrollment": "100.00"}'
-              disabled={editorBusy}
-            />
+          {enrollmentPickerTruncated ? (
+            <p className='text-sm text-amber-800' role='status'>
+              Enrollment list may be incomplete (server capped additional pages). Refresh after filtering or contact support for full exports.
+            </p>
+          ) : null}
+          <section aria-label='Enrollment picker'>
+          <AdminDataTable tableClassName='min-w-[1120px]'>
+            <AdminDataTableHead>
+              <tr>
+                <th className='px-3 py-2'>
+                  <input
+                    type='checkbox'
+                    aria-label='Select all visible enrollments'
+                    checked={
+                      selectableFilteredRows.length > 0 &&
+                      selectableFilteredRows.every((row) =>
+                        selectedEnrollmentIds.has(row.enrollmentId),
+                      )
+                    }
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setSelectedEnrollmentIds((prev) => {
+                        const next = new Set(prev);
+                        if (checked) {
+                          for (const row of selectableFilteredRows) {
+                            next.add(row.enrollmentId);
+                          }
+                        } else {
+                          for (const row of selectableFilteredRows) {
+                            next.delete(row.enrollmentId);
+                          }
+                        }
+                        return next;
+                      });
+                    }}
+                    disabled={editorBusy || enrollmentPickerLoading || selectableFilteredRows.length === 0}
+                  />
+                </th>
+                <th className='px-3 py-2'>Party</th>
+                <th className='px-3 py-2'>Email</th>
+                <th className='px-3 py-2'>Instance</th>
+                <th className='px-3 py-2'>Tier</th>
+                <th className='px-3 py-2'>Cohort</th>
+                <th className='px-3 py-2 text-right'>Price</th>
+                <th className='px-3 py-2'>Enrolled</th>
+                <th className='px-3 py-2'>Invoice</th>
+              </tr>
+            </AdminDataTableHead>
+            <AdminDataTableBody>
+              {enrollmentPickerLoading ? (
+                <tr>
+                  <td colSpan={9} className='px-3 py-6 text-sm text-slate-600'>
+                    Loading enrollments…
+                  </td>
+                </tr>
+              ) : enrollmentPickerRows.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className='px-3 py-6 text-sm text-slate-600'>
+                    No enrollments match this filter.
+                  </td>
+                </tr>
+              ) : (
+                enrollmentPickerRows.map((row) => {
+                  const blocked = row.invoiceLinked;
+                  const checked = selectedEnrollmentIds.has(row.enrollmentId);
+                  const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
+                  const priceLabel =
+                    row.amountPaid != null && row.amountPaid.trim() !== ''
+                      ? `${row.amountPaid} ${row.currency}`
+                      : `— ${row.currency}`;
+                  return (
+                    <tr
+                      key={row.enrollmentId}
+                      className={blocked ? 'bg-slate-50 text-slate-500' : undefined}
+                    >
+                      <td className='px-3 py-2 align-top'>
+                        <input
+                          type='checkbox'
+                          aria-label={`Select enrollment ${row.enrollmentId}`}
+                          aria-describedby={blocked ? blockedNoteId : undefined}
+                          checked={checked}
+                          disabled={editorBusy || blocked}
+                          onChange={(event) => {
+                            const nextChecked = event.target.checked;
+                            setSelectedEnrollmentIds((prev) => {
+                              const next = new Set(prev);
+                              if (nextChecked) {
+                                next.add(row.enrollmentId);
+                              } else {
+                                next.delete(row.enrollmentId);
+                              }
+                              return next;
+                            });
+                          }}
+                        />
+                        {blocked ? (
+                          <span id={blockedNoteId} className='sr-only'>
+                            Already on a draft or issued invoice.
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className='px-3 py-2 align-top'>{row.partyDisplayName}</td>
+                      <td className='px-3 py-2 align-top font-mono text-xs'>{row.partyEmail ?? '—'}</td>
+                      <td className='px-3 py-2 align-top'>{row.instanceTitle ?? '—'}</td>
+                      <td className='px-3 py-2 align-top'>{row.serviceTierName ?? '—'}</td>
+                      <td className='px-3 py-2 align-top'>{row.instanceCohort ?? '—'}</td>
+                      <td className='px-3 py-2 align-top text-right tabular-nums'>{priceLabel}</td>
+                      <td className='px-3 py-2 align-top whitespace-nowrap font-mono text-xs'>
+                        {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
+                      </td>
+                      <td className='px-3 py-2 align-top text-xs'>
+                        {blocked ? 'On draft/issued invoice' : '—'}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </AdminDataTableBody>
+          </AdminDataTable>
+          </section>
+          {draftSelectionIssue ? (
+            <p className='text-sm text-amber-800'>{draftSelectionIssue}</p>
+          ) : null}
+          {draftAmountIssue ? (
+            <p className='text-sm text-amber-800'>{draftAmountIssue}</p>
+          ) : null}
+          <div className='space-y-2'>
+            <Label>Line totals override</Label>
+            <p className='text-xs text-slate-600'>
+              Defaults follow each enrollment&apos;s amount. Adjust selected rows only.
+            </p>
+            {selectedEnrollmentRows.length === 0 ? (
+              <p className='text-sm text-slate-600'>Select enrollments above to override line amounts.</p>
+            ) : (
+              <div className='space-y-2'>
+                {selectedEnrollmentRows.map((row) => {
+                  const needsAmt = enrollmentNeedsAmountConfirmation(row);
+                  return (
+                  <div
+                    key={row.enrollmentId}
+                    className={`flex flex-wrap items-center gap-3 border px-3 py-2 ${
+                      needsAmt ? 'border-amber-300 bg-amber-50' : 'border-slate-200'
+                    }`}
+                  >
+                    <span className='min-w-[180px] flex-1 text-sm'>{row.partyDisplayName}</span>
+                    <span className='font-mono text-xs text-slate-600'>{row.enrollmentId}</span>
+                    {needsAmt ? (
+                      <p className='w-full text-xs text-amber-900'>
+                        This enrollment has no recorded amount (or amount is zero); set a value or it will create a
+                        0.00 line.
+                      </p>
+                    ) : null}
+                    <div className='flex items-center gap-2'>
+                      <Label className='sr-only' htmlFor={`billing-line-override-${row.enrollmentId}`}>
+                        Line total for {row.partyDisplayName}
+                      </Label>
+                      <Input
+                        id={`billing-line-override-${row.enrollmentId}`}
+                        className='w-36 font-mono text-sm tabular-nums'
+                        inputMode='decimal'
+                        value={
+                          lineOverrideByEnrollmentId[row.enrollmentId] ?? defaultLineAmount(row)
+                        }
+                        onChange={(e) =>
+                          setLineOverrideByEnrollmentId((prev) => ({
+                            ...prev,
+                            [row.enrollmentId]: e.target.value,
+                          }))
+                        }
+                        disabled={editorBusy}
+                      />
+                      <span className='text-xs text-slate-600'>{row.currency}</span>
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </form>
       </AdminEditorCard>
@@ -709,6 +1044,7 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
+        <section aria-label='Customer invoices list'>
         <AdminDataTable tableClassName='min-w-[980px]'>
           <AdminDataTableHead>
             <tr>
@@ -798,6 +1134,7 @@ export function ClientInvoicesPanel() {
             })}
           </AdminDataTableBody>
         </AdminDataTable>
+        </section>
       </PaginatedTableCard>
 
       <Card

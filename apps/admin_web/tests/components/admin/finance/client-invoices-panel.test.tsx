@@ -15,22 +15,11 @@ const billingMocks = vi.hoisted(() => ({
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
   exportBillingCsv: vi.fn(),
+  listRecentEnrollmentsForInvoicing: vi.fn(),
 }));
 
 vi.mock('@/lib/billing-api', () => ({
   ...billingMocks,
-  parseEnrollmentIdList: (raw: string) =>
-    raw
-      .split(/[\s,;]+/u)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0),
-  parseLineTotalsOverridesJson: (raw: string) => {
-    const t = raw.trim();
-    if (t === '') {
-      return { ok: true as const, overrides: null };
-    }
-    return { ok: false as const, error: 'bad' };
-  },
 }));
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
@@ -43,6 +32,7 @@ describe('ClientInvoicesPanel', () => {
     }
     billingMocks.listCustomerPayments.mockResolvedValue([]);
     billingMocks.listCustomerInvoices.mockResolvedValue({ items: [], next_cursor: null });
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({ items: [], truncated: false });
     billingMocks.getCustomerInvoice.mockResolvedValue({
       id: 'placeholder',
       status: 'draft',
@@ -91,7 +81,8 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.listCustomerInvoices).toHaveBeenCalled();
     });
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await userEvent.click(within(invoiceTable).getByRole('button', { name: /aaaaaaaa/i }));
 
     await waitFor(() => {
@@ -282,7 +273,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
@@ -487,7 +479,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    const invoiceTable = screen.getAllByRole('table')[0];
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
@@ -604,15 +597,267 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
-  it('shows billing error when create draft submitted with empty enrollments', async () => {
+  it('shows billing error when create draft submitted with no enrollments selected', async () => {
     render(<ClientInvoicesPanel />);
 
     await waitFor(() => screen.getByRole('button', { name: /create draft invoice/i }));
     await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Enter at least one enrollment UUID.')).toBeInTheDocument();
+      expect(screen.getByText('Select at least one enrollment.')).toBeInTheDocument();
     });
     expect(billingMocks.createDraftInvoice).not.toHaveBeenCalled();
+  });
+
+  const pickerRow = (
+    overrides: Partial<{
+      enrollmentId: string;
+      partyDisplayName: string;
+      billToMergeKey: string;
+      invoiceLinked: boolean;
+      amountPaid: string | null;
+    }>,
+  ) => ({
+    enrollmentId: overrides.enrollmentId ?? 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    partyDisplayName: overrides.partyDisplayName ?? 'Pat',
+    partyEmail: 'pat@example.com',
+    instanceTitle: 'Inst',
+    serviceTierName: null,
+    instanceCohort: null,
+    amountPaid: overrides.amountPaid ?? '100.00',
+    currency: 'HKD',
+    enrolledAt: '2026-01-15T00:00:00+00:00',
+    invoiceLinked: overrides.invoiceLinked ?? false,
+    billToMergeKey: overrides.billToMergeKey ?? 'contact||uuid-a||',
+  });
+
+  it('server-side filter (q) narrows enrollment rows after debounce', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockImplementation(async (_signal, params) => {
+      const q = (params?.q ?? '').trim();
+      const all = [
+        pickerRow({
+          enrollmentId: '11111111-1111-1111-1111-111111111111',
+          partyDisplayName: 'Alice Alpha',
+        }),
+        pickerRow({
+          enrollmentId: '22222222-2222-2222-2222-222222222222',
+          partyDisplayName: 'Bob Beta',
+        }),
+      ];
+      if (!q) {
+        return { items: all, truncated: false };
+      }
+      const needle = q.toLowerCase();
+      return {
+        items: all.filter(
+          (r) =>
+            r.partyDisplayName.toLowerCase().includes(needle) ||
+            r.enrollmentId.toLowerCase().includes(needle),
+        ),
+        truncated: false,
+      };
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => expect(screen.getByText('Alice Alpha')).toBeInTheDocument());
+
+    const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
+    await userEvent.type(filterInput, 'Bob');
+
+    await waitFor(
+      () => {
+        expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalledWith(expect.any(AbortSignal), {
+          q: 'Bob',
+        });
+      },
+      { timeout: 4000 },
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Bob Beta')).toBeInTheDocument();
+  });
+
+  it('server-side filter matches enrollment id substring', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockImplementation(async (_signal, params) => {
+      const q = (params?.q ?? '').trim();
+      const all = [
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
+          partyDisplayName: 'Alice Alpha',
+        }),
+        pickerRow({
+          enrollmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-222222222222',
+          partyDisplayName: 'Bob Beta',
+        }),
+      ];
+      if (!q) {
+        return { items: all, truncated: false };
+      }
+      const needle = q.replace(/-/g, '').toLowerCase();
+      return {
+        items: all.filter((r) => {
+          const idCompact = r.enrollmentId.replace(/-/g, '').toLowerCase();
+          return idCompact.includes(needle) || r.enrollmentId.toLowerCase().includes(q.toLowerCase());
+        }),
+        truncated: false,
+      };
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => expect(screen.getByText('Alice Alpha')).toBeInTheDocument());
+
+    const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
+    await userEvent.type(filterInput, '22222222');
+
+    await waitFor(
+      () => {
+        expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalledWith(expect.any(AbortSignal), {
+          q: '22222222',
+        });
+      },
+      { timeout: 4000 },
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Bob Beta')).toBeInTheDocument();
+  });
+
+  it('create draft omits currency when selection is valid', async () => {
+    const id1 = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    const id2 = 'aaaaaaaa-bbbb-cccc-dddd-222222222222';
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: id1,
+          billToMergeKey: 'family||fam-1||',
+          amountPaid: '50.00',
+        }),
+        pickerRow({
+          enrollmentId: id2,
+          billToMergeKey: 'family||fam-1||',
+          amountPaid: '50.00',
+        }),
+      ],
+      truncated: false,
+    });
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-1', status: 'draft' });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getAllByRole('checkbox', { name: /Select enrollment/i }));
+
+    const checks = screen.getAllByRole('checkbox', { name: /Select enrollment/i });
+    await userEvent.click(checks[0]);
+    await userEvent.click(checks[1]);
+
+    await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
+
+    await waitFor(() => {
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+    });
+    const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.currency).toBeUndefined();
+    expect(arg.enrollmentIds).toEqual([id1, id2]);
+    expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
+  });
+
+  it('create draft sends lineTotalsByEnrollmentId when override differs', async () => {
+    const id1 = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: id1,
+          billToMergeKey: 'family||fam-1||',
+          amountPaid: '50.00',
+        }),
+      ],
+      truncated: false,
+    });
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-2', status: 'draft' });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getByRole('checkbox', { name: /Select enrollment/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Select enrollment/i }));
+
+    const override1 = document.getElementById(`billing-line-override-${id1}`) as HTMLInputElement;
+    await userEvent.clear(override1);
+    await userEvent.type(override1, '99');
+
+    await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
+
+    await waitFor(() => {
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+    });
+    const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.currency).toBeUndefined();
+    expect(arg.lineTotalsByEnrollmentId).toEqual({ [id1]: '99' });
+  });
+
+  it('disables create when bill-to keys differ among selection', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
+          billToMergeKey: 'k1',
+        }),
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-222222222222',
+          billToMergeKey: 'k2',
+        }),
+      ],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getAllByRole('checkbox', { name: /Select enrollment/i }));
+    const checks = screen.getAllByRole('checkbox', { name: /Select enrollment/i });
+    await userEvent.click(checks[0]);
+    await userEvent.click(checks[1]);
+
+    expect(
+      screen.getByText(/must share the same bill-to/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create draft invoice/i })).toBeDisabled();
+  });
+
+  it('blocks checkbox when invoiceLinked', async () => {
+    const blockedId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({ enrollmentId: blockedId, invoiceLinked: true }),
+        pickerRow({ enrollmentId: 'cccccccc-cccc-cccc-cccc-cccccccccccc', invoiceLinked: false }),
+      ],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('checkbox', { name: new RegExp(blockedId, 'i') })).toBeDisabled(),
+    );
+  });
+
+  it('select all visible only affects selectable rows when one row is invoice-linked', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({ enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111', invoiceLinked: true }),
+        pickerRow({ enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-222222222222', invoiceLinked: false }),
+        pickerRow({ enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-333333333333', invoiceLinked: false }),
+      ],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getByRole('checkbox', { name: /Select all visible enrollments/i }));
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /Select all visible enrollments/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('2 selected')).toBeInTheDocument();
+    });
   });
 });

@@ -1,6 +1,5 @@
 import { adminApiRequest } from '@/lib/api-admin-client';
 import { unwrapPayload } from '@/lib/api-payload';
-import { isRecord } from '@/lib/type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -118,6 +117,54 @@ export async function createCustomerRefund(
   return root.payment;
 }
 
+export type BillingEnrollmentPickerRow = ApiSchemas['BillingEnrollmentPickerRow'];
+
+export async function listRecentEnrollmentsForInvoicing(
+  signal?: AbortSignal,
+  params?: { q?: string },
+): Promise<{ items: BillingEnrollmentPickerRow[]; truncated: boolean }> {
+  const merged: BillingEnrollmentPickerRow[] = [];
+  let truncatedOverall = false;
+  let cursor: string | null = null;
+  let guard = 0;
+  while (guard < 200) {
+    guard += 1;
+    const query = new URLSearchParams();
+    query.set('limit', '500');
+    if (params?.q != null && params.q.trim() !== '') {
+      query.set('q', params.q.trim());
+    }
+    if (cursor) {
+      query.set('cursor', cursor);
+    }
+    const payload = await adminApiRequest<{
+      items?: BillingEnrollmentPickerRow[];
+      truncated?: boolean;
+      next_cursor?: string | null;
+    }>({
+      endpointPath: `/v1/admin/billing/enrollments/recent-for-invoicing?${query.toString()}`,
+      method: 'GET',
+      signal,
+    });
+    const root = unwrapPayload(payload);
+    const page = Array.isArray(root.items) ? root.items : [];
+    merged.push(...page);
+    if (root.truncated) {
+      truncatedOverall = true;
+    }
+    const next =
+      typeof root.next_cursor === 'string' && root.next_cursor.trim() !== ''
+        ? root.next_cursor.trim()
+        : null;
+    if (!next) {
+      break;
+    }
+    cursor = next;
+  }
+
+  return { items: merged, truncated: truncatedOverall };
+}
+
 export async function createDraftInvoice(
   body: ApiSchemas['CreateDraftInvoiceRequest'],
 ): Promise<{ invoiceId: string; status: string }> {
@@ -221,47 +268,4 @@ export async function exportBillingCsv(
     throw new Error('Export response missing csv.');
   }
   return root.csv;
-}
-
-/** Parse comma- or newline-separated UUIDs from admin input. */
-export function parseEnrollmentIdList(raw: string): string[] {
-  return raw
-    .split(/[\s,;]+/u)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
-export type LineTotalsOverridesParseResult =
-  | { ok: true; overrides: Record<string, string> | null }
-  | { ok: false; error: string };
-
-export function parseLineTotalsOverridesJson(raw: string): LineTotalsOverridesParseResult {
-  const trimmed = raw.trim();
-  if (trimmed === '') {
-    return { ok: true, overrides: null };
-  }
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(trimmed) as unknown;
-  } catch {
-    return { ok: false, error: 'Line totals override is not valid JSON.' };
-  }
-  if (!isRecord(parsed)) {
-    return { ok: false, error: 'Line totals override must be a JSON object (enrollment id → amount).' };
-  }
-  if (Object.keys(parsed).length === 0) {
-    return { ok: true, overrides: null };
-  }
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(parsed)) {
-    if (typeof v === 'string' || typeof v === 'number') {
-      out[k] = String(v);
-    } else {
-      return {
-        ok: false,
-        error: `Line totals override has invalid value for "${k}": use a string or number amount.`,
-      };
-    }
-  }
-  return { ok: true, overrides: out };
 }
