@@ -185,38 +185,53 @@ export function ClientInvoicesPanel() {
     return () => ac.abort();
   }, [loadPayments]);
 
-  const loadEnrollmentPicker = useCallback(async (signal?: AbortSignal) => {
-    setEnrollmentPickerLoading(true);
-    setEnrollmentPickerError('');
-    try {
-      const { items, truncated } = await listRecentEnrollmentsForInvoicing(signal);
-      setEnrollmentPickerRows(items);
-      setEnrollmentPickerTruncated(truncated);
-      setSelectedEnrollmentIds((prev) => {
-        const allowed = new Set(
-          items.filter((r) => !r.invoiceLinked).map((r) => r.enrollmentId),
+  const [debouncedEnrollmentFilter, setDebouncedEnrollmentFilter] = useState('');
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedEnrollmentFilter(enrollmentFilter.trim()), 350);
+    return () => window.clearTimeout(t);
+  }, [enrollmentFilter]);
+
+  const loadEnrollmentPicker = useCallback(
+    async (signal?: AbortSignal, overrideServerQuery?: string) => {
+      setEnrollmentPickerLoading(true);
+      setEnrollmentPickerError('');
+      const serverQuery =
+        overrideServerQuery !== undefined ? overrideServerQuery : debouncedEnrollmentFilter;
+      try {
+        const { items, truncated } = await listRecentEnrollmentsForInvoicing(
+          signal,
+          serverQuery === '' ? undefined : { q: serverQuery },
         );
-        const next = new Set<string>();
-        for (const id of prev) {
-          if (allowed.has(id)) {
-            next.add(id);
+        setEnrollmentPickerRows(items);
+        setEnrollmentPickerTruncated(truncated);
+        setSelectedEnrollmentIds((prev) => {
+          const allowed = new Set(
+            items.filter((r) => !r.invoiceLinked).map((r) => r.enrollmentId),
+          );
+          const next = new Set<string>();
+          for (const id of prev) {
+            if (allowed.has(id)) {
+              next.add(id);
+            }
           }
+          return next;
+        });
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === 'AbortError') {
+          return;
         }
-        return next;
-      });
-    } catch (caught) {
-      if (caught instanceof Error && caught.name === 'AbortError') {
-        return;
+        const message =
+          caught instanceof Error ? caught.message : 'Failed to load enrollments for invoicing.';
+        setEnrollmentPickerError(message);
+        setEnrollmentPickerRows([]);
+        setEnrollmentPickerTruncated(false);
+      } finally {
+        setEnrollmentPickerLoading(false);
       }
-      const message =
-        caught instanceof Error ? caught.message : 'Failed to load enrollments for invoicing.';
-      setEnrollmentPickerError(message);
-      setEnrollmentPickerRows([]);
-      setEnrollmentPickerTruncated(false);
-    } finally {
-      setEnrollmentPickerLoading(false);
-    }
-  }, []);
+    },
+    [debouncedEnrollmentFilter],
+  );
 
   useEffect(() => {
     const ac = new AbortController();
@@ -224,31 +239,9 @@ export function ClientInvoicesPanel() {
     return () => ac.abort();
   }, [loadEnrollmentPicker]);
 
-  const filteredEnrollmentRows = useMemo(() => {
-    const q = enrollmentFilter.trim().toLowerCase();
-    if (!q) {
-      return enrollmentPickerRows;
-    }
-    return enrollmentPickerRows.filter((row) => {
-      const hay = [
-        row.partyDisplayName,
-        row.partyEmail ?? '',
-        row.instanceTitle ?? '',
-        row.serviceTierName ?? '',
-        row.instanceCohort ?? '',
-        row.enrollmentId,
-        row.amountPaid ?? '',
-        row.enrolledAt ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-  }, [enrollmentPickerRows, enrollmentFilter]);
-
   const selectableFilteredRows = useMemo(
-    () => filteredEnrollmentRows.filter((row) => !row.invoiceLinked),
-    [filteredEnrollmentRows],
+    () => enrollmentPickerRows.filter((row) => !row.invoiceLinked),
+    [enrollmentPickerRows],
   );
 
   const selectedEnrollmentRows = useMemo(() => {
@@ -599,6 +592,13 @@ export function ClientInvoicesPanel() {
       return;
     }
     const rowsById = new Map(enrollmentPickerRows.map((r) => [r.enrollmentId, r]));
+    for (const id of ids) {
+      const row = rowsById.get(id);
+      if (!row || row.invoiceLinked) {
+        setActionError('Selection is out of date; refresh enrollments and try again.');
+        return;
+      }
+    }
     const overrides: Record<string, string> = {};
     for (const id of ids) {
       const row = rowsById.get(id);
@@ -635,7 +635,7 @@ export function ClientInvoicesPanel() {
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
       await loadPayments();
       await loadInvoicesFirstPage();
-      await loadEnrollmentPicker();
+      await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Create draft failed.');
     } finally {
@@ -802,7 +802,7 @@ export function ClientInvoicesPanel() {
               type='button'
               variant='outline'
               disabled={editorBusy || enrollmentPickerLoading}
-              onClick={() => void loadEnrollmentPicker()}
+              onClick={() => void loadEnrollmentPicker(undefined, enrollmentFilter.trim())}
             >
               Refresh enrollments
             </Button>
@@ -862,14 +862,14 @@ export function ClientInvoicesPanel() {
                     Loading enrollments…
                   </td>
                 </tr>
-              ) : filteredEnrollmentRows.length === 0 ? (
+              ) : enrollmentPickerRows.length === 0 ? (
                 <tr>
                   <td colSpan={9} className='px-3 py-6 text-sm text-slate-600'>
                     No enrollments match this filter.
                   </td>
                 </tr>
               ) : (
-                filteredEnrollmentRows.map((row) => {
+                enrollmentPickerRows.map((row) => {
                   const blocked = row.invoiceLinked;
                   const checked = selectedEnrollmentIds.has(row.enrollmentId);
                   const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;

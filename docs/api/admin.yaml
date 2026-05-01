@@ -2941,7 +2941,8 @@ paths:
         Returns non-cancelled enrollments with `enrolled_at` within the last 90 days,
         ordered by `enrolled_at` descending (cursor pagination). At most `limit` rows per response
         (default and maximum 500). Pass `next_cursor` from the prior response as `cursor`.
-        Optional `q` filters server-side by enrollment UUID substring, instance title, or cohort.
+        Optional `q` filters server-side by enrollment UUID substring, instance title, cohort,
+        contact email/name, bill-to contact, family name, organization name, or ticket tier name.
         Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer
         invoice line (void invoices do not block).
       security:
@@ -2964,7 +2965,7 @@ paths:
         - name: q
           in: query
           required: false
-          description: Case-insensitive partial match on enrollment id, instance title, or cohort.
+          description: Case-insensitive partial match across enrollment id, instance title/cohort, contacts, family/org names, and tier name.
           schema:
             type: string
       responses:

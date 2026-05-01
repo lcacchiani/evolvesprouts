@@ -4108,7 +4108,7 @@ export interface paths {
         };
         /**
          * List recent enrollments for draft invoice picker
-         * @description Returns non-cancelled enrollments with `enrolled_at` within the last 90 days, ordered by `enrolled_at` descending (cursor pagination). At most `limit` rows per response (default and maximum 500). Pass `next_cursor` from the prior response as `cursor`. Optional `q` filters server-side by enrollment UUID substring, instance title, or cohort. Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer invoice line (void invoices do not block).
+         * @description Returns non-cancelled enrollments with `enrolled_at` within the last 90 days, ordered by `enrolled_at` descending (cursor pagination). At most `limit` rows per response (default and maximum 500). Pass `next_cursor` from the prior response as `cursor`. Optional `q` filters server-side by enrollment UUID substring, instance title, cohort, contact email/name, bill-to contact, family name, organization name, or ticket tier name. Includes `invoiceLinked` when the enrollment already appears on a draft or issued customer invoice line (void invoices do not block).
          */
         get: {
             parameters: {
@@ -4116,7 +4116,7 @@ export interface paths {
                     /** @description Opaque cursor from a prior `next_cursor` value. */
                     cursor?: string;
                     limit?: number;
-                    /** @description Case-insensitive partial match on enrollment id, instance title, or cohort. */
+                    /** @description Case-insensitive partial match across enrollment id, instance title/cohort, contacts, family/org names, and tier name. */
                     q?: string;
                 };
                 header?: never;

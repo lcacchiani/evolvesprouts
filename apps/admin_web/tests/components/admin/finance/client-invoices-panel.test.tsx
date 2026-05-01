@@ -631,13 +631,31 @@ describe('ClientInvoicesPanel', () => {
     billToMergeKey: overrides.billToMergeKey ?? 'contact||uuid-a||',
   });
 
-  it('client filter narrows enrollment rows', async () => {
-    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
-      items: [
-        pickerRow({ enrollmentId: '11111111-1111-1111-1111-111111111111', partyDisplayName: 'Alice Alpha' }),
-        pickerRow({ enrollmentId: '22222222-2222-2222-2222-222222222222', partyDisplayName: 'Bob Beta' }),
-      ],
-      truncated: false,
+  it('server-side filter (q) narrows enrollment rows after debounce', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockImplementation(async (_signal, params) => {
+      const q = (params?.q ?? '').trim();
+      const all = [
+        pickerRow({
+          enrollmentId: '11111111-1111-1111-1111-111111111111',
+          partyDisplayName: 'Alice Alpha',
+        }),
+        pickerRow({
+          enrollmentId: '22222222-2222-2222-2222-222222222222',
+          partyDisplayName: 'Bob Beta',
+        }),
+      ];
+      if (!q) {
+        return { items: all, truncated: false };
+      }
+      const needle = q.toLowerCase();
+      return {
+        items: all.filter(
+          (r) =>
+            r.partyDisplayName.toLowerCase().includes(needle) ||
+            r.enrollmentId.toLowerCase().includes(needle),
+        ),
+        truncated: false,
+      };
     });
     render(<ClientInvoicesPanel />);
 
@@ -645,6 +663,62 @@ describe('ClientInvoicesPanel', () => {
 
     const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
     await userEvent.type(filterInput, 'Bob');
+
+    await waitFor(
+      () => {
+        expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalledWith(expect.any(AbortSignal), {
+          q: 'Bob',
+        });
+      },
+      { timeout: 4000 },
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Bob Beta')).toBeInTheDocument();
+  });
+
+  it('server-side filter matches enrollment id substring', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockImplementation(async (_signal, params) => {
+      const q = (params?.q ?? '').trim();
+      const all = [
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
+          partyDisplayName: 'Alice Alpha',
+        }),
+        pickerRow({
+          enrollmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-222222222222',
+          partyDisplayName: 'Bob Beta',
+        }),
+      ];
+      if (!q) {
+        return { items: all, truncated: false };
+      }
+      const needle = q.replace(/-/g, '').toLowerCase();
+      return {
+        items: all.filter((r) => {
+          const idCompact = r.enrollmentId.replace(/-/g, '').toLowerCase();
+          return idCompact.includes(needle) || r.enrollmentId.toLowerCase().includes(q.toLowerCase());
+        }),
+        truncated: false,
+      };
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => expect(screen.getByText('Alice Alpha')).toBeInTheDocument());
+
+    const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
+    await userEvent.type(filterInput, '22222222');
+
+    await waitFor(
+      () => {
+        expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalledWith(expect.any(AbortSignal), {
+          q: '22222222',
+        });
+      },
+      { timeout: 4000 },
+    );
 
     await waitFor(() => {
       expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();

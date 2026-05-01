@@ -10,7 +10,7 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
-from sqlalchemy import and_, cast, or_, select, String
+from sqlalchemy import and_, cast, exists, or_, select, String
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.admin_billing_common import (
@@ -22,14 +22,16 @@ from app.api.admin_billing_common import (
 )
 from app.api.admin_request import parse_limit, query_param
 from app.config import get_default_currency_code
-from app.db.models import Enrollment
+from app.db.models import Contact, Enrollment
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import (
     BillingBillToKind,
     BillingInvoiceStatus,
     EnrollmentStatus,
 )
-from app.db.models.service_instance import ServiceInstance
+from app.db.models.family import Family
+from app.db.models.organization import Organization
+from app.db.models.service_instance import EventTicketTier, ServiceInstance
 from app.exceptions import ValidationError
 from app.utils import json_response
 
@@ -130,7 +132,11 @@ def _encode_enrolled_at_cursor(enrolled_at: datetime, row_id: UUID) -> str:
 def list_recent_enrollments_for_invoicing(
     event: Mapping[str, Any], *, user_sub: str, request_id: str | None
 ) -> dict[str, Any]:
-    """Non-cancelled enrollments from the last 90 days (`enrolled_at`), capped and paginated."""
+    """Non-cancelled enrollments from the last 90 days (`enrolled_at`), capped and paginated.
+
+    Tenant note: this deployment is single-tenant Aurora; there is no tenant_id column on
+    enrollments. Authorization is enforced at API Gateway (admin group).
+    """
     cutoff = datetime.now(UTC) - timedelta(days=90)
     limit = parse_limit(event, default=_PICKER_MAX_LIMIT, max_limit=_PICKER_MAX_LIMIT)
     cursor_ts, cursor_id = _parse_enrolled_at_cursor(query_param(event, "cursor"))
@@ -155,13 +161,84 @@ def list_recent_enrollments_for_invoicing(
 
         if q_raw:
             q_pat = f"%{q_raw}%"
-            stmt = stmt.join(
-                ServiceInstance, Enrollment.instance_id == ServiceInstance.id
-            ).where(
+            stmt = stmt.where(
                 or_(
                     cast(Enrollment.id, String).ilike(q_pat),
-                    ServiceInstance.title.ilike(q_pat),
-                    ServiceInstance.cohort.ilike(q_pat),
+                    exists(
+                        select(1)
+                        .select_from(ServiceInstance)
+                        .where(
+                            ServiceInstance.id == Enrollment.instance_id,
+                            or_(
+                                ServiceInstance.title.ilike(q_pat),
+                                ServiceInstance.cohort.ilike(q_pat),
+                            ),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Contact)
+                        .where(
+                            Contact.id == Enrollment.contact_id,
+                            or_(
+                                Contact.email.ilike(q_pat),
+                                Contact.first_name.ilike(q_pat),
+                                Contact.last_name.ilike(q_pat),
+                            ),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Contact)
+                        .where(
+                            Contact.id == Enrollment.bill_to_contact_id,
+                            or_(
+                                Contact.email.ilike(q_pat),
+                                Contact.first_name.ilike(q_pat),
+                                Contact.last_name.ilike(q_pat),
+                            ),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Family)
+                        .where(
+                            Family.id == Enrollment.family_id,
+                            Family.family_name.ilike(q_pat),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Family)
+                        .where(
+                            Family.id == Enrollment.bill_to_family_id,
+                            Family.family_name.ilike(q_pat),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Organization)
+                        .where(
+                            Organization.id == Enrollment.organization_id,
+                            Organization.name.ilike(q_pat),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(Organization)
+                        .where(
+                            Organization.id == Enrollment.bill_to_organization_id,
+                            Organization.name.ilike(q_pat),
+                        )
+                    ),
+                    exists(
+                        select(1)
+                        .select_from(EventTicketTier)
+                        .where(
+                            EventTicketTier.id == Enrollment.ticket_tier_id,
+                            EventTicketTier.name.ilike(q_pat),
+                        )
+                    ),
                 )
             )
 

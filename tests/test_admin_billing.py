@@ -471,7 +471,7 @@ def test_list_recent_enrollments_orders_and_filters(
                 out.scalars.return_value.all.return_value = [en_later.id]
             elif "FamilyMember" in sql or "family_members" in sql:
                 out.all.return_value = [(fam_id, "primary@example.com")]
-            elif "OrganizationMember" in sql:
+            elif "organization_members" in sql:
                 out.all.return_value = []
             else:
                 out.unique.return_value.scalars.return_value.all.return_value = []
@@ -504,6 +504,229 @@ def test_list_recent_enrollments_orders_and_filters(
     row0 = body["items"][0]
     assert row0["invoiceLinked"] is True
     assert row0["partyEmail"] == "primary@example.com"
+
+
+def test_create_invoice_draft_currency_empty_string_derives(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    eid = uuid4()
+
+    fake_en = MagicMock()
+    fake_en.id = eid
+    fake_en.currency = "HKD"
+    fake_en.amount_paid = Decimal("10")
+    fake_en.instance = MagicMock(title="Inst")
+    fake_en.contact = MagicMock(
+        email="u@example.com", first_name="U", last_name="Ser"
+    )
+    fake_en.bill_to_kind = BillingBillToKind.CONTACT
+    fake_en.bill_to_contact_id = None
+    fake_en.bill_to_family_id = None
+    fake_en.bill_to_organization_id = None
+
+    fake_inv = MagicMock()
+    fake_inv.id = uuid4()
+    fake_inv.status = MagicMock(value="draft")
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(_stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            out.unique.return_value.scalars.return_value.all.return_value = [fake_en]
+            return out
+
+        s.execute.side_effect = _exec
+        s.get.side_effect = lambda model, pk: fake_inv if model is CustomerInvoice else None
+
+        def _flush() -> None:
+            pass
+
+        s.flush = _flush
+        return (yield s)
+
+    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "_resolve_bill_to_party_for_draft",
+        lambda *_a, **_k: None,
+    )
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "AuditService",
+        lambda *_a, **_k: MagicMock(log_custom=lambda **_kw: None),
+    )
+
+    body = {"enrollmentIds": [str(eid)], "currency": ""}
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/invoices",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    assert r["statusCode"] == 201
+
+
+def test_list_recent_enrollments_void_invoice_does_not_block_linked_flag(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """invoiceLinked ignores lines whose parent invoice is void (status filter)."""
+
+    iid = uuid4()
+    ts = datetime(2026, 2, 1, tzinfo=UTC)
+    eid = uuid4()
+
+    en = Enrollment(
+        instance_id=iid,
+        contact_id=None,
+        family_id=None,
+        organization_id=None,
+        ticket_tier_id=None,
+        discount_code_id=None,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        status=EnrollmentStatus.CONFIRMED,
+        amount_paid=Decimal("10"),
+        currency="HKD",
+        enrolled_at=ts,
+        cancelled_at=None,
+        notes=None,
+        created_by="test",
+    )
+    en.id = eid
+    en.instance = MagicMock(title="T", cohort=None)
+    en.ticket_tier = None
+    en.contact = MagicMock(email="x@example.com", first_name="X", last_name="Y")
+    en.family = None
+    en.organization = None
+    en.bill_to_contact = None
+    en.bill_to_family = None
+    en.bill_to_organization = None
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            sql = str(stmt)
+            if "FROM enrollments" in sql or "enrollments." in sql:
+                out.unique.return_value.scalars.return_value.all.return_value = [en]
+            elif "customer_invoice_lines" in sql:
+                out.scalars.return_value.all.return_value = []
+            else:
+                out.unique.return_value.scalars.return_value.all.return_value = []
+                out.scalars.return_value.all.return_value = []
+                out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    monkeypatch.setattr(
+        admin_billing_enrollment_queries_mod, "_session_with_audit", _fake_session
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/enrollments/recent-for-invoicing",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/enrollments/recent-for-invoicing"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert len(body["items"]) == 1
+    assert body["items"][0]["invoiceLinked"] is False
+
+
+def test_list_recent_enrollments_org_bill_to_primary_email(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    iid = uuid4()
+    oid = uuid4()
+    ts = datetime(2026, 2, 1, tzinfo=UTC)
+    eid = uuid4()
+
+    en = Enrollment(
+        instance_id=iid,
+        contact_id=None,
+        family_id=None,
+        organization_id=None,
+        ticket_tier_id=None,
+        discount_code_id=None,
+        bill_to_kind=BillingBillToKind.ORGANIZATION,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=oid,
+        status=EnrollmentStatus.CONFIRMED,
+        amount_paid=Decimal("10"),
+        currency="HKD",
+        enrolled_at=ts,
+        cancelled_at=None,
+        notes=None,
+        created_by="test",
+    )
+    en.id = eid
+    en.instance = MagicMock(title="OrgInst", cohort=None)
+    en.ticket_tier = None
+    en.contact = None
+    en.family = None
+    en.organization = MagicMock(name="Acme Corp")
+    en.bill_to_contact = None
+    en.bill_to_family = None
+    en.bill_to_organization = MagicMock(name="Acme Corp")
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            sql = str(stmt)
+            if "FROM enrollments" in sql or "enrollments." in sql:
+                out.unique.return_value.scalars.return_value.all.return_value = [en]
+            elif "customer_invoice_lines" in sql:
+                out.scalars.return_value.all.return_value = []
+            elif "organization_members" in sql:
+                out.all.return_value = [(oid, "org.primary@example.com")]
+            elif "FamilyMember" in sql or "family_members" in sql:
+                out.all.return_value = []
+            else:
+                out.unique.return_value.scalars.return_value.all.return_value = []
+                out.scalars.return_value.all.return_value = []
+                out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    monkeypatch.setattr(
+        admin_billing_enrollment_queries_mod, "_session_with_audit", _fake_session
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/enrollments/recent-for-invoicing",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/enrollments/recent-for-invoicing"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert body["items"][0]["partyEmail"] == "org.primary@example.com"
 
 
 def test_confirm_payment_creates_receipt_for_pending_inbound(
