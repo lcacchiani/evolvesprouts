@@ -221,25 +221,37 @@ export function parseEnrollmentIdList(raw: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-export function parseLineTotalsOverridesJson(raw: string): Record<string, string> | null {
+export type LineTotalsOverridesParseResult =
+  | { ok: true; overrides: Record<string, string> | null }
+  | { ok: false; error: string };
+
+export function parseLineTotalsOverridesJson(raw: string): LineTotalsOverridesParseResult {
   const trimmed = raw.trim();
   if (trimmed === '') {
-    return null;
+    return { ok: true, overrides: null };
   }
   let parsed: unknown;
   try {
     parsed = JSON.parse(trimmed) as unknown;
   } catch {
-    return null;
+    return { ok: false, error: 'Line totals override is not valid JSON.' };
   }
   if (!isRecord(parsed)) {
-    return null;
+    return { ok: false, error: 'Line totals override must be a JSON object (enrollment id → amount).' };
+  }
+  if (Object.keys(parsed).length === 0) {
+    return { ok: true, overrides: null };
   }
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(parsed)) {
     if (typeof v === 'string' || typeof v === 'number') {
       out[k] = String(v);
+    } else {
+      return {
+        ok: false,
+        error: `Line totals override has invalid value for "${k}": use a string or number amount.`,
+      };
     }
   }
-  return Object.keys(out).length > 0 ? out : null;
+  return { ok: true, overrides: out };
 }

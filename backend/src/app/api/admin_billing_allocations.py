@@ -1,0 +1,83 @@
+"""Admin billing: payment allocations."""
+
+from __future__ import annotations
+
+from decimal import Decimal, InvalidOperation
+from typing import Any
+from collections.abc import Mapping
+from uuid import UUID
+
+from sqlalchemy import select
+
+from app.api.admin_billing_common import _session_with_audit
+from app.api.admin_request import parse_body
+from app.db.models.customer_invoice import CustomerInvoice
+from app.db.models.customer_payment import CustomerPayment
+from app.db.models.payment_allocation import PaymentAllocation
+from app.exceptions import NotFoundError, ValidationError
+from app.services.customer_billing import payment_unapplied_amount
+from app.utils import json_response
+
+
+def _create_allocation(
+    event: Mapping[str, Any], *, user_sub: str, request_id: str | None
+) -> dict[str, Any]:
+    body = parse_body(event)
+    try:
+        payment_id = UUID(str(body.get("paymentId") or body.get("payment_id")))
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("paymentId must be a UUID", field="paymentId") from exc
+    try:
+        invoice_id = UUID(str(body.get("invoiceId") or body.get("invoice_id")))
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("invoiceId must be a UUID", field="invoiceId") from exc
+    try:
+        amt = Decimal(str(body.get("allocatedAmount") or body.get("allocated_amount")))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ValidationError(
+            "allocatedAmount must be a decimal number", field="allocatedAmount"
+        ) from exc
+    currency = str(body.get("currency") or "").upper()[:3]
+    line_id_raw = body.get("invoiceLineId") or body.get("invoice_line_id")
+    line_id: UUID | None = None
+    if line_id_raw:
+        try:
+            line_id = UUID(str(line_id_raw))
+        except (ValueError, TypeError) as exc:
+            raise ValidationError(
+                "invoiceLineId must be a UUID", field="invoiceLineId"
+            ) from exc
+
+    with _session_with_audit(user_sub, request_id) as session:
+        pay = session.execute(
+            select(CustomerPayment)
+            .where(CustomerPayment.id == payment_id)
+            .with_for_update()
+        ).scalar_one_or_none()
+        inv = session.get(CustomerInvoice, invoice_id)
+        if pay is None or inv is None:
+            raise NotFoundError(
+                "PaymentAllocationTarget",
+                f"{payment_id}/{invoice_id}",
+            )
+        if pay.currency != currency or inv.currency != currency:
+            raise ValidationError("Currency mismatch", field="currency")
+        unapplied = payment_unapplied_amount(session, payment_id)
+        if amt > unapplied:
+            raise ValidationError(
+                "Allocation exceeds unapplied amount", field="allocatedAmount"
+            )
+        alloc = PaymentAllocation(
+            payment_id=payment_id,
+            invoice_id=invoice_id,
+            invoice_line_id=line_id,
+            allocated_amount=amt,
+            currency=currency,
+        )
+        session.add(alloc)
+        session.flush()
+        return json_response(
+            201,
+            {"allocationId": str(alloc.id)},
+            event=event,
+        )

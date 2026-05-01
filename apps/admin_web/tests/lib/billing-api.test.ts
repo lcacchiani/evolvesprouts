@@ -11,14 +11,24 @@ describe('billing-api helpers', () => {
 
   it('parses line total overrides JSON', () => {
     const id = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-    expect(parseLineTotalsOverridesJson(`{"${id}": "10.5", "x": 3}`)).toEqual({
-      [id]: '10.5',
-      x: '3',
-    });
+    const r = parseLineTotalsOverridesJson(`{"${id}": "10.5", "x": 3}`);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.overrides).toEqual({
+        [id]: '10.5',
+        x: '3',
+      });
+    }
   });
 
-  it('returns null for invalid line totals JSON', () => {
-    expect(parseLineTotalsOverridesJson('not json')).toBeNull();
-    expect(parseLineTotalsOverridesJson('[]')).toBeNull();
+  it('returns structured errors for invalid line totals JSON', () => {
+    expect(parseLineTotalsOverridesJson('not json')).toEqual({
+      ok: false,
+      error: 'Line totals override is not valid JSON.',
+    });
+    expect(parseLineTotalsOverridesJson('[]')).toEqual({
+      ok: false,
+      error: 'Line totals override must be a JSON object (enrollment id → amount).',
+    });
   });
 });
