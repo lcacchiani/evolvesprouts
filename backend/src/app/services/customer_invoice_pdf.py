@@ -33,7 +33,14 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
-from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    LongTable,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
@@ -77,7 +84,9 @@ def invoice_display_timezone_or_raise() -> ZoneInfo:
     try:
         return ZoneInfo(tz_name)
     except Exception as exc:
-        raise ValueError("INVOICE_DISPLAY_TIMEZONE is not a valid IANA timezone") from exc
+        raise ValueError(
+            "INVOICE_DISPLAY_TIMEZONE is not a valid IANA timezone"
+        ) from exc
 
 
 def invoice_display_timezone_preview() -> ZoneInfo:
@@ -126,30 +135,49 @@ def format_money(amount: Decimal, currency: str) -> str:
     return f"{q:,.2f} {code}"
 
 
-_MAX_DESC_CHUNK_CHARS = 220
+# Small word-wrap cap, then hard 24-char rows (fits ~1 report line in desc column),
+# then batched LongTable slices (SPAN for qty/unit/total) so page breaks can occur
+# without repeating numbers on continuation rows.
+_MAX_DESC_CHUNK_CHARS = 100
+_MAX_DESC_ROW_CHAR_HARD = 24
+# Max body description rows per LongTable (plus optional header). Keep low so
+# a slice still fits a partial page after header/footer/wrapped totals above.
+_LINE_TABLE_BODY_ROWS_MAX = 14
 
 
-def _description_word_chunks(text: str, *, max_chars: int) -> list[str]:
-    """Split long descriptions into multiple table rows (page breaks between chunks)."""
+def _description_row_strings(text: str) -> list[str]:
+    """Word-wrap friendly chunks, then hard-split so no row can exceed frame height."""
     raw = text or ""
     if not raw.strip():
         return [raw]
-    words = raw.split()
-    chunks: list[str] = []
+    words: list[str] = []
+    for token in raw.split():
+        while len(token) > _MAX_DESC_CHUNK_CHARS:
+            words.append(token[:_MAX_DESC_CHUNK_CHARS])
+            token = token[_MAX_DESC_CHUNK_CHARS:]
+        words.append(token)
+    word_chunks: list[str] = []
     cur: list[str] = []
     cur_len = 0
     for w in words:
         add_len = len(w) + (1 if cur else 0)
-        if cur_len + add_len > max_chars and cur:
-            chunks.append(" ".join(cur))
+        if cur_len + add_len > _MAX_DESC_CHUNK_CHARS and cur:
+            word_chunks.append(" ".join(cur))
             cur = [w]
             cur_len = len(w)
         else:
             cur.append(w)
             cur_len += add_len
     if cur:
-        chunks.append(" ".join(cur))
-    return chunks
+        word_chunks.append(" ".join(cur))
+    rows: list[str] = []
+    for wc in word_chunks:
+        if len(wc) <= _MAX_DESC_ROW_CHAR_HARD:
+            rows.append(wc)
+        else:
+            for i in range(0, len(wc), _MAX_DESC_ROW_CHAR_HARD):
+                rows.append(wc[i : i + _MAX_DESC_ROW_CHAR_HARD])
+    return rows
 
 
 def render_invoice_pdf(
@@ -229,7 +257,8 @@ def render_invoice_pdf(
 
     business_name = xml_escape(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
     address_lines = [
-        xml_escape(p) for p in split_address_lines(os.getenv("PUBLIC_WWW_BUSINESS_ADDRESS", ""))
+        xml_escape(p)
+        for p in split_address_lines(os.getenv("PUBLIC_WWW_BUSINESS_ADDRESS", ""))
     ]
     bank_name = os.getenv("PUBLIC_WWW_BANK_NAME", "").strip()
     bank_holder = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "").strip()
@@ -283,34 +312,7 @@ def render_invoice_pdf(
     story.append(header_table)
     story.append(Spacer(1, 6))
 
-    table_rows: list[list] = [
-        [
-            Paragraph("<b>Description</b>", label_style),
-            Paragraph("<b>Quantity</b>", label_style),
-            Paragraph("<b>Unit Price</b>", label_style),
-            Paragraph("<b>Total</b>", label_style),
-        ]
-    ]
-    span_commands: list[tuple] = []
-    for line in ordered:
-        desc = line.description or ""
-        qty = line.quantity.quantize(Decimal("0.0001")).normalize()
-        unit = format_money(line.unit_amount, inv_currency)
-        ltot = format_money(line.line_total, inv_currency)
-        qty_para = Paragraph(xml_escape(str(qty)), label_style)
-        unit_para = Paragraph(xml_escape(unit), label_style)
-        ltot_para = Paragraph(xml_escape(ltot), label_style)
-        chunks = _description_word_chunks(desc, max_chars=_MAX_DESC_CHUNK_CHARS)
-        for chunk in chunks:
-            desc_para = Paragraph(xml_escape(chunk), label_style)
-            table_rows.append([desc_para, qty_para, unit_para, ltot_para])
-
-    line_table = LongTable(
-        table_rows,
-        colWidths=[72 * mm, 24 * mm, 38 * mm, 38 * mm],
-        repeatRows=1,
-    )
-    style_cmds = [
+    base_line_style_cmds = [
         ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
@@ -319,9 +321,63 @@ def render_invoice_pdf(
         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("ALIGN", (1, 1), (3, -1), "RIGHT"),
     ]
-    line_table.setStyle(TableStyle(style_cmds))
-    story.append(line_table)
-    story.append(Spacer(1, 10))
+
+    header_row = [
+        Paragraph("<b>Description</b>", label_style),
+        Paragraph("<b>Quantity</b>", label_style),
+        Paragraph("<b>Unit Price</b>", label_style),
+        Paragraph("<b>Total</b>", label_style),
+    ]
+
+    first_line_item = True
+    for line in ordered:
+        desc = line.description or ""
+        qty = line.quantity.quantize(Decimal("0.0001")).normalize()
+        unit = format_money(line.unit_amount, inv_currency)
+        ltot = format_money(line.line_total, inv_currency)
+        qty_para = Paragraph(xml_escape(str(qty)), label_style)
+        unit_para = Paragraph(xml_escape(unit), label_style)
+        ltot_para = Paragraph(xml_escape(ltot), label_style)
+        chunks = _description_row_strings(desc)
+
+        seg_start = 0
+        while seg_start < len(chunks):
+            batch = chunks[seg_start : seg_start + _LINE_TABLE_BODY_ROWS_MAX]
+            seg_end = seg_start + len(batch)
+
+            table_rows: list[list] = []
+            if first_line_item and seg_start == 0:
+                table_rows.append(header_row)
+
+            row_start = len(table_rows)
+            for i, chunk in enumerate(batch):
+                global_idx = seg_start + i
+                desc_para = Paragraph(xml_escape(chunk), label_style)
+                if global_idx == 0:
+                    table_rows.append([desc_para, qty_para, unit_para, ltot_para])
+                else:
+                    empty = Paragraph("", label_style)
+                    table_rows.append([desc_para, empty, empty, empty])
+
+            style_cmds = list(base_line_style_cmds)
+            n_batch = len(batch)
+            if n_batch > 1:
+                last_row = row_start + n_batch - 1
+                for col in (1, 2, 3):
+                    style_cmds.append(("SPAN", (col, row_start), (col, last_row)))
+
+            repeat_rows = 1 if first_line_item and seg_start == 0 else 0
+            line_table = LongTable(
+                table_rows,
+                colWidths=[72 * mm, 24 * mm, 38 * mm, 38 * mm],
+                repeatRows=repeat_rows,
+            )
+            line_table.setStyle(TableStyle(style_cmds))
+            story.append(line_table)
+
+            seg_start = seg_end
+
+        first_line_item = False
 
     sub = format_money(invoice.subtotal, inv_currency)
     tot = format_money(invoice.total, inv_currency)
