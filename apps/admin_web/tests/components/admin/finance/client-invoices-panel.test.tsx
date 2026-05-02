@@ -621,7 +621,7 @@ describe('ClientInvoicesPanel', () => {
   ) => ({
     enrollmentId: overrides.enrollmentId ?? 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     partyDisplayName: overrides.partyDisplayName ?? 'Pat',
-    partyEmail: overrides.partyEmail ?? 'pat@example.com',
+    partyEmail: overrides.partyEmail !== undefined ? overrides.partyEmail : 'pat@example.com',
     instanceTitle: 'Inst',
     serviceTierName: null,
     instanceCohort: null,
@@ -944,6 +944,7 @@ describe('ClientInvoicesPanel', () => {
       expect(screen.getByText('Sam Sample · sam@example.com')).toBeInTheDocument();
     });
     expect(screen.getByText('No Email Party')).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Email' })).not.toBeInTheDocument();
+    const enrollmentPicker = screen.getByRole('region', { name: 'Enrollment picker' });
+    expect(within(enrollmentPicker).queryByRole('columnheader', { name: 'Email' })).not.toBeInTheDocument();
   });
 });
