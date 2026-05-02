@@ -88,6 +88,19 @@ function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
   return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
 }
 
+/** Party column: `name · email` when email is non-empty; otherwise party name only. */
+function formatEnrollmentPartyCellDisplay(row: BillingEnrollmentPickerRow): string {
+  const party = row.partyDisplayName?.trim() ?? '';
+  const email = row.partyEmail?.trim() ?? '';
+  if (email === '') {
+    return party;
+  }
+  if (party === '') {
+    return email;
+  }
+  return `${party} \u00b7 ${email}`;
+}
+
 function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): boolean {
   const trimmed = input.trim();
   const baseline = defaultLineAmount(row);
@@ -793,7 +806,7 @@ export function ClientInvoicesPanel() {
             </p>
           ) : null}
           <section aria-label='Enrollment picker'>
-          <AdminDataTable tableClassName='min-w-[1120px]'>
+          <AdminDataTable>
             <AdminDataTableHead>
               <tr>
                 <th className='px-3 py-2'>
@@ -826,7 +839,6 @@ export function ClientInvoicesPanel() {
                   />
                 </th>
                 <th className='px-3 py-2'>Party</th>
-                <th className='px-3 py-2'>Email</th>
                 <th className='px-3 py-2'>Instance</th>
                 <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
                 <th className='px-3 py-2 text-right'>Price</th>
@@ -837,13 +849,13 @@ export function ClientInvoicesPanel() {
             <AdminDataTableBody>
               {enrollmentPickerLoading ? (
                 <tr>
-                  <td colSpan={8} className='px-3 py-6 text-sm text-slate-600'>
+                  <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
                     Loading enrollments…
                   </td>
                 </tr>
               ) : enrollmentPickerRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className='px-3 py-6 text-sm text-slate-600'>
+                  <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
                     No enrollments match this filter.
                   </td>
                 </tr>
@@ -860,6 +872,7 @@ export function ClientInvoicesPanel() {
                       ? formatAmountInCurrency(parsedAmount, currencyCode)
                       : '—';
                   const tierCohortDisplay = formatTierCohortDisplay(row.serviceTierName, row.instanceCohort);
+                  const partyCellDisplay = formatEnrollmentPartyCellDisplay(row);
                   return (
                     <tr
                       key={row.enrollmentId}
@@ -891,8 +904,9 @@ export function ClientInvoicesPanel() {
                           </span>
                         ) : null}
                       </td>
-                      <td className='px-3 py-2 align-top text-sm'>{row.partyDisplayName}</td>
-                      <td className='px-3 py-2 align-top text-sm'>{row.partyEmail ?? '—'}</td>
+                      <td className='min-w-0 max-w-[22rem] break-words px-3 py-2 align-top text-sm'>
+                        {partyCellDisplay !== '' ? partyCellDisplay : '—'}
+                      </td>
                       <td className='px-3 py-2 align-top text-sm'>{row.instanceTitle ?? '—'}</td>
                       <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
                         {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}

@@ -613,6 +613,7 @@ describe('ClientInvoicesPanel', () => {
     overrides: Partial<{
       enrollmentId: string;
       partyDisplayName: string;
+      partyEmail: string | null;
       billToMergeKey: string;
       invoiceLinked: boolean;
       amountPaid: string | null;
@@ -620,7 +621,7 @@ describe('ClientInvoicesPanel', () => {
   ) => ({
     enrollmentId: overrides.enrollmentId ?? 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     partyDisplayName: overrides.partyDisplayName ?? 'Pat',
-    partyEmail: 'pat@example.com',
+    partyEmail: overrides.partyEmail !== undefined ? overrides.partyEmail : 'pat@example.com',
     instanceTitle: 'Inst',
     serviceTierName: null,
     instanceCohort: null,
@@ -659,7 +660,7 @@ describe('ClientInvoicesPanel', () => {
     });
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => expect(screen.getByText('Alice Alpha')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Alice Alpha/)).toBeInTheDocument());
 
     const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
     await userEvent.type(filterInput, 'Bob');
@@ -674,9 +675,9 @@ describe('ClientInvoicesPanel', () => {
     );
 
     await waitFor(() => {
-      expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Alice Alpha/)).not.toBeInTheDocument();
     });
-    expect(screen.getByText('Bob Beta')).toBeInTheDocument();
+    expect(screen.getByText(/Bob Beta/)).toBeInTheDocument();
   });
 
   it('server-side filter matches enrollment id substring', async () => {
@@ -706,7 +707,7 @@ describe('ClientInvoicesPanel', () => {
     });
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => expect(screen.getByText('Alice Alpha')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Alice Alpha/)).toBeInTheDocument());
 
     const filterInput = screen.getByPlaceholderText(/Search name, email, title, tier, cohort/i);
     await userEvent.type(filterInput, '22222222');
@@ -721,9 +722,9 @@ describe('ClientInvoicesPanel', () => {
     );
 
     await waitFor(() => {
-      expect(screen.queryByText('Alice Alpha')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Alice Alpha/)).not.toBeInTheDocument();
     });
-    expect(screen.getByText('Bob Beta')).toBeInTheDocument();
+    expect(screen.getByText(/Bob Beta/)).toBeInTheDocument();
   });
 
   it('create draft omits currency when selection is valid', async () => {
@@ -919,5 +920,31 @@ describe('ClientInvoicesPanel', () => {
       const rowChecks = screen.getAllByRole('checkbox', { name: /^Select enrollment /i });
       expect(rowChecks.filter((el) => (el as HTMLInputElement).checked)).toHaveLength(2);
     });
+  });
+
+  it('draft enrollment picker Party column merges name and email with middle dot', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
+          partyDisplayName: 'Sam Sample',
+          partyEmail: 'sam@example.com',
+        }),
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-222222222222',
+          partyDisplayName: 'No Email Party',
+          partyEmail: null,
+        }),
+      ],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Sam Sample · sam@example.com')).toBeInTheDocument();
+    });
+    expect(screen.getByText('No Email Party')).toBeInTheDocument();
+    const enrollmentPicker = screen.getByRole('region', { name: 'Enrollment picker' });
+    expect(within(enrollmentPicker).queryByRole('columnheader', { name: 'Email' })).not.toBeInTheDocument();
   });
 });
