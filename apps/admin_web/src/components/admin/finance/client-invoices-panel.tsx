@@ -72,7 +72,7 @@ function enrollmentNeedsAmountConfirmation(row: BillingEnrollmentPickerRow): boo
     return true;
   }
   const n = Number.parseFloat(ap);
-  return Number.isNaN(n) || n === 0;
+  return Number.isNaN(n);
 }
 
 function parseAmountInput(raw: string): number | null {
@@ -278,13 +278,10 @@ export function ClientInvoicesPanel() {
 
   const draftAmountIssue = useMemo(() => {
     for (const row of selectedEnrollmentRows) {
-      if (!enrollmentNeedsAmountConfirmation(row)) {
-        continue;
-      }
       const raw = lineOverrideByEnrollmentId[row.enrollmentId] ?? defaultLineAmount(row);
       const amt = parseAmountInput(raw);
-      if (amt === null || amt === 0) {
-        return 'Enter a non-zero line total for enrollments with no recorded amount.';
+      if (amt === null) {
+        return 'Enter a valid number for every line total (0 is allowed).';
       }
     }
     return '';
@@ -945,8 +942,7 @@ export function ClientInvoicesPanel() {
                     <span className='font-mono text-xs text-slate-600'>{row.enrollmentId}</span>
                     {needsAmt ? (
                       <p className='w-full text-xs text-amber-900'>
-                        This enrollment has no recorded amount (or amount is zero); set a value or it will create a
-                        0.00 line.
+                        This enrollment has no recorded amount; enter a line total (use 0 for a zero-dollar line).
                       </p>
                     ) : null}
                     <div className='flex items-center gap-2'>

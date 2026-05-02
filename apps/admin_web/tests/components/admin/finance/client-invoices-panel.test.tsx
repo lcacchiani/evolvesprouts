@@ -765,6 +765,65 @@ describe('ClientInvoicesPanel', () => {
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
   });
 
+  it('create draft allows zero-dollar enrollments with recorded amount 0', async () => {
+    const id1 = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: id1,
+          billToMergeKey: 'family||fam-1||',
+          amountPaid: '0',
+        }),
+      ],
+      truncated: false,
+    });
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-zero', status: 'draft' });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getByRole('checkbox', { name: /Select enrollment/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Select enrollment/i }));
+
+    const createBtn = screen.getByRole('button', { name: /create draft invoice/i });
+    expect(createBtn).not.toBeDisabled();
+
+    await userEvent.click(createBtn);
+
+    await waitFor(() => {
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+    });
+    const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.enrollmentIds).toEqual([id1]);
+    expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
+  });
+
+  it('create draft is disabled when line total override is not a valid number', async () => {
+    const id1 = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: id1,
+          billToMergeKey: 'family||fam-1||',
+          amountPaid: '50.00',
+        }),
+      ],
+      truncated: false,
+    });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => screen.getByRole('checkbox', { name: /Select enrollment/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Select enrollment/i }));
+
+    const override1 = document.getElementById(`billing-line-override-${id1}`) as HTMLInputElement;
+    await userEvent.clear(override1);
+    await userEvent.type(override1, 'not-a-number');
+
+    expect(screen.getByRole('button', { name: /create draft invoice/i })).toBeDisabled();
+    expect(screen.getByText(/Enter a valid number for every line total/i)).toBeInTheDocument();
+    expect(billingMocks.createDraftInvoice).not.toHaveBeenCalled();
+  });
+
   it('create draft sends lineTotalsByEnrollmentId when override differs', async () => {
     const id1 = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
