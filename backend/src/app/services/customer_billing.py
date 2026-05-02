@@ -23,7 +23,6 @@ from app.db.models.enums import (
 from app.db.models.payment_allocation import DocumentCounter, PaymentAllocation
 from app.services.aws_clients import get_s3_client
 from app.services.customer_invoice_pdf import (
-    compute_invoice_snapshot_dates,
     render_invoice_pdf,
 )
 from app.services.customer_receipt_pdf import render_receipt_pdf
