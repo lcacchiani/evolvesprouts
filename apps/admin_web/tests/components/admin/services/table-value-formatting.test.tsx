@@ -6,6 +6,7 @@ import { EnrollmentListPanel } from '@/components/admin/services/enrollment-list
 import { InstanceListPanel } from '@/components/admin/services/instance-list-panel';
 import { ServiceListPanel } from '@/components/admin/services/service-list-panel';
 import { formatDate } from '@/lib/format';
+import { formatAmountInCurrency } from '@/lib/vendor-spend';
 import type { DiscountCode, Enrollment, ServiceInstance, ServiceSummary } from '@/types/services';
 
 vi.mock('@/lib/services-api', () => ({
@@ -391,6 +392,11 @@ describe('services tables value formatting', () => {
 
     const table = screen.getByRole('table');
     expect(within(table).getByText('Waitlisted')).toBeInTheDocument();
+    expect(
+      within(table).getByText(
+        formatAmountInCurrency(Number.parseFloat(ENROLLMENT_FIXTURE.amountPaid), ENROLLMENT_FIXTURE.currency!),
+      ),
+    ).toBeInTheDocument();
     expect(within(table).getByText(formatDate(ENROLLMENT_FIXTURE.enrolledAt))).toBeInTheDocument();
   });
 });

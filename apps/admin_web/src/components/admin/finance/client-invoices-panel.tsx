@@ -36,7 +36,12 @@ import {
   type CustomerPaymentSummary,
 } from '@/lib/billing-api';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
-import { getCurrencyOptions } from '@/lib/format';
+import {
+  getCurrencyOptions,
+  INSTANCE_TABLE_TIER_COHORT_HEADER,
+  formatTierCohortDisplay,
+} from '@/lib/format';
+import { formatAmountInCurrency } from '@/lib/vendor-spend';
 
 const DRAFT_FORM_ID = 'client-billing-draft-invoice-form';
 const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
@@ -595,7 +600,7 @@ export function ClientInvoicesPanel() {
     for (const id of ids) {
       const row = rowsById.get(id);
       if (!row || row.invoiceLinked) {
-        setActionError('Selection is out of date; refresh enrollments and try again.');
+        setActionError('The enrollment list changed; update your selection and try again.');
         return;
       }
     }
@@ -784,32 +789,13 @@ export function ClientInvoicesPanel() {
                 disabled={editorBusy}
               />
             </div>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={editorBusy}
-              onClick={() => {
-                setSelectedEnrollmentIds(new Set());
-                setLineOverrideByEnrollmentId({});
-              }}
-            >
-              Clear selection
-            </Button>
             <span className='text-sm text-slate-600' aria-live='polite'>
               {selectedEnrollmentIds.size} selected
             </span>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={editorBusy || enrollmentPickerLoading}
-              onClick={() => void loadEnrollmentPicker(undefined, enrollmentFilter.trim())}
-            >
-              Refresh enrollments
-            </Button>
           </div>
           {enrollmentPickerTruncated ? (
             <p className='text-sm text-amber-800' role='status'>
-              Enrollment list may be incomplete (server capped additional pages). Refresh after filtering or contact support for full exports.
+              Enrollment list may be incomplete (server capped additional pages). Narrow your filter or contact support for full exports.
             </p>
           ) : null}
           <section aria-label='Enrollment picker'>
@@ -848,8 +834,7 @@ export function ClientInvoicesPanel() {
                 <th className='px-3 py-2'>Party</th>
                 <th className='px-3 py-2'>Email</th>
                 <th className='px-3 py-2'>Instance</th>
-                <th className='px-3 py-2'>Tier</th>
-                <th className='px-3 py-2'>Cohort</th>
+                <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
                 <th className='px-3 py-2 text-right'>Price</th>
                 <th className='px-3 py-2'>Enrolled</th>
                 <th className='px-3 py-2'>Invoice</th>
@@ -858,13 +843,13 @@ export function ClientInvoicesPanel() {
             <AdminDataTableBody>
               {enrollmentPickerLoading ? (
                 <tr>
-                  <td colSpan={9} className='px-3 py-6 text-sm text-slate-600'>
+                  <td colSpan={8} className='px-3 py-6 text-sm text-slate-600'>
                     Loading enrollments…
                   </td>
                 </tr>
               ) : enrollmentPickerRows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className='px-3 py-6 text-sm text-slate-600'>
+                  <td colSpan={8} className='px-3 py-6 text-sm text-slate-600'>
                     No enrollments match this filter.
                   </td>
                 </tr>
@@ -873,10 +858,14 @@ export function ClientInvoicesPanel() {
                   const blocked = row.invoiceLinked;
                   const checked = selectedEnrollmentIds.has(row.enrollmentId);
                   const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
+                  const amountPaidTrimmed = row.amountPaid?.trim() ?? '';
+                  const currencyCode = (row.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+                  const parsedAmount = Number.parseFloat(amountPaidTrimmed);
                   const priceLabel =
-                    row.amountPaid != null && row.amountPaid.trim() !== ''
-                      ? `${row.amountPaid} ${row.currency}`
-                      : `— ${row.currency}`;
+                    amountPaidTrimmed !== '' && Number.isFinite(parsedAmount)
+                      ? formatAmountInCurrency(parsedAmount, currencyCode)
+                      : '—';
+                  const tierCohortDisplay = formatTierCohortDisplay(row.serviceTierName, row.instanceCohort);
                   return (
                     <tr
                       key={row.enrollmentId}
@@ -908,16 +897,17 @@ export function ClientInvoicesPanel() {
                           </span>
                         ) : null}
                       </td>
-                      <td className='px-3 py-2 align-top'>{row.partyDisplayName}</td>
-                      <td className='px-3 py-2 align-top font-mono text-xs'>{row.partyEmail ?? '—'}</td>
-                      <td className='px-3 py-2 align-top'>{row.instanceTitle ?? '—'}</td>
-                      <td className='px-3 py-2 align-top'>{row.serviceTierName ?? '—'}</td>
-                      <td className='px-3 py-2 align-top'>{row.instanceCohort ?? '—'}</td>
-                      <td className='px-3 py-2 align-top text-right tabular-nums'>{priceLabel}</td>
-                      <td className='px-3 py-2 align-top whitespace-nowrap font-mono text-xs'>
+                      <td className='px-3 py-2 align-top text-sm'>{row.partyDisplayName}</td>
+                      <td className='px-3 py-2 align-top text-sm'>{row.partyEmail ?? '—'}</td>
+                      <td className='px-3 py-2 align-top text-sm'>{row.instanceTitle ?? '—'}</td>
+                      <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
+                        {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}
+                      </td>
+                      <td className='px-3 py-2 align-top text-right text-sm tabular-nums'>{priceLabel}</td>
+                      <td className='px-3 py-2 align-top whitespace-nowrap text-sm'>
                         {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
                       </td>
-                      <td className='px-3 py-2 align-top text-xs'>
+                      <td className='px-3 py-2 align-top text-sm'>
                         {blocked ? 'On draft/issued invoice' : '—'}
                       </td>
                     </tr>

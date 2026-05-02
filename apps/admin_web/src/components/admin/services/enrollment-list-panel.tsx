@@ -14,8 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { isAbortRequestError, listEnrollmentDiscountOptions } from '@/lib/services-api';
+import { formatAmountInCurrency } from '@/lib/vendor-spend';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { DiscountCode, Enrollment } from '@/types/services';
@@ -74,6 +76,7 @@ export function EnrollmentListPanel({
   onUpdate,
   onDelete,
 }: EnrollmentListPanelProps) {
+  const defaultCurrencyCode = getAdminDefaultCurrencyCode();
   const currencyOptions = getCurrencyOptions();
   const {
     contactOptions,
@@ -453,44 +456,52 @@ export function EnrollmentListPanel({
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
-            {enrollments.map((enrollment) => (
-              <tr
-                key={enrollment.id}
-                className={`cursor-pointer transition ${
-                  selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                }`}
-                onClick={() => applyEnrollmentSelection(enrollment)}
-              >
-                <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
-                <td className='px-4 py-3'>
-                  {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
-                </td>
-                <td className='px-4 py-3'>
-                  {enrollment.discountCodeId
-                    ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
-                        enrollment.discountCodeId)
-                    : '-'}
-                </td>
-                <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
-                <td className='px-4 py-3 text-right'>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    disabled={isMutating}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void handleDeleteEnrollment(enrollment);
-                    }}
-                    aria-label='Delete enrollment'
-                    title='Delete enrollment'
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {enrollments.map((enrollment) => {
+              const amountRaw = enrollment.amountPaid?.trim() ?? '';
+              const parsedAmount = Number.parseFloat(amountRaw);
+              const currencyCode =
+                (enrollment.currency ?? defaultCurrencyCode).trim().toUpperCase() || defaultCurrencyCode;
+              const amountDisplay =
+                amountRaw !== '' && Number.isFinite(parsedAmount)
+                  ? formatAmountInCurrency(parsedAmount, currencyCode)
+                  : '—';
+              return (
+                <tr
+                  key={enrollment.id}
+                  className={`cursor-pointer transition ${
+                    selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                  onClick={() => applyEnrollmentSelection(enrollment)}
+                >
+                  <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
+                  <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
+                  <td className='px-4 py-3'>{amountDisplay}</td>
+                  <td className='px-4 py-3'>
+                    {enrollment.discountCodeId
+                      ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
+                          enrollment.discountCodeId)
+                      : '-'}
+                  </td>
+                  <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      disabled={isMutating}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleDeleteEnrollment(enrollment);
+                      }}
+                      aria-label='Delete enrollment'
+                      title='Delete enrollment'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>

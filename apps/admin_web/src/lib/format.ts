@@ -138,11 +138,29 @@ export function formatInstanceTableTitle(instance: ServiceInstance): string {
 export const INSTANCE_TABLE_TIER_COHORT_HEADER = `Tier${DISPLAY_PART_SEP}Cohort`;
 
 /**
- * Instances table: parent service tier and cohort.
+ * Tier and cohort on one line (instances table, billing enrollment picker, and similar).
  * Uses space + interpunct + space only when both tier and cohort are non-empty after trim.
  * If only one is present, returns that value alone (no interpunct).
  * Returns empty string when neither is present (UI should show a single placeholder dash).
  */
+export function formatTierCohortDisplay(
+  tier: string | null | undefined,
+  cohort: string | null | undefined,
+): string {
+  const t = tier?.trim() ?? '';
+  const c = cohort?.trim() ?? '';
+  if (t && c) {
+    return `${t}${DISPLAY_PART_SEP}${c}`;
+  }
+  if (t) {
+    return t;
+  }
+  if (c) {
+    return c;
+  }
+  return '';
+}
+
 /** Instances table: seats remaining / max when capped; otherwise unlimited label. */
 export function formatInstanceTableCapacity(instance: ServiceInstance): string {
   const max = instance.maxCapacity;
@@ -155,18 +173,7 @@ export function formatInstanceTableCapacity(instance: ServiceInstance): string {
 }
 
 export function formatInstanceTableTierCohort(instance: ServiceInstance): string {
-  const tier = instance.parentServiceTier?.trim() ?? '';
-  const cohort = instance.cohort?.trim() ?? '';
-  if (tier && cohort) {
-    return `${tier}${DISPLAY_PART_SEP}${cohort}`;
-  }
-  if (tier) {
-    return tier;
-  }
-  if (cohort) {
-    return cohort;
-  }
-  return '';
+  return formatTierCohortDisplay(instance.parentServiceTier, instance.cohort);
 }
 
 /** Full venue label: address (when present) plus geographic area name. */

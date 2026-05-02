@@ -10,6 +10,7 @@ import {
   formatInstanceTableCapacity,
   formatInstanceTableTierCohort,
   formatInstanceTableTitle,
+  formatTierCohortDisplay,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
@@ -499,6 +500,14 @@ describe('format helpers', () => {
         cohort: null,
       })
     ).toBe('');
+  });
+
+  it('formatTierCohortDisplay mirrors instance tier/cohort cell rules', () => {
+    expect(formatTierCohortDisplay('tier-a', null)).toBe('tier-a');
+    expect(formatTierCohortDisplay(null, 'spring-2024')).toBe('spring-2024');
+    expect(formatTierCohortDisplay('t1', 'c1')).toBe('t1 \u00b7 c1');
+    expect(formatTierCohortDisplay('  ', null)).toBe('');
+    expect(formatTierCohortDisplay(null, '  spring-2024  ')).toBe('spring-2024');
   });
 
   it('summarizes instance locations including partner org venues', () => {
