@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { CheckIcon, EmailIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import {
   confirmCustomerPayment,
   createCustomerRefund,
@@ -23,6 +24,7 @@ import {
   emailInvoice,
   exportBillingCsv,
   getCustomerInvoice,
+  getCustomerInvoicePdfDownload,
   getCustomerPayment,
   issueInvoice,
   listCustomerInvoices,
@@ -39,6 +41,7 @@ import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import {
   getCurrencyOptions,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
+  formatDate,
   formatTierCohortDisplay,
 } from '@/lib/format';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
@@ -557,6 +560,19 @@ export function ClientInvoicesPanel() {
     }
   };
 
+  const handleOpenInvoicePdfPreview = async (invoiceId: string) => {
+    setActionError('');
+    setBusy('pdf');
+    try {
+      const { downloadUrl } = await getCustomerInvoicePdfDownload(invoiceId);
+      window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : 'Could not open invoice preview.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const openConfirmPaymentDialog = (paymentId: string) => {
     setConfirmPaymentId(paymentId);
     setConfirmPaymentExternalRef('');
@@ -1025,19 +1041,11 @@ export function ClientInvoicesPanel() {
                 <option value=''>All currencies</option>
                 {currencyOptions.map((o) => (
                   <option key={o.value} value={o.value}>
-                    {o.value}
+                    {o.label}
                   </option>
                 ))}
               </Select>
             </div>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => void loadInvoicesFirstPage()}
-              disabled={invoiceListLoading}
-            >
-              Refresh invoices
-            </Button>
           </div>
         }
       >
@@ -1059,6 +1067,14 @@ export function ClientInvoicesPanel() {
             {invoices.map((inv, index) => {
               const id = inv.id ?? '';
               const selected = id && selectedInvoiceId === id;
+              const totalRaw = inv.total?.trim() ?? '';
+              const parsedTotal = Number.parseFloat(totalRaw);
+              const currencyCode =
+                (inv.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+              const totalDisplay =
+                totalRaw !== '' && Number.isFinite(parsedTotal)
+                  ? formatAmountInCurrency(parsedTotal, currencyCode)
+                  : '—';
               return (
                 <tr
                   key={id || `invoice-row-${String(index)}`}
@@ -1084,22 +1100,49 @@ export function ClientInvoicesPanel() {
                   <td className='px-3 py-2 text-xs text-slate-700'>
                     {inv.billToDisplayName ?? inv.billToEmail ?? '—'}
                   </td>
-                  <td className='px-3 py-2'>
-                    {inv.total} {inv.currency}
-                  </td>
+                  <td className='px-3 py-2'>{totalDisplay}</td>
                   <td className='px-3 py-2'>{inv.lineCount ?? 0}</td>
-                  <td className='px-3 py-2 text-xs text-slate-600'>{inv.createdAt?.slice(0, 19) ?? '—'}</td>
+                  <td className='px-3 py-2'>{formatDate(inv.createdAt ?? null)}</td>
                   <td className='px-3 py-2 text-right'>
                     <div className='flex flex-wrap justify-end gap-1'>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        disabled={editorBusy || !id}
+                        onClick={() => void handleOpenInvoicePdfPreview(id)}
+                        aria-label='Preview invoice PDF'
+                        title='Preview invoice PDF'
+                        aria-busy={busyAction === 'pdf'}
+                      >
+                        {busyAction === 'pdf' ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <ViewIcon className='h-4 w-4' aria-hidden />
+                        )}
+                      </Button>
                       {inv.status === 'draft' ? (
                         <Button
                           type='button'
                           size='sm'
                           variant='secondary'
-                          disabled={editorBusy}
+                          disabled={editorBusy || !id}
                           onClick={() => void handleIssueRow(id)}
+                          aria-label='Issue invoice'
+                          title='Issue invoice'
+                          aria-busy={busyAction === 'issue'}
                         >
-                          {busyAction === 'issue' ? '…' : 'Issue'}
+                          {busyAction === 'issue' ? (
+                            <span
+                              className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                              aria-hidden
+                            />
+                          ) : (
+                            <CheckIcon className='h-4 w-4' aria-hidden />
+                          )}
                         </Button>
                       ) : null}
                       {inv.status === 'issued' ? (
@@ -1107,10 +1150,12 @@ export function ClientInvoicesPanel() {
                           type='button'
                           size='sm'
                           variant='secondary'
-                          disabled={editorBusy}
+                          disabled={editorBusy || !id}
                           onClick={() => openEmailInvoiceDialog(id, inv.billToEmail)}
+                          aria-label='Email invoice PDF'
+                          title='Email invoice PDF'
                         >
-                          Email…
+                          <EmailIcon className='h-4 w-4' aria-hidden />
                         </Button>
                       ) : null}
                       {inv.status !== 'void' ? (
@@ -1118,10 +1163,12 @@ export function ClientInvoicesPanel() {
                           type='button'
                           size='sm'
                           variant='danger'
-                          disabled={editorBusy}
+                          disabled={editorBusy || !id}
                           onClick={() => openVoidInvoiceDialog(id)}
+                          aria-label='Void invoice'
+                          title='Void invoice'
                         >
-                          Void…
+                          <VoidExpenseIcon className='h-4 w-4' aria-hidden />
                         </Button>
                       ) : null}
                     </div>

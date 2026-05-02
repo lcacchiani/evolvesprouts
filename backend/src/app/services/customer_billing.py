@@ -19,6 +19,7 @@ from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.enums import (
+    BillingInvoiceStatus,
     BillingPaymentDirection,
     BillingPaymentStatus,
 )
@@ -467,6 +468,45 @@ def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:
     invoice.issued_pdf_sha256 = digest
     invoice.pdf_template_version = PDF_TEMPLATE_VERSION
     session.flush()
+
+
+def _invoice_preview_s3_key(invoice_id: UUID) -> str:
+    return f"billing/invoices/preview/{invoice_id}.pdf"
+
+
+def upload_invoice_preview_pdf(session: Session, invoice: CustomerInvoice) -> str:
+    """Render invoice lines to PDF and store under a non-canonical preview key (no DB mutation)."""
+    lines = list(
+        session.execute(
+            select(CustomerInvoiceLine).where(
+                CustomerInvoiceLine.invoice_id == invoice.id
+            )
+        )
+        .scalars()
+        .all()
+    )
+    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines)
+    key = _invoice_preview_s3_key(invoice.id)
+    store_pdf_in_assets_bucket(
+        s3_key=key, body=pdf_bytes, content_type="application/pdf"
+    )
+    return key
+
+
+def ensure_invoice_pdf_storage(session: Session, invoice: CustomerInvoice) -> str:
+    """Return S3 object key for opening the invoice PDF (issued artifact or preview upload).
+
+    Issued invoices reuse ``issued_pdf_s3_key`` when set. Draft and void invoices
+    upload to ``billing/invoices/preview/{id}.pdf`` so preview does not overwrite
+    issued PDF metadata or hashes.
+    """
+    if (
+        invoice.status == BillingInvoiceStatus.ISSUED
+        and invoice.issued_pdf_s3_key
+        and invoice.issued_pdf_s3_key.strip()
+    ):
+        return invoice.issued_pdf_s3_key.strip()
+    return upload_invoice_preview_pdf(session, invoice)
 
 
 def send_invoice_email(session: Session, *, invoice_id: UUID, to_email: str) -> None:

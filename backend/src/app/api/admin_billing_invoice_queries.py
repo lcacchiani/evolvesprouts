@@ -21,8 +21,13 @@ from app.api.admin_request import (
     parse_limit,
     query_param,
 )
+from app.api.assets.assets_common import (
+    generate_download_url,
+    signed_link_no_cache_headers,
+)
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.exceptions import NotFoundError, ValidationError
+from app.services.customer_billing import ensure_invoice_pdf_storage
 from app.utils import json_response
 
 
@@ -111,5 +116,36 @@ def get_invoice(
         return json_response(
             200,
             {"invoice": serialize_invoice_detail(inv)},
+            event=event,
+        )
+
+
+def get_invoice_pdf_download(
+    event: Mapping[str, Any],
+    invoice_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    """Return a time-limited CloudFront-signed URL to open the invoice PDF in a browser."""
+    with _session_with_audit(user_sub, request_id) as session:
+        stmt = (
+            select(CustomerInvoice)
+            .where(CustomerInvoice.id == invoice_id)
+            .options(selectinload(CustomerInvoice.lines))
+        )
+        inv = session.execute(stmt).scalar_one_or_none()
+        if inv is None:
+            raise NotFoundError("CustomerInvoice", str(invoice_id))
+        s3_key = ensure_invoice_pdf_storage(session, inv)
+        download = generate_download_url(s3_key=s3_key)
+        extra = signed_link_no_cache_headers()
+        return json_response(
+            200,
+            {
+                "downloadUrl": download["download_url"],
+                "expiresAt": download["expires_at"],
+            },
+            headers=extra,
             event=event,
         )
