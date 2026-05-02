@@ -930,6 +930,72 @@ export class ApiStack extends cdk.Stack {
           "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
+    const publicWwwBusinessName = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessName",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Legal/trading name on customer invoices; align with NEXT_PUBLIC_BUSINESS_NAME.",
+      }
+    );
+    const publicWwwBusinessAddress = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessAddress",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Business postal address for invoice PDFs; newlines or slashes split lines. Align with NEXT_PUBLIC_BUSINESS_ADDRESS.",
+      }
+    );
+    const publicWwwBusinessRegistration = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessRegistration",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Business registration number for invoice footer (BR); align with NEXT_PUBLIC_BUSINESS_REGISTRATION.",
+      }
+    );
+    const publicWwwBankName = new cdk.CfnParameter(this, "PublicWwwBankName", {
+      type: "String",
+      default: "",
+      description: "Bank name for invoice payment instructions; align with NEXT_PUBLIC_BANK_NAME.",
+    });
+    const publicWwwBankAccountHolder = new cdk.CfnParameter(
+      this,
+      "PublicWwwBankAccountHolder",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Bank account holder for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_HOLDER.",
+      }
+    );
+    const publicWwwBankAccountNumber = new cdk.CfnParameter(
+      this,
+      "PublicWwwBankAccountNumber",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Bank account number for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_NUMBER.",
+      }
+    );
+    const invoicePaymentTermsDays = new cdk.CfnParameter(
+      this,
+      "InvoicePaymentTermsDays",
+      {
+        type: "String",
+        default: "7",
+        allowedPattern: "^[0-9]{1,3}$",
+        description:
+          "Calendar days after invoice date until payment is due on PDFs; GitHub CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS.",
+      }
+    );
     const defaultPhoneRegion = new cdk.CfnParameter(this, "DefaultPhoneRegion", {
       type: "String",
       default: "HK",
@@ -2718,6 +2784,34 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
       publicWwwBusinessPhoneNumber.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_NAME",
+      publicWwwBusinessName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_ADDRESS",
+      publicWwwBusinessAddress.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_REGISTRATION",
+      publicWwwBusinessRegistration.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_NAME",
+      publicWwwBankName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_ACCOUNT_HOLDER",
+      publicWwwBankAccountHolder.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_ACCOUNT_NUMBER",
+      publicWwwBankAccountNumber.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "INVOICE_PAYMENT_TERMS_DAYS",
+      invoicePaymentTermsDays.valueAsString
     );
 
     const addAdminMethod = (resource: apigateway.IResource, method: string) =>

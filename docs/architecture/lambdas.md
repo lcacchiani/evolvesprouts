@@ -187,6 +187,13 @@ their primary responsibilities.
   rewritten to `https://wa.me/<phone>` for reliable email clients),
   `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
   align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`),
+  `PUBLIC_WWW_BUSINESS_NAME`, `PUBLIC_WWW_BUSINESS_ADDRESS`,
+  `PUBLIC_WWW_BUSINESS_REGISTRATION` (invoice PDF issuer line + footer BR),
+  `PUBLIC_WWW_BANK_NAME`, `PUBLIC_WWW_BANK_ACCOUNT_HOLDER`,
+  `PUBLIC_WWW_BANK_ACCOUNT_NUMBER` (invoice PDF bank transfer block; align with
+  `NEXT_PUBLIC_BANK_*` / business vars),
+  `INVOICE_PAYMENT_TERMS_DAYS` (calendar days until due date on invoice PDFs;
+  GitHub `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS`),
   `DEFAULT_PHONE_REGION` (ISO 3166-1 alpha-2; CDK `DefaultPhoneRegion`; parses
   public `phone_country` / `attendeeCountry` when omitted), `SUPPORT_EMAIL` (contact-us
   **contact_inquiry** internal notifications only), `COGNITO_USER_POOL_ID`,

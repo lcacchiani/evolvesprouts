@@ -241,8 +241,10 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_WHATSAPP_URL`
 - `NEXT_PUBLIC_INSTAGRAM_URL`
 - `NEXT_PUBLIC_LINKEDIN_URL`
+- `NEXT_PUBLIC_BUSINESS_NAME` (also used for Admin Lambda AR invoice PDF issuer line)
 - `NEXT_PUBLIC_BUSINESS_ADDRESS`
 - `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`
+- `NEXT_PUBLIC_BUSINESS_REGISTRATION` (business registration / BR line on invoice PDF footers)
 - `NEXT_PUBLIC_SITEMAP_LASTMOD` (optional ISO date string)
 
 `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is required at build time for Stripe

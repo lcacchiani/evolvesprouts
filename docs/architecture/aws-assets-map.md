@@ -407,7 +407,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (public form marketing hooks), S3 read/write for the assets bucket; `DEPLOYMENT_STAGE` set to `production` in deployed stacks; `PUBLIC_WWW_BASE_URL` plus optional `PUBLIC_WWW_INSTAGRAM_URL` / `PUBLIC_WWW_LINKEDIN_URL` / `PUBLIC_WWW_WHATSAPP_URL` / `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` for transactional HTML shell data; `SALES_RECAP_DISPLAY_TIMEZONE` from CDK parameter `SalesRecapDisplayTimezone` (optional; app default if empty); `DEFAULT_PHONE_REGION` from CDK parameter `DefaultPhoneRegion` (ISO alpha-2) for parsing public phone fields when region is omitted |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to media, expense parser, and Eventbrite sync topics, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), Secrets Manager read for Mailchimp secret (public form marketing hooks), S3 read/write for the assets bucket; `DEPLOYMENT_STAGE` set to `production` in deployed stacks; `PUBLIC_WWW_BASE_URL` plus optional `PUBLIC_WWW_INSTAGRAM_URL` / `PUBLIC_WWW_LINKEDIN_URL` / `PUBLIC_WWW_WHATSAPP_URL` / `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` for transactional HTML shell data; optional `PUBLIC_WWW_BUSINESS_NAME`, `PUBLIC_WWW_BUSINESS_ADDRESS`, `PUBLIC_WWW_BUSINESS_REGISTRATION`, `PUBLIC_WWW_BANK_NAME`, `PUBLIC_WWW_BANK_ACCOUNT_HOLDER`, `PUBLIC_WWW_BANK_ACCOUNT_NUMBER`, `INVOICE_PAYMENT_TERMS_DAYS` for customer invoice PDFs (align GitHub vars with `NEXT_PUBLIC_*` / `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS`); `SALES_RECAP_DISPLAY_TIMEZONE` from CDK parameter `SalesRecapDisplayTimezone` (optional; invoice PDF calendar dates + recap **Submitted at**; app default if empty); `DEFAULT_PHONE_REGION` from CDK parameter `DefaultPhoneRegion` (ISO alpha-2) for parsing public phone fields when region is omitted |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `ImportLegacyVenuesFunction` | Read admin DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read on `ImportDumpBucket` only |
@@ -647,6 +647,13 @@ configured by stack custom resources (including retention and KMS association).
 | `OpenRouterChatCompletionsUrl` | String | Yes | No | OpenRouter chat completions URL used for invoice parsing |
 | `OpenRouterModel` | String | Yes | No | OpenRouter model identifier for invoice parsing |
 | `OpenRouterMaxFileBytes` | String | No | No | Maximum attachment size (bytes) sent to OpenRouter parser (default: 15728640) |
+| `PublicWwwBusinessName` | String | No | No | Issuer trading/legal name on AR invoice PDFs (GitHub var `NEXT_PUBLIC_BUSINESS_NAME`) |
+| `PublicWwwBusinessAddress` | String | No | No | Issuer address lines on AR invoice PDFs; newlines or `/` split rows (GitHub var `NEXT_PUBLIC_BUSINESS_ADDRESS`) |
+| `PublicWwwBusinessRegistration` | String | No | No | BR / registration fragment for invoice PDF footer (GitHub var `NEXT_PUBLIC_BUSINESS_REGISTRATION`) |
+| `PublicWwwBankName` | String | No | No | Bank label on AR invoice PDFs (GitHub var `NEXT_PUBLIC_BANK_NAME`) |
+| `PublicWwwBankAccountHolder` | String | No | No | Account name on AR invoice PDFs (GitHub var `NEXT_PUBLIC_BANK_ACCOUNT_HOLDER`) |
+| `PublicWwwBankAccountNumber` | String | No | No | Account number on AR invoice PDFs (GitHub var `NEXT_PUBLIC_BANK_ACCOUNT_NUMBER`) |
+| `InvoicePaymentTermsDays` | String | No | No | Days after invoice date for PDF due date (`^[0-9]{1,3}$`; GitHub var `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS`; default `7`) |
 
 ---
 

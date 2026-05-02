@@ -66,8 +66,10 @@ Public WWW API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_WHATSAPP_URL`
 - GitHub variable `NEXT_PUBLIC_INSTAGRAM_URL`
 - GitHub variable `NEXT_PUBLIC_LINKEDIN_URL`
+- GitHub variable `NEXT_PUBLIC_BUSINESS_NAME` (trading / legal name; also used on customer invoice PDFs)
 - GitHub variable `NEXT_PUBLIC_BUSINESS_ADDRESS`
 - GitHub variable `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`
+- GitHub variable `NEXT_PUBLIC_BUSINESS_REGISTRATION` (business registration / BR line for invoice PDF footers)
 
 `NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
 `backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep
