@@ -937,7 +937,17 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Legal/trading name on customer invoices; align with NEXT_PUBLIC_BUSINESS_NAME.",
+          "Trading name shown on invoice PDF From block and public site; align with NEXT_PUBLIC_BUSINESS_NAME.",
+      }
+    );
+    const publicWwwBusinessLegalName = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessLegalName",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Legal entity name for invoice PDF footer; falls back to trading name when empty. Align with NEXT_PUBLIC_BUSINESS_LEGAL_NAME.",
       }
     );
     const publicWwwBusinessAddress = new cdk.CfnParameter(
@@ -947,7 +957,7 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Business postal address for invoice PDFs; newlines or slashes split lines. Align with NEXT_PUBLIC_BUSINESS_ADDRESS.",
+          "Business postal address for invoice PDFs; use newline-separated lines (GitHub vars may use \\n). Align with NEXT_PUBLIC_BUSINESS_ADDRESS.",
       }
     );
     const publicWwwBusinessRegistration = new cdk.CfnParameter(
@@ -983,6 +993,16 @@ export class ApiStack extends cdk.Stack {
         default: "",
         description:
           "Bank account number for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_NUMBER.",
+      }
+    );
+    const invoiceDisplayTimezone = new cdk.CfnParameter(
+      this,
+      "InvoiceDisplayTimezone",
+      {
+        type: "String",
+        default: "",
+        description:
+          "IANA timezone for AR invoice calendar dates at issuance (INVOICE_DISPLAY_TIMEZONE). GitHub CDK_PARAM_INVOICE_DISPLAY_TIMEZONE.",
       }
     );
     const invoicePaymentTermsDays = new cdk.CfnParameter(
@@ -2790,6 +2810,10 @@ export class ApiStack extends cdk.Stack {
       publicWwwBusinessName.valueAsString
     );
     adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_LEGAL_NAME",
+      publicWwwBusinessLegalName.valueAsString
+    );
+    adminFunction.addEnvironment(
       "PUBLIC_WWW_BUSINESS_ADDRESS",
       publicWwwBusinessAddress.valueAsString
     );
@@ -2812,6 +2836,10 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "INVOICE_PAYMENT_TERMS_DAYS",
       invoicePaymentTermsDays.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "INVOICE_DISPLAY_TIMEZONE",
+      invoiceDisplayTimezone.valueAsString
     );
 
     const addAdminMethod = (resource: apigateway.IResource, method: string) =>

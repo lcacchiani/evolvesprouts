@@ -3,21 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import os
-import re
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
-from xml.sax.saxutils import escape as xml_escape
-from zoneinfo import ZoneInfo
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import mm
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -32,12 +22,18 @@ from app.db.models.enums import (
 )
 from app.db.models.payment_allocation import DocumentCounter, PaymentAllocation
 from app.services.aws_clients import get_s3_client
+from app.services.customer_invoice_pdf import (
+    compute_invoice_snapshot_dates,
+    render_invoice_pdf,
+)
+from app.services.customer_receipt_pdf import render_receipt_pdf
 from app.services.email import send_mime_email_with_optional_attachments
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-PDF_TEMPLATE_VERSION = "billing-v2"
+INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v2"
+RECEIPT_PDF_TEMPLATE_VERSION = "billing-receipt-v1"
 _SCOPE_DEFAULT = "default"
 _DOC_INVOICE = "invoice"
 _DOC_RECEIPT = "receipt"
@@ -49,329 +45,6 @@ def _confirmation_from_address() -> str:
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def _invoice_payment_terms_days() -> int:
-    raw = os.getenv("INVOICE_PAYMENT_TERMS_DAYS", "7").strip()
-    if not raw.isdigit():
-        return 7
-    return max(0, int(raw))
-
-
-def _invoice_display_timezone() -> ZoneInfo:
-    tz_name = os.getenv("SALES_RECAP_DISPLAY_TIMEZONE", "").strip()
-    if tz_name:
-        try:
-            return ZoneInfo(tz_name)
-        except Exception:
-            logger.warning(
-                "Invalid SALES_RECAP_DISPLAY_TIMEZONE; using Asia/Hong_Kong",
-                extra={"tz": tz_name},
-            )
-    return ZoneInfo("Asia/Hong_Kong")
-
-
-def _invoice_calendar_date_in_tz(dt: datetime | None, tz: ZoneInfo) -> date:
-    if dt is None:
-        return datetime.now(UTC).astimezone(tz).date()
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=UTC).astimezone(tz).date()
-    return dt.astimezone(tz).date()
-
-
-def _format_money(amount: Decimal, currency: str) -> str:
-    code = (currency or "XXX").upper()[:3]
-    q = amount.quantize(Decimal("0.01"))
-    symbol = {
-        "USD": "$",
-        "HKD": "HK$",
-        "GBP": "£",
-        "EUR": "€",
-        "CNY": "¥",
-    }.get(code)
-    if symbol:
-        return f"{symbol}{q:,.2f}"
-    return f"{q:,.2f} {code}"
-
-
-def _split_address_lines(raw: str) -> list[str]:
-    text = (raw or "").strip()
-    if not text:
-        return []
-    parts = re.split(r"[\n\r]+|(?:\s*/\s*)", text)
-    return [p.strip() for p in parts if p.strip()]
-
-
-def _invoice_pdf_footer_text() -> str:
-    name = os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip()
-    reg = os.getenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "").strip()
-    parts: list[str] = []
-    if name:
-        parts.append(name)
-    if reg:
-        parts.append("Proudly registered in Hong Kong")
-        parts.append(f"BR: {reg}")
-    return " | ".join(parts)
-
-
-def render_invoice_pdf(
-    *,
-    invoice: CustomerInvoice,
-    lines: list[CustomerInvoiceLine],
-) -> bytes:
-    """Render AR invoice PDF (immutable snapshot), styled for client delivery."""
-    buf = io.BytesIO()
-    margin_x = 14 * mm
-    margin_top = 16 * mm
-    margin_bottom = 18 * mm
-    doc = SimpleDocTemplate(
-        buf,
-        pagesize=A4,
-        leftMargin=margin_x,
-        rightMargin=margin_x,
-        topMargin=margin_top,
-        bottomMargin=margin_bottom,
-    )
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "InvTitle",
-        parent=styles["Heading1"],
-        fontSize=14,
-        spaceAfter=10,
-    )
-    label_style = ParagraphStyle(
-        "InvLabel",
-        parent=styles["Normal"],
-        fontSize=9,
-        leading=11,
-    )
-    body_style = ParagraphStyle(
-        "InvBody",
-        parent=styles["Normal"],
-        fontSize=10,
-        leading=12,
-    )
-    tz = _invoice_display_timezone()
-    terms_days = _invoice_payment_terms_days()
-    inv_date = _invoice_calendar_date_in_tz(invoice.issued_at, tz)
-    due_date = inv_date + timedelta(days=terms_days)
-
-    business_name = xml_escape(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
-    address_lines = [
-        xml_escape(p)
-        for p in _split_address_lines(os.getenv("PUBLIC_WWW_BUSINESS_ADDRESS", ""))
-    ]
-    bank_name = os.getenv("PUBLIC_WWW_BANK_NAME", "").strip()
-    bank_holder = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "").strip()
-    bank_number = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "").strip()
-
-    inv_label = (invoice.invoice_number or "").strip()
-    title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
-
-    story: list = [Paragraph(title_line, title_style)]
-
-    from_blocks: list[str] = []
-    if business_name:
-        from_blocks.append(f"<b>From:</b><br/>{business_name}")
-    else:
-        from_blocks.append("<b>From:</b>")
-    for segment in address_lines:
-        from_blocks[-1] += f"<br/>{segment}"
-
-    bill_parts = ["<b>Bill To:</b>"]
-    if invoice.bill_to_display_name:
-        bill_parts.append(xml_escape(invoice.bill_to_display_name))
-    if invoice.bill_to_email:
-        bill_parts.append(xml_escape(invoice.bill_to_email))
-    bill_block = "<br/>".join(bill_parts)
-
-    header_data = [
-        [
-            Paragraph("<br/>".join(from_blocks), label_style),
-            Paragraph(bill_block, label_style),
-        ],
-        [
-            Paragraph(
-                f"<b>Invoice Date:</b> {inv_date.isoformat()}",
-                label_style,
-            ),
-            Paragraph(f"<b>Due Date:</b> {due_date.isoformat()}", label_style),
-        ],
-    ]
-    header_table = Table(header_data, colWidths=[90 * mm, 90 * mm])
-    header_table.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
-    story.append(header_table)
-    story.append(Spacer(1, 6))
-
-    ordered = sorted(lines, key=lambda x: x.line_order)
-    table_rows: list[list] = [
-        [
-            Paragraph("<b>Description</b>", label_style),
-            Paragraph("<b>Quantity</b>", label_style),
-            Paragraph("<b>Unit Price</b>", label_style),
-            Paragraph("<b>Total</b>", label_style),
-        ]
-    ]
-    cur = (invoice.currency or "HKD").upper()[:3]
-    for line in ordered:
-        desc = line.description or ""
-        qty = line.quantity.quantize(Decimal("0.0001")).normalize()
-        unit = _format_money(line.unit_amount, line.currency or cur)
-        ltot = _format_money(line.line_total, line.currency or cur)
-        table_rows.append(
-            [
-                Paragraph(xml_escape(desc), label_style),
-                Paragraph(xml_escape(str(qty)), label_style),
-                Paragraph(xml_escape(unit), label_style),
-                Paragraph(xml_escape(ltot), label_style),
-            ]
-        )
-
-    line_table = Table(
-        table_rows,
-        colWidths=[72 * mm, 24 * mm, 38 * mm, 38 * mm],
-        repeatRows=1,
-    )
-    line_table.setStyle(
-        TableStyle(
-            [
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
-    story.append(line_table)
-    story.append(Spacer(1, 10))
-
-    sub = _format_money(invoice.subtotal, invoice.currency)
-    tot = _format_money(invoice.total, invoice.currency)
-    tax_block: list = []
-    tax_block.append(
-        Table(
-            [
-                [
-                    Paragraph("<b>Subtotal:</b>", body_style),
-                    Paragraph(sub, body_style),
-                ],
-            ],
-            colWidths=[140 * mm, 40 * mm],
-        )
-    )
-    if invoice.tax_total and invoice.tax_total != Decimal("0"):
-        tax_block.append(
-            Table(
-                [
-                    [
-                        Paragraph("<b>Tax:</b>", body_style),
-                        Paragraph(
-                            _format_money(invoice.tax_total, invoice.currency),
-                            body_style,
-                        ),
-                    ],
-                ],
-                colWidths=[140 * mm, 40 * mm],
-            )
-        )
-    tax_block.append(
-        Table(
-            [
-                [
-                    Paragraph("<b>Total:</b>", body_style),
-                    Paragraph(f"<b>{tot}</b>", body_style),
-                ],
-            ],
-            colWidths=[140 * mm, 40 * mm],
-        )
-    )
-    for t in tax_block:
-        story.append(t)
-
-    story.append(Spacer(1, 14))
-    terms_intro = (
-        f"Payment is due within {terms_days} days from the issue of the invoice."
-    )
-    story.append(Paragraph(f"<b>Terms &amp; Conditions:</b>", body_style))
-    story.append(Paragraph(terms_intro, body_style))
-    story.append(
-        Paragraph(
-            "Please make payments using the bank details below:",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 8))
-
-    bank_lines = [
-        f"<b>Bank:</b> {xml_escape(bank_name)}" if bank_name else "",
-        f"<b>Account Number:</b> {xml_escape(bank_number)}" if bank_number else "",
-        f"<b>Account Name:</b> {xml_escape(bank_holder)}" if bank_holder else "",
-    ]
-    for bl in bank_lines:
-        if bl:
-            story.append(Paragraph(bl, body_style))
-
-    footer_text = _invoice_pdf_footer_text()
-
-    def _draw_footer(canvas_obj: canvas.Canvas, _doc: SimpleDocTemplate) -> None:
-        if not footer_text:
-            return
-        canvas_obj.saveState()
-        canvas_obj.setFont("Helvetica", 8)
-        canvas_obj.setFillColor(colors.grey)
-        y_footer = 12 * mm
-        canvas_obj.drawCentredString(A4[0] / 2, y_footer, footer_text)
-        canvas_obj.restoreState()
-
-    doc.build(story, onFirstPage=_draw_footer, onLaterPages=_draw_footer)
-    return buf.getvalue()
-
-
-def render_receipt_pdf(
-    *,
-    receipt: CustomerReceipt,
-    payment: CustomerPayment,
-    allocation_invoice_numbers: list[tuple[str, Decimal]],
-) -> bytes:
-    """Render receipt PDF (one per succeeded inbound payment)."""
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    height = A4[1]
-    y = height - 50
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Payment receipt")
-    y -= 24
-    c.setFont("Helvetica", 10)
-    c.drawString(50, y, f"Receipt: {receipt.receipt_number}")
-    y -= 14
-    c.drawString(50, y, f"Amount: {receipt.total_amount} {receipt.currency}")
-    y -= 14
-    c.drawString(50, y, f"Method: {payment.method}")
-    y -= 14
-    if payment.stripe_payment_intent_id:
-        c.drawString(50, y, f"Stripe PI: {payment.stripe_payment_intent_id}")
-        y -= 14
-    if allocation_invoice_numbers:
-        y -= 8
-        c.drawString(50, y, "Applied to invoices:")
-        y -= 14
-        for inv_no, amt in allocation_invoice_numbers:
-            c.drawString(60, y, f"{inv_no}: {amt} {receipt.currency}")
-            y -= 12
-    c.showPage()
-    c.save()
-    return buf.getvalue()
 
 
 def store_pdf_in_assets_bucket(*, s3_key: str, body: bytes, content_type: str) -> None:
@@ -491,7 +164,7 @@ def create_receipt_for_succeeded_inbound_payment(
         receipt_sequence=seq,
         currency=payment.currency,
         total_amount=payment.amount,
-        pdf_template_version=PDF_TEMPLATE_VERSION,
+        pdf_template_version=RECEIPT_PDF_TEMPLATE_VERSION,
     )
     session.add(receipt)
     session.flush()
@@ -701,7 +374,7 @@ def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:
         .scalars()
         .all()
     )
-    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines)
+    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines, preview=False)
     digest = _sha256_bytes(pdf_bytes)
     key = f"billing/invoices/{invoice.id}.pdf"
     store_pdf_in_assets_bucket(
@@ -709,7 +382,7 @@ def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:
     )
     invoice.issued_pdf_s3_key = key
     invoice.issued_pdf_sha256 = digest
-    invoice.pdf_template_version = PDF_TEMPLATE_VERSION
+    invoice.pdf_template_version = INVOICE_PDF_TEMPLATE_VERSION
     session.flush()
 
 
@@ -728,7 +401,7 @@ def upload_invoice_preview_pdf(session: Session, invoice: CustomerInvoice) -> st
         .scalars()
         .all()
     )
-    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines)
+    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines, preview=True)
     key = _invoice_preview_s3_key(invoice.id)
     store_pdf_in_assets_bucket(
         s3_key=key, body=pdf_bytes, content_type="application/pdf"

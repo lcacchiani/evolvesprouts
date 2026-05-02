@@ -66,10 +66,13 @@ Public WWW API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_WHATSAPP_URL`
 - GitHub variable `NEXT_PUBLIC_INSTAGRAM_URL`
 - GitHub variable `NEXT_PUBLIC_LINKEDIN_URL`
-- GitHub variable `NEXT_PUBLIC_BUSINESS_NAME` (trading / legal name; also used on customer invoice PDFs)
+- GitHub variable `NEXT_PUBLIC_BUSINESS_NAME` (trading name; public site and invoice PDF **From** block)
+- GitHub variable `NEXT_PUBLIC_BUSINESS_LEGAL_NAME` (legal entity; **Admin Lambda** invoice PDF footer only; the public site does not render it today)
 - GitHub variable `NEXT_PUBLIC_BUSINESS_ADDRESS`
 - GitHub variable `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`
-- GitHub variable `NEXT_PUBLIC_BUSINESS_REGISTRATION` (business registration / BR line for invoice PDF footers)
+- GitHub variable `NEXT_PUBLIC_BUSINESS_REGISTRATION` (business registration / BR for invoice PDF footers)
+- GitHub variable `CDK_PARAM_INVOICE_DISPLAY_TIMEZONE` (passes through backend `InvoiceDisplayTimezone` to Admin Lambda `INVOICE_DISPLAY_TIMEZONE` for AR invoice calendar dates; required to issue invoices)
+- GitHub variable `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS` (due-date offset for issued invoices; see `docs/architecture/setup.md`)
 
 `NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
 `backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep

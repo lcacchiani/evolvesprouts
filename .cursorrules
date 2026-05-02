@@ -53,8 +53,9 @@ repo root
   deployment/runtime configuration). Derive them from parameters, environment
   variables, or repository config sources.
 - Allowed exceptions for hardcoding: standards/protocol constants, local-only
-  `localhost` development values, and non-behavioral test/docs examples using
-  `example.com`.
+  `localhost` development values, non-behavioral test/docs examples using
+  `example.com`, and the fixed AR invoice PDF footer clause **"Proudly registered in Hong Kong"**
+  (product jurisdiction line chosen under remediation Option B; not deployment-specific configuration).
 
 ## Workflow (MANDATORY)
 

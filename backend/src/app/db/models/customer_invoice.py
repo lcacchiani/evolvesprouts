@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -87,6 +87,8 @@ class CustomerInvoice(Base):
     issued_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
+    invoice_date: Mapped[date | None] = mapped_column(sa.Date(), nullable=True)
+    due_date: Mapped[date | None] = mapped_column(sa.Date(), nullable=True)
     voided_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
