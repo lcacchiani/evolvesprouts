@@ -113,7 +113,8 @@ their primary responsibilities.
   must be greater than `0`),
   `/v1/admin/expenses/*`,
   `/v1/admin/billing/*` (customer AR: payments, invoices list/detail, draft-from-enrollments,
-  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, allocations, export;
+  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`,
+  allocations, export;
   handler code split across `admin_billing*.py` modules under `app.api`, same Lambda),
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,

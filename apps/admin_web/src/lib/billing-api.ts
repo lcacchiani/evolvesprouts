@@ -66,6 +66,24 @@ export async function getCustomerInvoice(id: string, signal?: AbortSignal): Prom
   return root.invoice;
 }
 
+export async function getCustomerInvoicePdfDownload(
+  id: string,
+  signal?: AbortSignal,
+): Promise<{ downloadUrl: string; expiresAt: string }> {
+  const payload = await adminApiRequest<{ downloadUrl?: string; expiresAt?: string }>({
+    endpointPath: `/v1/admin/billing/invoices/${id}/pdf`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  const downloadUrl = root.downloadUrl;
+  const expiresAt = root.expiresAt;
+  if (!downloadUrl || !expiresAt) {
+    throw new Error('Invoice PDF response missing download URL.');
+  }
+  return { downloadUrl, expiresAt };
+}
+
 export async function listCustomerPayments(signal?: AbortSignal): Promise<CustomerPaymentSummary[]> {
   const payload = await adminApiRequest<{ items?: CustomerPaymentSummary[] }>({
     endpointPath: '/v1/admin/billing/payments',

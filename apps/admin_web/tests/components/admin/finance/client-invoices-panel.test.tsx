@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const billingMocks = vi.hoisted(() => ({
   listCustomerInvoices: vi.fn(),
   getCustomerInvoice: vi.fn(),
+  getCustomerInvoicePdfDownload: vi.fn(),
   listCustomerPayments: vi.fn(),
   getCustomerPayment: vi.fn(),
   issueInvoice: vi.fn(),
@@ -37,6 +38,10 @@ describe('ClientInvoicesPanel', () => {
       id: 'placeholder',
       status: 'draft',
       lines: [],
+    });
+    billingMocks.getCustomerInvoicePdfDownload.mockResolvedValue({
+      downloadUrl: 'https://example.com/signed.pdf',
+      expiresAt: '2026-12-31T00:00:00Z',
     });
   });
 
@@ -164,13 +169,58 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /^issue$/i }));
+    await waitFor(() => screen.getByRole('button', { name: /issue invoice/i }));
 
-    await userEvent.click(screen.getByRole('button', { name: /^issue$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /issue invoice/i }));
 
     await waitFor(() => {
       expect(billingMocks.issueInvoice).toHaveBeenCalledWith(invId);
     });
+  });
+
+  it('preview row action opens invoice PDF URL in a new tab', async () => {
+    const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    billingMocks.listCustomerInvoices.mockResolvedValue({
+      items: [
+        {
+          id: invId,
+          status: 'draft',
+          currency: 'HKD',
+          total: '1',
+          lineCount: 0,
+          createdAt: '2026-01-01T00:00:00+00:00',
+        },
+      ],
+      next_cursor: null,
+    });
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    render(<ClientInvoicesPanel />);
+
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+
+    await waitFor(() =>
+      within(invoiceTable).getByRole('button', { name: /preview invoice pdf/i }),
+    );
+
+    await userEvent.click(
+      within(invoiceTable).getByRole('button', { name: /preview invoice pdf/i }),
+    );
+
+    await waitFor(() => {
+      expect(billingMocks.getCustomerInvoicePdfDownload).toHaveBeenCalledWith(
+        invId,
+        expect.any(AbortSignal),
+      );
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://example.com/signed.pdf',
+        '_blank',
+        'noopener,noreferrer',
+      );
+    });
+
+    openSpy.mockRestore();
   });
 
   it('void dialog calls voidInvoice with reason', async () => {
@@ -192,9 +242,14 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /void/i }));
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
 
-    await userEvent.click(screen.getByRole('button', { name: /void/i }));
+    await waitFor(() =>
+      within(invoiceTable).getByRole('button', { name: /void invoice/i }),
+    );
+
+    await userEvent.click(within(invoiceTable).getByRole('button', { name: /void invoice/i }));
 
     await userEvent.type(screen.getByLabelText(/reason/i), 'Customer cancelled');
     await userEvent.click(screen.getByRole('button', { name: /void invoice$/i }));
@@ -315,9 +370,9 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /email/i }));
+    await waitFor(() => screen.getByRole('button', { name: /email invoice pdf/i }));
 
-    await userEvent.click(screen.getByRole('button', { name: /email/i }));
+    await userEvent.click(screen.getByRole('button', { name: /email invoice pdf/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /email invoice pdf/i })).toBeInTheDocument();
@@ -357,8 +412,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /email/i }));
-    await userEvent.click(screen.getByRole('button', { name: /email/i }));
+    await waitFor(() => screen.getByRole('button', { name: /email invoice pdf/i }));
+    await userEvent.click(screen.getByRole('button', { name: /email invoice pdf/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /email invoice pdf/i })).toBeInTheDocument();
@@ -589,8 +644,8 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /^issue$/i }));
-    await userEvent.click(screen.getByRole('button', { name: /^issue$/i }));
+    await waitFor(() => screen.getByRole('button', { name: /issue invoice/i }));
+    await userEvent.click(screen.getByRole('button', { name: /issue invoice/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Invoice is not draft')).toBeInTheDocument();

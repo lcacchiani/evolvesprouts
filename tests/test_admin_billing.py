@@ -962,6 +962,59 @@ def test_get_invoice_returns_detail_with_lines(
     assert body["invoice"]["lines"][0]["id"] == str(line_id)
 
 
+def test_get_invoice_pdf_returns_signed_url(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+
+    class _Inv:
+        id = inv_id
+        status = BillingInvoiceStatus.DRAFT
+        lines = []
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.execute.return_value.scalar_one_or_none.return_value = _Inv()
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "ensure_invoice_pdf_storage",
+        lambda _session, _inv: "billing/invoices/preview/x.pdf",
+    )
+
+    def _fake_download(*, s3_key: str) -> dict[str, str]:
+        assert s3_key == "billing/invoices/preview/x.pdf"
+        return {
+            "download_url": "https://cdn.example.com/signed",
+            "expires_at": "2026-12-31T00:00:00+00:00",
+        }
+
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "generate_download_url",
+        _fake_download,
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path=f"/v1/admin/billing/invoices/{inv_id}/pdf",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", f"/v1/admin/billing/invoices/{inv_id}/pdf"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert body["downloadUrl"] == "https://cdn.example.com/signed"
+    assert body["expiresAt"] == "2026-12-31T00:00:00+00:00"
+
+
 def test_export_csv_rejects_invalid_export_version(
     api_gateway_event: Any,
     admin_identity: dict[str, str],

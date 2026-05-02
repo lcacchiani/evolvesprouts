@@ -7,7 +7,11 @@ from collections.abc import Mapping
 
 from app.api.admin_billing_allocations import _create_allocation
 from app.api.admin_billing_export import _export_csv
-from app.api.admin_billing_invoice_queries import get_invoice, list_invoices
+from app.api.admin_billing_invoice_queries import (
+    get_invoice,
+    get_invoice_pdf_download,
+    list_invoices,
+)
 from app.api.admin_billing_enrollment_queries import (
     list_recent_enrollments_for_invoicing,
 )
@@ -123,6 +127,10 @@ def handle_admin_billing_request(
             )
         if action == "email" and method == "POST":
             return _email_invoice(
+                event, inv_id, user_sub=identity.user_sub, request_id=req
+            )
+        if action == "pdf" and method == "GET":
+            return get_invoice_pdf_download(
                 event, inv_id, user_sub=identity.user_sub, request_id=req
             )
 
