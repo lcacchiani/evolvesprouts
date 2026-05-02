@@ -338,8 +338,6 @@ jobs:
           NEXT_PUBLIC_INSTAGRAM_URL: ${{ vars.NEXT_PUBLIC_INSTAGRAM_URL }}
           NEXT_PUBLIC_LINKEDIN_URL: ${{ vars.NEXT_PUBLIC_LINKEDIN_URL }}
           NEXT_PUBLIC_WHATSAPP_URL: ${{ vars.NEXT_PUBLIC_WHATSAPP_URL }}
-          # Required for CDK param substitution (production.json <FROM_GITHUB_VAR: ...>) → Admin Lambda
-          # PUBLIC_WWW_* invoice PDF copy (see backend/infrastructure/params/production.json).
           NEXT_PUBLIC_BUSINESS_NAME: ${{ vars.NEXT_PUBLIC_BUSINESS_NAME }}
           NEXT_PUBLIC_BUSINESS_LEGAL_NAME: ${{ vars.NEXT_PUBLIC_BUSINESS_LEGAL_NAME }}
           NEXT_PUBLIC_BUSINESS_ADDRESS: ${{ vars.NEXT_PUBLIC_BUSINESS_ADDRESS }}
