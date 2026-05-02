@@ -930,6 +930,92 @@ export class ApiStack extends cdk.Stack {
           "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
+    const publicWwwBusinessName = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessName",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Trading name shown on invoice PDF From block and public site; align with NEXT_PUBLIC_BUSINESS_NAME.",
+      }
+    );
+    const publicWwwBusinessLegalName = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessLegalName",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Legal entity name for invoice PDF footer; falls back to trading name when empty. Align with NEXT_PUBLIC_BUSINESS_LEGAL_NAME.",
+      }
+    );
+    const publicWwwBusinessAddress = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessAddress",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Business postal address for invoice PDFs; use newline-separated lines (GitHub vars may use \\n). Align with NEXT_PUBLIC_BUSINESS_ADDRESS.",
+      }
+    );
+    const publicWwwBusinessRegistration = new cdk.CfnParameter(
+      this,
+      "PublicWwwBusinessRegistration",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Business registration number for invoice footer (BR); align with NEXT_PUBLIC_BUSINESS_REGISTRATION.",
+      }
+    );
+    const publicWwwBankName = new cdk.CfnParameter(this, "PublicWwwBankName", {
+      type: "String",
+      default: "",
+      description: "Bank name for invoice payment instructions; align with NEXT_PUBLIC_BANK_NAME.",
+    });
+    const publicWwwBankAccountHolder = new cdk.CfnParameter(
+      this,
+      "PublicWwwBankAccountHolder",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Bank account holder for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_HOLDER.",
+      }
+    );
+    const publicWwwBankAccountNumber = new cdk.CfnParameter(
+      this,
+      "PublicWwwBankAccountNumber",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Bank account number for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_NUMBER.",
+      }
+    );
+    const invoiceDisplayTimezone = new cdk.CfnParameter(
+      this,
+      "InvoiceDisplayTimezone",
+      {
+        type: "String",
+        default: "",
+        description:
+          "IANA timezone for AR invoice calendar dates at issuance (INVOICE_DISPLAY_TIMEZONE). GitHub CDK_PARAM_INVOICE_DISPLAY_TIMEZONE.",
+      }
+    );
+    const invoicePaymentTermsDays = new cdk.CfnParameter(
+      this,
+      "InvoicePaymentTermsDays",
+      {
+        type: "String",
+        default: "7",
+        allowedPattern: "^[0-9]{1,3}$",
+        description:
+          "Calendar days after invoice date until payment is due on PDFs; GitHub CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS.",
+      }
+    );
     const defaultPhoneRegion = new cdk.CfnParameter(this, "DefaultPhoneRegion", {
       type: "String",
       default: "HK",
@@ -2718,6 +2804,42 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
       publicWwwBusinessPhoneNumber.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_NAME",
+      publicWwwBusinessName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_LEGAL_NAME",
+      publicWwwBusinessLegalName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_ADDRESS",
+      publicWwwBusinessAddress.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BUSINESS_REGISTRATION",
+      publicWwwBusinessRegistration.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_NAME",
+      publicWwwBankName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_ACCOUNT_HOLDER",
+      publicWwwBankAccountHolder.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_BANK_ACCOUNT_NUMBER",
+      publicWwwBankAccountNumber.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "INVOICE_PAYMENT_TERMS_DAYS",
+      invoicePaymentTermsDays.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "INVOICE_DISPLAY_TIMEZONE",
+      invoiceDisplayTimezone.valueAsString
     );
 
     const addAdminMethod = (resource: apigateway.IResource, method: string) =>

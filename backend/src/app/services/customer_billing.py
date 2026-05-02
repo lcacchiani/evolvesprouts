@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import os
 from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -25,12 +22,17 @@ from app.db.models.enums import (
 )
 from app.db.models.payment_allocation import DocumentCounter, PaymentAllocation
 from app.services.aws_clients import get_s3_client
+from app.services.customer_invoice_pdf import (
+    render_invoice_pdf,
+)
+from app.services.customer_receipt_pdf import render_receipt_pdf
 from app.services.email import send_mime_email_with_optional_attachments
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-PDF_TEMPLATE_VERSION = "billing-v1"
+INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v2"
+RECEIPT_PDF_TEMPLATE_VERSION = "billing-receipt-v1"
 _SCOPE_DEFAULT = "default"
 _DOC_INVOICE = "invoice"
 _DOC_RECEIPT = "receipt"
@@ -42,93 +44,6 @@ def _confirmation_from_address() -> str:
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def render_invoice_pdf(
-    *,
-    invoice: CustomerInvoice,
-    lines: list[CustomerInvoiceLine],
-) -> bytes:
-    """Render a minimal AR invoice PDF (immutable snapshot)."""
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    width, height = A4
-    y = height - 50
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Invoice")
-    y -= 24
-    c.setFont("Helvetica", 10)
-    if invoice.invoice_number:
-        c.drawString(50, y, f"Number: {invoice.invoice_number}")
-        y -= 14
-    if invoice.issued_at:
-        c.drawString(50, y, f"Issued: {invoice.issued_at.isoformat()}")
-        y -= 14
-    c.drawString(50, y, f"Currency: {invoice.currency}")
-    y -= 14
-    if invoice.bill_to_display_name:
-        c.drawString(50, y, f"Bill to: {invoice.bill_to_display_name}")
-        y -= 14
-    if invoice.bill_to_email:
-        c.drawString(50, y, f"Email: {invoice.bill_to_email}")
-        y -= 20
-    y -= 10
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(50, y, "Description")
-    c.drawString(320, y, "Amount")
-    y -= 16
-    c.setFont("Helvetica", 9)
-    for line in sorted(lines, key=lambda x: x.line_order):
-        desc = (line.description or "")[:80]
-        c.drawString(50, y, desc)
-        c.drawRightString(540, y, f"{line.line_total} {line.currency}")
-        y -= 14
-        if y < 80:
-            c.showPage()
-            y = height - 50
-    y -= 10
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(50, y, "Total")
-    c.drawRightString(540, y, f"{invoice.total} {invoice.currency}")
-    c.showPage()
-    c.save()
-    return buf.getvalue()
-
-
-def render_receipt_pdf(
-    *,
-    receipt: CustomerReceipt,
-    payment: CustomerPayment,
-    allocation_invoice_numbers: list[tuple[str, Decimal]],
-) -> bytes:
-    """Render receipt PDF (one per succeeded inbound payment)."""
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    height = A4[1]
-    y = height - 50
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Payment receipt")
-    y -= 24
-    c.setFont("Helvetica", 10)
-    c.drawString(50, y, f"Receipt: {receipt.receipt_number}")
-    y -= 14
-    c.drawString(50, y, f"Amount: {receipt.total_amount} {receipt.currency}")
-    y -= 14
-    c.drawString(50, y, f"Method: {payment.method}")
-    y -= 14
-    if payment.stripe_payment_intent_id:
-        c.drawString(50, y, f"Stripe PI: {payment.stripe_payment_intent_id}")
-        y -= 14
-    if allocation_invoice_numbers:
-        y -= 8
-        c.drawString(50, y, "Applied to invoices:")
-        y -= 14
-        for inv_no, amt in allocation_invoice_numbers:
-            c.drawString(60, y, f"{inv_no}: {amt} {receipt.currency}")
-            y -= 12
-    c.showPage()
-    c.save()
-    return buf.getvalue()
 
 
 def store_pdf_in_assets_bucket(*, s3_key: str, body: bytes, content_type: str) -> None:
@@ -248,7 +163,7 @@ def create_receipt_for_succeeded_inbound_payment(
         receipt_sequence=seq,
         currency=payment.currency,
         total_amount=payment.amount,
-        pdf_template_version=PDF_TEMPLATE_VERSION,
+        pdf_template_version=RECEIPT_PDF_TEMPLATE_VERSION,
     )
     session.add(receipt)
     session.flush()
@@ -458,7 +373,7 @@ def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:
         .scalars()
         .all()
     )
-    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines)
+    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines, preview=False)
     digest = _sha256_bytes(pdf_bytes)
     key = f"billing/invoices/{invoice.id}.pdf"
     store_pdf_in_assets_bucket(
@@ -466,7 +381,7 @@ def refresh_invoice_pdf(session: Session, invoice: CustomerInvoice) -> None:
     )
     invoice.issued_pdf_s3_key = key
     invoice.issued_pdf_sha256 = digest
-    invoice.pdf_template_version = PDF_TEMPLATE_VERSION
+    invoice.pdf_template_version = INVOICE_PDF_TEMPLATE_VERSION
     session.flush()
 
 
@@ -485,7 +400,7 @@ def upload_invoice_preview_pdf(session: Session, invoice: CustomerInvoice) -> st
         .scalars()
         .all()
     )
-    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines)
+    pdf_bytes = render_invoice_pdf(invoice=invoice, lines=lines, preview=True)
     key = _invoice_preview_s3_key(invoice.id)
     store_pdf_in_assets_bucket(
         s3_key=key, body=pdf_bytes, content_type="application/pdf"

@@ -609,8 +609,10 @@ Migration `0055_customer_billing_ar` introduces:
 - `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
 - `document_counters`: serialized invoice/receipt numbering per scope and year.
 - Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.
-- Migration `0056_tighten_invoice_billto` replaces `customer_invoices_bill_to_one_chk` so non-draft
-  rows have exactly one bill-to FK populated (exclusive branches per `bill_to_kind`).
+- Migration `0057_invoice_dates_snapshot` adds nullable `invoice_date` and `due_date`
+  on `customer_invoices` (calendar snapshots computed at issuance in
+  `INVOICE_DISPLAY_TIMEZONE`; drafts leave both null). PDF rendering prefers these
+  columns when set.
 
 **CSV export (admin):** `GET /v1/admin/billing/export` defaults to **`export_version=2`**
 (query `exportVersion`, default `2`). v2 emits `payment`, `refund`, `invoice`,
