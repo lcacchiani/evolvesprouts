@@ -7,4 +7,4 @@ sqlalchemy==2.0.46
 phonenumbers==9.0.29
 pycountry==26.2.16
 reportlab==4.4.6
-pypdf==5.1.0
+pypdf==6.10.2
