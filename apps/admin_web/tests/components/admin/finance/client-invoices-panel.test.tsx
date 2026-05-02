@@ -209,10 +209,7 @@ describe('ClientInvoicesPanel', () => {
     );
 
     await waitFor(() => {
-      expect(billingMocks.getCustomerInvoicePdfDownload).toHaveBeenCalledWith(
-        invId,
-        expect.any(AbortSignal),
-      );
+      expect(billingMocks.getCustomerInvoicePdfDownload).toHaveBeenCalledWith(invId);
       expect(openSpy).toHaveBeenCalledWith(
         'https://example.com/signed.pdf',
         '_blank',
@@ -252,7 +249,10 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.click(within(invoiceTable).getByRole('button', { name: /void invoice/i }));
 
     await userEvent.type(screen.getByLabelText(/reason/i), 'Customer cancelled');
-    await userEvent.click(screen.getByRole('button', { name: /void invoice$/i }));
+    const voidDialog = screen.getByRole('alertdialog');
+    await userEvent.click(
+      within(voidDialog).getByRole('button', { name: /^void invoice$/i }),
+    );
 
     await waitFor(() => {
       expect(billingMocks.voidInvoice).toHaveBeenCalledWith(invId, 'Customer cancelled');
