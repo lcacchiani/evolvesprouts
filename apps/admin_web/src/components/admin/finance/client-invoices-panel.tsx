@@ -786,9 +786,6 @@ export function ClientInvoicesPanel() {
                 disabled={editorBusy}
               />
             </div>
-            <span className='text-sm text-slate-600' aria-live='polite'>
-              {selectedEnrollmentIds.size} selected
-            </span>
           </div>
           {enrollmentPickerTruncated ? (
             <p className='text-sm text-amber-800' role='status'>

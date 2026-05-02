@@ -916,7 +916,8 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /Select all visible enrollments/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('2 selected')).toBeInTheDocument();
+      const rowChecks = screen.getAllByRole('checkbox', { name: /^Select enrollment /i });
+      expect(rowChecks.filter((el) => (el as HTMLInputElement).checked)).toHaveLength(2);
     });
   });
 });
