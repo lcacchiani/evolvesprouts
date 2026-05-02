@@ -20,12 +20,12 @@ copy for client invoices; exception documented in repository ``.cursorrules``.
 
 from __future__ import annotations
 
+import html
 import io
 import os
 import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from xml.sax.saxutils import escape as xml_escape
 from zoneinfo import ZoneInfo
 
 from reportlab.lib import colors
@@ -44,6 +44,12 @@ from reportlab.platypus import (
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
+
+
+def _esc(text: str) -> str:
+    """Escape for ReportLab Paragraph (HTML-like); avoids stdlib ``xml`` (Semgrep / XXE)."""
+    return html.escape(text, quote=True)
+
 
 _INVOICE_JURISDICTION_LINE = "Proudly registered in Hong Kong"
 
@@ -255,9 +261,9 @@ def render_invoice_pdf(
         fontName="Helvetica-Bold",
     )
 
-    business_name = xml_escape(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
+    business_name = _esc(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
     address_lines = [
-        xml_escape(p)
+        _esc(p)
         for p in split_address_lines(os.getenv("PUBLIC_WWW_BUSINESS_ADDRESS", ""))
     ]
     bank_name = os.getenv("PUBLIC_WWW_BANK_NAME", "").strip()
@@ -268,7 +274,7 @@ def render_invoice_pdf(
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
 
-    story: list = [Paragraph(xml_escape(title_line), title_style)]
+    story: list = [Paragraph(_esc(title_line), title_style)]
 
     from_blocks: list[str] = []
     if business_name:
@@ -280,9 +286,9 @@ def render_invoice_pdf(
 
     bill_parts = ["<b>Bill To:</b>"]
     if invoice.bill_to_display_name:
-        bill_parts.append(xml_escape(invoice.bill_to_display_name))
+        bill_parts.append(_esc(invoice.bill_to_display_name))
     if invoice.bill_to_email:
-        bill_parts.append(xml_escape(invoice.bill_to_email))
+        bill_parts.append(_esc(invoice.bill_to_email))
     bill_block = "<br/>".join(bill_parts)
 
     header_data = [
@@ -335,9 +341,9 @@ def render_invoice_pdf(
         qty = line.quantity.quantize(Decimal("0.0001")).normalize()
         unit = format_money(line.unit_amount, inv_currency)
         ltot = format_money(line.line_total, inv_currency)
-        qty_para = Paragraph(xml_escape(str(qty)), label_style)
-        unit_para = Paragraph(xml_escape(unit), label_style)
-        ltot_para = Paragraph(xml_escape(ltot), label_style)
+        qty_para = Paragraph(_esc(str(qty)), label_style)
+        unit_para = Paragraph(_esc(unit), label_style)
+        ltot_para = Paragraph(_esc(ltot), label_style)
         chunks = _description_row_strings(desc)
 
         seg_start = 0
@@ -352,7 +358,7 @@ def render_invoice_pdf(
             row_start = len(table_rows)
             for i, chunk in enumerate(batch):
                 global_idx = seg_start + i
-                desc_para = Paragraph(xml_escape(chunk), label_style)
+                desc_para = Paragraph(_esc(chunk), label_style)
                 if global_idx == 0:
                     table_rows.append([desc_para, qty_para, unit_para, ltot_para])
                 else:
@@ -398,7 +404,7 @@ def render_invoice_pdf(
     totals_rows.append(
         [
             Paragraph("<b>Total:</b>", body_bold_style),
-            Paragraph(f"<b>{xml_escape(tot)}</b>", body_bold_style),
+            Paragraph(f"<b>{_esc(tot)}</b>", body_bold_style),
         ]
     )
     totals_table = Table(totals_rows, colWidths=[140 * mm, 40 * mm])
@@ -419,7 +425,7 @@ def render_invoice_pdf(
         f"Payment is due within {terms_days} days from the issue of the invoice."
     )
     story.append(Paragraph("<b>Terms &amp; Conditions:</b>", body_style))
-    story.append(Paragraph(xml_escape(terms_intro), body_style))
+    story.append(Paragraph(_esc(terms_intro), body_style))
     if has_bank_block:
         story.append(
             Paragraph(
@@ -429,9 +435,9 @@ def render_invoice_pdf(
         )
         story.append(Spacer(1, 8))
         for bl in (
-            f"<b>Bank:</b> {xml_escape(bank_name)}" if bank_name else "",
-            f"<b>Account Number:</b> {xml_escape(bank_number)}" if bank_number else "",
-            f"<b>Account Name:</b> {xml_escape(bank_holder)}" if bank_holder else "",
+            f"<b>Bank:</b> {_esc(bank_name)}" if bank_name else "",
+            f"<b>Account Number:</b> {_esc(bank_number)}" if bank_number else "",
+            f"<b>Account Name:</b> {_esc(bank_holder)}" if bank_holder else "",
         ):
             if bl:
                 story.append(Paragraph(bl, body_style))
