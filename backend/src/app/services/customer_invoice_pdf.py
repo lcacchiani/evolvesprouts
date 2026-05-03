@@ -40,6 +40,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import (
+    Flowable,
     Image,
     LongTable,
     Paragraph,
@@ -62,21 +63,19 @@ def _esc(text: str) -> str:
 
 _INVOICE_JURISDICTION_LINE = "Proudly registered in Hong Kong"
 
-# Brand-aligned body text (matches public-site logo palette).
 _INV_TEXT = colors.HexColor("#1c3542")
 _INV_MUTED = colors.HexColor("#5a6b73")
 _INV_GRID = colors.HexColor("#d4dce0")
-_INV_TITLE = colors.HexColor("#2c3e50")  # Title navy used in reference
-_INV_HEADER_FILL = colors.HexColor("#33495d")  # Items table header dark fill
-_INV_HEADER_TEXT = colors.white  # Items table header text
-_INV_BODY_TEXT = colors.HexColor("#333333")  # Body text colour
-_INV_LABEL_TEXT = colors.HexColor("#555555")  # "From:", "Bill To:", "Terms…" etc.
-_INV_PANEL_FILL = colors.HexColor(
-    "#f7f9fa"
-)  # Soft blue-grey card fill (dates / totals)
-_INV_RULE = colors.HexColor("#cfd6da")  # Thin rules under header band & above Total
-_INV_DIVIDER = colors.HexColor("#1c2a36")  # Strong horizontal rule under title
-_INV_FOOTER_TEXT = colors.HexColor("#7f8c8d")  # Footer muted grey
+_INV_TITLE = colors.HexColor("#2c3e50")
+_INV_HEADER_FILL = colors.HexColor("#33495d")
+_INV_HEADER_TEXT = colors.white
+_INV_BODY_TEXT = colors.HexColor("#333333")
+_INV_LABEL_TEXT = colors.HexColor("#555555")
+_INV_PANEL_FILL = colors.HexColor("#f7f9fa")
+_INV_RULE = colors.HexColor("#cfd6da")
+_INV_DIVIDER = colors.HexColor("#1c2a36")
+_INV_TOTAL_RULE = colors.HexColor("#33495d")
+_INV_FOOTER_TEXT = colors.HexColor("#7f8c8d")
 _INV_LOGO_PATH = (
     Path(__file__).resolve().parent.parent
     / "assets"
@@ -84,14 +83,66 @@ _INV_LOGO_PATH = (
     / "evolvesprouts-invoice-logo.png"
 )
 
+# Source PNG has ~16.3% transparent padding on each side; render the box at
+# 52mm so the visible content lands at ~35mm to match the reference template.
+_INV_LOGO_BOX_MM = 52
+
+
+class RoundedPanel(Flowable):
+    """Fixed-size flowable that paints a rounded-corner background and renders an inner table on top."""
+
+    def __init__(
+        self,
+        inner: Flowable,
+        width: float,
+        height: float,
+        fill: colors.Color,
+        radius: float = 4.0,
+        valign: str = "middle",
+        inset_top: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self._inner = inner
+        self.width = width
+        self.height = height
+        self._fill = fill
+        self._radius = radius
+        self._valign = valign
+        self._inset_top = inset_top
+
+    def wrap(self, _aw: float, _ah: float) -> tuple[float, float]:
+        return self.width, self.height
+
+    def draw(self) -> None:
+        c = self.canv
+        c.saveState()
+        c.setFillColor(self._fill)
+        c.setStrokeColor(self._fill)
+        c.roundRect(
+            0,
+            0,
+            self.width,
+            self.height,
+            self._radius,
+            stroke=0,
+            fill=1,
+        )
+        c.restoreState()
+        _, inner_h = self._inner.wrap(self.width, self.height)
+        if self._valign == "top":
+            y_offset = max(0.0, self.height - inner_h - self._inset_top)
+        else:
+            y_offset = max(0.0, (self.height - inner_h) / 2.0)
+        self._inner.drawOn(c, 0, y_offset)
+
 
 def _invoice_logo_flowable() -> Image | Paragraph:
     if not _INV_LOGO_PATH.is_file():
         return Paragraph("", _SAMPLE_STYLES["Normal"])
     img = Image(
         str(_INV_LOGO_PATH),
-        width=35 * mm,
-        height=35 * mm,
+        width=_INV_LOGO_BOX_MM * mm,
+        height=_INV_LOGO_BOX_MM * mm,
         kind="proportional",
     )
     img.hAlign = "LEFT"
@@ -191,7 +242,7 @@ def format_money(amount: Decimal, currency: str) -> str:
 _MAX_DESC_CHUNK_CHARS = 100
 # Max body description rows per LongTable (plus optional header). Keep low so
 # a slice still fits a partial page after header/footer/wrapped totals above.
-_LINE_TABLE_BODY_ROWS_MAX = 14
+_LINE_TABLE_BODY_ROWS_MAX = 8
 
 
 def _description_row_strings(text: str) -> list[str]:
@@ -260,7 +311,7 @@ def render_invoice_pdf(
 
     buf = io.BytesIO()
     margin_x = 10 * mm
-    margin_top = 14 * mm
+    margin_top = 10 * mm
     margin_bottom = 18 * mm
     doc = SimpleDocTemplate(
         buf,
@@ -286,7 +337,7 @@ def render_invoice_pdf(
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
         fontSize=12,
-        leading=14,
+        leading=18,
         textColor=_INV_LABEL_TEXT,
     )
     body_text_style = ParagraphStyle(
@@ -294,7 +345,7 @@ def render_invoice_pdf(
         parent=styles["Normal"],
         fontName="Helvetica",
         fontSize=12,
-        leading=14,
+        leading=18,
         textColor=_INV_BODY_TEXT,
     )
     header_label_style = ParagraphStyle(
@@ -346,6 +397,8 @@ def render_invoice_pdf(
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
 
+    # Hero row: logo box (52mm rendered → ~35mm visible after PNG transparent
+    # padding) on the left, INVOICE title vertically centred on the right.
     hero_table = Table(
         [
             [
@@ -353,21 +406,22 @@ def render_invoice_pdf(
                 Paragraph(_esc(title_line), title_style),
             ]
         ],
-        colWidths=[44 * mm, 146 * mm],
+        colWidths=[60 * mm, 130 * mm],
     )
     hero_table.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (0, 0), 18),
-                ("LEFTPADDING", (1, 0), (1, 0), 0),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 18),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
     story: list = [hero_table]
+
+    story.append(Spacer(1, 14))
 
     divider_table = Table(
         [[Paragraph(" ", body_text_style)]],
@@ -377,7 +431,7 @@ def render_invoice_pdf(
     divider_table.setStyle(
         TableStyle(
             [
-                ("LINEBELOW", (0, 0), (-1, -1), 1.0, _INV_DIVIDER),
+                ("LINEBELOW", (0, 0), (-1, -1), 1.2, _INV_DIVIDER),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
@@ -386,7 +440,7 @@ def render_invoice_pdf(
         )
     )
     story.append(divider_table)
-    story.append(Spacer(1, 30))
+    story.append(Spacer(1, 22))
 
     from_body_parts: list[str] = []
     if business_name:
@@ -394,11 +448,9 @@ def render_invoice_pdf(
     from_body_parts.extend(address_lines)
     from_body_html = "<br/>".join(from_body_parts) if from_body_parts else ""
 
-    from_lines = min(
-        6,
-        max(2, (1 if business_name else 0) + len(address_lines)),
-    )
-    header_row_pt = 14 + (from_lines * 14) + 4
+    body_lines_count = (1 if business_name else 0) + len(address_lines)
+    from_lines = min(6, max(2, body_lines_count))
+    header_row_pt = max(150, 22 + (from_lines * 18) + 22)
 
     from_cell = Table(
         [
@@ -414,7 +466,8 @@ def render_invoice_pdf(
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 4),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 0),
             ]
         )
     )
@@ -440,7 +493,8 @@ def render_invoice_pdf(
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 4),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 0),
             ]
         )
     )
@@ -462,41 +516,35 @@ def render_invoice_pdf(
                 )
             ],
         ],
-        colWidths=[60 * mm],
+        colWidths=[58 * mm],
     )
     dates_inner.setStyle(
         TableStyle(
             [
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 14),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 14),
-                ("TOPPADDING", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (0, 0), 0),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 14),
+                ("TOPPADDING", (0, 1), (0, 1), 0),
+                ("BOTTOMPADDING", (0, 1), (0, 1), 0),
             ]
         )
     )
 
-    dates_wrapped = Table(
-        [[dates_inner]],
-        colWidths=[60 * mm],
-        rowHeights=[header_row_pt],
-    )
-    dates_wrapped.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, -1), _INV_PANEL_FILL),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
+    dates_panel = RoundedPanel(
+        dates_inner,
+        width=58 * mm,
+        height=header_row_pt,
+        fill=_INV_PANEL_FILL,
+        radius=4.0,
+        valign="top",
+        inset_top=20.0,
     )
 
     header_band = Table(
-        [[from_cell, bill_cell, dates_wrapped]],
-        colWidths=[70 * mm, 60 * mm, 60 * mm],
+        [[from_cell, bill_cell, dates_panel]],
+        colWidths=[70 * mm, 62 * mm, 58 * mm],
         rowHeights=[header_row_pt],
     )
     header_band.setStyle(
@@ -506,12 +554,12 @@ def render_invoice_pdf(
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
     story.append(header_band)
-    story.append(Spacer(1, 24))
+    story.append(Spacer(1, 32))
 
     header_row = [
         Paragraph("<b>Description</b>", header_label_style),
@@ -554,11 +602,11 @@ def render_invoice_pdf(
             n_batch = len(batch)
             row_body_start = 1 if has_header else 0
             style_cmds: list[tuple] = [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
             ]
             if has_header:
                 hdr = 0
@@ -566,8 +614,9 @@ def render_invoice_pdf(
                     [
                         ("BACKGROUND", (0, hdr), (-1, hdr), _INV_HEADER_FILL),
                         ("TEXTCOLOR", (0, hdr), (-1, hdr), _INV_HEADER_TEXT),
-                        ("ALIGN", (0, hdr), (0, hdr), "LEFT"),
-                        ("ALIGN", (1, hdr), (3, hdr), "LEFT"),
+                        ("ALIGN", (0, hdr), (-1, hdr), "LEFT"),
+                        ("TOPPADDING", (0, hdr), (-1, hdr), 12),
+                        ("BOTTOMPADDING", (0, hdr), (-1, hdr), 12),
                         (
                             "LINEBELOW",
                             (0, hdr),
@@ -583,10 +632,7 @@ def render_invoice_pdf(
 
             if body_start <= n_rows - 1:
                 style_cmds.append(
-                    ("ALIGN", (0, body_start), (0, n_rows - 1), "LEFT"),
-                )
-                style_cmds.append(
-                    ("ALIGN", (1, body_start), (3, n_rows - 1), "RIGHT"),
+                    ("ALIGN", (0, body_start), (-1, n_rows - 1), "LEFT"),
                 )
 
             if n_batch > 1:
@@ -645,32 +691,39 @@ def render_invoice_pdf(
         ]
     )
     last_row = len(inner_totals_rows) - 1
+    totals_card_w = 88 * mm
+    totals_card_h = 30 * (last_row + 1) + 28
     inner_totals = Table(
         inner_totals_rows,
-        colWidths=[55 * mm, 32 * mm],
+        colWidths=[48 * mm, 40 * mm],
     )
-    inner_totals.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, -1), _INV_PANEL_FILL),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 14),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 14),
-                ("TOPPADDING", (0, 0), (-1, -1), 12),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-                ("LINEABOVE", (0, last_row), (-1, last_row), 0.5, _INV_RULE),
-            ]
-        )
+    totals_style_cmds: list[tuple] = [
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LINEABOVE", (1, last_row), (1, last_row), 0.6, _INV_TOTAL_RULE),
+    ]
+    inner_totals.setStyle(TableStyle(totals_style_cmds))
+
+    totals_panel = RoundedPanel(
+        inner_totals,
+        width=totals_card_w,
+        height=totals_card_h,
+        fill=_INV_PANEL_FILL,
+        radius=4.0,
     )
 
     totals_outer = Table(
         [
             [
                 Paragraph("", body_text_style),
-                inner_totals,
+                totals_panel,
             ]
         ],
-        colWidths=[103 * mm, 87 * mm],
+        colWidths=[102 * mm, 88 * mm],
+        rowHeights=[totals_card_h],
     )
     totals_outer.setStyle(
         TableStyle(
@@ -678,14 +731,15 @@ def render_invoice_pdf(
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (0, 0), 14),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ("ALIGN", (1, 0), (1, 0), "RIGHT"),
             ]
         )
     )
+    story.append(Spacer(1, 18))
     story.append(totals_outer)
-    story.append(Spacer(1, 28))
+    story.append(Spacer(1, 36))
 
     terms_intro = (
         f"Payment is due within {terms_days} days from the issue of the invoice."
@@ -703,9 +757,9 @@ def render_invoice_pdf(
         )
         story.append(Spacer(1, 12))
         bank_lines = [
-            f"<b>Bank:</b> {_esc(bank_name)}" if bank_name else "",
-            f"<b>Account Number:</b> {_esc(bank_number)}" if bank_number else "",
-            f"<b>Account Name:</b> {_esc(bank_holder)}" if bank_holder else "",
+            f"Bank: {_esc(bank_name)}" if bank_name else "",
+            f"Account Number: {_esc(bank_number)}" if bank_number else "",
+            f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
         ]
         for idx, bl in enumerate(bank_lines):
             if not bl:

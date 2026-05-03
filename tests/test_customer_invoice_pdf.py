@@ -67,7 +67,7 @@ def _pdf_layout(pdf: bytes):
     return doc, page, spans, images
 
 
-def _v5_standard_invoice(
+def _v6_standard_invoice(
     monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[SimpleNamespace, SimpleNamespace]:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
@@ -120,8 +120,8 @@ def _rgb_close(
     return all(abs(a - b) <= tol for a, b in zip(rgb, target))
 
 
-def test_v5_logo_size_and_position(monkeypatch: pytest.MonkeyPatch) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+def test_v6_logo_size_and_position(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     _doc, _page, _spans, images = _pdf_layout(pdf)
     if not images:
@@ -130,58 +130,63 @@ def test_v5_logo_size_and_position(monkeypatch: pytest.MonkeyPatch) -> None:
     bbox = images[0]["bbox"]
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
-    assert 95 <= w <= 105
-    assert 95 <= h <= 105
-    assert 42 <= bbox[0] <= 60
+    # 52mm rendered box (~147 pt) preserves aspect; PNG includes ~16% transparent
+    # padding so the visible content lands at ~100pt to match the reference template.
+    assert 140 <= w <= 155
+    assert 140 <= h <= 155
+    assert 25 <= bbox[0] <= 35
 
 
-def test_v5_invoice_title_centred_with_logo(monkeypatch: pytest.MonkeyPatch) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+def test_v6_invoice_title_centred_with_logo(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     _doc, _page, spans, _images = _pdf_layout(pdf)
     inv_spans = [s for s in spans if "INVOICE" in s["text"]]
     assert inv_spans
     bb = inv_spans[0]["bbox"]
-    assert 85 <= bb[1] <= 110
+    assert 85 <= bb[1] <= 130
     assert bb[2] > 540
 
 
-def test_v5_dates_panel_full_height_via_image_render(
+def test_v6_dates_panel_full_height_via_image_render(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     import fitz
 
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
-    x_pt, y_pt = 480, 280
+    # Dates panel spans roughly y_pt 218-368 in v6; sample mid-panel.
+    x_pt, y_pt = 480, 320
     rgb = pix.pixel(int(x_pt * s), int(y_pt * s))
     assert _rgb_close(rgb, (247, 249, 250))
 
 
-def test_v5_items_header_navy_fill(monkeypatch: pytest.MonkeyPatch) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+def test_v6_items_header_navy_fill(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     import fitz
 
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
-    rgb = pix.pixel(int(200 * s), int(325 * s))
+    # Items header navy band sits around y_pt 400-437 in v6.
+    rgb = pix.pixel(int(200 * s), int(420 * s))
     assert _rgb_close(rgb, (51, 73, 93))
 
 
-def test_v5_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v6_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
     from reportlab.lib.units import mm
 
-    inv, line = _v5_standard_invoice(monkeypatch)
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     import fitz
 
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
     W = pix.width
-    y_pt = 369
+    # Totals card spans y_pt ~493-580 in v6; sample mid-card.
+    y_pt = 530
     y = int(y_pt * s)
 
     def matches_panel(rgb: tuple[int, int, int]) -> bool:
@@ -210,11 +215,11 @@ def test_v5_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
             left_pt = start / s
 
     assert 82 * mm <= longest <= 92 * mm
-    assert 110 * mm <= left_pt <= 130 * mm
+    assert 105 * mm <= left_pt <= 125 * mm
 
 
-def test_v5_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+def test_v6_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     import fitz
 
@@ -236,8 +241,8 @@ def test_v5_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None
     assert thin_grey_between == 0
 
 
-def test_v5_footer_y_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
-    inv, line = _v5_standard_invoice(monkeypatch)
+def test_v6_footer_y_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     _doc, _page, spans, _images = _pdf_layout(pdf)
     foot = [
@@ -248,7 +253,7 @@ def test_v5_footer_y_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
     assert 780 <= y0 <= 795
 
 
-def test_v5_multiline_last_chunk_skips_rule(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v6_multiline_last_chunk_skips_rule(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
@@ -298,7 +303,7 @@ def test_v5_multiline_last_chunk_skips_rule(monkeypatch: pytest.MonkeyPatch) -> 
     assert thin == 5
 
 
-def test_v5_tax_total_line_above_rule(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v6_tax_total_line_above_rule(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
@@ -325,13 +330,13 @@ def test_v5_tax_total_line_above_rule(monkeypatch: pytest.MonkeyPatch) -> None:
         d["rect"].y0
         for d in page.get_drawings()
         if d.get("type") == "s"
-        and abs((d.get("width") or 0) - 0.5) < 0.05
+        and abs((d.get("width") or 0) - 0.6) < 0.05
         and d.get("rect")
     ]
     assert len(mid_rules) >= 1
 
 
-def test_v5_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
@@ -367,7 +372,7 @@ def test_v5_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v5"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v6"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -413,7 +418,7 @@ def test_description_not_split_midword(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Weaning Workshop for Bump & Co" in text
 
 
-def test_invoice_template_v4_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_invoice_template_v6_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
