@@ -204,7 +204,7 @@ their primary responsibilities.
   `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (sales recap recipient resolution via Cognito group),
   `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; CDK `SalesRecapDisplayTimezone` parameter, empty = app default),
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
-- **AR PDF template versions (DB `pdf_template_version` column, shared by invoices and receipts):** issued customer invoices set `INVOICE_PDF_TEMPLATE_VERSION` = `billing-invoice-v2`; receipts set `RECEIPT_PDF_TEMPLATE_VERSION` = `billing-receipt-v1`.
+- **AR PDF template versions (DB `pdf_template_version` column, shared by invoices and receipts):** issued customer invoices set `INVOICE_PDF_TEMPLATE_VERSION` = `billing-invoice-v4`; receipts set `RECEIPT_PDF_TEMPLATE_VERSION` = `billing-receipt-v1`.
 - **Invoice currency display:** `HKD` amounts render with the `HK$` prefix in AR invoice PDFs.
 - **AR invoice footer (Option B):** when both legal/trading and registration are set, the centered footer is `{legal_name} | Proudly registered in Hong Kong | BR: {reg}` with `legal_name` = `PUBLIC_WWW_BUSINESS_LEGAL_NAME` or `PUBLIC_WWW_BUSINESS_NAME`, and with fallbacks: legal only → legal; registration only → `BR: {reg}`; both empty → no footer. The **"Proudly registered in Hong Kong"** fragment is fixed product copy (see `.cursorrules` exception).
 - **Snapshot dates:** on issue, `customer_invoices.invoice_date` and `customer_invoices.due_date` are persisted (see `docs/architecture/database-schema.md`); the PDF uses these when present; draft previews compute dates in **UTC** when columns are null.

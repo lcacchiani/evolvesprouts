@@ -51,11 +51,107 @@ def _inv_line(**kwargs: object) -> SimpleNamespace:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v2"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v4"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
     )
+
+
+def test_description_not_split_midword(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_BUSINESS_ADDRESS",
+        "507, 5/F, Arion Commercial Centre\n2-12 Queen's Road West\n"
+        "Sheung Wan\nHong Kong SAR",
+    )
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_LEGAL_NAME", "Evolve Sprouts Ltd")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "41492636-000-02-25-0")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "389 - Mox Bank Limited")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "749 86477821")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "IDA DE GREGORIO")
+    inv = SimpleNamespace(
+        invoice_number="I-2603-027",
+        currency="HKD",
+        subtotal=Decimal("583.33"),
+        tax_total=Decimal("0"),
+        total=Decimal("583.33"),
+        bill_to_display_name="Bump and Co",
+        bill_to_email=None,
+        issued_at=datetime(2026, 3, 25, 12, 0, tzinfo=UTC),
+        invoice_date=date(2026, 3, 25),
+        due_date=date(2026, 4, 1),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = SimpleNamespace(
+        line_order=0,
+        description="Weaning Workshop for Bump & Co",
+        quantity=Decimal("1"),
+        unit_amount=Decimal("583.33"),
+        line_total=Decimal("583.33"),
+        currency="HKD",
+    )
+    text = _pdf_text(render_invoice_pdf(invoice=inv, lines=[line], preview=False))
+    assert "Weaning Workshop for Bump & Co" in text
+
+
+def test_invoice_template_v4_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_BUSINESS_ADDRESS",
+        "507, 5/F, Arion Commercial Centre\n2-12 Queen's Road West\n"
+        "Sheung Wan\nHong Kong SAR",
+    )
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_LEGAL_NAME", "Evolve Sprouts Ltd")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "41492636-000-02-25-0")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "389 - Mox Bank Limited")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "749 86477821")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "IDA DE GREGORIO")
+    inv = SimpleNamespace(
+        invoice_number="I-2603-027",
+        currency="HKD",
+        subtotal=Decimal("583.33"),
+        tax_total=Decimal("0"),
+        total=Decimal("583.33"),
+        bill_to_display_name="Bump and Co",
+        bill_to_email=None,
+        issued_at=datetime(2026, 3, 25, 12, 0, tzinfo=UTC),
+        invoice_date=date(2026, 3, 25),
+        due_date=date(2026, 4, 1),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = SimpleNamespace(
+        line_order=0,
+        description="Weaning Workshop for Bump & Co",
+        quantity=Decimal("1"),
+        unit_amount=Decimal("583.33"),
+        line_total=Decimal("583.33"),
+        currency="HKD",
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    from pypdf import PdfReader
+
+    r = PdfReader(io.BytesIO(pdf))
+    assert len(r.pages) == 1
+    text = _pdf_text(pdf)
+    for fragment in (
+        "INVOICE I-2603-027",
+        "From:",
+        "Bill To:",
+        "Invoice Date:",
+        "Due Date:",
+        "Description",
+        "Quantity",
+        "Unit Price",
+        "Total",
+        "Subtotal:",
+        "Evolve Sprouts Ltd | Proudly registered in Hong Kong | BR: 41492636-000-02-25-0",
+    ):
+        assert fragment in text
 
 
 def test_footer_text_option_b_combinations(monkeypatch: pytest.MonkeyPatch) -> None:
