@@ -524,6 +524,8 @@ def render_invoice_pdf(
                     table_rows.append([desc_para, empty, empty, empty])
 
             n_rows = len(table_rows)
+            n_batch = len(batch)
+            row_body_start = 1 if has_header else 0
             style_cmds: list[tuple] = [
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
@@ -559,6 +561,13 @@ def render_invoice_pdf(
                 style_cmds.append(
                     ("ALIGN", (1, body_start), (3, n_rows - 1), "RIGHT"),
                 )
+
+            if n_batch > 1:
+                last_body_row = row_body_start + n_batch - 1
+                for col in (1, 2, 3):
+                    style_cmds.append(
+                        ("SPAN", (col, row_body_start), (col, last_body_row))
+                    )
 
             for r in range(body_start, n_rows):
                 style_cmds.append(
