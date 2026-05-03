@@ -473,11 +473,17 @@ def generate_upload_url(*, s3_key: str, content_type: str | None) -> dict[str, A
     }
 
 
-def generate_download_url(*, s3_key: str) -> dict[str, Any]:
+def generate_download_url(
+    *, s3_key: str, cache_bust_key: str | None = None
+) -> dict[str, Any]:
     """Generate a CloudFront-signed GET URL for download."""
     expiry_days = _download_link_expiry_days()
     expires_at = datetime.now(UTC) + timedelta(days=expiry_days)
-    url = generate_signed_download_url(s3_key=s3_key, expires_at=expires_at)
+    url = generate_signed_download_url(
+        s3_key=s3_key,
+        expires_at=expires_at,
+        cache_bust_key=cache_bust_key,
+    )
     return {
         "download_url": url,
         "expires_at": expires_at.isoformat(),

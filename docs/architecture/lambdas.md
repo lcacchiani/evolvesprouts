@@ -113,7 +113,10 @@ their primary responsibilities.
   must be greater than `0`),
   `/v1/admin/expenses/*`,
   `/v1/admin/billing/*` (customer AR: payments, invoices list/detail, draft-from-enrollments,
-  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`,
+  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`
+  (returns a CloudFront-signed URL; each response includes a unique cache-bust query on the
+  signed resource so draft/void preview PDFs re-uploaded to the same S3 key are not edge-cached
+  as an older file),
   allocations, export;
   handler code split across `admin_billing*.py` modules under `app.api`, same Lambda),
   `/v1/user/assets/*`,

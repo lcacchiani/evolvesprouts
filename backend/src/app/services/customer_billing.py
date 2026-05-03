@@ -56,6 +56,7 @@ def store_pdf_in_assets_bucket(*, s3_key: str, body: bytes, content_type: str) -
         Key=s3_key,
         Body=body,
         ContentType=content_type,
+        CacheControl="private, max-age=0, must-revalidate",
     )
 
 

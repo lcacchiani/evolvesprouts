@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -138,7 +139,10 @@ def get_invoice_pdf_download(
         if inv is None:
             raise NotFoundError("CustomerInvoice", str(invoice_id))
         s3_key = ensure_invoice_pdf_storage(session, inv)
-        download = generate_download_url(s3_key=s3_key)
+        download = generate_download_url(
+            s3_key=s3_key,
+            cache_bust_key=str(time.time_ns()),
+        )
         extra = signed_link_no_cache_headers()
         return json_response(
             200,
