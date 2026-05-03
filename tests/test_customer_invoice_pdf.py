@@ -50,8 +50,324 @@ def _inv_line(**kwargs: object) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
+def _pdf_layout(pdf: bytes):
+    import fitz
+
+    doc = fitz.open(stream=pdf, filetype="pdf")
+    page = doc[0]
+    blocks = page.get_text("dict")["blocks"]
+    spans, images = [], []
+    for b in blocks:
+        if b["type"] == 0:
+            for ln in b["lines"]:
+                for sp in ln["spans"]:
+                    spans.append(sp)
+        else:
+            images.append(b)
+    return doc, page, spans, images
+
+
+def _v5_standard_invoice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> tuple[SimpleNamespace, SimpleNamespace]:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_BUSINESS_ADDRESS",
+        "507, 5/F, Arion Commercial Centre\n2-12 Queen's Road West\n"
+        "Sheung Wan\nHong Kong SAR",
+    )
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_LEGAL_NAME", "Evolve Sprouts Ltd")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "41492636-000-02-25-0")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "389 - Mox Bank Limited")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "749 86477821")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "IDA DE GREGORIO")
+    inv = SimpleNamespace(
+        invoice_number="I-2603-027",
+        currency="HKD",
+        subtotal=Decimal("583.33"),
+        tax_total=Decimal("0"),
+        total=Decimal("583.33"),
+        bill_to_display_name="Bump and Co",
+        bill_to_email=None,
+        issued_at=datetime(2026, 3, 25, 12, 0, tzinfo=UTC),
+        invoice_date=date(2026, 3, 25),
+        due_date=date(2026, 4, 1),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = SimpleNamespace(
+        line_order=0,
+        description="Weaning Workshop for Bump & Co",
+        quantity=Decimal("1"),
+        unit_amount=Decimal("583.33"),
+        line_total=Decimal("583.33"),
+        currency="HKD",
+    )
+    return inv, line
+
+
+def _pixmap_pt_coords(page, dpi: int = 120):
+    """Return (pix, s) where pixel row for PDF pt y is int(y * s)."""
+    pix = page.get_pixmap(dpi=dpi)
+    s = pix.width / page.rect.width
+    return pix, s
+
+
+def _rgb_close(
+    rgb: tuple[int, int, int], target: tuple[int, int, int], tol: int = 4
+) -> bool:
+    return all(abs(a - b) <= tol for a, b in zip(rgb, target))
+
+
+def test_v5_logo_size_and_position(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    _doc, _page, _spans, images = _pdf_layout(pdf)
+    if not images:
+        pytest.skip("invoice logo asset not present in test environment")
+    assert len(images) == 1
+    bbox = images[0]["bbox"]
+    w = bbox[2] - bbox[0]
+    h = bbox[3] - bbox[1]
+    assert 95 <= w <= 105
+    assert 95 <= h <= 105
+    assert 42 <= bbox[0] <= 60
+
+
+def test_v5_invoice_title_centred_with_logo(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    _doc, _page, spans, _images = _pdf_layout(pdf)
+    inv_spans = [s for s in spans if "INVOICE" in s["text"]]
+    assert inv_spans
+    bb = inv_spans[0]["bbox"]
+    assert 85 <= bb[1] <= 110
+    assert bb[2] > 540
+
+
+def test_v5_dates_panel_full_height_via_image_render(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    pix, s = _pixmap_pt_coords(page)
+    x_pt, y_pt = 480, 250
+    rgb = pix.pixel(int(x_pt * s), int(y_pt * s))
+    assert _rgb_close(rgb, (247, 249, 250))
+
+
+def test_v5_items_header_navy_fill(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    pix, s = _pixmap_pt_coords(page)
+    rgb = pix.pixel(int(200 * s), int(325 * s))
+    assert _rgb_close(rgb, (51, 73, 93))
+
+
+def test_v5_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
+    from reportlab.lib.units import mm
+
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    pix, s = _pixmap_pt_coords(page)
+    W = pix.width
+    y_pt = 369
+    y = int(y_pt * s)
+
+    def matches_panel(rgb: tuple[int, int, int]) -> bool:
+        return _rgb_close(rgb, (247, 249, 250))
+
+    longest = 0.0
+    left_pt = 0.0
+    in_run = False
+    start = 0
+    for x in range(W):
+        if matches_panel(pix.pixel(x, y)):
+            if not in_run:
+                start = x
+                in_run = True
+        else:
+            if in_run:
+                w_pt = (x - 1 - start + 1) / s
+                if w_pt > longest:
+                    longest = w_pt
+                    left_pt = start / s
+                in_run = False
+    if in_run:
+        w_pt = (W - 1 - start + 1) / s
+        if w_pt > longest:
+            longest = w_pt
+            left_pt = start / s
+
+    assert 82 * mm <= longest <= 92 * mm
+    assert 110 * mm <= left_pt <= 130 * mm
+
+
+def test_v5_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    thin_grey_between = 0
+    for d in page.get_drawings():
+        if d.get("type") != "s":
+            continue
+        r = d["rect"]
+        w = d.get("width") or 0
+        c = d.get("color")
+        if abs(float(w) - 0.4) > 0.05 or not c or len(c) != 3:
+            continue
+        if max(c) < 0.75:
+            continue
+        y = r.y0
+        if 460 <= y <= 500:
+            thin_grey_between += 1
+    assert thin_grey_between == 0
+
+
+def test_v5_footer_y_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
+    inv, line = _v5_standard_invoice(monkeypatch)
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    _doc, _page, spans, _images = _pdf_layout(pdf)
+    foot = [
+        s for s in spans if "Proudly registered" in s["text"] or "BR:" in s["text"]
+    ]
+    assert foot
+    y0 = foot[0]["bbox"][1]
+    assert 780 <= y0 <= 795
+
+
+def test_v5_multiline_last_chunk_skips_rule(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_ADDRESS", "addr")
+    monkeypatch.delenv("PUBLIC_WWW_BANK_NAME", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", raising=False)
+    desc = ("a " * 51).rstrip()
+    from app.services.customer_invoice_pdf import _description_row_strings
+
+    assert len(_description_row_strings(desc)) == 2
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("3"),
+        tax_total=Decimal("0"),
+        total=Decimal("3"),
+        bill_to_display_name="X",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    lines = [
+        SimpleNamespace(
+            line_order=i,
+            description=desc,
+            quantity=Decimal("1"),
+            unit_amount=Decimal("1"),
+            line_total=Decimal("1"),
+            currency="HKD",
+        )
+        for i in range(3)
+    ]
+    pdf = render_invoice_pdf(invoice=inv, lines=lines, preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    thin = 0
+    for d in page.get_drawings():
+        if d.get("type") != "s":
+            continue
+        w = d.get("width") or 0
+        if abs(float(w) - 0.4) <= 0.05:
+            thin += 1
+    assert thin == 5
+
+
+def test_v5_tax_total_line_above_rule(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_ADDRESS", "a")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "B")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("100"),
+        tax_total=Decimal("10"),
+        total=Decimal("110"),
+        bill_to_display_name="X",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False)
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[0]
+    mid_rules = [
+        d["rect"].y0
+        for d in page.get_drawings()
+        if d.get("type") == "s"
+        and abs((d.get("width") or 0) - 0.5) < 0.05
+        and d.get("rect")
+    ]
+    assert len(mid_rules) >= 1
+
+
+def test_v5_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_ADDRESS", "a")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "B")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("1234567.89"),
+        tax_total=Decimal("0"),
+        total=Decimal("1234567.89"),
+        bill_to_display_name="X",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[
+            _inv_line(
+                unit_amount=Decimal("1234567.89"),
+                line_total=Decimal("1234567.89"),
+            )
+        ],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "HK$" in text
+    assert "1,234" in text
+    assert "567.89" in text
+
+
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v4"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v5"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
