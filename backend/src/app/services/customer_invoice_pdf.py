@@ -467,7 +467,6 @@ def render_invoice_pdf(
     dates_inner.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), _INV_PANEL_FILL),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 14),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 14),
@@ -477,8 +476,26 @@ def render_invoice_pdf(
         )
     )
 
+    dates_wrapped = Table(
+        [[dates_inner]],
+        colWidths=[60 * mm],
+        rowHeights=[header_row_pt],
+    )
+    dates_wrapped.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), _INV_PANEL_FILL),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
     header_band = Table(
-        [[from_cell, bill_cell, dates_inner]],
+        [[from_cell, bill_cell, dates_wrapped]],
         colWidths=[70 * mm, 60 * mm, 60 * mm],
         rowHeights=[header_row_pt],
     )

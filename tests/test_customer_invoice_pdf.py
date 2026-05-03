@@ -155,7 +155,7 @@ def test_v5_dates_panel_full_height_via_image_render(
 
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
-    x_pt, y_pt = 480, 250
+    x_pt, y_pt = 480, 280
     rgb = pix.pixel(int(x_pt * s), int(y_pt * s))
     assert _rgb_close(rgb, (247, 249, 250))
 
