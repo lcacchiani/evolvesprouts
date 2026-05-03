@@ -1647,6 +1647,7 @@ export class ApiStack extends cdk.Stack {
     // Admin function
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
+      extraCopyPaths: ["src/app/assets/invoice"],
       environment: {
         TURNSTILE_SECRET_KEY: turnstileSecretKey.valueAsString,
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,

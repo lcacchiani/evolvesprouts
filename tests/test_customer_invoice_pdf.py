@@ -51,7 +51,7 @@ def _inv_line(**kwargs: object) -> SimpleNamespace:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v2"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v3"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION

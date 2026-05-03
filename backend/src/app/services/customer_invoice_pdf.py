@@ -12,6 +12,10 @@ Environment:
 - ``PUBLIC_WWW_BUSINESS_LEGAL_NAME``: optional legal entity name for footer.
 - ``PUBLIC_WWW_BUSINESS_REGISTRATION``: BR / registration number for footer.
 
+The Evolve Sprouts wordmark is embedded from ``app/assets/invoice/evolvesprouts-invoice-logo.png``
+(raster export of the public-site SVG) so Lambda bundles match brand artwork without SVG
+dependencies at runtime.
+
 HKD amounts render with the ``HK$`` symbol (see architecture docs).
 
 Footer jurisdiction copy ("Proudly registered in Hong Kong") is intentional product
@@ -26,14 +30,17 @@ import os
 import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import (
+    Image,
     LongTable,
     Paragraph,
     SimpleDocTemplate,
@@ -45,6 +52,8 @@ from reportlab.platypus import (
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
 
+_SAMPLE_STYLES = getSampleStyleSheet()
+
 
 def _esc(text: str) -> str:
     """Escape for ReportLab Paragraph (HTML-like); avoids stdlib ``xml`` (Semgrep / XXE)."""
@@ -52,6 +61,26 @@ def _esc(text: str) -> str:
 
 
 _INVOICE_JURISDICTION_LINE = "Proudly registered in Hong Kong"
+
+# Brand-aligned body text (matches public-site logo palette).
+_INV_TEXT = colors.HexColor("#1c3542")
+_INV_MUTED = colors.HexColor("#5a6b73")
+_INV_GRID = colors.HexColor("#d4dce0")
+_INV_LOGO_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "assets"
+    / "invoice"
+    / "evolvesprouts-invoice-logo.png"
+)
+
+
+def _invoice_logo_flowable() -> Image | Paragraph:
+    """Raster logo shipped with the app package (same artwork as public WWW SVG)."""
+    if not _INV_LOGO_PATH.is_file():
+        return Paragraph("", _SAMPLE_STYLES["Normal"])
+    img = Image(str(_INV_LOGO_PATH), width=44 * mm)
+    img.hAlign = "LEFT"
+    return img
 
 
 def invoice_pdf_footer_text() -> str:
@@ -238,20 +267,26 @@ def render_invoice_pdf(
     title_style = ParagraphStyle(
         "InvTitle",
         parent=styles["Heading1"],
-        fontSize=14,
-        spaceAfter=10,
+        fontName="Helvetica-Bold",
+        fontSize=16,
+        leading=19,
+        textColor=_INV_TEXT,
+        alignment=TA_RIGHT,
+        spaceAfter=0,
     )
     label_style = ParagraphStyle(
         "InvLabel",
         parent=styles["Normal"],
         fontSize=9,
         leading=11,
+        textColor=_INV_TEXT,
     )
     body_style = ParagraphStyle(
         "InvBody",
         parent=styles["Normal"],
         fontSize=10,
         leading=12,
+        textColor=_INV_TEXT,
     )
     body_bold_style = ParagraphStyle(
         "InvBodyBold",
@@ -259,6 +294,7 @@ def render_invoice_pdf(
         fontSize=10,
         leading=12,
         fontName="Helvetica-Bold",
+        textColor=_INV_TEXT,
     )
 
     business_name = _esc(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
@@ -274,7 +310,27 @@ def render_invoice_pdf(
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
 
-    story: list = [Paragraph(_esc(title_line), title_style)]
+    hero_table = Table(
+        [
+            [
+                _invoice_logo_flowable(),
+                Paragraph(_esc(title_line), title_style),
+            ]
+        ],
+        colWidths=[44 * mm, 136 * mm],
+    )
+    hero_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+            ]
+        )
+    )
+    story: list = [hero_table]
 
     from_blocks: list[str] = []
     if business_name:
@@ -319,20 +375,22 @@ def render_invoice_pdf(
     story.append(Spacer(1, 6))
 
     base_line_style_cmds = [
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+        ("GRID", (0, 0), (-1, -1), 0.5, _INV_GRID),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("ALIGN", (0, 0), (0, -1), "LEFT"),
+        ("ALIGN", (1, 0), (3, 0), "CENTER"),
         ("ALIGN", (1, 1), (3, -1), "RIGHT"),
     ]
 
     header_row = [
-        Paragraph("<b>Description</b>", label_style),
-        Paragraph("<b>Quantity</b>", label_style),
-        Paragraph("<b>Unit Price</b>", label_style),
-        Paragraph("<b>Total</b>", label_style),
+        Paragraph("<para align='center'><b>Description</b></para>", label_style),
+        Paragraph("<para align='center'><b>Quantity</b></para>", label_style),
+        Paragraph("<para align='center'><b>Unit Price</b></para>", label_style),
+        Paragraph("<para align='center'><b>Total</b></para>", label_style),
     ]
 
     first_line_item = True
@@ -411,6 +469,7 @@ def render_invoice_pdf(
     totals_table.setStyle(
         TableStyle(
             [
+                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
                 ("ALIGN", (1, 0), (1, -1), "RIGHT"),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -449,7 +508,7 @@ def render_invoice_pdf(
             return
         canvas_obj.saveState()
         canvas_obj.setFont("Helvetica", 8)
-        canvas_obj.setFillColor(colors.grey)
+        canvas_obj.setFillColor(_INV_MUTED)
         y_footer = 12 * mm
         canvas_obj.drawCentredString(A4[0] / 2, y_footer, footer_text)
         canvas_obj.restoreState()
