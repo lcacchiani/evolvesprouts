@@ -31,8 +31,17 @@ class _SignerCacheEntry:
 _SIGNER_CACHE: _SignerCacheEntry | None = None
 
 
-def generate_signed_download_url(*, s3_key: str, expires_at: datetime) -> str:
-    """Generate a CloudFront signed URL for an S3-backed object key."""
+def generate_signed_download_url(
+    *,
+    s3_key: str,
+    expires_at: datetime,
+    cache_bust_key: str | None = None,
+) -> str:
+    """Generate a CloudFront signed URL for an S3-backed object key.
+
+    ``cache_bust_key`` is appended as a ``cb`` query parameter so repeated uploads
+    to the same key (e.g. invoice preview PDFs) do not serve a stale edge copy.
+    """
     if expires_at.tzinfo is None:
         raise RuntimeError("expires_at must be timezone-aware")
 
@@ -47,6 +56,10 @@ def generate_signed_download_url(*, s3_key: str, expires_at: datetime) -> str:
     resource_url = (
         f"https://{distribution_domain}/{quote(normalized_key, safe='/_.-~')}"
     )
+    if cache_bust_key is not None and str(cache_bust_key).strip() != "":
+        safe_cb = quote(str(cache_bust_key).strip(), safe="")
+        sep = "&" if "?" in resource_url else "?"
+        resource_url = f"{resource_url}{sep}cb={safe_cb}"
     signer = _get_signer(key_pair_id=key_pair_id, secret_arn=secret_arn)
     return signer.generate_presigned_url(resource_url, date_less_than=expires_at)
 

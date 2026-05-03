@@ -47,6 +47,30 @@ def test_generate_signed_download_url_uses_cloudfront_signer(
     assert cloudfront_dummy_signer.date_less_than == expires_at
 
 
+def test_generate_signed_download_url_includes_cache_bust_query(
+    monkeypatch: Any,
+    cloudfront_dummy_signer: Any,
+) -> None:
+    monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN", "d111111abcdef8.cloudfront.net")
+    monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID", "K123EXAMPLE")
+    monkeypatch.setenv(
+        "ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN",
+        "arn:aws:secretsmanager:ap-southeast-1:111111111111:secret:cf/private",
+    )
+    monkeypatch.setattr(cloudfront_signing, "_get_signer", lambda **_: cloudfront_dummy_signer)
+
+    expires_at = datetime(2035, 1, 1, 12, 0, tzinfo=UTC)
+    cloudfront_signing.generate_signed_download_url(
+        s3_key="billing/invoices/preview/abc.pdf",
+        expires_at=expires_at,
+        cache_bust_key="1700000000000000000",
+    )
+    assert (
+        cloudfront_dummy_signer.resource_url
+        == "https://d111111abcdef8.cloudfront.net/billing/invoices/preview/abc.pdf?cb=1700000000000000000"
+    )
+
+
 def test_generate_signed_download_url_requires_timezone_aware_datetime(
     monkeypatch: Any,
     cloudfront_dummy_signer: Any,

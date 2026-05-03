@@ -988,8 +988,9 @@ def test_get_invoice_pdf_returns_signed_url(
         lambda _session, _inv: "billing/invoices/preview/x.pdf",
     )
 
-    def _fake_download(*, s3_key: str) -> dict[str, str]:
+    def _fake_download(*, s3_key: str, cache_bust_key: str | None = None) -> dict[str, str]:
         assert s3_key == "billing/invoices/preview/x.pdf"
+        assert cache_bust_key is not None and cache_bust_key.isdigit()
         return {
             "download_url": "https://cdn.example.com/signed",
             "expires_at": "2026-12-31T00:00:00+00:00",
