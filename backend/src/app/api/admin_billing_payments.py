@@ -57,7 +57,9 @@ def _payment_allocation_invoice_refs(
     by_id = {r[0]: (r[1], r[2]) for r in rows}
     ordered = sorted(
         inv_ids,
-        key=lambda i: (by_id.get(i, (None, None))[1] or datetime.min.replace(tzinfo=UTC)),
+        key=lambda i: (
+            by_id.get(i, (None, None))[1] or datetime.min.replace(tzinfo=UTC)
+        ),
         reverse=True,
     )
     out: list[dict[str, str | None]] = []
