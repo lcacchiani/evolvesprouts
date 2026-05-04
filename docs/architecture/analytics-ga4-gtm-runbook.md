@@ -11,6 +11,7 @@ Applies to `apps/public_www` and current user journeys:
 - Media request form (`POST /v1/assets/free/request`)
 - Community / event signup forms (`POST /v1/contact-us` with prefilled message)
 - My Best Auntie booking flow (`POST /v1/reservations`)
+- Free intro-call booking (`/book-a-free-call`: slot picker + reservation; reuses `booking_submit_*` and eCommerce `purchase` with `payment_method: free`, plus intro-call-specific events below)
 - WhatsApp CTAs (floating and section-level)
 
 ### Admin console (optional)
@@ -119,6 +120,9 @@ data bug.
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_thank_you_ics_download` | Thank-you modal calendar (.ics) download | `section_id`, `cohort_date`, `total_amount` | No |
 | `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
+| `intro_call_slot_selected` | User selects a 15-minute intro-call slot in the picker | Optional `slot_start` (ISO start instant) | No |
+| `intro_call_slot_picker_status_change` | Intro-call slot fetch lifecycle (`idle` / `loading` / `ready` / `error`) | Optional `status` | No |
+| `book_free_call_click` | Intro-call landing post-success or help CTAs (e.g. WhatsApp help link) | Optional `cta_location` (string discriminator) | No |
 | `links_hub_click` | Link-in-bio hub button click | `section_id='links-hub'`, `content_name` | No |
 
 ### GA4 eCommerce events
@@ -147,7 +151,7 @@ setup below).
 3. In GA4 Admin, create event-scoped custom dimensions for:
    - `section_id`, `cta_location`, `form_type`, `form_kind`, `form_id`,
      `payment_method`, `service_tier`, `cohort_label`, `cohort_date`, `resource_key`,
-     `error_type`, `discount_type`, `landing_page_slug`
+     `error_type`, `discount_type`, `landing_page_slug`, `slot_start`, `status`
 4. Create custom metrics for:
    - `total_amount`, `discount_amount`
 5. Mark key events:
@@ -171,7 +175,8 @@ setup below).
 4. Create triggers for existing UI hooks and flows:
    - WhatsApp links
    - Contact/media/community/event form interactions
-   - Booking modal and reservation actions
+   - Booking modal and reservation actions (including free intro-call on `/book-a-free-call`, which sends `service_tier: intro_call` and empty `cohort_date` on `booking_submit_*` when no cohort applies)
+   - Intro-call slot picker events (`intro_call_slot_selected`, `intro_call_slot_picker_status_change`) and `book_free_call_click`
    - Landing-page CTA clicks (`landing_page_cta_click`)
    - GA4 eCommerce events (`begin_checkout`, `add_payment_info`, `purchase`)
 5. Define variables for common parameters:
