@@ -13,7 +13,7 @@ Seed-data assessment (``backend/db/seed/seed_data.sql``):
 
 Result: No seed updates required.
 
-Revision id length: 32 chars (<= 32).
+Revision id length: 31 chars (<= 32).
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0058_invoice_line_null_enrollment"
+revision: str = "0058_inv_line_null_enrollment"
 down_revision: Union[str, None] = "0057_invoice_dates_snapshot"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
