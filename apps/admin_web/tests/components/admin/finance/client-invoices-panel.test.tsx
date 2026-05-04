@@ -24,11 +24,13 @@ const enrollmentPickerMocks = vi.hoisted(() => ({
     contactOptions: [{ id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', label: 'Pat Contact' }],
     families: [{ id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', label: 'Fam One' }],
     organizations: [{ id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', label: 'Org One' }],
+    partnerOrganizations: [],
     loading: false,
     error: '',
     labelByContactId: new Map(),
     labelByFamilyId: new Map(),
     labelByOrganizationId: new Map(),
+    labelByPartnerOrganizationId: new Map(),
   })),
 }));
 

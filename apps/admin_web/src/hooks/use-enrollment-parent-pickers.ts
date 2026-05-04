@@ -7,6 +7,7 @@ import {
   listAdminContacts,
   listEntityFamilyPicker,
   listEntityOrganizationPicker,
+  listEntityPartnerOrganizationPicker,
 } from '@/lib/entity-api';
 import { DEFAULT_CONTACT_LIST_FILTERS } from '@/types/entity-list';
 
@@ -33,6 +34,7 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
   const [contacts, setContacts] = useState<AdminContact[]>([]);
   const [families, setFamilies] = useState<EnrollmentParentPickerOption[]>([]);
   const [organizations, setOrganizations] = useState<EnrollmentParentPickerOption[]>([]);
+  const [partnerOrganizations, setPartnerOrganizations] = useState<EnrollmentParentPickerOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,6 +43,7 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
       setContacts([]);
       setFamilies([]);
       setOrganizations([]);
+      setPartnerOrganizations([]);
       setLoading(false);
       setError('');
       return;
@@ -55,9 +58,10 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
       try {
         const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
-        const [familyItems, orgItems] = await Promise.all([
+        const [familyItems, orgItems, partnerOrgItems] = await Promise.all([
           listEntityFamilyPicker(signal),
           listEntityOrganizationPicker(undefined, signal),
+          listEntityPartnerOrganizationPicker(signal),
         ]);
 
         const sortedFamilies = [...familyItems].sort((a, b) =>
@@ -66,9 +70,13 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
         const sortedOrgs = [...orgItems].sort((a, b) =>
           collator.compare(a.label.toLowerCase(), b.label.toLowerCase())
         );
+        const sortedPartnerOrgs = [...partnerOrgItems].sort((a, b) =>
+          collator.compare(a.label.toLowerCase(), b.label.toLowerCase())
+        );
 
         setFamilies(sortedFamilies.map((row) => ({ id: row.id, label: row.label })));
         setOrganizations(sortedOrgs.map((row) => ({ id: row.id, label: row.label })));
+        setPartnerOrganizations(sortedPartnerOrgs.map((row) => ({ id: row.id, label: row.label })));
 
         const contactRows: AdminContact[] = [];
         let cursor: string | null = null;
@@ -96,6 +104,7 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
         setContacts([]);
         setFamilies([]);
         setOrganizations([]);
+        setPartnerOrganizations([]);
       } finally {
         if (!signal.aborted) {
           setLoading(false);
@@ -137,14 +146,24 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
     return map;
   }, [organizations]);
 
+  const labelByPartnerOrganizationId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of partnerOrganizations) {
+      map.set(row.id, row.label);
+    }
+    return map;
+  }, [partnerOrganizations]);
+
   return {
     contactOptions,
     families,
     organizations,
+    partnerOrganizations,
     loading,
     error,
     labelByContactId,
     labelByFamilyId,
     labelByOrganizationId,
+    labelByPartnerOrganizationId,
   };
 }
