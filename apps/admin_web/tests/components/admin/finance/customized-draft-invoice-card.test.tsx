@@ -15,11 +15,13 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
     contactOptions: [{ id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', label: 'Pat Contact' }],
     families: [],
     organizations: [],
+    partnerOrganizations: [{ id: 'ffffffff-ffff-ffff-ffff-ffffffffffff', label: 'Partner Org' }],
     loading: false,
     error: '',
     labelByContactId: new Map(),
     labelByFamilyId: new Map(),
     labelByOrganizationId: new Map(),
+    labelByPartnerOrganizationId: new Map(),
   }),
 }));
 
@@ -66,5 +68,46 @@ describe('CustomizedDraftInvoiceCard', () => {
       lines: [{ description: 'Line A', quantity: '1', unitAmount: '25' }],
     });
     expect(onCreated).toHaveBeenCalledWith('inv-x');
+  });
+
+  it('submits partner bill-to as organization with selected partner org id', async () => {
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-p', status: 'draft' });
+
+    render(
+      <CustomizedDraftInvoiceCard
+        defaultCurrency='HKD'
+        currencyOptions={[{ value: 'HKD', label: 'HKD' }]}
+        editorBusy={false}
+        loadParents
+        onCreated={vi.fn()}
+      />,
+    );
+
+    const form = document.getElementById('client-billing-customized-draft-form');
+    expect(form).toBeTruthy();
+
+    await userEvent.selectOptions(screen.getByLabelText(/^Bill to$/i), 'partner');
+    await userEvent.selectOptions(
+      screen.getByLabelText(/^Partner organization$/i),
+      'ffffffff-ffff-ffff-ffff-ffffffffffff',
+    );
+
+    const desc = within(form as HTMLElement).getByLabelText(/^Description/i);
+    await userEvent.type(desc, 'Partner fee');
+
+    const unit = within(form as HTMLElement).getByLabelText(/^Unit price/i);
+    await userEvent.clear(unit);
+    await userEvent.type(unit, '99');
+
+    fireEvent.submit(form as HTMLFormElement);
+
+    await waitFor(() => {
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+    });
+    expect(billingMocks.createDraftInvoice.mock.calls[0][0]).toMatchObject({
+      draftKind: 'customized_manual',
+      billTo: { kind: 'organization', organizationId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+      lines: [{ description: 'Partner fee', quantity: '1', unitAmount: '99' }],
+    });
   });
 });

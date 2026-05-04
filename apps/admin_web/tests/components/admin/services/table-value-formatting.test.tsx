@@ -19,11 +19,13 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
     contactOptions: [{ id: 'contact-1', label: 'Resolved contact label' }],
     families: [],
     organizations: [],
+    partnerOrganizations: [],
     loading: false,
     error: '',
     labelByContactId: new Map([['contact-1', 'Resolved contact label']]),
     labelByFamilyId: new Map(),
     labelByOrganizationId: new Map(),
+    labelByPartnerOrganizationId: new Map(),
   }),
 }));
 
