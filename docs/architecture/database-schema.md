@@ -614,6 +614,8 @@ Migration `0055_customer_billing_ar` introduces:
   `INVOICE_DISPLAY_TIMEZONE`; drafts leave both null). PDF rendering prefers these
   columns when set.
 
+**Migration `0058_inv_line_null_enrollment`:** `customer_invoice_lines.enrollment_id` is nullable so customized (non-enrollment) invoice lines can omit the enrollment foreign key.
+
 **CSV export (admin):** `GET /v1/admin/billing/export` defaults to **`export_version=2`**
 (query `exportVersion`, default `2`). v2 emits `payment`, `refund`, `invoice`,
 `invoice_line`, `receipt`, and `allocation` rows with bill-to, tax, and linkage columns;

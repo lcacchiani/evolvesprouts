@@ -17,6 +17,10 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { CheckIcon, EmailIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import {
+  CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
+  CustomizedDraftInvoiceCard,
+} from '@/components/admin/finance/customized-draft-invoice-card';
+import {
   confirmCustomerPayment,
   createCustomerRefund,
   createDraftInvoice,
@@ -50,7 +54,7 @@ const DRAFT_FORM_ID = 'client-billing-draft-invoice-form';
 const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
 const REFUND_FORM_ID = 'client-billing-refund-form';
 
-function formatTruncatedId(id: string | undefined): string {
+function formatTruncatedId(id: string | null | undefined): string {
   if (!id) {
     return '—';
   }
@@ -126,8 +130,12 @@ function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): bool
 
 export function ClientInvoicesPanel() {
   const draftFilterId = useId();
+  const draftModeId = useId();
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const defaultCurrency = useMemo(() => getAdminDefaultCurrencyCode(), []);
+
+  const [draftCreationMode, setDraftCreationMode] = useState<'enrollment' | 'customized'>('enrollment');
+  const [customizedFormSubmitEnabled, setCustomizedFormSubmitEnabled] = useState(false);
 
   const [payments, setPayments] = useState<CustomerPaymentSummary[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -663,6 +671,7 @@ export function ClientInvoicesPanel() {
     setBusy('draft');
     try {
       const body: Parameters<typeof createDraftInvoice>[0] = {
+        draftKind: 'enrollment_merge',
         enrollmentIds: ids,
       };
       if (Object.keys(overrides).length > 0) {
@@ -795,220 +804,297 @@ export function ClientInvoicesPanel() {
       ) : null}
 
       <AdminEditorCard
-        title='Create draft invoice from enrollments'
-        description='Shown: enrollments from the last 90 days (by enrolled date), excluding cancelled. Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to and currency on the server.'
+        title='Create draft invoice'
+        description='Choose enrollment-based (merge selected enrollments) or customized (manual lines, not linked to enrollments). One primary action submits the visible form.'
         actions={
           <Button
             type='submit'
-            form={DRAFT_FORM_ID}
-            disabled={editorBusy || Boolean(draftSelectionIssue) || Boolean(draftAmountIssue)}
+            form={draftCreationMode === 'enrollment' ? DRAFT_FORM_ID : CUSTOMIZED_DRAFT_INVOICE_FORM_ID}
+            disabled={
+              editorBusy ||
+              (draftCreationMode === 'enrollment' &&
+                (Boolean(draftSelectionIssue) || Boolean(draftAmountIssue))) ||
+              (draftCreationMode === 'customized' && !customizedFormSubmitEnabled)
+            }
+            aria-label={
+              draftCreationMode === 'enrollment'
+                ? 'Create draft invoice from selected enrollments'
+                : 'Create draft invoice from custom lines'
+            }
           >
-            {busyAction === 'draft' ? 'Creating…' : 'Create draft invoice'}
+            {busyAction === 'draft' || busyAction === 'customized'
+              ? 'Creating…'
+              : 'Create draft invoice'}
           </Button>
         }
       >
-        <form
-          id={DRAFT_FORM_ID}
-          className='space-y-4'
-          onSubmit={(e) => void handleCreateDraft(e)}
-        >
-          <div className='flex flex-wrap items-end gap-3'>
-            <div className='min-w-[220px] flex-1'>
-              <Label htmlFor={draftFilterId}>Filter enrollments</Label>
-              <Input
-                id={draftFilterId}
-                className='mt-1'
-                value={enrollmentFilter}
-                onChange={(e) => setEnrollmentFilter(e.target.value)}
-                placeholder='Search name, email, title, tier, cohort…'
-                disabled={editorBusy}
-              />
-            </div>
+        <div className='space-y-4'>
+          <div className='max-w-md'>
+            <Label htmlFor={draftModeId}>Draft type</Label>
+            <Select
+              id={draftModeId}
+              className='mt-1 w-full'
+              value={draftCreationMode}
+              onChange={(e) => {
+                const v = e.target.value === 'customized' ? 'customized' : 'enrollment';
+                setDraftCreationMode(v);
+                if (v === 'enrollment') {
+                  setCustomizedFormSubmitEnabled(false);
+                }
+              }}
+              disabled={editorBusy}
+            >
+              <option value='enrollment'>Enrollment-based</option>
+              <option value='customized'>Customized (manual lines)</option>
+            </Select>
           </div>
-          {enrollmentPickerTruncated ? (
-            <p className='text-sm text-amber-800' role='status'>
-              Enrollment list may be incomplete (server capped additional pages). Narrow your filter or contact support for full exports.
-            </p>
-          ) : null}
-          <section aria-label='Enrollment picker'>
-          <AdminDataTable>
-            <AdminDataTableHead>
-              <tr>
-                <th className='px-3 py-2'>
-                  <input
-                    type='checkbox'
-                    aria-label='Select all visible enrollments'
-                    checked={
-                      selectableFilteredRows.length > 0 &&
-                      selectableFilteredRows.every((row) =>
-                        selectedEnrollmentIds.has(row.enrollmentId),
-                      )
-                    }
-                    onChange={(event) => {
-                      const checked = event.target.checked;
-                      setSelectedEnrollmentIds((prev) => {
-                        const next = new Set(prev);
-                        if (checked) {
-                          for (const row of selectableFilteredRows) {
-                            next.add(row.enrollmentId);
-                          }
-                        } else {
-                          for (const row of selectableFilteredRows) {
-                            next.delete(row.enrollmentId);
-                          }
-                        }
-                        return next;
-                      });
-                    }}
-                    disabled={editorBusy || enrollmentPickerLoading || selectableFilteredRows.length === 0}
+          {draftCreationMode === 'enrollment' ? (
+            <form
+              id={DRAFT_FORM_ID}
+              className='space-y-4'
+              onSubmit={(e) => void handleCreateDraft(e)}
+            >
+              <p className='text-sm text-slate-600'>
+                Shown: enrollments from the last 90 days (by enrolled date), excluding cancelled. Rows
+                already on a draft or issued invoice cannot be selected. Selected rows must share bill-to and
+                currency on the server.
+              </p>
+              <div className='flex flex-wrap items-end gap-3'>
+                <div className='min-w-[220px] flex-1'>
+                  <Label htmlFor={draftFilterId}>Filter enrollments</Label>
+                  <Input
+                    id={draftFilterId}
+                    className='mt-1'
+                    value={enrollmentFilter}
+                    onChange={(e) => setEnrollmentFilter(e.target.value)}
+                    placeholder='Search name, email, title, tier, cohort…'
+                    disabled={editorBusy}
                   />
-                </th>
-                <th className='px-3 py-2'>Party</th>
-                <th className='px-3 py-2'>Instance</th>
-                <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
-                <th className='px-3 py-2 text-right'>Price</th>
-                <th className='px-3 py-2'>Enrolled</th>
-                <th className='px-3 py-2'>Invoice</th>
-              </tr>
-            </AdminDataTableHead>
-            <AdminDataTableBody>
-              {enrollmentPickerLoading ? (
-                <tr>
-                  <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
-                    Loading enrollments…
-                  </td>
-                </tr>
-              ) : enrollmentPickerRows.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
-                    No enrollments match this filter.
-                  </td>
-                </tr>
-              ) : (
-                enrollmentPickerRows.map((row) => {
-                  const blocked = row.invoiceLinked;
-                  const checked = selectedEnrollmentIds.has(row.enrollmentId);
-                  const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
-                  const amountPaidTrimmed = row.amountPaid?.trim() ?? '';
-                  const currencyCode = (row.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
-                  const parsedAmount = Number.parseFloat(amountPaidTrimmed);
-                  const priceLabel =
-                    amountPaidTrimmed !== '' && Number.isFinite(parsedAmount)
-                      ? formatAmountInCurrency(parsedAmount, currencyCode)
-                      : '—';
-                  const tierCohortDisplay = formatTierCohortDisplay(row.serviceTierName, row.instanceCohort);
-                  const partyCellDisplay = formatEnrollmentPartyCellDisplay(row);
-                  return (
-                    <tr
-                      key={row.enrollmentId}
-                      className={blocked ? 'bg-slate-50 text-slate-500' : undefined}
-                    >
-                      <td className='px-3 py-2 align-top'>
+                </div>
+              </div>
+              {enrollmentPickerTruncated ? (
+                <p className='text-sm text-amber-800' role='status'>
+                  Enrollment list may be incomplete (server capped additional pages). Narrow your filter or
+                  contact support for full exports.
+                </p>
+              ) : null}
+              <section aria-label='Enrollment picker'>
+                <AdminDataTable>
+                  <AdminDataTableHead>
+                    <tr>
+                      <th className='px-3 py-2'>
                         <input
                           type='checkbox'
-                          aria-label={`Select enrollment ${row.enrollmentId}`}
-                          aria-describedby={blocked ? blockedNoteId : undefined}
-                          checked={checked}
-                          disabled={editorBusy || blocked}
+                          aria-label='Select all visible enrollments'
+                          checked={
+                            selectableFilteredRows.length > 0 &&
+                            selectableFilteredRows.every((row) =>
+                              selectedEnrollmentIds.has(row.enrollmentId),
+                            )
+                          }
                           onChange={(event) => {
-                            const nextChecked = event.target.checked;
+                            const checked = event.target.checked;
                             setSelectedEnrollmentIds((prev) => {
                               const next = new Set(prev);
-                              if (nextChecked) {
-                                next.add(row.enrollmentId);
+                              if (checked) {
+                                for (const row of selectableFilteredRows) {
+                                  next.add(row.enrollmentId);
+                                }
                               } else {
-                                next.delete(row.enrollmentId);
+                                for (const row of selectableFilteredRows) {
+                                  next.delete(row.enrollmentId);
+                                }
                               }
                               return next;
                             });
                           }}
+                          disabled={
+                            editorBusy ||
+                            enrollmentPickerLoading ||
+                            selectableFilteredRows.length === 0
+                          }
                         />
-                        {blocked ? (
-                          <span id={blockedNoteId} className='sr-only'>
-                            Already on a draft or issued invoice.
-                          </span>
-                        ) : null}
-                      </td>
-                      <td className='min-w-0 max-w-[22rem] break-words px-3 py-2 align-top text-sm'>
-                        {partyCellDisplay !== '' ? partyCellDisplay : '—'}
-                      </td>
-                      <td className='px-3 py-2 align-top text-sm'>{row.instanceTitle ?? '—'}</td>
-                      <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
-                        {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}
-                      </td>
-                      <td className='px-3 py-2 align-top text-right text-sm tabular-nums'>{priceLabel}</td>
-                      <td className='px-3 py-2 align-top whitespace-nowrap text-sm'>
-                        {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
-                      </td>
-                      <td className='px-3 py-2 align-top text-sm'>
-                        {blocked ? 'On draft/issued invoice' : '—'}
-                      </td>
+                      </th>
+                      <th className='px-3 py-2'>Party</th>
+                      <th className='px-3 py-2'>Instance</th>
+                      <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
+                      <th className='px-3 py-2 text-right'>Price</th>
+                      <th className='px-3 py-2'>Enrolled</th>
+                      <th className='px-3 py-2'>Invoice</th>
                     </tr>
-                  );
-                })
-              )}
-            </AdminDataTableBody>
-          </AdminDataTable>
-          </section>
-          {draftSelectionIssue ? (
-            <p className='text-sm text-amber-800'>{draftSelectionIssue}</p>
-          ) : null}
-          {draftAmountIssue ? (
-            <p className='text-sm text-amber-800'>{draftAmountIssue}</p>
-          ) : null}
-          <div className='space-y-2'>
-            <Label>Line totals override</Label>
-            <p className='text-xs text-slate-600'>
-              Defaults follow each enrollment&apos;s amount. Adjust selected rows only.
-            </p>
-            {selectedEnrollmentRows.length === 0 ? (
-              <p className='text-sm text-slate-600'>Select enrollments above to override line amounts.</p>
-            ) : (
+                  </AdminDataTableHead>
+                  <AdminDataTableBody>
+                    {enrollmentPickerLoading ? (
+                      <tr>
+                        <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
+                          Loading enrollments…
+                        </td>
+                      </tr>
+                    ) : enrollmentPickerRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
+                          No enrollments match this filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      enrollmentPickerRows.map((row) => {
+                        const blocked = row.invoiceLinked;
+                        const checked = selectedEnrollmentIds.has(row.enrollmentId);
+                        const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
+                        const amountPaidTrimmed = row.amountPaid?.trim() ?? '';
+                        const currencyCode =
+                          (row.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+                        const parsedAmount = Number.parseFloat(amountPaidTrimmed);
+                        const priceLabel =
+                          amountPaidTrimmed !== '' && Number.isFinite(parsedAmount)
+                            ? formatAmountInCurrency(parsedAmount, currencyCode)
+                            : '—';
+                        const tierCohortDisplay = formatTierCohortDisplay(
+                          row.serviceTierName,
+                          row.instanceCohort,
+                        );
+                        const partyCellDisplay = formatEnrollmentPartyCellDisplay(row);
+                        return (
+                          <tr
+                            key={row.enrollmentId}
+                            className={blocked ? 'bg-slate-50 text-slate-500' : undefined}
+                          >
+                            <td className='px-3 py-2 align-top'>
+                              <input
+                                type='checkbox'
+                                aria-label={`Select enrollment ${row.enrollmentId}`}
+                                aria-describedby={blocked ? blockedNoteId : undefined}
+                                checked={checked}
+                                disabled={editorBusy || blocked}
+                                onChange={(event) => {
+                                  const nextChecked = event.target.checked;
+                                  setSelectedEnrollmentIds((prev) => {
+                                    const next = new Set(prev);
+                                    if (nextChecked) {
+                                      next.add(row.enrollmentId);
+                                    } else {
+                                      next.delete(row.enrollmentId);
+                                    }
+                                    return next;
+                                  });
+                                }}
+                              />
+                              {blocked ? (
+                                <span id={blockedNoteId} className='sr-only'>
+                                  Already on a draft or issued invoice.
+                                </span>
+                              ) : null}
+                            </td>
+                            <td className='min-w-0 max-w-[22rem] break-words px-3 py-2 align-top text-sm'>
+                              {partyCellDisplay !== '' ? partyCellDisplay : '—'}
+                            </td>
+                            <td className='px-3 py-2 align-top text-sm'>{row.instanceTitle ?? '—'}</td>
+                            <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
+                              {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}
+                            </td>
+                            <td className='px-3 py-2 align-top text-right text-sm tabular-nums'>
+                              {priceLabel}
+                            </td>
+                            <td className='px-3 py-2 align-top whitespace-nowrap text-sm'>
+                              {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
+                            </td>
+                            <td className='px-3 py-2 align-top text-sm'>
+                              {blocked ? 'On draft/issued invoice' : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </AdminDataTableBody>
+                </AdminDataTable>
+              </section>
+              {draftSelectionIssue ? (
+                <p className='text-sm text-amber-800'>{draftSelectionIssue}</p>
+              ) : null}
+              {draftAmountIssue ? (
+                <p className='text-sm text-amber-800'>{draftAmountIssue}</p>
+              ) : null}
               <div className='space-y-2'>
-                {selectedEnrollmentRows.map((row) => {
-                  const needsAmt = enrollmentNeedsAmountConfirmation(row);
-                  return (
-                  <div
-                    key={row.enrollmentId}
-                    className={`flex flex-wrap items-center gap-3 border px-3 py-2 ${
-                      needsAmt ? 'border-amber-300 bg-amber-50' : 'border-slate-200'
-                    }`}
-                  >
-                    <span className='min-w-[180px] flex-1 text-sm'>{row.partyDisplayName}</span>
-                    <span className='font-mono text-xs text-slate-600'>{row.enrollmentId}</span>
-                    {needsAmt ? (
-                      <p className='w-full text-xs text-amber-900'>
-                        This enrollment has no recorded amount; enter a line total (use 0 for a zero-dollar line).
-                      </p>
-                    ) : null}
-                    <div className='flex items-center gap-2'>
-                      <Label className='sr-only' htmlFor={`billing-line-override-${row.enrollmentId}`}>
-                        Line total for {row.partyDisplayName}
-                      </Label>
-                      <Input
-                        id={`billing-line-override-${row.enrollmentId}`}
-                        className='w-36 font-mono text-sm tabular-nums'
-                        inputMode='decimal'
-                        value={
-                          lineOverrideByEnrollmentId[row.enrollmentId] ?? defaultLineAmount(row)
-                        }
-                        onChange={(e) =>
-                          setLineOverrideByEnrollmentId((prev) => ({
-                            ...prev,
-                            [row.enrollmentId]: e.target.value,
-                          }))
-                        }
-                        disabled={editorBusy}
-                      />
-                      <span className='text-xs text-slate-600'>{row.currency}</span>
-                    </div>
+                <Label>Line totals override</Label>
+                <p className='text-xs text-slate-600'>
+                  Defaults follow each enrollment&apos;s amount. Adjust selected rows only.
+                </p>
+                {selectedEnrollmentRows.length === 0 ? (
+                  <p className='text-sm text-slate-600'>
+                    Select enrollments above to override line amounts.
+                  </p>
+                ) : (
+                  <div className='space-y-2'>
+                    {selectedEnrollmentRows.map((row) => {
+                      const needsAmt = enrollmentNeedsAmountConfirmation(row);
+                      return (
+                        <div
+                          key={row.enrollmentId}
+                          className={`flex flex-wrap items-center gap-3 border px-3 py-2 ${
+                            needsAmt ? 'border-amber-300 bg-amber-50' : 'border-slate-200'
+                          }`}
+                        >
+                          <span className='min-w-[180px] flex-1 text-sm'>{row.partyDisplayName}</span>
+                          <span className='font-mono text-xs text-slate-600'>{row.enrollmentId}</span>
+                          {needsAmt ? (
+                            <p className='w-full text-xs text-amber-900'>
+                              This enrollment has no recorded amount; enter a line total (use 0 for a
+                              zero-dollar line).
+                            </p>
+                          ) : null}
+                          <div className='flex items-center gap-2'>
+                            <Label
+                              className='sr-only'
+                              htmlFor={`billing-line-override-${row.enrollmentId}`}
+                            >
+                              Line total for {row.partyDisplayName}
+                            </Label>
+                            <Input
+                              id={`billing-line-override-${row.enrollmentId}`}
+                              className='w-36 font-mono text-sm tabular-nums'
+                              inputMode='decimal'
+                              value={
+                                lineOverrideByEnrollmentId[row.enrollmentId] ??
+                                defaultLineAmount(row)
+                              }
+                              onChange={(e) =>
+                                setLineOverrideByEnrollmentId((prev) => ({
+                                  ...prev,
+                                  [row.enrollmentId]: e.target.value,
+                                }))
+                              }
+                              disabled={editorBusy}
+                            />
+                            <span className='text-xs text-slate-600'>{row.currency}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  );
-                })}
+                )}
               </div>
-            )}
-          </div>
-        </form>
+            </form>
+          ) : (
+            <CustomizedDraftInvoiceCard
+              defaultCurrency={defaultCurrency}
+              currencyOptions={currencyOptions}
+              editorBusy={editorBusy}
+              loadParents={draftCreationMode === 'customized'}
+              onRequestBusy={(busy) => setBusy(busy ? 'customized' : null)}
+              onDraftError={(msg) => setActionError(msg)}
+              onValidityChange={setCustomizedFormSubmitEnabled}
+              onCreated={async (invoiceId) => {
+                setActionError('');
+                setInvoiceIdInput(invoiceId);
+                setSelectedInvoiceId(invoiceId);
+                setAllocateInvoiceId(invoiceId);
+                setActionMessage(`Draft invoice created: ${invoiceId}`);
+                await loadPayments();
+                await loadInvoicesFirstPage();
+              }}
+            />
+          )}
+        </div>
       </AdminEditorCard>
 
       <PaginatedTableCard

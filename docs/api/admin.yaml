@@ -60,7 +60,7 @@ info:
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
     - `GET /v1/admin/billing/enrollments/recent-for-invoicing`
-    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`; POST `currency` optional when derived from enrollments)
+    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`; POST is either enrollment-based draft (`draftKind: enrollment_merge`, `enrollmentIds`, `currency` optional when derivable) or customized draft (`draftKind: customized_manual`, `billTo`, `currency`, `lines`); see request schemas)
     - `GET /v1/admin/billing/invoices/{id}`
     - `GET /v1/admin/billing/invoices/{id}/pdf`
     - `POST /v1/admin/billing/invoices/{id}/issue`
@@ -3057,7 +3057,11 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
     post:
-      summary: Create draft invoice from enrollments
+      summary: Create draft customer invoice
+      description: >
+        Set `draftKind` to `enrollment_merge` with `enrollmentIds` to merge enrollments into one draft, or
+        `customized_manual` with `billTo`, `currency`, and `lines` for manual line items without enrollment links.
+        Do not send fields from the other mode (for example `billTo` with `enrollment_merge`).
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -3065,7 +3069,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateDraftInvoiceRequest"
+              oneOf:
+                - $ref: "#/components/schemas/CreateDraftInvoiceRequest"
+                - $ref: "#/components/schemas/CreateCustomizedDraftInvoiceRequest"
+              discriminator:
+                propertyName: draftKind
+                mapping:
+                  enrollment_merge: "#/components/schemas/CreateDraftInvoiceRequest"
+                  customized_manual: "#/components/schemas/CreateCustomizedDraftInvoiceRequest"
       responses:
         "201":
           description: Draft invoice created.
@@ -6073,8 +6084,11 @@ components:
           type: string
           format: uuid
         enrollmentId:
-          type: string
-          format: uuid
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Present when the line is tied to an enrollment; null for customized invoice lines.
         lineOrder:
           type: integer
         description:
@@ -6264,14 +6278,19 @@ components:
     CreateDraftInvoiceRequest:
       type: object
       required:
+        - draftKind
         - enrollmentIds
       description: >
-        Invoice currency defaults to the shared enrollment currency (all enrollments must match).
-        Optional `currency` must equal that currency when provided.
+        `draftKind` must be `enrollment_merge`. Invoice currency defaults to the shared enrollment currency
+        (all enrollments must match). Optional `currency` must equal that currency when provided.
         Line totals default to each enrollment's `amount_paid` at draft time.
         Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal
         amounts to override mispriced or stale `amount_paid` before issue.
+        Do not send `billTo` or `lines` with this request.
       properties:
+        draftKind:
+          type: string
+          enum: [enrollment_merge]
         enrollmentIds:
           type: array
           items:
@@ -6288,6 +6307,89 @@ components:
           additionalProperties:
             type: string
             description: Decimal amount as string
+    InvoiceBillToInput:
+      type: object
+      required:
+        - kind
+      description: >
+        Bill-to party for a customized draft. Supply exactly one of contactId, familyId, or organizationId
+        matching `kind`.
+      properties:
+        kind:
+          type: string
+          enum: [contact, family, organization]
+        contactId:
+          type: string
+          format: uuid
+          description: Required when kind is contact.
+        familyId:
+          type: string
+          format: uuid
+          description: Required when kind is family.
+        organizationId:
+          type: string
+          format: uuid
+          description: Required when kind is organization.
+    CustomizedInvoiceLineInput:
+      type: object
+      required:
+        - description
+        - quantity
+        - unitAmount
+      description: >
+        Line total is computed as quantity × unitAmount − discountAmount + tax.
+        Omit discount and tax fields for a simple quantity × unitAmount line.
+        Tax may be given as `taxAmount` or derived from `taxRate` × (quantity × unitAmount − discountAmount).
+      properties:
+        description:
+          type: string
+          maxLength: 500
+        quantity:
+          type: string
+          description: Decimal quantity; must be positive.
+        unitAmount:
+          type: string
+          description: Decimal unit price in invoice currency.
+        discountAmount:
+          type: string
+          nullable: true
+          description: Optional decimal discount; defaults to 0. Must not exceed quantity × unitAmount.
+        taxRate:
+          type: string
+          nullable: true
+          description: Optional decimal tax rate applied to taxable amount (quantity × unitAmount − discountAmount). Mutually exclusive with `taxAmount`.
+        taxAmount:
+          type: string
+          nullable: true
+          description: Optional explicit decimal tax amount. Mutually exclusive with `taxRate`.
+    CreateCustomizedDraftInvoiceRequest:
+      type: object
+      required:
+        - draftKind
+        - billTo
+        - currency
+        - lines
+      description: >
+        `draftKind` must be `customized_manual`. Creates a draft invoice with manually specified lines.
+        Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request.
+        Do not send `enrollmentIds` with this request.
+      properties:
+        draftKind:
+          type: string
+          enum: [customized_manual]
+        billTo:
+          $ref: "#/components/schemas/InvoiceBillToInput"
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: "^[A-Z]{3}$"
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomizedInvoiceLineInput"
+          minItems: 1
+          maxItems: 50
     CreatePaymentAllocationRequest:
       type: object
       required:

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,8 +19,25 @@ const billingMocks = vi.hoisted(() => ({
   listRecentEnrollmentsForInvoicing: vi.fn(),
 }));
 
+const enrollmentPickerMocks = vi.hoisted(() => ({
+  mockUseEnrollmentParentPickers: vi.fn(() => ({
+    contactOptions: [{ id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', label: 'Pat Contact' }],
+    families: [{ id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', label: 'Fam One' }],
+    organizations: [{ id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', label: 'Org One' }],
+    loading: false,
+    error: '',
+    labelByContactId: new Map(),
+    labelByFamilyId: new Map(),
+    labelByOrganizationId: new Map(),
+  })),
+}));
+
 vi.mock('@/lib/billing-api', () => ({
   ...billingMocks,
+}));
+
+vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
+  useEnrollmentParentPickers: enrollmentPickerMocks.mockUseEnrollmentParentPickers,
 }));
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
@@ -51,6 +68,7 @@ describe('ClientInvoicesPanel', () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -662,8 +680,12 @@ describe('ClientInvoicesPanel', () => {
   it('shows billing error when create draft submitted with no enrollments selected', async () => {
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /create draft invoice/i }));
-    await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
+    await waitFor(() =>
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Select at least one enrollment.')).toBeInTheDocument();
@@ -817,12 +839,15 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.click(checks[0]);
     await userEvent.click(checks[1]);
 
-    await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    );
 
     await waitFor(() => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.enrollmentIds).toEqual([id1, id2]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
@@ -847,7 +872,9 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => screen.getByRole('checkbox', { name: /Select enrollment/i }));
     await userEvent.click(screen.getByRole('checkbox', { name: /Select enrollment/i }));
 
-    const createBtn = screen.getByRole('button', { name: /create draft invoice/i });
+    const createBtn = screen.getByRole('button', {
+      name: 'Create draft invoice from selected enrollments',
+    });
     expect(createBtn).not.toBeDisabled();
 
     await userEvent.click(createBtn);
@@ -856,6 +883,7 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.enrollmentIds).toEqual([id1]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
   });
@@ -882,7 +910,9 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.clear(override1);
     await userEvent.type(override1, 'not-a-number');
 
-    expect(screen.getByRole('button', { name: /create draft invoice/i })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    ).toBeDisabled();
     expect(screen.getByText(/Enter a valid number for every line total/i)).toBeInTheDocument();
     expect(billingMocks.createDraftInvoice).not.toHaveBeenCalled();
   });
@@ -910,17 +940,18 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.clear(override1);
     await userEvent.type(override1, '99');
 
-    await userEvent.click(screen.getByRole('button', { name: /create draft invoice/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    );
 
     await waitFor(() => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.lineTotalsByEnrollmentId).toEqual({ [id1]: '99' });
-  });
-
-  it('disables create when bill-to keys differ among selection', async () => {
+    cleanup();
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
         pickerRow({
@@ -944,7 +975,49 @@ describe('ClientInvoicesPanel', () => {
     expect(
       screen.getByText(/must share the same bill-to/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create draft invoice/i })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Create draft invoice from selected enrollments' }),
+    ).toBeDisabled();
+  });
+
+  it('create customized draft posts billTo, currency, and lines', async () => {
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-custom', status: 'draft' });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
+    });
+
+    await userEvent.selectOptions(screen.getByLabelText(/^Draft type$/i), 'customized');
+
+    const customizedForm = document.getElementById('client-billing-customized-draft-form');
+    expect(customizedForm).toBeTruthy();
+    const desc = within(customizedForm as HTMLElement).getByLabelText(/^Description/i);
+    await userEvent.clear(desc);
+    await userEvent.type(desc, 'Consulting hours');
+
+    const unit = within(customizedForm as HTMLElement).getByLabelText(/^Unit price/i);
+    await userEvent.clear(unit);
+    await userEvent.type(unit, '150');
+
+    await userEvent.selectOptions(
+      screen.getByLabelText(/^Contact$/i),
+      'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Create draft invoice from custom lines' }));
+
+    await waitFor(() => {
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+    });
+    const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg).toMatchObject({
+      draftKind: 'customized_manual',
+      billTo: { kind: 'contact', contactId: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
+      currency: 'HKD',
+      lines: [{ description: 'Consulting hours', quantity: '1', unitAmount: '150' }],
+    });
   });
 
   it('blocks checkbox when invoiceLinked', async () => {

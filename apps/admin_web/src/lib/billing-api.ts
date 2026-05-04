@@ -184,7 +184,9 @@ export async function listRecentEnrollmentsForInvoicing(
 }
 
 export async function createDraftInvoice(
-  body: ApiSchemas['CreateDraftInvoiceRequest'],
+  body:
+    | ApiSchemas['CreateDraftInvoiceRequest']
+    | ApiSchemas['CreateCustomizedDraftInvoiceRequest'],
 ): Promise<{ invoiceId: string; status: string }> {
   const payload = await adminApiRequest<{
     invoiceId?: string;

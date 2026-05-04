@@ -163,7 +163,8 @@ The following tables have audit triggers:
 - `payment_allocations`
 - `customer_receipts`
 
-Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code.
+Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code
+(for example `DRAFT_CREATED` and `DRAFT_CREATED_CUSTOMIZED` on `customer_invoices` when creating enrollment-based or customized drafts).
 
 **Public reservations:** Trigger-written `audit_log` rows for enrollments and related tables
 use `user_id = NULL` (no Cognito actor); correlate using `request_id` from API Gateway. Optional
