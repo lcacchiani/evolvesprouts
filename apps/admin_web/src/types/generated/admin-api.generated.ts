@@ -4196,7 +4196,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create draft customer invoice */
+        /**
+         * Create draft customer invoice
+         * @description Send `CreateDraftInvoiceRequest` (enrollmentIds) to merge enrollments into one draft, or `CreateCustomizedDraftInvoiceRequest` (billTo, currency, lines) for manual line items without enrollment links. Do not combine both shapes in one request.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -4206,9 +4209,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json":
-                        | components["schemas"]["CreateDraftInvoiceRequest"]
-                        | components["schemas"]["CreateCustomizedDraftInvoiceRequest"];
+                    "application/json": components["schemas"]["CreateDraftInvoiceRequest"] | components["schemas"]["CreateCustomizedDraftInvoiceRequest"];
                 };
             };
             responses: {
@@ -6085,16 +6086,23 @@ export interface components {
         InvoiceBillToInput: {
             /** @enum {string} */
             kind: "contact" | "family" | "organization";
-            /** @description Required when kind is contact. */
+            /**
+             * Format: uuid
+             * @description Required when kind is contact.
+             */
             contactId?: string;
-            /** @description Required when kind is family. */
+            /**
+             * Format: uuid
+             * @description Required when kind is family.
+             */
             familyId?: string;
-            /** @description Required when kind is organization. */
+            /**
+             * Format: uuid
+             * @description Required when kind is organization.
+             */
             organizationId?: string;
         };
-        /**
-         * @description Line total is computed as quantity × unitAmount − discountAmount + tax. Omit discount and tax fields for a simple quantity × unitAmount line. Tax may be given as `taxAmount` or derived from `taxRate` × (quantity × unitAmount − discountAmount).
-         */
+        /** @description Line total is computed as quantity × unitAmount − discountAmount + tax. Omit discount and tax fields for a simple quantity × unitAmount line. Tax may be given as `taxAmount` or derived from `taxRate` × (quantity × unitAmount − discountAmount). */
         CustomizedInvoiceLineInput: {
             description: string;
             /** @description Decimal quantity; must be positive. */
@@ -6108,9 +6116,7 @@ export interface components {
             /** @description Optional decimal tax amount; when set, taxRate is stored for reference but taxAmount takes precedence. */
             taxAmount?: string | null;
         };
-        /**
-         * @description Creates a draft invoice with manually specified lines. Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request.
-         */
+        /** @description Creates a draft invoice with manually specified lines. Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request. */
         CreateCustomizedDraftInvoiceRequest: {
             billTo: components["schemas"]["InvoiceBillToInput"];
             currency: string;
