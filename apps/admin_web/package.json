@@ -42,7 +42,7 @@
     "postcss": "^8.5.12",
     "tailwindcss": "^4.1.18",
     "typescript": "^6.0.3",
-    "vite": "^7.3.2",
+    "vite": "^8.0.10",
     "vite-plugin-svgr": "^5.2.0",
     "vitest": "^4.1.5"
   },
