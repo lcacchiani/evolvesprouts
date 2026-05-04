@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -63,6 +63,7 @@ describe('ClientInvoicesPanel', () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -943,6 +944,7 @@ describe('ClientInvoicesPanel', () => {
     expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.lineTotalsByEnrollmentId).toEqual({ [id1]: '99' });
+    cleanup();
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
         pickerRow({

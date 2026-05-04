@@ -1,11 +1,13 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-const createDraftInvoice = vi.fn();
+const billingMocks = vi.hoisted(() => ({
+  createDraftInvoice: vi.fn(),
+}));
 
 vi.mock('@/lib/billing-api', () => ({
-  createDraftInvoice,
+  createDraftInvoice: billingMocks.createDraftInvoice,
 }));
 
 vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
@@ -25,7 +27,7 @@ import { CustomizedDraftInvoiceCard } from '@/components/admin/finance/customize
 
 describe('CustomizedDraftInvoiceCard', () => {
   it('submits customized draft with draftKind and billTo', async () => {
-    createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-x', status: 'draft' });
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-x', status: 'draft' });
     const onCreated = vi.fn();
 
     render(
@@ -52,12 +54,12 @@ describe('CustomizedDraftInvoiceCard', () => {
       'cccccccc-cccc-cccc-cccc-cccccccccccc',
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'Create draft invoice from custom lines' }));
+    fireEvent.submit(form as HTMLFormElement);
 
     await waitFor(() => {
-      expect(createDraftInvoice).toHaveBeenCalled();
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
-    expect(createDraftInvoice.mock.calls[0][0]).toMatchObject({
+    expect(billingMocks.createDraftInvoice.mock.calls[0][0]).toMatchObject({
       draftKind: 'customized_manual',
       billTo: { kind: 'contact', contactId: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
       currency: 'HKD',
