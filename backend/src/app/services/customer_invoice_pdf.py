@@ -11,6 +11,8 @@ Environment:
 - ``PUBLIC_WWW_BUSINESS_NAME``: trading name (From block).
 - ``PUBLIC_WWW_BUSINESS_LEGAL_NAME``: optional legal entity name for footer.
 - ``PUBLIC_WWW_BUSINESS_REGISTRATION``: BR / registration number for footer.
+- ``PUBLIC_WWW_FPS_MERCHANT_NAME`` / ``PUBLIC_WWW_FPS_MOBILE_NUMBER``: optional FPS QR on
+  invoices when ``total > 0`` and currency is HKD (align with public-site FPS config).
 
 The Evolve Sprouts wordmark is embedded from ``app/assets/invoice/evolvesprouts-invoice-logo.png``
 (raster export of the public-site SVG) so Lambda bundles match brand artwork without SVG
@@ -52,6 +54,8 @@ from reportlab.platypus import (
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
+from app.services.fps_qr_payload import build_fps_payload
+from app.services.fps_qr_pdf_image import render_fps_qr_png
 
 _SAMPLE_STYLES = getSampleStyleSheet()
 
@@ -81,6 +85,9 @@ _INV_LOGO_PATH = (
     / "assets"
     / "invoice"
     / "evolvesprouts-invoice-logo.png"
+)
+_INV_FPS_LOGO_PATH = (
+    Path(__file__).resolve().parent.parent / "assets" / "invoice" / "fps-logo.png"
 )
 
 # Source PNG has ~16.3% transparent padding on each side; render the box at
@@ -143,6 +150,20 @@ def _invoice_logo_flowable() -> Image | Paragraph:
         str(_INV_LOGO_PATH),
         width=_INV_LOGO_BOX_MM * mm,
         height=_INV_LOGO_BOX_MM * mm,
+        kind="proportional",
+    )
+    img.hAlign = "LEFT"
+    return img
+
+
+def _fps_logo_image() -> Image | None:
+    """FPS brand mark for payment band (~12 mm tall)."""
+    if not _INV_FPS_LOGO_PATH.is_file():
+        return None
+    img = Image(
+        str(_INV_FPS_LOGO_PATH),
+        width=25 * mm,
+        height=12 * mm,
         kind="proportional",
     )
     img.hAlign = "LEFT"
@@ -394,6 +415,26 @@ def render_invoice_pdf(
     bank_number = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "").strip()
     has_bank_block = bool(bank_name or bank_holder or bank_number)
 
+    is_non_positive_total = invoice.total <= Decimal("0")
+    show_due_date = not is_non_positive_total
+
+    fps_merchant = os.getenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "").strip()
+    fps_mobile = os.getenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "").strip()
+    fps_payload: str | None = None
+    if (
+        not is_non_positive_total
+        and inv_currency == "HKD"
+        and fps_merchant
+        and fps_mobile
+    ):
+        fps_payload = build_fps_payload(
+            fps_merchant,
+            fps_mobile,
+            invoice.total,
+            currency=inv_currency,
+        )
+    has_fps_qr = fps_payload is not None
+
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
 
@@ -451,6 +492,8 @@ def render_invoice_pdf(
     body_lines_count = (1 if business_name else 0) + len(address_lines)
     from_lines = min(6, max(2, body_lines_count))
     header_row_pt = max(150, 22 + (from_lines * 18) + 22)
+    if not show_due_date:
+        header_row_pt = max(132, header_row_pt - 18)
 
     from_cell = Table(
         [
@@ -501,36 +544,41 @@ def render_invoice_pdf(
 
     inv_date_s = _esc(inv_date.isoformat())
     due_date_s = _esc(due_date.isoformat())
-    dates_inner = Table(
+    date_rows: list[list] = [
         [
-            [
-                Paragraph(
-                    f'<font color="#555555"><b>Invoice Date:</b></font> {inv_date_s}',
-                    body_text_style,
-                )
-            ],
+            Paragraph(
+                f'<font color="#555555"><b>Invoice Date:</b></font> {inv_date_s}',
+                body_text_style,
+            )
+        ],
+    ]
+    if show_due_date:
+        date_rows.append(
             [
                 Paragraph(
                     f'<font color="#555555"><b>Due Date:</b></font> {due_date_s}',
                     body_text_style,
                 )
             ],
-        ],
-        colWidths=[58 * mm],
-    )
-    dates_inner.setStyle(
-        TableStyle(
+        )
+    dates_inner = Table(date_rows, colWidths=[58 * mm])
+    dates_style_cmds: list[tuple] = [
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+    ]
+    if len(date_rows) == 1:
+        dates_style_cmds.append(("BOTTOMPADDING", (0, 0), (0, 0), 14))
+    else:
+        dates_style_cmds.extend(
             [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (0, 0), 0),
                 ("BOTTOMPADDING", (0, 0), (0, 0), 14),
                 ("TOPPADDING", (0, 1), (0, 1), 0),
                 ("BOTTOMPADDING", (0, 1), (0, 1), 0),
             ]
         )
-    )
+    dates_inner.setStyle(TableStyle(dates_style_cmds))
 
     dates_panel = RoundedPanel(
         dates_inner,
@@ -744,29 +792,114 @@ def render_invoice_pdf(
     terms_intro = (
         f"Payment is due within {terms_days} days from the issue of the invoice."
     )
-    story.append(Paragraph("Terms &amp; Conditions:", label_heading_style))
-    story.append(Spacer(1, 4))
-    story.append(Paragraph(_esc(terms_intro), body_text_style))
-    if has_bank_block:
+    if not is_non_positive_total:
+        story.append(Paragraph("Terms &amp; Conditions:", label_heading_style))
         story.append(Spacer(1, 4))
-        story.append(
-            Paragraph(
-                _esc("Please make payments using the bank details below:"),
-                body_text_style,
+        story.append(Paragraph(_esc(terms_intro), body_text_style))
+
+        if has_bank_block or has_fps_qr:
+            if has_bank_block and has_fps_qr:
+                pay_intro = (
+                    "Please make payments using the FPS QR code or the bank "
+                    "details below:"
+                )
+            elif has_bank_block:
+                pay_intro = "Please make payments using the bank details below:"
+            else:
+                pay_intro = "Please make payments using the FPS QR code below:"
+
+            story.append(Spacer(1, 12))
+
+            left_stack_rows: list[list] = []
+            if has_fps_qr:
+                logo_flow = _fps_logo_image()
+                if logo_flow is not None:
+                    left_stack_rows.append([logo_flow])
+                    left_stack_rows.append([Spacer(1, 6)])
+                qr_png = render_fps_qr_png(fps_payload, size_px=256)
+                qr_img = Image(
+                    io.BytesIO(qr_png),
+                    width=35 * mm,
+                    height=35 * mm,
+                    kind="proportional",
+                )
+                qr_img.hAlign = "LEFT"
+                left_stack_rows.append([qr_img])
+            left_cell: Flowable
+            if left_stack_rows:
+                left_inner = Table(
+                    left_stack_rows,
+                    colWidths=[55 * mm],
+                )
+                left_inner.setStyle(
+                    TableStyle(
+                        [
+                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                            ("TOPPADDING", (0, 0), (-1, -1), 0),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ]
+                    )
+                )
+                left_cell = left_inner
+            else:
+                left_cell = Paragraph("", body_text_style)
+
+            right_rows: list[list] = [
+                [Paragraph(_esc(pay_intro), body_text_style)],
+            ]
+            if has_bank_block:
+                right_rows.append([Spacer(1, 12)])
+                bank_lines = [
+                    f"Bank: {_esc(bank_name)}" if bank_name else "",
+                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
+                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
+                ]
+                first_bank = True
+                for bl in bank_lines:
+                    if not bl:
+                        continue
+                    if not first_bank:
+                        right_rows.append([Spacer(1, 2)])
+                    right_rows.append([Paragraph(bl, body_text_style)])
+                    first_bank = False
+
+            right_inner = Table(
+                right_rows,
+                colWidths=[135 * mm],
             )
-        )
-        story.append(Spacer(1, 12))
-        bank_lines = [
-            f"Bank: {_esc(bank_name)}" if bank_name else "",
-            f"Account Number: {_esc(bank_number)}" if bank_number else "",
-            f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
-        ]
-        for idx, bl in enumerate(bank_lines):
-            if not bl:
-                continue
-            if idx > 0:
-                story.append(Spacer(1, 2))
-            story.append(Paragraph(bl, body_text_style))
+            right_inner.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ]
+                )
+            )
+
+            pay_table = Table(
+                [[left_cell, right_inner]],
+                colWidths=[55 * mm, 135 * mm],
+            )
+            pay_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ]
+                )
+            )
+            story.append(pay_table)
+    else:
+        story.append(Spacer(1, 36))
 
     footer_text = invoice_pdf_footer_text()
 

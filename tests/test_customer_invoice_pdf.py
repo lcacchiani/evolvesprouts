@@ -126,8 +126,15 @@ def test_v6_logo_size_and_position(monkeypatch: pytest.MonkeyPatch) -> None:
     _doc, _page, _spans, images = _pdf_layout(pdf)
     if not images:
         pytest.skip("invoice logo asset not present in test environment")
-    assert len(images) == 1
-    bbox = images[0]["bbox"]
+    logos = []
+    for im in images:
+        bbox = im["bbox"]
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
+        if 140 <= w <= 155 and 140 <= h <= 155:
+            logos.append(bbox)
+    assert logos, "expected hero wordmark image dimensions"
+    bbox = logos[0]
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
     # 52mm rendered box (~147 pt) preserves aspect; PNG includes ~16% transparent
@@ -372,7 +379,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v6"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v7"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -744,6 +751,233 @@ def test_compute_snapshot_dates(monkeypatch: pytest.MonkeyPatch) -> None:
     inv_d, due_d = compute_invoice_snapshot_dates(issued)
     assert inv_d.isoformat() == "2026-03-25"
     assert due_d.isoformat() == "2026-04-01"
+
+
+def _pdf_page_image_blocks(pdf: bytes, page_index: int = 0) -> list:
+    import fitz
+
+    page = fitz.open(stream=pdf, filetype="pdf")[page_index]
+    return [b for b in page.get_text("dict")["blocks"] if b["type"] == 1]
+
+
+def _pdf_all_image_blocks(pdf: bytes) -> list:
+    import fitz
+
+    doc = fitz.open(stream=pdf, filetype="pdf")
+    blocks: list = []
+    for i in range(len(doc)):
+        page = doc[i]
+        blocks.extend(b for b in page.get_text("dict")["blocks"] if b["type"] == 1)
+    return blocks
+
+
+def test_zero_total_hides_due_date_and_terms(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Test Bank")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "123")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "Holder")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSCo")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="Z1",
+        currency="HKD",
+        subtotal=Decimal("0"),
+        tax_total=Decimal("0"),
+        total=Decimal("0"),
+        bill_to_display_name="Client",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = _inv_line(
+        unit_amount=Decimal("0"),
+        line_total=Decimal("0"),
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    text = _pdf_text(pdf)
+    assert "Invoice Date:" in text
+    assert "Total:" in text
+    assert "Due Date:" not in text
+    assert "Terms & Conditions" not in text
+    assert "Please make payments" not in text
+    assert "Bank:" not in text
+
+
+def test_nonzero_total_shows_fps_block(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Bk")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "999")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "H")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSMerchant")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("10"),
+        tax_total=Decimal("0"),
+        total=Decimal("10"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[_inv_line(unit_amount=Decimal("10"), line_total=Decimal("10"))],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "FPS QR code or the bank" in text
+    assert "Bank:" in text
+    assert len(_pdf_all_image_blocks(pdf)) >= 2
+
+
+def test_nonzero_total_without_fps_config_falls_back_to_bank_only_copy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Bk")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "1")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "H")
+    monkeypatch.delenv("PUBLIC_WWW_FPS_MERCHANT_NAME", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", raising=False)
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("5"),
+        tax_total=Decimal("0"),
+        total=Decimal("5"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[_inv_line(unit_amount=Decimal("5"), line_total=Decimal("5"))],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "Please make payments using the bank details below:" in text
+    assert "FPS QR code or the bank" not in text
+    assert len(_pdf_page_image_blocks(pdf)) == 1
+
+
+def test_nonzero_total_with_fps_only_no_bank_omits_bank_lines(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.delenv("PUBLIC_WWW_BANK_NAME", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", raising=False)
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSOnly")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("3"),
+        tax_total=Decimal("0"),
+        total=Decimal("3"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[_inv_line(unit_amount=Decimal("3"), line_total=Decimal("3"))],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "FPS QR code below:" in text
+    assert "Bank:" not in text
+    assert len(_pdf_all_image_blocks(pdf)) >= 2
+
+
+def test_nonzero_total_non_hkd_skips_fps_qr(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Bk")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "1")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "H")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPS")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="USD",
+        subtotal=Decimal("10"),
+        tax_total=Decimal("0"),
+        total=Decimal("10"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[
+            _inv_line(
+                unit_amount=Decimal("10"),
+                line_total=Decimal("10"),
+                currency="USD",
+            )
+        ],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "Please make payments using the bank details below:" in text
+    assert "FPS QR code or the bank" not in text
+    assert len(_pdf_page_image_blocks(pdf)) == 1
+
+
+def test_negative_total_suppresses_payment_block(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Bk")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPS")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="CR1",
+        currency="HKD",
+        subtotal=Decimal("-50"),
+        tax_total=Decimal("0"),
+        total=Decimal("-50"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = _inv_line(
+        unit_amount=Decimal("-50"),
+        line_total=Decimal("-50"),
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    text = _pdf_text(pdf)
+    assert "Due Date:" not in text
+    assert "Terms & Conditions" not in text
+    assert "Please make payments" not in text
 
 
 def test_refresh_invoice_sets_invoice_template_version(
