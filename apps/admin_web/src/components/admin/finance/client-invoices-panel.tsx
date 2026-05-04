@@ -60,6 +60,15 @@ function formatTruncatedId(id: string | undefined): string {
   return `${id.slice(0, 8)}…`;
 }
 
+/** List table: capitalize first letter of API status (for example `draft` → `Draft`). */
+function formatCustomerInvoiceStatusLabel(status: string | undefined): string {
+  const t = status?.trim() ?? '';
+  if (t === '') {
+    return '—';
+  }
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 function currencySelectValue(
   code: string,
   options: readonly { value: string }[],
@@ -1050,10 +1059,9 @@ export function ClientInvoicesPanel() {
         }
       >
         <section aria-label='Customer invoices list'>
-        <AdminDataTable tableClassName='min-w-[980px]'>
+        <AdminDataTable tableClassName='min-w-[900px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Invoice</th>
               <th className='px-3 py-2'>Status</th>
               <th className='px-3 py-2'>Number</th>
               <th className='px-3 py-2'>Bill to</th>
@@ -1078,24 +1086,18 @@ export function ClientInvoicesPanel() {
               return (
                 <tr
                   key={id || `invoice-row-${String(index)}`}
-                  className={selected ? 'bg-sky-50' : undefined}
+                  className={selected ? 'cursor-pointer bg-sky-50' : id ? 'cursor-pointer' : undefined}
+                  onClick={() => {
+                    setSelectedInvoiceId(id || null);
+                    if (id) {
+                      setInvoiceIdInput(id);
+                      setAllocateInvoiceId(id);
+                    }
+                  }}
                 >
                   <td className='px-3 py-2'>
-                    <button
-                      type='button'
-                      className='font-mono text-left text-xs text-sky-800 underline decoration-sky-300 hover:decoration-sky-600'
-                      onClick={() => {
-                        setSelectedInvoiceId(id || null);
-                        if (id) {
-                          setInvoiceIdInput(id);
-                          setAllocateInvoiceId(id);
-                        }
-                      }}
-                    >
-                      {formatTruncatedId(id)}
-                    </button>
+                    {formatCustomerInvoiceStatusLabel(inv.status)}
                   </td>
-                  <td className='px-3 py-2'>{inv.status}</td>
                   <td className='px-3 py-2 text-xs'>{inv.invoiceNumber ?? '—'}</td>
                   <td className='px-3 py-2 text-xs text-slate-700'>
                     {inv.billToDisplayName ?? inv.billToEmail ?? '—'}
@@ -1103,7 +1105,12 @@ export function ClientInvoicesPanel() {
                   <td className='px-3 py-2'>{totalDisplay}</td>
                   <td className='px-3 py-2'>{inv.lineCount ?? 0}</td>
                   <td className='px-3 py-2'>{formatDate(inv.createdAt ?? null)}</td>
-                  <td className='px-3 py-2 text-right'>
+                  <td
+                    className='px-3 py-2 text-right'
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
                     <div className='flex flex-wrap justify-end gap-1'>
                       <Button
                         type='button'

@@ -25,6 +25,11 @@ vi.mock('@/lib/billing-api', () => ({
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
 
+function firstCustomerInvoiceDataRow(invoiceTable: HTMLElement): HTMLElement {
+  const rows = within(invoiceTable).getAllByRole('row');
+  return rows[1] as HTMLElement;
+}
+
 describe('ClientInvoicesPanel', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/finance?tab=client-invoices');
@@ -88,7 +93,9 @@ describe('ClientInvoicesPanel', () => {
 
     const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
     const invoiceTable = within(invoiceRegion).getByRole('table');
-    await userEvent.click(within(invoiceTable).getByRole('button', { name: /aaaaaaaa/i }));
+    expect(within(invoiceTable).queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
+    expect(within(invoiceTable).getByText('Draft')).toBeInTheDocument();
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
       expect(billingMocks.getCustomerInvoice).toHaveBeenCalledWith(invId, expect.any(AbortSignal));
@@ -333,7 +340,7 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
-    await userEvent.click(within(invoiceTable).getByRole('button', { name: /aaaaaaaa/i }));
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
       expect(screen.getByTitle(lineId)).toBeInTheDocument();
@@ -539,7 +546,7 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => {
       expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
-    await userEvent.click(within(invoiceTable).getByRole('button', { name: /aaaaaaaa/i }));
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
     await waitFor(() => {
       expect((document.getElementById('billing-allocate-invoice') as HTMLInputElement).value).toBe(invId);
     });
