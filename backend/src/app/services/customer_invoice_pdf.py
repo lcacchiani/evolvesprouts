@@ -812,6 +812,7 @@ def render_invoice_pdf(
 
             left_stack_rows: list[list] = []
             if has_fps_qr:
+                assert fps_payload is not None
                 logo_flow = _fps_logo_image()
                 if logo_flow is not None:
                     left_stack_rows.append([logo_flow])
