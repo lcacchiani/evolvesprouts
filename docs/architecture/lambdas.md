@@ -112,7 +112,8 @@ their primary responsibilities.
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
   `/v1/admin/expenses/*`,
-  `/v1/admin/billing/*` (customer AR: payments, invoices list/detail, draft-from-enrollments,
+  `/v1/admin/billing/*` (customer AR: payments, invoices list/detail, draft-from-enrollments or customized draft
+  (`POST /v1/admin/billing/invoices` with `billTo` + `lines`),
   `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`
   (returns a CloudFront-signed URL; each response includes a unique cache-bust query on the
   signed resource so draft/void preview PDFs re-uploaded to the same S3 key are not edge-cached

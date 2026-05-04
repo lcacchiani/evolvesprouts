@@ -4196,7 +4196,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create draft invoice from enrollments */
+        /** Create draft customer invoice */
         post: {
             parameters: {
                 query?: never;
@@ -4206,7 +4206,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateDraftInvoiceRequest"];
+                    "application/json":
+                        | components["schemas"]["CreateDraftInvoiceRequest"]
+                        | components["schemas"]["CreateCustomizedDraftInvoiceRequest"];
                 };
             };
             responses: {
@@ -5980,8 +5982,11 @@ export interface components {
             id?: string;
             /** Format: uuid */
             invoiceId?: string;
-            /** Format: uuid */
-            enrollmentId?: string;
+            /**
+             * Format: uuid
+             * @description Present when the line is tied to an enrollment; null for customized invoice lines.
+             */
+            enrollmentId?: string | null;
             lineOrder?: number;
             description?: string;
             quantity?: string;
@@ -6075,6 +6080,41 @@ export interface components {
             lineTotalsByEnrollmentId?: {
                 [key: string]: string;
             };
+        };
+        /** @description Bill-to party for a customized draft. Supply exactly one of contactId, familyId, or organizationId matching `kind`. */
+        InvoiceBillToInput: {
+            /** @enum {string} */
+            kind: "contact" | "family" | "organization";
+            /** @description Required when kind is contact. */
+            contactId?: string;
+            /** @description Required when kind is family. */
+            familyId?: string;
+            /** @description Required when kind is organization. */
+            organizationId?: string;
+        };
+        /**
+         * @description Line total is computed as quantity × unitAmount − discountAmount + tax. Omit discount and tax fields for a simple quantity × unitAmount line. Tax may be given as `taxAmount` or derived from `taxRate` × (quantity × unitAmount − discountAmount).
+         */
+        CustomizedInvoiceLineInput: {
+            description: string;
+            /** @description Decimal quantity; must be positive. */
+            quantity: string;
+            /** @description Decimal unit price in invoice currency. */
+            unitAmount: string;
+            /** @description Optional decimal discount; defaults to 0. Must not exceed quantity × unitAmount. */
+            discountAmount?: string | null;
+            /** @description Optional decimal tax rate applied to taxable amount when taxAmount is omitted. */
+            taxRate?: string | null;
+            /** @description Optional decimal tax amount; when set, taxRate is stored for reference but taxAmount takes precedence. */
+            taxAmount?: string | null;
+        };
+        /**
+         * @description Creates a draft invoice with manually specified lines. Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request.
+         */
+        CreateCustomizedDraftInvoiceRequest: {
+            billTo: components["schemas"]["InvoiceBillToInput"];
+            currency: string;
+            lines: components["schemas"]["CustomizedInvoiceLineInput"][];
         };
         CreatePaymentAllocationRequest: {
             /** Format: uuid */

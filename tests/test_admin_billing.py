@@ -571,6 +571,78 @@ def test_create_invoice_draft_currency_empty_string_derives(
     assert r["statusCode"] == 201
 
 
+def test_create_customized_invoice_draft_rejects_missing_currency(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    body = {
+        "billTo": {"kind": "contact", "contactId": str(uuid4())},
+        "lines": [{"description": "A", "quantity": "1", "unitAmount": "10"}],
+    }
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/invoices",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="currency"):
+        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+
+
+def test_create_customized_invoice_draft_rejects_contact_not_found(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cid = uuid4()
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(_model: Any, _pk: Any) -> None:
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+
+    body = {
+        "billTo": {"kind": "contact", "contactId": str(cid)},
+        "currency": "HKD",
+        "lines": [{"description": "A", "quantity": "1", "unitAmount": "10"}],
+    }
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/invoices",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Contact not found"):
+        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+
+
+def test_create_invoice_draft_rejects_enrollment_ids_with_bill_to(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    body = {
+        "enrollmentIds": [str(uuid4())],
+        "billTo": {"kind": "contact", "contactId": str(uuid4())},
+        "currency": "HKD",
+        "lines": [{"description": "X", "quantity": "1", "unitAmount": "1"}],
+    }
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/invoices",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="not both"):
+        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+
+
 def test_list_recent_enrollments_void_invoice_does_not_block_linked_flag(
     api_gateway_event: Any,
     admin_identity: dict[str, str],

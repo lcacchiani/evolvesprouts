@@ -77,6 +77,19 @@ vi.mock('@/lib/expenses-api', async () => {
   };
 });
 
+vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
+  useEnrollmentParentPickers: () => ({
+    contactOptions: [],
+    families: [],
+    organizations: [],
+    loading: false,
+    error: '',
+    labelByContactId: new Map(),
+    labelByFamilyId: new Map(),
+    labelByOrganizationId: new Map(),
+  }),
+}));
+
 import { FinancePage } from '@/components/admin/finance/finance-page';
 
 describe('FinancePage', () => {
@@ -106,6 +119,7 @@ describe('FinancePage', () => {
     expect(
       screen.getByRole('heading', { name: 'Create draft invoice from enrollments' })
     ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Create draft customized invoice' })).toBeInTheDocument();
     expect(window.location.search).toBe('?tab=client-invoices');
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
@@ -119,6 +133,7 @@ describe('FinancePage', () => {
       expect(
         screen.getByRole('heading', { name: 'Create draft invoice from enrollments' })
       ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Create draft customized invoice' })).toBeInTheDocument();
     });
   });
 

@@ -13,7 +13,7 @@ def serialize_invoice_line(line: CustomerInvoiceLine) -> dict[str, Any]:
     return {
         "id": str(line.id),
         "invoiceId": str(line.invoice_id),
-        "enrollmentId": str(line.enrollment_id),
+        "enrollmentId": str(line.enrollment_id) if line.enrollment_id else None,
         "lineOrder": line.line_order,
         "description": line.description,
         "quantity": str(line.quantity),

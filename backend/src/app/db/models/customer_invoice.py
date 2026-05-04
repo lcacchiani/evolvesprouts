@@ -119,7 +119,7 @@ class CustomerInvoice(Base):
 
 
 class CustomerInvoiceLine(Base):
-    """Invoice line tied to an enrollment."""
+    """Invoice line; ``enrollment_id`` is set for enrollment-based lines only."""
 
     __tablename__ = "customer_invoice_lines"
 
@@ -133,10 +133,10 @@ class CustomerInvoiceLine(Base):
         ForeignKey("customer_invoices.id", ondelete="CASCADE"),
         nullable=False,
     )
-    enrollment_id: Mapped[UUID] = mapped_column(
+    enrollment_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("enrollments.id", ondelete="RESTRICT"),
-        nullable=False,
+        nullable=True,
     )
     line_order: Mapped[int] = mapped_column(sa.SmallInteger, nullable=False)
     description: Mapped[str] = mapped_column(Text(), nullable=False)

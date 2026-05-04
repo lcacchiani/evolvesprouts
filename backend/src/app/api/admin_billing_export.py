@@ -253,7 +253,7 @@ def _export_csv(
                         "",
                         "",
                         inv.invoice_number or "",
-                        str(ln.enrollment_id),
+                        str(ln.enrollment_id) if ln.enrollment_id else "",
                         str(ln.id),
                         ln.created_at.isoformat(),
                     ]
