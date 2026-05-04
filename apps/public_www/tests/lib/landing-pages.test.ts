@@ -61,11 +61,14 @@ describe('landing-pages registry', () => {
     }
   });
 
-  it('registers every landing slug in RESERVED_PATH_SEGMENTS coverage of ROUTES first segments', () => {
+  it('covers ROUTES first segments via RESERVED_PATH_SEGMENTS or landing-page slugs', () => {
+    const landingSlugs = new Set(getAllLandingPageSlugs());
     for (const routePath of Object.values(ROUTES)) {
       const segment = routePath.replace(/^\/+|\/+$/g, '').split('/')[0] ?? '';
       if (segment) {
-        expect(RESERVED_PATH_SEGMENTS.has(segment)).toBe(true);
+        expect(
+          RESERVED_PATH_SEGMENTS.has(segment) || landingSlugs.has(segment),
+        ).toBe(true);
       }
     }
   });

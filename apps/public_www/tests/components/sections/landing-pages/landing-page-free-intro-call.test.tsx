@@ -49,10 +49,16 @@ afterEach(() => {
   vi.mocked(fetchIntroCallSlots).mockReset();
   submitReservationSpy.mockReset();
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe('LandingPageFreeIntroCall', () => {
   beforeEach(() => {
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
     vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', 'test-www-crm-api-key');
     vi.stubEnv('NEXT_PUBLIC_WHATSAPP_URL', 'https://wa.me/85290000000');
@@ -92,8 +98,9 @@ describe('LandingPageFreeIntroCall', () => {
       target: { value: 'parent@example.com' },
     });
 
-    const form = screen.getByRole('form');
-    const terms = within(form).getByRole('checkbox', { name: /Terms/i });
+    const form = document.getElementById('intro-call-booking-form');
+    expect(form).toBeInstanceOf(HTMLFormElement);
+    const terms = within(form as HTMLFormElement).getByRole('checkbox', { name: /Terms/i });
     fireEvent.click(terms);
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));

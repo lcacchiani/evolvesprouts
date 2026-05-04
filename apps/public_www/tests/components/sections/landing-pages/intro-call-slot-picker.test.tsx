@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { IntroCallSlotPicker } from '@/components/sections/landing-pages/intro-call-slot-picker';
 import enContent from '@/content/en.json';
@@ -14,9 +14,18 @@ const { fetchIntroCallSlots } = await import('@/lib/intro-call-slots-api');
 
 afterEach(() => {
   vi.mocked(fetchIntroCallSlots).mockReset();
+  vi.unstubAllGlobals();
 });
 
 describe('IntroCallSlotPicker', () => {
+  beforeEach(() => {
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
   it('renders time buttons after slots load', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
