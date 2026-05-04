@@ -812,12 +812,16 @@ def render_invoice_pdf(
 
             left_stack_rows: list[list] = []
             if has_fps_qr:
-                assert fps_payload is not None
+                payload_for_qr = fps_payload
+                if payload_for_qr is None:
+                    raise RuntimeError(
+                        "FPS QR block requires a payload when has_fps_qr is true"
+                    )
                 logo_flow = _fps_logo_image()
                 if logo_flow is not None:
                     left_stack_rows.append([logo_flow])
                     left_stack_rows.append([Spacer(1, 6)])
-                qr_png = render_fps_qr_png(fps_payload, size_px=256)
+                qr_png = render_fps_qr_png(payload_for_qr, size_px=256)
                 qr_img = Image(
                     io.BytesIO(qr_png),
                     width=35 * mm,
