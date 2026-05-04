@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, timedelta
 
-import pytest
-
 from app.services.intro_call_slots import (
     _INTRO_CALL_HORIZON_DAYS,
     enumerate_intro_call_candidate_slots,

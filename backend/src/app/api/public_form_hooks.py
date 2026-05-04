@@ -227,9 +227,9 @@ def send_booking_confirmation_email(
             support_email=support_email or "",
         )
         full_html = substitute_shell_placeholders(html_doc, merged_intro)
-        attachments: list[tuple[str, str, bytes]] | None = None
+        intro_attachments: list[tuple[str, str, bytes]] | None = None
         if ics_bytes is not None:
-            attachments = [
+            intro_attachments = [
                 (
                     BOOKING_ICS_ATTACHMENT_FILENAME,
                     "text/calendar; charset=utf-8; method=PUBLISH",
@@ -245,7 +245,7 @@ def send_booking_confirmation_email(
                 body_html=full_html,
                 inline_image_cid=None,
                 png_bytes=None,
-                attachments=attachments,
+                attachments=intro_attachments,
             )
         except Exception:
             logger.exception(
@@ -350,9 +350,9 @@ def send_booking_confirmation_email(
             is_free=is_free,
         )
         full_html = substitute_shell_placeholders(html_doc, merged)
-        attachments: list[tuple[str, str, bytes]] | None = None
+        mime_attachments: list[tuple[str, str, bytes]] | None = None
         if ics_bytes is not None:
-            attachments = [
+            mime_attachments = [
                 (
                     BOOKING_ICS_ATTACHMENT_FILENAME,
                     "text/calendar; charset=utf-8; method=PUBLISH",
@@ -368,7 +368,7 @@ def send_booking_confirmation_email(
                 body_html=full_html,
                 inline_image_cid="fps_qr" if png_bytes is not None else None,
                 png_bytes=png_bytes,
-                attachments=attachments,
+                attachments=mime_attachments,
             )
         except Exception:
             logger.exception(
