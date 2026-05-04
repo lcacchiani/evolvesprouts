@@ -214,7 +214,14 @@ export function ClientInvoicesPanel() {
   const [allocateInvoiceLinesLoading, setAllocateInvoiceLinesLoading] = useState(false);
   const [allocateInvoiceLinesError, setAllocateInvoiceLinesError] = useState('');
 
-  const [refundOriginalId, setRefundOriginalId] = useState('');
+  const [refundInvoiceId, setRefundInvoiceId] = useState('');
+  const [refundPaymentSelectId, setRefundPaymentSelectId] = useState('');
+  const [refundPaymentsForInvoice, setRefundPaymentsForInvoice] = useState<
+    CustomerPaymentSummary[]
+  >([]);
+  const [refundPaymentsLoading, setRefundPaymentsLoading] = useState(false);
+  const [refundPaymentsError, setRefundPaymentsError] = useState('');
+  const [refundInvoicePaymentsRefresh, setRefundInvoicePaymentsRefresh] = useState(0);
   const [refundAmount, setRefundAmount] = useState('');
   const [refundCurrency, setRefundCurrency] = useState(defaultCurrency);
   const [refundMethod, setRefundMethod] = useState('');
@@ -233,7 +240,7 @@ export function ClientInvoicesPanel() {
     setListLoading(true);
     setListError('');
     try {
-      const items = await listCustomerPayments(signal);
+      const items = await listCustomerPayments({}, signal);
       setPayments(items);
     } catch (caught) {
       if (caught instanceof Error && caught.name === 'AbortError') {
@@ -420,6 +427,24 @@ export function ClientInvoicesPanel() {
     [invoices],
   );
 
+  const refundEligiblePayments = useMemo(
+    () =>
+      refundPaymentsForInvoice.filter(
+        (p) => p.direction === 'inbound' && p.status === 'succeeded',
+      ),
+    [refundPaymentsForInvoice],
+  );
+
+  useEffect(() => {
+    if (!selectedInvoiceId) {
+      return;
+    }
+    const inv = invoices.find((i) => i.id === selectedInvoiceId);
+    if (inv?.status === 'issued') {
+      setRefundInvoiceId(selectedInvoiceId);
+    }
+  }, [selectedInvoiceId, invoices]);
+
   const allocateLinesOrdered = useMemo(
     () => [...allocateInvoiceLines].sort((a, b) => invoiceLineSortKey(a) - invoiceLineSortKey(b)),
     [allocateInvoiceLines],
@@ -528,7 +553,7 @@ export function ClientInvoicesPanel() {
           lastPaymentSeedIdRef.current = id;
           const cur = row.currency ?? defaultCurrency;
           setAllocateCurrency(currencySelectValue(cur, currencyOptions, defaultCurrency));
-          setRefundOriginalId(row.id ?? '');
+          setRefundPaymentSelectId(row.id ?? '');
           setRefundCurrency(currencySelectValue(cur, currencyOptions, defaultCurrency));
         }
       } catch (caught) {
@@ -563,6 +588,84 @@ export function ClientInvoicesPanel() {
     void loadDetail(selectedId, ac.signal);
     return () => ac.abort();
   }, [selectedId, loadDetail]);
+
+  useEffect(() => {
+    if (!selectedId || !detail) {
+      return;
+    }
+    const refs = detail.allocationInvoices ?? [];
+    if (refs.length === 0) {
+      return;
+    }
+    const ids = new Set(refs.map((r) => r.invoiceId));
+    setRefundInvoiceId((prev) => {
+      if (prev && ids.has(prev)) {
+        return prev;
+      }
+      const preferred = allocateInvoiceId.trim();
+      if (preferred && ids.has(preferred)) {
+        return preferred;
+      }
+      return refs[0]?.invoiceId ?? '';
+    });
+  }, [selectedId, detail, allocateInvoiceId]);
+
+  useEffect(() => {
+    const trimmed = refundInvoiceId.trim();
+    if (trimmed === '') {
+      setRefundPaymentsForInvoice([]);
+      setRefundPaymentsLoading(false);
+      setRefundPaymentsError('');
+      return;
+    }
+    const ac = new AbortController();
+    setRefundPaymentsLoading(true);
+    setRefundPaymentsError('');
+    void (async () => {
+      try {
+        const items = await listCustomerPayments({ invoiceId: trimmed }, ac.signal);
+        if (ac.signal.aborted) {
+          return;
+        }
+        setRefundPaymentsForInvoice(items);
+        setRefundPaymentSelectId((prev) => {
+          const inboundMatch = items.find(
+            (p) => p.id === prev && p.direction === 'inbound' && p.status === 'succeeded',
+          );
+          if (inboundMatch) {
+            return prev;
+          }
+          const selectedMatch =
+            selectedId &&
+            items.find(
+              (p) => p.id === selectedId && p.direction === 'inbound' && p.status === 'succeeded',
+            );
+          if (selectedMatch) {
+            return selectedId;
+          }
+          return (
+            items.find((p) => p.direction === 'inbound' && p.status === 'succeeded')?.id ?? ''
+          );
+        });
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === 'AbortError') {
+          return;
+        }
+        if (!ac.signal.aborted) {
+          setRefundPaymentsForInvoice([]);
+          setRefundPaymentSelectId('');
+          setRefundPaymentsError(
+            caught instanceof Error ? caught.message : 'Failed to load payments for invoice.',
+          );
+        }
+      } finally {
+        if (!ac.signal.aborted) {
+          setRefundPaymentsLoading(false);
+        }
+      }
+    })();
+    return () => ac.abort();
+  }, [refundInvoiceId, selectedId, refundInvoicePaymentsRefresh]);
 
   const setBusy = (key: string | null) => {
     setBusyAction(key);
@@ -810,9 +913,9 @@ export function ClientInvoicesPanel() {
     event.preventDefault();
     setActionError('');
     setActionMessage('');
-    const orig = refundOriginalId.trim();
+    const orig = refundPaymentSelectId.trim();
     if (!orig) {
-      setActionError('Original payment id is required.');
+      setActionError('Select an inbound payment allocated to the invoice.');
       return;
     }
     const amt = refundAmount.trim();
@@ -832,6 +935,7 @@ export function ClientInvoicesPanel() {
       });
       setActionMessage('Refund payment row recorded.');
       await loadPayments();
+      setRefundInvoicePaymentsRefresh((n) => n + 1);
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Refund failed.');
     } finally {
@@ -1476,7 +1580,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title='Record refund payment row'
-        description='Creates a succeeded refund payment linked to the original payment.'
+        description='Choose an issued invoice, then the inbound payment allocated to it (from allocations). Creates a succeeded refund linked to that payment.'
         actions={
           <Button type='submit' form={REFUND_FORM_ID} disabled={editorBusy} variant='secondary'>
             {busyAction === 'refund' ? 'Recording…' : 'Record refund'}
@@ -1484,15 +1588,90 @@ export function ClientInvoicesPanel() {
         }
       >
         <form id={REFUND_FORM_ID} className='flex max-w-full flex-col gap-3' onSubmit={(e) => void handleRefund(e)}>
-          <div className='max-w-2xl'>
-            <Label htmlFor='billing-refund-original'>Original payment UUID</Label>
-            <Input
-              id='billing-refund-original'
-              value={refundOriginalId}
-              onChange={(e) => setRefundOriginalId(e.target.value)}
-              className='mt-1 font-mono text-sm'
-              disabled={editorBusy}
-            />
+          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-invoice'>Issued invoice</Label>
+              <Select
+                id='billing-refund-invoice'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  issuedInvoicesForAllocate.some((i) => i.id === refundInvoiceId)
+                    ? refundInvoiceId
+                    : ''
+                }
+                onChange={(e) => {
+                  setRefundInvoiceId(e.target.value);
+                  setRefundPaymentSelectId('');
+                }}
+                disabled={editorBusy}
+              >
+                <option value=''>Select invoice…</option>
+                {issuedInvoicesForAllocate.map((invOpt) => {
+                  const oid = invOpt.id ?? '';
+                  const num = invOpt.invoiceNumber?.trim() ?? '';
+                  const label = num !== '' ? num : formatTruncatedId(oid);
+                  return (
+                    <option key={oid || 'refund-invoice-option'} value={oid}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-payment'>Payment allocated to invoice</Label>
+              <Select
+                id='billing-refund-payment'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  refundEligiblePayments.some((p) => p.id === refundPaymentSelectId)
+                    ? refundPaymentSelectId
+                    : ''
+                }
+                onChange={(e) => setRefundPaymentSelectId(e.target.value)}
+                disabled={
+                  editorBusy ||
+                  refundInvoiceId.trim() === '' ||
+                  refundPaymentsLoading ||
+                  refundEligiblePayments.length === 0
+                }
+              >
+                <option value=''>
+                  {refundPaymentsLoading
+                    ? 'Loading payments…'
+                    : refundEligiblePayments.length === 0
+                      ? 'No inbound succeeded payments with allocations'
+                      : 'Select payment…'}
+                </option>
+                {refundEligiblePayments.map((p) => {
+                  const pid = p.id ?? '';
+                  const amt = p.amount ?? '';
+                  const cur = p.currency ?? '';
+                  const method = p.method?.trim() ?? '';
+                  const methodSuffix = method !== '' ? ` · ${method}` : '';
+                  return (
+                    <option key={pid || 'refund-pay-opt'} value={pid}>
+                      {formatTruncatedId(pid)} · {amt} {cur}
+                      {methodSuffix}
+                    </option>
+                  );
+                })}
+              </Select>
+              {refundPaymentsLoading ? (
+                <p className='mt-1 text-xs text-slate-600'>Loading payments…</p>
+              ) : null}
+              {refundPaymentsError ? (
+                <AdminInlineError className='mt-1'>{refundPaymentsError}</AdminInlineError>
+              ) : null}
+              {!refundPaymentsLoading &&
+              refundInvoiceId.trim() !== '' &&
+              refundEligiblePayments.length === 0 &&
+              !refundPaymentsError ? (
+                <p className='mt-1 text-xs text-slate-600'>
+                  No succeeded inbound payments are allocated to this invoice yet.
+                </p>
+              ) : null}
+            </div>
           </div>
           <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
             <div className='min-w-0'>

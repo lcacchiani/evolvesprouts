@@ -12,12 +12,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
-from app.api.admin_request import parse_body
+from app.api.admin_request import parse_body, query_param
 from app.db.audit import AuditService
 from app.db.engine import get_engine
+from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.enums import BillingPaymentDirection, BillingPaymentStatus
+from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
     create_receipt_for_succeeded_inbound_payment,
@@ -28,6 +30,46 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _payment_allocation_invoice_refs(
+    session: Session, payment_id: UUID
+) -> list[dict[str, str | None]]:
+    """Distinct invoices this payment is allocated to (for admin UI pickers)."""
+    inv_ids = list(
+        session.execute(
+            select(PaymentAllocation.invoice_id)
+            .where(PaymentAllocation.payment_id == payment_id)
+            .distinct()
+        )
+        .scalars()
+        .all()
+    )
+    if not inv_ids:
+        return []
+    rows = session.execute(
+        select(
+            CustomerInvoice.id,
+            CustomerInvoice.invoice_number,
+            CustomerInvoice.created_at,
+        ).where(CustomerInvoice.id.in_(inv_ids))
+    ).all()
+    by_id = {r[0]: (r[1], r[2]) for r in rows}
+    ordered = sorted(
+        inv_ids,
+        key=lambda i: (by_id.get(i, (None, None))[1] or datetime.min.replace(tzinfo=UTC)),
+        reverse=True,
+    )
+    out: list[dict[str, str | None]] = []
+    for iid in ordered:
+        num, _ts = by_id.get(iid, (None, None))
+        out.append(
+            {
+                "invoiceId": str(iid),
+                "invoiceNumber": str(num).strip() if num else None,
+            }
+        )
+    return out
 
 
 def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
@@ -53,12 +95,31 @@ def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
 def _list_payments(
     event: Mapping[str, Any], *, user_sub: str, request_id: str | None
 ) -> dict[str, Any]:
+    invoice_raw = query_param(event, "invoice_id") or query_param(event, "invoiceId")
+    inv_filter: UUID | None = None
+    if invoice_raw and str(invoice_raw).strip():
+        try:
+            inv_filter = UUID(str(invoice_raw).strip())
+        except (ValueError, TypeError) as exc:
+            raise ValidationError(
+                "invoice_id must be a UUID", field="invoice_id"
+            ) from exc
+
     with _session_with_audit(user_sub, request_id) as session:
-        stmt = (
-            select(CustomerPayment)
-            .order_by(CustomerPayment.created_at.desc())
-            .limit(DEFAULT_BILLING_LIST_LIMIT)
-        )
+        stmt = select(CustomerPayment).order_by(CustomerPayment.created_at.desc())
+        if inv_filter is not None:
+            subq = (
+                select(PaymentAllocation.payment_id)
+                .where(PaymentAllocation.invoice_id == inv_filter)
+                .distinct()
+                .subquery()
+            )
+            stmt = (
+                select(CustomerPayment)
+                .join(subq, CustomerPayment.id == subq.c.payment_id)
+                .order_by(CustomerPayment.created_at.desc())
+            )
+        stmt = stmt.limit(DEFAULT_BILLING_LIST_LIMIT)
         rows = list(session.execute(stmt).scalars().all())
         return json_response(
             200,
@@ -79,9 +140,14 @@ def _get_payment(
         if p is None:
             raise NotFoundError("CustomerPayment", str(payment_id))
         unapplied = str(payment_unapplied_amount(session, payment_id))
+        allocation_invoices = _payment_allocation_invoice_refs(session, payment_id)
         return json_response(
             200,
-            {**_serialize_payment(p), "unappliedAmount": unapplied},
+            {
+                **_serialize_payment(p),
+                "unappliedAmount": unapplied,
+                "allocationInvoices": allocation_invoices,
+            },
             event=event,
         )
 

@@ -529,18 +529,49 @@ describe('ClientInvoicesPanel', () => {
   });
 
   it('submitting refund form calls createCustomerRefund', async () => {
+    const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     const payId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-    billingMocks.listCustomerPayments.mockResolvedValue([
-      {
-        id: payId,
-        direction: 'inbound',
-        status: 'succeeded',
-        method: 'stripe_card',
-        amount: '100',
-        currency: 'HKD',
-        createdAt: '2026-01-01T00:00:00+00:00',
-      },
-    ]);
+    billingMocks.listCustomerInvoices.mockResolvedValue({
+      items: [
+        {
+          id: invId,
+          status: 'issued',
+          invoiceNumber: 'INV-10',
+          currency: 'HKD',
+          total: '100',
+          lineCount: 1,
+          createdAt: '2026-01-01T00:00:00+00:00',
+        },
+      ],
+      next_cursor: null,
+    });
+    billingMocks.listCustomerPayments.mockImplementation(async (params?: { invoiceId?: string }) => {
+      const filtered =
+        params?.invoiceId === invId
+          ? [
+              {
+                id: payId,
+                direction: 'inbound' as const,
+                status: 'succeeded' as const,
+                method: 'stripe_card',
+                amount: '100',
+                currency: 'HKD',
+                createdAt: '2026-01-01T00:00:00+00:00',
+              },
+            ]
+          : [
+              {
+                id: payId,
+                direction: 'inbound' as const,
+                status: 'succeeded' as const,
+                method: 'stripe_card',
+                amount: '100',
+                currency: 'HKD',
+                createdAt: '2026-01-01T00:00:00+00:00',
+              },
+            ];
+      return filtered;
+    });
     billingMocks.getCustomerPayment.mockResolvedValue({
       id: payId,
       direction: 'inbound',
@@ -550,6 +581,7 @@ describe('ClientInvoicesPanel', () => {
       currency: 'HKD',
       unappliedAmount: '0',
       createdAt: '2026-01-01T00:00:00+00:00',
+      allocationInvoices: [{ invoiceId: invId, invoiceNumber: 'INV-10' }],
     });
     billingMocks.createCustomerRefund.mockResolvedValue({
       id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
@@ -562,11 +594,23 @@ describe('ClientInvoicesPanel', () => {
 
     render(<ClientInvoicesPanel />);
 
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+    await waitFor(() => {
+      expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
+    });
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
+
     const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
     await waitFor(() => {
       expect(within(paymentTable).getAllByRole('button').length).toBeGreaterThan(0);
     });
     await userEvent.click(within(paymentTable).getByRole('button', { name: /bbbbbbbb/i }));
+
+    await waitFor(() => {
+      const invoiceSelect = document.getElementById('billing-refund-invoice') as HTMLSelectElement;
+      expect(invoiceSelect.value).toBe(invId);
+    });
 
     const refundAmount = document.getElementById('billing-refund-amount') as HTMLInputElement;
     await userEvent.clear(refundAmount);

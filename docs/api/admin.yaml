@@ -55,8 +55,9 @@ info:
     - `POST /v1/admin/expenses/{id}/reparse`
     - `POST /v1/admin/expenses/{id}/amend`
     - `GET /v1/admin/billing/export`
-    - `GET|POST /v1/admin/billing/payments`
-    - `GET /v1/admin/billing/payments/{id}`
+    - `GET|POST /v1/admin/billing/payments` (list supports optional `?invoice_id=` to return
+      payments with an allocation to that invoice)
+    - `GET /v1/admin/billing/payments/{id}` (includes `allocationInvoices` for linked issued invoices)
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
     - `GET /v1/admin/billing/enrollments/recent-for-invoicing`
@@ -2799,6 +2800,14 @@ paths:
       summary: List recent customer payments
       security:
         - AdminBearerAuth: []
+      parameters:
+        - name: invoice_id
+          in: query
+          required: false
+          description: When set, return only payments that have at least one allocation to this invoice.
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Payment rows.
@@ -2811,6 +2820,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/CustomerPaymentSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
     post:
@@ -2862,6 +2873,11 @@ paths:
                     properties:
                       unappliedAmount:
                         type: string
+                      allocationInvoices:
+                        type: array
+                        description: Distinct invoices this payment is allocated to (newest invoice first).
+                        items:
+                          $ref: "#/components/schemas/CustomerPaymentAllocationInvoice"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
@@ -6032,6 +6048,15 @@ components:
       properties:
         expense:
           $ref: "#/components/schemas/Expense"
+    CustomerPaymentAllocationInvoice:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        invoiceNumber:
+          type: string
+          nullable: true
     CustomerPaymentSummary:
       type: object
       properties:
