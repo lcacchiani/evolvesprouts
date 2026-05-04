@@ -995,6 +995,18 @@ export class ApiStack extends cdk.Stack {
           "Bank account number for invoice payment instructions; align with NEXT_PUBLIC_BANK_ACCOUNT_NUMBER.",
       }
     );
+    const publicWwwFpsMerchantName = new cdk.CfnParameter(this, "PublicWwwFpsMerchantName", {
+      type: "String",
+      default: "",
+      description:
+        "FPS merchant display name for HKD invoice QR payloads; align with NEXT_PUBLIC_FPS_MERCHANT_NAME.",
+    });
+    const publicWwwFpsMobileNumber = new cdk.CfnParameter(this, "PublicWwwFpsMobileNumber", {
+      type: "String",
+      default: "",
+      description:
+        "FPS mobile for invoice QR (852… or local 8 digits); align with NEXT_PUBLIC_FPS_MOBILE_NUMBER.",
+    });
     const invoiceDisplayTimezone = new cdk.CfnParameter(
       this,
       "InvoiceDisplayTimezone",
@@ -2833,6 +2845,14 @@ export class ApiStack extends cdk.Stack {
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BANK_ACCOUNT_NUMBER",
       publicWwwBankAccountNumber.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_FPS_MERCHANT_NAME",
+      publicWwwFpsMerchantName.valueAsString
+    );
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_FPS_MOBILE_NUMBER",
+      publicWwwFpsMobileNumber.valueAsString
     );
     adminFunction.addEnvironment(
       "INVOICE_PAYMENT_TERMS_DAYS",

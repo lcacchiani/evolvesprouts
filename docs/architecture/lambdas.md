@@ -198,6 +198,9 @@ their primary responsibilities.
   `PUBLIC_WWW_BANK_NAME`, `PUBLIC_WWW_BANK_ACCOUNT_HOLDER`,
   `PUBLIC_WWW_BANK_ACCOUNT_NUMBER` (AR invoice bank block when any is set; align with
   `NEXT_PUBLIC_BANK_*` / `NEXT_PUBLIC_BUSINESS_*`),
+  `PUBLIC_WWW_FPS_MERCHANT_NAME`, `PUBLIC_WWW_FPS_MOBILE_NUMBER` (optional; when set with
+  a positive HKD invoice total, the PDF includes an FPS QR payload aligned with the public-site
+  booking flow; align with `NEXT_PUBLIC_FPS_MERCHANT_NAME` / `NEXT_PUBLIC_FPS_MOBILE_NUMBER`),
   `INVOICE_DISPLAY_TIMEZONE` (IANA id; **required** to issue AR invoices; GitHub `CDK_PARAM_INVOICE_DISPLAY_TIMEZONE`; separate from sales recap),
   `INVOICE_PAYMENT_TERMS_DAYS` (1–3 digit days; default `7` when unset/empty; invalid or `> 999` fails issuance; GitHub `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS`),
   `DEFAULT_PHONE_REGION` (ISO 3166-1 alpha-2; CDK `DefaultPhoneRegion`; parses
@@ -206,7 +209,7 @@ their primary responsibilities.
   `ADMIN_GROUP`, `AWS_PROXY_FUNCTION_ARN` (sales recap recipient resolution via Cognito group),
   `SALES_RECAP_DISPLAY_TIMEZONE` (optional IANA id for recap **Submitted at**; CDK `SalesRecapDisplayTimezone` parameter, empty = app default),
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
-- **AR PDF template versions (DB `pdf_template_version` column, shared by invoices and receipts):** issued customer invoices set `INVOICE_PDF_TEMPLATE_VERSION` = `billing-invoice-v6`; receipts set `RECEIPT_PDF_TEMPLATE_VERSION` = `billing-receipt-v1`.
+- **AR PDF template versions (DB `pdf_template_version` column, shared by invoices and receipts):** issued customer invoices set `INVOICE_PDF_TEMPLATE_VERSION` = `billing-invoice-v7`; receipts set `RECEIPT_PDF_TEMPLATE_VERSION` = `billing-receipt-v1`.
 - **Invoice currency display:** `HKD` amounts render with the `HK$` prefix in AR invoice PDFs.
 - **AR invoice footer (Option B):** when both legal/trading and registration are set, the centered footer is `{legal_name} | Proudly registered in Hong Kong | BR: {reg}` with `legal_name` = `PUBLIC_WWW_BUSINESS_LEGAL_NAME` or `PUBLIC_WWW_BUSINESS_NAME`, and with fallbacks: legal only → legal; registration only → `BR: {reg}`; both empty → no footer. The **"Proudly registered in Hong Kong"** fragment is fixed product copy (see `.cursorrules` exception).
 - **Snapshot dates:** on issue, `customer_invoices.invoice_date` and `customer_invoices.due_date` are persisted (see `docs/architecture/database-schema.md`); the PDF uses these when present; draft previews compute dates in **UTC** when columns are null.

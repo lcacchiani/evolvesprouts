@@ -8,3 +8,4 @@ phonenumbers==9.0.29
 pycountry==26.2.16
 reportlab==4.5.0
 pypdf==6.10.2
+segno==1.6.1
