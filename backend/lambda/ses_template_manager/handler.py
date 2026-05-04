@@ -10,6 +10,9 @@ from app.services.aws_clients import get_ses_client
 from app.templates.ses.booking_confirmation import (
     get_ses_template_definitions as booking_templates,
 )
+from app.templates.ses.intro_call_confirmation import (
+    get_ses_template_definitions as intro_call_templates,
+)
 from app.templates.ses.contact_confirmation import (
     get_ses_template_definitions as contact_templates,
 )
@@ -28,7 +31,12 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
     request_type = str(event.get("RequestType", ""))
     physical_id = str(event.get("PhysicalResourceId") or "ses-templates")
 
-    all_defs = contact_templates() + media_templates() + booking_templates()
+    all_defs = (
+        contact_templates()
+        + media_templates()
+        + booking_templates()
+        + intro_call_templates()
+    )
     names = [t["TemplateName"] for t in all_defs]
 
     if request_type == "Delete":

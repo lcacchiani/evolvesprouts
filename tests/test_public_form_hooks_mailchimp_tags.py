@@ -160,3 +160,15 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
     )
 
     assert captured.get("tag_name") == "public-www-booking-customer-easter-2026-instance"
+
+
+def test_mailchimp_tag_intro_call_booking() -> None:
+    from app.api.public_form_hooks import mailchimp_booking_tag_from_payload
+
+    tag = mailchimp_booking_tag_from_payload(
+        {
+            "booking_system": "intro-call-booking",
+            "service_instance_slug": "intro-call-free-15min",
+        }
+    )
+    assert tag == "public-www-intro-call-booking"

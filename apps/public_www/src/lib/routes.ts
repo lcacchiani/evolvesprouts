@@ -29,6 +29,7 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.servicesConsultations,
   ROUTES.servicesMyBestAuntieTrainingCourse,
   ROUTES.freeGuidesAndResources,
+  ROUTES.bookFreeCall,
 ];
 
 export function buildLocalizedResourcesHashPath(locale: Locale): string {

@@ -846,8 +846,8 @@
     "title": "Wondering what's really happening in those hours you're not there?",
     "eventPageTitle": "Not sure yet? Start here",
     "description": "Book a free 15-minute call. We'll talk about your child, your helper, and whether the programme is the right fit. No commitment - just a conversation.",
-    "ctaLabel": "Book Free Intro Call on WhatsApp",
-    "ctaHref": "{{WHATSAPP_URL}}",
+    "ctaLabel": "Book my free 15-min call",
+    "ctaHref": "{{BOOK_FREE_CALL_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "Hi, I'd like to book a free intro call!"
   },
@@ -1137,7 +1137,8 @@
       "carouselRoleDescription": "carousel",
       "carouselLabelTemplate": "{title} carousel",
       "sliderLabelTemplate": "{title} slider",
-      "referralAppliedAnnouncement": "Referral discount code applied from your link."
+      "referralAppliedAnnouncement": "Referral discount code applied from your link.",
+      "loadingLabel": "Loading…"
     },
     "captcha": {
       "captchaLabel": "Verification",

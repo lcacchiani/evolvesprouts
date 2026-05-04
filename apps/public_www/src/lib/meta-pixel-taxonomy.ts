@@ -51,6 +51,10 @@ export const META_PIXEL_CONTENT_NAMES = {
       'Purchase',
     ] as const,
   },
+  public_www_free_intro_call: {
+    label: 'Public website free intro call',
+    allowedEvents: ['Schedule', 'Purchase'] as const,
+  },
   my_best_auntie_course: {
     label: 'Links hub - course',
     allowedEvents: ['ViewContent'] as const,
@@ -81,6 +85,7 @@ export const PIXEL_CONTENT_NAME = {
   my_best_auntie: 'my_best_auntie',
   event_booking: 'event_booking',
   consultation_booking: 'consultation_booking',
+  public_www_free_intro_call: 'public-www-free-intro-call',
   my_best_auntie_course: 'my_best_auntie_course',
   contact_us: 'contact_us',
   events: 'events',

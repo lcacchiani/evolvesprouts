@@ -54,7 +54,9 @@ errors until templates catch up.
   `AWS_PROXY_FUNCTION_ARN` on `MediaRequestProcessor`). The stack parameter
   `SupportEmail` maps to `SUPPORT_EMAIL` on the admin API Lambda only: it
   receives **contact-us** submissions with `signup_intent=contact_inquiry` (full
-  inquiry form), not media or reservation recaps.
+  inquiry form), not media or reservation recaps. Reservation recaps still go to
+  `ADMIN_GROUP` emails; the intro-call booking recap body may include a support
+  email line for operators when `SUPPORT_EMAIL` is configured.
 - **Mailchimp** remains separate: optional marketing subscribe + journey
   triggers run only when the user opts in; failures are logged and do not
   change the HTTP response for public form routes.

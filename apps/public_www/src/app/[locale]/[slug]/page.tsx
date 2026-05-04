@@ -6,6 +6,7 @@ import {
   type Locale,
 } from '@/content';
 import { LandingPage } from '@/components/pages/landing-pages/landing-page';
+import { BookFreeCallLandingPage } from '@/components/pages/landing-pages/book-a-free-call';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   getMenuLabel,
@@ -96,18 +97,29 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
     landingPageSlug,
   );
 
+  const isBookFreeCall = landingPageSlug === 'book-a-free-call';
+
   return (
     <>
-      <LandingPage
-        locale={locale}
-        slug={landingPageSlug}
-        pagePath={pagePath}
-        siteContent={siteContent}
-        pageContent={pageContent}
-        heroEventContent={heroEventContent}
-        bookingEventContent={bookingEventContent}
-        structuredDataContent={structuredDataContent}
-      />
+      {isBookFreeCall ? (
+        <BookFreeCallLandingPage
+          locale={locale}
+          pagePath={pagePath}
+          siteContent={siteContent}
+          pageContent={pageContent}
+        />
+      ) : (
+        <LandingPage
+          locale={locale}
+          slug={landingPageSlug}
+          pagePath={pagePath}
+          siteContent={siteContent}
+          pageContent={pageContent}
+          heroEventContent={heroEventContent}
+          bookingEventContent={bookingEventContent}
+          structuredDataContent={structuredDataContent}
+        />
+      )}
       <StructuredDataScript
         id={`landing-page-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

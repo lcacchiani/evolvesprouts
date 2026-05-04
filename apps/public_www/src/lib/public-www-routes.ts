@@ -17,6 +17,7 @@ export const PUBLIC_WWW_ROUTES = {
   terms: '/terms',
   links: '/links',
   book: '/book',
+  bookFreeCall: '/book-a-free-call',
   resources: '/resources',
 } as const;
 

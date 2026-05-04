@@ -36,7 +36,7 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
   `lost`.
 - Enum `lead_event_type`: `created`, `stage_changed`, `note_added`, `email_sent`,
   `email_opened`, `guide_downloaded`, `assigned`, `converted`, `lost`.
-- Enum `service_type`: `training_course`, `event`, `consultation`.
+- Enum `service_type`: `training_course`, `event`, `consultation`, `intro_call`.
 - Enum `service_status`: `draft`, `published`, `archived`.
 - Enum `service_delivery_mode`: `online`, `in_person`, `hybrid`.
 - Enum `training_format`: `group`, `private`.

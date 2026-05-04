@@ -326,6 +326,27 @@
       ],
       "ga4KeyEvent": false
     },
+    "intro_call_slot_selected": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "slot_start"
+      ],
+      "ga4KeyEvent": false
+    },
+    "intro_call_slot_picker_status_change": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "status"
+      ],
+      "ga4KeyEvent": false
+    },
+    "book_free_call_click": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "cta_location"
+      ],
+      "ga4KeyEvent": false
+    },
     "links_hub_click": {
       "requiredCustomParams": [
         "content_name"

@@ -3,6 +3,7 @@
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
 import type {
   BookingModalContent,
@@ -60,23 +61,29 @@ export function LandingPageCta({
           description={content.description}
           align='left'
         />
-        <LandingPageBookingCtaAction
-          locale={locale}
-          slug={slug}
-          content={content}
-          ctaPriceLabel={ctaPriceLabel}
-          commonContent={commonContent}
-          bookingPayload={bookingPayload}
-          isFullyBooked={isFullyBooked}
-          fullyBookedCtaLabel={fullyBookedCtaLabel}
-          fullyBookedWaitlistHref={fullyBookedWaitlistHref}
-          bookingModalContent={bookingModalContent}
-          thankYouWhatsappHref={thankYouWhatsappHref}
-          thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
-          analyticsSectionId='landing-page-cta'
-          ctaLocation='landing_page'
-          buttonClassName='mt-8'
-        />
+        {content.ctaAnchorHref && content.ctaAnchorLabel ? (
+          <SectionCtaAnchor href={content.ctaAnchorHref} className='mt-8 w-fit'>
+            {content.ctaAnchorLabel}
+          </SectionCtaAnchor>
+        ) : (
+          <LandingPageBookingCtaAction
+            locale={locale}
+            slug={slug}
+            content={content}
+            ctaPriceLabel={ctaPriceLabel}
+            commonContent={commonContent}
+            bookingPayload={bookingPayload}
+            isFullyBooked={isFullyBooked}
+            fullyBookedCtaLabel={fullyBookedCtaLabel}
+            fullyBookedWaitlistHref={fullyBookedWaitlistHref}
+            bookingModalContent={bookingModalContent}
+            thankYouWhatsappHref={thankYouWhatsappHref}
+            thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
+            analyticsSectionId='landing-page-cta'
+            ctaLocation='landing_page'
+            buttonClassName='mt-8'
+          />
+        )}
       </SectionContainer>
     </SectionShell>
   );

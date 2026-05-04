@@ -110,16 +110,13 @@ def _manual_block_busy_intervals_utc(
     to_date: date,
 ) -> list[tuple[datetime, datetime]]:
     zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
-    rows = (
-        session.execute(
-            select(CalendarManualBlock.block_date, CalendarManualBlock.period).where(
-                CalendarManualBlock.purpose.in_(_MANUAL_BLOCK_PURPOSES),
-                CalendarManualBlock.block_date >= from_date,
-                CalendarManualBlock.block_date <= to_date,
-            )
+    rows = session.execute(
+        select(CalendarManualBlock.block_date, CalendarManualBlock.period).where(
+            CalendarManualBlock.purpose.in_(_MANUAL_BLOCK_PURPOSES),
+            CalendarManualBlock.block_date >= from_date,
+            CalendarManualBlock.block_date <= to_date,
         )
-        .all()
-    )
+    ).all()
     intervals: list[tuple[datetime, datetime]] = []
     for block_date, period in rows:
         ymd = block_date.isoformat()
@@ -309,8 +306,10 @@ def is_intro_call_slot_available(
     ``ignore_intro_slot`` excludes one intro instance interval (e.g. the row
     being validated inside a transaction before insert).
     """
-    now_u = datetime.now(tz=UTC) if now is None else (
-        now if now.tzinfo else now.replace(tzinfo=UTC)
+    now_u = (
+        datetime.now(tz=UTC)
+        if now is None
+        else (now if now.tzinfo else now.replace(tzinfo=UTC))
     )
     s0, s1 = _norm_utc_pair(start_utc, end_utc)
     if s1 <= s0:
@@ -326,7 +325,9 @@ def is_intro_call_slot_available(
     range_start_utc = s0 - timedelta(days=1)
     range_end_utc = s1 + timedelta(days=1)
     busy: list[tuple[datetime, datetime]] = []
-    busy.extend(_manual_block_busy_intervals_utc(session, from_date=from_d, to_date=to_d))
+    busy.extend(
+        _manual_block_busy_intervals_utc(session, from_date=from_d, to_date=to_d)
+    )
     busy.extend(
         _session_blocker_busy_intervals_utc(
             session, range_start_utc=range_start_utc, range_end_utc=range_end_utc

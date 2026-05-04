@@ -21,7 +21,9 @@ from app.templates.booking_confirmation_render import (
     booking_confirmation_template_merge_data,
     build_booking_confirmation_ics,
     format_booking_location_display_line,
+    intro_call_confirmation_template_merge_data,
     render_booking_confirmation_email,
+    render_intro_call_confirmation_email,
     substitute_shell_placeholders,
 )
 from app.templates.constants import build_faq_url
@@ -178,6 +180,7 @@ def send_booking_confirmation_email(
     session_slots: list[dict[str, str]] | None = None,
     location_url: str | None = None,
     is_free: bool = False,
+    interested_topics: str | None = None,
 ) -> None:
     from_addr = os.getenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "").strip()
     if not from_addr:
@@ -186,6 +189,71 @@ def send_booking_confirmation_email(
         )
         return
     loc = normalize_body_locale(locale)
+    bs = (booking_system or "").strip().lower()
+    if bs == "intro-call-booking":
+        support_email = os.getenv("SUPPORT_EMAIL", "").strip()
+        wa_url_tpl = resolve_whatsapp_url_for_template()
+        intro_data = intro_call_confirmation_template_merge_data(
+            locale=loc,
+            full_name=full_name,
+            primary_session_iso=primary_session_iso,
+            interested_topics=interested_topics,
+            whatsapp_url=wa_url_tpl,
+            support_email=support_email or "",
+        )
+        merged_intro = merge_transactional_shell_template_data(
+            locale=loc, template_data=intro_data
+        )
+        loc_line_for_ics = format_booking_location_display_line(
+            location_name=location_name,
+            location_address=location_address,
+        )
+        ics_bytes = build_booking_confirmation_ics(
+            title=title,
+            primary_session_iso=primary_session_iso,
+            primary_session_end_iso=primary_session_end_iso,
+            location_line=loc_line_for_ics,
+            booking_system=booking_system,
+        )
+        faq_u = str(merged_intro.get("faq_url") or "").strip()
+        wa_u = str(merged_intro.get("whatsapp_url") or "").strip()
+        subj, html_doc, plain_text = render_intro_call_confirmation_email(
+            locale=loc,
+            full_name=full_name,
+            primary_session_iso=primary_session_iso,
+            interested_topics=interested_topics,
+            whatsapp_url=wa_u,
+            faq_url=faq_u,
+            support_email=support_email or "",
+        )
+        full_html = substitute_shell_placeholders(html_doc, merged_intro)
+        attachments: list[tuple[str, str, bytes]] | None = None
+        if ics_bytes is not None:
+            attachments = [
+                (
+                    BOOKING_ICS_ATTACHMENT_FILENAME,
+                    "text/calendar; charset=utf-8; method=PUBLISH",
+                    ics_bytes,
+                )
+            ]
+        try:
+            send_mime_email_with_optional_attachments(
+                source=from_addr,
+                to_addresses=[to_email.strip().lower()],
+                subject=subj,
+                body_text=plain_text,
+                body_html=full_html,
+                inline_image_cid=None,
+                png_bytes=None,
+                attachments=attachments,
+            )
+        except Exception:
+            logger.exception(
+                "Intro-call confirmation email failed (MIME path)",
+                extra={"lead_email": mask_email(to_email)},
+            )
+        return
+
     template = f"evolvesprouts-booking-confirmation-{loc}"
     data: dict[str, Any] = booking_confirmation_template_merge_data(
         locale=loc,
@@ -334,7 +402,14 @@ def mailchimp_tag_for_contact_signup_intent(signup_intent: str | None) -> str:
 
 
 def mailchimp_booking_tag_from_payload(payload: Mapping[str, Any]) -> str:
-    """Build ``public-www-booking-customer-{slug}`` from the public instance slug."""
+    """Map booking flow to Mailchimp audience tag."""
+    bs = (
+        str(payload.get("booking_system") or payload.get("bookingSystem") or "")
+        .strip()
+        .lower()
+    )
+    if bs == "intro-call-booking":
+        return "public-www-intro-call-booking"
     instance_slug = normalize_public_slug(
         payload.get("service_instance_slug") or payload.get("serviceInstanceSlug")
     )

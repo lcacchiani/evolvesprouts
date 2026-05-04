@@ -24,6 +24,17 @@ from app.templates.booking_confirmation_content import (
     FPS_QR_INTRO,
     GROUP_SESSION_LABEL_TEMPLATE,
     HEADER_TITLE,
+    INTRO_CALL_CANCEL_FOOTER_HTML,
+    INTRO_CALL_CANCEL_FOOTER_PLAIN,
+    INTRO_CALL_CONFIRMATION_SUBJECT,
+    INTRO_CALL_CONFIRMATION_THANK_YOU_HTML,
+    INTRO_CALL_CONFIRMATION_THANK_YOU_PLAIN,
+    INTRO_CALL_LEAD_HTML,
+    INTRO_CALL_SHELL_HEADER,
+    INTRO_CALL_SUPPORT_LINE_HTML,
+    INTRO_CALL_SUPPORT_LINE_PLAIN,
+    INTRO_CALL_TOPICS_LABEL,
+    INTRO_CALL_WEEKDAY_NAMES,
     PAYMENT_METHOD_LABELS,
     PENDING_PAYMENT_NOTE,
     SESSION_ORDINAL_LABELS,
@@ -718,6 +729,165 @@ def _questions_line_plain(loc: str, whatsapp_url: str, faq_url: str) -> str:
         whatsapp_url=whatsapp_url,
         faq_url=faq_url,
     )
+
+
+def format_intro_call_datetime_hkt_label(
+    *,
+    primary_session_iso: str | None,
+    locale: str,
+) -> str | None:
+    """HKT weekday + date + time for intro-call confirmations."""
+    loc = normalize_booking_locale(locale)
+    parsed = _parse_iso_datetime(primary_session_iso)
+    if parsed is None:
+        return None
+    local = parsed.astimezone(_EMAIL_HKT_TZ)
+    wd = INTRO_CALL_WEEKDAY_NAMES.get(loc, INTRO_CALL_WEEKDAY_NAMES["en"])
+    wname = wd[local.weekday()]
+    day = local.day
+    month = _MONTH_NAMES_EN[local.month]
+    hm = _format_hkt_time_email(parsed)
+    return f"{wname}, {day} {month} @ {hm} HKT"
+
+
+def intro_call_confirmation_email_subject(*, locale: str) -> str:
+    loc = normalize_booking_locale(locale)
+    return INTRO_CALL_CONFIRMATION_SUBJECT.get(
+        loc, INTRO_CALL_CONFIRMATION_SUBJECT["en"]
+    )
+
+
+def render_intro_call_confirmation_email(
+    *,
+    locale: str,
+    full_name: str,
+    primary_session_iso: str | None,
+    interested_topics: str | None,
+    whatsapp_url: str,
+    faq_url: str,
+    support_email: str,
+) -> tuple[str, str, str]:
+    """Return (subject, full_html, plain_text) for intro-call booking confirmations."""
+    loc = normalize_booking_locale(locale)
+    esc_name = html.escape(full_name.strip())
+    greeting = (
+        f'<p style="margin:0 0 12px;">Hi {esc_name},</p>'
+        if loc == "en"
+        else f'<p style="margin:0 0 12px;">您好 {esc_name}，</p>'
+    )
+    slot_line = format_intro_call_datetime_hkt_label(
+        primary_session_iso=primary_session_iso, locale=loc
+    )
+    esc_slot = html.escape(slot_line or "")
+    topics = (interested_topics or "").strip()
+    topics_block_html = ""
+    topics_block_plain = ""
+    if topics:
+        label = html.escape(
+            INTRO_CALL_TOPICS_LABEL.get(loc, INTRO_CALL_TOPICS_LABEL["en"])
+        )
+        topics_block_html = (
+            f'<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#555555;">'
+            f"<strong>{label}</strong></p>"
+            f'<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">'
+            f"{html.escape(topics)}</p>"
+        )
+        plain_label = INTRO_CALL_TOPICS_LABEL.get(loc, INTRO_CALL_TOPICS_LABEL["en"])
+        topics_block_plain = f"{plain_label}\n{topics}\n\n"
+    esc_wa = html.escape(whatsapp_url.strip(), quote=True)
+    esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url.strip() else ""
+    esc_support = html.escape(support_email.strip(), quote=True)
+    support_html = INTRO_CALL_SUPPORT_LINE_HTML.get(
+        loc, INTRO_CALL_SUPPORT_LINE_HTML["en"]
+    )
+    support_html = support_html.replace("{{support_email}}", esc_support)
+    inner_parts: list[str] = [
+        greeting,
+        INTRO_CALL_CONFIRMATION_THANK_YOU_HTML.get(
+            loc, INTRO_CALL_CONFIRMATION_THANK_YOU_HTML["en"]
+        ),
+        INTRO_CALL_LEAD_HTML.get(loc, INTRO_CALL_LEAD_HTML["en"]),
+        f'<p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#333333;">{esc_slot}</p>',
+        topics_block_html,
+        INTRO_CALL_CANCEL_FOOTER_HTML.get(loc, INTRO_CALL_CANCEL_FOOTER_HTML["en"]),
+        support_html,
+    ]
+    if esc_faq:
+        inner_parts.append(_questions_line_html(loc, esc_wa, esc_faq))
+    inner_html = "".join(inner_parts)
+    full_html = wrap_transactional_html(
+        header_title=INTRO_CALL_SHELL_HEADER.get(loc, INTRO_CALL_SHELL_HEADER["en"]),
+        inner_html=inner_html,
+    )
+    subject = intro_call_confirmation_email_subject(locale=loc)
+    support_plain = INTRO_CALL_SUPPORT_LINE_PLAIN.get(
+        loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
+    )
+    support_plain = support_plain.format(support_email=support_email.strip())
+    plain_lines = [
+        f"Hi {full_name.strip()},\n"
+        if loc == "en"
+        else f"您好 {full_name.strip()}，\n",
+        INTRO_CALL_CONFIRMATION_THANK_YOU_PLAIN.get(
+            loc, INTRO_CALL_CONFIRMATION_THANK_YOU_PLAIN["en"]
+        ),
+        INTRO_CALL_CONFIRMATION_SUBJECT.get(loc, INTRO_CALL_CONFIRMATION_SUBJECT["en"]),
+        (slot_line or "") + "\n",
+        topics_block_plain,
+        INTRO_CALL_CANCEL_FOOTER_PLAIN.get(loc, INTRO_CALL_CANCEL_FOOTER_PLAIN["en"]),
+        support_plain,
+    ]
+    if esc_faq:
+        plain_lines.append(
+            _questions_line_plain(loc, whatsapp_url.strip(), faq_url.strip())
+        )
+    plain_text = "".join(plain_lines) + SIGN_OFF_PLAIN.get(loc, SIGN_OFF_PLAIN["en"])
+    return subject, full_html, plain_text
+
+
+def intro_call_confirmation_template_merge_data(
+    *,
+    locale: str,
+    full_name: str,
+    primary_session_iso: str | None,
+    interested_topics: str | None,
+    whatsapp_url: str,
+    support_email: str,
+) -> dict[str, Any]:
+    """SES template_data for intro-call confirmation (before shell merge)."""
+    loc = normalize_booking_locale(locale)
+    slot_plain = format_intro_call_datetime_hkt_label(
+        primary_session_iso=primary_session_iso, locale=loc
+    )
+    topics = (interested_topics or "").strip()
+    data: dict[str, Any] = {
+        "full_name": full_name.strip(),
+        "intro_call_heading": INTRO_CALL_CONFIRMATION_SUBJECT.get(
+            loc, INTRO_CALL_CONFIRMATION_SUBJECT["en"]
+        ),
+        "intro_call_slot_hkt": slot_plain or "",
+        "intro_call_topics_label": INTRO_CALL_TOPICS_LABEL.get(
+            loc, INTRO_CALL_TOPICS_LABEL["en"]
+        ),
+        "intro_call_topics_html": "",
+        "intro_call_topics_plain": "",
+        "whatsapp_url": whatsapp_url.strip(),
+        "support_email": support_email.strip(),
+        "support_email_line_plain": INTRO_CALL_SUPPORT_LINE_PLAIN.get(
+            loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
+        ).format(support_email=support_email.strip()),
+    }
+    if topics:
+        esc_t = html.escape(topics)
+        data["intro_call_topics_html"] = (
+            f'<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#555555;">'
+            f"<strong>{html.escape(data['intro_call_topics_label'])}</strong></p>"
+            f'<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#333333;">{esc_t}</p>'
+        )
+        data["intro_call_topics_plain"] = (
+            f"{data['intro_call_topics_label']}\n{topics}\n\n"
+        )
+    return data
 
 
 def booking_confirmation_template_merge_data(

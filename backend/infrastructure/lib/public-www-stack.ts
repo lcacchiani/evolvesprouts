@@ -340,6 +340,7 @@ function handler(event) {
     'GET': {
       '/www/v1/calendar/public': true,
       '/www/v1/calendar/blockers': true,
+      '/www/v1/calendar/intro-call-slots': true,
       '/www/v1/assets/free': true
     },
     'POST': {

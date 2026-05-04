@@ -127,6 +127,81 @@ CLOSING_NOTE: dict[str, str] = {
     "zh-HK": "期待與您見面！如有任何問題，歡迎隨時聯絡我們。",
 }
 
+INTRO_CALL_SHELL_HEADER: dict[str, str] = {
+    "en": "YOUR FREE INTRO CALL IS CONFIRMED",
+    "zh-CN": "免费介绍通话已确认",
+    "zh-HK": "免費介紹通話已確認",
+}
+
+INTRO_CALL_CONFIRMATION_SUBJECT: dict[str, str] = {
+    "en": "Your free 15-minute intro call is confirmed",
+    "zh-CN": "您的免费 15 分钟介绍通话已确认",
+    "zh-HK": "您的免費 15 分鐘介紹通話已確認",
+}
+
+INTRO_CALL_LEAD_HTML: dict[str, str] = {
+    "en": '<p style="margin:0 0 16px;font-size:18px;line-height:1.4;font-weight:600;color:#333333;">Your free 15-minute intro call is confirmed</p>',
+    "zh-CN": '<p style="margin:0 0 16px;font-size:18px;line-height:1.4;font-weight:600;color:#333333;">您的免费 15 分钟介绍通话已确认</p>',
+    "zh-HK": '<p style="margin:0 0 16px;font-size:18px;line-height:1.4;font-weight:600;color:#333333;">您的免費 15 分鐘介紹通話已確認</p>',
+}
+
+INTRO_CALL_TOPICS_LABEL: dict[str, str] = {
+    "en": "Anything you want me to know before our call?",
+    "zh-CN": "在通话前您想让我了解的内容",
+    "zh-HK": "在通話前您想讓我了解的內容",
+}
+
+INTRO_CALL_CANCEL_FOOTER_HTML: dict[str, str] = {
+    "en": '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">To cancel or reschedule, reply to this email or message me on WhatsApp.</p>',
+    "zh-CN": '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">如需取消或改期，请直接回复此邮件或通过 WhatsApp 联系我。</p>',
+    "zh-HK": '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#555555;">如需取消或改期，請直接回覆此電郵或透過 WhatsApp 聯絡我。</p>',
+}
+
+INTRO_CALL_CANCEL_FOOTER_PLAIN: dict[str, str] = {
+    "en": "To cancel or reschedule, reply to this email or message me on WhatsApp.\n\n",
+    "zh-CN": "如需取消或改期，请直接回复此邮件或通过 WhatsApp 联系我。\n\n",
+    "zh-HK": "如需取消或改期，請直接回覆此電郵或透過 WhatsApp 聯絡我。\n\n",
+}
+
+INTRO_CALL_SUPPORT_LINE_HTML: dict[str, str] = {
+    "en": '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#555555;">You can also reach us at <a href="mailto:{{support_email}}" style="color:#C84A16;font-weight:600;">{{support_email}}</a>.</p>',
+    "zh-CN": '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#555555;">您也可以发送邮件至 <a href="mailto:{{support_email}}" style="color:#C84A16;font-weight:600;">{{support_email}}</a>。</p>',
+    "zh-HK": '<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#555555;">您亦可發送電郵至 <a href="mailto:{{support_email}}" style="color:#C84A16;font-weight:600;">{{support_email}}</a>。</p>',
+}
+
+INTRO_CALL_SUPPORT_LINE_PLAIN: dict[str, str] = {
+    "en": "You can also reach us at {support_email}.",
+    "zh-CN": "您也可以发送邮件至 {support_email}。",
+    "zh-HK": "您亦可發送電郵至 {support_email}。",
+}
+
+INTRO_CALL_CONFIRMATION_THANK_YOU_HTML: dict[str, str] = {
+    "en": '<p style="margin:0 0 16px;">Thank you — we have reserved your time.</p>',
+    "zh-CN": '<p style="margin:0 0 16px;">谢谢，我们已为您预留时间。</p>',
+    "zh-HK": '<p style="margin:0 0 16px;">多謝，我們已為您預留時間。</p>',
+}
+
+INTRO_CALL_CONFIRMATION_THANK_YOU_PLAIN: dict[str, str] = {
+    "en": "Thank you — we have reserved your time.\n",
+    "zh-CN": "谢谢，我们已为您预留时间。\n",
+    "zh-HK": "多謝，我們已為您預留時間。\n",
+}
+
+# Weekday names (Monday first) for intro-call confirmation lines in Asia/Hong_Kong.
+INTRO_CALL_WEEKDAY_NAMES: dict[str, tuple[str, ...]] = {
+    "en": (
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ),
+    "zh-CN": ("星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"),
+    "zh-HK": ("星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"),
+}
+
 # HTML: link labels embedded in QUESTIONS_LINE_HTML_PREFIX / SUFFIX (Handlebars URLs).
 WHATSAPP_LINK_LABEL: dict[str, str] = {
     "en": "WhatsApp",

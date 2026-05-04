@@ -61,6 +61,19 @@ class ValidationError(AppError):
         return result
 
 
+class ConflictError(AppError):
+    """HTTP 409 with structured body (``error`` plus optional keys)."""
+
+    def __init__(self, code: str, **extra: Any):
+        super().__init__(code, status_code=409)
+        self._extra = {k: v for k, v in extra.items() if v is not None}
+
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {"error": self.message}
+        out.update(self._extra)
+        return out
+
+
 class NotFoundError(AppError):
     """Raised when a requested resource is not found.
 

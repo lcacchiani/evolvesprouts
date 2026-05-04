@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
 from urllib.parse import quote
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,7 +36,7 @@ from app.api.public_form_hooks import (
 )
 from app.db.audit import AuditService, set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Enrollment, ServiceInstance
+from app.db.models import Enrollment, InstanceSessionSlot, ServiceInstance
 from app.db.repositories import (
     DiscountCodeRepository,
     EnrollmentRepository,
@@ -52,18 +54,26 @@ from app.db.models.enums import (
     FunnelStage,
     LeadEventType,
     LeadType,
+    ServiceType,
 )
 from app.db.models.family import FamilyMember
 from app.db.models.organization import OrganizationMember
 from app.db.models.sales_lead import SalesLead
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
-from app.exceptions import ValidationError
+from app.exceptions import ConflictError, ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.calendar_blockers import (
     consultation_booking_purpose,
     raise_if_consultation_reservation_blocked,
     validate_session_slot_chronology,
+)
+from app.services.intro_call_slots import (
+    enumerate_intro_call_candidate_slots,
+    intro_call_cooldown_blocks,
+    intro_call_window,
+    is_intro_call_slot_available,
+    recent_intro_call_for_email,
 )
 from app.services.customer_billing import record_reservation_customer_payment
 from app.services.public_form_internal_notifications import (
@@ -104,11 +114,19 @@ _ALLOWED_LOCALES = frozenset({"en", "zh-CN", "zh-HK"})
 _PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
 _MAX_SERVICE_KEY_LENGTH = 80
 _SERVICE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_MAX_MARKETING_ATTRIBUTION_UTM_SOURCE = 100
+_MAX_MARKETING_ATTRIBUTION_UTM_MEDIUM = 100
+_MAX_MARKETING_ATTRIBUTION_UTM_CAMPAIGN = 200
+_MAX_MARKETING_ATTRIBUTION_UTM_CONTENT = 200
+_MAX_MARKETING_ATTRIBUTION_REFERRER = 500
+_INTRO_CALL_INSTANCE_SLUG = "intro-call-free-15min"
+_INTRO_CALL_SERVICE_KEY = "intro-call"
 _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES = frozenset(
     {
         "consultation-booking",
         "event-booking",
         "my-best-auntie-booking",
+        "intro-call-booking",
     }
 )
 
@@ -161,6 +179,174 @@ def _resolve_booking_identity(
             status_code=400,
         )
     return resolved
+
+
+def _parse_iso_datetime_utc(value: str | None) -> datetime | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
+def _parse_marketing_attribution(body: Mapping[str, Any]) -> dict[str, str] | None:
+    raw = body.get("marketingAttribution") or body.get("marketing_attribution")
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        raise ValidationError(
+            "marketingAttribution must be an object",
+            field="marketingAttribution",
+        )
+    out: dict[str, str] = {}
+    for key, max_len in (
+        ("utm_source", _MAX_MARKETING_ATTRIBUTION_UTM_SOURCE),
+        ("utm_medium", _MAX_MARKETING_ATTRIBUTION_UTM_MEDIUM),
+        ("utm_campaign", _MAX_MARKETING_ATTRIBUTION_UTM_CAMPAIGN),
+        ("utm_content", _MAX_MARKETING_ATTRIBUTION_UTM_CONTENT),
+        ("referrer", _MAX_MARKETING_ATTRIBUTION_REFERRER),
+    ):
+        v = raw.get(key)
+        if v is None or str(v).strip() == "":
+            continue
+        if not isinstance(v, str):
+            raise ValidationError(
+                f"marketingAttribution.{key} must be a string",
+                field="marketingAttribution",
+            )
+        s = v.strip()
+        if len(s) > max_len:
+            raise ValidationError(
+                f"marketingAttribution.{key} is too long",
+                field="marketingAttribution",
+            )
+        out[key] = s
+    extra = set(raw.keys()) - {
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "referrer",
+    }
+    if extra:
+        raise ValidationError(
+            "marketingAttribution has unsupported properties",
+            field="marketingAttribution",
+        )
+    return out or None
+
+
+def _enforce_intro_call_invariants(
+    session: Session,
+    payload: Mapping[str, Any],
+    resolved_instance: ServiceInstance,
+    *,
+    now: datetime,
+) -> tuple[datetime, datetime]:
+    if (payload.get("service_key") or "").strip().lower() != _INTRO_CALL_SERVICE_KEY:
+        raise ValidationError(
+            "serviceKey mismatch for intro-call booking", field="serviceKey"
+        )
+    slug = (payload.get("service_instance_slug") or "").strip().lower()
+    if slug != _INTRO_CALL_INSTANCE_SLUG:
+        raise ValidationError(
+            "serviceInstanceSlug mismatch for intro-call booking",
+            field="serviceInstanceSlug",
+        )
+    if payload.get("total_amount") != Decimal("0"):
+        raise ValidationError(
+            "totalAmount must be 0 for intro-call booking", field="totalAmount"
+        )
+    pm = str(payload.get("payment_method") or "").strip().lower()
+    if pm not in ("free", ""):
+        raise ValidationError(
+            "paymentMethod must be free for intro-call booking",
+            field="paymentMethod",
+        )
+    start_s = payload.get("primary_session_start_iso")
+    end_s = payload.get("primary_session_end_iso")
+    if not start_s or not end_s:
+        raise ValidationError(
+            "primarySessionStartIso and primarySessionEndIso are required",
+            field="primarySessionStartIso",
+        )
+    start_u = _parse_iso_datetime_utc(str(start_s))
+    end_u = _parse_iso_datetime_utc(str(end_s))
+    if start_u is None or end_u is None:
+        raise ValidationError(
+            "Invalid session ISO timestamps", field="primarySessionStartIso"
+        )
+    if end_u - start_u != timedelta(minutes=15):
+        raise ValidationError(
+            "Intro call must be exactly 15 minutes",
+            field="primarySessionEndIso",
+        )
+    from app.services.intro_call_slots import resolve_intro_call_wall_timezone
+
+    now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
+    if start_u < now_u + timedelta(hours=2):
+        raise ValidationError(
+            "Selected time is inside the minimum lead-time window",
+            field="primarySessionStartIso",
+        )
+    wall = ZoneInfo(resolve_intro_call_wall_timezone())
+    win_from, win_to = intro_call_window(now=now_u)
+    start_local_date = start_u.astimezone(wall).date()
+    if start_local_date < win_from or start_local_date > win_to:
+        raise ValidationError(
+            "Selected time is outside the booking horizon",
+            field="primarySessionStartIso",
+        )
+    cand_from = win_from - timedelta(days=1)
+    cand_to = win_to + timedelta(days=1)
+    cand_set = {
+        (a.astimezone(UTC), b.astimezone(UTC))
+        for a, b in enumerate_intro_call_candidate_slots(cand_from, cand_to, now=now_u)
+    }
+    if (start_u, end_u) not in cand_set:
+        raise ValidationError(
+            "Selected time is outside office hours",
+            field="primarySessionStartIso",
+        )
+    if not is_intro_call_slot_available(
+        session, start_utc=start_u, end_utc=end_u, now=now_u
+    ):
+        raise ConflictError("slot_unavailable")
+    try:
+        prior = recent_intro_call_for_email(
+            session,
+            email_lower=str(payload["attendee_email"]),
+            within_days=30,
+            now=now_u,
+        )
+    except Exception:
+        logger.exception(
+            "intro_call_cooldown_lookup_failed",
+            extra={"attendee_email": mask_email(str(payload.get("attendee_email")))},
+        )
+        prior = None
+    if prior is not None and intro_call_cooldown_blocks(
+        prior_slot=prior, now=now_u, cooldown_days=30
+    ):
+        retry_after = prior.starts_at
+        if retry_after.tzinfo is None:
+            retry_after = retry_after.replace(tzinfo=UTC)
+        raise ConflictError(
+            "recent_intro_call_exists",
+            retry_after_iso=retry_after.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    if resolved_instance.service.service_type != ServiceType.INTRO_CALL:
+        raise ValidationError(
+            "serviceType mismatch for intro-call booking", field="serviceKey"
+        )
+    return start_u, end_u
 
 
 def _parse_bill_to_fields(
@@ -343,7 +529,18 @@ def _handle_public_reservation(
                     **reservation_payload,
                     "service_type": resolved_instance.service.service_type.value,
                 }
-                if reservation_payload.get("booking_system") == "consultation-booking":
+                now_utc = datetime.now(tz=UTC)
+                intro_slot_bounds: tuple[datetime, datetime] | None = None
+                if reservation_payload.get("booking_system") == "intro-call-booking":
+                    intro_slot_bounds = _enforce_intro_call_invariants(
+                        session,
+                        reservation_payload,
+                        resolved_instance,
+                        now=now_utc,
+                    )
+                elif (
+                    reservation_payload.get("booking_system") == "consultation-booking"
+                ):
                     start_iso = reservation_payload.get("primary_session_start_iso")
                     if not start_iso:
                         raise ValidationError(
@@ -374,24 +571,52 @@ def _handle_public_reservation(
                 )
                 contact_repo = ContactRepository(session)
                 lead_repo = SalesLeadRepository(session)
+                src_detail: str = "public-www-booking"
+                ma_obj = reservation_payload.get("marketing_attribution")
+                if reservation_payload.get("booking_system") == "intro-call-booking":
+                    if isinstance(ma_obj, dict) and ma_obj:
+                        src_detail = json.dumps(
+                            {"source": "public-www-booking", **ma_obj},
+                            separators=(",", ":"),
+                        )
+                    else:
+                        src_detail = json.dumps(
+                            {"source": "public-www-booking"}, separators=(",", ":")
+                        )
                 contact, _created = contact_repo.upsert_by_email(
                     reservation_payload["attendee_email"],
                     first_name=first_name_from_full_name(
                         reservation_payload["attendee_name"]
                     ),
                     source=ContactSource.RESERVATION,
-                    source_detail="public-www-booking",
+                    source_detail=src_detail,
                     contact_type=ContactType.PARENT,
                 )
                 new_region = reservation_payload["phone_region"]
                 new_national = reservation_payload["phone_national_number"]
                 if (
-                    contact.phone_region is None
-                    or contact.phone_national_number is None
+                    new_region is not None
+                    and new_national is not None
+                    and (
+                        contact.phone_region is None
+                        or contact.phone_national_number is None
+                    )
                 ):
                     contact.phone_region = new_region
                     contact.phone_national_number = new_national
                 contact_repo.update(contact)
+
+                if reservation_payload.get("booking_system") == "intro-call-booking":
+                    existing_intro = session.execute(
+                        select(Enrollment.id)
+                        .where(
+                            Enrollment.instance_id == resolved_instance.id,
+                            Enrollment.contact_id == contact.id,
+                        )
+                        .limit(1)
+                    ).scalar_one_or_none()
+                    if existing_intro is not None:
+                        raise ConflictError("slot_unavailable")
 
                 _validate_public_bill_to_membership(
                     session,
@@ -496,6 +721,29 @@ def _handle_public_reservation(
                         if _dup_pi and _pay is not None:
                             stripe_pi_idempotent_hit = True
                             stripe_pi_existing_payment_id = _pay.id
+                        if (
+                            intro_slot_bounds is not None
+                            and reservation_payload.get("booking_system")
+                            == "intro-call-booking"
+                        ):
+                            s0, s1 = intro_slot_bounds
+                            session.add(
+                                InstanceSessionSlot(
+                                    instance_id=instance_id_resolved,
+                                    location_id=None,
+                                    starts_at=s0,
+                                    ends_at=s1,
+                                )
+                            )
+                            session.flush()
+                            if not is_intro_call_slot_available(
+                                session,
+                                start_utc=s0,
+                                end_utc=s1,
+                                now=now_utc,
+                                ignore_intro_slot=(s0, s1),
+                            ):
+                                raise ConflictError("slot_unavailable")
 
                 lead_metadata: dict[str, object] = {
                     "payment_method": reservation_payload["payment_method"],
@@ -522,6 +770,9 @@ def _handle_public_reservation(
                     lead_metadata["discount_code"] = str(dc_text).strip()
                     if dc_row is not None:
                         lead_metadata["discount_code_id"] = str(dc_row.id)
+                ma_meta = reservation_payload.get("marketing_attribution")
+                if isinstance(ma_meta, dict) and ma_meta:
+                    lead_metadata["marketing_attribution"] = ma_meta
                 lead = SalesLead(
                     contact_id=contact.id,
                     lead_type=LeadType.PROGRAM_ENROLLMENT,
@@ -547,6 +798,8 @@ def _handle_public_reservation(
                             "contact_id": str(contact.id),
                         },
                     )
+    except ConflictError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
     except ValidationError as exc:
         return json_response(exc.status_code, exc.to_dict(), event=event)
     except Exception:
@@ -646,6 +899,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
                 session_slots=session_slots,
                 location_url=location_url,
                 is_free=is_free,
+                interested_topics=_optional_str(payload.get("interested_topics")),
             )
         except Exception:
             logger.exception(
@@ -713,6 +967,16 @@ def _session_slots_for_email(
 
 def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Validate reservation payload and return normalized values."""
+    booking_system_raw = _optional_text(
+        body.get("bookingSystem") or body.get("booking_system"),
+        "bookingSystem",
+        _MAX_SLUG_KEY_LENGTH,
+    )
+    booking_system_early = (
+        booking_system_raw.strip().lower() if booking_system_raw is not None else None
+    )
+    is_intro_booking = booking_system_early == "intro-call-booking"
+
     attendee_name = _require_text(
         body.get("attendeeName"),
         "attendeeName",
@@ -722,34 +986,67 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     if attendee_email is None:
         raise ValidationError("attendeeEmail is required", field="attendeeEmail")
 
-    attendee_phone = _require_text(
-        body.get("attendeePhone"),
-        "attendeePhone",
-        _MAX_PHONE_LENGTH,
-    )
+    attendee_phone_raw = body.get("attendeePhone")
     attendee_country_raw = body.get("attendeeCountry")
     attendee_country: str | None = None
-    if attendee_country_raw is not None and str(attendee_country_raw).strip():
-        attendee_country = validate_phone_region(attendee_country_raw)
-        if attendee_country is None:
-            raise ValidationError(
-                "attendeeCountry must be a valid ISO region code",
-                field="attendeeCountry",
+    if is_intro_booking:
+        if attendee_phone_raw is None or str(attendee_phone_raw).strip() == "":
+            phone_region, phone_national_number = None, None
+            attendee_phone = ""
+            attendee_phone_display = ""
+        else:
+            if attendee_country_raw is None or not str(attendee_country_raw).strip():
+                raise ValidationError(
+                    "attendeeCountry is required when attendeePhone is provided",
+                    field="attendeeCountry",
+                )
+            attendee_country = validate_phone_region(attendee_country_raw)
+            if attendee_country is None:
+                raise ValidationError(
+                    "attendeeCountry must be a valid ISO region code",
+                    field="attendeeCountry",
+                )
+            attendee_phone = _require_text(
+                attendee_phone_raw,
+                "attendeePhone",
+                _MAX_PHONE_LENGTH,
             )
-    parse_region = attendee_country or default_phone_region()
-    phone_region, phone_national_number = validate_phone_fields(
-        parse_region, attendee_phone
-    )
+            phone_region, phone_national_number = validate_phone_fields(
+                attendee_country, attendee_phone
+            )
+            attendee_phone_display = attendee_phone
+    else:
+        attendee_phone = _require_text(
+            attendee_phone_raw,
+            "attendeePhone",
+            _MAX_PHONE_LENGTH,
+        )
+        if attendee_country_raw is not None and str(attendee_country_raw).strip():
+            attendee_country = validate_phone_region(attendee_country_raw)
+            if attendee_country is None:
+                raise ValidationError(
+                    "attendeeCountry must be a valid ISO region code",
+                    field="attendeeCountry",
+                )
+        parse_region = attendee_country or default_phone_region()
+        phone_region, phone_national_number = validate_phone_fields(
+            parse_region, attendee_phone
+        )
     service_tier = _optional_text(
         body.get("serviceTier"),
         "serviceTier",
         _MAX_LABEL_LENGTH,
     )
-    payment_method = _require_text(
-        body.get("paymentMethod"),
-        "paymentMethod",
-        _MAX_PAYMENT_METHOD_LENGTH,
-    )
+    payment_method_raw = body.get("paymentMethod") or body.get("payment_method")
+    if is_intro_booking:
+        pm_str = str(payment_method_raw or "").strip()
+        payment_method = pm_str if pm_str else "free"
+    else:
+        payment_method = _require_text(
+            payment_method_raw,
+            "paymentMethod",
+            _MAX_PAYMENT_METHOD_LENGTH,
+        )
     title = _require_text(
         body.get("title"),
         "title",
@@ -806,20 +1103,16 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             "serviceKey must match the public service key pattern",
             field="serviceKey",
         )
-    booking_system = _optional_text(
-        body.get("bookingSystem") or body.get("booking_system"),
-        "bookingSystem",
-        _MAX_SLUG_KEY_LENGTH,
-    )
-    if booking_system is not None:
-        normalized_bs = booking_system.strip().lower()
-        if normalized_bs not in _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES:
-            raise ValidationError(
-                "bookingSystem must be one of: consultation-booking, event-booking, "
-                "my-best-auntie-booking",
-                field="bookingSystem",
-            )
-        booking_system = normalized_bs
+    booking_system = booking_system_early
+    if (
+        booking_system is not None
+        and booking_system not in _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES
+    ):
+        raise ValidationError(
+            "bookingSystem must be one of: consultation-booking, event-booking, "
+            "my-best-auntie-booking, intro-call-booking",
+            field="bookingSystem",
+        )
     location_name = _optional_text(
         body.get("locationName"),
         "locationName",
@@ -896,11 +1189,14 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         reservation_pending = False
 
     bill = _parse_bill_to_fields(body)
+    marketing_attribution = _parse_marketing_attribution(body)
 
     return {
         "attendee_name": attendee_name,
         "attendee_email": attendee_email,
-        "attendee_phone": attendee_phone,
+        "attendee_phone": attendee_phone_display
+        if is_intro_booking
+        else attendee_phone,
         "attendee_country": attendee_country,
         "phone_region": phone_region,
         "phone_national_number": phone_national_number,
@@ -937,6 +1233,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "bill_to_contact_id": bill["bill_to_contact_id"],
         "bill_to_family_id": bill["bill_to_family_id"],
         "bill_to_organization_id": bill["bill_to_organization_id"],
+        "marketing_attribution": marketing_attribution,
     }
 
 

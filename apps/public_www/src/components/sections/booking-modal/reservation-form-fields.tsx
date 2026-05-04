@@ -4,6 +4,8 @@ import { PhoneNumberInlineField } from '@/components/shared/phone-number-inline-
 
 interface ReservationFormFieldsProps {
   content: BookingPaymentModalContent;
+  /** When true, phone is optional (no required marker; empty phone skips validation UI). */
+  optionalPhone?: boolean;
   dialCodeOptionTemplate: string;
   fullName: string;
   email: string;
@@ -36,6 +38,7 @@ export const BOOKING_TOPICS_ERROR_MESSAGE_ID = 'booking-modal-topics-error-messa
 
 export function ReservationFormFields({
   content,
+  optionalPhone = false,
   dialCodeOptionTemplate,
   fullName,
   email,
@@ -131,9 +134,11 @@ export function ReservationFormFields({
           className='mb-1 block text-sm font-semibold es-text-heading'
         >
           {content.phoneLabel}
-          <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-            *
-          </span>
+          {!optionalPhone ? (
+            <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+              *
+            </span>
+          ) : null}
         </span>
         <PhoneNumberInlineField
           countrySelectId='booking-reservation-phone-country'
@@ -155,7 +160,7 @@ export function ReservationFormFields({
           }
           inputId='booking-reservation-phone-national'
           autoComplete='tel'
-          required
+          required={!optionalPhone}
         />
         {hasPhoneError ? (
           <p

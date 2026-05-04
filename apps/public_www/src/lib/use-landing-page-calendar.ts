@@ -55,6 +55,12 @@ export function useLandingPageCalendar({
       return;
     }
 
+    if (slug === 'book-a-free-call') {
+      setIsRefreshing(false);
+      setHasRefreshError(false);
+      return;
+    }
+
     const mountedRef = { current: true };
     const abortedDueToUnmountRef = { current: false };
     const controller = new AbortController();
