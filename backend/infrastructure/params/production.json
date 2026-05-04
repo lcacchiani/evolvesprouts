@@ -42,6 +42,8 @@
   "PublicWwwBankName": "<FROM_GITHUB_VAR: NEXT_PUBLIC_BANK_NAME>",
   "PublicWwwBankAccountHolder": "<FROM_GITHUB_VAR: NEXT_PUBLIC_BANK_ACCOUNT_HOLDER>",
   "PublicWwwBankAccountNumber": "<FROM_GITHUB_VAR: NEXT_PUBLIC_BANK_ACCOUNT_NUMBER>",
+  "PublicWwwFpsMerchantName": "<FROM_GITHUB_VAR: NEXT_PUBLIC_FPS_MERCHANT_NAME>",
+  "PublicWwwFpsMobileNumber": "<FROM_GITHUB_VAR: NEXT_PUBLIC_FPS_MOBILE_NUMBER>",
   "InvoicePaymentTermsDays": "<FROM_GITHUB_VAR: CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS>",
   "InvoiceDisplayTimezone": "<FROM_GITHUB_VAR: CDK_PARAM_INVOICE_DISPLAY_TIMEZONE>",
   "DefaultPhoneRegion": "HK",

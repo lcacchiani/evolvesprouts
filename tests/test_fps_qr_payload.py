@@ -38,7 +38,7 @@ def test_currency_non_hkd_returns_none() -> None:
     )
 
 
-def test_amount_zero_omits_tag54() -> None:
+def test_amount_none_omits_tag54() -> None:
     """JS booking path uses positive amounts; zero total invoices skip FPS upstream."""
     with_amount = build_fps_payload("Acme", "91234567", Decimal("10.5"), currency="HKD")
     no_amount = build_fps_payload("Acme", "91234567", None, currency="HKD")

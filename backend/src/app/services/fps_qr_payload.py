@@ -29,7 +29,6 @@ _CYCLIC_REDUNDANCY_CHECK = "63"
 _DYNAMIC_QR_CODE = "12"
 
 _FPS_UNIQUE_ID = "hk.com.hkicl"
-_FPS_CURRENCY_NUMERIC = {"HKD": "344"}
 
 # CRC-16/CCITT-FALSE table from fps-generator.js (module 2)
 _CRC_TABLE: tuple[int, ...] = (
@@ -361,9 +360,6 @@ def build_fps_payload(
     code = currency.strip().upper()
     if code != "HKD":
         return None
-    cur_num = _FPS_CURRENCY_NUMERIC.get(code)
-    if not cur_num:
-        return None
 
     name = merchant_name.strip()
     if not name or len(name) > 25 or not _is_alphanumeric_special(name):
@@ -385,7 +381,8 @@ def build_fps_payload(
     t += _payload(_INITIATION_POINT, _DYNAMIC_QR_CODE)
     t += _payload(_MERCHANT_ACCOUNT, inner)
     t += _payload(_MERCHANT_CATEGORY_CODE, "0000")
-    t += _payload(_TRANSACTION_CURRENCY, cur_num)
+    # JS FPS_CURRENCY_LIST.HKD === "344"
+    t += _payload(_TRANSACTION_CURRENCY, "344")
 
     if amount is not None:
         amt_s = _format_amount_for_tag(amount)

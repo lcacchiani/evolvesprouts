@@ -225,6 +225,150 @@ def test_v6_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
     assert 105 * mm <= left_pt <= 125 * mm
 
 
+def _totals_card_bounds_on_page(
+    page, *, y_sample_pt: float = 530.0
+) -> tuple[float, float, float] | None:
+    """Return (left_pt, width_pt, bottom_y_pt) if a totals-sized panel is found."""
+    from reportlab.lib.units import mm
+
+    pix, s = _pixmap_pt_coords(page)
+    W = pix.width
+    y = int(y_sample_pt * s)
+
+    def matches_panel(rgb: tuple[int, int, int]) -> bool:
+        return _rgb_close(rgb, (247, 249, 250))
+
+    longest = 0.0
+    left_pt = 0.0
+    in_run = False
+    start = 0
+    for x in range(W):
+        if matches_panel(pix.pixel(x, y)):
+            if not in_run:
+                start = x
+                in_run = True
+        else:
+            if in_run:
+                w_pt = (x - 1 - start + 1) / s
+                if w_pt > longest:
+                    longest = w_pt
+                    left_pt = start / s
+                in_run = False
+    if in_run:
+        w_pt = (W - 1 - start + 1) / s
+        if w_pt > longest:
+            longest = w_pt
+            left_pt = start / s
+
+    if not (82 * mm <= longest <= 92 * mm and 105 * mm <= left_pt <= 125 * mm):
+        return None
+
+    xc = int((left_pt + longest / 2) * s)
+    y_max: float | None = None
+    for y_pt_i in range(int(400 * s), int(700 * s)):
+        if matches_panel(pix.pixel(xc, y_pt_i)):
+            py = y_pt_i / s
+            y_max = py if y_max is None else max(y_max, py)
+    if y_max is None:
+        return None
+    return left_pt, longest, y_max
+
+
+def _find_totals_card_in_pdf(pdf: bytes) -> tuple[int, float, float, float]:
+    import fitz
+
+    doc = fitz.open(stream=pdf, filetype="pdf")
+    for pi in range(len(doc)):
+        b = _totals_card_bounds_on_page(doc[pi])
+        if b is not None:
+            return pi, b[0], b[1], b[2]
+    msg = "totals card panel not found in PDF"
+    raise AssertionError(msg)
+
+
+def test_v7_fps_qr_below_totals_card(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_BUSINESS_ADDRESS",
+        "507, 5/F, Arion Commercial Centre\n2-12 Queen's Road West\n"
+        "Sheung Wan\nHong Kong SAR",
+    )
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_LEGAL_NAME", "Evolve Sprouts Ltd")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "41492636-000-02-25-0")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "389 - Mox Bank Limited")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "749 86477821")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "IDA DE GREGORIO")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSMerchant")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="I-2603-027",
+        currency="HKD",
+        subtotal=Decimal("583.33"),
+        tax_total=Decimal("0"),
+        total=Decimal("583.33"),
+        bill_to_display_name="Bump and Co",
+        bill_to_email=None,
+        issued_at=datetime(2026, 3, 25, 12, 0, tzinfo=UTC),
+        invoice_date=date(2026, 3, 25),
+        due_date=date(2026, 4, 1),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = SimpleNamespace(
+        line_order=0,
+        description="Weaning Workshop for Bump & Co",
+        quantity=Decimal("1"),
+        unit_amount=Decimal("583.33"),
+        line_total=Decimal("583.33"),
+        currency="HKD",
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    totals_pi, left_pt, width_pt, totals_bottom = _find_totals_card_in_pdf(pdf)
+    x0, x1 = left_pt, left_pt + width_pt
+
+    import fitz
+
+    doc = fitz.open(stream=pdf, filetype="pdf")
+    qr_below = False
+    for pi in range(len(doc)):
+        page = doc[pi]
+        for im in (
+            b for b in page.get_text("dict")["blocks"] if b["type"] == 1
+        ):
+            bbox = im["bbox"]
+            ix0, ix1 = bbox[0], bbox[2]
+            iw = ix1 - ix0
+            if iw > 120:
+                continue
+            if ix0 < x0 - 2 or ix1 > x1 + 2:
+                continue
+            if pi > totals_pi:
+                qr_below = True
+                break
+            if pi == totals_pi and bbox[1] > totals_bottom + 8:
+                qr_below = True
+                break
+        if qr_below:
+            break
+    assert qr_below, "expected FPS QR image under totals card column"
+
+    bank_spans: list = []
+    for pi in range(len(doc)):
+        page = doc[pi]
+        blocks = page.get_text("dict")["blocks"]
+        for b in blocks:
+            if b["type"] != 0:
+                continue
+            for ln in b["lines"]:
+                for sp in ln["spans"]:
+                    if sp["text"].lstrip().startswith("Bank:"):
+                        bank_spans.append(sp)
+    assert bank_spans
+    for s in bank_spans:
+        assert s["bbox"][0] < left_pt - 1
+
+
 def test_v6_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None:
     inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
@@ -835,9 +979,9 @@ def test_nonzero_total_shows_fps_block(monkeypatch: pytest.MonkeyPatch) -> None:
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "FPS QR code or the bank" in text
+    assert "FPS QR code or the bank" in text.replace("\n", " ")
     assert "Bank:" in text
-    assert len(_pdf_all_image_blocks(pdf)) >= 2
+    assert len(_pdf_all_image_blocks(pdf)) == 3
 
 
 def test_nonzero_total_without_fps_config_falls_back_to_bank_only_copy(
@@ -905,9 +1049,9 @@ def test_nonzero_total_with_fps_only_no_bank_omits_bank_lines(
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "FPS QR code below:" in text
+    assert "FPS QR code below:" in text.replace("\n", " ")
     assert "Bank:" not in text
-    assert len(_pdf_all_image_blocks(pdf)) >= 2
+    assert len(_pdf_all_image_blocks(pdf)) == 3
 
 
 def test_nonzero_total_non_hkd_skips_fps_qr(monkeypatch: pytest.MonkeyPatch) -> None:

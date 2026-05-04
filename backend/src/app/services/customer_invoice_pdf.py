@@ -157,7 +157,7 @@ def _invoice_logo_flowable() -> Image | Paragraph:
 
 
 def _fps_logo_image() -> Image | None:
-    """FPS brand mark for payment band (~12 mm tall)."""
+    """FPS brand mark for payment band (~25 mm × 12 mm max, right-aligned under totals)."""
     if not _INV_FPS_LOGO_PATH.is_file():
         return None
     img = Image(
@@ -166,7 +166,7 @@ def _fps_logo_image() -> Image | None:
         height=12 * mm,
         kind="proportional",
     )
-    img.hAlign = "LEFT"
+    img.hAlign = "RIGHT"
     return img
 
 
@@ -433,7 +433,6 @@ def render_invoice_pdf(
             invoice.total,
             currency=inv_currency,
         )
-    has_fps_qr = fps_payload is not None
 
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
@@ -797,8 +796,8 @@ def render_invoice_pdf(
         story.append(Spacer(1, 4))
         story.append(Paragraph(_esc(terms_intro), body_text_style))
 
-        if has_bank_block or has_fps_qr:
-            if has_bank_block and has_fps_qr:
+        if has_bank_block or fps_payload is not None:
+            if has_bank_block and fps_payload is not None:
                 pay_intro = (
                     "Please make payments using the FPS QR code or the bank "
                     "details below:"
@@ -810,53 +809,14 @@ def render_invoice_pdf(
 
             story.append(Spacer(1, 12))
 
-            left_stack_rows: list[list] = []
-            if has_fps_qr:
-                payload_for_qr = fps_payload
-                if payload_for_qr is None:
-                    raise RuntimeError(
-                        "FPS QR block requires a payload when has_fps_qr is true"
-                    )
-                logo_flow = _fps_logo_image()
-                if logo_flow is not None:
-                    left_stack_rows.append([logo_flow])
-                    left_stack_rows.append([Spacer(1, 6)])
-                qr_png = render_fps_qr_png(payload_for_qr, size_px=256)
-                qr_img = Image(
-                    io.BytesIO(qr_png),
-                    width=35 * mm,
-                    height=35 * mm,
-                    kind="proportional",
-                )
-                qr_img.hAlign = "LEFT"
-                left_stack_rows.append([qr_img])
-            left_cell: Flowable
-            if left_stack_rows:
-                left_inner = Table(
-                    left_stack_rows,
-                    colWidths=[55 * mm],
-                )
-                left_inner.setStyle(
-                    TableStyle(
-                        [
-                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                            ("TOPPADDING", (0, 0), (-1, -1), 0),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                        ]
-                    )
-                )
-                left_cell = left_inner
-            else:
-                left_cell = Paragraph("", body_text_style)
+            pay_left_w = 102 * mm
+            pay_right_w = 88 * mm
 
-            right_rows: list[list] = [
+            bank_rows: list[list] = [
                 [Paragraph(_esc(pay_intro), body_text_style)],
             ]
             if has_bank_block:
-                right_rows.append([Spacer(1, 12)])
+                bank_rows.append([Spacer(1, 12)])
                 bank_lines = [
                     f"Bank: {_esc(bank_name)}" if bank_name else "",
                     f"Account Number: {_esc(bank_number)}" if bank_number else "",
@@ -867,29 +827,63 @@ def render_invoice_pdf(
                     if not bl:
                         continue
                     if not first_bank:
-                        right_rows.append([Spacer(1, 2)])
-                    right_rows.append([Paragraph(bl, body_text_style)])
+                        bank_rows.append([Spacer(1, 2)])
+                    bank_rows.append([Paragraph(bl, body_text_style)])
                     first_bank = False
 
-            right_inner = Table(
-                right_rows,
-                colWidths=[135 * mm],
-            )
-            right_inner.setStyle(
+            bank_cell = Table(bank_rows, colWidths=[pay_left_w])
+            bank_cell.setStyle(
                 TableStyle(
                     [
                         ("VALIGN", (0, 0), (-1, -1), "TOP"),
                         ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
                         ("TOPPADDING", (0, 0), (-1, -1), 0),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                     ]
                 )
             )
 
+            fps_stack_rows: list[list] = []
+            if fps_payload is not None:
+                logo_flow = _fps_logo_image()
+                if logo_flow is not None:
+                    fps_stack_rows.append([logo_flow])
+                    fps_stack_rows.append([Spacer(1, 6)])
+                qr_png = render_fps_qr_png(fps_payload, size_px=256)
+                qr_img = Image(
+                    io.BytesIO(qr_png),
+                    width=35 * mm,
+                    height=35 * mm,
+                    kind="proportional",
+                )
+                qr_img.hAlign = "RIGHT"
+                fps_stack_rows.append([qr_img])
+
+            if fps_stack_rows:
+                fps_cell_inner = Table(
+                    fps_stack_rows,
+                    colWidths=[pay_right_w],
+                )
+                fps_cell_inner.setStyle(
+                    TableStyle(
+                        [
+                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                            ("TOPPADDING", (0, 0), (-1, -1), 0),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                        ]
+                    )
+                )
+                fps_cell = fps_cell_inner
+            else:
+                fps_cell = Paragraph("", body_text_style)
+
             pay_table = Table(
-                [[left_cell, right_inner]],
-                colWidths=[55 * mm, 135 * mm],
+                [[bank_cell, fps_cell]],
+                colWidths=[pay_left_w, pay_right_w],
             )
             pay_table.setStyle(
                 TableStyle(
