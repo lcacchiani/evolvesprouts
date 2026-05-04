@@ -9,6 +9,7 @@ export type CustomerPaymentSummary = ApiSchemas['CustomerPaymentSummary'];
 
 export type CustomerPaymentDetail = CustomerPaymentSummary & {
   unappliedAmount?: string;
+  allocationInvoices?: { invoiceId: string; invoiceNumber: string | null }[];
 };
 
 export type CustomerInvoiceSummary = ApiSchemas['CustomerInvoiceSummary'];
@@ -84,9 +85,18 @@ export async function getCustomerInvoicePdfDownload(
   return { downloadUrl, expiresAt };
 }
 
-export async function listCustomerPayments(signal?: AbortSignal): Promise<CustomerPaymentSummary[]> {
+export async function listCustomerPayments(
+  params: { invoiceId?: string } = {},
+  signal?: AbortSignal,
+): Promise<CustomerPaymentSummary[]> {
+  const query = new URLSearchParams();
+  const inv = params.invoiceId?.trim();
+  if (inv) {
+    query.set('invoice_id', inv);
+  }
+  const qs = query.toString();
   const payload = await adminApiRequest<{ items?: CustomerPaymentSummary[] }>({
-    endpointPath: '/v1/admin/billing/payments',
+    endpointPath: qs ? `/v1/admin/billing/payments?${qs}` : '/v1/admin/billing/payments',
     method: 'GET',
     signal,
   });

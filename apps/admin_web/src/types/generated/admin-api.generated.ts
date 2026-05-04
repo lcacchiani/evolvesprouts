@@ -3907,7 +3907,10 @@ export interface paths {
         /** List recent customer payments */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description When set, return only payments that have at least one allocation to this invoice. */
+                    invoice_id?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -3925,6 +3928,7 @@ export interface paths {
                         };
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
             };
         };
@@ -3991,6 +3995,8 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["CustomerPaymentSummary"] & {
                             unappliedAmount?: string;
+                            /** @description Distinct invoices this payment is allocated to (newest invoice first). */
+                            allocationInvoices?: components["schemas"]["CustomerPaymentAllocationInvoice"][];
                         };
                     };
                 };
@@ -5957,6 +5963,11 @@ export interface components {
         };
         ExpenseResponse: {
             expense: components["schemas"]["Expense"];
+        };
+        CustomerPaymentAllocationInvoice: {
+            /** Format: uuid */
+            invoiceId?: string;
+            invoiceNumber?: string | null;
         };
         CustomerPaymentSummary: {
             /** Format: uuid */
