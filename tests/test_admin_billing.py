@@ -1476,6 +1476,44 @@ def test_list_invoices_filters_by_currency_and_status(
     assert "customer_invoices.status" in stmt_text
 
 
+def test_email_invoice_accepts_comma_separated_recipients(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    captured: dict[str, Any] = {}
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        yield MagicMock()
+
+    def _fake_send_invoice_email(
+        _session: Any, *, invoice_id: UUID, to_addresses: list[str]
+    ) -> None:
+        captured["invoice_id"] = invoice_id
+        captured["to_addresses"] = to_addresses
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        "app.api.admin_billing_invoices.send_invoice_email",
+        _fake_send_invoice_email,
+    )
+
+    ev = api_gateway_event(
+        method="POST",
+        path=f"/v1/admin/billing/invoices/{inv_id}/email",
+        body=json.dumps({"toEmail": " a@example.com ; b@example.com "}),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", f"/v1/admin/billing/invoices/{inv_id}/email"
+    )
+    assert r["statusCode"] == 200
+    assert captured["invoice_id"] == inv_id
+    assert captured["to_addresses"] == ["a@example.com", "b@example.com"]
+
+
 def test_email_invoice_rejects_invalid_email(
     api_gateway_event: Any,
     admin_identity: dict[str, str],

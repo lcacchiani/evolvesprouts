@@ -3268,7 +3268,10 @@ paths:
               properties:
                 toEmail:
                   type: string
-                  format: email
+                  description: >
+                    Recipient email address(es). Multiple addresses may be given as a
+                    comma-separated list (optional semicolons are treated like commas).
+                  example: "billing@example.com, accounts@example.com"
       responses:
         "200":
           description: Email sent (best-effort).

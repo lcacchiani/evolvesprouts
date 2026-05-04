@@ -178,6 +178,17 @@ def _validate_to_email(to_email: str) -> None:
         raise ValidationError("toEmail must be a valid email address", field="toEmail")
 
 
+def _parse_to_email_list(raw: str) -> list[str]:
+    """Split comma-separated recipient list and validate each address."""
+    parts = [p.strip() for p in raw.replace(";", ",").split(",")]
+    addresses = [p for p in parts if p != ""]
+    if not addresses:
+        raise ValidationError("toEmail is required", field="toEmail")
+    for addr in addresses:
+        _validate_to_email(addr)
+    return addresses
+
+
 def _email_invoice(
     event: Mapping[str, Any],
     invoice_id: UUID,
@@ -186,10 +197,10 @@ def _email_invoice(
     request_id: str | None,
 ) -> dict[str, Any]:
     body = parse_body(event)
-    to_email = str(body.get("toEmail") or body.get("to_email") or "").strip()
-    if not to_email:
+    to_raw = str(body.get("toEmail") or body.get("to_email") or "").strip()
+    if not to_raw:
         raise ValidationError("toEmail is required", field="toEmail")
-    _validate_to_email(to_email)
+    to_addresses = _parse_to_email_list(to_raw)
     with _session_with_audit(user_sub, request_id) as session:
-        send_invoice_email(session, invoice_id=invoice_id, to_email=to_email)
+        send_invoice_email(session, invoice_id=invoice_id, to_addresses=to_addresses)
         return json_response(200, {"sent": True}, event=event)

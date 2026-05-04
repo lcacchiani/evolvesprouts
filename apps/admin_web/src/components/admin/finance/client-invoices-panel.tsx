@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckIcon, EmailIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
+import { CheckIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
   CustomizedDraftInvoiceCard,
@@ -27,7 +27,6 @@ import {
   createPaymentAllocation,
   emailInvoice,
   exportBillingCsv,
-  getCustomerInvoice,
   getCustomerInvoicePdfDownload,
   getCustomerPayment,
   issueInvoice,
@@ -36,7 +35,6 @@ import {
   listRecentEnrollmentsForInvoicing,
   voidInvoice,
   type BillingEnrollmentPickerRow,
-  type CustomerInvoiceDetail,
   type CustomerInvoiceSummary,
   type CustomerPaymentDetail,
   type CustomerPaymentSummary,
@@ -128,6 +126,15 @@ function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): bool
   return trimmed !== '' && trimmed !== baseline;
 }
 
+/** Normalize admin-entered CSV/semicolon-separated emails for the billing API (comma-separated). */
+function normalizeInvoiceRecipientList(raw: string): string {
+  return raw
+    .split(/[,;]+/)
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .join(', ');
+}
+
 export function ClientInvoicesPanel() {
   const draftFilterId = useId();
   const draftModeId = useId();
@@ -148,9 +155,8 @@ export function ClientInvoicesPanel() {
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<'draft' | 'issued' | 'void' | ''>('');
   const [invoiceCurrencyFilter, setInvoiceCurrencyFilter] = useState('');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
-  const [invoiceDetail, setInvoiceDetail] = useState<CustomerInvoiceDetail | null>(null);
-  const [invoiceDetailLoading, setInvoiceDetailLoading] = useState(false);
-  const [invoiceDetailError, setInvoiceDetailError] = useState('');
+  const [issuedInvoiceEmailCsv, setIssuedInvoiceEmailCsv] = useState('');
+  const [issuedInvoiceEmailError, setIssuedInvoiceEmailError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const [actionError, setActionError] = useState('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -160,11 +166,6 @@ export function ClientInvoicesPanel() {
   const [voidInvoiceTargetId, setVoidInvoiceTargetId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
-
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [emailInvoiceTargetId, setEmailInvoiceTargetId] = useState<string | null>(null);
-  const [emailDialogTo, setEmailDialogTo] = useState('');
-  const [emailDialogError, setEmailDialogError] = useState('');
 
   const [confirmPaymentDialogOpen, setConfirmPaymentDialogOpen] = useState(false);
   const [confirmPaymentId, setConfirmPaymentId] = useState<string | null>(null);
@@ -179,9 +180,6 @@ export function ClientInvoicesPanel() {
   const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<Set<string>>(() => new Set());
   const [lineOverrideByEnrollmentId, setLineOverrideByEnrollmentId] = useState<Record<string, string>>({});
 
-  const [invoiceIdInput, setInvoiceIdInput] = useState('');
-  const [emailTo, setEmailTo] = useState('');
-
   const [allocateInvoiceId, setAllocateInvoiceId] = useState('');
   const [allocateLineId, setAllocateLineId] = useState('');
   const [allocateAmount, setAllocateAmount] = useState('');
@@ -194,6 +192,8 @@ export function ClientInvoicesPanel() {
   const [refundStripeId, setRefundStripeId] = useState('');
 
   const lastPaymentSeedIdRef = useRef<string | null>(null);
+  const prevIssuedInvoiceSelectionRef = useRef<string | null>(null);
+  const issuedInvoiceEmailDirtyRef = useRef(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CustomerPaymentDetail | null>(null);
@@ -376,45 +376,38 @@ export function ClientInvoicesPanel() {
     }
   }, [invoiceListCursor, invoiceCurrencyFilter, invoiceStatusFilter]);
 
-  const loadInvoiceDetail = useCallback(async (id: string, signal?: AbortSignal) => {
-    setInvoiceDetailLoading(true);
-    setInvoiceDetailError('');
-    try {
-      const inv = await getCustomerInvoice(id, signal);
-      if (signal?.aborted) {
-        return;
-      }
-      setInvoiceDetail(inv);
-      setEmailTo((prev) => {
-        if (prev.trim() !== '') {
-          return prev;
-        }
-        return inv.billToEmail?.trim() ?? prev;
-      });
-    } catch (caught) {
-      if (caught instanceof Error && caught.name === 'AbortError') {
-        return;
-      }
-      const message = caught instanceof Error ? caught.message : 'Failed to load invoice.';
-      setInvoiceDetailError(message);
-      setInvoiceDetail(null);
-    } finally {
-      if (!signal?.aborted) {
-        setInvoiceDetailLoading(false);
-      }
+  const selectedIssuedInvoice = useMemo(() => {
+    if (!selectedInvoiceId) {
+      return null;
     }
-  }, []);
+    return invoices.find((inv) => inv.id === selectedInvoiceId) ?? null;
+  }, [invoices, selectedInvoiceId]);
 
   useEffect(() => {
-    if (!selectedInvoiceId) {
-      setInvoiceDetail(null);
-      setInvoiceDetailError('');
+    setIssuedInvoiceEmailError('');
+    const inv = selectedIssuedInvoice;
+
+    if (!inv || inv.status !== 'issued') {
+      prevIssuedInvoiceSelectionRef.current = null;
+      issuedInvoiceEmailDirtyRef.current = false;
+      setIssuedInvoiceEmailCsv('');
       return;
     }
-    const ac = new AbortController();
-    void loadInvoiceDetail(selectedInvoiceId, ac.signal);
-    return () => ac.abort();
-  }, [selectedInvoiceId, loadInvoiceDetail]);
+
+    const id = inv.id ?? '';
+    const bill = inv.billToEmail?.trim() ?? '';
+
+    if (prevIssuedInvoiceSelectionRef.current !== id) {
+      prevIssuedInvoiceSelectionRef.current = id;
+      issuedInvoiceEmailDirtyRef.current = false;
+      setIssuedInvoiceEmailCsv(bill);
+      return;
+    }
+
+    if (!issuedInvoiceEmailDirtyRef.current) {
+      setIssuedInvoiceEmailCsv(bill);
+    }
+  }, [selectedIssuedInvoice]);
 
   const loadDetail = useCallback(
     async (id: string, signal?: AbortSignal) => {
@@ -472,7 +465,6 @@ export function ClientInvoicesPanel() {
 
   const openVoidInvoiceDialog = (invoiceId: string) => {
     setVoidInvoiceTargetId(invoiceId);
-    setInvoiceIdInput(invoiceId);
     setVoidReason('');
     setVoidError('');
     setVoidDialogOpen(true);
@@ -502,10 +494,6 @@ export function ClientInvoicesPanel() {
       closeVoidInvoiceDialog();
       await loadPayments();
       await loadInvoicesFirstPage();
-      if (selectedInvoiceId === id) {
-        const ac = new AbortController();
-        await loadInvoiceDetail(id, ac.signal);
-      }
     } catch (caught) {
       setVoidError(caught instanceof Error ? caught.message : 'Void failed.');
     } finally {
@@ -513,43 +501,24 @@ export function ClientInvoicesPanel() {
     }
   };
 
-  const openEmailInvoiceDialog = (invoiceId: string, suggested?: string | null) => {
-    setEmailInvoiceTargetId(invoiceId);
-    setEmailDialogTo(suggested?.trim() ?? emailTo.trim() ?? '');
-    setEmailDialogError('');
-    setEmailDialogOpen(true);
-  };
-
-  const closeEmailInvoiceDialog = () => {
-    setEmailDialogOpen(false);
-    setEmailInvoiceTargetId(null);
-    setEmailDialogTo('');
-    setEmailDialogError('');
-  };
-
-  const submitEmailInvoice = async () => {
-    const id = emailInvoiceTargetId?.trim();
-    if (!id) {
+  const handleEmailIssuedInvoice = async () => {
+    const id = selectedInvoiceId?.trim();
+    if (!id || selectedIssuedInvoice?.status !== 'issued') {
       return;
     }
-    const to = emailDialogTo.trim();
-    if (!to) {
-      setEmailDialogError('Recipient email is required.');
+    const normalized = normalizeInvoiceRecipientList(issuedInvoiceEmailCsv);
+    if (normalized === '') {
+      setIssuedInvoiceEmailError('Enter at least one recipient email (comma-separated).');
       return;
     }
-    setEmailDialogError('');
+    setIssuedInvoiceEmailError('');
     setBusy('email');
     try {
-      const out = await emailInvoice(id, to);
+      const out = await emailInvoice(id, normalized);
       setActionMessage(out.sent ? 'Email send accepted.' : 'Email was not confirmed sent.');
-      closeEmailInvoiceDialog();
       await loadInvoicesFirstPage();
-      if (selectedInvoiceId === id) {
-        const ac = new AbortController();
-        await loadInvoiceDetail(id, ac.signal);
-      }
     } catch (caught) {
-      setEmailDialogError(caught instanceof Error ? caught.message : 'Email failed.');
+      setIssuedInvoiceEmailError(caught instanceof Error ? caught.message : 'Email failed.');
     } finally {
       setBusy(null);
     }
@@ -566,10 +535,6 @@ export function ClientInvoicesPanel() {
           (out.issuedPdfSha256 ? ` (SHA-256: ${out.issuedPdfSha256.slice(0, 16)}…)` : ''),
       );
       await loadInvoicesFirstPage();
-      if (selectedInvoiceId === invoiceId) {
-        const ac = new AbortController();
-        await loadInvoiceDetail(invoiceId, ac.signal);
-      }
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Issue failed.');
     } finally {
@@ -678,7 +643,6 @@ export function ClientInvoicesPanel() {
         body.lineTotalsByEnrollmentId = overrides;
       }
       const result = await createDraftInvoice(body);
-      setInvoiceIdInput(result.invoiceId);
       setSelectedInvoiceId(result.invoiceId);
       setAllocateInvoiceId(result.invoiceId);
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
@@ -724,10 +688,6 @@ export function ClientInvoicesPanel() {
       const ac = new AbortController();
       await loadDetail(selectedId, ac.signal);
       await loadInvoicesFirstPage();
-      if (selectedInvoiceId === invId) {
-        const ac2 = new AbortController();
-        await loadInvoiceDetail(invId, ac2.signal);
-      }
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : 'Allocation failed.');
     } finally {
@@ -1085,7 +1045,6 @@ export function ClientInvoicesPanel() {
               onValidityChange={setCustomizedFormSubmitEnabled}
               onCreated={async (invoiceId) => {
                 setActionError('');
-                setInvoiceIdInput(invoiceId);
                 setSelectedInvoiceId(invoiceId);
                 setAllocateInvoiceId(invoiceId);
                 setActionMessage(`Draft invoice created: ${invoiceId}`);
@@ -1099,7 +1058,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer invoices'
-        description='Cursor-paginated invoices (newest first). Use Operations to issue, email, or void. Select a row to load lines and copy ids for allocation.'
+        description='Cursor-paginated invoices (newest first). Use Operations to issue or void. Select a row to set allocation defaults; when the selection is issued, use Email recipients and Send email below.'
         isLoading={invoiceListLoading}
         isLoadingMore={invoiceListLoadingMore}
         hasMore={Boolean(invoiceListCursor)}
@@ -1141,6 +1100,38 @@ export function ClientInvoicesPanel() {
                 ))}
               </Select>
             </div>
+            {selectedIssuedInvoice?.status === 'issued' ? (
+              <div className='ml-auto flex min-w-[min(100%,20rem)] max-w-xl flex-1 flex-col gap-1 sm:min-w-[18rem]'>
+                <Label htmlFor='billing-issued-invoice-emails'>Email recipients (comma-separated)</Label>
+                <div className='flex flex-wrap items-end gap-2'>
+                  <Input
+                    id='billing-issued-invoice-emails'
+                    className='min-w-0 flex-1 font-mono text-sm'
+                    autoComplete='off'
+                    value={issuedInvoiceEmailCsv}
+                    onChange={(e) => {
+                      issuedInvoiceEmailDirtyRef.current = true;
+                      setIssuedInvoiceEmailCsv(e.target.value);
+                      setIssuedInvoiceEmailError('');
+                    }}
+                    disabled={editorBusy}
+                    placeholder='billing@example.com, accounts@example.com'
+                  />
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='secondary'
+                    disabled={editorBusy || busyAction === 'email'}
+                    onClick={() => void handleEmailIssuedInvoice()}
+                  >
+                    {busyAction === 'email' ? 'Sending…' : 'Send email'}
+                  </Button>
+                </div>
+                {issuedInvoiceEmailError ? (
+                  <AdminInlineError>{issuedInvoiceEmailError}</AdminInlineError>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         }
       >
@@ -1176,7 +1167,6 @@ export function ClientInvoicesPanel() {
                   onClick={() => {
                     setSelectedInvoiceId(id || null);
                     if (id) {
-                      setInvoiceIdInput(id);
                       setAllocateInvoiceId(id);
                     }
                   }}
@@ -1238,19 +1228,6 @@ export function ClientInvoicesPanel() {
                           )}
                         </Button>
                       ) : null}
-                      {inv.status === 'issued' ? (
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='secondary'
-                          disabled={editorBusy || !id}
-                          onClick={() => openEmailInvoiceDialog(id, inv.billToEmail)}
-                          aria-label='Email invoice PDF'
-                          title='Email invoice PDF'
-                        >
-                          <EmailIcon className='h-4 w-4' aria-hidden />
-                        </Button>
-                      ) : null}
                       {inv.status !== 'void' ? (
                         <Button
                           type='button'
@@ -1274,104 +1251,9 @@ export function ClientInvoicesPanel() {
         </section>
       </PaginatedTableCard>
 
-      <Card
-        title='Selected invoice'
-        className='border-slate-200 bg-slate-50/80 p-3 shadow-none sm:p-4'
-      >
-        {!selectedInvoiceId ? (
-          <p className='text-sm text-slate-600'>Select an invoice row above to load line items and UUIDs.</p>
-        ) : invoiceDetailLoading ? (
-          <p className='text-sm text-slate-600'>Loading invoice…</p>
-        ) : invoiceDetailError ? (
-          <AdminInlineError>{invoiceDetailError}</AdminInlineError>
-        ) : invoiceDetail ? (
-          <div className='space-y-4'>
-            <div className='max-w-xl'>
-              <Label htmlFor='billing-invoice-id'>Invoice UUID (edit or paste)</Label>
-              <Input
-                id='billing-invoice-id'
-                value={invoiceIdInput}
-                onChange={(e) => setInvoiceIdInput(e.target.value)}
-                className='mt-1 font-mono text-sm'
-                disabled={editorBusy}
-              />
-            </div>
-            <div>
-              <Label htmlFor='billing-email-to'>Default email for row “Email…” dialog</Label>
-              <Input
-                id='billing-email-to'
-                type='email'
-                value={emailTo}
-                onChange={(e) => setEmailTo(e.target.value)}
-                className='mt-1 max-w-md'
-                disabled={editorBusy}
-              />
-            </div>
-            <dl className='grid gap-1 text-sm text-slate-700 sm:grid-cols-2'>
-              <div>
-                <dt className='text-xs uppercase text-slate-500'>Status</dt>
-                <dd>{invoiceDetail.status}</dd>
-              </div>
-              <div>
-                <dt className='text-xs uppercase text-slate-500'>Number</dt>
-                <dd>{invoiceDetail.invoiceNumber ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className='text-xs uppercase text-slate-500'>Total</dt>
-                <dd>
-                  {invoiceDetail.total} {invoiceDetail.currency}
-                </dd>
-              </div>
-              <div className='sm:col-span-2'>
-                <dt className='text-xs uppercase text-slate-500'>Bill to</dt>
-                <dd>{invoiceDetail.billToDisplayName ?? invoiceDetail.billToEmail ?? '—'}</dd>
-              </div>
-            </dl>
-            <div>
-              <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600'>Lines</p>
-              <AdminDataTable tableClassName='min-w-[640px]'>
-                <AdminDataTableHead>
-                  <tr>
-                    <th className='px-2 py-1.5'>Line id</th>
-                    <th className='px-2 py-1.5'>Enrollment</th>
-                    <th className='px-2 py-1.5'>Description</th>
-                    <th className='px-2 py-1.5'>Total</th>
-                  </tr>
-                </AdminDataTableHead>
-                <AdminDataTableBody>
-                  {(invoiceDetail.lines ?? []).map((ln) => (
-                    <tr key={ln.id}>
-                      <td className='px-2 py-1.5'>
-                        <button
-                          type='button'
-                          className='max-w-[140px] truncate font-mono text-left text-xs text-sky-800 underline decoration-sky-300 hover:decoration-sky-600'
-                          title={ln.id}
-                          onClick={() => {
-                            if (ln.id) {
-                              setAllocateLineId(ln.id);
-                            }
-                          }}
-                        >
-                          {formatTruncatedId(ln.id)}
-                        </button>
-                      </td>
-                      <td className='px-2 py-1.5 font-mono text-xs'>{formatTruncatedId(ln.enrollmentId)}</td>
-                      <td className='px-2 py-1.5 text-xs'>{ln.description}</td>
-                      <td className='px-2 py-1.5 text-xs'>
-                        {ln.lineTotal} {ln.currency}
-                      </td>
-                    </tr>
-                  ))}
-                </AdminDataTableBody>
-              </AdminDataTable>
-            </div>
-          </div>
-        ) : null}
-      </Card>
-
       <AdminEditorCard
         title='Allocate selected payment to invoice'
-        description='Select a payment in the table below first. Invoice and line UUIDs can come from the selected invoice panel.'
+        description='Select a payment in the table below first. Paste invoice and optional line UUIDs from your records or billing export.'
         actions={
           <Button type='submit' form={ALLOCATE_FORM_ID} disabled={editorBusy}>
             {busyAction === 'allocate' ? 'Allocating…' : 'Create allocation'}
@@ -1639,31 +1521,6 @@ export function ClientInvoicesPanel() {
             placeholder='Required'
           />
           {voidError ? <AdminInlineError>{voidError}</AdminInlineError> : null}
-        </div>
-      </ConfirmDialog>
-
-      <ConfirmDialog
-        open={emailDialogOpen}
-        title='Email invoice PDF'
-        description='Sends the issued invoice PDF to the address below (best-effort).'
-        confirmLabel='Send email'
-        cancelLabel='Cancel'
-        confirmDisabled={busyAction === 'email'}
-        onCancel={closeEmailInvoiceDialog}
-        onConfirm={() => void submitEmailInvoice()}
-      >
-        <div className='space-y-2'>
-          <Label htmlFor='billing-email-dialog-to'>Recipient email</Label>
-          <Input
-            id='billing-email-dialog-to'
-            type='email'
-            value={emailDialogTo}
-            onChange={(e) => {
-              setEmailDialogTo(e.target.value);
-              setEmailDialogError('');
-            }}
-          />
-          {emailDialogError ? <AdminInlineError>{emailDialogError}</AdminInlineError> : null}
         </div>
       </ConfirmDialog>
 
