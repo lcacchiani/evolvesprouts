@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const billingMocks = vi.hoisted(() => ({
   listCustomerInvoices: vi.fn(),
+  getCustomerInvoice: vi.fn(),
   getCustomerInvoicePdfDownload: vi.fn(),
   listCustomerPayments: vi.fn(),
   getCustomerPayment: vi.fn(),
@@ -61,6 +62,7 @@ describe('ClientInvoicesPanel', () => {
       downloadUrl: 'https://example.com/signed.pdf',
       expiresAt: '2026-12-31T00:00:00Z',
     });
+    billingMocks.getCustomerInvoice.mockResolvedValue({ id: '', lines: [] });
   });
 
   afterEach(() => {
@@ -68,14 +70,14 @@ describe('ClientInvoicesPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('renders invoice rows and selecting a row seeds allocate invoice id', async () => {
+  it('selecting an issued invoice row seeds allocate invoice select', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [
         {
           id: invId,
-          status: 'draft',
-          invoiceNumber: null,
+          status: 'issued',
+          invoiceNumber: 'INV-42',
           currency: 'HKD',
           total: '100',
           lineCount: 1,
@@ -84,6 +86,11 @@ describe('ClientInvoicesPanel', () => {
         },
       ],
       next_cursor: null,
+    });
+    billingMocks.getCustomerInvoice.mockResolvedValue({
+      id: invId,
+      status: 'issued',
+      lines: [{ id: 'line-1-uuid-1111-1111-111111111111', description: 'Tuition', lineOrder: 0 }],
     });
 
     render(<ClientInvoicesPanel />);
@@ -95,11 +102,12 @@ describe('ClientInvoicesPanel', () => {
     const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
     const invoiceTable = within(invoiceRegion).getByRole('table');
     expect(within(invoiceTable).queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
-    expect(within(invoiceTable).getByText('Draft')).toBeInTheDocument();
+    expect(within(invoiceTable).getByText('Issued')).toBeInTheDocument();
     await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
-      expect((document.getElementById('billing-allocate-invoice') as HTMLInputElement).value).toBe(invId);
+      const sel = document.getElementById('billing-allocate-invoice') as HTMLSelectElement;
+      expect(sel.value).toBe(invId);
     });
   });
 
@@ -437,20 +445,26 @@ describe('ClientInvoicesPanel', () => {
 
   it('submitting allocate form calls createPaymentAllocation', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const lineId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
     const payId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [
         {
           id: invId,
-          status: 'draft',
+          status: 'issued',
+          invoiceNumber: 'INV-9',
           currency: 'HKD',
           total: '100',
-          lineCount: 0,
+          lineCount: 1,
           createdAt: '2026-01-01T00:00:00+00:00',
         },
       ],
       next_cursor: null,
+    });
+    billingMocks.getCustomerInvoice.mockResolvedValue({
+      id: invId,
+      lines: [{ id: lineId, description: 'Service fee', lineOrder: 0 }],
     });
 
     billingMocks.listCustomerPayments.mockResolvedValue([
@@ -474,7 +488,7 @@ describe('ClientInvoicesPanel', () => {
       unappliedAmount: '100',
       createdAt: '2026-01-01T00:00:00+00:00',
     });
-    billingMocks.createPaymentAllocation.mockResolvedValue({ allocationId: 'cccccccc-cccc-cccc-cccc-cccccccccccc' });
+    billingMocks.createPaymentAllocation.mockResolvedValue({ allocationId: 'dddddddd-dddd-dddd-dddd-dddddddddddd' });
 
     render(<ClientInvoicesPanel />);
 
@@ -485,7 +499,7 @@ describe('ClientInvoicesPanel', () => {
     });
     await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
     await waitFor(() => {
-      expect((document.getElementById('billing-allocate-invoice') as HTMLInputElement).value).toBe(invId);
+      expect(billingMocks.getCustomerInvoice).toHaveBeenCalledWith(invId, expect.any(AbortSignal));
     });
 
     const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
@@ -494,17 +508,20 @@ describe('ClientInvoicesPanel', () => {
     });
     await userEvent.click(within(paymentTable).getByRole('button', { name: /bbbbbbbb/i }));
 
-    const amountField = document.getElementById('billing-allocate-amount') as HTMLInputElement;
-    await userEvent.clear(amountField);
-    await userEvent.type(amountField, '25');
+    const user = userEvent.setup();
+    await user.selectOptions(screen.getByLabelText(/invoice line/i), lineId);
 
-    await userEvent.click(screen.getByRole('button', { name: /^create allocation$/i }));
+    const amountField = document.getElementById('billing-allocate-amount') as HTMLInputElement;
+    await user.clear(amountField);
+    await user.type(amountField, '25');
+
+    await user.click(screen.getByRole('button', { name: /^create allocation$/i }));
 
     await waitFor(() => {
       expect(billingMocks.createPaymentAllocation).toHaveBeenCalledWith({
         paymentId: payId,
         invoiceId: invId,
-        invoiceLineId: null,
+        invoiceLineId: lineId,
         allocatedAmount: '25',
         currency: 'HKD',
       });

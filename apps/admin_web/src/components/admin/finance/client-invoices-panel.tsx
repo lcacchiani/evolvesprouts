@@ -27,6 +27,7 @@ import {
   createPaymentAllocation,
   emailInvoice,
   exportBillingCsv,
+  getCustomerInvoice,
   getCustomerInvoicePdfDownload,
   getCustomerPayment,
   issueInvoice,
@@ -35,6 +36,7 @@ import {
   listRecentEnrollmentsForInvoicing,
   voidInvoice,
   type BillingEnrollmentPickerRow,
+  type CustomerInvoiceDetail,
   type CustomerInvoiceSummary,
   type CustomerPaymentDetail,
   type CustomerPaymentSummary,
@@ -60,6 +62,30 @@ function formatTruncatedId(id: string | null | undefined): string {
     return id;
   }
   return `${id.slice(0, 8)}…`;
+}
+
+type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
+
+function invoiceLineSortKey(line: CustomerInvoiceLineRow): number {
+  const o = line.lineOrder;
+  if (typeof o === 'number' && Number.isFinite(o)) {
+    return o;
+  }
+  return 0;
+}
+
+function formatAllocateLineOptionLabel(
+  line: CustomerInvoiceLineRow,
+  index: number,
+  descriptionCounts: Map<string, number>,
+): string {
+  const desc = line.description?.trim() ?? '';
+  const base = desc !== '' ? desc : `Line ${String(index + 1)}`;
+  const id = line.id?.trim() ?? '';
+  if (desc !== '' && (descriptionCounts.get(desc) ?? 0) > 1 && id !== '') {
+    return `${base} (${formatTruncatedId(id)})`;
+  }
+  return base;
 }
 
 /** List table: capitalize first letter of API status (for example `draft` → `Draft`). */
@@ -184,6 +210,9 @@ export function ClientInvoicesPanel() {
   const [allocateLineId, setAllocateLineId] = useState('');
   const [allocateAmount, setAllocateAmount] = useState('');
   const [allocateCurrency, setAllocateCurrency] = useState(defaultCurrency);
+  const [allocateInvoiceLines, setAllocateInvoiceLines] = useState<CustomerInvoiceLineRow[]>([]);
+  const [allocateInvoiceLinesLoading, setAllocateInvoiceLinesLoading] = useState(false);
+  const [allocateInvoiceLinesError, setAllocateInvoiceLinesError] = useState('');
 
   const [refundOriginalId, setRefundOriginalId] = useState('');
   const [refundAmount, setRefundAmount] = useState('');
@@ -382,6 +411,82 @@ export function ClientInvoicesPanel() {
     }
     return invoices.find((inv) => inv.id === selectedInvoiceId) ?? null;
   }, [invoices, selectedInvoiceId]);
+
+  const issuedInvoicesForAllocate = useMemo(
+    () =>
+      invoices.filter(
+        (inv) => inv.status === 'issued' && (inv.id?.trim() ?? '') !== '',
+      ),
+    [invoices],
+  );
+
+  const allocateLinesOrdered = useMemo(
+    () => [...allocateInvoiceLines].sort((a, b) => invoiceLineSortKey(a) - invoiceLineSortKey(b)),
+    [allocateInvoiceLines],
+  );
+
+  const allocateLineDescriptionCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const line of allocateLinesOrdered) {
+      const d = line.description?.trim() ?? '';
+      if (d !== '') {
+        counts.set(d, (counts.get(d) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [allocateLinesOrdered]);
+
+  useEffect(() => {
+    const trimmed = allocateInvoiceId.trim();
+    if (trimmed === '') {
+      setAllocateInvoiceLines([]);
+      setAllocateInvoiceLinesError('');
+      setAllocateInvoiceLinesLoading(false);
+      setAllocateLineId('');
+      return;
+    }
+    const invRow = invoices.find((i) => i.id === trimmed);
+    if (invRow?.status !== 'issued') {
+      setAllocateInvoiceLines([]);
+      setAllocateInvoiceLinesError('');
+      setAllocateInvoiceLinesLoading(false);
+      setAllocateLineId('');
+      return;
+    }
+    const ac = new AbortController();
+    setAllocateInvoiceLinesLoading(true);
+    setAllocateInvoiceLinesError('');
+    void (async () => {
+      try {
+        const detail = await getCustomerInvoice(trimmed, ac.signal);
+        if (ac.signal.aborted) {
+          return;
+        }
+        const lines = Array.isArray(detail.lines) ? detail.lines : [];
+        setAllocateInvoiceLines(lines);
+        setAllocateLineId((prev) => {
+          const ok = lines.some((l) => l.id === prev);
+          return ok ? prev : '';
+        });
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === 'AbortError') {
+          return;
+        }
+        if (!ac.signal.aborted) {
+          setAllocateInvoiceLines([]);
+          setAllocateLineId('');
+          setAllocateInvoiceLinesError(
+            caught instanceof Error ? caught.message : 'Failed to load invoice lines.',
+          );
+        }
+      } finally {
+        if (!ac.signal.aborted) {
+          setAllocateInvoiceLinesLoading(false);
+        }
+      }
+    })();
+    return () => ac.abort();
+  }, [allocateInvoiceId, invoices]);
 
   useEffect(() => {
     setIssuedInvoiceEmailError('');
@@ -644,7 +749,8 @@ export function ClientInvoicesPanel() {
       }
       const result = await createDraftInvoice(body);
       setSelectedInvoiceId(result.invoiceId);
-      setAllocateInvoiceId(result.invoiceId);
+      setAllocateInvoiceId('');
+      setAllocateLineId('');
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
       await loadPayments();
       await loadInvoicesFirstPage();
@@ -666,7 +772,12 @@ export function ClientInvoicesPanel() {
     }
     const invId = allocateInvoiceId.trim();
     if (!invId) {
-      setActionError('Invoice id is required for allocation.');
+      setActionError('Select an issued invoice for allocation.');
+      return;
+    }
+    const allocateTarget = invoices.find((i) => i.id === invId);
+    if (!allocateTarget || allocateTarget.status !== 'issued') {
+      setActionError('Select an issued invoice for allocation.');
       return;
     }
     const amt = allocateAmount.trim();
@@ -1046,7 +1157,8 @@ export function ClientInvoicesPanel() {
               onCreated={async (invoiceId) => {
                 setActionError('');
                 setSelectedInvoiceId(invoiceId);
-                setAllocateInvoiceId(invoiceId);
+                setAllocateInvoiceId('');
+                setAllocateLineId('');
                 setActionMessage(`Draft invoice created: ${invoiceId}`);
                 await loadPayments();
                 await loadInvoicesFirstPage();
@@ -1058,7 +1170,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer invoices'
-        description='Cursor-paginated invoices (newest first). Use Operations to issue or void. Select a row to set allocation defaults; when the selection is issued, use Email recipients and Send email below.'
+        description='Cursor-paginated invoices (newest first). Use Operations to issue or void. Select an issued row to pre-fill allocation; when the selection is issued, use Email recipients and Send email below.'
         isLoading={invoiceListLoading}
         isLoadingMore={invoiceListLoadingMore}
         hasMore={Boolean(invoiceListCursor)}
@@ -1166,8 +1278,9 @@ export function ClientInvoicesPanel() {
                   className={selected ? 'cursor-pointer bg-sky-50' : id ? 'cursor-pointer' : undefined}
                   onClick={() => {
                     setSelectedInvoiceId(id || null);
-                    if (id) {
+                    if (id && inv.status === 'issued') {
                       setAllocateInvoiceId(id);
+                      setAllocateLineId('');
                     }
                   }}
                 >
@@ -1253,7 +1366,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title='Allocate selected payment to invoice'
-        description='Select a payment in the table below first. Paste invoice and optional line UUIDs from your records or billing export.'
+        description='Select a payment in the table below first. Choose an issued invoice and optionally a line; use Load more on the invoice list if the invoice is not shown.'
         actions={
           <Button type='submit' form={ALLOCATE_FORM_ID} disabled={editorBusy}>
             {busyAction === 'allocate' ? 'Allocating…' : 'Create allocation'}
@@ -1262,24 +1375,73 @@ export function ClientInvoicesPanel() {
       >
         <form id={ALLOCATE_FORM_ID} className='grid max-w-2xl gap-3 sm:grid-cols-2' onSubmit={(e) => void handleAllocate(e)}>
           <div className='sm:col-span-2'>
-            <Label htmlFor='billing-allocate-invoice'>Invoice UUID for allocation</Label>
-            <Input
+            <Label htmlFor='billing-allocate-invoice'>Issued invoice</Label>
+            <Select
               id='billing-allocate-invoice'
-              value={allocateInvoiceId}
-              onChange={(e) => setAllocateInvoiceId(e.target.value)}
-              className='mt-1 font-mono text-sm'
+              className='mt-1 max-w-xl'
+              value={
+                issuedInvoicesForAllocate.some((i) => i.id === allocateInvoiceId)
+                  ? allocateInvoiceId
+                  : ''
+              }
+              onChange={(e) => {
+                setAllocateInvoiceId(e.target.value);
+                setAllocateLineId('');
+              }}
               disabled={editorBusy}
-            />
+            >
+              <option value=''>Select invoice…</option>
+              {issuedInvoicesForAllocate.map((invOpt) => {
+                const oid = invOpt.id ?? '';
+                const num = invOpt.invoiceNumber?.trim() ?? '';
+                const label = num !== '' ? num : formatTruncatedId(oid);
+                return (
+                  <option key={oid || 'invoice-option'} value={oid}>
+                    {label}
+                  </option>
+                );
+              })}
+            </Select>
           </div>
           <div className='sm:col-span-2'>
-            <Label htmlFor='billing-allocate-line'>Invoice line UUID (optional)</Label>
-            <Input
+            <Label htmlFor='billing-allocate-line'>Invoice line (optional)</Label>
+            <Select
               id='billing-allocate-line'
-              value={allocateLineId}
+              className='mt-1 max-w-xl'
+              value={
+                allocateLineId === ''
+                  ? ''
+                  : allocateLinesOrdered.some((l) => l.id === allocateLineId)
+                    ? allocateLineId
+                    : ''
+              }
               onChange={(e) => setAllocateLineId(e.target.value)}
-              className='mt-1 font-mono text-sm'
-              disabled={editorBusy}
-            />
+              disabled={
+                editorBusy ||
+                allocateInvoiceId.trim() === '' ||
+                (invoices.find((i) => i.id === allocateInvoiceId.trim())?.status !== 'issued') ||
+                allocateInvoiceLinesLoading
+              }
+            >
+              <option value=''>Whole invoice (no specific line)</option>
+              {allocateLinesOrdered
+                .map((line, idx) => ({ line, idx }))
+                .filter(({ line }) => (line.id?.trim() ?? '') !== '')
+                .map(({ line, idx }) => {
+                  const lid = line.id?.trim() ?? '';
+                  return (
+                    <option key={lid} value={lid}>
+                      {formatAllocateLineOptionLabel(line, idx, allocateLineDescriptionCounts)}
+                    </option>
+                  );
+                })}
+            </Select>
+            {allocateInvoiceLinesLoading ? (
+              <p className='mt-1 text-xs text-slate-600'>Loading invoice lines…</p>
+            ) : null}
+            {allocateInvoiceLinesError ? (
+              <AdminInlineError className='mt-1'>{allocateInvoiceLinesError}</AdminInlineError>
+            ) : null}
           </div>
           <div>
             <Label htmlFor='billing-allocate-amount'>Amount</Label>
