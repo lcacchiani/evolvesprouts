@@ -118,6 +118,33 @@ describe('landing-pages registry', () => {
     expect([...manifestSlugs].sort()).toEqual(registrySlugs);
   });
 
+  it('book-a-free-call JSON defines introCall; other sample landing pages omit it', () => {
+    const dir = path.resolve(__dirname, '../../src/content/landing-pages');
+    const freeCallPath = path.join(dir, 'book-a-free-call.json');
+    expect(existsSync(freeCallPath)).toBe(true);
+    const freeCall = JSON.parse(readFileSync(freeCallPath, 'utf8')) as Record<
+      string,
+      { introCall?: unknown }
+    >;
+    for (const locale of SUPPORTED_LOCALES) {
+      expect(freeCall[locale]?.introCall, locale).toBeDefined();
+    }
+    const otherFiles = [
+      'easter-2026-montessori-play-coaching-workshop.json',
+      'may-2026-the-missing-piece.json',
+    ];
+    for (const fileName of otherFiles) {
+      const p = path.join(dir, fileName);
+      if (!existsSync(p)) {
+        continue;
+      }
+      const raw = JSON.parse(readFileSync(p, 'utf8')) as Record<string, { introCall?: unknown }>;
+      for (const locale of SUPPORTED_LOCALES) {
+        expect(raw[locale]?.introCall, `${fileName} ${locale}`).toBeUndefined();
+      }
+    }
+  });
+
   it('every static root app segment with page.tsx is reserved or a registered landing slug', () => {
     const appDir = path.resolve(__dirname, '../../src/app');
     const landingSlugSet = new Set(getAllLandingPageSlugs());

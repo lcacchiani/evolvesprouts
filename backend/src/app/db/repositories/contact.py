@@ -193,8 +193,13 @@ class ContactRepository(BaseRepository[Contact]):
                 normalized_source_detail
                 and existing_contact.source_detail != normalized_source_detail
             ):
-                existing_contact.source_detail = normalized_source_detail
-                should_update = True
+                if not (
+                    existing_contact.source == source == ContactSource.RESERVATION
+                    and existing_contact.source_detail
+                    and normalized_source_detail
+                ):
+                    existing_contact.source_detail = normalized_source_detail
+                    should_update = True
         elif (
             normalized_source_detail
             and existing_contact.source == source

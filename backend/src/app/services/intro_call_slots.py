@@ -10,7 +10,16 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Contact, Enrollment, InstanceSessionSlot, ServiceInstance
+from app.db.models import (
+    Contact,
+    Enrollment,
+    InstanceSessionSlot,
+    Service,
+    ServiceInstance,
+)
+from app.db.repositories.service_instance import (
+    public_calendar_blocker_instance_predicates,
+)
 from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.services.calendar_blockers import (
     _AM_END_HOUR,
@@ -170,10 +179,12 @@ def _non_intro_session_busy_intervals_utc(
     stmt = (
         select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
         .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
         .where(
             InstanceSessionSlot.starts_at < range_end_utc,
             InstanceSessionSlot.ends_at > range_start_utc,
             ServiceInstance.slug != _INTRO_CALL_INSTANCE_SLUG,
+            *public_calendar_blocker_instance_predicates(),
         )
     )
     out: list[tuple[datetime, datetime]] = []
@@ -349,45 +360,47 @@ def is_intro_call_slot_available(
     return not _candidate_blocked(s0, s1, busy_merged)
 
 
-def recent_intro_call_for_email(
+def recent_intro_call_enrollment_created_at(
     session: Session,
     *,
     email_lower: str,
     within_days: int = 30,
     now: datetime,
-) -> InstanceSessionSlot | None:
-    """Most recent intro-call session slot for contacts matching normalized email.
+) -> datetime | None:
+    """Latest ``Enrollment.created_at`` for intro-call instance + normalized email.
 
-    ``within_days`` is reserved for callers documenting the cooldown window; the
-    query returns the latest slot regardless of age so callers can apply a
-    rolling cooldown from ``starts_at``.
+    ``within_days`` documents the cooldown window for callers; the query returns
+    the most recent enrollment timestamp regardless of age so callers can apply
+    a rolling cooldown from ``created_at``.
     """
-    _ = within_days
+    _ = within_days, now
     em = email_lower.strip().lower()
     stmt = (
-        select(InstanceSessionSlot)
-        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
-        .join(Enrollment, Enrollment.instance_id == ServiceInstance.id)
+        select(Enrollment.created_at)
         .join(Contact, Enrollment.contact_id == Contact.id)
+        .join(ServiceInstance, Enrollment.instance_id == ServiceInstance.id)
         .where(
             ServiceInstance.slug == _INTRO_CALL_INSTANCE_SLUG,
             Contact.email.isnot(None),
             func.lower(Contact.email) == em,
         )
-        .order_by(InstanceSessionSlot.starts_at.desc())
+        .order_by(Enrollment.created_at.desc())
         .limit(1)
     )
     return session.execute(stmt).scalar_one_or_none()
 
 
-def intro_call_cooldown_blocks(
+def intro_call_cooldown_blocks_from_created_at(
     *,
-    prior_slot: InstanceSessionSlot,
+    prior_created_at: datetime,
     now: datetime,
     cooldown_days: int = 30,
 ) -> bool:
-    """True when ``now`` is still within ``cooldown_days`` after ``prior_slot.starts_at``."""
+    """True when ``now`` is still within ``cooldown_days`` after ``prior_created_at``."""
     now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
-    start = prior_slot.starts_at
-    start_u = start if start.tzinfo else start.replace(tzinfo=UTC)
+    start_u = (
+        prior_created_at
+        if prior_created_at.tzinfo
+        else prior_created_at.replace(tzinfo=UTC)
+    )
     return now_u < start_u.astimezone(UTC) + timedelta(days=cooldown_days)

@@ -14,6 +14,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_body
@@ -70,10 +71,10 @@ from app.services.calendar_blockers import (
 )
 from app.services.intro_call_slots import (
     enumerate_intro_call_candidate_slots,
-    intro_call_cooldown_blocks,
+    intro_call_cooldown_blocks_from_created_at,
     intro_call_window,
     is_intro_call_slot_available,
-    recent_intro_call_for_email,
+    recent_intro_call_enrollment_created_at,
 )
 from app.services.customer_billing import record_reservation_customer_payment
 from app.services.public_form_internal_notifications import (
@@ -320,7 +321,7 @@ def _enforce_intro_call_invariants(
     ):
         raise ConflictError("slot_unavailable")
     try:
-        prior = recent_intro_call_for_email(
+        prior_created = recent_intro_call_enrollment_created_at(
             session,
             email_lower=str(payload["attendee_email"]),
             within_days=30,
@@ -331,17 +332,13 @@ def _enforce_intro_call_invariants(
             "intro_call_cooldown_lookup_failed",
             extra={"attendee_email": mask_email(str(payload.get("attendee_email")))},
         )
-        prior = None
-    if prior is not None and intro_call_cooldown_blocks(
-        prior_slot=prior, now=now_u, cooldown_days=30
+        prior_created = None
+    if prior_created is not None and intro_call_cooldown_blocks_from_created_at(
+        prior_created_at=prior_created,
+        now=now_u,
+        cooldown_days=30,
     ):
-        retry_after = prior.starts_at
-        if retry_after.tzinfo is None:
-            retry_after = retry_after.replace(tzinfo=UTC)
-        raise ConflictError(
-            "recent_intro_call_exists",
-            retry_after_iso=retry_after.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        )
+        raise ConflictError("recent_intro_call_exists")
     if resolved_instance.service.service_type != ServiceType.INTRO_CALL:
         raise ValidationError(
             "serviceType mismatch for intro-call booking", field="serviceKey"
@@ -606,18 +603,6 @@ def _handle_public_reservation(
                     contact.phone_national_number = new_national
                 contact_repo.update(contact)
 
-                if reservation_payload.get("booking_system") == "intro-call-booking":
-                    existing_intro = session.execute(
-                        select(Enrollment.id)
-                        .where(
-                            Enrollment.instance_id == resolved_instance.id,
-                            Enrollment.contact_id == contact.id,
-                        )
-                        .limit(1)
-                    ).scalar_one_or_none()
-                    if existing_intro is not None:
-                        raise ConflictError("slot_unavailable")
-
                 _validate_public_bill_to_membership(
                     session,
                     {
@@ -640,10 +625,82 @@ def _handle_public_reservation(
 
                 enrollment_repo = EnrollmentRepository(session)
                 discount_repo = DiscountCodeRepository(session)
-                if not enrollment_repo.contact_has_enrollment_for_instance(
+                has_enrollment = enrollment_repo.contact_has_enrollment_for_instance(
                     instance_id=instance_id_resolved,
                     contact_id=contact.id,
+                )
+                is_intro_booking = (
+                    reservation_payload.get("booking_system") == "intro-call-booking"
+                )
+
+                def _persist_intro_call_slot_for_enrollment() -> None:
+                    assert intro_slot_bounds is not None
+                    s0, s1 = intro_slot_bounds
+                    session.add(
+                        InstanceSessionSlot(
+                            instance_id=instance_id_resolved,
+                            location_id=None,
+                            starts_at=s0,
+                            ends_at=s1,
+                        )
+                    )
+                    try:
+                        session.flush()
+                    except IntegrityError as exc:
+                        logger.info(
+                            "intro_call_slot_unique_violation",
+                            extra={
+                                "attendee_email": mask_email(
+                                    str(reservation_payload.get("attendee_email"))
+                                ),
+                            },
+                        )
+                        raise ConflictError("slot_unavailable") from exc
+                    if not is_intro_call_slot_available(
+                        session,
+                        start_utc=s0,
+                        end_utc=s1,
+                        now=now_utc,
+                        ignore_intro_slot=(s0, s1),
+                    ):
+                        raise ConflictError("slot_unavailable")
+
+                if (
+                    is_intro_booking
+                    and has_enrollment
+                    and intro_slot_bounds is not None
                 ):
+                    existing_enrollment_id = session.execute(
+                        select(Enrollment.id)
+                        .where(
+                            Enrollment.instance_id == instance_id_resolved,
+                            Enrollment.contact_id == contact.id,
+                        )
+                        .limit(1)
+                    ).scalar_one_or_none()
+                    if existing_enrollment_id is None:
+                        raise ValidationError(
+                            "Enrollment not found for intro-call instance",
+                            field="serviceInstanceSlug",
+                        )
+                    created_enrollment_id = existing_enrollment_id
+                    _pay, _, _dup_pi = record_reservation_customer_payment(
+                        session,
+                        enrollment_id=existing_enrollment_id,
+                        contact_id=contact.id,
+                        currency=reservation_payload["currency"],
+                        total_amount=reservation_payload["total_amount"],
+                        payment_method=reservation_payload["payment_method"],
+                        stripe_payment_intent_id=reservation_payload.get(
+                            "stripe_payment_intent_id"
+                        ),
+                        stripe_currency=reservation_payload.get("stripe_currency"),
+                    )
+                    if _dup_pi and _pay is not None:
+                        stripe_pi_idempotent_hit = True
+                        stripe_pi_existing_payment_id = _pay.id
+                    _persist_intro_call_slot_for_enrollment()
+                elif not has_enrollment:
                     instance_service_id = resolved_instance.service.id
                     if dc_row is not None:
                         ensure_discount_code_eligible_for_instance(
@@ -721,29 +778,8 @@ def _handle_public_reservation(
                         if _dup_pi and _pay is not None:
                             stripe_pi_idempotent_hit = True
                             stripe_pi_existing_payment_id = _pay.id
-                        if (
-                            intro_slot_bounds is not None
-                            and reservation_payload.get("booking_system")
-                            == "intro-call-booking"
-                        ):
-                            s0, s1 = intro_slot_bounds
-                            session.add(
-                                InstanceSessionSlot(
-                                    instance_id=instance_id_resolved,
-                                    location_id=None,
-                                    starts_at=s0,
-                                    ends_at=s1,
-                                )
-                            )
-                            session.flush()
-                            if not is_intro_call_slot_available(
-                                session,
-                                start_utc=s0,
-                                end_utc=s1,
-                                now=now_utc,
-                                ignore_intro_slot=(s0, s1),
-                            ):
-                                raise ConflictError("slot_unavailable")
+                        if is_intro_booking and intro_slot_bounds is not None:
+                            _persist_intro_call_slot_for_enrollment()
 
                 lead_metadata: dict[str, object] = {
                     "payment_method": reservation_payload["payment_method"],

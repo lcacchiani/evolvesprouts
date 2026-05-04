@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy.dialects import postgresql
 
 from app.services.intro_call_slots import (
     compute_available_intro_call_slots,
@@ -118,3 +119,33 @@ def test_ignore_intro_slot_excludes_existing(fake_session: object) -> None:
             ignore_intro_slot=(slot_start, slot_end),
         )
     assert ok is True
+
+
+def test_non_intro_busy_query_excludes_cancelled_instances() -> None:
+    from sqlalchemy import select
+
+    from app.db.models import InstanceSessionSlot, Service, ServiceInstance
+    from app.db.repositories.service_instance import public_calendar_blocker_instance_predicates
+    from app.services.intro_call_slots import _INTRO_CALL_INSTANCE_SLUG
+
+    range_start = datetime(2026, 5, 4, 0, 0, tzinfo=UTC)
+    range_end = datetime(2026, 5, 5, 0, 0, tzinfo=UTC)
+    stmt = (
+        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
+        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
+        .where(
+            InstanceSessionSlot.starts_at < range_end,
+            InstanceSessionSlot.ends_at > range_start,
+            ServiceInstance.slug != _INTRO_CALL_INSTANCE_SLUG,
+            *public_calendar_blocker_instance_predicates(),
+        )
+    )
+    sql = str(
+        stmt.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    ).lower()
+    assert "cancelled" in sql
+    assert "published" in sql
