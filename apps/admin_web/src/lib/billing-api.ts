@@ -184,27 +184,9 @@ export async function listRecentEnrollmentsForInvoicing(
 }
 
 export async function createDraftInvoice(
-  body: ApiSchemas['CreateDraftInvoiceRequest'],
-): Promise<{ invoiceId: string; status: string }> {
-  const payload = await adminApiRequest<{
-    invoiceId?: string;
-    status?: string;
-  }>({
-    endpointPath: '/v1/admin/billing/invoices',
-    method: 'POST',
-    body,
-    expectedSuccessStatuses: [201],
-  });
-  const root = unwrapPayload(payload);
-  const invoiceId = typeof root.invoiceId === 'string' ? root.invoiceId : '';
-  if (!invoiceId) {
-    throw new Error('Create invoice response missing invoiceId.');
-  }
-  return { invoiceId, status: typeof root.status === 'string' ? root.status : 'draft' };
-}
-
-export async function createCustomizedDraftInvoice(
-  body: ApiSchemas['CreateCustomizedDraftInvoiceRequest'],
+  body:
+    | ApiSchemas['CreateDraftInvoiceRequest']
+    | ApiSchemas['CreateCustomizedDraftInvoiceRequest'],
 ): Promise<{ invoiceId: string; status: string }> {
   const payload = await adminApiRequest<{
     invoiceId?: string;

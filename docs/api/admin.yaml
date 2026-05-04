@@ -60,7 +60,7 @@ info:
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
     - `GET /v1/admin/billing/enrollments/recent-for-invoicing`
-    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`; POST body is either enrollment-based draft or customized draft with `billTo` + `lines`)
+    - `GET|POST /v1/admin/billing/invoices` (GET optional `status`, `currency`, `cursor`, `limit`; POST is either enrollment-based draft (`draftKind: enrollment_merge`, `enrollmentIds`, `currency` optional when derivable) or customized draft (`draftKind: customized_manual`, `billTo`, `currency`, `lines`); see request schemas)
     - `GET /v1/admin/billing/invoices/{id}`
     - `GET /v1/admin/billing/invoices/{id}/pdf`
     - `POST /v1/admin/billing/invoices/{id}/issue`
@@ -3059,9 +3059,9 @@ paths:
     post:
       summary: Create draft customer invoice
       description: >
-        Send `CreateDraftInvoiceRequest` (enrollmentIds) to merge enrollments into one draft, or
-        `CreateCustomizedDraftInvoiceRequest` (billTo, currency, lines) for manual line items without
-        enrollment links. Do not combine both shapes in one request.
+        Set `draftKind` to `enrollment_merge` with `enrollmentIds` to merge enrollments into one draft, or
+        `customized_manual` with `billTo`, `currency`, and `lines` for manual line items without enrollment links.
+        Do not send fields from the other mode (for example `billTo` with `enrollment_merge`).
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -3072,6 +3072,11 @@ paths:
               oneOf:
                 - $ref: "#/components/schemas/CreateDraftInvoiceRequest"
                 - $ref: "#/components/schemas/CreateCustomizedDraftInvoiceRequest"
+              discriminator:
+                propertyName: draftKind
+                mapping:
+                  enrollment_merge: "#/components/schemas/CreateDraftInvoiceRequest"
+                  customized_manual: "#/components/schemas/CreateCustomizedDraftInvoiceRequest"
       responses:
         "201":
           description: Draft invoice created.
@@ -6079,9 +6084,10 @@ components:
           type: string
           format: uuid
         enrollmentId:
-          type: string
-          format: uuid
-          nullable: true
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
           description: Present when the line is tied to an enrollment; null for customized invoice lines.
         lineOrder:
           type: integer
@@ -6272,14 +6278,19 @@ components:
     CreateDraftInvoiceRequest:
       type: object
       required:
+        - draftKind
         - enrollmentIds
       description: >
-        Invoice currency defaults to the shared enrollment currency (all enrollments must match).
-        Optional `currency` must equal that currency when provided.
+        `draftKind` must be `enrollment_merge`. Invoice currency defaults to the shared enrollment currency
+        (all enrollments must match). Optional `currency` must equal that currency when provided.
         Line totals default to each enrollment's `amount_paid` at draft time.
         Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal
         amounts to override mispriced or stale `amount_paid` before issue.
+        Do not send `billTo` or `lines` with this request.
       properties:
+        draftKind:
+          type: string
+          enum: [enrollment_merge]
         enrollmentIds:
           type: array
           items:
@@ -6346,21 +6357,26 @@ components:
         taxRate:
           type: string
           nullable: true
-          description: Optional decimal tax rate applied to taxable amount when taxAmount is omitted.
+          description: Optional decimal tax rate applied to taxable amount (quantity × unitAmount − discountAmount). Mutually exclusive with `taxAmount`.
         taxAmount:
           type: string
           nullable: true
-          description: Optional decimal tax amount; when set, taxRate is stored for reference but taxAmount takes precedence.
+          description: Optional explicit decimal tax amount. Mutually exclusive with `taxRate`.
     CreateCustomizedDraftInvoiceRequest:
       type: object
       required:
+        - draftKind
         - billTo
         - currency
         - lines
       description: >
-        Creates a draft invoice with manually specified lines. Lines are not linked to enrollments
-        (`enrollmentId` is null on each line). At most 50 lines per request.
+        `draftKind` must be `customized_manual`. Creates a draft invoice with manually specified lines.
+        Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request.
+        Do not send `enrollmentIds` with this request.
       properties:
+        draftKind:
+          type: string
+          enum: [customized_manual]
         billTo:
           $ref: "#/components/schemas/InvoiceBillToInput"
         currency:

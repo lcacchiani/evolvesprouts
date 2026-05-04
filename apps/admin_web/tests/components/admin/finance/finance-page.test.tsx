@@ -116,10 +116,7 @@ describe('FinancePage', () => {
     expect(window.location.search).toBe('?tab=vendors');
 
     await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
-    expect(
-      screen.getByRole('heading', { name: 'Create draft invoice from enrollments' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Create draft customized invoice' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
     expect(window.location.search).toBe('?tab=client-invoices');
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
@@ -130,10 +127,7 @@ describe('FinancePage', () => {
     window.history.replaceState(null, '', '/finance?tab=client-invoices');
     render(<FinancePage />);
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Create draft invoice from enrollments' })
-      ).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Create draft customized invoice' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
     });
   });
 

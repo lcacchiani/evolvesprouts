@@ -4198,7 +4198,7 @@ export interface paths {
         put?: never;
         /**
          * Create draft customer invoice
-         * @description Send `CreateDraftInvoiceRequest` (enrollmentIds) to merge enrollments into one draft, or `CreateCustomizedDraftInvoiceRequest` (billTo, currency, lines) for manual line items without enrollment links. Do not combine both shapes in one request.
+         * @description Set `draftKind` to `enrollment_merge` with `enrollmentIds` to merge enrollments into one draft, or `customized_manual` with `billTo`, `currency`, and `lines` for manual line items without enrollment links. Do not send fields from the other mode (for example `billTo` with `enrollment_merge`).
          */
         post: {
             parameters: {
@@ -5983,10 +5983,7 @@ export interface components {
             id?: string;
             /** Format: uuid */
             invoiceId?: string;
-            /**
-             * Format: uuid
-             * @description Present when the line is tied to an enrollment; null for customized invoice lines.
-             */
+            /** @description Present when the line is tied to an enrollment; null for customized invoice lines. */
             enrollmentId?: string | null;
             lineOrder?: number;
             description?: string;
@@ -6073,8 +6070,13 @@ export interface components {
             /** @description Stable client-side key for matching bill-to identity across enrollments. */
             billToMergeKey: string;
         };
-        /** @description Invoice currency defaults to the shared enrollment currency (all enrollments must match). Optional `currency` must equal that currency when provided. Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. */
+        /** @description `draftKind` must be `enrollment_merge`. Invoice currency defaults to the shared enrollment currency (all enrollments must match). Optional `currency` must equal that currency when provided. Line totals default to each enrollment's `amount_paid` at draft time. Optional `lineTotalsByEnrollmentId` maps enrollment UUID strings to decimal amounts to override mispriced or stale `amount_paid` before issue. Do not send `billTo` or `lines` with this request. */
         CreateDraftInvoiceRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            draftKind: "enrollment_merge";
             enrollmentIds: string[];
             /** @description Optional ISO currency code; when set must match every enrollment. Omit to derive. */
             currency?: string | null;
@@ -6111,13 +6113,18 @@ export interface components {
             unitAmount: string;
             /** @description Optional decimal discount; defaults to 0. Must not exceed quantity × unitAmount. */
             discountAmount?: string | null;
-            /** @description Optional decimal tax rate applied to taxable amount when taxAmount is omitted. */
+            /** @description Optional decimal tax rate applied to taxable amount (quantity × unitAmount − discountAmount). Mutually exclusive with `taxAmount`. */
             taxRate?: string | null;
-            /** @description Optional decimal tax amount; when set, taxRate is stored for reference but taxAmount takes precedence. */
+            /** @description Optional explicit decimal tax amount. Mutually exclusive with `taxRate`. */
             taxAmount?: string | null;
         };
-        /** @description Creates a draft invoice with manually specified lines. Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request. */
+        /** @description `draftKind` must be `customized_manual`. Creates a draft invoice with manually specified lines. Lines are not linked to enrollments (`enrollmentId` is null on each line). At most 50 lines per request. Do not send `enrollmentIds` with this request. */
         CreateCustomizedDraftInvoiceRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            draftKind: "customized_manual";
             billTo: components["schemas"]["InvoiceBillToInput"];
             currency: string;
             lines: components["schemas"]["CustomizedInvoiceLineInput"][];

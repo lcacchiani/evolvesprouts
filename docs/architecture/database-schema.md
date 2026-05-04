@@ -602,7 +602,6 @@ Migration `0055_customer_billing_ar` introduces:
 - `customer_payments`: inbound payments and refunds (`direction`, `original_payment_id`,
   `stripe_payment_intent_id`, `stripe_refund_id`), linked optionally to `enrollments` and `contacts`.
 - `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
-- Migration `0058_inv_line_null_enrollment`: `customer_invoice_lines.enrollment_id` is nullable for customized (non-enrollment) invoice lines.
 - `payment_allocations`: links payments to invoices with **positive-only** `allocated_amount`
   (partial allocation); refunds are modeled as separate `customer_payments` rows, not negative allocations.
   **`payment_unapplied_amount`** sums allocations **matching the parent payment's currency** only
@@ -614,6 +613,8 @@ Migration `0055_customer_billing_ar` introduces:
   on `customer_invoices` (calendar snapshots computed at issuance in
   `INVOICE_DISPLAY_TIMEZONE`; drafts leave both null). PDF rendering prefers these
   columns when set.
+
+**Migration `0058_inv_line_null_enrollment`:** `customer_invoice_lines.enrollment_id` is nullable so customized (non-enrollment) invoice lines can omit the enrollment foreign key.
 
 **CSV export (admin):** `GET /v1/admin/billing/export` defaults to **`export_version=2`**
 (query `exportVersion`, default `2`). v2 emits `payment`, `refund`, `invoice`,

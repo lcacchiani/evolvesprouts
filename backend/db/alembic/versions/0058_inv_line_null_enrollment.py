@@ -39,7 +39,16 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute("DELETE FROM customer_invoice_lines WHERE enrollment_id IS NULL")
+    op.execute(
+        """
+        DELETE FROM customer_invoices
+        WHERE id IN (
+            SELECT DISTINCT invoice_id
+            FROM customer_invoice_lines
+            WHERE enrollment_id IS NULL
+        )
+        """
+    )
     op.alter_column(
         "customer_invoice_lines",
         "enrollment_id",

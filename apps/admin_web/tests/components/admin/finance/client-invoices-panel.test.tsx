@@ -13,7 +13,6 @@ const billingMocks = vi.hoisted(() => ({
   emailInvoice: vi.fn(),
   confirmCustomerPayment: vi.fn(),
   createDraftInvoice: vi.fn(),
-  createCustomizedDraftInvoice: vi.fn(),
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
   exportBillingCsv: vi.fn(),
@@ -840,6 +839,7 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.enrollmentIds).toEqual([id1, id2]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
@@ -875,6 +875,7 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.enrollmentIds).toEqual([id1]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
   });
@@ -939,11 +940,9 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
     const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.lineTotalsByEnrollmentId).toEqual({ [id1]: '99' });
-  });
-
-  it('disables create when bill-to keys differ among selection', async () => {
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
         pickerRow({
@@ -973,13 +972,15 @@ describe('ClientInvoicesPanel', () => {
   });
 
   it('create customized draft posts billTo, currency, and lines', async () => {
-    billingMocks.createCustomizedDraftInvoice.mockResolvedValue({ invoiceId: 'inv-custom', status: 'draft' });
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-custom', status: 'draft' });
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Create draft customized invoice' })).toBeInTheDocument(),
-    );
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
+    });
+
+    await userEvent.selectOptions(screen.getByLabelText(/^Draft type$/i), 'customized');
 
     const customizedForm = document.getElementById('client-billing-customized-draft-form');
     expect(customizedForm).toBeTruthy();
@@ -996,20 +997,18 @@ describe('ClientInvoicesPanel', () => {
       'cccccccc-cccc-cccc-cccc-cccccccccccc',
     );
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Create draft invoice from custom lines' }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'Create draft invoice from custom lines' }));
 
     await waitFor(() => {
-      expect(billingMocks.createCustomizedDraftInvoice).toHaveBeenCalled();
+      expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
     });
-    const arg = billingMocks.createCustomizedDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
+    const arg = billingMocks.createDraftInvoice.mock.calls[0][0] as Record<string, unknown>;
     expect(arg).toMatchObject({
+      draftKind: 'customized_manual',
       billTo: { kind: 'contact', contactId: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
       currency: 'HKD',
       lines: [{ description: 'Consulting hours', quantity: '1', unitAmount: '150' }],
     });
-    expect(billingMocks.createDraftInvoice).not.toHaveBeenCalled();
   });
 
   it('blocks checkbox when invoiceLinked', async () => {
