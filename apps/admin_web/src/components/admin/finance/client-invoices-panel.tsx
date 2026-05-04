@@ -1374,11 +1374,11 @@ export function ClientInvoicesPanel() {
         }
       >
         <form id={ALLOCATE_FORM_ID} className='grid max-w-2xl gap-3 sm:grid-cols-2' onSubmit={(e) => void handleAllocate(e)}>
-          <div className='sm:col-span-2'>
+          <div>
             <Label htmlFor='billing-allocate-invoice'>Issued invoice</Label>
             <Select
               id='billing-allocate-invoice'
-              className='mt-1 max-w-xl'
+              className='mt-1 w-full min-w-0 max-w-xl sm:max-w-none'
               value={
                 issuedInvoicesForAllocate.some((i) => i.id === allocateInvoiceId)
                   ? allocateInvoiceId
@@ -1403,11 +1403,11 @@ export function ClientInvoicesPanel() {
               })}
             </Select>
           </div>
-          <div className='sm:col-span-2'>
+          <div>
             <Label htmlFor='billing-allocate-line'>Invoice line (optional)</Label>
             <Select
               id='billing-allocate-line'
-              className='mt-1 max-w-xl'
+              className='mt-1 w-full min-w-0 max-w-xl sm:max-w-none'
               value={
                 allocateLineId === ''
                   ? ''
