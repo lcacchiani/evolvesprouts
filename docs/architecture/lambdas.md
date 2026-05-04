@@ -118,7 +118,8 @@ their primary responsibilities.
   (returns a CloudFront-signed URL; each response includes a unique cache-bust query on the
   signed resource so draft/void preview PDFs re-uploaded to the same S3 key are not edge-cached
   as an older file),
-  allocations, export;
+  allocations, `POST /v1/admin/billing/invoices/{id}/email` (comma- or semicolon-separated
+  `toEmail` recipient list), export;
   handler code split across `admin_billing*.py` modules under `app.api`, same Lambda),
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,

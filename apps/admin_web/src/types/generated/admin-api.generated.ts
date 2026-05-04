@@ -4450,7 +4450,10 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: email */
+                        /**
+                         * @description Recipient email address(es). Multiple addresses may be given as a comma-separated list (optional semicolons are treated like commas).
+                         * @example billing@example.com, accounts@example.com
+                         */
                         toEmail: string;
                     };
                 };

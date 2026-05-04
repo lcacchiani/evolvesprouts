@@ -425,7 +425,9 @@ def ensure_invoice_pdf_storage(session: Session, invoice: CustomerInvoice) -> st
     return upload_invoice_preview_pdf(session, invoice)
 
 
-def send_invoice_email(session: Session, *, invoice_id: UUID, to_email: str) -> None:
+def send_invoice_email(
+    session: Session, *, invoice_id: UUID, to_addresses: list[str]
+) -> None:
     inv = session.get(CustomerInvoice, invoice_id)
     if inv is None or not inv.issued_pdf_s3_key:
         return
@@ -442,7 +444,7 @@ def send_invoice_email(session: Session, *, invoice_id: UUID, to_email: str) -> 
     body_text = f"Please find invoice {num} attached."
     send_mime_email_with_optional_attachments(
         source=src,
-        to_addresses=[to_email],
+        to_addresses=to_addresses,
         subject=subject,
         body_text=body_text,
         body_html=f"<p>{body_text}</p>",

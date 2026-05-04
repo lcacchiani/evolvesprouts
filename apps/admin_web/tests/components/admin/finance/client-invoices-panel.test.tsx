@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const billingMocks = vi.hoisted(() => ({
   listCustomerInvoices: vi.fn(),
-  getCustomerInvoice: vi.fn(),
   getCustomerInvoicePdfDownload: vi.fn(),
   listCustomerPayments: vi.fn(),
   getCustomerPayment: vi.fn(),
@@ -58,11 +57,6 @@ describe('ClientInvoicesPanel', () => {
     billingMocks.listCustomerPayments.mockResolvedValue([]);
     billingMocks.listCustomerInvoices.mockResolvedValue({ items: [], next_cursor: null });
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({ items: [], truncated: false });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: 'placeholder',
-      status: 'draft',
-      lines: [],
-    });
     billingMocks.getCustomerInvoicePdfDownload.mockResolvedValue({
       downloadUrl: 'https://example.com/signed.pdf',
       expiresAt: '2026-12-31T00:00:00Z',
@@ -74,7 +68,7 @@ describe('ClientInvoicesPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('renders invoice rows and selecting a row loads detail', async () => {
+  it('renders invoice rows and selecting a row seeds allocate invoice id', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [
@@ -91,19 +85,6 @@ describe('ClientInvoicesPanel', () => {
       ],
       next_cursor: null,
     });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: invId,
-      status: 'draft',
-      lines: [
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          enrollmentId: '22222222-2222-2222-2222-222222222222',
-          description: 'Line',
-          lineTotal: '50',
-          currency: 'HKD',
-        },
-      ],
-    });
 
     render(<ClientInvoicesPanel />);
 
@@ -118,11 +99,8 @@ describe('ClientInvoicesPanel', () => {
     await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
-      expect(billingMocks.getCustomerInvoice).toHaveBeenCalledWith(invId, expect.any(AbortSignal));
+      expect((document.getElementById('billing-allocate-invoice') as HTMLInputElement).value).toBe(invId);
     });
-
-    const uuidInput = document.getElementById('billing-invoice-id') as HTMLInputElement;
-    expect(uuidInput.value).toBe(invId);
   });
 
   it('passes status filter to listCustomerInvoices', async () => {
@@ -323,56 +301,7 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
-  it('clicking invoice line id sets allocate line id field', async () => {
-    const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-    const lineId = '11111111-1111-1111-1111-111111111111';
-    billingMocks.listCustomerInvoices.mockResolvedValue({
-      items: [
-        {
-          id: invId,
-          status: 'draft',
-          currency: 'HKD',
-          total: '50',
-          lineCount: 1,
-          createdAt: '2026-01-01T00:00:00+00:00',
-        },
-      ],
-      next_cursor: null,
-    });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: invId,
-      status: 'draft',
-      lines: [
-        {
-          id: lineId,
-          enrollmentId: '22222222-2222-2222-2222-222222222222',
-          description: 'Line',
-          lineTotal: '50',
-          currency: 'HKD',
-        },
-      ],
-    });
-
-    render(<ClientInvoicesPanel />);
-
-    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
-    const invoiceTable = within(invoiceRegion).getByRole('table');
-    await waitFor(() => {
-      expect(within(invoiceTable).getAllByRole('button').length).toBeGreaterThan(0);
-    });
-    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
-
-    await waitFor(() => {
-      expect(screen.getByTitle(lineId)).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByTitle(lineId));
-
-    const lineField = document.getElementById('billing-allocate-line') as HTMLInputElement;
-    expect(lineField.value).toBe(lineId);
-  });
-
-  it('email dialog calls emailInvoice with recipient', async () => {
+  it('issued invoice toolbar send email calls emailInvoice with comma-separated recipients', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [
@@ -388,34 +317,32 @@ describe('ClientInvoicesPanel', () => {
       ],
       next_cursor: null,
     });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: invId,
-      status: 'issued',
-      lines: [],
-    });
     billingMocks.emailInvoice.mockResolvedValue({ sent: true });
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /email invoice pdf/i }));
+    await waitFor(() => screen.getAllByRole('table'));
 
-    await userEvent.click(screen.getByRole('button', { name: /email invoice pdf/i }));
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /email invoice pdf/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/email recipients/i)).toBeInTheDocument();
     });
 
-    const toField = document.getElementById('billing-email-dialog-to') as HTMLInputElement;
-    expect(toField.value).toBe('bill@example.com');
+    const emailField = document.getElementById('billing-issued-invoice-emails') as HTMLInputElement;
+    await userEvent.clear(emailField);
+    await userEvent.type(emailField, 'a@example.com, b@example.com');
 
     await userEvent.click(screen.getByRole('button', { name: /^send email$/i }));
 
     await waitFor(() => {
-      expect(billingMocks.emailInvoice).toHaveBeenCalledWith(invId, 'bill@example.com');
+      expect(billingMocks.emailInvoice).toHaveBeenCalledWith(invId, 'a@example.com, b@example.com');
     });
   });
 
-  it('email dialog shows error when recipient is empty', async () => {
+  it('issued invoice toolbar shows error when recipients empty', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [
@@ -431,28 +358,23 @@ describe('ClientInvoicesPanel', () => {
       ],
       next_cursor: null,
     });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: invId,
-      status: 'issued',
-      lines: [],
-    });
 
     render(<ClientInvoicesPanel />);
 
-    await waitFor(() => screen.getByRole('button', { name: /email invoice pdf/i }));
-    await userEvent.click(screen.getByRole('button', { name: /email invoice pdf/i }));
+    await waitFor(() => screen.getAllByRole('table'));
+
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+    await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /email invoice pdf/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/email recipients/i)).toBeInTheDocument();
     });
-
-    const toField = document.getElementById('billing-email-dialog-to') as HTMLInputElement;
-    await userEvent.clear(toField);
 
     await userEvent.click(screen.getByRole('button', { name: /^send email$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Recipient email is required.')).toBeInTheDocument();
+      expect(screen.getByText(/Enter at least one recipient email/i)).toBeInTheDocument();
     });
     expect(billingMocks.emailInvoice).not.toHaveBeenCalled();
   });
@@ -529,11 +451,6 @@ describe('ClientInvoicesPanel', () => {
         },
       ],
       next_cursor: null,
-    });
-    billingMocks.getCustomerInvoice.mockResolvedValue({
-      id: invId,
-      status: 'draft',
-      lines: [],
     });
 
     billingMocks.listCustomerPayments.mockResolvedValue([
