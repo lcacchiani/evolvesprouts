@@ -53,8 +53,19 @@ def _inner_html_for_locale(loc: str) -> tuple[str, str]:
         f"{FAQ_LINK_LABEL[loc]}</a>"
         f"{QUESTIONS_LINE_HTML_SUFFIX[loc]}</p>"
     )
-    inner = _greeting_html(loc) + thank + lead + slot_row + topics + cancel + support + questions
-    greeting_plain = "Hi {{full_name}},\n\n" if loc == "en" else "您好 {{full_name}}，\n\n"
+    inner = (
+        _greeting_html(loc)
+        + thank
+        + lead
+        + slot_row
+        + topics
+        + cancel
+        + support
+        + questions
+    )
+    greeting_plain = (
+        "Hi {{full_name}},\n\n" if loc == "en" else "您好 {{full_name}}，\n\n"
+    )
     text = (
         greeting_plain
         + "{{intro_call_topics_plain}}"

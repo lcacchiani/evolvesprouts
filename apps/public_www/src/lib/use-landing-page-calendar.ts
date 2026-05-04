@@ -44,20 +44,16 @@ export function useLandingPageCalendar({
   /** NEXT_PUBLIC_* inlined at build; empty deps = one client per mount tree. */
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
 
+  const fetchCalendarEnabled = Boolean(crmApiClient) && slug !== 'book-a-free-call';
+
   const [heroEventContent, setHeroEventContent] = useState(initialHero);
   const [bookingEventContent, setBookingEventContent] = useState(initialBooking);
   const [structuredDataContent, setStructuredDataContent] = useState(initialStructuredData);
-  const [isRefreshing, setIsRefreshing] = useState(() => Boolean(crmApiClient));
+  const [isRefreshing, setIsRefreshing] = useState(() => fetchCalendarEnabled);
   const [hasRefreshError, setHasRefreshError] = useState(false);
 
   useEffect(() => {
-    if (!crmApiClient) {
-      return;
-    }
-
-    if (slug === 'book-a-free-call') {
-      setIsRefreshing(false);
-      setHasRefreshError(false);
+    if (!fetchCalendarEnabled) {
       return;
     }
 
@@ -109,7 +105,7 @@ export function useLandingPageCalendar({
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [crmApiClient, locale, slug]);
+  }, [crmApiClient, fetchCalendarEnabled, locale, slug]);
 
   return {
     heroEventContent,

@@ -204,20 +204,16 @@ export function LandingPageFreeIntroCall({
     clearSubmissionError();
     setRecentCooldownMessage(false);
 
-    const bookingAnalyticsBase = {
-      payment_method: 'free' as const,
-      service_tier: 'intro_call',
-      cohort_date: '',
-      total_amount: 0,
-    };
-
     trackPublicFormOutcome('booking_submit_attempt', {
       formKind: 'reservation',
       formId: INTRO_CALL_FORM_ANALYTICS_ID,
       sectionId: 'intro-call-booking',
       ctaLocation: 'intro_call_form',
       params: {
-        ...bookingAnalyticsBase,
+        payment_method: 'free',
+        service_tier: 'intro_call',
+        cohort_date: '',
+        total_amount: 0,
       },
     });
 
@@ -239,7 +235,10 @@ export function LandingPageFreeIntroCall({
         sectionId: 'intro-call-booking',
         ctaLocation: 'intro_call_form',
         params: {
-          ...bookingAnalyticsBase,
+          payment_method: 'free',
+          service_tier: 'intro_call',
+          cohort_date: '',
+          total_amount: 0,
           error_type: 'validation_error',
         },
       });
@@ -253,7 +252,10 @@ export function LandingPageFreeIntroCall({
         sectionId: 'intro-call-booking',
         ctaLocation: 'intro_call_form',
         params: {
-          ...bookingAnalyticsBase,
+          payment_method: 'free',
+          service_tier: 'intro_call',
+          cohort_date: '',
+          total_amount: 0,
           error_type: 'service_unavailable',
         },
       });
@@ -266,7 +268,10 @@ export function LandingPageFreeIntroCall({
         sectionId: 'intro-call-booking',
         ctaLocation: 'intro_call_form',
         params: {
-          ...bookingAnalyticsBase,
+          payment_method: 'free',
+          service_tier: 'intro_call',
+          cohort_date: '',
+          total_amount: 0,
           error_type: 'validation_error',
         },
       });
@@ -281,7 +286,10 @@ export function LandingPageFreeIntroCall({
         sectionId: 'intro-call-booking',
         ctaLocation: 'intro_call_form',
         params: {
-          ...bookingAnalyticsBase,
+          payment_method: 'free',
+          service_tier: 'intro_call',
+          cohort_date: '',
+          total_amount: 0,
           error_type: 'service_unavailable',
         },
       });
@@ -330,7 +338,10 @@ export function LandingPageFreeIntroCall({
               sectionId: 'intro-call-booking',
               ctaLocation: 'intro_call_form',
               params: {
-                ...bookingAnalyticsBase,
+                payment_method: 'free',
+                service_tier: 'intro_call',
+                cohort_date: '',
+                total_amount: 0,
                 error_type: 'recent_intro_call_exists',
               },
             });
@@ -346,7 +357,10 @@ export function LandingPageFreeIntroCall({
               sectionId: 'intro-call-booking',
               ctaLocation: 'intro_call_form',
               params: {
-                ...bookingAnalyticsBase,
+                payment_method: 'free',
+                service_tier: 'intro_call',
+                cohort_date: '',
+                total_amount: 0,
                 error_type: 'slot_unavailable',
               },
             });
@@ -359,7 +373,10 @@ export function LandingPageFreeIntroCall({
           sectionId: 'intro-call-booking',
           ctaLocation: 'intro_call_form',
           params: {
-            ...bookingAnalyticsBase,
+            payment_method: 'free',
+            service_tier: 'intro_call',
+            cohort_date: '',
+            total_amount: 0,
             error_type: 'api_error',
           },
         });
@@ -377,7 +394,10 @@ export function LandingPageFreeIntroCall({
       sectionId: 'intro-call-booking',
       ctaLocation: 'intro_call_form',
       params: {
-        ...bookingAnalyticsBase,
+        payment_method: 'free',
+        service_tier: 'intro_call',
+        cohort_date: '',
+        total_amount: 0,
       },
     });
     trackMetaPixelEvent('Schedule', {

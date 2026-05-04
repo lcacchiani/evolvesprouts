@@ -90,7 +90,10 @@ def handle_public_calendar_intro_call_slots(
 
     body = {
         "slots": [
-            {"start_iso": s0.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"), "end_iso": s1.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
+            {
+                "start_iso": s0.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "end_iso": s1.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
             for s0, s1 in slots
         ]
     }

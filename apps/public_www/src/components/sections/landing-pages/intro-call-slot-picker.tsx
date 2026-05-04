@@ -66,7 +66,8 @@ export function IntroCallSlotPicker({
 }: IntroCallSlotPickerProps) {
   const [slots, setSlots] = useState<IntroCallSlot[]>([]);
   const [status, setStatus] = useState<FetchStatus>('idle');
-  const [selectedDayYmd, setSelectedDayYmd] = useState<string | null>(null);
+  /** User-picked day; when null or stale, ``resolvedDayYmd`` falls back to the first available day. */
+  const [cursorDayYmd, setCursorDayYmd] = useState<string | null>(null);
   const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
   const [rovingDayIndex, setRovingDayIndex] = useState(0);
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -94,7 +95,10 @@ export function IntroCallSlotPicker({
       controller.abort();
     }, CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS);
 
-    setStatusBoth('loading');
+    const loadingFrame = window.requestAnimationFrame(() => {
+      setStatusBoth('loading');
+    });
+
     fetchIntroCallSlots(controller.signal)
       .then((res) => {
         if (res.fetchFailed) {
@@ -115,6 +119,7 @@ export function IntroCallSlotPicker({
       });
 
     return () => {
+      window.cancelAnimationFrame(loadingFrame);
       window.clearTimeout(timeoutId);
       controller.abort();
     };
@@ -139,18 +144,22 @@ export function IntroCallSlotPicker({
     [slotsByDay],
   );
 
-  useEffect(() => {
+  const resolvedDayYmd = useMemo(() => {
     if (dayKeys.length === 0) {
-      setSelectedDayYmd(null);
-      return;
+      return null;
     }
-    if (!selectedDayYmd || !dayKeys.includes(selectedDayYmd)) {
-      setSelectedDayYmd(dayKeys[0] ?? null);
-      setRovingDayIndex(0);
+    if (cursorDayYmd && dayKeys.includes(cursorDayYmd)) {
+      return cursorDayYmd;
     }
-  }, [dayKeys, selectedDayYmd]);
+    return dayKeys[0] ?? null;
+  }, [cursorDayYmd, dayKeys]);
 
-  const daySlots = selectedDayYmd ? slotsByDay.get(selectedDayYmd) ?? [] : [];
+  const safeRovingDayIndex = useMemo(
+    () => Math.min(rovingDayIndex, Math.max(0, dayKeys.length - 1)),
+    [dayKeys.length, rovingDayIndex],
+  );
+
+  const daySlots = resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : [];
   const whatsappUrl = resolvePublicSiteConfig().whatsappUrl;
 
   const summaryText = useMemo(() => {
@@ -180,11 +189,13 @@ export function IntroCallSlotPicker({
       event.preventDefault();
       const next = Math.min(index + 1, dayKeys.length - 1);
       setRovingDayIndex(next);
+      setCursorDayYmd(dayKeys[next] ?? null);
       dayRefs.current[next]?.focus();
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       event.preventDefault();
       const next = Math.max(index - 1, 0);
       setRovingDayIndex(next);
+      setCursorDayYmd(dayKeys[next] ?? null);
       dayRefs.current[next]?.focus();
     }
   };
@@ -239,7 +250,7 @@ export function IntroCallSlotPicker({
           const d = new Date(sample.startIso);
           const wd = DAY_STRIP_FORMATTER.format(d);
           const dm = DAY_NUM_FORMATTER.format(d);
-          const isSelected = ymd === selectedDayYmd;
+          const isSelected = ymd === resolvedDayYmd;
           return (
             <button
               key={ymd}
@@ -247,10 +258,10 @@ export function IntroCallSlotPicker({
               ref={(el) => {
                 dayRefs.current[idx] = el;
               }}
-              tabIndex={rovingDayIndex === idx ? 0 : -1}
+              tabIndex={safeRovingDayIndex === idx ? 0 : -1}
               aria-pressed={isSelected}
               onClick={() => {
-                setSelectedDayYmd(ymd);
+                setCursorDayYmd(ymd);
                 setRovingDayIndex(idx);
                 setSelectedSlotIso(null);
               }}
@@ -266,7 +277,7 @@ export function IntroCallSlotPicker({
         })}
       </div>
 
-      {selectedDayYmd && daySlots.length > 0 ? (
+      {resolvedDayYmd && daySlots.length > 0 ? (
         <div
           className='grid grid-cols-2 gap-2 sm:grid-cols-3'
           role='group'
