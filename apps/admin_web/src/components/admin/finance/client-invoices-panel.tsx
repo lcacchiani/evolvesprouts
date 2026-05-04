@@ -1098,8 +1098,8 @@ export function ClientInvoicesPanel() {
                   <td className='px-3 py-2'>
                     {formatCustomerInvoiceStatusLabel(inv.status)}
                   </td>
-                  <td className='px-3 py-2 text-xs'>{inv.invoiceNumber ?? '—'}</td>
-                  <td className='px-3 py-2 text-xs text-slate-700'>
+                  <td className='px-3 py-2'>{inv.invoiceNumber ?? '—'}</td>
+                  <td className='px-3 py-2 text-slate-700'>
                     {inv.billToDisplayName ?? inv.billToEmail ?? '—'}
                   </td>
                   <td className='px-3 py-2'>{totalDisplay}</td>
