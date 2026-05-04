@@ -257,15 +257,20 @@ def _create_customized_invoice_draft(
 
     with _session_with_audit(user_sub, request_id) as session:
         if bill_kind == BillingBillToKind.CONTACT:
-            assert bill_cid is not None
+            if bill_cid is None:
+                raise ValidationError("billTo.contactId is required", field="billTo")
             if session.get(Contact, bill_cid) is None:
                 raise ValidationError("Contact not found", field="billTo")
         elif bill_kind == BillingBillToKind.FAMILY:
-            assert bill_fid is not None
+            if bill_fid is None:
+                raise ValidationError("billTo.familyId is required", field="billTo")
             if session.get(Family, bill_fid) is None:
                 raise ValidationError("Family not found", field="billTo")
         else:
-            assert bill_oid is not None
+            if bill_oid is None:
+                raise ValidationError(
+                    "billTo.organizationId is required", field="billTo"
+                )
             if session.get(Organization, bill_oid) is None:
                 raise ValidationError("Organization not found", field="billTo")
 
