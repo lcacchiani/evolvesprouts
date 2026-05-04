@@ -61,3 +61,62 @@ WHERE s.id = pick.id
     WHERE service_key IS NULL
       AND service_type = 'consultation'
   ) = 1;
+
+-- Free intro-call: service template (idempotent; requires service_type intro_call).
+INSERT INTO services (
+  id, service_type, title, service_key, booking_system, description,
+  cover_image_s3_key, delivery_mode, status, created_by,
+  service_tier, location_id
+)
+SELECT
+  gen_random_uuid(),
+  'intro_call',
+  'Free 15-Minute Intro Call',
+  'intro-call',
+  'intro-call-booking',
+  NULL,
+  NULL,
+  'online',
+  'published',
+  'seed',
+  NULL,
+  NULL
+WHERE NOT EXISTS (
+  SELECT 1 FROM services WHERE lower(service_key) = 'intro-call'
+);
+
+-- Consultation_details row for intro-call (free pricing, 15 minutes).
+INSERT INTO consultation_details (
+  service_id, consultation_format, duration_minutes, pricing_model, default_hourly_rate
+)
+SELECT
+  s.id,
+  'one_on_one',
+  15,
+  'free',
+  NULL
+FROM services s
+WHERE lower(s.service_key) = 'intro-call'
+  AND NOT EXISTS (
+    SELECT 1 FROM consultation_details cd WHERE cd.service_id = s.id
+  );
+
+-- Service instance for intro-call.
+INSERT INTO service_instances (
+  id, service_id, slug, status, delivery_mode, created_by,
+  eventbrite_sync_status, eventbrite_retry_count
+)
+SELECT
+  gen_random_uuid(),
+  s.id,
+  'intro-call-free-15min',
+  'open',
+  'online',
+  'seed',
+  'pending',
+  0
+FROM services s
+WHERE lower(s.service_key) = 'intro-call'
+  AND NOT EXISTS (
+    SELECT 1 FROM service_instances WHERE lower(slug) = 'intro-call-free-15min'
+  );
