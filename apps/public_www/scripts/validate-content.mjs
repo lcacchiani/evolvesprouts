@@ -17,6 +17,7 @@ const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 const CONTACT_EMAIL_PLACEHOLDER = '{{CONTACT_EMAIL}}';
 const CONTACT_EMAIL_MAILTO_PLACEHOLDER = `mailto:${CONTACT_EMAIL_PLACEHOLDER}`;
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
+const BOOK_FREE_CALL_URL_PLACEHOLDER = '{{BOOK_FREE_CALL_URL}}';
 const INSTAGRAM_URL_PLACEHOLDER = '{{INSTAGRAM_URL}}';
 const EMAIL_VALUE_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
@@ -199,6 +200,15 @@ function validateHrefValue(value, keyPath, errors) {
     }
     errors.push(
       `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href and freeIntroSession.ctaHref`,
+    );
+    return;
+  }
+  if (normalizedValue === BOOK_FREE_CALL_URL_PLACEHOLDER) {
+    if (keyPath.endsWith('.freeIntroSession.ctaHref')) {
+      return;
+    }
+    errors.push(
+      `${keyPath}: placeholder "${BOOK_FREE_CALL_URL_PLACEHOLDER}" is only allowed for freeIntroSession.ctaHref`,
     );
     return;
   }
