@@ -16,13 +16,13 @@ dependencies = [
   "sqlalchemy==2.0.46",
   "phonenumbers==9.0.29",
   "pycountry==26.2.16",
-  "reportlab==4.4.6",
+  "reportlab==4.5.0",
   "pypdf==6.10.2",
 ]
 
 [project.optional-dependencies]
 test = [
-  "pymupdf==1.26.0",
+  "pymupdf==1.27.2.3",
   "pytest>=9.0.3",
   "pytest-cov>=5.0.0",
   "pytest-mock>=3.14.0",
