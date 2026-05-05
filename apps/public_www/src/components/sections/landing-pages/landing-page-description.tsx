@@ -8,15 +8,11 @@ import type { LandingPageLocaleContent } from '@/content';
 interface LandingPageDescriptionProps {
   content: LandingPageLocaleContent['description'];
   ariaLabel?: string;
-  inlineCalendarFallbackAnchorHref?: string;
-  inlineCalendarFallbackAnchorLabel?: string;
 }
 
 export function LandingPageDescription({
   content,
   ariaLabel,
-  inlineCalendarFallbackAnchorHref,
-  inlineCalendarFallbackAnchorLabel,
 }: LandingPageDescriptionProps) {
   return (
     <SectionShell
@@ -62,8 +58,6 @@ export function LandingPageDescription({
         <LandingPageInlineCalendarCta
           analyticsSectionId='landing-page-description'
           buttonClassName='mt-8'
-          fallbackAnchorHref={inlineCalendarFallbackAnchorHref}
-          fallbackAnchorLabel={inlineCalendarFallbackAnchorLabel}
         />
       </SectionContainer>
     </SectionShell>

@@ -29,14 +29,6 @@ export function BookFreeCallLandingPage({
     throw new Error('book-a-free-call landing page requires introCall content');
   }
 
-  const heroAnchorHref = pageContent.hero.ctaAnchorHref?.trim();
-  const heroAnchorLabel = pageContent.hero.ctaAnchorLabel?.trim();
-  if (!heroAnchorHref || !heroAnchorLabel) {
-    throw new Error(
-      'book-a-free-call landing page requires hero.ctaAnchorHref and hero.ctaAnchorLabel',
-    );
-  }
-
   return (
     <LandingPage
       locale={locale}
@@ -48,8 +40,6 @@ export function BookFreeCallLandingPage({
       bookingEventContent={null}
       structuredDataContent={null}
       layoutVariant='book-free-call'
-      inlineCalendarFallbackAnchorHref={heroAnchorHref}
-      inlineCalendarFallbackAnchorLabel={heroAnchorLabel}
       introCallSectionBeforeCta={(
         <LandingPageFreeIntroCall
           locale={locale}

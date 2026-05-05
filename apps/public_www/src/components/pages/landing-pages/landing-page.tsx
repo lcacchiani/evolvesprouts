@@ -39,12 +39,6 @@ export interface LandingPageProps {
   introCallSectionBeforeCta?: ReactNode;
   /** Reorders sections for the intro-call landing page (no outline / mid-page CTA strip). */
   layoutVariant?: LandingPageLayoutVariant;
-  /**
-   * When set with label (book-a-free-call), inline section CTAs match the hero anchor:
-   * same `href`/`label` as `hero.ctaAnchorHref` / `ctaAnchorLabel` (`SectionCtaAnchor`), not the calendar button.
-   */
-  inlineCalendarFallbackAnchorHref?: string;
-  inlineCalendarFallbackAnchorLabel?: string;
 }
 
 export function LandingPage({
@@ -58,8 +52,6 @@ export function LandingPage({
   structuredDataContent,
   introCallSectionBeforeCta,
   layoutVariant = 'default',
-  inlineCalendarFallbackAnchorHref,
-  inlineCalendarFallbackAnchorLabel,
 }: LandingPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
   const heroCtaContent = pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR;
@@ -95,8 +87,6 @@ export function LandingPage({
             <LandingPageDetails
               content={pageContent.details}
               ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
-              inlineCalendarFallbackAnchorHref={inlineCalendarFallbackAnchorHref}
-              inlineCalendarFallbackAnchorLabel={inlineCalendarFallbackAnchorLabel}
             />
             {introCallSectionBeforeCta}
             <LandingPageDescription
@@ -104,8 +94,6 @@ export function LandingPage({
               ariaLabel={
                 siteContent.landingPages.common.a11y.descriptionSectionLabel
               }
-              inlineCalendarFallbackAnchorHref={inlineCalendarFallbackAnchorHref}
-              inlineCalendarFallbackAnchorLabel={inlineCalendarFallbackAnchorLabel}
             />
             <Testimonials
               content={siteContent.testimonials}

@@ -9,15 +9,11 @@ import type { LandingPageLocaleContent } from '@/content';
 interface LandingPageDetailsProps {
   content: LandingPageLocaleContent['details'];
   ariaLabel?: string;
-  inlineCalendarFallbackAnchorHref?: string;
-  inlineCalendarFallbackAnchorLabel?: string;
 }
 
 export function LandingPageDetails({
   content,
   ariaLabel,
-  inlineCalendarFallbackAnchorHref,
-  inlineCalendarFallbackAnchorLabel,
 }: LandingPageDetailsProps) {
   return (
     <SectionShell
@@ -73,8 +69,6 @@ export function LandingPageDetails({
           <LandingPageInlineCalendarCta
             analyticsSectionId='landing-page-details'
             buttonClassName='w-full max-w-[488px]'
-            fallbackAnchorHref={inlineCalendarFallbackAnchorHref}
-            fallbackAnchorLabel={inlineCalendarFallbackAnchorLabel}
           />
         </div>
       </SectionContainer>

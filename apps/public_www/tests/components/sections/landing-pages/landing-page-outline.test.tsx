@@ -51,6 +51,7 @@ describe('LandingPageOutline section', () => {
           bookingEventContent: null,
           structuredDataContent: null,
           sharedCtaProps,
+          heroAnchorCta: null,
           isRefreshing: false,
           hasRefreshError: false,
         }}
@@ -94,6 +95,7 @@ describe('LandingPageOutline section', () => {
           bookingEventContent: null,
           structuredDataContent: null,
           sharedCtaProps,
+          heroAnchorCta: null,
           isRefreshing: false,
           hasRefreshError: false,
         }}

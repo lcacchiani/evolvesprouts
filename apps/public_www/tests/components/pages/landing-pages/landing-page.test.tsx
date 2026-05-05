@@ -49,6 +49,7 @@ vi.mock('@/lib/landing-page-calendar-context', async (importOriginal) => {
       bookingEventContent: initialBooking,
       structuredDataContent: initialStructuredData,
       sharedCtaProps,
+      heroAnchorCta: null,
       isRefreshing: false,
       hasRefreshError: false,
     };
