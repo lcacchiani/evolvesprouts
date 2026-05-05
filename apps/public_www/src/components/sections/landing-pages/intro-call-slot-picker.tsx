@@ -10,7 +10,6 @@ import {
 } from 'react';
 
 import { BOOKING_SELECTOR_CARD_CLASSNAME } from '@/components/sections/shared/booking-selector-layout';
-import { CarouselHorizontalArrowControls } from '@/components/sections/shared/carousel-horizontal-arrow-controls';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
@@ -25,10 +24,10 @@ import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchIntroCallSlots,
 } from '@/lib/intro-call-slots-api';
-import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import {
   formatPartDateTimeLabel,
   PUBLIC_SITE_IANA_TIMEZONE,
+  resolveDateTimeLocale,
 } from '@/lib/site-datetime';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
@@ -46,16 +45,7 @@ export interface IntroCallSlotPickerProps {
 
 type FetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-const DAY_STRIP_FORMATTER = new Intl.DateTimeFormat('en-US', {
-  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-  weekday: 'short',
-});
-
-const DAY_NUM_FORMATTER = new Intl.DateTimeFormat('en-GB', {
-  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-  day: '2-digit',
-  month: 'short',
-});
+const MAX_VISIBLE_BOOKING_DAYS = 5;
 
 const WALL_HOUR_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   timeZone: PUBLIC_SITE_IANA_TIMEZONE,
@@ -83,6 +73,20 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
 }
 
+function formatIntroCallDayButtonLabel(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  const weekday = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    weekday: 'short',
+  }).format(d);
+  const dayMonth = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    day: '2-digit',
+    month: 'short',
+  }).format(d);
+  return `${weekday} ${dayMonth}`;
+}
+
 export function IntroCallSlotPicker({
   locale,
   commonAccessibility,
@@ -100,6 +104,7 @@ export function IntroCallSlotPicker({
   const [rovingDayIndex, setRovingDayIndex] = useState(0);
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dayCarouselRef = useRef<HTMLDivElement | null>(null);
 
   const slotTimeFormatter = useMemo(
     () =>
@@ -164,7 +169,7 @@ export function IntroCallSlotPicker({
     };
   }, [refreshToken, setStatusBoth]);
 
-  const slotsByDay = useMemo(() => {
+  const slotsByDayFull = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
     for (const s of slots) {
       const ymd = ymdForSlot(s);
@@ -178,23 +183,21 @@ export function IntroCallSlotPicker({
     return map;
   }, [slots]);
 
-  const dayKeys = useMemo(
-    () => Array.from(slotsByDay.keys()).sort(),
-    [slotsByDay],
-  );
+  const dayKeys = useMemo(() => {
+    const sorted = Array.from(slotsByDayFull.keys()).sort();
+    return sorted.slice(0, MAX_VISIBLE_BOOKING_DAYS);
+  }, [slotsByDayFull]);
 
-  const {
-    carouselRef: dayCarouselRef,
-    hasNavigation: hasDayNavigation,
-    canScrollPrevious: canScrollDayLeft,
-    canScrollNext: canScrollDayRight,
-    scrollByDirection: scrollDayCarouselByDirection,
-    scrollItemIntoView,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: dayKeys.length,
-    minItemsForNavigation: 3,
-    loop: false,
-  });
+  const slotsByDay = useMemo(() => {
+    const map = new Map<string, IntroCallSlot[]>();
+    for (const ymd of dayKeys) {
+      const arr = slotsByDayFull.get(ymd);
+      if (arr) {
+        map.set(ymd, arr);
+      }
+    }
+    return map;
+  }, [dayKeys, slotsByDayFull]);
 
   const resolvedDayYmd = useMemo(() => {
     if (dayKeys.length === 0) {
@@ -210,11 +213,6 @@ export function IntroCallSlotPicker({
     () => Math.min(rovingDayIndex, Math.max(0, dayKeys.length - 1)),
     [dayKeys.length, rovingDayIndex],
   );
-
-  useEffect(() => {
-    const el = dayRefs.current[safeRovingDayIndex];
-    scrollItemIntoView(el);
-  }, [resolvedDayYmd, safeRovingDayIndex, scrollItemIntoView]);
 
   const daySlots = useMemo(
     () => (resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : []),
@@ -272,17 +270,19 @@ export function IntroCallSlotPicker({
 
   if (status === 'error') {
     const message =
-      pickerContent.loadErrorMessage ?? pickerContent.emptySlotsMessage;
+      pickerContent.loadErrorMessage ?? pickerContent.emptySlotsMessagePrefix;
     return (
       <div className='space-y-3' role='alert'>
-        <p className='es-type-body'>{message}</p>
-        <a
-          href={whatsappUrl}
-          className='es-focus-ring es-inline-cta-link text-sm font-semibold'
-          rel='noopener noreferrer'
-        >
-          {pickerContent.whatsappHelpCtaLabel}
-        </a>
+        <p className='es-type-body'>
+          {message}{' '}
+          <a
+            href={whatsappUrl}
+            className='es-focus-ring es-inline-cta-link font-semibold'
+            rel='noopener noreferrer'
+          >
+            {pickerContent.whatsappAfterBookLabel}
+          </a>
+        </p>
       </div>
     );
   }
@@ -290,14 +290,16 @@ export function IntroCallSlotPicker({
   if (slots.length === 0) {
     return (
       <div className='space-y-3'>
-        <p className='es-type-body'>{pickerContent.emptySlotsMessage}</p>
-        <a
-          href={whatsappUrl}
-          className='es-focus-ring es-inline-cta-link text-sm font-semibold'
-          rel='noopener noreferrer'
-        >
-          {pickerContent.whatsappHelpCtaLabel}
-        </a>
+        <p className='es-type-body'>
+          {pickerContent.emptySlotsMessagePrefix}{' '}
+          <a
+            href={whatsappUrl}
+            className='es-focus-ring es-inline-cta-link font-semibold'
+            rel='noopener noreferrer'
+          >
+            {pickerContent.whatsappAfterBookLabel}
+          </a>
+        </p>
       </div>
     );
   }
@@ -352,21 +354,11 @@ export function IntroCallSlotPicker({
 
   return (
     <div className='space-y-4'>
-      <CarouselHorizontalArrowControls
-        showPrevious={Boolean(hasDayNavigation && canScrollDayLeft)}
-        showNext={Boolean(hasDayNavigation && canScrollDayRight)}
-        onPrevious={() => {
-          scrollDayCarouselByDirection('prev');
-        }}
-        onNext={() => {
-          scrollDayCarouselByDirection('next');
-        }}
-        previousAriaLabel={pickerContent.scrollDatesLeftAriaLabel}
-        nextAriaLabel={pickerContent.scrollDatesRightAriaLabel}
-      >
+      <div className='relative w-full min-w-0 overflow-visible'>
         <CarouselTrack
           carouselRef={dayCarouselRef}
           testId='intro-call-day-carousel'
+          presentation='group'
           ariaLabel={pickerContent.bookingSectionTitle}
           ariaRoleDescription={commonAccessibility.carouselRoleDescription}
           className='flex min-w-0 gap-2 pb-2'
@@ -380,9 +372,7 @@ export function IntroCallSlotPicker({
             if (!sample) {
               return null;
             }
-            const d = new Date(sample.startIso);
-            const wd = DAY_STRIP_FORMATTER.format(d);
-            const dm = DAY_NUM_FORMATTER.format(d);
+            const dayLabel = formatIntroCallDayButtonLabel(sample.startIso, locale);
             const isSelected = ymd === resolvedDayYmd;
             return (
               <ButtonPrimitive
@@ -401,15 +391,14 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] shrink-0 snap-center text-left text-sm sm:w-[168px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] shrink-0 snap-center text-left text-sm font-semibold sm:w-[168px]`}
               >
-                <div className='font-semibold'>{wd}</div>
-                <div className='text-sm es-text-neutral-strong'>{dm}</div>
+                {dayLabel}
               </ButtonPrimitive>
             );
           })}
         </CarouselTrack>
-      </CarouselHorizontalArrowControls>
+      </div>
 
       {resolvedDayYmd && daySlots.length > 0 ? (
         <div className='space-y-4'>

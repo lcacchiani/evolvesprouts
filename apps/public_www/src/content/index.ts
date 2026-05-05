@@ -152,7 +152,8 @@ export interface LandingPageLocaleContent {
   };
   introCall?: {
     bookingSectionTitle: string;
-    emptySlotsMessage: string;
+    /** Shown before the WhatsApp link when no slots load or as helper copy under the picker. */
+    emptySlotsMessagePrefix: string;
     whatsappHelpCtaLabel: string;
     thankYouTitle: string;
     thankYouBody: string;
@@ -166,8 +167,6 @@ export interface LandingPageLocaleContent {
     phoneFieldLabel: string;
     loadErrorMessage?: string;
     loadingLabel: string;
-    scrollDatesLeftAriaLabel: string;
-    scrollDatesRightAriaLabel: string;
     morningSectionLabel: string;
     afternoonSectionLabel: string;
     slotGroupAriaLabelTemplate: string;

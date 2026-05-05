@@ -500,7 +500,7 @@ export function LandingPageFreeIntroCall({
                 refreshToken={slotRefreshToken}
               />
               <p className='mt-4 es-type-body-sm text-neutral-600'>
-                {introContent.emptySlotsMessage}{' '}
+                {introContent.emptySlotsMessagePrefix}{' '}
                 <a
                   href={whatsappHref}
                   className='es-focus-ring font-semibold underline'
@@ -512,7 +512,7 @@ export function LandingPageFreeIntroCall({
                     });
                   }}
                 >
-                  {introContent.whatsappHelpCtaLabel}
+                  {introContent.whatsappAfterBookLabel}
                 </a>
               </p>
             </div>

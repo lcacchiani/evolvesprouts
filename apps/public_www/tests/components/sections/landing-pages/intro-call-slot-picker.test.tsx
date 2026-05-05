@@ -100,9 +100,9 @@ describe('IntroCallSlotPicker', () => {
     const dayPressedTrue = screen.getAllByRole('button', { pressed: true });
     expect(dayPressedTrue.length).toBe(1);
     const firstDay = dayPressedTrue[0] as HTMLButtonElement;
-    expect(firstDay).toHaveTextContent('Tue');
+    expect(firstDay).toHaveTextContent(/Tue\s+05\s+May/i);
 
-    const wedButton = screen.getByRole('button', { name: /Wed/i });
+    const wedButton = screen.getByRole('button', { name: /Wed\s+06\s+May/i });
     expect(wedButton).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(wedButton);
 
@@ -143,11 +143,11 @@ describe('IntroCallSlotPicker', () => {
       />,
     );
 
-    const tueButton = await screen.findByRole('button', { name: /Tue/i });
+    const tueButton = await screen.findByRole('button', { name: /Tue\s+05\s+May/i });
     expect(tueButton).toHaveAttribute('tabIndex', '0');
     expect(tueButton).toHaveAttribute('aria-pressed', 'true');
 
-    const wedButton = screen.getByRole('button', { name: /Wed/i });
+    const wedButton = screen.getByRole('button', { name: /Wed\s+06\s+May/i });
     expect(wedButton).toHaveAttribute('tabIndex', '-1');
 
     fireEvent.keyDown(tueButton, { key: 'ArrowRight' });
@@ -160,37 +160,7 @@ describe('IntroCallSlotPicker', () => {
     expect(wedButton).toHaveFocus();
   });
 
-  it('does not render date carousel arrows when fewer than three days have slots', async () => {
-    vi.mocked(fetchIntroCallSlots).mockResolvedValue({
-      slots: [
-        { startIso: '2026-05-05T01:00:00.000Z', endIso: '2026-05-05T01:15:00.000Z' },
-        { startIso: '2026-05-05T02:30:00.000Z', endIso: '2026-05-05T02:45:00.000Z' },
-      ],
-      fetchFailed: false,
-    });
-
-    render(
-      <IntroCallSlotPicker
-        locale='en'
-        commonAccessibility={enContent.common.accessibility}
-        pickerContent={bookAFreeCall.en.introCall}
-        onSelect={vi.fn()}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
-    });
-
-    expect(
-      screen.queryByRole('button', { name: bookAFreeCall.en.introCall.scrollDatesLeftAriaLabel }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: bookAFreeCall.en.introCall.scrollDatesRightAriaLabel }),
-    ).toBeNull();
-  });
-
-  it('renders date carousel arrows with localized labels when enough days and overflow', async () => {
+  it('does not render date carousel arrow controls', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
         { startIso: '2026-05-04T01:00:00.000Z', endIso: '2026-05-04T01:15:00.000Z' },
@@ -210,28 +180,48 @@ describe('IntroCallSlotPicker', () => {
       />,
     );
 
-    const track = await screen.findByTestId('intro-call-day-carousel');
-    let scrollLeft = 100;
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
+    });
+
+    const track = screen.getByTestId('intro-call-day-carousel');
     Object.defineProperty(track, 'clientWidth', { configurable: true, get: () => 200 });
     Object.defineProperty(track, 'scrollWidth', { configurable: true, get: () => 800 });
-    Object.defineProperty(track, 'scrollLeft', {
-      configurable: true,
-      get: () => scrollLeft,
-      set: (v: number) => {
-        scrollLeft = v;
-      },
-    });
-
     fireEvent(window, new Event('resize'));
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: bookAFreeCall.en.introCall.scrollDatesLeftAriaLabel }),
-      ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /scroll dates/i })).toBeNull();
+  });
+
+  it('shows at most five future days in the date strip', async () => {
+    vi.mocked(fetchIntroCallSlots).mockResolvedValue({
+      slots: [
+        { startIso: '2026-05-04T01:00:00.000Z', endIso: '2026-05-04T01:15:00.000Z' },
+        { startIso: '2026-05-05T01:00:00.000Z', endIso: '2026-05-05T01:15:00.000Z' },
+        { startIso: '2026-05-06T01:00:00.000Z', endIso: '2026-05-06T01:15:00.000Z' },
+        { startIso: '2026-05-07T01:00:00.000Z', endIso: '2026-05-07T01:15:00.000Z' },
+        { startIso: '2026-05-08T01:00:00.000Z', endIso: '2026-05-08T01:15:00.000Z' },
+        { startIso: '2026-05-09T01:00:00.000Z', endIso: '2026-05-09T01:15:00.000Z' },
+      ],
+      fetchFailed: false,
     });
-    expect(
-      screen.getByRole('button', { name: bookAFreeCall.en.introCall.scrollDatesRightAriaLabel }),
-    ).toBeInTheDocument();
+
+    render(
+      <IntroCallSlotPicker
+        locale='en'
+        commonAccessibility={enContent.common.accessibility}
+        pickerContent={bookAFreeCall.en.introCall}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Mon\s+04\s+May/i })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /Sat\s+09\s+May/i })).toBeNull();
+    const dayStrip = screen.getByTestId('intro-call-day-carousel');
+    const dayButtons = within(dayStrip).getAllByRole('button');
+    expect(dayButtons).toHaveLength(5);
   });
 
   it('groups morning and afternoon slots with section labels', async () => {
@@ -273,7 +263,7 @@ describe('IntroCallSlotPicker', () => {
 
     const onSelect = vi.fn();
     const loadError =
-      'We could not load available times. Please refresh, or message us on WhatsApp.';
+      'We could not load available times. Please refresh, or';
 
     render(
       <IntroCallSlotPicker
@@ -289,7 +279,7 @@ describe('IntroCallSlotPicker', () => {
     );
 
     expect(await screen.findByText(loadError, { exact: false })).toBeInTheDocument();
-    const link = screen.getByRole('link', { name: bookAFreeCall.en.introCall.whatsappHelpCtaLabel });
+    const link = screen.getByRole('link', { name: bookAFreeCall.en.introCall.whatsappAfterBookLabel });
     expect(link).toHaveAttribute('href', 'https://wa.me/85290000000');
   });
 });
