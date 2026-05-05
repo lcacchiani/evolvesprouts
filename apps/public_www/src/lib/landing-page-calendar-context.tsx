@@ -70,12 +70,15 @@ export function LandingPageRehydrateRoot({
     initialStructuredData,
   });
 
+  const landingPageCtaForCalendar =
+    pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR;
+
   const sharedCtaProps = useMemo(
     () =>
       buildLandingPageSharedCtaPropsFromCalendar(
         locale,
         slug,
-        pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
+        landingPageCtaForCalendar,
         siteContent,
         pageContent.meta.title,
         heroEventContent,
@@ -85,7 +88,7 @@ export function LandingPageRehydrateRoot({
     [
       locale,
       slug,
-      pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
+      landingPageCtaForCalendar,
       pageContent.meta.title,
       siteContent,
       heroEventContent,
