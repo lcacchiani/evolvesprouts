@@ -77,7 +77,7 @@ describe('BookFreeCallLandingPage', () => {
     spy.mockRestore();
   });
 
-  it('lays out sections: before you book → pick a time → how it works before testimonials', () => {
+  it('lays out sections: hero → before you book → pick a time → faq, with no description/testimonials/coach', () => {
     render(
       <BookFreeCallLandingPage
         locale='en'
@@ -98,22 +98,28 @@ describe('BookFreeCallLandingPage', () => {
       name: bookAFreeCall.en.introCall.bookingSectionTitle,
     });
     expect(bookingRegion).toHaveClass('es-book-a-free-call-booking-section');
-    const howItWorksHeading = screen.getByRole('heading', {
-      name: bookAFreeCall.en.description.title,
-    });
-    const testimonialsHeading = screen.getByRole('heading', {
-      name: enContent.testimonials.title,
+
+    const faqHeading = screen.getByRole('heading', {
+      name: bookAFreeCall.en.faq.title,
     });
 
     expect(
       beforeYouBookHeading.compareDocumentPosition(bookingRegion),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      bookingRegion.compareDocumentPosition(howItWorksHeading),
+      bookingRegion.compareDocumentPosition(faqHeading),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
     expect(
-      howItWorksHeading.compareDocumentPosition(testimonialsHeading),
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      screen.queryByRole('heading', { name: bookAFreeCall.en.description.title }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('heading', { name: enContent.testimonials.title }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('heading', { name: enContent.aboutUs.coaches.ida.title }),
+    ).toBeNull();
+    expect(document.querySelector('[data-figma-node="about-us-ida-coach"]')).toBeNull();
 
     expect(document.getElementById('landing-page-cta')).toBeNull();
   });
@@ -135,7 +141,7 @@ describe('BookFreeCallLandingPage', () => {
     });
     expect(
       pickTimeLinks.filter((link) => link.getAttribute('href') === localizedBookingHref),
-    ).toHaveLength(3);
+    ).toHaveLength(2);
   });
 
   it('renders hero anchor CTA to the booking section and no booking modal shell', () => {
