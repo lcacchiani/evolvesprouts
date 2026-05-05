@@ -29,6 +29,7 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.servicesConsultations,
   ROUTES.servicesMyBestAuntieTrainingCourse,
   ROUTES.freeGuidesAndResources,
+  ROUTES.bookFreeCall,
 ];
 
 export function buildLocalizedResourcesHashPath(locale: Locale): string {
@@ -39,10 +40,16 @@ export function buildLocalizedResourcesHashPath(locale: Locale): string {
  * First path segments reserved by static app routes (canonical `ROUTES` plus
  * filesystem-only roots). Landing page slugs must not collide with these or
  * Next.js may serve the wrong page for `/[locale]/[slug]`.
+ *
+ * Exception: `book-a-free-call` is both `ROUTES.bookFreeCall` and a landing slug,
+ * so its first segment is omitted here to avoid a startup collision in `landing-pages.ts`.
  */
 export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   ...new Set(
     Object.values(ROUTES)
+      // `/book-a-free-call` is both a first-party route and a landing-page slug; do not
+      // reserve the segment or `landing-pages.ts` startup collides with the slug map.
+      .filter((path) => path !== ROUTES.bookFreeCall)
       .map((path) => path.replace(/^\/+|\/+$/g, '').split('/')[0] ?? '')
       .filter((segment) => segment.length > 0),
   ),

@@ -18,6 +18,8 @@ interface SectionHeaderProps {
   titleClassName?: string;
   descriptionClassName?: string;
   testId?: string;
+  /** When set, the title element receives this id (e.g. for ``aria-labelledby`` on a form). */
+  titleId?: string;
 }
 
 export function SectionHeader({
@@ -31,6 +33,7 @@ export function SectionHeader({
   titleClassName,
   descriptionClassName,
   testId,
+  titleId,
 }: SectionHeaderProps) {
   const TitleTag = titleAs;
   const titleSpacingClassName = eyebrow ? 'mt-6' : undefined;
@@ -54,6 +57,7 @@ export function SectionHeader({
     >
       {eyebrow ? <SectionEyebrowChip label={eyebrow} showLogo={eyebrowShowLogo} /> : null}
       <TitleTag
+        id={titleId}
         className={mergeClassNames(
           'es-type-title',
           titleSpacingClassName,

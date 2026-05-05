@@ -1,0 +1,99 @@
+import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { BookFreeCallLandingPage } from '@/components/pages/landing-pages/book-a-free-call';
+import enContent from '@/content/en.json';
+import bookAFreeCall from '@/content/landing-pages/book-a-free-call.json';
+import * as eventsData from '@/lib/events-data';
+import { getLandingPageContent } from '@/lib/landing-pages';
+
+vi.mock('@/lib/intro-call-slots-api', () => ({
+  CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 30000,
+  fetchIntroCallSlots: vi.fn().mockResolvedValue({ slots: [], fetchFailed: false }),
+}));
+
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+  trackPublicFormOutcome: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
+}));
+
+vi.mock('@/lib/meta-pixel', () => ({
+  trackMetaPixelEvent: vi.fn(),
+}));
+
+vi.mock('@/components/shared/turnstile-captcha', () => ({
+  TurnstileCaptcha: ({
+    onTokenChange,
+  }: {
+    onTokenChange: (token: string | null) => void;
+  }) => (
+    <div data-testid='mock-turnstile-captcha'>
+      <button
+        data-testid='mock-turnstile-captcha-solve'
+        type='button'
+        onClick={() => {
+          onTokenChange('mock-turnstile-token');
+        }}
+      >
+        Solve CAPTCHA
+      </button>
+    </div>
+  ),
+}));
+
+const pageContent = getLandingPageContent('book-a-free-call', 'en');
+if (!pageContent) {
+  throw new Error('missing book-a-free-call content');
+}
+
+describe('BookFreeCallLandingPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+    vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', 'public-crm-key');
+    vi.stubEnv('NEXT_PUBLIC_WHATSAPP_URL', 'https://wa.me/85290000000');
+    vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'test-turnstile-site-key');
+  });
+
+  it('does not trigger calendar payload fetch for this slug', () => {
+    const spy = vi.spyOn(eventsData, 'fetchEventsPayload');
+
+    render(
+      <BookFreeCallLandingPage
+        locale='en'
+        pagePath='/book-a-free-call'
+        siteContent={enContent}
+        pageContent={pageContent}
+      />,
+    );
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('renders hero anchor CTA to the booking section and no booking modal shell', () => {
+    render(
+      <BookFreeCallLandingPage
+        locale='en'
+        pagePath='/book-a-free-call'
+        siteContent={enContent}
+        pageContent={pageContent}
+      />,
+    );
+
+    const heroCta = screen.getByRole('link', { name: bookAFreeCall.en.hero.ctaAnchorLabel });
+    expect(heroCta).toHaveAttribute('href', '#intro-call-booking');
+
+    const bookingRegion = screen.getByRole('region', {
+      name: bookAFreeCall.en.introCall.bookingSectionTitle,
+    });
+    expect(bookingRegion).toHaveAttribute('id', 'intro-call-booking');
+
+    expect(screen.queryByTestId('landing-page-modal')).toBeNull();
+  });
+});

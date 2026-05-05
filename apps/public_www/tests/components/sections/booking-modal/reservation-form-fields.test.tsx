@@ -45,7 +45,7 @@ describe('ReservationFormFields', () => {
       name: enContent.bookingModal.paymentModal.phoneCountryLabel,
     });
     const phoneInput = screen.getByRole('textbox', {
-      name: new RegExp(`^${enContent.bookingModal.paymentModal.phoneLabel}`),
+      name: new RegExp(enContent.bookingModal.paymentModal.phoneLabel),
     });
     const topicsInput = screen.getByLabelText(
       /Anything you'd like me to know about your child or helper before we start\?/i,
@@ -107,6 +107,40 @@ describe('ReservationFormFields', () => {
       'placeholder',
       'This will help me better personalise your experience',
     );
+  });
+
+  it('marks phone optional when optionalPhone is true', () => {
+    render(
+      <ReservationFormFields
+        content={enContent.bookingModal.paymentModal}
+        optionalPhone
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
+        fullName=''
+        email=''
+        phoneCountry='HK'
+        phone=''
+        interestedTopics=''
+        hasFullNameError={false}
+        hasEmailError={false}
+        hasPhoneError={false}
+        hasPhoneInvalidForCountry={false}
+        hasTopicsError={false}
+        onFullNameChange={() => {}}
+        onFullNameBlur={() => {}}
+        onEmailChange={() => {}}
+        onEmailBlur={() => {}}
+        onPhoneCountryChange={() => {}}
+        onPhoneChange={() => {}}
+        onPhoneBlur={() => {}}
+        onTopicsChange={() => {}}
+        onTopicsBlur={() => {}}
+      />,
+    );
+
+    const phoneInput = screen.getByRole('textbox', {
+      name: new RegExp(enContent.bookingModal.paymentModal.phoneLabel),
+    });
+    expect(phoneInput).not.toBeRequired();
   });
 
 });

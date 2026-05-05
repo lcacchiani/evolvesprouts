@@ -1,6 +1,7 @@
 import type { SiteContent } from '@/content';
 import { resolvePolicyDescription } from '@/content/copy-normalizers';
 import { INDEXED_ROUTE_PATHS, ROUTES } from '@/lib/routes';
+import { getLandingPageContent } from '@/lib/landing-pages';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
@@ -53,6 +54,17 @@ function resolvePageDescriptors(content: SiteContent): PageDescriptor[] {
       path: ROUTES.contact,
       description: content.contactUs.form.description,
     },
+    ...(() => {
+      const bookFreeCall = getLandingPageContent('book-a-free-call', 'en');
+      if (!bookFreeCall) {
+        return [];
+      }
+      return [{
+        label: bookFreeCall.meta.title.split('|')[0]?.trim() || bookFreeCall.meta.title,
+        path: ROUTES.bookFreeCall,
+        description: bookFreeCall.meta.description,
+      }];
+    })(),
   ];
 }
 
@@ -245,6 +257,7 @@ function buildTestimonialsSection(content: SiteContent): string {
 }
 
 function buildSitePagesSection(): string {
+  const bookFreeCall = getLandingPageContent('book-a-free-call', 'en');
   const pageLabels: Record<string, string> = {
     '/': 'Home',
     '/about-us': 'About Us',
@@ -254,6 +267,12 @@ function buildSitePagesSection(): string {
     '/terms': 'Terms and Conditions',
     '/services/my-best-auntie-training-course':
       'My Best Auntie - 9 Weeks That Change How Your Child Is Raised Every Day',
+    ...(bookFreeCall
+      ? {
+          [ROUTES.bookFreeCall]: bookFreeCall.meta.title.split('|')[0]?.trim()
+            || bookFreeCall.meta.title,
+        }
+      : {}),
   };
 
   return INDEXED_ROUTE_PATHS.map(

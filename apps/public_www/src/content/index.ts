@@ -90,11 +90,15 @@ export interface LandingPageLocaleContent {
     };
   };
   hero: {
+    eyebrow?: string;
     subtitle: string;
     description: string;
     imageAlt: string;
     imageSrc: string;
     imageMaxWidthPercent?: number;
+    /** When set with ``ctaAnchorLabel``, hero primary CTA scrolls to this path/hash instead of opening the booking modal. */
+    ctaAnchorHref?: string;
+    ctaAnchorLabel?: string;
   };
   outline: {
     eyebrow?: string;
@@ -142,8 +146,32 @@ export interface LandingPageLocaleContent {
       placeholder: string;
       required: boolean;
     };
+    /** When set, the CTA section uses an in-page anchor instead of the event booking modal. */
+    ctaAnchorHref?: string;
+    ctaAnchorLabel?: string;
+  };
+  introCall?: {
+    bookingSectionTitle: string;
+    emptySlotsMessage: string;
+    whatsappHelpCtaLabel: string;
+    thankYouTitle: string;
+    thankYouBody: string;
+    addToCalendarLabel: string;
+    whatsappAfterBookLabel: string;
+    slotUnavailableMessage: string;
+    recentIntroMessage: string;
+    topicsFieldLabel: string;
+    topicsFieldPlaceholder: string;
+    submitLabel: string;
+    phoneFieldLabel: string;
+    loadErrorMessage?: string;
   };
 }
+
+/** Intro-call booking block; present only on landing pages that embed the picker (e.g. book-a-free-call). */
+export type LandingPageIntroCallContent = NonNullable<
+  LandingPageLocaleContent['introCall']
+>;
 
 export interface LandingPageContent {
   en: LandingPageLocaleContent;
@@ -159,6 +187,7 @@ const contentMap = {
 
 const interpolatedContentCache = new Map<string, SiteContent>();
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
+const BOOK_FREE_CALL_URL_PLACEHOLDER = '{{BOOK_FREE_CALL_URL}}';
 const BUSINESS_PHONE_PLACEHOLDER = '{{BUSINESS_PHONE_NUMBER}}';
 
 function resolveContactEmail(): string | undefined {
@@ -240,6 +269,12 @@ function withConfiguredRuntimeContent(
     WHATSAPP_URL_PLACEHOLDER,
     configuredWhatsappUrl,
   );
+  const freeIntroHrefWithBookToken = (configuredFreeIntroSessionHref ?? '').replaceAll(
+    BOOK_FREE_CALL_URL_PLACEHOLDER,
+    ROUTES.bookFreeCall,
+  );
+  const configuredFreeIntroSessionHrefResolved =
+    freeIntroHrefWithBookToken || configuredFreeIntroSessionHref;
   const configuredFreeIntroSessionPhoneNumber = resolvePlaceholderValue(
     content.freeIntroSession.phoneNumber,
     BUSINESS_PHONE_PLACEHOLDER,
@@ -248,19 +283,25 @@ function withConfiguredRuntimeContent(
   const baseNavbarCtaHref = configuredNavbarHref
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
-  const baseFreeIntroSessionCtaHref = configuredFreeIntroSessionHref
-    || content.whatsappContact.href
-    || ROUTES.servicesMyBestAuntieTrainingCourse;
   const navbarCtaHref = buildWhatsappPrefilledHref(
     baseNavbarCtaHref,
     content.navbar.bookNow.prefillMessage,
     configuredNavbarPhoneNumber,
   ) || baseNavbarCtaHref;
-  const freeIntroSessionCtaHref = buildWhatsappPrefilledHref(
-    baseFreeIntroSessionCtaHref,
-    content.freeIntroSession.prefillMessage,
-    configuredFreeIntroSessionPhoneNumber,
-  ) || baseFreeIntroSessionCtaHref;
+  const baseFreeIntroSessionCtaHref = configuredFreeIntroSessionHrefResolved
+    || content.whatsappContact.href
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const isBookFreeCallPath =
+    baseFreeIntroSessionCtaHref === ROUTES.bookFreeCall
+    || baseFreeIntroSessionCtaHref.startsWith(`${ROUTES.bookFreeCall}?`)
+    || baseFreeIntroSessionCtaHref.startsWith(`${ROUTES.bookFreeCall}#`);
+  const freeIntroSessionCtaHref = isBookFreeCallPath
+    ? baseFreeIntroSessionCtaHref
+    : buildWhatsappPrefilledHref(
+        baseFreeIntroSessionCtaHref,
+        content.freeIntroSession.prefillMessage,
+        configuredFreeIntroSessionPhoneNumber,
+      ) || baseFreeIntroSessionCtaHref;
   const resolvedContactEmail = contactEmail?.trim() || undefined;
   const contactUsContent = resolvedContactEmail
     ? {

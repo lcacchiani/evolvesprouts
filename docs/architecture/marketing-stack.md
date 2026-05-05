@@ -334,6 +334,9 @@ Public website Mailchimp **audience tags** (applied via `add_subscriber_with_tag
 | Sprouts Squad / monthly newsletter (email + marketing checkbox) | `public-www-community-newsletter` (when `marketing_opt_in`) |
 | Events “get notified” (email + marketing checkbox) | `public-www-event-notification` (when `marketing_opt_in`) |
 | Booking + marketing opt-in | `public-www-booking-customer-{service_instance_slug}` (`serviceInstanceSlug` from reservation JSON; fallback `unknown`) |
+| Free intro call booking + marketing opt-in | `public-www-intro-call-booking` (when `bookingSystem` is `intro-call-booking`) |
+
+Meta Pixel `content_name` for this funnel uses **snake_case** (`public_www_free_intro_call`) to match GA4 custom parameters and `PIXEL_CONTENT_NAME` in `apps/public_www/src/lib/meta-pixel-taxonomy.ts`. Prefer this convention for new pixels; avoid switching existing dashboards to kebab-case unless Meta Ads owners explicitly require it.
 | Free guide / media | `public-www-media-{resource_key}` |
 
 Legacy `contact-us-inquiry`, `booking-customer`, and `public-www-media-{key}-requested` may still exist on historical members; use dual-match segments in Mailchimp during transition.
@@ -394,6 +397,7 @@ analytics events using `trackMetaPixelEvent` from `src/lib/meta-pixel.ts`:
 | `my-best-auntie-booking.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` |
 | `events.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` or `'event_booking'` |
 | `reservation-form.tsx` | `booking_submit_success` | `Schedule` | `content_name` (prop), `value`, `currency` |
+| `landing-page-free-intro-call.tsx` | `booking_submit_success` | `Schedule` | `content_name: 'public_www_free_intro_call'`, `value`, `currency` |
 | `whatsapp-contact-button.tsx` | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
 | `contact-us-form.tsx` (WhatsApp CTA) | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
 | `thank-you-modal.tsx` | (varies) | `Contact` | `content_name: 'whatsapp'` |

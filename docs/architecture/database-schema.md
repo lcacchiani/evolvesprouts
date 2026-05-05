@@ -36,7 +36,7 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
   `lost`.
 - Enum `lead_event_type`: `created`, `stage_changed`, `note_added`, `email_sent`,
   `email_opened`, `guide_downloaded`, `assigned`, `converted`, `lost`.
-- Enum `service_type`: `training_course`, `event`, `consultation`.
+- Enum `service_type`: `training_course`, `event`, `consultation`, `intro_call`.
 - Enum `service_status`: `draft`, `published`, `archived`.
 - Enum `service_delivery_mode`: `online`, `in_person`, `hybrid`.
 - Enum `training_format`: `group`, `private`.
@@ -535,7 +535,10 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
     `eventbrite_retry_count`
 - Scheduling/detail tables:
   - `instance_session_slots` (time blocks + optional location; `starts_at` / `ends_at`
-    are `timestamptz` in Aurora). The admin API rejects naive datetimes in
+    are `timestamptz` in Aurora). Migration `0060_intro_call_starts_uniq` adds a unique
+    index on `(instance_id, starts_at)` (`instance_session_slots_instance_starts_uidx`)
+    so two rows cannot share the same start instant on one instance (race-safe public
+    bookings including intro-call). The admin API rejects naive datetimes in
     `session_slots` payloads so only explicit instants are stored. The public calendar feed
     eager-loads `Service.location` only in `list_public_offerings`; venue resolution is
     slot location, then instance `location_id`, then parent `services.location_id`.

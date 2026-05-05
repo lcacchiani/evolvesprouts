@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
@@ -15,6 +16,7 @@ from app.api.public_reservations import (
     _validate_discount_code_redemption_scope,
     _validate_reservation_payload,
 )
+from app.db.models import InstanceSessionSlot
 from app.db.models.enums import DiscountType
 
 
@@ -1019,3 +1021,219 @@ def test_handle_public_reservation_writes_discount_metadata_and_creates_enrollme
     assert isinstance(meta, dict)
     assert meta.get("discount_code") == "SPRING10"
     assert meta.get("discount_code_id") == str(discount_uuid)
+
+
+def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Slot insert (add + flush) must run before ``record_reservation_customer_payment``."""
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations._validate_payment_confirmation",
+        lambda *_a, **_k: None,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.set_audit_context",
+        lambda *a, **k: None,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.is_intro_call_slot_available",
+        lambda *_a, **_k: True,
+    )
+
+    slot_start = datetime(2036, 6, 16, 3, 0, 0, tzinfo=UTC)
+    slot_end = slot_start + timedelta(minutes=15)
+    monkeypatch.setattr(
+        "app.api.public_reservations._enforce_intro_call_invariants",
+        lambda *_a, **_k: (slot_start, slot_end),
+    )
+
+    contact_id = uuid4()
+    instance_uuid = uuid4()
+    service_uuid = uuid4()
+
+    class _FakeDiscountRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> None:
+            return None
+
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
+            if slug == "intro-call-free-15min":
+                return SimpleNamespace(
+                    id=instance_uuid,
+                    service=SimpleNamespace(
+                        id=service_uuid,
+                        service_key="intro-call",
+                        service_type=SimpleNamespace(value="intro_call"),
+                    ),
+                )
+            return None
+
+    class _FakeEnrollmentRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def contact_has_enrollment_for_instance(self, **_kwargs: object) -> bool:
+            return False
+
+        def try_create_enrollment_with_capacity_guard(
+            self, enrollment: object
+        ) -> tuple[object | None, str | None]:
+            return enrollment, None
+
+    ops_holder: dict[str, list[str]] = {"ops": []}
+
+    def _record_payment(*_a: object, **_k: object) -> tuple[None, None, bool]:
+        ops = ops_holder["ops"]
+        assert "add_intro_slot" in ops
+        idx_add = ops.index("add_intro_slot")
+        assert any(
+            i > idx_add and op == "flush" for i, op in enumerate(ops)
+        ), "expected flush after intro slot add before payment record"
+        return (None, None, False)
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.DiscountCodeRepository",
+        _FakeDiscountRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.EnrollmentRepository",
+        _FakeEnrollmentRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.record_reservation_customer_payment",
+        _record_payment,
+    )
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
+            return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeTxn:
+        def __enter__(self) -> None:
+            return None
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    class _FakeSession:
+        def __init__(self) -> None:
+            self.ops = ops_holder["ops"]
+
+        def begin(self) -> _FakeTxn:
+            return _FakeTxn()
+
+        def begin_nested(self) -> _FakeTxn:
+            return _FakeTxn()
+
+        def add(self, entity: object) -> None:
+            if isinstance(entity, InstanceSessionSlot):
+                self.ops.append("add_intro_slot")
+
+        def flush(self) -> None:
+            self.ops.append("flush")
+
+        def execute(self, *_a: object, **_k: object) -> MagicMock:
+            return MagicMock()
+
+        def commit(self) -> None:
+            return None
+
+        def delete(self, *_a: object, **_k: object) -> None:
+            return None
+
+        def get(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.AuditService",
+        lambda *_a, **_k: MagicMock(),
+    )
+
+    body = {
+        "attendeeName": "Pat Parent",
+        "attendeeEmail": "pat@example.com",
+        "attendeePhone": "",
+        "serviceKey": "intro-call",
+        "serviceInstanceSlug": "intro-call-free-15min",
+        "paymentMethod": "free",
+        "totalAmount": 0,
+        "title": "Intro",
+        "agreedToTermsAndConditions": True,
+        "locale": "en",
+        "bookingSystem": "intro-call-booking",
+        "primarySessionStartIso": slot_start.isoformat().replace("+00:00", "Z"),
+        "primarySessionEndIso": slot_end.isoformat().replace("+00:00", "Z"),
+        "marketingOptIn": False,
+    }
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    assert "add_intro_slot" in ops_holder["ops"]

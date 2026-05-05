@@ -18,10 +18,7 @@ from app.db.engine import get_engine
 from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.repositories.calendar_manual_block import CalendarManualBlockRepository
 from app.exceptions import NotFoundError, ValidationError
-from app.services.calendar_blockers import (
-    allowed_manual_block_creation_purposes,
-    consultation_booking_purpose,
-)
+from app.services.calendar_blockers import allowed_manual_block_creation_purposes
 from app.utils import json_response
 from app.utils.logging import get_logger, mask_pii
 
@@ -162,8 +159,9 @@ def _create_block(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]
     body = parse_body(event)
     purpose = _parse_purpose(body.get("purpose"))
     if purpose not in allowed_manual_block_creation_purposes():
+        allowed = ", ".join(sorted(allowed_manual_block_creation_purposes()))
         raise ValidationError(
-            "Only consultation_booking purpose is supported in this release",
+            f"purpose must be one of: {allowed}",
             field="purpose",
         )
     block_date = _parse_block_date(body.get("blockDate") or body.get("block_date"))
@@ -243,7 +241,7 @@ def _update_block(
         row = repo.get_by_id(block_id)
         if row is None:
             raise NotFoundError("Calendar manual block", str(block_id))
-        if row.purpose != consultation_booking_purpose():
+        if row.purpose not in allowed_manual_block_creation_purposes():
             raise ValidationError("Block purpose cannot be changed", field="purpose")
 
         old_values = {

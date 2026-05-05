@@ -14,6 +14,7 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
 import type {
   BookingModalContent,
@@ -214,6 +215,7 @@ export function LandingPageHero({
       <SectionContainer className='grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]'>
         <div className='space-y-5'>
           <SectionHeader
+            eyebrow={content.eyebrow}
             title={title}
             titleAs='h1'
             align='left'
@@ -236,23 +238,32 @@ export function LandingPageHero({
           ) : null}
           <p className='es-type-body'>{renderQuotedDescriptionText(content.description)}</p>
           <HeroQuickFactChips chips={chips} />
-          <LandingPageBookingCtaAction
-            locale={locale}
-            slug={slug}
-            content={ctaContent}
-            ctaPriceLabel={ctaPriceLabel}
-            commonContent={commonContent}
-            bookingPayload={bookingPayload}
-            isFullyBooked={isFullyBooked}
-            fullyBookedCtaLabel={fullyBookedCtaLabel}
-            fullyBookedWaitlistHref={fullyBookedWaitlistHref}
-            bookingModalContent={bookingModalContent}
-            thankYouWhatsappHref={thankYouWhatsappHref}
-            thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
-            analyticsSectionId='landing-page-hero'
-            ctaLocation='landing_page'
-            buttonClassName='mt-3'
-          />
+          {content.ctaAnchorHref && content.ctaAnchorLabel ? (
+            <SectionCtaAnchor
+              href={content.ctaAnchorHref}
+              className='mt-3 w-fit'
+            >
+              {content.ctaAnchorLabel}
+            </SectionCtaAnchor>
+          ) : (
+            <LandingPageBookingCtaAction
+              locale={locale}
+              slug={slug}
+              content={ctaContent}
+              ctaPriceLabel={ctaPriceLabel}
+              commonContent={commonContent}
+              bookingPayload={bookingPayload}
+              isFullyBooked={isFullyBooked}
+              fullyBookedCtaLabel={fullyBookedCtaLabel}
+              fullyBookedWaitlistHref={fullyBookedWaitlistHref}
+              bookingModalContent={bookingModalContent}
+              thankYouWhatsappHref={thankYouWhatsappHref}
+              thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
+              analyticsSectionId='landing-page-hero'
+              ctaLocation='landing_page'
+              buttonClassName='mt-3'
+            />
+          )}
         </div>
         <div
           className={`es-landing-page-hero-image-wrap mx-auto w-full justify-self-center ${heroImageMaxWidthClassName}`}

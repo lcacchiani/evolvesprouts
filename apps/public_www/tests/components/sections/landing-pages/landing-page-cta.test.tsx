@@ -250,4 +250,26 @@ describe('LandingPageCta section', () => {
       screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
   });
+
+  it('renders anchor CTA label from ctaAnchorLabel when anchor mode is active', () => {
+    render(
+      <LandingPageCta
+        locale='en'
+        slug='book-a-free-call'
+        content={{
+          ...easterWorkshopContent.en.cta,
+          ctaAnchorHref: '#intro-call-booking',
+          ctaAnchorLabel: 'Scroll to booking',
+          buttonLabel: 'Different modal label',
+        }}
+        commonContent={enContent.landingPages.common}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    const link = screen.getByRole('link', { name: 'Scroll to booking' });
+    expect(link).toHaveAttribute('href', '#intro-call-booking');
+  });
 });

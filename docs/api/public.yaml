@@ -456,7 +456,8 @@ paths:
             maxLength: 64
             pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
           description: >
-            Blocker namespace. Supported: `consultation_booking` (family consultation home-visit picker).
+            Blocker namespace. Supported: `consultation_booking` (family consultation home-visit picker),
+            `intro_call_booking` (free intro-call calendar blocks merged with the same half-day rules).
         - name: from
           in: query
           required: false
@@ -493,6 +494,87 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
+        "405":
+          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
+
+  /v1/calendar/intro-call-slots:
+    get:
+      summary: Available 15-minute intro-call slots
+      description: >
+        Returns bookable 15-minute UTC slots for the free intro-call flow (Mon–Fri
+        09:00–18:00 `Asia/Hong_Kong`, minus manual half-day blocks for
+        `consultation_booking` and `intro_call_booking`, minus overlapping session slots).
+        No PII; no Turnstile. `from` / `to` are `YYYY-MM-DD` in the server intro-call wall
+        zone (default `Asia/Hong_Kong`). Span capped at 28 days; `from` not more than 35 days ahead.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Slot list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntroCallSlotsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/calendar/intro-call-slots:
+    get:
+      summary: Available 15-minute intro-call slots (website proxy path)
+      description: Same as `GET /v1/calendar/intro-call-slots` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Slot list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntroCallSlotsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
@@ -1394,6 +1476,27 @@ components:
         wall_time_zone:
           type: string
           description: Present for `purpose=consultation_booking` (IANA zone used for half-day windows).
+    IntroCallSlotsResponse:
+      type: object
+      required:
+        - slots
+      additionalProperties: false
+      properties:
+        slots:
+          type: array
+          items:
+            type: object
+            required:
+              - start_iso
+              - end_iso
+            additionalProperties: false
+            properties:
+              start_iso:
+                type: string
+                format: date-time
+              end_iso:
+                type: string
+                format: date-time
     PublicCalendarBlockersResponse:
       type: object
       required:
@@ -1483,7 +1586,6 @@ components:
       required:
         - attendeeName
         - attendeeEmail
-        - attendeePhone
         - paymentMethod
         - totalAmount
         - title
@@ -1500,6 +1602,10 @@ components:
         attendeePhone:
           type: string
           maxLength: 40
+          nullable: true
+          description: >
+            Required for most booking flows. Optional for `bookingSystem=intro-call-booking`
+            (omit or send empty string when the caller does not collect a phone number).
         attendeeCountry:
           type: string
           minLength: 2
@@ -1632,10 +1738,33 @@ components:
             - consultation-booking
             - event-booking
             - my-best-auntie-booking
+            - intro-call-booking
           description: >
             Optional booking flow code. When set, must be exactly one of the enum values
             (case-insensitive on input; stored lowercased). Drives confirmation email formatting
             (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
+            `intro-call-booking` requires `serviceKey=intro-call`, `serviceInstanceSlug=intro-call-free-15min`,
+            `totalAmount=0`, `paymentMethod=free` (or omit payment method to default to free), and
+            `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot.
+        marketingAttribution:
+          type: object
+          additionalProperties: false
+          properties:
+            utm_source:
+              type: string
+              maxLength: 100
+            utm_medium:
+              type: string
+              maxLength: 100
+            utm_campaign:
+              type: string
+              maxLength: 200
+            utm_content:
+              type: string
+              maxLength: 200
+            referrer:
+              type: string
+              maxLength: 500
         locationName:
           type: string
           maxLength: 200

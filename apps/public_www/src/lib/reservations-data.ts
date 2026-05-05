@@ -65,6 +65,14 @@ export interface ReservationSubmissionPayload {
   primarySessionEndIso?: string;
   /** All session parts for multi-line schedule in confirmation email (MBA, etc.). */
   sessionSlots?: Array<{ startIso: string; endIso?: string }>;
+  /** Optional UTM / referrer attribution for public intro-call flow. */
+  marketingAttribution?: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    referrer?: string;
+  };
   /** Maps URL for optional "Get directions" link in confirmation email. */
   locationUrl?: string;
   /**

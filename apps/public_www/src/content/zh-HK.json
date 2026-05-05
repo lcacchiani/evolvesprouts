@@ -846,8 +846,8 @@
     "title": "你不在的那些時間裏，到底發生了什麼？",
     "eventPageTitle": "仲未確定？由呢度開始",
     "description": "預約一次 15 分鐘免費通話。我們聊聊你的孩子、你的姨姨，以及這個課程是否適合你。無需承諾-只是一次交流。",
-    "ctaLabel": "喺 WhatsApp 預約免費簡介通話",
-    "ctaHref": "{{WHATSAPP_URL}}",
+    "ctaLabel": "預約我嘅免費 15 分鐘通話",
+    "ctaHref": "{{BOOK_FREE_CALL_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "你好，我想預約一節免費簡介通話！"
   },
@@ -1137,7 +1137,8 @@
       "carouselRoleDescription": "輪播",
       "carouselLabelTemplate": "{title}輪播",
       "sliderLabelTemplate": "{title}滑動內容",
-      "referralAppliedAnnouncement": "已透過你的連結自動套用推薦優惠碼。"
+      "referralAppliedAnnouncement": "已透過你的連結自動套用推薦優惠碼。",
+      "loadingLabel": "載入中…"
     },
     "captcha": {
       "captchaLabel": "驗證",

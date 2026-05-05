@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type {
   Locale,
   LandingPageLocaleContent,
@@ -30,6 +32,8 @@ export interface LandingPageProps {
   heroEventContent: LandingPageHeroEventContent | null;
   bookingEventContent: LandingPageBookingEventContent | null;
   structuredDataContent: LandingPageStructuredDataContent | null;
+  /** Optional slot between testimonials and the CTA bridge (e.g. intro-call booking). */
+  introCallSectionBeforeCta?: ReactNode;
 }
 
 export function LandingPage({
@@ -41,6 +45,7 @@ export function LandingPage({
   heroEventContent,
   bookingEventContent,
   structuredDataContent,
+  introCallSectionBeforeCta,
 }: LandingPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
 
@@ -86,6 +91,7 @@ export function LandingPage({
           content={siteContent.testimonials}
           commonAccessibility={siteContent.common.accessibility}
         />
+        {introCallSectionBeforeCta}
         <LandingPageCtaBridge
           locale={locale}
           slug={slug}

@@ -150,6 +150,7 @@ class ServiceType(str, enum.Enum):
     TRAINING_COURSE = "training_course"
     EVENT = "event"
     CONSULTATION = "consultation"
+    INTRO_CALL = "intro_call"
 
 
 class ServiceStatus(str, enum.Enum):

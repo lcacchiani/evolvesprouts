@@ -31,7 +31,7 @@ describe('FreeIntroSession section', () => {
 
     const cta = screen.getByRole('link', { name: content.ctaLabel });
     expect(cta).toBeInTheDocument();
-    expect(cta).toHaveAttribute('href', content.ctaHref);
+    expect(cta.getAttribute('href')).toContain('book-a-free-call');
   });
 
   it('renders titleOverride instead of content title when provided', () => {
@@ -51,4 +51,5 @@ describe('FreeIntroSession section', () => {
       screen.queryByRole('heading', { level: 2, name: content.title }),
     ).not.toBeInTheDocument();
   });
+
 });

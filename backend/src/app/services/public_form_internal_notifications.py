@@ -341,6 +341,8 @@ def build_reservation_recap_lines(*, payload: Mapping[str, Any]) -> list[str]:
         f"Attendee email: {payload.get('attendee_email', '')}",
         f"Telephone: {phone_display or '(not provided)'}",
     ]
+    if (payload.get("booking_system") or "").strip().lower() == "intro-call-booking":
+        lines.insert(1, "Booking type: Free 15-minute intro call")
     service_tier_recap = str(payload.get("service_tier") or "").strip()
     if service_tier_recap:
         lines.append(f"Child age group: {service_tier_recap}")

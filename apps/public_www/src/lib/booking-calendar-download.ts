@@ -206,3 +206,8 @@ export function triggerBookingIcsDownload(icsBody: string, filenameBase: string)
   anchor.remove();
   URL.revokeObjectURL(url);
 }
+
+/** Alias for thank-you and landing-page flows that name the helper consistently. */
+export function downloadBookingCalendarFile(icsBody: string, filenameBase: string): void {
+  triggerBookingIcsDownload(icsBody, filenameBase);
+}

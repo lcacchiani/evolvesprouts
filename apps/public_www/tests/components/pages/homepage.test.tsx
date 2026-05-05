@@ -146,9 +146,7 @@ describe('HomePage', () => {
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
     );
-    expect(freeIntroProps.content.ctaHref).toBe(
-      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
-    );
+    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call');
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
@@ -178,7 +176,7 @@ describe('HomePage', () => {
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
-    const parsedFreeIntroHref = new URL(freeIntroProps.content.ctaHref);
+    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call');
 
     expect(parsedNavbarHref.pathname).toBe('/15550001234');
     expect(parsedNavbarHref.searchParams.get('text')).toBe(
@@ -186,10 +184,6 @@ describe('HomePage', () => {
     );
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       localizedContent.navbar.bookNow.label,
-    );
-    expect(parsedFreeIntroHref.pathname).toBe('/15550001234');
-    expect(parsedFreeIntroHref.searchParams.get('text')).toBe(
-      localizedContent.freeIntroSession.prefillMessage,
     );
   });
 });

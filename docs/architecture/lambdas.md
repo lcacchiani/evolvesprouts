@@ -36,10 +36,12 @@ their primary responsibilities.
   `/v1/calendar/public` (same public calendar feed and contract as
   `/www/v1/calendar/public`; see that entry below for payload, ordering, and query filters),
   `/v1/calendar/blockers` (merged manual + session half-day blockers; `purpose` allowlist
-  is `consultation_booking` only in this release—other values return 400; same contract as
+  includes `consultation_booking` and `intro_call_booking`; same contract as
   `/www/v1/calendar/blockers`; `purpose=consultation_booking` uses `Cache-Control: no-store`
   on success so admin-driven blockers are not edge-cached; other allowed purposes use the same cache headers
   as `GET /v1/calendar/public`),
+  `/v1/calendar/intro-call-slots` (GET; 15-minute free intro-call availability in UTC ISO instants;
+  same contract as `/www/v1/calendar/intro-call-slots`; no PII),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,
@@ -162,7 +164,7 @@ their primary responsibilities.
   when `max_capacity` is set,
   using the same enrollment statuses as capacity checks: registered, confirmed,
   completed),
-  `/www/v1/calendar/blockers` (requires `purpose`; allowlist is `consultation_booking` only in this release;
+  `/www/v1/calendar/blockers` (requires `purpose`; allowlist includes `consultation_booking` and `intro_call_booking`;
   merges `calendar_manual_blocks` with published event/training `instance_session_slots` intersecting nominal AM/PM local windows;
   `meta.wall_time_zone` documents the wall-clock zone for consultation purposes;
   `purpose=consultation_booking` responses use `Cache-Control: no-store` on success),
@@ -173,6 +175,7 @@ their primary responsibilities.
   remain on `/v1/assets/public/{id}/download` with device attestation),
   Allowlisted public GETs behind `/www/*` (`GET /v1/calendar/public`,
   `GET /v1/calendar/blockers` (edge-cacheable on 200 except `purpose=consultation_booking`, which is `no-store`),
+  `GET /v1/calendar/intro-call-slots`,
   `GET /v1/assets/free`, and `/www/v1/...`) emit `Cache-Control` on success and
   `no-store` on handler error paths; new allowlisted GETs must follow the same
   contract,
