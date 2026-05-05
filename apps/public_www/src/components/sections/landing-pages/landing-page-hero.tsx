@@ -49,8 +49,6 @@ interface LandingPageHeroProps {
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
   ariaLabel?: string;
-  /** When set (including empty string), replaces `content.eyebrow` for the hero chip only. */
-  heroEyebrow?: string;
 }
 
 const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
@@ -193,7 +191,6 @@ export function LandingPageHero({
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
   ariaLabel,
-  heroEyebrow,
 }: LandingPageHeroProps) {
   const heroImageMaxWidthClassName = useMemo(
     () => resolveHeroImageMaxWidthClass(content),
@@ -218,7 +215,7 @@ export function LandingPageHero({
       <SectionContainer className='grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]'>
         <div className='space-y-5'>
           <SectionHeader
-            eyebrow={heroEyebrow ?? content.eyebrow}
+            eyebrow={content.eyebrow}
             title={title}
             titleAs='h1'
             align='left'

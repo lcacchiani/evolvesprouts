@@ -89,8 +89,6 @@ describe('BookFreeCallLandingPage', () => {
     const heroCta = screen.getByRole('link', { name: bookAFreeCall.en.hero.ctaAnchorLabel });
     expect(heroCta).toHaveAttribute('href', '#intro-call-booking');
 
-    expect(screen.queryByText(bookAFreeCall.en.hero.eyebrow)).not.toBeInTheDocument();
-
     const bookingRegion = screen.getByRole('region', {
       name: bookAFreeCall.en.introCall.bookingSectionTitle,
     });

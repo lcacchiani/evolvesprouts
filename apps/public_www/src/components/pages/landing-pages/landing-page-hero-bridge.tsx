@@ -20,7 +20,6 @@ interface LandingPageHeroBridgeProps {
   metaTitle: string;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
-  heroEyebrow?: string;
 }
 
 export function LandingPageHeroBridge({
@@ -32,7 +31,6 @@ export function LandingPageHeroBridge({
   metaTitle,
   bookingModalContent,
   ariaLabel,
-  heroEyebrow,
 }: LandingPageHeroBridgeProps) {
   const calendar = useContext(LandingPageCalendarContext);
   if (!calendar) {
@@ -60,7 +58,6 @@ export function LandingPageHeroBridge({
       thankYouWhatsappHref={sharedCtaProps.thankYouWhatsappHref}
       thankYouWhatsappCtaLabel={sharedCtaProps.thankYouWhatsappCtaLabel}
       ariaLabel={ariaLabel}
-      heroEyebrow={heroEyebrow}
     />
   );
 }

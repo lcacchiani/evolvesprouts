@@ -24,4 +24,10 @@ describe('book-a-free-call landing page locale JSON', () => {
       expect(bookAFreeCall[loc].introCall.loadErrorMessage?.trim()).toBeTruthy();
     }
   });
+
+  it('omits hero eyebrow (chip comes from optional JSON only, like other landings)', () => {
+    for (const loc of ['en', 'zh-CN', 'zh-HK'] as const) {
+      expect(bookAFreeCall[loc].hero).not.toHaveProperty('eyebrow');
+    }
+  });
 });
