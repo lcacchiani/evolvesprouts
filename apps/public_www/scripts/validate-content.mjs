@@ -186,6 +186,19 @@ function validateEmailValue(value, keyPath, errors) {
   }
 }
 
+function isBookFreeCallPlaceholderHref(normalizedValue) {
+  if (normalizedValue === BOOK_FREE_CALL_URL_PLACEHOLDER) {
+    return true;
+  }
+  if (normalizedValue.startsWith(`${BOOK_FREE_CALL_URL_PLACEHOLDER}#`)) {
+    return true;
+  }
+  if (normalizedValue.startsWith(`${BOOK_FREE_CALL_URL_PLACEHOLDER}?`)) {
+    return true;
+  }
+  return false;
+}
+
 function validateHrefValue(value, keyPath, errors) {
   const normalizedValue = value.trim();
   if (normalizedValue === CONTACT_EMAIL_MAILTO_PLACEHOLDER) {
@@ -203,7 +216,7 @@ function validateHrefValue(value, keyPath, errors) {
     );
     return;
   }
-  if (normalizedValue === BOOK_FREE_CALL_URL_PLACEHOLDER) {
+  if (isBookFreeCallPlaceholderHref(normalizedValue)) {
     if (
       keyPath.endsWith('.freeIntroSession.ctaHref')
       || keyPath.endsWith('.navbar.bookNow.href')
@@ -211,7 +224,7 @@ function validateHrefValue(value, keyPath, errors) {
       return;
     }
     errors.push(
-      `${keyPath}: placeholder "${BOOK_FREE_CALL_URL_PLACEHOLDER}" is only allowed for freeIntroSession.ctaHref and navbar.bookNow.href`,
+      `${keyPath}: placeholder "${BOOK_FREE_CALL_URL_PLACEHOLDER}" (optionally with #fragment or ?query) is only allowed for freeIntroSession.ctaHref and navbar.bookNow.href`,
     );
     return;
   }
