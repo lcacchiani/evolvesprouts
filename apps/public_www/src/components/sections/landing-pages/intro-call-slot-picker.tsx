@@ -73,7 +73,7 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
 }
 
-function formatIntroCallDayButtonLabel(iso: string, locale: Locale): string {
+function formatIntroCallDayButtonAccessibleLabel(iso: string, locale: Locale): string {
   const d = new Date(iso);
   const weekday = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
     timeZone: PUBLIC_SITE_IANA_TIMEZONE,
@@ -85,6 +85,23 @@ function formatIntroCallDayButtonLabel(iso: string, locale: Locale): string {
     month: 'short',
   }).format(d);
   return `${weekday} ${dayMonth}`;
+}
+
+function formatIntroCallDayWeekdayShort(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    weekday: 'short',
+  }).format(d);
+}
+
+function formatIntroCallDayDateLine(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    day: '2-digit',
+    month: 'short',
+  }).format(d);
 }
 
 export function IntroCallSlotPicker({
@@ -314,7 +331,7 @@ export function IntroCallSlotPicker({
   function renderSlotGrid(slotsChunk: IntroCallSlot[], offsetIndex: number, partLabel: string) {
     return (
       <div
-        className='grid grid-cols-2 gap-2 sm:grid-cols-3'
+        className='grid grid-cols-2 gap-3 sm:grid-cols-3'
         role='group'
         aria-label={slotGridAriaLabel(partLabel)}
       >
@@ -333,7 +350,7 @@ export function IntroCallSlotPicker({
               variant='selection'
               state={pressed ? 'active' : 'inactive'}
               aria-pressed={pressed}
-              className='rounded-md px-2 py-2 text-sm'
+              className='es-intro-call-slot-selection-btn rounded-md px-2 py-2 text-sm'
               onClick={() => {
                 setSelectedSlotIso(slot.startIso);
                 onSelect(slot);
@@ -361,7 +378,7 @@ export function IntroCallSlotPicker({
           presentation='group'
           ariaLabel={pickerContent.bookingSectionTitle}
           ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-          className='flex min-w-0 gap-2 pb-2'
+          className='flex min-w-0 gap-3 pb-2 pr-1'
         >
           {dayKeys.map((ymd, idx) => {
             const count = slotsByDay.get(ymd)?.length ?? 0;
@@ -372,7 +389,9 @@ export function IntroCallSlotPicker({
             if (!sample) {
               return null;
             }
-            const dayLabel = formatIntroCallDayButtonLabel(sample.startIso, locale);
+            const dayAccessibleLabel = formatIntroCallDayButtonAccessibleLabel(sample.startIso, locale);
+            const weekdayShort = formatIntroCallDayWeekdayShort(sample.startIso, locale);
+            const dateLine = formatIntroCallDayDateLine(sample.startIso, locale);
             const isSelected = ymd === resolvedDayYmd;
             return (
               <ButtonPrimitive
@@ -384,6 +403,7 @@ export function IntroCallSlotPicker({
                 variant='selection'
                 state={isSelected ? 'active' : 'inactive'}
                 aria-pressed={isSelected}
+                aria-label={dayAccessibleLabel}
                 tabIndex={safeRovingDayIndex === idx ? 0 : -1}
                 onClick={() => {
                   setCursorDayYmd(ymd);
@@ -391,9 +411,20 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] shrink-0 snap-center text-left text-sm font-semibold sm:w-[168px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] shrink-0 snap-center text-center sm:w-[168px]`}
               >
-                {dayLabel}
+                <div className='flex w-full flex-col items-center gap-2'>
+                  <div className='flex items-center justify-center gap-1.5'>
+                    <span
+                      className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                      aria-hidden='true'
+                    />
+                    <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
+                      {weekdayShort}
+                    </p>
+                  </div>
+                  <p className='text-center text-sm es-text-heading'>{dateLine}</p>
+                </div>
               </ButtonPrimitive>
             );
           })}
