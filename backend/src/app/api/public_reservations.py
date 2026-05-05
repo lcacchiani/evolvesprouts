@@ -772,6 +772,9 @@ def _handle_public_reservation(
                                 )
                             created_enrollment.discount_code_id = dc_row.id
                             session.flush()
+                        # Slot insert first: avoids writing a free payment row if the slot is taken.
+                        if is_intro_booking and intro_slot_bounds is not None:
+                            _persist_intro_call_slot_for_enrollment()
                         _pay, _, _dup_pi = record_reservation_customer_payment(
                             session,
                             enrollment_id=created_enrollment.id,
@@ -787,8 +790,6 @@ def _handle_public_reservation(
                         if _dup_pi and _pay is not None:
                             stripe_pi_idempotent_hit = True
                             stripe_pi_existing_payment_id = _pay.id
-                        if is_intro_booking and intro_slot_bounds is not None:
-                            _persist_intro_call_slot_for_enrollment()
 
                 lead_metadata: dict[str, object] = {
                     "payment_method": reservation_payload["payment_method"],
