@@ -411,7 +411,7 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] shrink-0 snap-center text-center sm:w-[168px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[112px] shrink-0 snap-center text-center sm:w-[134.4px]`}
               >
                 <div className='flex w-full flex-col items-center gap-2'>
                   <div className='flex items-center justify-center gap-1.5'>
