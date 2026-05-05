@@ -254,10 +254,14 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         (itemRect.left + itemRect.width / 2) -
         (containerRect.left + containerRect.width / 2);
 
-      container.scrollTo({
-        left: targetScrollLeft,
-        behavior,
-      });
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior,
+        });
+      } else {
+        container.scrollLeft = targetScrollLeft;
+      }
 
       if (typeof window !== 'undefined') {
         if (rafIdRef.current !== null) {

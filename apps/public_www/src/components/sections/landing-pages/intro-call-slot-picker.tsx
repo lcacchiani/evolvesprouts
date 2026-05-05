@@ -9,6 +9,9 @@ import {
   type KeyboardEvent,
 } from 'react';
 
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { EventsLoadingState } from '@/components/sections/shared/events-shared';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type {
   CommonAccessibilityContent,
   LandingPageIntroCallContent,
@@ -18,6 +21,7 @@ import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchIntroCallSlots,
 } from '@/lib/intro-call-slots-api';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
@@ -52,6 +56,23 @@ const SLOT_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   hour12: false,
 });
 
+const WALL_HOUR_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+  hour: 'numeric',
+  hourCycle: 'h23',
+});
+
+function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  const rotationClass = direction === 'left' ? 'rotate-180' : '';
+
+  return (
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
+    />
+  );
+}
+
 function ymdForSlot(slot: IntroCallSlot): string {
   const d = new Date(slot.startIso);
   return new Intl.DateTimeFormat('en-CA', {
@@ -60,6 +81,16 @@ function ymdForSlot(slot: IntroCallSlot): string {
     month: '2-digit',
     day: '2-digit',
   }).format(d);
+}
+
+function wallClockHourFromIso(iso: string): number {
+  const parts = WALL_HOUR_FORMATTER.formatToParts(new Date(iso));
+  const hourPart = parts.find((p) => p.type === 'hour');
+  return hourPart ? Number.parseInt(hourPart.value, 10) : 0;
+}
+
+function isMorningSlot(slot: IntroCallSlot): boolean {
+  return wallClockHourFromIso(slot.startIso) < 12;
 }
 
 export function IntroCallSlotPicker({
@@ -150,6 +181,19 @@ export function IntroCallSlotPicker({
     [slotsByDay],
   );
 
+  const {
+    carouselRef: dayCarouselRef,
+    hasNavigation: hasDayNavigation,
+    canScrollPrevious: canScrollDayLeft,
+    canScrollNext: canScrollDayRight,
+    scrollByDirection: scrollDayCarouselByDirection,
+    scrollItemIntoView,
+  } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: dayKeys.length,
+    minItemsForNavigation: 3,
+    loop: false,
+  });
+
   const resolvedDayYmd = useMemo(() => {
     if (dayKeys.length === 0) {
       return null;
@@ -165,7 +209,24 @@ export function IntroCallSlotPicker({
     [dayKeys.length, rovingDayIndex],
   );
 
-  const daySlots = resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : [];
+  useEffect(() => {
+    const el = dayRefs.current[safeRovingDayIndex];
+    scrollItemIntoView(el);
+  }, [resolvedDayYmd, safeRovingDayIndex, scrollItemIntoView]);
+
+  const daySlots = useMemo(
+    () => (resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : []),
+    [resolvedDayYmd, slotsByDay],
+  );
+  const morningSlots = useMemo(
+    () => daySlots.filter((s) => isMorningSlot(s)),
+    [daySlots],
+  );
+  const afternoonSlots = useMemo(
+    () => daySlots.filter((s) => !isMorningSlot(s)),
+    [daySlots],
+  );
+
   const whatsappUrl =
     whatsappHref?.trim()
     || resolvePublicSiteConfig().whatsappUrl?.trim()
@@ -211,9 +272,10 @@ export function IntroCallSlotPicker({
 
   if (status === 'loading' || status === 'idle') {
     return (
-      <p className='es-type-body' role='status'>
-        {commonAccessibility.loadingLabel ?? 'Loading…'}
-      </p>
+      <EventsLoadingState
+        label={pickerContent.loadingLabel}
+        testId='intro-call-slots-loading'
+      />
     );
   }
 
@@ -249,87 +311,147 @@ export function IntroCallSlotPicker({
     );
   }
 
-  return (
-    <div className='space-y-4'>
+  function renderSlotGrid(slotsChunk: IntroCallSlot[], offsetIndex: number, partLabel: string) {
+    return (
       <div
-        className='flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory'
+        className='grid grid-cols-2 gap-2 sm:grid-cols-3'
         role='group'
-        aria-label={pickerContent.bookingSectionTitle}
+        aria-label={`${partLabel}: ${pickerContent.bookingSectionTitle}`}
       >
-        {dayKeys.map((ymd, idx) => {
-          const count = slotsByDay.get(ymd)?.length ?? 0;
-          if (count === 0) {
-            return null;
-          }
-          const sample = slotsByDay.get(ymd)?.[0];
-          if (!sample) {
-            return null;
-          }
-          const d = new Date(sample.startIso);
-          const wd = DAY_STRIP_FORMATTER.format(d);
-          const dm = DAY_NUM_FORMATTER.format(d);
-          const isSelected = ymd === resolvedDayYmd;
+        {slotsChunk.map((slot, sidx) => {
+          const start = new Date(slot.startIso);
+          const label = SLOT_TIME_FORMATTER.format(start);
+          const pressed = selectedSlotIso === slot.startIso;
+          const globalIdx = offsetIndex + sidx;
           return (
-            <button
-              key={ymd}
+            <ButtonPrimitive
+              key={slot.startIso}
               type='button'
-              ref={(el) => {
-                dayRefs.current[idx] = el;
+              buttonRef={(el) => {
+                slotRefs.current[globalIdx] = el;
               }}
-              tabIndex={safeRovingDayIndex === idx ? 0 : -1}
-              aria-pressed={isSelected}
+              variant='selection'
+              state={pressed ? 'active' : 'inactive'}
+              aria-pressed={pressed}
+              className='rounded-md px-2 py-2 text-sm'
               onClick={() => {
-                setCursorDayYmd(ymd);
-                setRovingDayIndex(idx);
-                setSelectedSlotIso(null);
+                setSelectedSlotIso(slot.startIso);
+                onSelect(slot);
+                trackAnalyticsEvent('intro_call_slot_selected', {
+                  sectionId: 'intro-call-booking',
+                  ctaLocation: 'intro_call_slot_picker',
+                  params: { slot_start: slot.startIso },
+                });
               }}
-              onKeyDown={(e) => handleDayKeyDown(e, idx)}
-              className={`snap-start shrink-0 rounded-lg border px-3 py-2 text-left text-sm ${
-                isSelected ? 'border-brand bg-brand/5' : 'border-slate-200 bg-white'
-              }`}
             >
-              <div className='font-semibold'>{wd}</div>
-              <div className='text-slate-600'>{dm}</div>
-            </button>
+              {label}
+            </ButtonPrimitive>
           );
         })}
       </div>
+    );
+  }
 
-      {resolvedDayYmd && daySlots.length > 0 ? (
-        <div
-          className='grid grid-cols-2 gap-2 sm:grid-cols-3'
-          role='group'
-          aria-label={pickerContent.bookingSectionTitle}
+  return (
+    <div className='space-y-4'>
+      <div className='relative w-full min-w-0 overflow-visible'>
+        <CarouselTrack
+          carouselRef={dayCarouselRef}
+          testId='intro-call-day-carousel'
+          ariaLabel={pickerContent.bookingSectionTitle}
+          ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+          className='flex min-w-0 gap-2 pb-2'
         >
-          {daySlots.map((slot, sidx) => {
-            const start = new Date(slot.startIso);
-            const label = SLOT_TIME_FORMATTER.format(start);
-            const pressed = selectedSlotIso === slot.startIso;
+          {dayKeys.map((ymd, idx) => {
+            const count = slotsByDay.get(ymd)?.length ?? 0;
+            if (count === 0) {
+              return null;
+            }
+            const sample = slotsByDay.get(ymd)?.[0];
+            if (!sample) {
+              return null;
+            }
+            const d = new Date(sample.startIso);
+            const wd = DAY_STRIP_FORMATTER.format(d);
+            const dm = DAY_NUM_FORMATTER.format(d);
+            const isSelected = ymd === resolvedDayYmd;
             return (
-              <button
-                key={slot.startIso}
+              <ButtonPrimitive
+                key={ymd}
                 type='button'
-                ref={(el) => {
-                  slotRefs.current[sidx] = el;
+                buttonRef={(el) => {
+                  dayRefs.current[idx] = el;
                 }}
-                aria-pressed={pressed}
-                className={`rounded-md border px-2 py-2 text-sm ${
-                  pressed ? 'border-brand bg-brand/5' : 'border-slate-200 bg-white'
-                }`}
+                variant='selection'
+                state={isSelected ? 'active' : 'inactive'}
+                aria-pressed={isSelected}
+                tabIndex={safeRovingDayIndex === idx ? 0 : -1}
                 onClick={() => {
-                  setSelectedSlotIso(slot.startIso);
-                  onSelect(slot);
-                  trackAnalyticsEvent('intro_call_slot_selected', {
-                    sectionId: 'intro-call-booking',
-                    ctaLocation: 'intro_call_slot_picker',
-                    params: { slot_start: slot.startIso },
-                  });
+                  setCursorDayYmd(ymd);
+                  setRovingDayIndex(idx);
+                  setSelectedSlotIso(null);
                 }}
+                onKeyDown={(e) => handleDayKeyDown(e, idx)}
+                className='w-[140px] shrink-0 snap-center text-left text-sm sm:w-[168px]'
               >
-                {label}
-              </button>
+                <div className='font-semibold'>{wd}</div>
+                <div className='text-slate-600'>{dm}</div>
+              </ButtonPrimitive>
             );
           })}
+        </CarouselTrack>
+
+        {hasDayNavigation && canScrollDayLeft ? (
+          <ButtonPrimitive
+            variant='control'
+            type='button'
+            onClick={() => {
+              scrollDayCarouselByDirection('prev');
+            }}
+            aria-label={pickerContent.scrollDatesLeftAriaLabel}
+            className='absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 md:flex'
+          >
+            <DateArrowIcon direction='left' />
+          </ButtonPrimitive>
+        ) : null}
+
+        {hasDayNavigation && canScrollDayRight ? (
+          <ButtonPrimitive
+            variant='control'
+            type='button'
+            onClick={() => {
+              scrollDayCarouselByDirection('next');
+            }}
+            aria-label={pickerContent.scrollDatesRightAriaLabel}
+            className='absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 md:flex'
+          >
+            <DateArrowIcon direction='right' />
+          </ButtonPrimitive>
+        ) : null}
+      </div>
+
+      {resolvedDayYmd && daySlots.length > 0 ? (
+        <div className='space-y-4'>
+          {morningSlots.length > 0 ? (
+            <div className='space-y-2'>
+              <p className='text-sm font-semibold es-text-heading'>
+                {pickerContent.morningSectionLabel}
+              </p>
+              {renderSlotGrid(morningSlots, 0, pickerContent.morningSectionLabel)}
+            </div>
+          ) : null}
+          {afternoonSlots.length > 0 ? (
+            <div className='space-y-2'>
+              <p className='text-sm font-semibold es-text-heading'>
+                {pickerContent.afternoonSectionLabel}
+              </p>
+              {renderSlotGrid(
+                afternoonSlots,
+                morningSlots.length,
+                pickerContent.afternoonSectionLabel,
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

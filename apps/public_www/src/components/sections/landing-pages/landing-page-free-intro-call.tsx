@@ -458,7 +458,7 @@ export function LandingPageFreeIntroCall({
       id='intro-call-booking'
       ariaLabel={introContent.bookingSectionTitle}
       dataFigmaNode='intro-call-booking'
-      className='es-bg-surface-muted'
+      className='es-book-a-free-call-booking-section'
     >
       <SectionContainer className='py-12 lg:py-16'>
         <SectionHeader

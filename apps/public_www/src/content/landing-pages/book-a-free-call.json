@@ -101,7 +101,12 @@
       "topicsFieldLabel": "Anything you want me to know before our call?",
       "topicsFieldPlaceholder": "Optional — share context that will help us make the most of 15 minutes.",
       "submitLabel": "Book my free call",
-      "phoneFieldLabel": "Phone number (optional)"
+      "phoneFieldLabel": "Phone number (optional)",
+      "loadingLabel": "Loading available times…",
+      "scrollDatesLeftAriaLabel": "Scroll dates left",
+      "scrollDatesRightAriaLabel": "Scroll dates right",
+      "morningSectionLabel": "Morning",
+      "afternoonSectionLabel": "Afternoon"
     }
   },
   "zh-CN": {
@@ -206,7 +211,12 @@
       "topicsFieldLabel": "在通话前您想让我了解的内容？",
       "topicsFieldPlaceholder": "选填 — 分享有助于充分利用 15 分钟的背景信息。",
       "submitLabel": "预约免费通话",
-      "phoneFieldLabel": "电话号码（可选）"
+      "phoneFieldLabel": "电话号码（可选）",
+      "loadingLabel": "正在加载可预约时间…",
+      "scrollDatesLeftAriaLabel": "向左滚动日期",
+      "scrollDatesRightAriaLabel": "向右滚动日期",
+      "morningSectionLabel": "上午",
+      "afternoonSectionLabel": "下午"
     }
   },
   "zh-HK": {
@@ -311,7 +321,12 @@
       "topicsFieldLabel": "通話前想我知嘅嘢？",
       "topicsFieldPlaceholder": "選填 — 分享有助用盡 15 分鐘嘅背景。",
       "submitLabel": "預約免費通話",
-      "phoneFieldLabel": "電話號碼（選填）"
+      "phoneFieldLabel": "電話號碼（選填）",
+      "loadingLabel": "正在載入可預約時間…",
+      "scrollDatesLeftAriaLabel": "向左捲動日期",
+      "scrollDatesRightAriaLabel": "向右捲動日期",
+      "morningSectionLabel": "上午",
+      "afternoonSectionLabel": "下午"
     }
   }
 }

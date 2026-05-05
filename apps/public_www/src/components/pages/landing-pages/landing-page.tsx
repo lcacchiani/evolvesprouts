@@ -87,6 +87,7 @@ export function LandingPage({
             <LandingPageDetails
               content={pageContent.details}
               ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+              sectionClassName='es-section-bg-overlay es-book-a-free-call-good-to-know-section'
             />
             {introCallSectionBeforeCta}
             <LandingPageDescription

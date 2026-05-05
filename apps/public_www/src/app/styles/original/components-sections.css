@@ -24,6 +24,7 @@
   .es-contact-faq-section,
   .es-my-journey-section,
   .es-testimonials-section,
+  .es-book-a-free-call-good-to-know-section,
   .es-faq-section,
   .es-free-guides-and-resources-hero-section,
   .es-free-resources-section,
@@ -46,6 +47,7 @@
   .es-contact-faq-section,
   .es-my-journey-section,
   .es-testimonials-section,
+  .es-book-a-free-call-good-to-know-section,
   .es-faq-section,
   .es-free-guides-and-resources-hero-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
@@ -1133,8 +1135,17 @@
     color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-my-best-auntie-booking-section {
+  .es-my-best-auntie-booking-section,
+  .es-book-a-free-call-booking-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    scroll-margin-top: 7rem;
+  }
+
+  @media (min-width: 1024px) {
+    .es-my-best-auntie-booking-section,
+    .es-book-a-free-call-booking-section {
+      scroll-margin-top: 7.5rem;
+    }
   }
 
   #consultations-booking .es-btn--selection.es-btn--state-active {

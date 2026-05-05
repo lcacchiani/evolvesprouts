@@ -1,4 +1,7 @@
-"""15-minute intro-call slot generation and availability (Asia/Hong_Kong office hours)."""
+"""Intro-call slot generation and availability (Asia/Hong_Kong office hours).
+
+Candidate starts use a 30-minute cadence; each bookable interval is 15 minutes long.
+"""
 
 from __future__ import annotations
 
@@ -37,7 +40,8 @@ _INTRO_CALL_WALL_TIMEZONE_DEFAULT = "Asia/Hong_Kong"
 _INTRO_CALL_OPEN_HOUR = 9
 _INTRO_CALL_CLOSE_HOUR = 18
 _INTRO_CALL_OPEN_DAYS: frozenset[int] = frozenset({0, 1, 2, 3, 4})
-_INTRO_CALL_SLOT_MINUTES = 15
+_INTRO_CALL_SLOT_STEP_MINUTES = 30
+_INTRO_CALL_SLOT_DURATION_MINUTES = 15
 _INTRO_CALL_LEAD_HOURS = 2
 _INTRO_CALL_HORIZON_DAYS = 21
 _INTRO_CALL_PURPOSE = "intro_call_booking"
@@ -66,7 +70,11 @@ def intro_call_window(*, now: datetime) -> tuple[date, date]:
 
 
 def _slot_step() -> timedelta:
-    return timedelta(minutes=_INTRO_CALL_SLOT_MINUTES)
+    return timedelta(minutes=_INTRO_CALL_SLOT_STEP_MINUTES)
+
+
+def _slot_duration() -> timedelta:
+    return timedelta(minutes=_INTRO_CALL_SLOT_DURATION_MINUTES)
 
 
 def _lead_delta() -> timedelta:
@@ -79,11 +87,12 @@ def enumerate_intro_call_candidate_slots(
     *,
     now: datetime,
 ) -> list[tuple[datetime, datetime]]:
-    """Enumerate UTC instants for each 15-minute candidate in the weekly template."""
+    """Enumerate UTC instants for each candidate start in the weekly template."""
     zone = ZoneInfo(resolve_intro_call_wall_timezone())
     now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
     earliest_start = now_u + _lead_delta()
     step = _slot_step()
+    duration = _slot_duration()
     out: list[tuple[datetime, datetime]] = []
     cur = from_date
     while cur <= to_date:
@@ -97,13 +106,13 @@ def enumerate_intro_call_candidate_slots(
         )
         last_start = datetime.combine(
             cur,
-            time(hour=_INTRO_CALL_CLOSE_HOUR - 1, minute=45),
+            time(hour=_INTRO_CALL_CLOSE_HOUR - 1, minute=30),
             tzinfo=zone,
         )
         t = day_start
         while t <= last_start:
             start_utc = t.astimezone(UTC)
-            end_utc = (t + step).astimezone(UTC)
+            end_utc = (t + duration).astimezone(UTC)
             if end_utc > now_u and start_utc >= earliest_start:
                 out.append((start_utc, end_utc))
             t += step

@@ -11,14 +11,14 @@ from app.services.intro_call_slots import (
 )
 
 
-def test_enumerate_weekday_only_and_quarter_hour_grid() -> None:
+def test_enumerate_weekday_only_and_half_hour_grid() -> None:
     # Monday 2026-05-04 HKT; anchor ``now`` on the prior weekend so the 2h lead
     # does not clip the first 09:00 slot.
     now = datetime(2026, 5, 3, 0, 0, tzinfo=UTC)
     slots = enumerate_intro_call_candidate_slots(
         date(2026, 5, 4), date(2026, 5, 4), now=now
     )
-    assert len(slots) == 36
+    assert len(slots) == 18
     for s0, s1 in slots:
         assert (s1 - s0).total_seconds() == 15 * 60
     assert slots[0][0].hour in (0, 1)  # 09:00 HKT -> UTC

@@ -56,6 +56,20 @@ describe('LandingPageDetails section', () => {
     );
   });
 
+  it('applies sectionClassName on SectionShell when provided', () => {
+    render(
+      <LandingPageDetails
+        content={easterWorkshopContent.en.details}
+        sectionClassName='es-section-bg-overlay es-book-a-free-call-good-to-know-section'
+      />,
+    );
+
+    const section = document.getElementById('landing-page-details');
+    expect(section).not.toBeNull();
+    expect(section).toHaveClass('es-book-a-free-call-good-to-know-section');
+    expect(section).not.toHaveClass('es-landing-page-details-section');
+  });
+
   it('renders shared CTA action at the bottom when calendar context is provided', () => {
     const sharedCtaProps = buildLandingPageSharedCtaPropsFromCalendar(
       'en',

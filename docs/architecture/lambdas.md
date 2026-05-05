@@ -40,8 +40,9 @@ their primary responsibilities.
   `/www/v1/calendar/blockers`; `purpose=consultation_booking` uses `Cache-Control: no-store`
   on success so admin-driven blockers are not edge-cached; other allowed purposes use the same cache headers
   as `GET /v1/calendar/public`),
-  `/v1/calendar/intro-call-slots` (GET; 15-minute free intro-call availability in UTC ISO instants;
-  same contract as `/www/v1/calendar/intro-call-slots`; no PII),
+  `/v1/calendar/intro-call-slots` (GET; free intro-call availability as UTC ISO instants;
+  15-minute call duration with 30-minute-aligned start times; same contract as
+  `/www/v1/calendar/intro-call-slots`; no PII),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,

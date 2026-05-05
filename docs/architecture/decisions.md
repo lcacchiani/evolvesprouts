@@ -607,6 +607,13 @@ runtime, the client cannot call the API and treats the outcome as a fetch failur
 enrollment is not serialised against the calendar blocker rows. Mitigations are short
 TTL on any cacheable reads and `no-store` for the consultation purpose.
 
+## Intro-call public slot cadence
+
+**Decision:** Free intro-call candidate starts advance on a **30-minute** wall-clock grid
+(Mon–Fri 09:00–17:30 `Asia/Hong_Kong` by default); each offered interval remains **15 minutes**
+long (`end = start + 15m`) so copy and the `intro-call-free-15min` instance slug stay aligned
+with call length while halving the number of start times versus a 15-minute grid.
+
 **CloudFront path allowlist:** The viewer function matches the path segment **exactly**
 (e.g. `/www/v1/calendar/blockers`); trailing slash variants are not allowlisted.
 
