@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import { LandingPageCta } from '@/components/sections/landing-pages/landing-page-cta';
 import type {
   LandingPagesCommonContent,
-  LandingPageLocaleContent,
+  LandingPageCtaContent,
   Locale,
 } from '@/content';
 import { resolveLandingPageCtaEyebrow } from '@/lib/landing-page-cta-resolve';
@@ -14,7 +14,7 @@ import { LandingPageCalendarContext } from '@/lib/landing-page-calendar-context'
 interface LandingPageCtaBridgeProps {
   locale: Locale;
   slug: string;
-  content: LandingPageLocaleContent['cta'];
+  content: LandingPageCtaContent;
   commonContent: LandingPagesCommonContent;
   ariaLabel?: string;
 }
