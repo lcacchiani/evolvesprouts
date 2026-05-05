@@ -100,7 +100,7 @@ export interface LandingPageLocaleContent {
     ctaAnchorHref?: string;
     ctaAnchorLabel?: string;
   };
-  outline: {
+  outline?: {
     eyebrow?: string;
     title: string;
     description: string;
@@ -132,7 +132,7 @@ export interface LandingPageLocaleContent {
       answer: string;
     }>;
   };
-  cta: {
+  cta?: {
     eyebrow?: string;
     eyebrowShowLogo?: boolean;
     title: string;
@@ -167,6 +167,23 @@ export interface LandingPageLocaleContent {
     loadErrorMessage?: string;
   };
 }
+
+export type LandingPageCtaContent = NonNullable<LandingPageLocaleContent['cta']>;
+
+export type LandingPageOutlineContent = NonNullable<
+  LandingPageLocaleContent['outline']
+>;
+
+/**
+ * Minimal CTA fields for calendar context + hero fallbacks when a landing page
+ * omits `cta` in JSON (e.g. book-a-free-call uses hero anchor CTAs only).
+ */
+export const MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR: LandingPageCtaContent = {
+  eyebrow: '',
+  title: '',
+  description: '',
+  buttonLabel: '',
+};
 
 /** Intro-call booking block; present only on landing pages that embed the picker (e.g. book-a-free-call). */
 export type LandingPageIntroCallContent = NonNullable<

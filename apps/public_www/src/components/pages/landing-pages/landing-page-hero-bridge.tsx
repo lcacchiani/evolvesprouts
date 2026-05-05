@@ -6,6 +6,7 @@ import { LandingPageHero } from '@/components/sections/landing-pages/landing-pag
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
+  LandingPageCtaContent,
   LandingPageLocaleContent,
   Locale,
 } from '@/content';
@@ -14,7 +15,7 @@ import { LandingPageCalendarContext } from '@/lib/landing-page-calendar-context'
 interface LandingPageHeroBridgeProps {
   slug: string;
   content: LandingPageLocaleContent['hero'];
-  ctaContent: LandingPageLocaleContent['cta'];
+  ctaContent: LandingPageCtaContent;
   commonContent: LandingPagesCommonContent;
   locale: Locale;
   metaTitle: string;

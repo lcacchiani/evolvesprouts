@@ -406,7 +406,7 @@ function resolveBookingTopicsFieldFromLandingPage(
   }
 
   const pageLocale = getLandingPageContent(landingPageSlug, locale);
-  const field = pageLocale?.cta.bookingTopicsField;
+  const field = pageLocale?.cta?.bookingTopicsField;
   if (!field) {
     return undefined;
   }

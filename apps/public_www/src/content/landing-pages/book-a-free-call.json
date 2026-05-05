@@ -17,12 +17,6 @@
       "ctaAnchorHref": "#intro-call-booking",
       "ctaAnchorLabel": "Pick a time"
     },
-    "outline": {
-      "eyebrow": "What you'll get",
-      "title": "A real conversation — in just 15 minutes",
-      "description": "This call is for parents who want clarity before committing to anything longer.\n\nYou'll get focused time with Ida, a clear sense of how Evolve Sprouts works, and honest guidance on next steps — whether or not you decide to continue.",
-      "highlightPhrase": "Evolve Sprouts"
-    },
     "description": {
       "eyebrow": "How it works",
       "title": "What this call is (and isn't)",
@@ -93,14 +87,6 @@
         }
       ]
     },
-    "cta": {
-      "eyebrow": "Ready when you are",
-      "title": "Pick a time below",
-      "description": "Choose a slot, add your details, and we will send a confirmation email with your call time.",
-      "buttonLabel": "Scroll to booking",
-      "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "Scroll to booking"
-    },
     "introCall": {
       "bookingSectionTitle": "Pick a time that works for you",
       "emptySlotsMessage": "No times available in this window — please reach out on WhatsApp.",
@@ -135,12 +121,6 @@
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
       "ctaAnchorLabel": "选择时间"
-    },
-    "outline": {
-      "eyebrow": "您将获得",
-      "title": "真实对话——只需 15 分钟",
-      "description": "这通电话适合希望在投入更长时间前先厘清方向的家长。\n\n您将与 Ida 专注交流，了解 Evolve Sprouts 的运作方式，并获得诚实的下一步建议——无论您是否继续。",
-      "highlightPhrase": "Evolve Sprouts"
     },
     "description": {
       "eyebrow": "流程说明",
@@ -212,14 +192,6 @@
         }
       ]
     },
-    "cta": {
-      "eyebrow": "准备好就开始",
-      "title": "在下方选择时间",
-      "description": "选择时段、填写资料后，您将收到含通话时间的确认邮件。",
-      "buttonLabel": "前往预约",
-      "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "前往预约"
-    },
     "introCall": {
       "bookingSectionTitle": "选择适合您的时间",
       "emptySlotsMessage": "该时段暂无可预约时间 — 请通过 WhatsApp 联系我们。",
@@ -254,12 +226,6 @@
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
       "ctaAnchorLabel": "揀時間"
-    },
-    "outline": {
-      "eyebrow": "你會得到",
-      "title": "真實對話——只需 15 分鐘",
-      "description": "呢通電話適合想喺投入更長時間前先釐清方向嘅家長。\n\n你會同 Ida 專注傾偈，了解 Evolve Sprouts 點運作，並獲得誠實嘅下一步建議——無論你之後繼唔繼續。",
-      "highlightPhrase": "Evolve Sprouts"
     },
     "description": {
       "eyebrow": "流程說明",
@@ -330,14 +296,6 @@
           "answer": "英文同粵語都得——揀你最舒服嘅就得。"
         }
       ]
-    },
-    "cta": {
-      "eyebrow": "準備好就開始",
-      "title": "喺下面揀時間",
-      "description": "揀時段、填資料之後，你會收到有通話時間嘅確認電郵。",
-      "buttonLabel": "去預約",
-      "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "去預約"
     },
     "introCall": {
       "bookingSectionTitle": "揀個啱你嘅時間",

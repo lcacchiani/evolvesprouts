@@ -3,10 +3,10 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { LandingPageInlineCalendarCta } from '@/components/sections/landing-pages/shared/landing-page-inline-calendar-cta';
-import type { LandingPageLocaleContent } from '@/content';
+import type { LandingPageOutlineContent } from '@/content';
 
 interface LandingPageOutlineProps {
-  content: LandingPageLocaleContent['outline'];
+  content: LandingPageOutlineContent;
   ariaLabel?: string;
 }
 
