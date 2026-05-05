@@ -13,8 +13,8 @@ import {
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
-import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 import { SmartLink } from '@/components/shared/smart-link';
+import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
 import type { EventsContent } from '@/content';
 import {
   createPublicCrmApiClient,
@@ -28,11 +28,6 @@ import {
 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
-
-interface EventsLoadingStateProps {
-  label: string;
-  testId: string;
-}
 
 interface EventCardsListProps {
   content: EventsContent;
@@ -139,20 +134,8 @@ export function EventsDataProvider({
   );
 }
 
-export function EventsLoadingState({ label, testId }: EventsLoadingStateProps) {
-  return (
-    <div className='flex flex-col items-center gap-3 py-6 text-center sm:py-8'>
-      <span
-        role='status'
-        aria-label={label}
-        className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-loading-gear-bubble'
-      >
-        <LoadingGearIcon className='h-7 w-7 animate-spin' testId={testId} />
-      </span>
-      <p className='es-events-card-body'>{label}</p>
-    </div>
-  );
-}
+/** @deprecated Prefer `SectionSpinnerStatus` from `@/components/shared/section-spinner-status`. */
+export const EventsLoadingState = SectionSpinnerStatus;
 
 export function EventCardsList({
   content,

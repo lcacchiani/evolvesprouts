@@ -12,38 +12,9 @@ vi.mock('@/lib/intro-call-slots-api', () => ({
 
 const { fetchIntroCallSlots } = await import('@/lib/intro-call-slots-api');
 
-const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
-const originalMatchMedia = window.matchMedia;
-
-function mockViewportMdUp(matches: boolean): void {
-  Object.defineProperty(window, 'matchMedia', {
-    configurable: true,
-    writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
-      matches: query === MD_UP_MEDIA_QUERY ? matches : false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
-}
-
 afterEach(() => {
   vi.mocked(fetchIntroCallSlots).mockReset();
   vi.unstubAllGlobals();
-  if (originalMatchMedia) {
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      writable: true,
-      value: originalMatchMedia,
-    });
-  } else {
-    Reflect.deleteProperty(window, 'matchMedia');
-  }
 });
 
 describe('IntroCallSlotPicker', () => {
@@ -65,6 +36,7 @@ describe('IntroCallSlotPicker', () => {
 
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={vi.fn()}
@@ -87,6 +59,7 @@ describe('IntroCallSlotPicker', () => {
 
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={onSelect}
@@ -102,7 +75,7 @@ describe('IntroCallSlotPicker', () => {
     });
   });
 
-  it('toggles aria-pressed on day and time selection without icon masks in buttons', async () => {
+  it('toggles aria-pressed on day and time selection without icon masks in selection buttons', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
         { startIso: '2026-05-05T01:00:00.000Z', endIso: '2026-05-05T01:15:00.000Z' },
@@ -113,6 +86,7 @@ describe('IntroCallSlotPicker', () => {
 
     const { container } = render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={vi.fn()}
@@ -151,6 +125,41 @@ describe('IntroCallSlotPicker', () => {
     });
   });
 
+  it('moves roving tabindex with ArrowRight on the day strip', async () => {
+    vi.mocked(fetchIntroCallSlots).mockResolvedValue({
+      slots: [
+        { startIso: '2026-05-05T01:00:00.000Z', endIso: '2026-05-05T01:15:00.000Z' },
+        { startIso: '2026-05-06T01:00:00.000Z', endIso: '2026-05-06T01:15:00.000Z' },
+      ],
+      fetchFailed: false,
+    });
+
+    render(
+      <IntroCallSlotPicker
+        locale='en'
+        commonAccessibility={enContent.common.accessibility}
+        pickerContent={bookAFreeCall.en.introCall}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    const tueButton = await screen.findByRole('button', { name: /Tue/i });
+    expect(tueButton).toHaveAttribute('tabIndex', '0');
+    expect(tueButton).toHaveAttribute('aria-pressed', 'true');
+
+    const wedButton = screen.getByRole('button', { name: /Wed/i });
+    expect(wedButton).toHaveAttribute('tabIndex', '-1');
+
+    fireEvent.keyDown(tueButton, { key: 'ArrowRight' });
+
+    await waitFor(() => {
+      expect(wedButton).toHaveAttribute('aria-pressed', 'true');
+    });
+    expect(wedButton).toHaveAttribute('tabIndex', '0');
+    expect(tueButton).toHaveAttribute('tabIndex', '-1');
+    expect(wedButton).toHaveFocus();
+  });
+
   it('does not render date carousel arrows when fewer than three days have slots', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
@@ -160,10 +169,9 @@ describe('IntroCallSlotPicker', () => {
       fetchFailed: false,
     });
 
-    mockViewportMdUp(true);
-
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={vi.fn()}
@@ -182,7 +190,7 @@ describe('IntroCallSlotPicker', () => {
     ).toBeNull();
   });
 
-  it('renders date carousel arrows with localized labels when enough days and md viewport', async () => {
+  it('renders date carousel arrows with localized labels when enough days and overflow', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
         { startIso: '2026-05-04T01:00:00.000Z', endIso: '2026-05-04T01:15:00.000Z' },
@@ -193,10 +201,9 @@ describe('IntroCallSlotPicker', () => {
       fetchFailed: false,
     });
 
-    mockViewportMdUp(true);
-
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={vi.fn()}
@@ -238,6 +245,7 @@ describe('IntroCallSlotPicker', () => {
 
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={bookAFreeCall.en.introCall}
         onSelect={vi.fn()}
@@ -250,12 +258,12 @@ describe('IntroCallSlotPicker', () => {
     expect(screen.getByText(bookAFreeCall.en.introCall.afternoonSectionLabel)).toBeInTheDocument();
 
     const morningGroup = screen.getByRole('group', {
-      name: `Morning: ${bookAFreeCall.en.introCall.bookingSectionTitle}`,
+      name: `Morning · ${bookAFreeCall.en.introCall.bookingSectionTitle}`,
     });
     expect(within(morningGroup).getByRole('button', { name: '09:00' })).toBeInTheDocument();
 
     const afternoonGroup = screen.getByRole('group', {
-      name: `Afternoon: ${bookAFreeCall.en.introCall.bookingSectionTitle}`,
+      name: `Afternoon · ${bookAFreeCall.en.introCall.bookingSectionTitle}`,
     });
     expect(within(afternoonGroup).getByRole('button', { name: '14:30' })).toBeInTheDocument();
   });
@@ -269,6 +277,7 @@ describe('IntroCallSlotPicker', () => {
 
     render(
       <IntroCallSlotPicker
+        locale='en'
         commonAccessibility={enContent.common.accessibility}
         pickerContent={{
           ...bookAFreeCall.en.introCall,

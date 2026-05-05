@@ -106,7 +106,8 @@
       "scrollDatesLeftAriaLabel": "Scroll dates left",
       "scrollDatesRightAriaLabel": "Scroll dates right",
       "morningSectionLabel": "Morning",
-      "afternoonSectionLabel": "Afternoon"
+      "afternoonSectionLabel": "Afternoon",
+      "slotGroupAriaLabelTemplate": "{period} · {section}"
     }
   },
   "zh-CN": {
@@ -215,8 +216,9 @@
       "loadingLabel": "正在加载可预约时间…",
       "scrollDatesLeftAriaLabel": "向左滚动日期",
       "scrollDatesRightAriaLabel": "向右滚动日期",
-      "morningSectionLabel": "上午",
-      "afternoonSectionLabel": "下午"
+      "morningSectionLabel": "早上",
+      "afternoonSectionLabel": "下午",
+      "slotGroupAriaLabelTemplate": "{period} · {section}"
     }
   },
   "zh-HK": {
@@ -325,8 +327,9 @@
       "loadingLabel": "正在載入可預約時間…",
       "scrollDatesLeftAriaLabel": "向左捲動日期",
       "scrollDatesRightAriaLabel": "向右捲動日期",
-      "morningSectionLabel": "上午",
-      "afternoonSectionLabel": "下午"
+      "morningSectionLabel": "朝早",
+      "afternoonSectionLabel": "下午",
+      "slotGroupAriaLabelTemplate": "{period} · {section}"
     }
   }
 }

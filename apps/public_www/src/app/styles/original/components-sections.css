@@ -1138,14 +1138,7 @@
   .es-my-best-auntie-booking-section,
   .es-book-a-free-call-booking-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    scroll-margin-top: 7rem;
-  }
-
-  @media (min-width: 1024px) {
-    .es-my-best-auntie-booking-section,
-    .es-book-a-free-call-booking-section {
-      scroll-margin-top: 7.5rem;
-    }
+    scroll-margin-top: var(--es-public-navbar-scroll-margin, 7rem);
   }
 
   #consultations-booking .es-btn--selection.es-btn--state-active {

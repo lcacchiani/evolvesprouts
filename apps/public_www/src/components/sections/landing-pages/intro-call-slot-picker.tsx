@@ -9,24 +9,32 @@ import {
   type KeyboardEvent,
 } from 'react';
 
+import { BOOKING_SELECTOR_CARD_CLASSNAME } from '@/components/sections/shared/booking-selector-layout';
+import { CarouselHorizontalArrowControls } from '@/components/sections/shared/carousel-horizontal-arrow-controls';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
-import { EventsLoadingState } from '@/components/sections/shared/events-shared';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
 import type {
   CommonAccessibilityContent,
   LandingPageIntroCallContent,
+  Locale,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import type { IntroCallSlot } from '@/lib/intro-call-slots-api';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchIntroCallSlots,
 } from '@/lib/intro-call-slots-api';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
-import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
+import {
+  formatPartDateTimeLabel,
+  PUBLIC_SITE_IANA_TIMEZONE,
+} from '@/lib/site-datetime';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 export interface IntroCallSlotPickerProps {
+  locale: Locale;
   commonAccessibility: CommonAccessibilityContent;
   pickerContent: LandingPageIntroCallContent;
   /** Same WhatsApp URL as the booking section (falls back to site config when unset). */
@@ -49,29 +57,11 @@ const DAY_NUM_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   month: 'short',
 });
 
-const SLOT_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
 const WALL_HOUR_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   timeZone: PUBLIC_SITE_IANA_TIMEZONE,
   hour: 'numeric',
   hourCycle: 'h23',
 });
-
-function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <span
-      aria-hidden
-      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
-    />
-  );
-}
 
 function ymdForSlot(slot: IntroCallSlot): string {
   const d = new Date(slot.startIso);
@@ -94,6 +84,7 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
 }
 
 export function IntroCallSlotPicker({
+  locale,
   commonAccessibility,
   pickerContent,
   whatsappHref,
@@ -109,6 +100,17 @@ export function IntroCallSlotPicker({
   const [rovingDayIndex, setRovingDayIndex] = useState(0);
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const slotTimeFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale === 'en' ? 'en-HK' : locale, {
+        timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+    [locale],
+  );
 
   const setStatusBoth = useCallback(
     (next: FetchStatus) => {
@@ -240,19 +242,8 @@ export function IntroCallSlotPicker({
     if (!slot) {
       return '';
     }
-    const start = new Date(slot.startIso);
-    const label = new Intl.DateTimeFormat(undefined, {
-      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).format(start);
-    return label;
-  }, [selectedSlotIso, slots]);
+    return formatPartDateTimeLabel(slot.startIso, locale);
+  }, [locale, selectedSlotIso, slots]);
 
   const handleDayKeyDown = (event: KeyboardEvent, index: number) => {
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
@@ -272,7 +263,7 @@ export function IntroCallSlotPicker({
 
   if (status === 'loading' || status === 'idle') {
     return (
-      <EventsLoadingState
+      <SectionSpinnerStatus
         label={pickerContent.loadingLabel}
         testId='intro-call-slots-loading'
       />
@@ -311,16 +302,23 @@ export function IntroCallSlotPicker({
     );
   }
 
+  function slotGridAriaLabel(periodLabel: string): string {
+    return formatContentTemplate(pickerContent.slotGroupAriaLabelTemplate, {
+      period: periodLabel,
+      section: pickerContent.bookingSectionTitle,
+    });
+  }
+
   function renderSlotGrid(slotsChunk: IntroCallSlot[], offsetIndex: number, partLabel: string) {
     return (
       <div
         className='grid grid-cols-2 gap-2 sm:grid-cols-3'
         role='group'
-        aria-label={`${partLabel}: ${pickerContent.bookingSectionTitle}`}
+        aria-label={slotGridAriaLabel(partLabel)}
       >
         {slotsChunk.map((slot, sidx) => {
           const start = new Date(slot.startIso);
-          const label = SLOT_TIME_FORMATTER.format(start);
+          const label = slotTimeFormatter.format(start);
           const pressed = selectedSlotIso === slot.startIso;
           const globalIdx = offsetIndex + sidx;
           return (
@@ -354,7 +352,18 @@ export function IntroCallSlotPicker({
 
   return (
     <div className='space-y-4'>
-      <div className='relative w-full min-w-0 overflow-visible'>
+      <CarouselHorizontalArrowControls
+        showPrevious={Boolean(hasDayNavigation && canScrollDayLeft)}
+        showNext={Boolean(hasDayNavigation && canScrollDayRight)}
+        onPrevious={() => {
+          scrollDayCarouselByDirection('prev');
+        }}
+        onNext={() => {
+          scrollDayCarouselByDirection('next');
+        }}
+        previousAriaLabel={pickerContent.scrollDatesLeftAriaLabel}
+        nextAriaLabel={pickerContent.scrollDatesRightAriaLabel}
+      >
         <CarouselTrack
           carouselRef={dayCarouselRef}
           testId='intro-call-day-carousel'
@@ -392,43 +401,15 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className='w-[140px] shrink-0 snap-center text-left text-sm sm:w-[168px]'
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] shrink-0 snap-center text-left text-sm sm:w-[168px]`}
               >
                 <div className='font-semibold'>{wd}</div>
-                <div className='text-slate-600'>{dm}</div>
+                <div className='text-sm es-text-neutral-strong'>{dm}</div>
               </ButtonPrimitive>
             );
           })}
         </CarouselTrack>
-
-        {hasDayNavigation && canScrollDayLeft ? (
-          <ButtonPrimitive
-            variant='control'
-            type='button'
-            onClick={() => {
-              scrollDayCarouselByDirection('prev');
-            }}
-            aria-label={pickerContent.scrollDatesLeftAriaLabel}
-            className='absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 md:flex'
-          >
-            <DateArrowIcon direction='left' />
-          </ButtonPrimitive>
-        ) : null}
-
-        {hasDayNavigation && canScrollDayRight ? (
-          <ButtonPrimitive
-            variant='control'
-            type='button'
-            onClick={() => {
-              scrollDayCarouselByDirection('next');
-            }}
-            aria-label={pickerContent.scrollDatesRightAriaLabel}
-            className='absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 md:flex'
-          >
-            <DateArrowIcon direction='right' />
-          </ButtonPrimitive>
-        ) : null}
-      </div>
+      </CarouselHorizontalArrowControls>
 
       {resolvedDayYmd && daySlots.length > 0 ? (
         <div className='space-y-4'>

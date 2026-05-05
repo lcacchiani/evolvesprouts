@@ -104,10 +104,15 @@ def enumerate_intro_call_candidate_slots(
             time(hour=_INTRO_CALL_OPEN_HOUR, minute=0),
             tzinfo=zone,
         )
-        last_start = datetime.combine(
-            cur,
-            time(hour=_INTRO_CALL_CLOSE_HOUR - 1, minute=30),
-            tzinfo=zone,
+        open_minutes = _INTRO_CALL_OPEN_HOUR * 60
+        close_minutes = _INTRO_CALL_CLOSE_HOUR * 60
+        max_start_minutes = close_minutes - _INTRO_CALL_SLOT_DURATION_MINUTES
+        step_m = _INTRO_CALL_SLOT_STEP_MINUTES
+        last_start_minute_of_day = (
+            open_minutes + ((max_start_minutes - open_minutes) // step_m) * step_m
+        )
+        last_start = day_start + timedelta(
+            minutes=last_start_minute_of_day - open_minutes
         )
         t = day_start
         while t <= last_start:

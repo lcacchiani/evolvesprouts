@@ -170,6 +170,7 @@ export interface LandingPageLocaleContent {
     scrollDatesRightAriaLabel: string;
     morningSectionLabel: string;
     afternoonSectionLabel: string;
+    slotGroupAriaLabelTemplate: string;
   };
 }
 

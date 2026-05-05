@@ -54,3 +54,18 @@ def test_month_boundary() -> None:
     )
     assert slots
     assert slots == sorted(slots, key=lambda x: x[0])
+
+
+def test_last_candidate_start_is_close_hour_minus_duration_on_grid() -> None:
+    """Last start must end before close; grid derived from step, not a hardcoded :30."""
+    from zoneinfo import ZoneInfo
+
+    now = datetime(2026, 5, 3, 0, 0, tzinfo=UTC)
+    slots = enumerate_intro_call_candidate_slots(
+        date(2026, 5, 4), date(2026, 5, 4), now=now
+    )
+    assert slots
+    zone = ZoneInfo("Asia/Hong_Kong")
+    last_s0, last_s1 = slots[-1]
+    assert last_s0.astimezone(zone).strftime("%H:%M") == "17:30"
+    assert last_s1.astimezone(zone).strftime("%H:%M") == "17:45"
