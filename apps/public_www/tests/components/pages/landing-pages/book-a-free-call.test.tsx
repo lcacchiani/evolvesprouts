@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BookFreeCallLandingPage } from '@/components/pages/landing-pages/book-a-free-call';
@@ -113,7 +113,7 @@ describe('BookFreeCallLandingPage', () => {
     expect(document.getElementById('landing-page-cta')).toBeNull();
   });
 
-  it('renders inline section CTAs to the localized booking hash when calendar context is disabled', () => {
+  it('renders hero anchor and inline section CTAs to the booking hash', () => {
     const siteContent = getContent('en');
     render(
       <BookFreeCallLandingPage
@@ -143,7 +143,11 @@ describe('BookFreeCallLandingPage', () => {
       />,
     );
 
-    const heroCta = screen.getByRole('link', { name: bookAFreeCall.en.hero.ctaAnchorLabel });
+    const heroSection = document.getElementById('landing-page-hero');
+    expect(heroSection).not.toBeNull();
+    const heroCta = within(heroSection as HTMLElement).getByRole('link', {
+      name: bookAFreeCall.en.hero.ctaAnchorLabel,
+    });
     expect(heroCta).toHaveAttribute('href', '#intro-call-booking');
 
     const bookingRegion = screen.getByRole('region', {

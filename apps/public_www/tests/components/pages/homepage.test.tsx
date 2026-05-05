@@ -140,7 +140,7 @@ describe('HomePage', () => {
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
-      '/en/book-a-free-call/#intro-call-booking',
+      '/book-a-free-call#intro-call-booking',
     );
     expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
@@ -176,7 +176,7 @@ describe('HomePage', () => {
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
-      '/zh-HK/book-a-free-call/#intro-call-booking',
+      '/book-a-free-call#intro-call-booking',
     );
     expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call#intro-call-booking');
 
