@@ -71,10 +71,10 @@ from app.services.calendar_blockers import (
 )
 from app.services.intro_call_slots import (
     enumerate_intro_call_candidate_slots,
-    intro_call_cooldown_blocks_from_created_at,
+    intro_call_cooldown_blocks_from_last_booked_at,
     intro_call_window,
     is_intro_call_slot_available,
-    recent_intro_call_enrollment_created_at,
+    recent_intro_call_enrollment_last_booked_at,
 )
 from app.services.customer_billing import record_reservation_customer_payment
 from app.services.public_form_internal_notifications import (
@@ -321,7 +321,7 @@ def _enforce_intro_call_invariants(
     ):
         raise ConflictError("slot_unavailable")
     try:
-        prior_created = recent_intro_call_enrollment_created_at(
+        prior_last_booked = recent_intro_call_enrollment_last_booked_at(
             session,
             email_lower=str(payload["attendee_email"]),
             within_days=30,
@@ -332,9 +332,9 @@ def _enforce_intro_call_invariants(
             "intro_call_cooldown_lookup_failed",
             extra={"attendee_email": mask_email(str(payload.get("attendee_email")))},
         )
-        prior_created = None
-    if prior_created is not None and intro_call_cooldown_blocks_from_created_at(
-        prior_created_at=prior_created,
+        prior_last_booked = None
+    if prior_last_booked is not None and intro_call_cooldown_blocks_from_last_booked_at(
+        prior_last_booked_at=prior_last_booked,
         now=now_u,
         cooldown_days=30,
     ):
@@ -686,6 +686,8 @@ def _handle_public_reservation(
                             field="serviceInstanceSlug",
                         )
                     created_enrollment_id = existing_enrollment_id
+                    # Slot insert first: avoids writing a free payment row if the slot is taken.
+                    _persist_intro_call_slot_for_enrollment()
                     _pay, _, _dup_pi = record_reservation_customer_payment(
                         session,
                         enrollment_id=existing_enrollment_id,
@@ -701,7 +703,12 @@ def _handle_public_reservation(
                     if _dup_pi and _pay is not None:
                         stripe_pi_idempotent_hit = True
                         stripe_pi_existing_payment_id = _pay.id
-                    _persist_intro_call_slot_for_enrollment()
+                    existing_enrollment_row = session.get(
+                        Enrollment, existing_enrollment_id
+                    )
+                    if existing_enrollment_row is not None:
+                        existing_enrollment_row.updated_at = now_utc
+                        session.flush()
                 elif not has_enrollment:
                     instance_service_id = resolved_instance.service.id
                     if dc_row is not None:

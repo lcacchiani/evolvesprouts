@@ -5,7 +5,9 @@ from app.templates.booking_confirmation_content import FREE_TOTAL_LABEL
 from app.templates.booking_confirmation_render import (
     build_booking_confirmation_ics,
     booking_confirmation_template_merge_data,
+    intro_call_confirmation_template_merge_data,
     render_booking_confirmation_email,
+    render_intro_call_confirmation_email,
     substitute_shell_placeholders,
 )
 
@@ -548,3 +550,28 @@ def test_substitute_shell_placeholders_replaces_logo_and_footer() -> None:
     assert "https://cdn.example/logo.png" in out
     assert "https://site.example/en/" in out
     assert "<p>Footer</p>" in out
+
+
+def test_render_intro_call_confirmation_omits_support_when_email_empty() -> None:
+    _subj, html_doc, plain = render_intro_call_confirmation_email(
+        locale="en",
+        full_name="Pat",
+        primary_session_iso="2026-01-15T10:00:00+00:00",
+        interested_topics=None,
+        whatsapp_url="https://wa.me/1",
+        faq_url="",
+        support_email="",
+    )
+    assert 'href="mailto:"' not in html_doc
+    assert "You can also reach us at" not in html_doc
+    assert "You can also reach us at" not in plain
+
+    merge = intro_call_confirmation_template_merge_data(
+        locale="en",
+        full_name="Pat",
+        primary_session_iso="2026-01-15T10:00:00+00:00",
+        interested_topics=None,
+        whatsapp_url="https://wa.me/1",
+        support_email="",
+    )
+    assert merge["support_email_line_plain"] == ""

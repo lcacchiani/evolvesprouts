@@ -105,6 +105,7 @@
     "introCall": {
       "bookingSectionTitle": "Pick a time that works for you",
       "emptySlotsMessage": "No times available in this window — please reach out on WhatsApp.",
+      "loadErrorMessage": "We could not load available times. Please refresh, or message us on WhatsApp.",
       "whatsappHelpCtaLabel": "Message on WhatsApp",
       "thankYouTitle": "You are booked",
       "thankYouBody": "We will email you a confirmation with your call time.",
@@ -224,6 +225,7 @@
     "introCall": {
       "bookingSectionTitle": "选择适合您的时间",
       "emptySlotsMessage": "该时段暂无可预约时间 — 请通过 WhatsApp 联系我们。",
+      "loadErrorMessage": "无法加载可预约时间。请刷新页面，或通过 WhatsApp 联系我们。",
       "whatsappHelpCtaLabel": "在 WhatsApp 联系",
       "thankYouTitle": "预约成功",
       "thankYouBody": "我们将向您发送确认邮件，内含通话时间。",
@@ -343,6 +345,7 @@
     "introCall": {
       "bookingSectionTitle": "揀個啱你嘅時間",
       "emptySlotsMessage": "呢個時段暫時冇位 — 請透過 WhatsApp 聯絡我哋。",
+      "loadErrorMessage": "暫時載唔到可預約時間。請重新整理頁面，或者透過 WhatsApp 聯絡我哋。",
       "whatsappHelpCtaLabel": "WhatsApp 聯絡",
       "thankYouTitle": "預約成功",
       "thankYouBody": "我哋會發確認電郵俾你，入面有通話時間。",

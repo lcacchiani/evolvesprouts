@@ -1,12 +1,12 @@
-"""Unit tests for intro-call enrollment-based cooldown lookup."""
+"""Unit tests for intro-call enrollment cooldown (last-booked via ``updated_at``)."""
 
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
 from app.services.intro_call_slots import (
-    intro_call_cooldown_blocks_from_created_at,
-    recent_intro_call_enrollment_created_at,
+    intro_call_cooldown_blocks_from_last_booked_at,
+    recent_intro_call_enrollment_last_booked_at,
 )
 
 
@@ -19,16 +19,16 @@ class _ScalarResult:
 
 
 class _FakeSession:
-    def __init__(self, created_at: datetime | None) -> None:
-        self._created_at = created_at
+    def __init__(self, last_booked_at: datetime | None) -> None:
+        self._last_booked_at = last_booked_at
 
     def execute(self, _stmt: object) -> _ScalarResult:
-        return _ScalarResult(self._created_at)
+        return _ScalarResult(self._last_booked_at)
 
 
-def test_recent_intro_call_enrollment_created_at_none_when_no_booking() -> None:
+def test_recent_intro_call_enrollment_last_booked_at_none_when_no_booking() -> None:
     assert (
-        recent_intro_call_enrollment_created_at(
+        recent_intro_call_enrollment_last_booked_at(
             _FakeSession(None),
             email_lower="p@example.com",
             within_days=30,
@@ -38,10 +38,10 @@ def test_recent_intro_call_enrollment_created_at_none_when_no_booking() -> None:
     )
 
 
-def test_recent_intro_call_enrollment_created_at_returns_prior_timestamp() -> None:
+def test_recent_intro_call_enrollment_last_booked_at_returns_prior_timestamp() -> None:
     prior = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
     assert (
-        recent_intro_call_enrollment_created_at(
+        recent_intro_call_enrollment_last_booked_at(
             _FakeSession(prior),
             email_lower="p@example.com",
             within_days=30,
@@ -51,29 +51,64 @@ def test_recent_intro_call_enrollment_created_at_returns_prior_timestamp() -> No
     )
 
 
-def test_cooldown_blocks_within_30_days_from_created_at() -> None:
+def test_cooldown_blocks_within_30_days_from_last_booked_at() -> None:
     prior = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
     now = prior + timedelta(days=5)
-    assert intro_call_cooldown_blocks_from_created_at(prior_created_at=prior, now=now) is True
+    assert (
+        intro_call_cooldown_blocks_from_last_booked_at(
+            prior_last_booked_at=prior, now=now
+        )
+        is True
+    )
 
 
-def test_cooldown_expired_after_31_days_from_created_at() -> None:
+def test_cooldown_expired_after_31_days_from_last_booked_at() -> None:
     prior = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
     now = prior + timedelta(days=31)
-    assert intro_call_cooldown_blocks_from_created_at(prior_created_at=prior, now=now) is False
+    assert (
+        intro_call_cooldown_blocks_from_last_booked_at(
+            prior_last_booked_at=prior, now=now
+        )
+        is False
+    )
 
 
 def test_cooldown_does_not_cross_contaminate_two_contacts_via_mock() -> None:
-    """Each session returns only that contact's last enrollment; no Cartesian join."""
+    """Each session returns only that contact's row; no Cartesian join."""
     s_a = _FakeSession(datetime(2026, 5, 10, 0, 0, tzinfo=UTC))
     s_b = _FakeSession(datetime(2026, 5, 28, 0, 0, tzinfo=UTC))
-    a_ts = recent_intro_call_enrollment_created_at(
-        s_a, email_lower="a@example.com", within_days=30, now=datetime(2026, 6, 1, tzinfo=UTC)
+    a_ts = recent_intro_call_enrollment_last_booked_at(
+        s_a,
+        email_lower="a@example.com",
+        within_days=30,
+        now=datetime(2026, 6, 1, tzinfo=UTC),
     )
-    b_ts = recent_intro_call_enrollment_created_at(
-        s_b, email_lower="b@example.com", within_days=30, now=datetime(2026, 6, 1, tzinfo=UTC)
+    b_ts = recent_intro_call_enrollment_last_booked_at(
+        s_b,
+        email_lower="b@example.com",
+        within_days=30,
+        now=datetime(2026, 6, 1, tzinfo=UTC),
     )
     assert a_ts != b_ts
+
+
+def test_rebook_scenario_cooldown_anchors_to_second_booking_not_first() -> None:
+    """Day 0 first book, day 35 rebook updates anchor; day 38 still in cooldown vs day 35."""
+    first_book = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    second_book = first_book + timedelta(days=35)
+    day38 = second_book + timedelta(days=3)
+
+    assert intro_call_cooldown_blocks_from_last_booked_at(
+        prior_last_booked_at=second_book,
+        now=day38,
+        cooldown_days=30,
+    ) is True
+
+    assert intro_call_cooldown_blocks_from_last_booked_at(
+        prior_last_booked_at=first_book,
+        now=day38,
+        cooldown_days=30,
+    ) is False
 
 
 def test_contact_upsert_does_not_overwrite_reservation_source_json_on_second_call() -> None:

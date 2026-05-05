@@ -25,6 +25,8 @@ import { resolvePublicSiteConfig } from '@/lib/site-config';
 export interface IntroCallSlotPickerProps {
   commonAccessibility: CommonAccessibilityContent;
   pickerContent: LandingPageIntroCallContent;
+  /** Same WhatsApp URL as the booking section (falls back to site config when unset). */
+  whatsappHref?: string;
   onSelect: (slot: IntroCallSlot) => void;
   onBlockersStatusChange?: (status: 'idle' | 'loading' | 'ready' | 'error') => void;
   refreshToken?: number;
@@ -63,6 +65,7 @@ function ymdForSlot(slot: IntroCallSlot): string {
 export function IntroCallSlotPicker({
   commonAccessibility,
   pickerContent,
+  whatsappHref,
   onSelect,
   onBlockersStatusChange,
   refreshToken = 0,
@@ -163,7 +166,10 @@ export function IntroCallSlotPicker({
   );
 
   const daySlots = resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : [];
-  const whatsappUrl = resolvePublicSiteConfig().whatsappUrl;
+  const whatsappUrl =
+    whatsappHref?.trim()
+    || resolvePublicSiteConfig().whatsappUrl?.trim()
+    || '';
 
   const summaryText = useMemo(() => {
     if (!selectedSlotIso) {
@@ -212,10 +218,19 @@ export function IntroCallSlotPicker({
   }
 
   if (status === 'error') {
+    const message =
+      pickerContent.loadErrorMessage ?? pickerContent.emptySlotsMessage;
     return (
-      <p className='es-type-body' role='alert'>
-        {pickerContent.emptySlotsMessage}
-      </p>
+      <div className='space-y-3' role='alert'>
+        <p className='es-type-body'>{message}</p>
+        <a
+          href={whatsappUrl}
+          className='es-focus-ring es-inline-cta-link text-sm font-semibold'
+          rel='noopener noreferrer'
+        >
+          {pickerContent.whatsappHelpCtaLabel}
+        </a>
+      </div>
     );
   }
 

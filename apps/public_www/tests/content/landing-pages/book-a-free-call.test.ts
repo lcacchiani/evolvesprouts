@@ -9,8 +9,19 @@ describe('book-a-free-call landing page locale JSON', () => {
     expect(Object.keys(bookAFreeCall['zh-HK'].introCall).sort()).toEqual(keysEn);
   });
 
-  it('includes anchor CTA label for CTA section', () => {
-    expect(bookAFreeCall.en.cta.ctaAnchorLabel).toBeTruthy();
-    expect(bookAFreeCall.en.cta.ctaAnchorHref).toBe('#intro-call-booking');
+  it('includes anchor CTA href and label for hero and CTA section in every locale', () => {
+    for (const loc of ['en', 'zh-CN', 'zh-HK'] as const) {
+      const block = bookAFreeCall[loc];
+      expect(block.hero.ctaAnchorHref).toBe('#intro-call-booking');
+      expect(block.hero.ctaAnchorLabel?.trim()).toBeTruthy();
+      expect(block.cta.ctaAnchorHref).toBe('#intro-call-booking');
+      expect(block.cta.ctaAnchorLabel?.trim()).toBeTruthy();
+    }
+  });
+
+  it('includes loadErrorMessage for intro-call picker in every locale', () => {
+    for (const loc of ['en', 'zh-CN', 'zh-HK'] as const) {
+      expect(bookAFreeCall[loc].introCall.loadErrorMessage?.trim()).toBeTruthy();
+    }
   });
 });

@@ -796,11 +796,13 @@ def render_intro_call_confirmation_email(
         topics_block_plain = f"{plain_label}\n{topics}\n\n"
     esc_wa = html.escape(whatsapp_url.strip(), quote=True)
     esc_faq = html.escape(faq_url.strip(), quote=True) if faq_url.strip() else ""
-    esc_support = html.escape(support_email.strip(), quote=True)
-    support_html = INTRO_CALL_SUPPORT_LINE_HTML.get(
-        loc, INTRO_CALL_SUPPORT_LINE_HTML["en"]
-    )
-    support_html = support_html.replace("{{support_email}}", esc_support)
+    support_strip = support_email.strip()
+    support_html = ""
+    if support_strip:
+        esc_support = html.escape(support_strip, quote=True)
+        support_html = INTRO_CALL_SUPPORT_LINE_HTML.get(
+            loc, INTRO_CALL_SUPPORT_LINE_HTML["en"]
+        ).replace("{{support_email}}", esc_support)
     inner_parts: list[str] = [
         greeting,
         INTRO_CALL_CONFIRMATION_THANK_YOU_HTML.get(
@@ -810,8 +812,9 @@ def render_intro_call_confirmation_email(
         f'<p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#333333;">{esc_slot}</p>',
         topics_block_html,
         INTRO_CALL_CANCEL_FOOTER_HTML.get(loc, INTRO_CALL_CANCEL_FOOTER_HTML["en"]),
-        support_html,
     ]
+    if support_html:
+        inner_parts.append(support_html)
     if esc_faq:
         inner_parts.append(_questions_line_html(loc, esc_wa, esc_faq))
     inner_html = "".join(inner_parts)
@@ -820,10 +823,11 @@ def render_intro_call_confirmation_email(
         inner_html=inner_html,
     )
     subject = intro_call_confirmation_email_subject(locale=loc)
-    support_plain = INTRO_CALL_SUPPORT_LINE_PLAIN.get(
-        loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
-    )
-    support_plain = support_plain.format(support_email=support_email.strip())
+    support_plain = ""
+    if support_strip:
+        support_plain = INTRO_CALL_SUPPORT_LINE_PLAIN.get(
+            loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
+        ).format(support_email=support_strip)
     plain_lines = [
         f"Hi {full_name.strip()},\n"
         if loc == "en"
@@ -835,8 +839,9 @@ def render_intro_call_confirmation_email(
         (slot_line or "") + "\n",
         topics_block_plain,
         INTRO_CALL_CANCEL_FOOTER_PLAIN.get(loc, INTRO_CALL_CANCEL_FOOTER_PLAIN["en"]),
-        support_plain,
     ]
+    if support_plain:
+        plain_lines.append(support_plain)
     if esc_faq:
         plain_lines.append(
             _questions_line_plain(loc, whatsapp_url.strip(), faq_url.strip())
@@ -860,6 +865,7 @@ def intro_call_confirmation_template_merge_data(
         primary_session_iso=primary_session_iso, locale=loc
     )
     topics = (interested_topics or "").strip()
+    support_strip = support_email.strip()
     data: dict[str, Any] = {
         "full_name": full_name.strip(),
         "intro_call_heading": INTRO_CALL_CONFIRMATION_SUBJECT.get(
@@ -872,10 +878,14 @@ def intro_call_confirmation_template_merge_data(
         "intro_call_topics_html": "",
         "intro_call_topics_plain": "",
         "whatsapp_url": whatsapp_url.strip(),
-        "support_email": support_email.strip(),
-        "support_email_line_plain": INTRO_CALL_SUPPORT_LINE_PLAIN.get(
-            loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
-        ).format(support_email=support_email.strip()),
+        "support_email": support_strip,
+        "support_email_line_plain": (
+            INTRO_CALL_SUPPORT_LINE_PLAIN.get(
+                loc, INTRO_CALL_SUPPORT_LINE_PLAIN["en"]
+            ).format(support_email=support_strip)
+            if support_strip
+            else ""
+        ),
     }
     if topics:
         esc_t = html.escape(topics)

@@ -48,4 +48,28 @@ describe('IntroCallSlotPicker', () => {
       expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
     });
   });
+
+  it('renders load error message and WhatsApp link when fetch fails', async () => {
+    vi.mocked(fetchIntroCallSlots).mockResolvedValue({ slots: [], fetchFailed: true });
+
+    const onSelect = vi.fn();
+    const loadError =
+      'We could not load available times. Please refresh, or message us on WhatsApp.';
+
+    render(
+      <IntroCallSlotPicker
+        commonAccessibility={enContent.common.accessibility}
+        pickerContent={{
+          ...bookAFreeCall.en.introCall,
+          loadErrorMessage: loadError,
+        }}
+        whatsappHref='https://wa.me/85290000000'
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(await screen.findByText(loadError, { exact: false })).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: bookAFreeCall.en.introCall.whatsappHelpCtaLabel });
+    expect(link).toHaveAttribute('href', 'https://wa.me/85290000000');
+  });
 });

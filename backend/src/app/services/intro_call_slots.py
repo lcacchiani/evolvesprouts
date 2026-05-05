@@ -360,23 +360,26 @@ def is_intro_call_slot_available(
     return not _candidate_blocked(s0, s1, busy_merged)
 
 
-def recent_intro_call_enrollment_created_at(
+def recent_intro_call_enrollment_last_booked_at(
     session: Session,
     *,
     email_lower: str,
     within_days: int = 30,
     now: datetime,
 ) -> datetime | None:
-    """Latest ``Enrollment.created_at`` for intro-call instance + normalized email.
+    """Latest ``Enrollment.updated_at`` for intro-call instance + normalized email.
+
+    Rebook flows reuse the same enrollment row; ``updated_at`` is bumped after each
+    successful slot booking so the rolling cooldown reflects the last booking time.
 
     ``within_days`` documents the cooldown window for callers; the query returns
-    the most recent enrollment timestamp regardless of age so callers can apply
-    a rolling cooldown from ``created_at``.
+    the enrollment timestamp regardless of age so callers can apply a rolling window
+    from ``updated_at``.
     """
     _ = within_days, now
     em = email_lower.strip().lower()
     stmt = (
-        select(Enrollment.created_at)
+        select(Enrollment.updated_at)
         .join(Contact, Enrollment.contact_id == Contact.id)
         .join(ServiceInstance, Enrollment.instance_id == ServiceInstance.id)
         .where(
@@ -384,23 +387,23 @@ def recent_intro_call_enrollment_created_at(
             Contact.email.isnot(None),
             func.lower(Contact.email) == em,
         )
-        .order_by(Enrollment.created_at.desc())
+        .order_by(Enrollment.updated_at.desc())
         .limit(1)
     )
     return session.execute(stmt).scalar_one_or_none()
 
 
-def intro_call_cooldown_blocks_from_created_at(
+def intro_call_cooldown_blocks_from_last_booked_at(
     *,
-    prior_created_at: datetime,
+    prior_last_booked_at: datetime,
     now: datetime,
     cooldown_days: int = 30,
 ) -> bool:
-    """True when ``now`` is still within ``cooldown_days`` after ``prior_created_at``."""
+    """True when ``now`` is still within ``cooldown_days`` after ``prior_last_booked_at``."""
     now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
     start_u = (
-        prior_created_at
-        if prior_created_at.tzinfo
-        else prior_created_at.replace(tzinfo=UTC)
+        prior_last_booked_at
+        if prior_last_booked_at.tzinfo
+        else prior_last_booked_at.replace(tzinfo=UTC)
     )
     return now_u < start_u.astimezone(UTC) + timedelta(days=cooldown_days)

@@ -50,10 +50,13 @@ afterEach(() => {
   submitReservationSpy.mockReset();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe('LandingPageFreeIntroCall', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-05-04T00:00:00Z'));
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(0);
       return 0;
@@ -98,9 +101,8 @@ describe('LandingPageFreeIntroCall', () => {
       target: { value: 'parent@example.com' },
     });
 
-    const form = document.getElementById('intro-call-booking-form');
-    expect(form).toBeInstanceOf(HTMLFormElement);
-    const terms = within(form as HTMLFormElement).getByRole('checkbox', { name: /Terms/i });
+    const form = screen.getByRole('form', { name: bookAFreeCall.en.introCall.bookingSectionTitle });
+    const terms = within(form).getByRole('checkbox', { name: /Terms/i });
     fireEvent.click(terms);
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -130,4 +132,59 @@ describe('LandingPageFreeIntroCall', () => {
     expect(screen.getByRole('heading', { name: bookAFreeCall.en.introCall.thankYouTitle }))
       .toBeInTheDocument();
   });
+
+  it('disables submit while the reservation request is pending', async () => {
+    let resolveSubmit: (() => void) | undefined;
+    const pending = new Promise<void>((resolve) => {
+      resolveSubmit = resolve;
+    });
+    submitReservationSpy.mockReturnValue(pending as unknown as Promise<void>);
+
+    render(
+      <LandingPageFreeIntroCall
+        locale='en'
+        pageTitle={bookAFreeCall.en.meta.title}
+        introContent={bookAFreeCall.en.introCall}
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        commonAccessibility={enContent.common.accessibility}
+        captchaContent={enContent.common.captcha}
+        whatsappHref='https://wa.me/85290000000'
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '09:00' }));
+
+    fireEvent.change(screen.getByLabelText(/Full Name/i), {
+      target: { value: 'Test Parent' },
+    });
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: 'parent@example.com' },
+    });
+
+    const form = screen.getByRole('form', { name: bookAFreeCall.en.introCall.bookingSectionTitle });
+    const terms = within(form).getByRole('checkbox', { name: /Terms/i });
+    fireEvent.click(terms);
+
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+
+    const submitButton = screen.getByRole('button', { name: bookAFreeCall.en.introCall.submitLabel });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
+
+    resolveSubmit?.();
+    await waitFor(() => {
+      expect(submitReservationSpy).toHaveBeenCalled();
+    });
+    expect(
+      screen.getByRole('heading', { name: bookAFreeCall.en.introCall.thankYouTitle }),
+    ).toBeInTheDocument();
+  });
 });
+

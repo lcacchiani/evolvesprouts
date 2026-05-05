@@ -335,6 +335,8 @@ Public website Mailchimp **audience tags** (applied via `add_subscriber_with_tag
 | Events “get notified” (email + marketing checkbox) | `public-www-event-notification` (when `marketing_opt_in`) |
 | Booking + marketing opt-in | `public-www-booking-customer-{service_instance_slug}` (`serviceInstanceSlug` from reservation JSON; fallback `unknown`) |
 | Free intro call booking + marketing opt-in | `public-www-intro-call-booking` (when `bookingSystem` is `intro-call-booking`) |
+
+Meta Pixel `content_name` for this funnel uses **snake_case** (`public_www_free_intro_call`) to match GA4 custom parameters and `PIXEL_CONTENT_NAME` in `apps/public_www/src/lib/meta-pixel-taxonomy.ts`. Prefer this convention for new pixels; avoid switching existing dashboards to kebab-case unless Meta Ads owners explicitly require it.
 | Free guide / media | `public-www-media-{resource_key}` |
 
 Legacy `contact-us-inquiry`, `booking-customer`, and `public-www-media-{key}-requested` may still exist on historical members; use dual-match segments in Mailchimp during transition.

@@ -462,6 +462,7 @@ export function LandingPageFreeIntroCall({
     >
       <SectionContainer className='py-12 lg:py-16'>
         <SectionHeader
+          titleId='intro-call-booking-heading'
           title={introContent.bookingSectionTitle}
           align='left'
           className='mb-8 max-w-2xl'
@@ -493,6 +494,7 @@ export function LandingPageFreeIntroCall({
               <IntroCallSlotPicker
                 commonAccessibility={commonAccessibility}
                 pickerContent={introContent}
+                whatsappHref={whatsappHref}
                 onSelect={handleSelectSlot}
                 refreshToken={slotRefreshToken}
               />
@@ -524,6 +526,7 @@ export function LandingPageFreeIntroCall({
               ) : null}
               <form
                 id='intro-call-booking-form'
+                aria-labelledby='intro-call-booking-heading'
                 noValidate
                 onSubmit={(e) => {
                   void handleSubmit(e);
@@ -616,6 +619,12 @@ export function LandingPageFreeIntroCall({
                   variant='primary'
                   className='w-fit'
                   state={isSubmitting ? 'inactive' : 'default'}
+                  disabled={
+                    isSubmitting
+                    || isSuccess
+                    || isCaptchaUnavailable
+                    || !captchaToken
+                  }
                 >
                   <SubmitButtonLoadingContent
                     isSubmitting={isSubmitting}
