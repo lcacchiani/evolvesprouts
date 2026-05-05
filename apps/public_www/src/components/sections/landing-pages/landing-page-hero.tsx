@@ -274,7 +274,9 @@ export function LandingPageHero({
             alt={content.imageAlt}
             width={1200}
             height={900}
-            sizes='(max-width: 1024px) 120vw, 60vw'
+            priority
+            fetchPriority='high'
+            sizes='(max-width: 1024px) 100vw, 60vw'
             className='relative z-10 h-auto w-full rounded-panel'
           />
         </div>
