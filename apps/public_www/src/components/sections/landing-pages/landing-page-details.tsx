@@ -9,18 +9,24 @@ import type { LandingPageLocaleContent } from '@/content';
 interface LandingPageDetailsProps {
   content: LandingPageLocaleContent['details'];
   ariaLabel?: string;
+  /** When set, replaces the default SectionShell section classes. */
+  sectionClassName?: string;
 }
 
 export function LandingPageDetails({
   content,
   ariaLabel,
+  sectionClassName,
 }: LandingPageDetailsProps) {
+  const shellClassName =
+    sectionClassName ?? 'es-section-bg-overlay es-landing-page-details-section';
+
   return (
     <SectionShell
       id='landing-page-details'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-details'
-      className='es-section-bg-overlay es-landing-page-details-section'
+      className={shellClassName}
     >
       <SectionContainer>
         <SectionHeader

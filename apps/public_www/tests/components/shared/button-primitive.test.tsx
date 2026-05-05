@@ -62,9 +62,21 @@ describe('ButtonPrimitive', () => {
     expect(link).toHaveAttribute('href', '/about-us');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
-    expect(link).toHaveAttribute('data-scroll', 'true');
+    expect(link).toHaveAttribute('data-scroll', 'false');
     expect(link.className).toContain('es-btn');
     expect(link.className).toContain('es-btn--pill');
+  });
+
+  it('omits scroll prop on Next Link for internal href with hash', () => {
+    render(
+      <ButtonPrimitive variant='pill' href='/about-us#team'>
+        About team
+      </ButtonPrimitive>,
+    );
+
+    const link = screen.getByRole('link', { name: 'About team' });
+    expect(link).toHaveAttribute('href', '/about-us#team');
+    expect(link).not.toHaveAttribute('data-scroll');
   });
 
   it('opens external links in a new tab by default', () => {

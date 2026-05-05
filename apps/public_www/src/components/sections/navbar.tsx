@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -37,6 +38,7 @@ import {
   localizePath,
   normalizeLocalizedPath,
 } from '@/lib/locale-routing';
+import { buildBookAFreeCallIntroAnchorHref, isBookAFreeCallIntroBookingHref } from '@/lib/book-free-call-intro-href';
 import { ROUTES } from '@/lib/routes';
 
 interface NavbarProps {
@@ -115,10 +117,13 @@ export function Navbar({ content }: NavbarProps) {
   const currentLocale = getLocaleFromPath(pathname);
   const logoSrc = content.logoSrc || LOGO_SRC;
   const localizedHomeHref = localizePath(ROUTES.home, currentLocale);
-  const localizedBookNowHref = localizeHref(
-    resolveBookNowHref(content.bookNow),
-    currentLocale,
-  );
+  const localizedBookNowHref = useMemo(() => {
+    const raw = resolveBookNowHref(content.bookNow);
+    if (isBookAFreeCallIntroBookingHref(raw)) {
+      return buildBookAFreeCallIntroAnchorHref(currentLocale);
+    }
+    return localizeHref(raw, currentLocale);
+  }, [content.bookNow, currentLocale]);
   const languageSelector = resolveLanguageSelectorContent(content);
   const openNavigationMenuAriaLabel = content.openNavigationMenuAriaLabel.trim();
   const closeNavigationMenuAriaLabel = content.closeNavigationMenuAriaLabel.trim();

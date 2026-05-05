@@ -660,6 +660,7 @@
 
   .es-navbar-offset {
     height: 115px;
+    --es-public-navbar-scroll-margin: 115px;
     background-color: var(--es-color-surface-white, #FFFFFF);
     overflow-anchor: none;
   }

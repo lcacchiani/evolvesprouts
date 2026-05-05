@@ -72,6 +72,18 @@ function resolveItemScrollPositions(container: HTMLElement): number[] {
   return positions;
 }
 
+function scrollContainerHorizontally(
+  container: HTMLElement,
+  options: { left: number; behavior?: ScrollBehavior },
+): void {
+  const { left, behavior = 'auto' } = options;
+  if (typeof container.scrollTo === 'function') {
+    container.scrollTo({ left, behavior });
+  } else {
+    container.scrollLeft = left;
+  }
+}
+
 export function useHorizontalCarousel<T extends HTMLElement>({
   itemCount,
   enabled = true,
@@ -192,7 +204,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           if (nextPos === undefined) {
             return;
           }
-          carouselElement.scrollTo({
+          scrollContainerHorizontally(carouselElement, {
             left: Math.min(nextPos, maxScrollLeft),
             behavior: 'smooth',
           });
@@ -203,7 +215,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           if (prevPos === undefined) {
             return;
           }
-          carouselElement.scrollTo({
+          scrollContainerHorizontally(carouselElement, {
             left: Math.max(prevPos, 0),
             behavior: 'smooth',
           });
@@ -217,11 +229,18 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         minScrollStepPx,
       });
       const leftOffset = direction === 'prev' ? -scrollStep : scrollStep;
-
-      carouselElement.scrollBy({
-        left: leftOffset,
-        behavior: 'smooth',
-      });
+      const nextLeft = carouselElement.scrollLeft + leftOffset;
+      if (typeof carouselElement.scrollBy === 'function') {
+        carouselElement.scrollBy({
+          left: leftOffset,
+          behavior: 'smooth',
+        });
+      } else {
+        scrollContainerHorizontally(carouselElement, {
+          left: nextLeft,
+          behavior: 'smooth',
+        });
+      }
     },
     [
       beginLoopCooldown,
@@ -254,7 +273,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         (itemRect.left + itemRect.width / 2) -
         (containerRect.left + containerRect.width / 2);
 
-      container.scrollTo({
+      scrollContainerHorizontally(container, {
         left: targetScrollLeft,
         behavior,
       });

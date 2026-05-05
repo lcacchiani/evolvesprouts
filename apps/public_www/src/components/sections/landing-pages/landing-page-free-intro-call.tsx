@@ -458,7 +458,7 @@ export function LandingPageFreeIntroCall({
       id='intro-call-booking'
       ariaLabel={introContent.bookingSectionTitle}
       dataFigmaNode='intro-call-booking'
-      className='es-bg-surface-muted'
+      className='es-book-a-free-call-booking-section'
     >
       <SectionContainer className='py-12 lg:py-16'>
         <SectionHeader
@@ -492,6 +492,7 @@ export function LandingPageFreeIntroCall({
           <div className='grid gap-10 lg:grid-cols-2 lg:gap-12'>
             <div ref={pickerWrapRef}>
               <IntroCallSlotPicker
+                locale={locale}
                 commonAccessibility={commonAccessibility}
                 pickerContent={introContent}
                 whatsappHref={whatsappHref}

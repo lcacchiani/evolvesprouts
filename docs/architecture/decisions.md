@@ -623,3 +623,14 @@ When making changes:
 2. Update `docs/architecture/lambdas.md` if adding/changing Lambda functions.
 3. Update `docs/architecture/database-schema.md` if adding/changing tables.
 4. Update other architecture docs if design decisions or patterns change.
+
+## Intro-call public slot cadence
+
+**Decision:** Free intro-call candidate starts advance on a **30-minute** wall-clock grid
+(Mon–Fri 09:00–17:30 `Asia/Hong_Kong` by default); each offered interval remains **15 minutes**
+long (`end = start + 15m`) so copy and the `intro-call-free-15min` instance slug stay aligned
+with call length while halving the number of start times versus a 15-minute grid.
+
+**Maintenance note (section backgrounds):** Some public sections pair a white surface with
+the light watermark treatment by registering the same class name in two CSS selector lists
+(watermark variables vs solid background). Prefer a single utility class when refactoring.

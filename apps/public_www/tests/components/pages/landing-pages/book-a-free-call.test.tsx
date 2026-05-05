@@ -90,9 +90,14 @@ describe('BookFreeCallLandingPage', () => {
     const beforeYouBookHeading = screen.getByRole('heading', {
       name: bookAFreeCall.en.details.title,
     });
+    const beforeYouBookSection = beforeYouBookHeading.closest('section');
+    expect(beforeYouBookSection).not.toBeNull();
+    expect(beforeYouBookSection).toHaveClass('es-book-a-free-call-good-to-know-section');
+
     const bookingRegion = screen.getByRole('region', {
       name: bookAFreeCall.en.introCall.bookingSectionTitle,
     });
+    expect(bookingRegion).toHaveClass('es-book-a-free-call-booking-section');
     const howItWorksHeading = screen.getByRole('heading', {
       name: bookAFreeCall.en.description.title,
     });

@@ -108,6 +108,11 @@ describe('Navbar desktop submenu accessibility', () => {
       name: enContent.navbar.bookNow.label,
     });
     expect(desktopBookNowLink).toBeInTheDocument();
+    expect(desktopBookNowLink).toHaveAttribute(
+      'href',
+      '/en/book-a-free-call#intro-call-booking',
+    );
+    expect(desktopBookNowLink).not.toHaveAttribute('data-scroll');
 
     const logoLink = header?.querySelector('a.shrink-0[href="/en/"]');
     expect(logoLink).not.toBeNull();

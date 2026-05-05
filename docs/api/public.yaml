@@ -499,10 +499,11 @@ paths:
 
   /v1/calendar/intro-call-slots:
     get:
-      summary: Available 15-minute intro-call slots
+      summary: Available intro-call slots (15-minute calls, 30-minute start cadence)
       description: >
-        Returns bookable 15-minute UTC slots for the free intro-call flow (Mon–Fri
-        09:00–18:00 `Asia/Hong_Kong`, minus manual half-day blocks for
+        Returns bookable UTC intervals for the free intro-call flow: each slot is a
+        15-minute call with start times on a 30-minute grid (Mon–Fri 09:00–18:00
+        `Asia/Hong_Kong`, minus manual half-day blocks for
         `consultation_booking` and `intro_call_booking`, minus overlapping session slots).
         No PII; no Turnstile. `from` / `to` are `YYYY-MM-DD` in the server intro-call wall
         zone (default `Asia/Hong_Kong`). Span capped at 28 days; `from` not more than 35 days ahead.
@@ -547,7 +548,7 @@ paths:
 
   /www/v1/calendar/intro-call-slots:
     get:
-      summary: Available 15-minute intro-call slots (website proxy path)
+      summary: Available intro-call slots (website proxy path; 15-minute calls, 30-minute starts)
       description: Same as `GET /v1/calendar/intro-call-slots` for same-origin calls from `public_www`.
       security:
         - ApiKeyAuth: []
@@ -1745,7 +1746,8 @@ components:
             (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
             `intro-call-booking` requires `serviceKey=intro-call`, `serviceInstanceSlug=intro-call-free-15min`,
             `totalAmount=0`, `paymentMethod=free` (or omit payment method to default to free), and
-            `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot.
+            `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot at a
+            30-minute-aligned start time (Asia/Hong_Kong office-hours template; end 15 minutes after start).
         marketingAttribution:
           type: object
           additionalProperties: false

@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { BOOKING_SELECTOR_CARD_CLASSNAME } from '@/components/sections/shared/booking-selector-layout';
+import { CarouselHorizontalArrowControls } from '@/components/sections/shared/carousel-horizontal-arrow-controls';
 import { EventsLoadingState } from '@/components/sections/shared/events-shared';
 import {
   buildSectionSplitLayoutClassName,
@@ -74,17 +76,6 @@ interface MyBestAuntieBookingProps {
   privateProgrammeWhatsappHref?: string;
 }
 
-function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <span
-      aria-hidden
-      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
-    />
-  );
-}
-
 function formatCohortPreviewLabel(value: string): string {
   const firstDateSegment = value.split(/\s+-\s+/)[0]?.trim() ?? value.trim();
 
@@ -115,7 +106,6 @@ function formatNextCohortLabel(
   });
 }
 
-const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MAX_VISIBLE_COHORTS_PER_AGE_GROUP = 3;
@@ -507,99 +497,86 @@ export function MyBestAuntieBooking({
               <h3 className='text-sm font-semibold es-text-neutral-strong'>
                 {content.dateSelectorLabel}
               </h3>
-              <div className='relative mt-3 w-full min-w-0 overflow-visible'>
-                <CarouselTrack
-                  carouselRef={dateCarouselRef}
-                  testId='my-best-auntie-booking-date-carousel'
-                  ariaLabel={content.dateSelectorLabel}
-                  ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-                  className='flex min-w-0 gap-3 pb-2 pr-1'
+              <div className='mt-3 w-full min-w-0 overflow-visible'>
+                <CarouselHorizontalArrowControls
+                  showPrevious={Boolean(hasDateNavigation && canScrollDateLeft)}
+                  showNext={Boolean(hasDateNavigation && canScrollDateRight)}
+                  onPrevious={() => {
+                    handleDateCarouselNavigation('prev');
+                  }}
+                  onNext={() => {
+                    handleDateCarouselNavigation('next');
+                  }}
+                  previousAriaLabel={content.scrollDatesLeftAriaLabel}
+                  nextAriaLabel={content.scrollDatesRightAriaLabel}
                 >
-                  {dateOptions.map((option) => {
-                    const isSelected = option.id === selectedDateId;
-                    const isFullyBooked = option.isFullyBooked;
+                  <CarouselTrack
+                    carouselRef={dateCarouselRef}
+                    testId='my-best-auntie-booking-date-carousel'
+                    ariaLabel={content.dateSelectorLabel}
+                    ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+                    className='flex min-w-0 gap-3 pb-2 pr-1'
+                  >
+                    {dateOptions.map((option) => {
+                      const isSelected = option.id === selectedDateId;
+                      const isFullyBooked = option.isFullyBooked;
 
-                    return (
-                      <ButtonPrimitive
-                        key={option.id}
-                        buttonRef={(element) => {
-                          dateCardRefs.current[option.id] = element;
-                        }}
-                        variant='selection'
-                        state={isFullyBooked ? 'inactive' : isSelected ? 'active' : 'inactive'}
-                        aria-pressed={isFullyBooked ? undefined : isSelected}
-                        aria-disabled={isFullyBooked || undefined}
-                        onClick={
-                          isFullyBooked
-                            ? undefined
-                            : () => {
-                                trackAnalyticsEvent('booking_date_selected', {
-                                  sectionId: 'my-best-auntie-booking',
-                                  ctaLocation: 'selector',
-                                  params: {
-                                    service_tier: selectedAgeOption?.label ?? '',
-                                    cohort_label: option.label,
-                                    cohort_date: option.cohort.dates[0]?.start_datetime?.split('T')[0]
-                                      ?? '',
-                                    is_fully_booked: option.isFullyBooked,
-                                  },
-                                });
-                                setPendingDateSelectionSlug(option.id);
-                              }
-                        }
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isFullyBooked ? 'pointer-events-none' : ''}`}
-                      >
-                        {isFullyBooked && (
-                          <span className='es-cohort-sold-out-stamp' aria-hidden='true'>
-                            <span className='es-cohort-sold-out-stamp-text'>
-                              {content.soldOutStampLabel}
+                      return (
+                        <ButtonPrimitive
+                          key={option.id}
+                          buttonRef={(element) => {
+                            dateCardRefs.current[option.id] = element;
+                          }}
+                          variant='selection'
+                          state={isFullyBooked ? 'inactive' : isSelected ? 'active' : 'inactive'}
+                          aria-pressed={isFullyBooked ? undefined : isSelected}
+                          aria-disabled={isFullyBooked || undefined}
+                          onClick={
+                            isFullyBooked
+                              ? undefined
+                              : () => {
+                                  trackAnalyticsEvent('booking_date_selected', {
+                                    sectionId: 'my-best-auntie-booking',
+                                    ctaLocation: 'selector',
+                                    params: {
+                                      service_tier: selectedAgeOption?.label ?? '',
+                                      cohort_label: option.label,
+                                      cohort_date: option.cohort.dates[0]?.start_datetime?.split('T')[0]
+                                        ?? '',
+                                      is_fully_booked: option.isFullyBooked,
+                                    },
+                                  });
+                                  setPendingDateSelectionSlug(option.id);
+                                }
+                          }
+                          className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isFullyBooked ? 'pointer-events-none' : ''}`}
+                        >
+                          {isFullyBooked && (
+                            <span className='es-cohort-sold-out-stamp' aria-hidden='true'>
+                              <span className='es-cohort-sold-out-stamp-text'>
+                                {content.soldOutStampLabel}
+                              </span>
                             </span>
-                          </span>
-                        )}
-                        <div className={`flex w-full flex-col items-center gap-2 ${isFullyBooked ? 'opacity-40' : ''}`}>
-                          <div className='flex items-center justify-center gap-1.5'>
-                            <span
-                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isFullyBooked ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                              aria-hidden='true'
-                            />
-                            <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
-                              {option.label}
+                          )}
+                          <div className={`flex w-full flex-col items-center gap-2 ${isFullyBooked ? 'opacity-40' : ''}`}>
+                            <div className='flex items-center justify-center gap-1.5'>
+                              <span
+                                className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isFullyBooked ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                                aria-hidden='true'
+                              />
+                              <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
+                                {option.label}
+                              </p>
+                            </div>
+                            <p className='text-center text-sm es-text-danger-accent'>
+                              {option.availabilityLabel}
                             </p>
                           </div>
-                          <p className='text-center text-sm es-text-danger-accent'>
-                            {option.availabilityLabel}
-                          </p>
-                        </div>
-                      </ButtonPrimitive>
-                    );
-                  })}
-                </CarouselTrack>
-
-                {hasDateNavigation && canScrollDateLeft && (
-                  <ButtonPrimitive
-                    variant='control'
-                    onClick={() => {
-                      handleDateCarouselNavigation('prev');
-                    }}
-                    aria-label={content.scrollDatesLeftAriaLabel}
-                    className='absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 md:flex'
-                  >
-                    <DateArrowIcon direction='left' />
-                  </ButtonPrimitive>
-                )}
-
-                {hasDateNavigation && canScrollDateRight && (
-                  <ButtonPrimitive
-                    variant='control'
-                    onClick={() => {
-                      handleDateCarouselNavigation('next');
-                    }}
-                    aria-label={content.scrollDatesRightAriaLabel}
-                    className='absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 md:flex'
-                  >
-                    <DateArrowIcon direction='right' />
-                  </ButtonPrimitive>
-                )}
+                        </ButtonPrimitive>
+                      );
+                    })}
+                  </CarouselTrack>
+                </CarouselHorizontalArrowControls>
               </div>
             </div>
 

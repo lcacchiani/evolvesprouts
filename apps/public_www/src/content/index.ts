@@ -165,6 +165,12 @@ export interface LandingPageLocaleContent {
     submitLabel: string;
     phoneFieldLabel: string;
     loadErrorMessage?: string;
+    loadingLabel: string;
+    scrollDatesLeftAriaLabel: string;
+    scrollDatesRightAriaLabel: string;
+    morningSectionLabel: string;
+    afternoonSectionLabel: string;
+    slotGroupAriaLabelTemplate: string;
   };
 }
 

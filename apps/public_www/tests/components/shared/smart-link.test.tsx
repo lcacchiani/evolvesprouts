@@ -70,17 +70,17 @@ describe('SmartLink', () => {
     expect(link).toHaveAttribute('href', '/about-us');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
-    expect(link).toHaveAttribute('data-scroll', 'true');
+    expect(link).toHaveAttribute('data-scroll', 'false');
     expect(link).not.toHaveAttribute('target');
   });
 
-  it('does not force top scroll for internal hash anchors', () => {
+  it('does not pass scroll={false} for internal cross-page hash links', () => {
     render(<SmartLink href='/about-us#team'>About team</SmartLink>);
 
     const link = screen.getByRole('link', { name: 'About team' });
     expect(link).toHaveAttribute('href', '/about-us#team');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
-    expect(link).toHaveAttribute('data-scroll', 'false');
+    expect(link).not.toHaveAttribute('data-scroll');
   });
 
   it('allows explicit internal new-tab override', () => {
