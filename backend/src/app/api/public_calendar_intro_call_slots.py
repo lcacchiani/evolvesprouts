@@ -1,4 +1,10 @@
-"""Public GET /v1/calendar/intro-call-slots (15-minute availability, no PII)."""
+"""Public GET /v1/calendar/intro-call-slots (15-minute availability, no PII).
+
+GET responses for routes reachable via the public website CloudFront ``/www/*``
+proxy must include a ``Cache-Control`` header: use a shared-cache friendly value
+on success (200) and ``no-store`` on errors so CloudFront never retains unsafe
+responses.
+"""
 
 from __future__ import annotations
 
@@ -15,7 +21,7 @@ from app.services.intro_call_slots import (
     compute_available_intro_call_slots,
     resolve_intro_call_wall_timezone,
 )
-from app.utils import json_response
+from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -44,7 +50,9 @@ def handle_public_calendar_intro_call_slots(
 ) -> dict[str, Any]:
     """Return available intro-call slots as UTC ISO instants."""
     if method != "GET":
-        return json_response(405, {"error": "Method not allowed"}, event=event)
+        return public_cacheable_json_response(
+            405, {"error": "Method not allowed"}, event=event
+        )
 
     query = event.get("queryStringParameters") or {}
     if not isinstance(query, Mapping):
@@ -57,26 +65,32 @@ def handle_public_calendar_intro_call_slots(
     to_raw = query.get("to")
     from_date = _parse_iso_date(from_raw, default=today)
     if from_date is None:
-        return json_response(400, {"error": "Invalid from date"}, event=event)
+        return public_cacheable_json_response(
+            400, {"error": "Invalid from date"}, event=event
+        )
 
     default_to = from_date + timedelta(days=21)
     to_date = _parse_iso_date(to_raw, default=default_to)
     if to_date is None:
-        return json_response(400, {"error": "Invalid to date"}, event=event)
+        return public_cacheable_json_response(
+            400, {"error": "Invalid to date"}, event=event
+        )
 
     if to_date < from_date:
-        return json_response(400, {"error": "to must be on or after from"}, event=event)
+        return public_cacheable_json_response(
+            400, {"error": "to must be on or after from"}, event=event
+        )
 
     span = (to_date - from_date).days
     if span > _MAX_SPAN_DAYS:
-        return json_response(
+        return public_cacheable_json_response(
             400,
             {"error": f"Date range exceeds maximum of {_MAX_SPAN_DAYS} days"},
             event=event,
         )
 
     if (from_date - today).days > _MAX_FORWARD_DAYS:
-        return json_response(
+        return public_cacheable_json_response(
             400,
             {"error": "from is too far in the future"},
             event=event,
@@ -97,4 +111,4 @@ def handle_public_calendar_intro_call_slots(
             for s0, s1 in slots
         ]
     }
-    return json_response(200, body, event=event)
+    return public_cacheable_json_response(200, body, event=event)

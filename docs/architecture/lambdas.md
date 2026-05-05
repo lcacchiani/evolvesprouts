@@ -42,7 +42,8 @@ their primary responsibilities.
   as `GET /v1/calendar/public`),
   `/v1/calendar/intro-call-slots` (GET; free intro-call availability as UTC ISO instants;
   15-minute call duration with 30-minute-aligned start times; same contract as
-  `/www/v1/calendar/intro-call-slots`; no PII),
+  `/www/v1/calendar/intro-call-slots`; no PII; `Cache-Control` on 200 matches other public
+  cacheable GETs, `no-store` on handler errors),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
   `/v1/admin/geographic-areas`,
