@@ -634,8 +634,10 @@ def _handle_public_reservation(
                 )
 
                 def _persist_intro_call_slot_for_enrollment() -> None:
-                    assert intro_slot_bounds is not None
-                    s0, s1 = intro_slot_bounds
+                    bounds = intro_slot_bounds
+                    if bounds is None:
+                        raise RuntimeError("intro_call_slot_bounds_missing_for_persist")
+                    s0, s1 = bounds
                     session.add(
                         InstanceSessionSlot(
                             instance_id=instance_id_resolved,
