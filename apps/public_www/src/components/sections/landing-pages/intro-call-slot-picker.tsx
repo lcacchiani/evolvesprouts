@@ -331,7 +331,7 @@ export function IntroCallSlotPicker({
   function renderSlotGrid(slotsChunk: IntroCallSlot[], offsetIndex: number, partLabel: string) {
     return (
       <div
-        className='grid grid-cols-2 gap-3 sm:grid-cols-3'
+        className='grid grid-cols-2 gap-3 md:grid-cols-3'
         role='group'
         aria-label={slotGridAriaLabel(partLabel)}
       >
@@ -411,7 +411,7 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[112px] shrink-0 snap-center text-center sm:w-[134.4px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-w-0 w-[calc((100%-1.5rem)/2.5)] shrink-0 snap-center text-center sm:w-[134.4px]`}
               >
                 <div className='flex w-full flex-col items-center gap-2'>
                   <div className='flex items-center justify-center gap-1.5'>
