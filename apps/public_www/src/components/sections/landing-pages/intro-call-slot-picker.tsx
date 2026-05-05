@@ -53,14 +53,39 @@ const WALL_HOUR_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   hourCycle: 'h23',
 });
 
-function ymdForSlot(slot: IntroCallSlot): string {
-  const d = new Date(slot.startIso);
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
+const SITE_YMD_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const WEEKDAY_SHORT_FORMATTERS: Record<string, Intl.DateTimeFormat> = {};
+const DAY_MONTH_SHORT_FORMATTERS: Record<string, Intl.DateTimeFormat> = {};
+
+function getWeekdayShortFormatter(resolvedLocale: string): Intl.DateTimeFormat {
+  let fmt = WEEKDAY_SHORT_FORMATTERS[resolvedLocale];
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(resolvedLocale, {
+      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+      weekday: 'short',
+    });
+    WEEKDAY_SHORT_FORMATTERS[resolvedLocale] = fmt;
+  }
+  return fmt;
+}
+
+function getDayMonthShortFormatter(resolvedLocale: string): Intl.DateTimeFormat {
+  let fmt = DAY_MONTH_SHORT_FORMATTERS[resolvedLocale];
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(resolvedLocale, {
+      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+      day: '2-digit',
+      month: 'short',
+    });
+    DAY_MONTH_SHORT_FORMATTERS[resolvedLocale] = fmt;
+  }
+  return fmt;
 }
 
 function wallClockHourFromIso(iso: string): number {
@@ -71,37 +96,6 @@ function wallClockHourFromIso(iso: string): number {
 
 function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
-}
-
-function formatIntroCallDayButtonAccessibleLabel(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  const weekday = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    weekday: 'short',
-  }).format(d);
-  const dayMonth = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    day: '2-digit',
-    month: 'short',
-  }).format(d);
-  return `${weekday} ${dayMonth}`;
-}
-
-function formatIntroCallDayWeekdayShort(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    weekday: 'short',
-  }).format(d);
-}
-
-function formatIntroCallDayDateLine(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    day: '2-digit',
-    month: 'short',
-  }).format(d);
 }
 
 export function IntroCallSlotPicker({
@@ -122,6 +116,7 @@ export function IntroCallSlotPicker({
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dayCarouselRef = useRef<HTMLDivElement | null>(null);
+  const lastReportedStatusRef = useRef<FetchStatus | null>(null);
 
   const slotTimeFormatter = useMemo(
     () =>
@@ -134,6 +129,24 @@ export function IntroCallSlotPicker({
     [locale],
   );
 
+  const dayFormatters = useMemo(() => {
+    const resolved = resolveDateTimeLocale(locale);
+    const weekdayFmt = getWeekdayShortFormatter(resolved);
+    const dayMonthFmt = getDayMonthShortFormatter(resolved);
+    return {
+      accessibleLabel(iso: string): string {
+        const d = new Date(iso);
+        return `${weekdayFmt.format(d)} ${dayMonthFmt.format(d)}`;
+      },
+      weekdayShort(iso: string): string {
+        return weekdayFmt.format(new Date(iso));
+      },
+      dateLine(iso: string): string {
+        return dayMonthFmt.format(new Date(iso));
+      },
+    };
+  }, [locale]);
+
   const setStatusBoth = useCallback(
     (next: FetchStatus) => {
       setStatus(next);
@@ -143,6 +156,10 @@ export function IntroCallSlotPicker({
   );
 
   useEffect(() => {
+    if (lastReportedStatusRef.current === status) {
+      return;
+    }
+    lastReportedStatusRef.current = status;
     trackAnalyticsEvent('intro_call_slot_picker_status_change', {
       sectionId: 'intro-call-booking',
       ctaLocation: 'intro_call_slot_picker',
@@ -189,7 +206,7 @@ export function IntroCallSlotPicker({
   const slotsByDayFull = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
     for (const s of slots) {
-      const ymd = ymdForSlot(s);
+      const ymd = SITE_YMD_FORMATTER.format(new Date(s.startIso));
       const arr = map.get(ymd) ?? [];
       arr.push(s);
       map.set(ymd, arr);
@@ -389,9 +406,9 @@ export function IntroCallSlotPicker({
             if (!sample) {
               return null;
             }
-            const dayAccessibleLabel = formatIntroCallDayButtonAccessibleLabel(sample.startIso, locale);
-            const weekdayShort = formatIntroCallDayWeekdayShort(sample.startIso, locale);
-            const dateLine = formatIntroCallDayDateLine(sample.startIso, locale);
+            const dayAccessibleLabel = dayFormatters.accessibleLabel(sample.startIso);
+            const weekdayShort = dayFormatters.weekdayShort(sample.startIso);
+            const dateLine = dayFormatters.dateLine(sample.startIso);
             const isSelected = ymd === resolvedDayYmd;
             return (
               <ButtonPrimitive
