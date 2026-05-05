@@ -3,7 +3,12 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import type { LandingPageSharedCtaProps } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
-import type { Locale, LandingPageLocaleContent, SiteContent } from '@/content';
+import {
+  MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
+  type Locale,
+  type LandingPageLocaleContent,
+  type SiteContent,
+} from '@/content';
 import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-cta-resolve';
 import type {
   LandingPageBookingEventContent,
@@ -70,7 +75,7 @@ export function LandingPageRehydrateRoot({
       buildLandingPageSharedCtaPropsFromCalendar(
         locale,
         slug,
-        pageContent.cta,
+        pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
         siteContent,
         pageContent.meta.title,
         heroEventContent,
@@ -80,7 +85,7 @@ export function LandingPageRehydrateRoot({
     [
       locale,
       slug,
-      pageContent.cta,
+      pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
       pageContent.meta.title,
       siteContent,
       heroEventContent,

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 
-import type {
-  Locale,
-  LandingPageLocaleContent,
-  SiteContent,
+import {
+  MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
+  type Locale,
+  type LandingPageLocaleContent,
+  type SiteContent,
 } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { AboutUsIdaCoach } from '@/components/sections/about-us-ida-coach';
@@ -23,6 +24,8 @@ import type {
   LandingPageStructuredDataContent,
 } from '@/lib/events-data';
 
+export type LandingPageLayoutVariant = 'default' | 'book-free-call';
+
 export interface LandingPageProps {
   locale: Locale;
   slug: string;
@@ -34,6 +37,8 @@ export interface LandingPageProps {
   structuredDataContent: LandingPageStructuredDataContent | null;
   /** Optional slot between testimonials and the CTA bridge (e.g. intro-call booking). */
   introCallSectionBeforeCta?: ReactNode;
+  /** Reorders sections for the intro-call landing page (no outline / mid-page CTA strip). */
+  layoutVariant?: LandingPageLayoutVariant;
 }
 
 export function LandingPage({
@@ -46,8 +51,10 @@ export function LandingPage({
   bookingEventContent,
   structuredDataContent,
   introCallSectionBeforeCta,
+  layoutVariant = 'default',
 }: LandingPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
+  const heroCtaContent = pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR;
 
   return (
     <LandingPageRehydrateRoot
@@ -68,45 +75,85 @@ export function LandingPage({
         <LandingPageHeroBridge
           slug={slug}
           content={pageContent.hero}
-          ctaContent={pageContent.cta}
+          ctaContent={heroCtaContent}
           commonContent={siteContent.landingPages.common}
           locale={locale}
           metaTitle={pageContent.meta.title}
           bookingModalContent={siteContent.bookingModal}
           ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
         />
-        <LandingPageOutline
-          content={pageContent.outline}
-          ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
-        />
-        <LandingPageDescription
-          content={pageContent.description}
-          ariaLabel={siteContent.landingPages.common.a11y.descriptionSectionLabel}
-        />
-        <LandingPageDetails
-          content={pageContent.details}
-          ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
-        />
-        <Testimonials
-          content={siteContent.testimonials}
-          commonAccessibility={siteContent.common.accessibility}
-        />
-        {introCallSectionBeforeCta}
-        <LandingPageCtaBridge
-          locale={locale}
-          slug={slug}
-          content={pageContent.cta}
-          commonContent={siteContent.landingPages.common}
-          ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
-        />
-        <AboutUsIdaCoach
-          content={siteContent.aboutUs.coaches.ida}
-          ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
-        />
-        <LandingPageFaq
-          content={pageContent.faq}
-          ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
-        />
+        {layoutVariant === 'book-free-call' ? (
+          <>
+            <LandingPageDetails
+              content={pageContent.details}
+              ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+            />
+            {introCallSectionBeforeCta}
+            <LandingPageDescription
+              content={pageContent.description}
+              ariaLabel={
+                siteContent.landingPages.common.a11y.descriptionSectionLabel
+              }
+            />
+            <Testimonials
+              content={siteContent.testimonials}
+              commonAccessibility={siteContent.common.accessibility}
+            />
+            <AboutUsIdaCoach
+              content={siteContent.aboutUs.coaches.ida}
+              ariaLabel={
+                siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel
+              }
+            />
+            <LandingPageFaq
+              content={pageContent.faq}
+              ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
+            />
+          </>
+        ) : (
+          <>
+            {pageContent.outline ? (
+              <LandingPageOutline
+                content={pageContent.outline}
+                ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
+              />
+            ) : null}
+            <LandingPageDescription
+              content={pageContent.description}
+              ariaLabel={
+                siteContent.landingPages.common.a11y.descriptionSectionLabel
+              }
+            />
+            <LandingPageDetails
+              content={pageContent.details}
+              ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+            />
+            <Testimonials
+              content={siteContent.testimonials}
+              commonAccessibility={siteContent.common.accessibility}
+            />
+            {introCallSectionBeforeCta}
+            {pageContent.cta ? (
+              <LandingPageCtaBridge
+                locale={locale}
+                slug={slug}
+                content={pageContent.cta}
+                commonContent={siteContent.landingPages.common}
+                ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
+              />
+            ) : null}
+            <AboutUsIdaCoach
+              content={siteContent.aboutUs.coaches.ida}
+              ariaLabel={
+                siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel
+              }
+            />
+            <LandingPageFaq
+              content={pageContent.faq}
+              ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
+            />
+          </>
+        )}
       </PageLayout>
       <LandingPageEventJsonLd
         locale={locale}

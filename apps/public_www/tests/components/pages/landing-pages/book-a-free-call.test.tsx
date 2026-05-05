@@ -76,6 +76,42 @@ describe('BookFreeCallLandingPage', () => {
     spy.mockRestore();
   });
 
+  it('lays out sections: before you book → pick a time → how it works before testimonials', () => {
+    render(
+      <BookFreeCallLandingPage
+        locale='en'
+        pagePath='/book-a-free-call'
+        siteContent={enContent}
+        pageContent={pageContent}
+      />,
+    );
+
+    const beforeYouBookHeading = screen.getByRole('heading', {
+      name: bookAFreeCall.en.details.title,
+    });
+    const bookingRegion = screen.getByRole('region', {
+      name: bookAFreeCall.en.introCall.bookingSectionTitle,
+    });
+    const howItWorksHeading = screen.getByRole('heading', {
+      name: bookAFreeCall.en.description.title,
+    });
+    const testimonialsHeading = screen.getByRole('heading', {
+      name: enContent.testimonials.title,
+    });
+
+    expect(
+      beforeYouBookHeading.compareDocumentPosition(bookingRegion),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      bookingRegion.compareDocumentPosition(howItWorksHeading),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      howItWorksHeading.compareDocumentPosition(testimonialsHeading),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    expect(document.getElementById('landing-page-cta')).toBeNull();
+  });
+
   it('renders hero anchor CTA to the booking section and no booking modal shell', () => {
     render(
       <BookFreeCallLandingPage

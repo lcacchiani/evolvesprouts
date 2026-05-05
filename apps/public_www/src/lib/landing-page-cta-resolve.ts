@@ -3,7 +3,12 @@ import type {
   LandingPageBookingEventContent,
   LandingPageHeroEventContent,
 } from '@/lib/events-data';
-import type { LandingPageLocaleContent, Locale, SiteContent } from '@/content';
+import {
+  MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR,
+  type LandingPageLocaleContent,
+  type Locale,
+  type SiteContent,
+} from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { buildWhatsappPrefilledHref } from '@/lib/site-config';
 
@@ -66,31 +71,32 @@ export function resolveFullyBookedWaitlistHref(
 export function buildLandingPageSharedCtaPropsFromCalendar(
   locale: Locale,
   slug: string,
-  pageContentCta: LandingPageLocaleContent['cta'],
+  pageContentCta: LandingPageLocaleContent['cta'] | undefined,
   siteContent: SiteContent,
   heroTitleFallback: string,
   heroEventContent: LandingPageHeroEventContent | null,
   bookingEventContent: LandingPageBookingEventContent | null,
   thankYouWhatsappHref: string | undefined,
 ): LandingPageSharedCtaProps {
+  const cta = pageContentCta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR;
   const isFullyBooked = bookingEventContent?.status === 'fully_booked';
   const waitlistEventTitle = heroEventContent?.title ?? heroTitleFallback;
   const fullyBookedWaitlistHref = resolveFullyBookedWaitlistHref(
     isFullyBooked,
     siteContent.navbar.bookNow.href,
     siteContent.navbar.bookNow.phoneNumber,
-    pageContentCta.fullyBookedWaitlistMessageTemplate,
+    cta.fullyBookedWaitlistMessageTemplate,
     waitlistEventTitle,
   );
   return {
     locale,
     slug,
-    content: pageContentCta,
+    content: cta,
     ctaPriceLabel: bookingEventContent?.ctaPriceLabel,
     commonContent: siteContent.landingPages.common,
     bookingPayload: bookingEventContent?.bookingPayload ?? null,
     isFullyBooked,
-    fullyBookedCtaLabel: pageContentCta.fullyBookedButtonLabel,
+    fullyBookedCtaLabel: cta.fullyBookedButtonLabel,
     fullyBookedWaitlistHref,
     bookingModalContent: siteContent.bookingModal,
     thankYouWhatsappHref,
