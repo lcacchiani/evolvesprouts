@@ -12,7 +12,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
-  LandingPageLocaleContent,
+  LandingPageCtaContent,
   Locale,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
@@ -40,7 +40,7 @@ const EventThankYouModal = dynamic(
 export interface LandingPageBookingCtaActionProps {
   locale: Locale;
   slug: string;
-  content: LandingPageLocaleContent['cta'];
+  content: LandingPageCtaContent;
   ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   bookingPayload: EventBookingModalPayload | null;
@@ -61,7 +61,7 @@ export type LandingPageSharedCtaProps = Omit<
 >;
 
 function resolveCtaLabel(
-  content: LandingPageLocaleContent['cta'],
+  content: LandingPageCtaContent,
   commonContent: LandingPagesCommonContent,
   ctaPriceLabel: string | undefined,
 ): string {
@@ -79,7 +79,7 @@ function resolveCtaLabel(
 }
 
 function resolveFullyBookedCtaLabel(
-  content: LandingPageLocaleContent['cta'],
+  content: LandingPageCtaContent,
   commonContent: LandingPagesCommonContent,
   overrideLabel: string | undefined,
 ): string {

@@ -19,6 +19,7 @@ import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
+  LandingPageCtaContent,
   LandingPageLocaleContent,
   Locale,
 } from '@/content';
@@ -35,7 +36,7 @@ import {
 interface LandingPageHeroProps {
   slug: string;
   content: LandingPageLocaleContent['hero'];
-  ctaContent: LandingPageLocaleContent['cta'];
+  ctaContent: LandingPageCtaContent;
   ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   locale: Locale;

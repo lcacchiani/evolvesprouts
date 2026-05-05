@@ -8,7 +8,7 @@ import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
-  LandingPageLocaleContent,
+  LandingPageCtaContent,
   Locale,
 } from '@/content';
 import type { EventBookingModalPayload } from '@/lib/events-data';
@@ -16,7 +16,7 @@ import type { EventBookingModalPayload } from '@/lib/events-data';
 interface LandingPageCtaProps {
   locale: Locale;
   slug: string;
-  content: LandingPageLocaleContent['cta'];
+  content: LandingPageCtaContent;
   eyebrow?: string | null;
   ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
