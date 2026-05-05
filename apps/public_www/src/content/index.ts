@@ -170,6 +170,10 @@ export interface LandingPageLocaleContent {
 
 export type LandingPageCtaContent = NonNullable<LandingPageLocaleContent['cta']>;
 
+export type LandingPageOutlineContent = NonNullable<
+  LandingPageLocaleContent['outline']
+>;
+
 /**
  * Minimal CTA fields for calendar context + hero fallbacks when a landing page
  * omits `cta` in JSON (e.g. book-a-free-call uses hero anchor CTAs only).
