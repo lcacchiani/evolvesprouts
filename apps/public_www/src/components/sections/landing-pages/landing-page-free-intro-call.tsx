@@ -19,6 +19,7 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { SmartLink } from '@/components/shared/smart-link';
 import type {
   BookingPaymentModalContent,
   CommonAccessibilityContent,
@@ -566,27 +567,32 @@ export function LandingPageFreeIntroCall({
                   onTopicsChange={setInterestedTopics}
                   onTopicsBlur={() => {}}
                 />
-                <MarketingOptInCheckbox
-                  checked={marketingOptIn}
-                  onChange={setMarketingOptIn}
-                  label={paymentModalContent.marketingOptInLabel}
-                />
-                <label className='flex items-start gap-2 es-type-body'>
+                <label className='flex cursor-pointer items-start gap-2.5 py-1'>
                   <input
                     type='checkbox'
+                    required
                     checked={hasTermsAgreement}
-                    onChange={(ev) => setHasTermsAgreement(ev.target.checked)}
-                    className='es-focus-ring mt-1'
+                    onChange={(event) => {
+                      setHasTermsAgreement(event.target.checked);
+                    }}
+                    className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
                     aria-invalid={isAckTouched && !hasTermsAgreement}
                   />
-                  <span>
+                  <span className='text-sm leading-[1.45] es-text-heading'>
                     {paymentModalContent.termsAgreementLabel}{' '}
-                    <a
+                    <SmartLink
                       href={paymentModalContent.termsHref}
-                      className='es-focus-ring font-semibold underline'
+                      openInNewTab
+                      className='es-focus-ring rounded-[2px] es-text-brand underline underline-offset-4'
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
                     >
                       {paymentModalContent.termsLinkLabel}
-                    </a>
+                    </SmartLink>
+                    <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                      *
+                    </span>
                   </span>
                 </label>
                 {isAckTouched && !hasTermsAgreement ? (
@@ -594,6 +600,11 @@ export function LandingPageFreeIntroCall({
                     {paymentModalContent.acknowledgementRequiredError}
                   </p>
                 ) : null}
+                <MarketingOptInCheckbox
+                  checked={marketingOptIn}
+                  onChange={setMarketingOptIn}
+                  label={paymentModalContent.marketingOptInLabel}
+                />
                 <label className='block'>
                   <span className='mb-1 block text-sm font-semibold es-text-heading'>
                     {captchaContent.captchaLabel}
