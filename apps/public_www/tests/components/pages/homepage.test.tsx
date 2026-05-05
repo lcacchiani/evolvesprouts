@@ -140,13 +140,13 @@ describe('HomePage', () => {
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
-      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+      '/en/book-a-free-call/#intro-call-booking',
     );
     expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
     );
-    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call');
+    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call#intro-call-booking');
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
@@ -175,13 +175,11 @@ describe('HomePage', () => {
     expect(servicesPropsSpy).toHaveBeenCalledTimes(1);
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
-    const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
-    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call');
-
-    expect(parsedNavbarHref.pathname).toBe('/15550001234');
-    expect(parsedNavbarHref.searchParams.get('text')).toBe(
-      localizedContent.navbar.bookNow.prefillMessage,
+    expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
+      '/zh-HK/book-a-free-call/#intro-call-booking',
     );
+    expect(freeIntroProps.content.ctaHref).toBe('/book-a-free-call#intro-call-booking');
+
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       localizedContent.navbar.bookNow.label,
     );

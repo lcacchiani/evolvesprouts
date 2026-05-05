@@ -45,7 +45,7 @@
     ],
     "bookNow": {
       "label": "Free Intro Call",
-      "href": "{{WHATSAPP_URL}}",
+      "href": "{{BOOK_FREE_CALL_URL}}#intro-call-booking",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "Hi, I'd like to book a free intro call!"
     },
@@ -847,7 +847,7 @@
     "eventPageTitle": "Not sure yet? Start here",
     "description": "Book a free 15-minute call. We'll talk about your child, your helper, and whether the programme is the right fit. No commitment - just a conversation.",
     "ctaLabel": "Book my free 15-min call",
-    "ctaHref": "{{BOOK_FREE_CALL_URL}}",
+    "ctaHref": "{{BOOK_FREE_CALL_URL}}#intro-call-booking",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "Hi, I'd like to book a free intro call!"
   },

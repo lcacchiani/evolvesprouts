@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BookFreeCallLandingPage } from '@/components/pages/landing-pages/book-a-free-call';
+import { getContent } from '@/content';
 import enContent from '@/content/en.json';
 import bookAFreeCall from '@/content/landing-pages/book-a-free-call.json';
 import * as eventsData from '@/lib/events-data';
@@ -110,6 +111,26 @@ describe('BookFreeCallLandingPage', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
 
     expect(document.getElementById('landing-page-cta')).toBeNull();
+  });
+
+  it('renders inline section CTAs to the localized booking hash when calendar context is disabled', () => {
+    const siteContent = getContent('en');
+    render(
+      <BookFreeCallLandingPage
+        locale='en'
+        pagePath='/book-a-free-call'
+        siteContent={siteContent}
+        pageContent={pageContent}
+      />,
+    );
+
+    const localizedBookingHref = '/en/book-a-free-call#intro-call-booking';
+    const pickTimeLinks = screen.getAllByRole('link', {
+      name: bookAFreeCall.en.hero.ctaAnchorLabel,
+    });
+    expect(
+      pickTimeLinks.filter((link) => link.getAttribute('href') === localizedBookingHref),
+    ).toHaveLength(2);
   });
 
   it('renders hero anchor CTA to the booking section and no booking modal shell', () => {

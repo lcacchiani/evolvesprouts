@@ -204,11 +204,14 @@ function validateHrefValue(value, keyPath, errors) {
     return;
   }
   if (normalizedValue === BOOK_FREE_CALL_URL_PLACEHOLDER) {
-    if (keyPath.endsWith('.freeIntroSession.ctaHref')) {
+    if (
+      keyPath.endsWith('.freeIntroSession.ctaHref')
+      || keyPath.endsWith('.navbar.bookNow.href')
+    ) {
       return;
     }
     errors.push(
-      `${keyPath}: placeholder "${BOOK_FREE_CALL_URL_PLACEHOLDER}" is only allowed for freeIntroSession.ctaHref`,
+      `${keyPath}: placeholder "${BOOK_FREE_CALL_URL_PLACEHOLDER}" is only allowed for freeIntroSession.ctaHref and navbar.bookNow.href`,
     );
     return;
   }
