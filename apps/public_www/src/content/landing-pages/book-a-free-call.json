@@ -49,7 +49,7 @@
         {
           "icon": "🌏",
           "title": "Languages",
-          "description": "We can run the call in English or Cantonese — whichever you prefer."
+          "description": "The intro call is conducted in English."
         },
         {
           "icon": "📅",
@@ -82,8 +82,8 @@
           "answer": "We will explain how the programme works if it is relevant. There is no hard sell — the goal is to help you decide what is right for your family."
         },
         {
-          "question": "What languages do you speak on the call?",
-          "answer": "English and Cantonese are both fine — choose what is most comfortable for you."
+          "question": "What language is the intro call in?",
+          "answer": "The intro call is in English."
         }
       ]
     },
@@ -154,7 +154,7 @@
         {
           "icon": "🌏",
           "title": "语言",
-          "description": "可使用英语或粤语——按您最舒适的语言进行。"
+          "description": "介绍通话以英语进行。"
         },
         {
           "icon": "📅",
@@ -187,8 +187,8 @@
           "answer": "若相关，我们会说明课程如何运作。没有强硬推销——目标是帮助您判断什么对家庭最合适。"
         },
         {
-          "question": "通话可用哪些语言？",
-          "answer": "英语与粤语均可，请选择您最自在的语言。"
+          "question": "介绍通话使用什么语言？",
+          "answer": "介绍通话以英语进行。"
         }
       ]
     },
@@ -259,7 +259,7 @@
         {
           "icon": "🌏",
           "title": "語言",
-          "description": "可用英文或粵語——跟住你最自在嘅語言。"
+          "description": "介紹通話以英文進行。"
         },
         {
           "icon": "📅",
@@ -292,8 +292,8 @@
           "answer": "若相關，我哋會解釋課程點運作。冇硬銷——目標係幫你判斷咩先最啱你家庭。"
         },
         {
-          "question": "通話可用咩語言？",
-          "answer": "英文同粵語都得——揀你最舒服嘅就得。"
+          "question": "介紹通話用咩語言？",
+          "answer": "介紹通話以英文進行。"
         }
       ]
     },
