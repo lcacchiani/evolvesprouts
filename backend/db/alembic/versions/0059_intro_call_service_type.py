@@ -1,15 +1,20 @@
 """Add ``intro_call`` label to ``service_type`` enum.
 
+Requirements:
+    - PostgreSQL >= 12. ``ALTER TYPE … ADD VALUE`` was made transaction-safe in
+      PG12 (see https://www.postgresql.org/docs/12/sql-altertype.html). Aurora
+      Postgres 14+ used by this project satisfies that.
+
 PostgreSQL does not support removing enum values cleanly; rollback would
 require recreating the enum and rewriting columns. Downgrade is a no-op.
 
 Seed-data assessment (``backend/db/seed/seed_data.sql``):
-1. Compatible: additive seed blocks for intro-call service depend on this value.
-2. N/A (enum label only).
-3. N/A.
-4. N/A.
-5. Additive enum value ``intro_call``; seed inserts use it after upgrade.
-6. N/A.
+    1. Compatible: additive seed blocks for intro-call service depend on this value.
+    2. N/A (enum label only).
+    3. N/A.
+    4. N/A.
+    5. Additive enum value ``intro_call``; seed inserts use it after upgrade.
+    6. N/A.
 
 Revision id length: 28 chars (<= 32).
 """
