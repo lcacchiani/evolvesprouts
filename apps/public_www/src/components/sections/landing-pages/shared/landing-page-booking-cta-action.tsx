@@ -215,23 +215,21 @@ export function LandingPageBookingCtaAction({
       )}
 
       {isPaymentModalOpen && bookingPayload && !isFullyBooked && (
-        <div data-testid='landing-page-modal'>
-          <EventBookingModal
-            locale={locale}
-            paymentModalContent={bookingModalContent.paymentModal}
-            bookingPayload={bookingPayload}
-            topicsFieldConfig={topicsFieldConfig}
-            thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
-            onClose={() => {
-              setIsPaymentModalOpen(false);
-            }}
-            onSubmitReservation={(summary) => {
-              setReservationSummary(summary);
-              setIsPaymentModalOpen(false);
-              setIsThankYouModalOpen(true);
-            }}
-          />
-        </div>
+        <EventBookingModal
+          locale={locale}
+          paymentModalContent={bookingModalContent.paymentModal}
+          bookingPayload={bookingPayload}
+          topicsFieldConfig={topicsFieldConfig}
+          thankYouRecapLabels={buildThankYouRecapLabels(bookingModalContent.thankYouModal)}
+          onClose={() => {
+            setIsPaymentModalOpen(false);
+          }}
+          onSubmitReservation={(summary) => {
+            setReservationSummary(summary);
+            setIsPaymentModalOpen(false);
+            setIsThankYouModalOpen(true);
+          }}
+        />
       )}
 
       {isThankYouModalOpen && (
