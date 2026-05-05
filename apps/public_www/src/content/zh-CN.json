@@ -1142,6 +1142,7 @@
     },
     "captcha": {
       "captchaLabel": "验证",
+      "deferredHint": "开始填写表单时，我们会进行验证。",
       "requiredError": "提交前请先完成 CAPTCHA 验证。",
       "loadError": "CAPTCHA 加载失败，请刷新页面后重试。",
       "unavailableError": "CAPTCHA 暂时不可用，请稍后再试。"

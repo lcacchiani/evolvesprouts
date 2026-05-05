@@ -125,6 +125,7 @@ export function LandingPageFreeIntroCall({
   const [phone, setPhone] = useState('');
   const [interestedTopics, setInterestedTopics] = useState('');
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [hasFormInteracted, setHasFormInteracted] = useState(false);
   const [isFullNameTouched, setIsFullNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
@@ -181,6 +182,7 @@ export function LandingPageFreeIntroCall({
   }, [locale, selectedSlot]);
 
   const handleSelectSlot = useCallback((slot: IntroCallSlot) => {
+    setHasFormInteracted(true);
     setSelectedSlot(slot);
     setRecentCooldownMessage(false);
     clearSubmissionError();
@@ -197,6 +199,7 @@ export function LandingPageFreeIntroCall({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setHasFormInteracted(true);
     if (isSubmitting || isSuccess) {
       return;
     }
@@ -526,10 +529,14 @@ export function LandingPageFreeIntroCall({
                   </a>
                 </p>
               ) : null}
+              {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- defer Turnstile until focus enters booking fields */}
               <form
                 id='intro-call-booking-form'
                 aria-labelledby='intro-call-booking-heading'
                 noValidate
+                onFocus={() => {
+                  setHasFormInteracted(true);
+                }}
                 onSubmit={(e) => {
                   void handleSubmit(e);
                 }}
@@ -557,14 +564,29 @@ export function LandingPageFreeIntroCall({
                     placeholder: introContent.topicsFieldPlaceholder,
                     required: false,
                   }}
-                  onFullNameChange={setFullName}
+                  onFullNameChange={(v) => {
+                    setHasFormInteracted(true);
+                    setFullName(v);
+                  }}
                   onFullNameBlur={() => setIsFullNameTouched(true)}
-                  onEmailChange={setEmail}
+                  onEmailChange={(v) => {
+                    setHasFormInteracted(true);
+                    setEmail(v);
+                  }}
                   onEmailBlur={() => setIsEmailTouched(true)}
-                  onPhoneCountryChange={setPhoneCountry}
-                  onPhoneChange={setPhone}
+                  onPhoneCountryChange={(v) => {
+                    setHasFormInteracted(true);
+                    setPhoneCountry(v);
+                  }}
+                  onPhoneChange={(v) => {
+                    setHasFormInteracted(true);
+                    setPhone(v);
+                  }}
                   onPhoneBlur={() => setIsPhoneTouched(true)}
-                  onTopicsChange={setInterestedTopics}
+                  onTopicsChange={(v) => {
+                    setHasFormInteracted(true);
+                    setInterestedTopics(v);
+                  }}
                   onTopicsBlur={() => {}}
                 />
                 <label className='flex cursor-pointer items-start gap-2.5 py-1'>
@@ -573,6 +595,7 @@ export function LandingPageFreeIntroCall({
                     required
                     checked={hasTermsAgreement}
                     onChange={(event) => {
+                      setHasFormInteracted(true);
                       setHasTermsAgreement(event.target.checked);
                     }}
                     className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
@@ -602,19 +625,31 @@ export function LandingPageFreeIntroCall({
                 ) : null}
                 <MarketingOptInCheckbox
                   checked={marketingOptIn}
-                  onChange={setMarketingOptIn}
+                  onChange={(checked) => {
+                    setHasFormInteracted(true);
+                    setMarketingOptIn(checked);
+                  }}
                   label={paymentModalContent.marketingOptInLabel}
                 />
                 <label className='block'>
                   <span className='mb-1 block text-sm font-semibold es-text-heading'>
                     {captchaContent.captchaLabel}
                   </span>
-                  <TurnstileCaptcha
-                    siteKey={turnstileSiteKey}
-                    widgetAction='intro_call_booking_submit'
-                    onTokenChange={handleCaptchaTokenChange}
-                    onLoadError={handleCaptchaLoadError}
-                  />
+                  {hasFormInteracted ? (
+                    <TurnstileCaptcha
+                      siteKey={turnstileSiteKey}
+                      widgetAction='intro_call_booking_submit'
+                      onTokenChange={handleCaptchaTokenChange}
+                      onLoadError={handleCaptchaLoadError}
+                    />
+                  ) : (
+                    <p
+                      className='es-type-body-sm text-neutral-600'
+                      data-testid='intro-call-captcha-placeholder'
+                    >
+                      {captchaContent.deferredHint}
+                    </p>
+                  )}
                 </label>
                 {captchaInlineError ? (
                   <p className='es-form-field-error' role='alert'>
@@ -635,7 +670,6 @@ export function LandingPageFreeIntroCall({
                     isSubmitting
                     || isSuccess
                     || isCaptchaUnavailable
-                    || !captchaToken
                   }
                 >
                   <SubmitButtonLoadingContent

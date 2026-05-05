@@ -1142,6 +1142,7 @@
     },
     "captcha": {
       "captchaLabel": "Verification",
+      "deferredHint": "We'll verify you're not a robot when you start filling the form.",
       "requiredError": "Please complete CAPTCHA verification before submitting.",
       "loadError": "CAPTCHA failed to load. Please refresh and try again.",
       "unavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
