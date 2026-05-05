@@ -34,6 +34,8 @@ export interface LandingPageProps {
   structuredDataContent: LandingPageStructuredDataContent | null;
   /** Optional slot between testimonials and the CTA bridge (e.g. intro-call booking). */
   introCallSectionBeforeCta?: ReactNode;
+  /** When set (including empty string), overrides hero eyebrow chip only. */
+  heroEyebrow?: string;
 }
 
 export function LandingPage({
@@ -46,6 +48,7 @@ export function LandingPage({
   bookingEventContent,
   structuredDataContent,
   introCallSectionBeforeCta,
+  heroEyebrow,
 }: LandingPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
 
@@ -74,6 +77,7 @@ export function LandingPage({
           metaTitle={pageContent.meta.title}
           bookingModalContent={siteContent.bookingModal}
           ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
+          heroEyebrow={heroEyebrow}
         />
         <LandingPageOutline
           content={pageContent.outline}

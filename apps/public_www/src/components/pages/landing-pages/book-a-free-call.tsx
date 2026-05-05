@@ -39,6 +39,7 @@ export function BookFreeCallLandingPage({
       heroEventContent={null}
       bookingEventContent={null}
       structuredDataContent={null}
+      heroEyebrow=''
       introCallSectionBeforeCta={(
         <LandingPageFreeIntroCall
           locale={locale}
