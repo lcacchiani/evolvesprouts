@@ -65,6 +65,7 @@ describe('LandingPageDescription section', () => {
           bookingEventContent: null,
           structuredDataContent: null,
           sharedCtaProps,
+          heroAnchorCta: null,
           isRefreshing: false,
           hasRefreshError: false,
         }}

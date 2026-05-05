@@ -22,6 +22,8 @@ export interface LandingPageCalendarContextValue {
   bookingEventContent: LandingPageBookingEventContent | null;
   structuredDataContent: LandingPageStructuredDataContent | null;
   sharedCtaProps: LandingPageSharedCtaProps;
+  /** When set, mid-page inline CTAs match the hero anchor (`SectionCtaAnchor`), same as `LandingPageHero`. */
+  heroAnchorCta: { href: string; label: string } | null;
   isRefreshing: boolean;
   hasRefreshError: boolean;
 }
@@ -73,6 +75,12 @@ export function LandingPageRehydrateRoot({
   const landingPageCtaForCalendar =
     pageContent.cta ?? MINIMAL_LANDING_PAGE_CTA_FOR_CALENDAR;
 
+  const heroAnchorCta = useMemo(() => {
+    const href = pageContent.hero.ctaAnchorHref?.trim() ?? '';
+    const label = pageContent.hero.ctaAnchorLabel?.trim() ?? '';
+    return href && label ? { href, label } : null;
+  }, [pageContent.hero.ctaAnchorHref, pageContent.hero.ctaAnchorLabel]);
+
   const sharedCtaProps = useMemo(
     () =>
       buildLandingPageSharedCtaPropsFromCalendar(
@@ -103,6 +111,7 @@ export function LandingPageRehydrateRoot({
       bookingEventContent,
       structuredDataContent,
       sharedCtaProps,
+      heroAnchorCta,
       isRefreshing,
       hasRefreshError,
     }),
@@ -111,6 +120,7 @@ export function LandingPageRehydrateRoot({
       bookingEventContent,
       structuredDataContent,
       sharedCtaProps,
+      heroAnchorCta,
       isRefreshing,
       hasRefreshError,
     ],

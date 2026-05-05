@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BookFreeCallLandingPage } from '@/components/pages/landing-pages/book-a-free-call';
+import { getContent } from '@/content';
 import enContent from '@/content/en.json';
 import bookAFreeCall from '@/content/landing-pages/book-a-free-call.json';
 import * as eventsData from '@/lib/events-data';
@@ -112,6 +113,26 @@ describe('BookFreeCallLandingPage', () => {
     expect(document.getElementById('landing-page-cta')).toBeNull();
   });
 
+  it('renders hero anchor and inline section CTAs to the booking hash', () => {
+    const siteContent = getContent('en');
+    render(
+      <BookFreeCallLandingPage
+        locale='en'
+        pagePath='/book-a-free-call'
+        siteContent={siteContent}
+        pageContent={pageContent}
+      />,
+    );
+
+    const localizedBookingHref = '#intro-call-booking';
+    const pickTimeLinks = screen.getAllByRole('link', {
+      name: bookAFreeCall.en.hero.ctaAnchorLabel,
+    });
+    expect(
+      pickTimeLinks.filter((link) => link.getAttribute('href') === localizedBookingHref),
+    ).toHaveLength(3);
+  });
+
   it('renders hero anchor CTA to the booking section and no booking modal shell', () => {
     render(
       <BookFreeCallLandingPage
@@ -122,7 +143,11 @@ describe('BookFreeCallLandingPage', () => {
       />,
     );
 
-    const heroCta = screen.getByRole('link', { name: bookAFreeCall.en.hero.ctaAnchorLabel });
+    const heroSection = document.getElementById('landing-page-hero');
+    expect(heroSection).not.toBeNull();
+    const heroCta = within(heroSection as HTMLElement).getByRole('link', {
+      name: bookAFreeCall.en.hero.ctaAnchorLabel,
+    });
     expect(heroCta).toHaveAttribute('href', '#intro-call-booking');
 
     const bookingRegion = screen.getByRole('region', {

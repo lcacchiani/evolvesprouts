@@ -271,11 +271,17 @@ function withConfiguredRuntimeContent(
     return cached;
   }
 
-  const configuredNavbarHref = resolvePlaceholderValue(
+  const configuredNavbarHrefRaw = resolvePlaceholderValue(
     content.navbar.bookNow.href,
     WHATSAPP_URL_PLACEHOLDER,
     configuredWhatsappUrl,
   );
+  const configuredNavbarHrefWithBookToken = (configuredNavbarHrefRaw ?? '').replaceAll(
+    BOOK_FREE_CALL_URL_PLACEHOLDER,
+    ROUTES.bookFreeCall,
+  );
+  const configuredNavbarHref =
+    configuredNavbarHrefWithBookToken || configuredNavbarHrefRaw;
   const configuredNavbarPhoneNumber = resolvePlaceholderValue(
     content.navbar.bookNow.phoneNumber,
     BUSINESS_PHONE_PLACEHOLDER,

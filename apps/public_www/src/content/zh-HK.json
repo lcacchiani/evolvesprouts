@@ -45,7 +45,7 @@
     ],
     "bookNow": {
       "label": "預約免費入門諮詢",
-      "href": "{{WHATSAPP_URL}}",
+      "href": "{{BOOK_FREE_CALL_URL}}#intro-call-booking",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "你好，我想預約一節免費簡介通話！"
     },
@@ -847,7 +847,7 @@
     "eventPageTitle": "仲未確定？由呢度開始",
     "description": "預約一次 15 分鐘免費通話。我們聊聊你的孩子、你的姨姨，以及這個課程是否適合你。無需承諾-只是一次交流。",
     "ctaLabel": "預約我嘅免費 15 分鐘通話",
-    "ctaHref": "{{BOOK_FREE_CALL_URL}}",
+    "ctaHref": "{{BOOK_FREE_CALL_URL}}#intro-call-booking",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "你好，我想預約一節免費簡介通話！"
   },
