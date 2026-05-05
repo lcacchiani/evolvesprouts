@@ -41,3 +41,54 @@ The repository enforces a `.cursorrules` contract via
 `scripts/validate-cursorrules.sh` (wired into pre-commit and CI lint checks).
 This does not alter runtime prompt precedence, but it blocks merges when
 mandatory `.cursorrules` integration anchors are removed or weakened.
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Path | Dev command | Port |
+|---------|------|-------------|------|
+| Admin Web (Next.js) | `apps/admin_web/` | `npm run dev -- --webpack --port 3000` | 3000 |
+| Public Website (Next.js) | `apps/public_www/` | `npm run dev -- --port 3001` | 3001 |
+| Backend (Python/Lambda) | `backend/` | Tests only (`pytest tests/`) | N/A |
+| CDK Infrastructure (TS) | `backend/infrastructure/` | `npx tsc --noEmit` | N/A |
+
+### Running lint
+
+- **Python backend**: `ruff check backend/ tests/ --config=backend/pyproject.toml`
+- **Admin web**: `cd apps/admin_web && npm run lint`
+- **Public website**: `cd apps/public_www && npm run lint`
+- **Pre-commit (all)**: `pre-commit run --all-files` (requires `pre-commit install` first)
+
+### Running tests
+
+- **Python backend**: `pytest tests/ -x` (926 tests, ~7s, no DB needed for unit tests)
+- **Admin web**: `cd apps/admin_web && npx vitest run` (443 tests)
+- **Public website**: `cd apps/public_www && npx vitest run` (739 tests)
+- **CDK infra**: `cd backend/infrastructure && npm run test:infra`
+
+### Environment variables for dev servers
+
+- **Admin web** requires Cognito env vars (`NEXT_PUBLIC_COGNITO_*`) for auth
+  flows. Without them, the app renders but sign-in won't work.
+- **Public website** requires `NEXT_PUBLIC_SITE_ORIGIN` and
+  `NEXT_PUBLIC_EMAIL` at minimum. Create `apps/public_www/.env.local` with:
+  ```
+  NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3001
+  NEXT_PUBLIC_EMAIL=dev@example.com
+  NEXT_PUBLIC_BUSINESS_NAME=Evolve Sprouts
+  NEXT_PUBLIC_BUSINESS_ADDRESS=Hong Kong
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+  NEXT_PUBLIC_API_BASE_URL=/www
+  ```
+
+### Non-obvious caveats
+
+- Admin web uses `--webpack` flag for dev/build (required for SVGR support):
+  `next dev --webpack` / `next build --webpack`.
+- The backend has no running server locally; it is Lambda-based. Tests use
+  `moto` to mock AWS services.
+- `backend/infrastructure` has a `postinstall` script that patches bundled CDK
+  dependencies; `npm ci` is sufficient.
+- Python formatting must use `pre-commit run ruff-format --all-files` before
+  committing any Python changes (per `.cursorrules`).
