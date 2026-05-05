@@ -53,14 +53,39 @@ const WALL_HOUR_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   hourCycle: 'h23',
 });
 
-function ymdForSlot(slot: IntroCallSlot): string {
-  const d = new Date(slot.startIso);
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
+const SITE_YMD_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const WEEKDAY_SHORT_FORMATTERS: Record<string, Intl.DateTimeFormat> = {};
+const DAY_MONTH_SHORT_FORMATTERS: Record<string, Intl.DateTimeFormat> = {};
+
+function getWeekdayShortFormatter(resolvedLocale: string): Intl.DateTimeFormat {
+  let fmt = WEEKDAY_SHORT_FORMATTERS[resolvedLocale];
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(resolvedLocale, {
+      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+      weekday: 'short',
+    });
+    WEEKDAY_SHORT_FORMATTERS[resolvedLocale] = fmt;
+  }
+  return fmt;
+}
+
+function getDayMonthShortFormatter(resolvedLocale: string): Intl.DateTimeFormat {
+  let fmt = DAY_MONTH_SHORT_FORMATTERS[resolvedLocale];
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(resolvedLocale, {
+      timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+      day: '2-digit',
+      month: 'short',
+    });
+    DAY_MONTH_SHORT_FORMATTERS[resolvedLocale] = fmt;
+  }
+  return fmt;
 }
 
 function wallClockHourFromIso(iso: string): number {
@@ -73,35 +98,18 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
 }
 
-function formatIntroCallDayButtonAccessibleLabel(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  const weekday = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    weekday: 'short',
-  }).format(d);
-  const dayMonth = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    day: '2-digit',
-    month: 'short',
-  }).format(d);
-  return `${weekday} ${dayMonth}`;
-}
-
-function formatIntroCallDayWeekdayShort(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    weekday: 'short',
-  }).format(d);
-}
-
-function formatIntroCallDayDateLine(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
-    day: '2-digit',
-    month: 'short',
-  }).format(d);
+function DayStripEdgeFade({ side, visible }: { side: 'left' | 'right'; visible: boolean }) {
+  const isRight = side === 'right';
+  return (
+    <span
+      aria-hidden='true'
+      className={`pointer-events-none absolute inset-y-0 w-10 transition-opacity duration-200 ${
+        isRight
+          ? 'right-0 bg-gradient-to-l from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
+          : 'left-0 bg-gradient-to-r from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
+      } ${visible ? 'opacity-100' : 'opacity-0'}`}
+    />
+  );
 }
 
 export function IntroCallSlotPicker({
@@ -122,6 +130,9 @@ export function IntroCallSlotPicker({
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dayCarouselRef = useRef<HTMLDivElement | null>(null);
+  const lastReportedStatusRef = useRef<FetchStatus | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const slotTimeFormatter = useMemo(
     () =>
@@ -134,6 +145,24 @@ export function IntroCallSlotPicker({
     [locale],
   );
 
+  const dayFormatters = useMemo(() => {
+    const resolved = resolveDateTimeLocale(locale);
+    const weekdayFmt = getWeekdayShortFormatter(resolved);
+    const dayMonthFmt = getDayMonthShortFormatter(resolved);
+    return {
+      accessibleLabel(iso: string): string {
+        const d = new Date(iso);
+        return `${weekdayFmt.format(d)} ${dayMonthFmt.format(d)}`;
+      },
+      weekdayShort(iso: string): string {
+        return weekdayFmt.format(new Date(iso));
+      },
+      dateLine(iso: string): string {
+        return dayMonthFmt.format(new Date(iso));
+      },
+    };
+  }, [locale]);
+
   const setStatusBoth = useCallback(
     (next: FetchStatus) => {
       setStatus(next);
@@ -143,12 +172,26 @@ export function IntroCallSlotPicker({
   );
 
   useEffect(() => {
+    if (lastReportedStatusRef.current === status) {
+      return;
+    }
+    lastReportedStatusRef.current = status;
     trackAnalyticsEvent('intro_call_slot_picker_status_change', {
       sectionId: 'intro-call-booking',
       ctaLocation: 'intro_call_slot_picker',
       params: { status },
     });
   }, [status]);
+
+  const updateDayStripScrollHints = useCallback(() => {
+    const el = dayCarouselRef.current;
+    if (!el) {
+      return;
+    }
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+    setCanScrollLeft(scrollLeft > 1);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -189,7 +232,7 @@ export function IntroCallSlotPicker({
   const slotsByDayFull = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
     for (const s of slots) {
-      const ymd = ymdForSlot(s);
+      const ymd = SITE_YMD_FORMATTER.format(new Date(s.startIso));
       const arr = map.get(ymd) ?? [];
       arr.push(s);
       map.set(ymd, arr);
@@ -204,6 +247,23 @@ export function IntroCallSlotPicker({
     const sorted = Array.from(slotsByDayFull.keys()).sort();
     return sorted.slice(0, MAX_VISIBLE_BOOKING_DAYS);
   }, [slotsByDayFull]);
+
+  useEffect(() => {
+    if (status !== 'ready' || slots.length === 0) {
+      return;
+    }
+    const el = dayCarouselRef.current;
+    if (!el) {
+      return;
+    }
+    updateDayStripScrollHints();
+    el.addEventListener('scroll', updateDayStripScrollHints, { passive: true });
+    window.addEventListener('resize', updateDayStripScrollHints);
+    return () => {
+      el.removeEventListener('scroll', updateDayStripScrollHints);
+      window.removeEventListener('resize', updateDayStripScrollHints);
+    };
+  }, [dayKeys, slots.length, status, updateDayStripScrollHints]);
 
   const slotsByDay = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
@@ -350,7 +410,7 @@ export function IntroCallSlotPicker({
               variant='selection'
               state={pressed ? 'active' : 'inactive'}
               aria-pressed={pressed}
-              className='es-intro-call-slot-selection-btn rounded-md px-2 py-2 text-sm'
+              className='es-intro-call-slot-selection-btn rounded-md min-h-11 px-3 py-2.5 text-base sm:text-sm'
               onClick={() => {
                 setSelectedSlotIso(slot.startIso);
                 onSelect(slot);
@@ -389,9 +449,9 @@ export function IntroCallSlotPicker({
             if (!sample) {
               return null;
             }
-            const dayAccessibleLabel = formatIntroCallDayButtonAccessibleLabel(sample.startIso, locale);
-            const weekdayShort = formatIntroCallDayWeekdayShort(sample.startIso, locale);
-            const dateLine = formatIntroCallDayDateLine(sample.startIso, locale);
+            const dayAccessibleLabel = dayFormatters.accessibleLabel(sample.startIso);
+            const weekdayShort = dayFormatters.weekdayShort(sample.startIso);
+            const dateLine = dayFormatters.dateLine(sample.startIso);
             const isSelected = ymd === resolvedDayYmd;
             return (
               <ButtonPrimitive
@@ -411,10 +471,10 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-w-0 w-[calc((100%-1.5rem)/2.5)] shrink-0 snap-center text-center sm:w-[134.4px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-h-[88px] w-[120px] shrink-0 snap-center text-center sm:min-h-0 sm:w-[134.4px]`}
               >
                 <div className='flex w-full flex-col items-center gap-2'>
-                  <div className='flex items-center justify-center gap-1.5'>
+                  <div className='flex items-center justify-center gap-2'>
                     <span
                       className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                       aria-hidden='true'
@@ -423,12 +483,14 @@ export function IntroCallSlotPicker({
                       {weekdayShort}
                     </p>
                   </div>
-                  <p className='text-center text-sm es-text-heading'>{dateLine}</p>
+                  <p className='text-center text-sm sm:text-sm es-text-heading'>{dateLine}</p>
                 </div>
               </ButtonPrimitive>
             );
           })}
         </CarouselTrack>
+        <DayStripEdgeFade side='left' visible={canScrollLeft} />
+        <DayStripEdgeFade side='right' visible={canScrollRight} />
       </div>
 
       {resolvedDayYmd && daySlots.length > 0 ? (

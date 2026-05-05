@@ -92,6 +92,11 @@ describe('LandingPageFreeIntroCall', () => {
       expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
     });
 
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+    expect(screen.getByTestId('intro-call-captcha-placeholder')).toHaveTextContent(
+      enContent.common.captcha.deferredHint,
+    );
+
     fireEvent.click(screen.getByRole('button', { name: '09:00' }));
 
     fireEvent.change(screen.getByLabelText(/Full Name/i), {
@@ -104,6 +109,10 @@ describe('LandingPageFreeIntroCall', () => {
     const form = screen.getByRole('form', { name: bookAFreeCall.en.introCall.bookingSectionTitle });
     const terms = within(form).getByRole('checkbox', { name: /Terms/i });
     fireEvent.click(terms);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
 
@@ -156,7 +165,13 @@ describe('LandingPageFreeIntroCall', () => {
       expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
     });
 
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
     fireEvent.click(screen.getByRole('button', { name: '09:00' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
 
     fireEvent.change(screen.getByLabelText(/Full Name/i), {
       target: { value: 'Test Parent' },

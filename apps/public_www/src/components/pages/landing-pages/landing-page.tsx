@@ -90,22 +90,6 @@ export function LandingPage({
               sectionClassName='es-section-bg-overlay es-book-a-free-call-good-to-know-section'
             />
             {introCallSectionBeforeCta}
-            <LandingPageDescription
-              content={pageContent.description}
-              ariaLabel={
-                siteContent.landingPages.common.a11y.descriptionSectionLabel
-              }
-            />
-            <Testimonials
-              content={siteContent.testimonials}
-              commonAccessibility={siteContent.common.accessibility}
-            />
-            <AboutUsIdaCoach
-              content={siteContent.aboutUs.coaches.ida}
-              ariaLabel={
-                siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel
-              }
-            />
             <LandingPageFaq
               content={pageContent.faq}
               ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}

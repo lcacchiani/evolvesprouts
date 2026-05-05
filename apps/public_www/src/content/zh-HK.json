@@ -1142,6 +1142,7 @@
     },
     "captcha": {
       "captchaLabel": "驗證",
+      "deferredHint": "當你開始填寫表單時，我哋會做驗證。",
       "requiredError": "提交前請先完成 CAPTCHA 驗證。",
       "loadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
       "unavailableError": "CAPTCHA 暫時不可用，請稍後再試。"
