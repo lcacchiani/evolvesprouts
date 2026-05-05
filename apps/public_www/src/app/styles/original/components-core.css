@@ -613,6 +613,15 @@
     background-color: var(--es-color-surface-soft);
   }
 
+  /**
+   * Intro-call time-slot grid: match inactive border width to active (2px) so
+   * toggling selection does not change cell size.
+   */
+  .es-btn--selection.es-intro-call-slot-selection-btn.es-btn--state-inactive {
+    border-width: 2px;
+    border-color: var(--es-color-border-date);
+  }
+
   .es-btn-selection-icon-active {
     color: var(--es-color-text-brand-strong);
   }

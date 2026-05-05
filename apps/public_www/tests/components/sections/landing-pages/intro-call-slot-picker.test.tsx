@@ -99,8 +99,8 @@ describe('IntroCallSlotPicker', () => {
 
     const dayPressedTrue = screen.getAllByRole('button', { pressed: true });
     expect(dayPressedTrue.length).toBe(1);
-    const firstDay = dayPressedTrue[0] as HTMLButtonElement;
-    expect(firstDay).toHaveTextContent(/Tue\s+05\s+May/i);
+    const firstDay = screen.getByRole('button', { name: /Tue\s+05\s+May/i });
+    expect(firstDay).toHaveAttribute('aria-pressed', 'true');
 
     const wedButton = screen.getByRole('button', { name: /Wed\s+06\s+May/i });
     expect(wedButton).toHaveAttribute('aria-pressed', 'false');
