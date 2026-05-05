@@ -40,8 +40,8 @@ export interface LandingPageProps {
   /** Reorders sections for the intro-call landing page (no outline / mid-page CTA strip). */
   layoutVariant?: LandingPageLayoutVariant;
   /**
-   * Mid-section calendar CTAs resolve from calendar context; when absent (book-a-free-call),
-   * inline CTAs use this localized path + hash instead of rendering nothing.
+   * When set with label (book-a-free-call), inline section CTAs match the hero anchor:
+   * same `href`/`label` as `hero.ctaAnchorHref` / `ctaAnchorLabel` (`SectionCtaAnchor`), not the calendar button.
    */
   inlineCalendarFallbackAnchorHref?: string;
   inlineCalendarFallbackAnchorLabel?: string;

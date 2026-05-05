@@ -124,13 +124,13 @@ describe('BookFreeCallLandingPage', () => {
       />,
     );
 
-    const localizedBookingHref = '/en/book-a-free-call#intro-call-booking';
+    const localizedBookingHref = '#intro-call-booking';
     const pickTimeLinks = screen.getAllByRole('link', {
       name: bookAFreeCall.en.hero.ctaAnchorLabel,
     });
     expect(
       pickTimeLinks.filter((link) => link.getAttribute('href') === localizedBookingHref),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
   });
 
   it('renders hero anchor CTA to the booking section and no booking modal shell', () => {

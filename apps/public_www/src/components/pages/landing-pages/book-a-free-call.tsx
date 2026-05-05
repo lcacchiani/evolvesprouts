@@ -5,8 +5,6 @@ import type {
 } from '@/content';
 import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import { LandingPageFreeIntroCall } from '@/components/sections/landing-pages/landing-page-free-intro-call';
-import { localizePath } from '@/lib/locale-routing';
-import { ROUTES } from '@/lib/routes';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 export interface BookFreeCallLandingPageProps {
@@ -31,11 +29,13 @@ export function BookFreeCallLandingPage({
     throw new Error('book-a-free-call landing page requires introCall content');
   }
 
-  const inlineCalendarFallbackHref =
-    `${localizePath(ROUTES.bookFreeCall, locale)}#intro-call-booking`;
-  const inlineCalendarFallbackLabel =
-    pageContent.hero.ctaAnchorLabel?.trim()
-    || siteContent.landingPages.common.defaultCtaLabel;
+  const heroAnchorHref = pageContent.hero.ctaAnchorHref?.trim();
+  const heroAnchorLabel = pageContent.hero.ctaAnchorLabel?.trim();
+  if (!heroAnchorHref || !heroAnchorLabel) {
+    throw new Error(
+      'book-a-free-call landing page requires hero.ctaAnchorHref and hero.ctaAnchorLabel',
+    );
+  }
 
   return (
     <LandingPage
@@ -48,8 +48,8 @@ export function BookFreeCallLandingPage({
       bookingEventContent={null}
       structuredDataContent={null}
       layoutVariant='book-free-call'
-      inlineCalendarFallbackAnchorHref={inlineCalendarFallbackHref}
-      inlineCalendarFallbackAnchorLabel={inlineCalendarFallbackLabel}
+      inlineCalendarFallbackAnchorHref={heroAnchorHref}
+      inlineCalendarFallbackAnchorLabel={heroAnchorLabel}
       introCallSectionBeforeCta={(
         <LandingPageFreeIntroCall
           locale={locale}

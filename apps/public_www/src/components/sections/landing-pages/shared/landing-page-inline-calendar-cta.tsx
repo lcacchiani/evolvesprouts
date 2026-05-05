@@ -3,14 +3,18 @@
 import { useContext } from 'react';
 
 import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { LandingPageCalendarContext } from '@/lib/landing-page-calendar-context';
 
 interface LandingPageInlineCalendarCtaProps {
   analyticsSectionId: string;
   ctaLocation?: string;
   buttonClassName?: string;
-  /** When calendar context is absent (e.g. book-a-free-call), render this anchor instead of hiding the CTA. */
+  /**
+   * Same pattern as `LandingPageHero` when `hero.ctaAnchorHref` / `ctaAnchorLabel` are set:
+   * in-page anchor (e.g. book-a-free-call → `#intro-call-booking`). Takes precedence over
+   * calendar modal CTAs so disabled placeholder buttons are not shown when the hero scrolls.
+   */
   fallbackAnchorHref?: string;
   fallbackAnchorLabel?: string;
 }
@@ -22,23 +26,22 @@ export function LandingPageInlineCalendarCta({
   fallbackAnchorHref,
   fallbackAnchorLabel,
 }: LandingPageInlineCalendarCtaProps) {
-  const calendar = useContext(LandingPageCalendarContext);
-  if (!calendar) {
-    const trimmedHref = fallbackAnchorHref?.trim() ?? '';
-    const trimmedLabel = fallbackAnchorLabel?.trim() ?? '';
-    if (!trimmedHref || !trimmedLabel) {
-      return null;
-    }
-
+  const trimmedHref = fallbackAnchorHref?.trim() ?? '';
+  const trimmedLabel = fallbackAnchorLabel?.trim() ?? '';
+  if (trimmedHref && trimmedLabel) {
     return (
-      <ButtonPrimitive
-        variant='primary'
-        className={buttonClassName}
+      <SectionCtaAnchor
         href={trimmedHref}
+        className={buttonClassName}
       >
         {trimmedLabel}
-      </ButtonPrimitive>
+      </SectionCtaAnchor>
     );
+  }
+
+  const calendar = useContext(LandingPageCalendarContext);
+  if (!calendar) {
+    return null;
   }
 
   return (
