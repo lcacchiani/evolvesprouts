@@ -9,7 +9,10 @@ import {
   type KeyboardEvent,
 } from 'react';
 
-import type { CommonAccessibilityContent, LandingPageLocaleContent } from '@/content';
+import type {
+  CommonAccessibilityContent,
+  LandingPageIntroCallContent,
+} from '@/content';
 import type { IntroCallSlot } from '@/lib/intro-call-slots-api';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
@@ -21,7 +24,7 @@ import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 export interface IntroCallSlotPickerProps {
   commonAccessibility: CommonAccessibilityContent;
-  pickerContent: LandingPageLocaleContent['introCall'];
+  pickerContent: LandingPageIntroCallContent;
   onSelect: (slot: IntroCallSlot) => void;
   onBlockersStatusChange?: (status: 'idle' | 'loading' | 'ready' | 'error') => void;
   refreshToken?: number;

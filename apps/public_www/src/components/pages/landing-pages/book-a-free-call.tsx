@@ -21,6 +21,13 @@ export function BookFreeCallLandingPage({
   pageContent,
 }: BookFreeCallLandingPageProps) {
   const { whatsappUrl } = resolvePublicSiteConfig();
+  const whatsappHref =
+    whatsappUrl?.trim() || siteContent.whatsappContact.href.trim();
+
+  const introCall = pageContent.introCall;
+  if (!introCall) {
+    throw new Error('book-a-free-call landing page requires introCall content');
+  }
 
   return (
     <LandingPage
@@ -36,11 +43,11 @@ export function BookFreeCallLandingPage({
         <LandingPageFreeIntroCall
           locale={locale}
           pageTitle={pageContent.meta.title}
-          introContent={pageContent.introCall}
+          introContent={introCall}
           paymentModalContent={siteContent.bookingModal.paymentModal}
           commonAccessibility={siteContent.common.accessibility}
           captchaContent={siteContent.common.captcha}
-          whatsappHref={whatsappUrl}
+          whatsappHref={whatsappHref}
         />
       )}
     />

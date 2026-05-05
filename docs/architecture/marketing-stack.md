@@ -395,7 +395,7 @@ analytics events using `trackMetaPixelEvent` from `src/lib/meta-pixel.ts`:
 | `my-best-auntie-booking.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` |
 | `events.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` or `'event_booking'` |
 | `reservation-form.tsx` | `booking_submit_success` | `Schedule` | `content_name` (prop), `value`, `currency` |
-| `landing-page-free-intro-call.tsx` | `booking_submit_success` | `Schedule` | `content_name: 'public-www-free-intro-call'`, `value`, `currency` |
+| `landing-page-free-intro-call.tsx` | `booking_submit_success` | `Schedule` | `content_name: 'public_www_free_intro_call'`, `value`, `currency` |
 | `whatsapp-contact-button.tsx` | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
 | `contact-us-form.tsx` (WhatsApp CTA) | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
 | `thank-you-modal.tsx` | (varies) | `Contact` | `content_name: 'whatsapp'` |

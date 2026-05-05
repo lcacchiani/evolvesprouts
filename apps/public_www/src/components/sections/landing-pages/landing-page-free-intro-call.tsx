@@ -22,6 +22,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
   BookingPaymentModalContent,
   CommonAccessibilityContent,
+  LandingPageIntroCallContent,
   LandingPageLocaleContent,
   Locale,
   SiteContent,
@@ -93,7 +94,7 @@ function reservationErrorCode(payload: unknown): string | undefined {
 interface LandingPageFreeIntroCallProps {
   locale: Locale;
   pageTitle: string;
-  introContent: LandingPageLocaleContent['introCall'];
+  introContent: LandingPageIntroCallContent;
   paymentModalContent: BookingPaymentModalContent;
   commonAccessibility: CommonAccessibilityContent;
   captchaContent: SiteContent['common']['captcha'];
@@ -111,7 +112,9 @@ export function LandingPageFreeIntroCall({
 }: LandingPageFreeIntroCallProps) {
   const dialCodeOptionTemplate = getContent(locale).common.phoneDialCodeOptionTemplate;
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-  const marketingAttributionRef = useRef<ReservationSubmissionPayload['marketingAttribution']>();
+  const marketingAttributionRef = useRef<
+    ReservationSubmissionPayload['marketingAttribution'] | undefined
+  >(undefined);
   const pickerWrapRef = useRef<HTMLDivElement | null>(null);
   const [slotRefreshToken, setSlotRefreshToken] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState<IntroCallSlot | null>(null);
@@ -587,12 +590,17 @@ export function LandingPageFreeIntroCall({
                     {paymentModalContent.acknowledgementRequiredError}
                   </p>
                 ) : null}
-                <TurnstileCaptcha
-                  siteKey={turnstileSiteKey}
-                  onTokenChange={handleCaptchaTokenChange}
-                  onLoadError={handleCaptchaLoadError}
-                  label={captchaContent.captchaLabel}
-                />
+                <label className='block'>
+                  <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                    {captchaContent.captchaLabel}
+                  </span>
+                  <TurnstileCaptcha
+                    siteKey={turnstileSiteKey}
+                    widgetAction='intro_call_booking_submit'
+                    onTokenChange={handleCaptchaTokenChange}
+                    onLoadError={handleCaptchaLoadError}
+                  />
+                </label>
                 {captchaInlineError ? (
                   <p className='es-form-field-error' role='alert'>
                     {captchaInlineError}
@@ -610,9 +618,9 @@ export function LandingPageFreeIntroCall({
                   state={isSubmitting ? 'inactive' : 'default'}
                 >
                   <SubmitButtonLoadingContent
-                    isLoading={isSubmitting}
+                    isSubmitting={isSubmitting}
                     idleLabel={introContent.submitLabel}
-                    loadingLabel={paymentModalContent.submittingLabel}
+                    submittingLabel={paymentModalContent.submittingLabel}
                   />
                 </ButtonPrimitive>
               </form>

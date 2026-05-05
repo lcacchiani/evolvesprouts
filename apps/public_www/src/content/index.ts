@@ -148,8 +148,9 @@ export interface LandingPageLocaleContent {
     };
     /** When set, the CTA section uses an in-page anchor instead of the event booking modal. */
     ctaAnchorHref?: string;
+    ctaAnchorLabel?: string;
   };
-  introCall: {
+  introCall?: {
     bookingSectionTitle: string;
     emptySlotsMessage: string;
     whatsappHelpCtaLabel: string;
@@ -163,8 +164,14 @@ export interface LandingPageLocaleContent {
     topicsFieldPlaceholder: string;
     submitLabel: string;
     phoneFieldLabel: string;
+    loadErrorMessage?: string;
   };
 }
+
+/** Intro-call booking block; present only on landing pages that embed the picker (e.g. book-a-free-call). */
+export type LandingPageIntroCallContent = NonNullable<
+  LandingPageLocaleContent['introCall']
+>;
 
 export interface LandingPageContent {
   en: LandingPageLocaleContent;
