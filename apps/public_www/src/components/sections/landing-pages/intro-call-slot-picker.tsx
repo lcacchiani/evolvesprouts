@@ -98,6 +98,20 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
 }
 
+function DayStripEdgeFade({ side, visible }: { side: 'left' | 'right'; visible: boolean }) {
+  const isRight = side === 'right';
+  return (
+    <span
+      aria-hidden='true'
+      className={`pointer-events-none absolute inset-y-0 w-10 transition-opacity duration-200 ${
+        isRight
+          ? 'right-0 bg-gradient-to-l from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
+          : 'left-0 bg-gradient-to-r from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
+      } ${visible ? 'opacity-100' : 'opacity-0'}`}
+    />
+  );
+}
+
 export function IntroCallSlotPicker({
   locale,
   commonAccessibility,
@@ -117,6 +131,8 @@ export function IntroCallSlotPicker({
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dayCarouselRef = useRef<HTMLDivElement | null>(null);
   const lastReportedStatusRef = useRef<FetchStatus | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const slotTimeFormatter = useMemo(
     () =>
@@ -166,6 +182,16 @@ export function IntroCallSlotPicker({
       params: { status },
     });
   }, [status]);
+
+  const updateDayStripScrollHints = useCallback(() => {
+    const el = dayCarouselRef.current;
+    if (!el) {
+      return;
+    }
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+    setCanScrollLeft(scrollLeft > 1);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -221,6 +247,23 @@ export function IntroCallSlotPicker({
     const sorted = Array.from(slotsByDayFull.keys()).sort();
     return sorted.slice(0, MAX_VISIBLE_BOOKING_DAYS);
   }, [slotsByDayFull]);
+
+  useEffect(() => {
+    if (status !== 'ready' || slots.length === 0) {
+      return;
+    }
+    const el = dayCarouselRef.current;
+    if (!el) {
+      return;
+    }
+    updateDayStripScrollHints();
+    el.addEventListener('scroll', updateDayStripScrollHints, { passive: true });
+    window.addEventListener('resize', updateDayStripScrollHints);
+    return () => {
+      el.removeEventListener('scroll', updateDayStripScrollHints);
+      window.removeEventListener('resize', updateDayStripScrollHints);
+    };
+  }, [dayKeys, slots.length, status, updateDayStripScrollHints]);
 
   const slotsByDay = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
@@ -367,7 +410,7 @@ export function IntroCallSlotPicker({
               variant='selection'
               state={pressed ? 'active' : 'inactive'}
               aria-pressed={pressed}
-              className='es-intro-call-slot-selection-btn rounded-md px-2 py-2 text-sm'
+              className='es-intro-call-slot-selection-btn rounded-md min-h-11 px-3 py-2.5 text-base sm:text-sm'
               onClick={() => {
                 setSelectedSlotIso(slot.startIso);
                 onSelect(slot);
@@ -428,10 +471,10 @@ export function IntroCallSlotPicker({
                   setSelectedSlotIso(null);
                 }}
                 onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-w-0 w-[calc((100%-1.5rem)/2.5)] shrink-0 snap-center text-center sm:w-[134.4px]`}
+                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-h-[88px] w-[120px] shrink-0 snap-center text-center sm:min-h-0 sm:w-[134.4px]`}
               >
                 <div className='flex w-full flex-col items-center gap-2'>
-                  <div className='flex items-center justify-center gap-1.5'>
+                  <div className='flex items-center justify-center gap-2'>
                     <span
                       className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                       aria-hidden='true'
@@ -440,12 +483,14 @@ export function IntroCallSlotPicker({
                       {weekdayShort}
                     </p>
                   </div>
-                  <p className='text-center text-sm es-text-heading'>{dateLine}</p>
+                  <p className='text-center text-sm sm:text-sm es-text-heading'>{dateLine}</p>
                 </div>
               </ButtonPrimitive>
             );
           })}
         </CarouselTrack>
+        <DayStripEdgeFade side='left' visible={canScrollLeft} />
+        <DayStripEdgeFade side='right' visible={canScrollRight} />
       </div>
 
       {resolvedDayYmd && daySlots.length > 0 ? (
