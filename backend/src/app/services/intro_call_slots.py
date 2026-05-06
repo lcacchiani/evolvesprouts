@@ -14,6 +14,8 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Contact, Enrollment, Service, ServiceInstance
 from app.db.models.enums import ServiceType
+
+# Top-level safe: calendar_blockers does not import this module at load time.
 from app.services.calendar_blockers import consultation_booking_purpose
 from app.services.public_calendar_availability import (
     AvailabilityPurpose,

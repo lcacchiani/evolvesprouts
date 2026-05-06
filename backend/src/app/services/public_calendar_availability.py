@@ -23,7 +23,6 @@ from app.db.repositories.service_instance import (
 from app.exceptions import ValidationError
 from app.services.calendar_blockers import (
     _window_utc_for_local_hours,
-    consultation_booking_purpose,
     resolve_calendar_blockers_wall_timezone,
 )
 
@@ -383,23 +382,16 @@ def busy_intervals_utc(
     *,
     range_start_utc: datetime,
     range_end_utc: datetime,
+    manual_block_purposes: frozenset[str],
     exclude_purposes: frozenset[AvailabilityPurpose] = frozenset(),
-    manual_block_purposes: frozenset[str] | None = None,
 ) -> list[tuple[datetime, datetime]]:
     """Union of busy intervals (manual, events/training, consultation, intro-call).
 
     ``manual_block_purposes`` selects which ``calendar_manual_blocks.purpose`` rows merge into busy
-    time. Defaults to both consultation and intro-call booking purposes (intro-call availability).
-    Consultation slot computation passes consultation-booking only so intro-only manual blocks do
-    not suppress consultation half-days.
+    time. Callers must pass an explicit purpose set: consultation slot computation uses
+    consultation-booking only so intro-only manual blocks do not suppress consultation half-days;
+    intro-call computation merges both consultation and intro-call manual purposes.
     """
-    from app.services.intro_call_slots import intro_call_purpose
-
-    if manual_block_purposes is None:
-        manual_block_purposes = frozenset(
-            {consultation_booking_purpose(), intro_call_purpose()}
-        )
-
     zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
     local_start = range_start_utc.astimezone(zone).date()
     local_end = range_end_utc.astimezone(zone).date()
