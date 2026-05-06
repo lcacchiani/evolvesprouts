@@ -8,8 +8,13 @@ function defineEnumValues<T extends string>() {
 
 export type ServiceType = ApiSchemas['ServiceType'];
 export const SERVICE_TYPES = defineEnumValues<ServiceType>()(
-  ['training_course', 'event', 'consultation'] as const satisfies readonly ServiceType[]
+  ['training_course', 'event', 'consultation', 'intro_call'] as const satisfies readonly ServiceType[]
 );
+
+/** Service templates that use consultation-style defaults (`consultation_details`). */
+export function isConsultationLikeServiceType(serviceType: ServiceType): boolean {
+  return serviceType === 'consultation' || serviceType === 'intro_call';
+}
 
 export type ServiceStatus = ApiSchemas['ServiceStatus'];
 export const SERVICE_STATUSES = defineEnumValues<ServiceStatus>()(

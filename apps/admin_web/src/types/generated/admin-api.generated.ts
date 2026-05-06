@@ -5214,8 +5214,13 @@ export interface components {
                 conversion_rate: number;
             }[];
         };
-        /** @enum {string} */
-        ServiceType: "training_course" | "event" | "consultation";
+        /**
+         * @description Product category for a service template. `intro_call` is the free public intro-call flow
+         *     (`service_key` / instance slug pair used by public reservations); it stores consultation-style
+         *     pricing defaults like `consultation`.
+         * @enum {string}
+         */
+        ServiceType: "training_course" | "event" | "consultation" | "intro_call";
         /** @enum {string} */
         ServiceStatus: "draft" | "published" | "archived";
         /** @enum {string} */

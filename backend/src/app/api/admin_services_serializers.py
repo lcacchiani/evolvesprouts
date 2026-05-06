@@ -182,7 +182,10 @@ def _resolved_consultation_details(
             "package_sessions": cd.package_sessions,
         }
     scd = service.consultation_details
-    if service.service_type != ServiceType.CONSULTATION or scd is None:
+    if (
+        service.service_type not in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL)
+        or scd is None
+    ):
         return None
     pm = scd.pricing_model
     resolved_price = _decimal_to_string(

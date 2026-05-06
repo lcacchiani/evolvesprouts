@@ -31,6 +31,7 @@ import {
 
 import type { components } from '@/types/generated/admin-api.generated';
 import {
+  isConsultationLikeServiceType,
   normalizeEventCategoryFromApi,
   type EventCategory,
   type EventTicketTier,
@@ -144,7 +145,7 @@ function mergeServiceIntoConsultationForm(
   prev: ConsultationFormState,
   service: ServiceSummary
 ): ConsultationFormState {
-  if (service.serviceType !== 'consultation') {
+  if (!isConsultationLikeServiceType(service.serviceType)) {
     return prev;
   }
   if (!service.consultationDetails) {
@@ -824,7 +825,15 @@ export function InstanceDetailPanel({
         </>
       ) : null}
 
-      {effectiveServiceType === 'consultation' ? (
+      {effectiveServiceType === 'intro_call' ? (
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+          <p className='md:col-span-4 text-sm text-slate-500'>
+            Intro-call instances use the parent service pricing defaults. Session slots here drive the public booking grid.
+          </p>
+        </div>
+      ) : null}
+
+      {isConsultationLikeServiceType(effectiveServiceType) ? (
         <>
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <InstanceInstructorField

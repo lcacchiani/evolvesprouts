@@ -692,7 +692,7 @@ describe('ServiceDetailPanel', () => {
       />
     );
 
-    for (const typeLabel of ['training_course', 'event', 'consultation'] as const) {
+    for (const typeLabel of ['training_course', 'event', 'consultation', 'intro_call'] as const) {
       await user.selectOptions(screen.getByLabelText('Type'), typeLabel);
       await user.selectOptions(screen.getByLabelText('Delivery mode'), 'Online');
       expect(screen.queryByLabelText('Default location')).not.toBeInTheDocument();
