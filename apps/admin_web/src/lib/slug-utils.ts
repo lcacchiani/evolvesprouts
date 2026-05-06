@@ -1,3 +1,5 @@
+import type { ServiceType } from '@/types/services';
+
 /** URL-safe instance slug: lowercase segments of alphanumerics separated by single hyphens. */
 export const INSTANCE_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -49,9 +51,12 @@ function _firstSessionSlotYmd(slots: SuggestedInstanceSlugSlot[]): string | null
   return /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? ymd : null;
 }
 
-/** Suggested public instance slug for create flows (event / training_course). */
+/**
+ * Suggested public instance slug for create flows.
+ * `event` and `training_course` have deterministic rules; `consultation` and `intro_call` use manual slugs.
+ */
 export function computeSuggestedInstanceSlug(
-  serviceType: 'event' | 'training_course' | 'consultation',
+  serviceType: ServiceType,
   service: {
     title: string;
     serviceKey: string | null | undefined;

@@ -93,6 +93,27 @@ describe('computeSuggestedInstanceSlug', () => {
     ).toBe('bla-bla-bla-1-3');
   });
 
+  it('returns empty string for consultation and intro_call (manual slug entry)', () => {
+    expect(
+      computeSuggestedInstanceSlug('consultation', baseService, {
+        title: 'x',
+        cohort: 'y',
+        sessionSlots: [],
+      })
+    ).toBe('');
+    expect(
+      computeSuggestedInstanceSlug(
+        'intro_call',
+        { ...baseService, serviceType: 'intro_call' },
+        {
+          title: 'x',
+          cohort: 'y',
+          sessionSlots: [],
+        }
+      )
+    ).toBe('');
+  });
+
   it('builds event slug from title and first slot date', () => {
     expect(
       computeSuggestedInstanceSlug('event', null, {
