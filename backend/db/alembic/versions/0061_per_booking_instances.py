@@ -4,6 +4,8 @@ Templates (consultation / intro_call tiers with no parent) gain ``is_template`` 
 optional ``parent_instance_id`` on booking-only rows. Session slots gain
 ``template_instance_id`` so concurrent bookings race on
 ``(template_instance_id, starts_at)`` instead of a shared instance row.
+Legacy template-tier slot rows are self-tagged with ``template_instance_id = instance_id``
+so the new partial unique applies to intro-call tier slots.
 
 Seed compatibility: ``backend/db/seed/seed_data.sql`` needs no row edits; the
 backfill sets ``is_template = TRUE`` for existing consultation and intro_call tier
@@ -67,6 +69,12 @@ def upgrade() -> None:
         "service_instances",
         ["parent_instance_id"],
     )
+    op.create_check_constraint(
+        "service_instances_template_consistency_chk",
+        "service_instances",
+        "(is_template IS TRUE AND parent_instance_id IS NULL) "
+        "OR (is_template IS FALSE)",
+    )
 
     op.drop_index("svc_instances_slug_uq", table_name="service_instances")
     op.execute(
@@ -97,7 +105,10 @@ def upgrade() -> None:
         sa.text(
             """
             UPDATE instance_session_slots AS iss
-            SET template_instance_id = si.parent_instance_id
+            SET template_instance_id = COALESCE(
+                si.parent_instance_id,
+                CASE WHEN si.is_template THEN si.id END
+            )
             FROM service_instances AS si
             WHERE iss.instance_id = si.id
             """
@@ -150,6 +161,11 @@ def downgrade() -> None:
         "service_instances_parent_instance_id_fkey",
         "service_instances",
         type_="foreignkey",
+    )
+    op.drop_constraint(
+        "service_instances_template_consistency_chk",
+        "service_instances",
+        type_="check",
     )
     op.drop_column("service_instances", "is_template")
     op.drop_column("service_instances", "parent_instance_id")

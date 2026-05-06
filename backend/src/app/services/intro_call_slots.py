@@ -47,7 +47,7 @@ _INTRO_CALL_LEAD_HOURS = 2
 _INTRO_CALL_HORIZON_DAYS = 21
 _INTRO_CALL_PURPOSE = "intro_call_booking"
 # Intro-call busy intervals include every booked slot on instances whose parent service is
-# ``intro_call`` (template tier rows and per-booking child instances).
+# ``intro_call``, whether the slot row belongs to the catalog tier or a per-booking child.
 
 _MANUAL_BLOCK_PURPOSES: frozenset[str] = frozenset(
     {"consultation_booking", _INTRO_CALL_PURPOSE}

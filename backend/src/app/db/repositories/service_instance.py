@@ -129,6 +129,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             select(ServiceInstance)
             .where(ServiceInstance.service_id == service_id)
             .options(
+                joinedload(ServiceInstance.parent).joinedload(
+                    ServiceInstance.consultation_details
+                ),
                 selectinload(ServiceInstance.session_slots),
                 joinedload(ServiceInstance.training_details),
                 joinedload(ServiceInstance.consultation_details),
@@ -193,6 +196,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
     ) -> list[ServiceInstance]:
         """List instances across services with optional filters and cursor pagination."""
         statement = select(ServiceInstance).options(
+            joinedload(ServiceInstance.parent).joinedload(
+                ServiceInstance.consultation_details
+            ),
             selectinload(ServiceInstance.session_slots),
             joinedload(ServiceInstance.training_details),
             joinedload(ServiceInstance.consultation_details),
@@ -374,24 +380,19 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             select(ServiceInstance)
             .join(Service, ServiceInstance.service_id == Service.id)
             .where(func.lower(ServiceInstance.slug) == normalized.lower())
-            .order_by(ServiceInstance.parent_instance_id.is_(None).desc())
-            .limit(1)
             .options(joinedload(ServiceInstance.service))
         )
-        return self._session.execute(statement).unique().scalar_one_or_none()
+        return self._session.execute(statement).unique().scalars().first()
 
     def get_id_by_slug(self, slug: str) -> UUID | None:
         """Resolve ``service_instances.id`` from public slug (case-insensitive)."""
         normalized = slug.strip()
         if not normalized:
             return None
-        statement = (
-            select(ServiceInstance.id)
-            .where(func.lower(ServiceInstance.slug) == normalized.lower())
-            .order_by(ServiceInstance.parent_instance_id.is_(None).desc())
-            .limit(1)
+        statement = select(ServiceInstance.id).where(
+            func.lower(ServiceInstance.slug) == normalized.lower()
         )
-        return self._session.execute(statement).scalar_one_or_none()
+        return self._session.execute(statement).scalars().first()
 
     def list_event_instances_for_public_feed(
         self,

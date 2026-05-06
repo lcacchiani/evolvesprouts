@@ -14,7 +14,9 @@ from app.db.repositories.service_instance import ServiceInstanceRepository
 
 def _compiled_sql(stmt: object) -> str:
     return str(
-        stmt.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+        stmt.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
     )
 
 
@@ -68,7 +70,9 @@ def test_list_public_offerings_service_key_filter() -> None:
 
     repo = ServiceInstanceRepository(mock_session)
     now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
-    repo.list_public_offerings(limit=5, now=now, service_key="my-best-auntie-training-course")
+    repo.list_public_offerings(
+        limit=5, now=now, service_key="my-best-auntie-training-course"
+    )
 
     stmt = mock_session.execute.call_args[0][0]
     sql = _compiled_sql(stmt)
@@ -190,7 +194,9 @@ def test_get_enrollment_counts_for_instances_groups_by_instance() -> None:
 def test_get_id_by_slug_compiles_lower_match() -> None:
     mock_session = MagicMock()
     exec_result = MagicMock()
-    exec_result.scalar_one_or_none.return_value = UUID(int=99)
+    scalars_result = MagicMock()
+    scalars_result.first.return_value = UUID(int=99)
+    exec_result.scalars.return_value = scalars_result
     mock_session.execute.return_value = exec_result
 
     repo = ServiceInstanceRepository(mock_session)

@@ -628,6 +628,11 @@ schedule rows, and enrollment without sharing one overcrowded tier row.
 **Exclusions:** `event-booking` and `my-best-auntie-booking` keep attaching enrollments to
 the resolved scheduled instance (no child row allocation).
 
+**Stripe idempotency:** When a per-booking submission is retried with the same
+``stripe_payment_intent_id`` after a prior successful allocation, the handler short-circuits
+persistence and does not create an additional ``PROGRAM_ENROLLMENT`` sales lead; the first
+successful request still records the lead.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

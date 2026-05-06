@@ -82,6 +82,11 @@ class ServiceInstance(Base):
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
         ),
+        CheckConstraint(
+            "(is_template IS TRUE AND parent_instance_id IS NULL) "
+            "OR (is_template IS FALSE)",
+            name="service_instances_template_consistency_chk",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(

@@ -171,33 +171,49 @@ def _create_booking_instance_for_template(
             field="serviceInstanceSlug",
             status_code=400,
         )
-    slug = _generate_booking_instance_slug(
-        template_slug=locked.slug,
-        now_utc=now_utc,
-    )
     attendee = str(payload.get("attendee_name") or "").strip()
-    title = f"{locked.title or locked.slug} – {attendee}" if attendee else locked.title
-    booking = ServiceInstance(
-        service_id=locked.service_id,
-        parent_instance_id=locked.id,
-        is_template=False,
-        title=title,
-        slug=slug,
-        description=None,
-        cover_image_s3_key=None,
-        status=InstanceStatus.OPEN,
-        delivery_mode=locked.delivery_mode,
-        location_id=locked.location_id,
-        max_capacity=1,
-        waitlist_enabled=False,
-        instructor_id=locked.instructor_id,
-        cohort=None,
-        notes=None,
-        created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
-        external_url=None,
-        eventbrite_sync_status=EventbriteSyncStatus.PENDING,
+    title_base = (
+        f"{locked.title or locked.slug} – {attendee}" if attendee else locked.title
     )
-    return instance_repo.create_instance(booking, type_details=None, session_slots=None)
+    last_exc: IntegrityError | None = None
+    for _attempt in range(3):
+        slug = _generate_booking_instance_slug(
+            template_slug=locked.slug,
+            now_utc=now_utc,
+        )
+        booking = ServiceInstance(
+            service_id=locked.service_id,
+            parent_instance_id=locked.id,
+            is_template=False,
+            title=title_base,
+            slug=slug,
+            description=None,
+            cover_image_s3_key=None,
+            status=InstanceStatus.OPEN,
+            delivery_mode=locked.delivery_mode,
+            location_id=locked.location_id,
+            max_capacity=1,
+            waitlist_enabled=False,
+            instructor_id=locked.instructor_id,
+            cohort=None,
+            notes=None,
+            created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
+            external_url=None,
+            eventbrite_sync_status=EventbriteSyncStatus.PENDING,
+        )
+        try:
+            with session.begin_nested():
+                return instance_repo.create_instance(
+                    booking, type_details=None, session_slots=None
+                )
+        except IntegrityError as exc:
+            last_exc = exc
+            continue
+    raise ValidationError(
+        "Unable to allocate booking instance",
+        field="serviceInstanceSlug",
+        status_code=500,
+    ) from last_exc
 
 
 def _consultation_booking_slot_rows(

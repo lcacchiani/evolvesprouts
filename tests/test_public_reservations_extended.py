@@ -708,6 +708,272 @@ def test_handle_public_reservation_accepts_missing_service_tier(
     assert payload.get("service_tier") is None
 
 
+def test_handle_public_reservation_event_booking_skips_booking_child_allocation(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    booking_child_spy = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._create_booking_instance_for_template",
+        booking_child_spy,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    _patch_public_reservation_db_helpers(monkeypatch)
+    hooks = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        hooks,
+    )
+
+    contact_id = uuid4()
+    template_instance_id = uuid4()
+    service_id = uuid4()
+    enrollment_target: dict[str, Any] = {}
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
+            return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
+            if slug.strip().lower() == "test-cohort":
+                return _resolved_instance_stub(
+                    template_instance_id, service_id, service_type_value="event"
+                )
+            return None
+
+    class _FakeEnrollmentRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def contact_has_enrollment_for_instance(self, **_kwargs: object) -> bool:
+            return False
+
+        def create_enrollment(self, _enrollment: object) -> object:
+            return _enrollment
+
+        def try_create_enrollment_with_capacity_guard(
+            self, enrollment: object
+        ) -> tuple[object | None, str | None]:
+            enrollment_target["instance_id"] = enrollment.instance_id
+            return enrollment, None
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.EnrollmentRepository",
+        _FakeEnrollmentRepo,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+
+    body = _reservation_body(bookingSystem="event-booking")
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    booking_child_spy.assert_not_called()
+    assert enrollment_target["instance_id"] == template_instance_id
+
+
+def test_handle_public_reservation_mba_style_skips_booking_child_allocation(
+    api_gateway_event: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Omitted ``bookingSystem`` is not a per-booking flow; enroll on the template instance."""
+    booking_child_spy = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._create_booking_instance_for_template",
+        booking_child_spy,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.verify_turnstile_token",
+        lambda *_a, **_k: True,
+    )
+    _patch_public_reservation_db_helpers(monkeypatch)
+    hooks = MagicMock()
+    monkeypatch.setattr(
+        "app.api.public_reservations._run_reservation_post_success_hooks",
+        hooks,
+    )
+
+    contact_id = uuid4()
+    template_instance_id = uuid4()
+    service_id = uuid4()
+    enrollment_target: dict[str, Any] = {}
+
+    class _FakeContactRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def upsert_by_email(self, _email: str, **kwargs: object) -> tuple[object, bool]:
+            c = MagicMock()
+            c.id = contact_id
+            c.phone_region = None
+            c.phone_national_number = None
+            return c, True
+
+        def update(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeLeadRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def create_with_event(self, *_a: object, **_k: object) -> None:
+            return None
+
+    class _FakeSalesLead:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLead",
+        _FakeSalesLead,
+    )
+
+    class _FakeInstanceRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
+            if slug.strip().lower() == "test-cohort":
+                return _resolved_instance_stub(template_instance_id, service_id)
+            return None
+
+    class _FakeEnrollmentRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def contact_has_enrollment_for_instance(self, **_kwargs: object) -> bool:
+            return False
+
+        def create_enrollment(self, _enrollment: object) -> object:
+            return _enrollment
+
+        def try_create_enrollment_with_capacity_guard(
+            self, enrollment: object
+        ) -> tuple[object | None, str | None]:
+            enrollment_target["instance_id"] = enrollment.instance_id
+            return enrollment, None
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ServiceInstanceRepository",
+        _FakeInstanceRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.EnrollmentRepository",
+        _FakeEnrollmentRepo,
+    )
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+        def begin(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+        def begin_nested(self) -> _FakeBeginNestedCM:
+            return _FakeBeginNestedCM()
+
+    class _FakeSessionCM:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, *_a: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        "app.api.public_reservations.ContactRepository",
+        _FakeContactRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.SalesLeadRepository",
+        _FakeLeadRepo,
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.Session",
+        lambda _e: _FakeSessionCM(),
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservations.get_engine",
+        lambda: object(),
+    )
+
+    body = _reservation_body()
+    del body["serviceTier"]
+    event = _post_event(api_gateway_event, body)
+    resp = _handle_public_reservation(event, "POST")
+    assert resp["statusCode"] == 202
+    booking_child_spy.assert_not_called()
+    assert enrollment_target["instance_id"] == template_instance_id
+
+
 def test_handle_public_reservation_validation_rejects_missing_terms(
     api_gateway_event: Any,
     monkeypatch: pytest.MonkeyPatch,

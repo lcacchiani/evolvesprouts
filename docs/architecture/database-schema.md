@@ -533,6 +533,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   backfills `TRUE` for existing consultation and intro_call tier instances (no parent).
   Admin-created consultation/intro tier instances set `is_template` at insert time; booking
   children use `is_template = FALSE`.
+- Check constraint `service_instances_template_consistency_chk`: template rows require
+  `is_template IS TRUE AND parent_instance_id IS NULL`; non-template rows (`is_template IS FALSE`)
+  may have any `parent_instance_id` (NULL for cohort/event rows or set for booking children).
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
@@ -549,7 +552,9 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
     are `timestamptz` in Aurora). Migration `0061_per_booking_instances` drops the
     composite unique index `(instance_id, starts_at)` from `0060_intro_call_starts_uniq`
     and adds nullable `template_instance_id` → `service_instances.id` (`ON DELETE CASCADE`),
-    backfilled from the booking row's `parent_instance_id`. Partial unique index
+    backfilled as ``COALESCE(service_instances.parent_instance_id,
+    CASE WHEN service_instances.is_template THEN service_instances.id END)`` for each slot's
+    owning instance so legacy template-tier rows self-reference the tier id. Partial unique index
     `instance_session_slots_template_starts_uidx` on `(template_instance_id, starts_at)`
     where `template_instance_id IS NOT NULL` serializes concurrent consultation/intro public
     bookings against the same template tier and start instant. The admin API rejects naive
