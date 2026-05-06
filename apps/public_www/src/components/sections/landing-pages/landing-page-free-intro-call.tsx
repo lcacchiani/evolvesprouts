@@ -28,6 +28,7 @@ import type {
   Locale,
   SiteContent,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { getContent } from '@/content';
 import {
   trackAnalyticsEvent,
@@ -48,6 +49,7 @@ import { resolveCaptchaErrorMessage, useFormSubmission } from '@/components/sect
 import {
   appendTimeZoneLabel,
   formatSiteCompactDate,
+  formatSitePartDate,
   formatSiteTimeOfDay,
   formatSiteTimeZoneShortName,
 } from '@/lib/site-datetime';
@@ -180,6 +182,18 @@ export function LandingPageFreeIntroCall({
     const tz = formatSiteTimeZoneShortName(selectedSlot.startIso, locale);
     return appendTimeZoneLabel(`${dateLabel} · ${timeLabel}`, tz) ?? `${dateLabel} · ${timeLabel}`;
   }, [locale, selectedSlot]);
+
+  const selectedSlotCardSecondLine = useMemo(() => {
+    if (!selectedSlot) {
+      return '';
+    }
+    const dateLabel = formatSitePartDate(selectedSlot.startIso, locale);
+    const timeLabel = formatSiteTimeOfDay(selectedSlot.startIso, locale);
+    return formatContentTemplate(introContent.selectedSlotSummaryTemplate, {
+      date: dateLabel,
+      time: timeLabel,
+    });
+  }, [introContent.selectedSlotSummaryTemplate, locale, selectedSlot]);
 
   const handleSelectSlot = useCallback((slot: IntroCallSlot) => {
     setHasFormInteracted(true);
@@ -519,6 +533,21 @@ export function LandingPageFreeIntroCall({
                   {introContent.whatsappAfterBookLabel}
                 </a>
               </p>
+              {selectedSlot ? (
+                <div className='pt-3'>
+                  <div
+                    data-testid='intro-call-selected-slot-card'
+                    className='w-full max-w-[410px] rounded-inner border es-border-warm-2 es-bg-surface-soft px-5 py-4'
+                  >
+                    <p className='text-base font-semibold es-text-brand'>
+                      {introContent.selectedSlotSummaryHeading}
+                    </p>
+                    <p className='es-type-subtitle-lg mt-1 es-text-heading'>
+                      {selectedSlotCardSecondLine}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
             <div className='min-w-0'>
               {recentCooldownMessage ? (
