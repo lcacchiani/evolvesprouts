@@ -1,7 +1,7 @@
 import type { LeadDetail } from '@/types/leads';
 
 import { Card } from '@/components/ui/card';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 
 export interface LeadInfoSectionProps {
   lead: LeadDetail;
@@ -27,10 +27,10 @@ export function LeadInfoSection({ lead }: LeadInfoSectionProps) {
         </p>
         <p>
           <span className='font-medium text-slate-900'>Source:</span>{' '}
-          {lead.contact.source ? toTitleCase(lead.contact.source) : '—'}
+          {lead.contact.source ? formatEnumLabel(lead.contact.source) : '—'}
         </p>
         <p>
-          <span className='font-medium text-slate-900'>Lead type:</span> {toTitleCase(lead.leadType)}
+          <span className='font-medium text-slate-900'>Lead type:</span> {formatEnumLabel(lead.leadType)}
         </p>
       </div>
     </Card>

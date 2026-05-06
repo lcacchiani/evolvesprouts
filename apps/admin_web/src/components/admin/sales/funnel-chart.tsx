@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 
 import { Card } from '@/components/ui/card';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 
 import { getStageBadgeClass } from './stage-utils';
 
@@ -31,7 +31,7 @@ export function FunnelChart({ funnel, activeStage, onSelectStage }: FunnelChartP
   );
   const chartData = FUNNEL_STAGES.map((stage) => ({
     stage,
-    label: toTitleCase(stage),
+    label: formatEnumLabel(stage),
     count: funnel[stage] ?? 0,
   }));
   const colors: Record<FunnelStage, string> = {
@@ -85,7 +85,7 @@ export function FunnelChart({ funnel, activeStage, onSelectStage }: FunnelChartP
             }`}
             onClick={() => onSelectStage(activeStage === stage ? null : stage)}
           >
-            {toTitleCase(stage)}
+            {formatEnumLabel(stage)}
           </button>
         ))}
       </div>

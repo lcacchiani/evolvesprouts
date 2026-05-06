@@ -46,6 +46,7 @@ import {
   ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatDate,
+  formatEnumLabel,
   formatEnrollmentPickerInstanceServiceDisplay,
   formatTierCohortDisplay,
 } from '@/lib/format';
@@ -63,21 +64,6 @@ function formatTruncatedId(id: string | null | undefined): string {
     return id;
   }
   return `${id.slice(0, 8)}…`;
-}
-
-/** Display payment enum or method slug as camelCase (for example `bank_transfer` → `bankTransfer`). */
-function formatPaymentLabelCamelCase(raw: string | null | undefined): string {
-  const t = raw?.trim() ?? '';
-  if (t === '') {
-    return '';
-  }
-  const parts = t.split(/[\s_\-+/]+/).filter((p) => p !== '');
-  if (parts.length === 0) {
-    return '';
-  }
-  const lower = parts.map((p) => p.toLowerCase());
-  const [head, ...tail] = lower;
-  return head + tail.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
 }
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
@@ -102,15 +88,6 @@ function formatAllocateLineOptionLabel(
     return `${base} (${formatTruncatedId(id)})`;
   }
   return base;
-}
-
-/** List table: capitalize first letter of API status (for example `draft` → `Draft`). */
-function formatCustomerInvoiceStatusLabel(status: string | undefined): string {
-  const t = status?.trim() ?? '';
-  if (t === '') {
-    return '—';
-  }
-  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 function currencySelectValue(
@@ -1409,7 +1386,7 @@ export function ClientInvoicesPanel() {
                   }}
                 >
                   <td className='px-3 py-2'>
-                    {formatCustomerInvoiceStatusLabel(inv.status)}
+                    {formatEnumLabel(inv.status ?? '') || '—'}
                   </td>
                   <td className='px-3 py-2'>{inv.invoiceNumber ?? '—'}</td>
                   <td className='px-3 py-2 text-slate-700'>
@@ -1763,10 +1740,9 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[720px]'>
+        <AdminDataTable tableClassName='min-w-[640px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Payment</th>
               <th className='px-3 py-2'>Direction</th>
               <th className='px-3 py-2'>Status</th>
               <th className='px-3 py-2'>Method</th>
@@ -1790,23 +1766,26 @@ export function ClientInvoicesPanel() {
               return (
                 <tr
                   key={id || `payment-row-${String(index)}`}
-                  className={selected ? 'bg-sky-50' : undefined}
+                  className={
+                    selected ? 'cursor-pointer bg-sky-50' : id ? 'cursor-pointer' : undefined
+                  }
+                  onClick={() => {
+                    if (id) {
+                      setSelectedId(id);
+                    }
+                  }}
                 >
-                  <td className='px-3 py-2'>
-                    <button
-                      type='button'
-                      className='font-mono text-left text-xs text-sky-800 underline decoration-sky-300 hover:decoration-sky-600'
-                      onClick={() => setSelectedId(id || null)}
-                    >
-                      {formatTruncatedId(id)}
-                    </button>
-                  </td>
-                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.direction)}</td>
-                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.status)}</td>
-                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.method)}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.direction ?? '')}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.status ?? '')}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.method ?? '')}</td>
                   <td className='px-3 py-2'>{amountDisplay}</td>
                   <td className='px-3 py-2'>{formatDate(p.createdAt ?? null)}</td>
-                  <td className='px-3 py-2 text-right'>
+                  <td
+                    className='px-3 py-2 text-right'
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
                     {p.status === 'pending' && p.direction === 'inbound' ? (
                       <Button
                         type='button'

@@ -1,7 +1,7 @@
 import type { AdminUser, LeadEvent } from '@/types/leads';
 
 import { Card } from '@/components/ui/card';
-import { formatDate, toTitleCase } from '@/lib/format';
+import { formatDate, formatEnumLabel } from '@/lib/format';
 
 export interface ActivityTimelineProps {
   events: LeadEvent[];
@@ -28,7 +28,7 @@ export function ActivityTimeline({ events, users }: ActivityTimelineProps) {
         ) : (
           events.map((event) => (
             <li key={event.id} className='border-l-2 border-slate-200 pl-3'>
-              <p className='text-sm font-medium text-slate-900'>{toTitleCase(event.eventType)}</p>
+              <p className='text-sm font-medium text-slate-900'>{formatEnumLabel(event.eventType)}</p>
               <p className='text-xs text-slate-600'>
                 By {resolveActorLabel(event.createdBy, users)} • {formatDate(event.createdAt)}
               </p>

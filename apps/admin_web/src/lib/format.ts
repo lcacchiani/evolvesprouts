@@ -233,11 +233,27 @@ export function formatLocationCoordinatesLabel(lat: number | null, lng: number |
   return 'No coordinates set';
 }
 
+/**
+ * Split on underscores, capitalize the first character of each segment, join with spaces.
+ * Drops empty segments (for example from consecutive underscores). Does not normalize each
+ * segment’s body to lowercase; most admin UI should call {@link formatEnumLabel} instead so API
+ * snake_case enums render consistently.
+ */
 export function toTitleCase(value: string): string {
   return value
     .split('_')
+    .filter((part) => part !== '')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/** User-visible label for snake_case API enums (trim, lowercase words, then {@link toTitleCase}). */
+export function formatEnumLabel(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed === '') {
+    return '';
+  }
+  return toTitleCase(trimmed.toLowerCase());
 }
 
 /** User-visible label for an asset tag name (API snake_case). */
@@ -249,7 +265,7 @@ export function formatAssetTagDisplayName(tagName: string): string {
   if (lower === CLIENT_DOCUMENT_ASSET_TAG) {
     return 'Client';
   }
-  return toTitleCase(tagName.toLowerCase());
+  return formatEnumLabel(tagName);
 }
 
 /** Same date/time field choices as the app shell navbar timestamp (local TZ + default locale). */
@@ -301,10 +317,6 @@ function getCurrencyName(code: string): string {
   } catch {
     return code;
   }
-}
-
-export function formatEnumLabel(value: string): string {
-  return toTitleCase(value.toLowerCase());
 }
 
 const SESSION_SLOT_TABLE_DATETIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 
 import { getStageBadgeClass } from './stage-utils';
 
@@ -29,7 +29,7 @@ export function StageControl({ currentStage, isLoading, onUpdateStage }: StageCo
   return (
     <Card title='Stage Control' className='space-y-3'>
       <p className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStageBadgeClass(currentStage)}`}>
-        Current: {toTitleCase(currentStage)}
+        Current: {formatEnumLabel(currentStage)}
       </p>
       <Select
         value={nextStage}
@@ -40,7 +40,7 @@ export function StageControl({ currentStage, isLoading, onUpdateStage }: StageCo
       >
         {FUNNEL_STAGES.map((stage) => (
           <option key={stage} value={stage}>
-            {toTitleCase(stage)}
+            {formatEnumLabel(stage)}
           </option>
         ))}
       </Select>
@@ -71,7 +71,7 @@ export function StageControl({ currentStage, isLoading, onUpdateStage }: StageCo
                 setIsConfirming(false);
               }}
             >
-              Confirm {toTitleCase(currentStage)} → {toTitleCase(nextStage)}
+              Confirm {formatEnumLabel(currentStage)} → {formatEnumLabel(nextStage)}
             </Button>
             <Button type='button' variant='ghost' onClick={() => setIsConfirming(false)}>
               Cancel

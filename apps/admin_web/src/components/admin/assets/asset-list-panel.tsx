@@ -26,7 +26,7 @@ import {
   formatAssetContentLanguageLabel,
   formatAssetTagDisplayName,
   formatDate,
-  toTitleCase,
+  formatEnumLabel,
 } from '@/lib/format';
 
 export interface AssetListPanelProps {
@@ -139,7 +139,7 @@ export function AssetListPanel({
                   <option value=''>All</option>
                   {ASSET_VISIBILITIES.map((visibility) => (
                     <option key={visibility} value={visibility}>
-                      {toTitleCase(visibility)}
+                      {formatEnumLabel(visibility)}
                     </option>
                   ))}
                 </Select>
@@ -236,7 +236,7 @@ export function AssetListPanel({
                     <td className='px-4 py-3 text-slate-700'>
                       {formatAssetContentLanguageLabel(asset.contentLanguage)}
                     </td>
-                    <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
+                    <td className='px-4 py-3 text-slate-700'>{formatEnumLabel(asset.visibility)}</td>
                     <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
                     <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
                     <td className='px-4 py-3 text-right'>

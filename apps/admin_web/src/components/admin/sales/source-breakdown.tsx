@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface SourceBreakdownProps {
@@ -14,7 +14,7 @@ export function SourceBreakdown({ sourceBreakdown }: SourceBreakdownProps) {
     .slice(0, 8)
     .map(([source, count]) => ({
       source,
-      label: toTitleCase(source),
+      label: formatEnumLabel(source),
       count,
     }));
 

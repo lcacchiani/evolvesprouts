@@ -64,6 +64,10 @@ describe('format helpers', () => {
     expect(formatEnumLabel('training_course')).toBe('Training Course');
     expect(formatEnumLabel('intro_call')).toBe('Intro Call');
     expect(formatEnumLabel('in_person')).toBe('In Person');
+    expect(formatEnumLabel('bank__transfer')).toBe('Bank Transfer');
+    expect(formatEnumLabel('')).toBe('');
+    expect(formatEnumLabel('   ')).toBe('');
+    expect(formatEnumLabel('  stripe_card  ')).toBe('Stripe Card');
   });
 
   it('formats session slot starts for instances table', () => {

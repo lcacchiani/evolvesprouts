@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface ConversionFunnelProps {
@@ -11,7 +11,7 @@ export interface ConversionFunnelProps {
 export function ConversionFunnel({ rates }: ConversionFunnelProps) {
   const entries = Object.entries(rates).map(([key, value]) => ({
     key,
-    label: toTitleCase(key),
+    label: formatEnumLabel(key),
     percentage: value * 100,
   }));
   return (
