@@ -98,20 +98,6 @@ function isMorningSlot(slot: IntroCallSlot): boolean {
   return wallClockHourFromIso(slot.startIso) < 12;
 }
 
-function DayStripEdgeFade({ side, visible }: { side: 'left' | 'right'; visible: boolean }) {
-  const isRight = side === 'right';
-  return (
-    <span
-      aria-hidden='true'
-      className={`pointer-events-none absolute inset-y-0 w-10 transition-opacity duration-200 ${
-        isRight
-          ? 'right-0 bg-gradient-to-l from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
-          : 'left-0 bg-gradient-to-r from-[var(--es-color-surface-peach,#FFEEE3)] to-transparent'
-      } ${visible ? 'opacity-100' : 'opacity-0'}`}
-    />
-  );
-}
-
 export function IntroCallSlotPicker({
   locale,
   commonAccessibility,
@@ -131,8 +117,6 @@ export function IntroCallSlotPicker({
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dayCarouselRef = useRef<HTMLDivElement | null>(null);
   const lastReportedStatusRef = useRef<FetchStatus | null>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const slotTimeFormatter = useMemo(
     () =>
@@ -182,16 +166,6 @@ export function IntroCallSlotPicker({
       params: { status },
     });
   }, [status]);
-
-  const updateDayStripScrollHints = useCallback(() => {
-    const el = dayCarouselRef.current;
-    if (!el) {
-      return;
-    }
-    const { scrollLeft, clientWidth, scrollWidth } = el;
-    setCanScrollLeft(scrollLeft > 1);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -247,23 +221,6 @@ export function IntroCallSlotPicker({
     const sorted = Array.from(slotsByDayFull.keys()).sort();
     return sorted.slice(0, MAX_VISIBLE_BOOKING_DAYS);
   }, [slotsByDayFull]);
-
-  useEffect(() => {
-    if (status !== 'ready' || slots.length === 0) {
-      return;
-    }
-    const el = dayCarouselRef.current;
-    if (!el) {
-      return;
-    }
-    updateDayStripScrollHints();
-    el.addEventListener('scroll', updateDayStripScrollHints, { passive: true });
-    window.addEventListener('resize', updateDayStripScrollHints);
-    return () => {
-      el.removeEventListener('scroll', updateDayStripScrollHints);
-      window.removeEventListener('resize', updateDayStripScrollHints);
-    };
-  }, [dayKeys, slots.length, status, updateDayStripScrollHints]);
 
   const slotsByDay = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
@@ -431,7 +388,7 @@ export function IntroCallSlotPicker({
 
   return (
     <div className='space-y-4'>
-      <div className='relative w-full min-w-0 overflow-visible'>
+      <div className='w-full min-w-0'>
         <CarouselTrack
           carouselRef={dayCarouselRef}
           testId='intro-call-day-carousel'
@@ -489,8 +446,6 @@ export function IntroCallSlotPicker({
             );
           })}
         </CarouselTrack>
-        <DayStripEdgeFade side='left' visible={canScrollLeft} />
-        <DayStripEdgeFade side='right' visible={canScrollRight} />
       </div>
 
       {resolvedDayYmd && daySlots.length > 0 ? (
