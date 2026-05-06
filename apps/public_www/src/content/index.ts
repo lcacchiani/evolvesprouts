@@ -165,6 +165,10 @@ export interface LandingPageLocaleContent {
     topicsFieldPlaceholder: string;
     submitLabel: string;
     phoneFieldLabel: string;
+    /** Heading above the selected-slot summary card (first line). */
+    selectedSlotSummaryHeading: string;
+    /** Template for the second line; `{date}` and `{time}` use site timezone formatting. */
+    selectedSlotSummaryTemplate: string;
     loadErrorMessage?: string;
     loadingLabel: string;
     morningSectionLabel: string;

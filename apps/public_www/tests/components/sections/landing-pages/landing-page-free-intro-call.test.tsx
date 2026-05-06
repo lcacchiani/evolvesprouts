@@ -99,6 +99,11 @@ describe('LandingPageFreeIntroCall', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '09:00' }));
 
+    const selectedSlotCard = screen.getByTestId('intro-call-selected-slot-card');
+    expect(within(selectedSlotCard).getByText(bookAFreeCall.en.introCall.selectedSlotSummaryHeading))
+      .toBeInTheDocument();
+    expect(selectedSlotCard).toHaveTextContent('05 May @ 09:00');
+
     fireEvent.change(screen.getByLabelText(/Full Name/i), {
       target: { value: 'Test Parent' },
     });
