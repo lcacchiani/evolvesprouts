@@ -448,6 +448,43 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
+  it('does not render Customer payments Refresh control', async () => {
+    billingMocks.listCustomerPayments.mockResolvedValue([]);
+    render(<ClientInvoicesPanel />);
+    await waitFor(() => expect(billingMocks.listCustomerPayments).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /^refresh$/i })).not.toBeInTheDocument();
+  });
+
+  it('capitalizes fps payment method as FPS', async () => {
+    billingMocks.listCustomerPayments.mockResolvedValue([
+      {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        direction: 'inbound',
+        status: 'succeeded',
+        method: 'fps',
+        amount: '1',
+        currency: 'HKD',
+        createdAt: '2026-01-01T00:00:00+00:00',
+      },
+      {
+        id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+        direction: 'inbound',
+        status: 'succeeded',
+        method: 'bank_fps',
+        amount: '2',
+        currency: 'HKD',
+        createdAt: '2026-01-01T00:00:00+00:00',
+      },
+    ]);
+    render(<ClientInvoicesPanel />);
+    const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
+    await waitFor(() => {
+      const cells = within(paymentTable).getAllByRole('cell');
+      expect(cells.some((c) => c.textContent === 'FPS')).toBe(true);
+      expect(cells.some((c) => c.textContent === 'Bank FPS')).toBe(true);
+    });
+  });
+
   it('submitting allocate form calls createPaymentAllocation', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     const lineId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
