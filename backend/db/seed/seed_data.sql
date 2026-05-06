@@ -47,7 +47,7 @@ WHERE lower(trim(coalesce(s.service_key, ''))) = 'my-best-auntie'
   );
 
 UPDATE services s
-SET service_key = 'consultations'
+SET service_key = 'family-consultation'
 FROM (
   SELECT id
   FROM services
@@ -61,6 +61,12 @@ WHERE s.id = pick.id
     WHERE service_key IS NULL
       AND service_type = 'consultation'
   ) = 1;
+
+-- Align legacy consultation service key with public_www `family-consultations.json` (`service_key`).
+UPDATE services
+SET service_key = 'family-consultation'
+WHERE service_type = 'consultation'
+  AND lower(trim(coalesce(service_key, ''))) = 'consultations';
 
 -- ───────────────────────────────────────────────────────────────────────
 -- DEPENDENCY: requires migration `0059_intro_call_service_type`, which

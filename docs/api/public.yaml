@@ -1759,6 +1759,8 @@ components:
             Optional booking flow code. When set, must be exactly one of the enum values
             (case-insensitive on input; stored lowercased). Drives confirmation email formatting
             (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
+            `consultation-booking` on the public site pairs with `serviceKey=family-consultation`
+            and tier instance slugs from `family-consultations.json`.
             `intro-call-booking` requires `serviceKey=intro-call`, `serviceInstanceSlug=intro-call-free-15min`,
             `totalAmount=0`, `paymentMethod=free` (or omit payment method to default to free), and
             `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot at a
