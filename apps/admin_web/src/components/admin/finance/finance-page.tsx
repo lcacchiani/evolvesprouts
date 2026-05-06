@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { Card } from '@/components/ui/card';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useQueryTabState } from '@/hooks/use-query-tab-state';
@@ -20,6 +19,7 @@ import {
   type FinanceView,
 } from './finance-header';
 import { ClientInvoicesPanel } from './client-invoices-panel';
+import { TaxFiscalYearPanel } from './tax-fiscal-year-panel';
 import { VendorsPanel } from './vendors-panel';
 
 export function FinancePage() {
@@ -75,6 +75,15 @@ export function FinancePage() {
       <div className='space-y-6'>
         <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
         <ClientInvoicesPanel />
+      </div>
+    );
+  }
+
+  if (activeView === 'tax') {
+    return (
+      <div className='space-y-6'>
+        <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
+        <TaxFiscalYearPanel />
       </div>
     );
   }

@@ -16,6 +16,8 @@ export type CustomerInvoiceSummary = ApiSchemas['CustomerInvoiceSummary'];
 
 export type CustomerInvoiceDetail = ApiSchemas['CustomerInvoiceDetail'];
 
+const CUSTOMER_INVOICE_LIST_PAGE_LIMIT = 100;
+
 export async function listCustomerInvoices(
   params: {
     status?: 'draft' | 'issued' | 'void';
@@ -36,7 +38,10 @@ export async function listCustomerInvoices(
     query.set('cursor', params.cursor);
   }
   if (params.limit != null) {
-    query.set('limit', String(params.limit));
+    query.set(
+      'limit',
+      String(Math.min(Math.floor(params.limit), CUSTOMER_INVOICE_LIST_PAGE_LIMIT)),
+    );
   }
   const qs = query.toString();
   const payload = await adminApiRequest<{
@@ -52,6 +57,31 @@ export async function listCustomerInvoices(
     items: Array.isArray(root.items) ? root.items : [],
     next_cursor: root.next_cursor ?? null,
   };
+}
+
+/** Fetches every invoice page (for fiscal-year tax summaries). */
+export async function listAllCustomerInvoices(
+  params: Omit<
+    Parameters<typeof listCustomerInvoices>[0],
+    'cursor' | 'limit'
+  > = {},
+  signal?: AbortSignal,
+): Promise<CustomerInvoiceSummary[]> {
+  const all: CustomerInvoiceSummary[] = [];
+  let cursor: string | null = null;
+  do {
+    const page = await listCustomerInvoices(
+      {
+        ...params,
+        cursor,
+        limit: CUSTOMER_INVOICE_LIST_PAGE_LIMIT,
+      },
+      signal,
+    );
+    all.push(...page.items);
+    cursor = page.next_cursor;
+  } while (cursor);
+  return all;
 }
 
 export async function getCustomerInvoice(id: string, signal?: AbortSignal): Promise<CustomerInvoiceDetail> {
