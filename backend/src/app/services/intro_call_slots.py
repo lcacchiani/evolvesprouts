@@ -6,34 +6,20 @@ Candidate starts use a 30-minute cadence; each bookable interval is 15 minutes l
 from __future__ import annotations
 
 import os
-from bisect import bisect_left
 from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import (
-    Contact,
-    Enrollment,
-    InstanceSessionSlot,
-    Service,
-    ServiceInstance,
-)
+from app.db.models import Contact, Enrollment, Service, ServiceInstance
 from app.db.models.enums import ServiceType
-from app.db.repositories.service_instance import (
-    public_calendar_blocker_instance_predicates,
-)
-from app.db.models.calendar_manual_block import CalendarManualBlock
-from app.services.calendar_blockers import (
-    _AM_END_HOUR,
-    _AM_START_HOUR,
-    _PM_END_HOUR,
-    _PM_START_HOUR,
-    _intervals_overlap,
-    _window_utc_for_local_hours,
-    resolve_calendar_blockers_wall_timezone,
-    select_public_calendar_blocker_session_slots,
+from app.services.public_calendar_availability import (
+    AvailabilityPurpose,
+    busy_intervals_utc,
+    candidate_overlaps_merged_busy,
+    intro_call_instance_busy_intervals_utc,
+    merge_intervals_union,
 )
 
 _ENV_INTRO_CALL_WALL_TIMEZONE = "INTRO_CALL_WALL_TIMEZONE"
@@ -46,12 +32,6 @@ _INTRO_CALL_SLOT_DURATION_MINUTES = 15
 _INTRO_CALL_LEAD_HOURS = 2
 _INTRO_CALL_HORIZON_DAYS = 21
 _INTRO_CALL_PURPOSE = "intro_call_booking"
-# Intro-call busy intervals include every booked slot on instances whose parent service is
-# ``intro_call``, whether the slot row belongs to the catalog tier or a per-booking child.
-
-_MANUAL_BLOCK_PURPOSES: frozenset[str] = frozenset(
-    {"consultation_booking", _INTRO_CALL_PURPOSE}
-)
 
 
 def intro_call_purpose() -> str:
@@ -128,150 +108,6 @@ def enumerate_intro_call_candidate_slots(
     return out
 
 
-def _manual_block_busy_intervals_utc(
-    session: Session,
-    *,
-    from_date: date,
-    to_date: date,
-) -> list[tuple[datetime, datetime]]:
-    zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
-    rows = session.execute(
-        select(CalendarManualBlock.block_date, CalendarManualBlock.period).where(
-            CalendarManualBlock.purpose.in_(_MANUAL_BLOCK_PURPOSES),
-            CalendarManualBlock.block_date >= from_date,
-            CalendarManualBlock.block_date <= to_date,
-        )
-    ).all()
-    intervals: list[tuple[datetime, datetime]] = []
-    for block_date, period in rows:
-        ymd = block_date.isoformat()
-        if period in ("am", "both"):
-            win = _window_utc_for_local_hours(
-                ymd,
-                start_hour=_AM_START_HOUR,
-                end_hour=_AM_END_HOUR,
-                zone=zone,
-            )
-            if win:
-                intervals.append(win)
-        if period in ("pm", "both"):
-            win = _window_utc_for_local_hours(
-                ymd,
-                start_hour=_PM_START_HOUR,
-                end_hour=_PM_END_HOUR,
-                zone=zone,
-            )
-            if win:
-                intervals.append(win)
-    return intervals
-
-
-def _session_blocker_busy_intervals_utc(
-    session: Session,
-    *,
-    range_start_utc: datetime,
-    range_end_utc: datetime,
-) -> list[tuple[datetime, datetime]]:
-    slot_stmt = select_public_calendar_blocker_session_slots(
-        range_start_utc=range_start_utc,
-        range_end_utc=range_end_utc,
-    )
-    out: list[tuple[datetime, datetime]] = []
-    for starts_at, ends_at in session.execute(slot_stmt).all():
-        if starts_at is None or ends_at is None:
-            continue
-        s0 = starts_at if starts_at.tzinfo else starts_at.replace(tzinfo=UTC)
-        s1 = ends_at if ends_at.tzinfo else ends_at.replace(tzinfo=UTC)
-        out.append((s0, s1))
-    return out
-
-
-def _non_intro_session_busy_intervals_utc(
-    session: Session,
-    *,
-    range_start_utc: datetime,
-    range_end_utc: datetime,
-) -> list[tuple[datetime, datetime]]:
-    stmt = (
-        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
-        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
-        .join(Service, ServiceInstance.service_id == Service.id)
-        .where(
-            InstanceSessionSlot.starts_at < range_end_utc,
-            InstanceSessionSlot.ends_at > range_start_utc,
-            Service.service_type != ServiceType.INTRO_CALL,
-            *public_calendar_blocker_instance_predicates(),
-        )
-    )
-    out: list[tuple[datetime, datetime]] = []
-    for starts_at, ends_at in session.execute(stmt).all():
-        if starts_at is None or ends_at is None:
-            continue
-        s0 = starts_at if starts_at.tzinfo else starts_at.replace(tzinfo=UTC)
-        s1 = ends_at if ends_at.tzinfo else ends_at.replace(tzinfo=UTC)
-        out.append((s0, s1))
-    return out
-
-
-def _intro_instance_busy_intervals_utc(
-    session: Session,
-    *,
-    range_start_utc: datetime,
-    range_end_utc: datetime,
-) -> list[tuple[datetime, datetime]]:
-    stmt = (
-        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
-        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
-        .join(Service, ServiceInstance.service_id == Service.id)
-        .where(
-            Service.service_type == ServiceType.INTRO_CALL,
-            InstanceSessionSlot.starts_at < range_end_utc,
-            InstanceSessionSlot.ends_at > range_start_utc,
-        )
-    )
-    out: list[tuple[datetime, datetime]] = []
-    for starts_at, ends_at in session.execute(stmt).all():
-        if starts_at is None or ends_at is None:
-            continue
-        s0 = starts_at if starts_at.tzinfo else starts_at.replace(tzinfo=UTC)
-        s1 = ends_at if ends_at.tzinfo else ends_at.replace(tzinfo=UTC)
-        out.append((s0, s1))
-    return out
-
-
-def _merge_busy_intervals(
-    intervals: list[tuple[datetime, datetime]],
-) -> list[tuple[datetime, datetime]]:
-    if not intervals:
-        return []
-    sorted_iv = sorted(intervals, key=lambda x: x[0])
-    merged: list[tuple[datetime, datetime]] = [sorted_iv[0]]
-    for a0, a1 in sorted_iv[1:]:
-        b0, b1 = merged[-1]
-        if a0 <= b1:
-            merged[-1] = (b0, max(b1, a1))
-        else:
-            merged.append((a0, a1))
-    return merged
-
-
-def _candidate_blocked(
-    start_utc: datetime,
-    end_utc: datetime,
-    busy_merged: list[tuple[datetime, datetime]],
-) -> bool:
-    if not busy_merged:
-        return False
-    starts = [b[0] for b in busy_merged]
-    i = bisect_left(starts, end_utc)
-    for j in (i - 1, i):
-        if 0 <= j < len(busy_merged):
-            b0, b1 = busy_merged[j]
-            if _intervals_overlap(start_utc, end_utc, b0, b1):
-                return True
-    return False
-
-
 def compute_available_intro_call_slots(
     session: Session,
     *,
@@ -283,35 +119,21 @@ def compute_available_intro_call_slots(
     if not candidates:
         return []
     now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
-    zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
+    zone = ZoneInfo(resolve_intro_call_wall_timezone())
     range_start_local = datetime.combine(from_date, time.min, tzinfo=zone)
     range_end_local = datetime.combine(to_date, time.max, tzinfo=zone)
     range_start_utc = range_start_local.astimezone(UTC)
     range_end_utc = range_end_local.astimezone(UTC)
-    busy: list[tuple[datetime, datetime]] = []
-    busy.extend(
-        _manual_block_busy_intervals_utc(session, from_date=from_date, to_date=to_date)
+    busy_merged = busy_intervals_utc(
+        session,
+        range_start_utc=range_start_utc,
+        range_end_utc=range_end_utc,
+        exclude_purposes=frozenset(),
     )
-    busy.extend(
-        _session_blocker_busy_intervals_utc(
-            session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
-        )
-    )
-    busy.extend(
-        _non_intro_session_busy_intervals_utc(
-            session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
-        )
-    )
-    busy.extend(
-        _intro_instance_busy_intervals_utc(
-            session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
-        )
-    )
-    busy_merged = _merge_busy_intervals(busy)
     return [
         (s0, s1)
         for s0, s1 in candidates
-        if not _candidate_blocked(s0, s1, busy_merged) and s1 > now_u
+        if not candidate_overlaps_merged_busy(s0, s1, busy_merged) and s1 > now_u
     ]
 
 
@@ -327,11 +149,11 @@ def is_intro_call_slot_available(
     start_utc: datetime,
     end_utc: datetime,
     now: datetime | None = None,
-    ignore_intro_slot: tuple[datetime, datetime] | None = None,
+    exclude_intro_booking_interval: tuple[datetime, datetime] | None = None,
 ) -> bool:
     """True if the proposed UTC interval does not conflict with busy time.
 
-    ``ignore_intro_slot`` excludes one intro instance interval (e.g. the row
+    ``exclude_intro_booking_interval`` excludes one intro instance interval (e.g. the row
     being validated inside a transaction before insert).
     """
     now_u = (
@@ -352,29 +174,31 @@ def is_intro_call_slot_available(
         return False
     range_start_utc = s0 - timedelta(days=1)
     range_end_utc = s1 + timedelta(days=1)
-    busy: list[tuple[datetime, datetime]] = []
-    busy.extend(
-        _manual_block_busy_intervals_utc(session, from_date=from_d, to_date=to_d)
-    )
-    busy.extend(
-        _session_blocker_busy_intervals_utc(
-            session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
+    busy_parts: list[tuple[datetime, datetime]] = []
+    busy_parts.extend(
+        busy_intervals_utc(
+            session,
+            range_start_utc=range_start_utc,
+            range_end_utc=range_end_utc,
+            exclude_purposes=frozenset({AvailabilityPurpose.INTRO_CALL_BOOKING}),
         )
     )
-    busy.extend(
-        _non_intro_session_busy_intervals_utc(
-            session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
-        )
+    ign = (
+        _norm_utc_pair(*exclude_intro_booking_interval)
+        if exclude_intro_booking_interval
+        else None
     )
-    ign = _norm_utc_pair(*ignore_intro_slot) if ignore_intro_slot else None
-    for b0, b1 in _intro_instance_busy_intervals_utc(
-        session, range_start_utc=range_start_utc, range_end_utc=range_end_utc
+    for b0, b1 in intro_call_instance_busy_intervals_utc(
+        session,
+        range_start_utc=range_start_utc,
+        range_end_utc=range_end_utc,
     ):
-        if ign is not None and _norm_utc_pair(b0, b1) == ign:
+        pair = _norm_utc_pair(b0, b1)
+        if ign is not None and pair == ign:
             continue
-        busy.append((b0, b1))
-    busy_merged = _merge_busy_intervals(busy)
-    return not _candidate_blocked(s0, s1, busy_merged)
+        busy_parts.append(pair)
+    busy_merged = merge_intervals_union(busy_parts)
+    return not candidate_overlaps_merged_busy(s0, s1, busy_merged)
 
 
 def recent_intro_call_enrollment_last_booked_at(

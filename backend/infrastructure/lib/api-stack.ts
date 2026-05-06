@@ -2876,8 +2876,7 @@ export class ApiStack extends cdk.Stack {
 
     const calendar = v1.addResource("calendar");
     addPublicApiKeyMethod(calendar.addResource("public"), "GET");
-    addPublicApiKeyMethod(calendar.addResource("blockers"), "GET");
-    addPublicApiKeyMethod(calendar.addResource("intro-call-slots"), "GET");
+    addPublicApiKeyMethod(calendar.addResource("availability"), "GET");
     const reservations = v1.addResource("reservations");
     addPublicApiKeyMethod(reservations, "POST");
     addPublicApiKeyMethod(reservations.addResource("payment-intent"), "POST");

@@ -19,11 +19,11 @@ import type {
   Locale,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import type { IntroCallSlot } from '@/lib/intro-call-slots-api';
+import type { IntroCallSlot } from '@/lib/public-calendar-availability-api';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchIntroCallSlots,
-} from '@/lib/intro-call-slots-api';
+} from '@/lib/public-calendar-availability-api';
 import {
   formatPartDateTimeLabel,
   PUBLIC_SITE_IANA_TIMEZONE,

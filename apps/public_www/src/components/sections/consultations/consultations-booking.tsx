@@ -25,7 +25,7 @@ import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchConsultationCalendarBlockersSlots,
-} from '@/lib/calendar-blockers-api';
+} from '@/lib/public-calendar-availability-api';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,

@@ -647,6 +647,21 @@ When making changes:
 3. Update `docs/architecture/database-schema.md` if adding/changing tables.
 4. Update other architecture docs if design decisions or patterns change.
 
+## Public calendar availability is slot-based for all purposes
+
+**Decision:** Replace legacy half-day blocker listing and separate intro-call slot routes with a single
+`GET /v1/calendar/availability` contract (`purpose` required). Ship as a **hard cutover** (no overlap window,
+no legacy field aliases). Consultation availability enumerates **discrete** Mon–Fri half-day slots
+(AM `09:00–12:00`, PM `14:00–18:00` local `Asia/Hong_Kong` / `CALENDAR_BLOCKERS_WALL_TIMEZONE`) with a
+**two calendar day** minimum lead; intro-call keeps **two hour** lead and the existing 15-minute slot / 30-minute
+cadence. **Strict reservation validation** rejects consultation submissions whose starts are not exactly 09:00 or 14:00
+local on weekdays before manual-block checks.
+
+**Why:**
+- One envelope (`slots` + `meta`) reduces drift between consultation UX and intro-call UX.
+- Discrete consultation slots align picker behavior with reservation validation.
+- Cache policy remains purpose-specific (`no-store` for consultations; shared-cache friendly for intro-call GET success).
+
 ## Intro-call public slot cadence
 
 **Decision:** Free intro-call candidate starts advance on a **30-minute** wall-clock grid

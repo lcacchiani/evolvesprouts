@@ -616,7 +616,8 @@ without breaking existing junction references.
 - Optional `created_by` / `updated_by` (Cognito sub) for admin accountability; admin API
   writes also append rows to `audit_log` (application source).
 - Unique on `(purpose, block_date, period)`; merged at read time with session slots for
-  public `GET /v1/calendar/blockers` (see `app.services.calendar_blockers`).
+  public availability busy intervals (see `app.services.public_calendar_availability` and
+  `app.services.calendar_blockers`).
 
 ### Customer billing (AR)
 

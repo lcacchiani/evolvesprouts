@@ -1709,9 +1709,9 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
     body["serviceKey"] = "family-consultation"
     body["serviceInstanceSlug"] = "consult-tier-book"
     body["bookingSystem"] = "consultation-booking"
-    body["primarySessionStartIso"] = "2026-07-01T10:00:00.000Z"
-    body["primarySessionEndIso"] = "2026-07-01T11:00:00.000Z"
-    body["sessionSlots"] = [{"startIso": "2026-07-02T14:00:00.000Z"}]
+    body["primarySessionStartIso"] = "2026-07-01T01:00:00.000Z"
+    body["primarySessionEndIso"] = "2026-07-01T04:00:00.000Z"
+    body["sessionSlots"] = [{"startIso": "2026-07-02T06:00:00.000Z"}]
 
     event = _post_event(api_gateway_event, body)
     resp = _handle_public_reservation(event, "POST")
