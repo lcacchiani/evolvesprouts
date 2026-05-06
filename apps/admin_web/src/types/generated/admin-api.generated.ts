@@ -6076,7 +6076,11 @@ export interface components {
             partyDisplayName: string;
             /** Format: email */
             partyEmail?: string | null;
+            /** @description Trimmed instance-specific title when set. */
             instanceTitle?: string | null;
+            /** @description Parent service template title from the instance's service (for display when `instanceTitle` is empty). */
+            parentServiceTitle?: string | null;
+            /** @description Display tier label: event ticket tier name when the enrollment has a ticket tier; otherwise the parent service's `service_tier` when present. */
             serviceTierName?: string | null;
             instanceCohort?: string | null;
             /** @description Decimal amount as string; mirrors enrollment `amount_paid`. */

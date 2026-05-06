@@ -31,6 +31,7 @@ from app.db.models.enums import (
 )
 from app.db.models.family import Family
 from app.db.models.organization import Organization
+from app.db.models.service import Service
 from app.db.models.service_instance import EventTicketTier, ServiceInstance
 from app.exceptions import ValidationError
 from app.utils import json_response
@@ -97,6 +98,16 @@ def _party_email(
 
 
 _PICKER_MAX_LIMIT = 500
+
+
+def _trimmed_str_or_none(value: object | None) -> str | None:
+    """Return stripped non-empty string, or None; ignores non-strings (avoids MagicMock in tests)."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    t = value.strip()
+    return t or None
 
 
 def _parse_enrolled_at_cursor(raw: str | None) -> tuple[datetime | None, UUID | None]:
@@ -244,7 +255,7 @@ def list_recent_enrollments_for_invoicing(
 
         stmt = (
             stmt.options(
-                joinedload(Enrollment.instance),
+                joinedload(Enrollment.instance).joinedload(ServiceInstance.service),
                 joinedload(Enrollment.contact),
                 joinedload(Enrollment.family),
                 joinedload(Enrollment.organization),
@@ -293,11 +304,19 @@ def list_recent_enrollments_for_invoicing(
         items: list[dict[str, Any]] = []
         for en in page_rows:
             inst = en.instance
-            title = (inst.title or "").strip() if inst else ""
-            cohort = (inst.cohort or "").strip() if inst else ""
-            tier_name = None
-            if en.ticket_tier_id and en.ticket_tier:
-                tier_name = en.ticket_tier.name
+            title = _trimmed_str_or_none(inst.title) if inst else None
+            cohort = _trimmed_str_or_none(inst.cohort) if inst else None
+            parent_service_title = None
+            svc_obj: Service | None = None
+            if inst is not None:
+                svc_obj = getattr(inst, "service", None)
+                if svc_obj is not None:
+                    parent_service_title = _trimmed_str_or_none(svc_obj.title)
+            tier_name: str | None = None
+            if en.ticket_tier_id and en.ticket_tier is not None:
+                tier_name = _trimmed_str_or_none(en.ticket_tier.name)
+            if tier_name is None and svc_obj is not None:
+                tier_name = _trimmed_str_or_none(svc_obj.service_tier)
             currency = (en.currency or default_ccy).upper()[:3]
             email = _party_email(session, en, fam_emails, org_emails)
             items.append(
@@ -305,7 +324,8 @@ def list_recent_enrollments_for_invoicing(
                     "enrollmentId": str(en.id),
                     "partyDisplayName": _party_display_name(en),
                     "partyEmail": email,
-                    "instanceTitle": title or None,
+                    "instanceTitle": title,
+                    "parentServiceTitle": parent_service_title,
                     "serviceTierName": tier_name,
                     "instanceCohort": cohort or None,
                     "amountPaid": _decimal_to_string(en.amount_paid),

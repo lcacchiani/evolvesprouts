@@ -1059,6 +1059,96 @@ def test_list_recent_enrollments_org_bill_to_primary_email(
     assert body["items"][0]["partyEmail"] == "org.primary@example.com"
 
 
+def test_list_recent_enrollments_parent_service_title_and_service_tier_fallback(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Empty instance title exposes parent service title; tier falls back to service.service_tier."""
+
+    iid = uuid4()
+    ts = datetime(2026, 2, 1, tzinfo=UTC)
+    eid = uuid4()
+
+    svc = MagicMock()
+    svc.title = "Parent Course"
+    svc.service_tier = "Standard"
+
+    inst = MagicMock()
+    inst.title = ""
+    inst.cohort = "Cohort A"
+    inst.service = svc
+
+    en = Enrollment(
+        instance_id=iid,
+        contact_id=None,
+        family_id=None,
+        organization_id=None,
+        ticket_tier_id=None,
+        discount_code_id=None,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        status=EnrollmentStatus.CONFIRMED,
+        amount_paid=Decimal("10"),
+        currency="HKD",
+        enrolled_at=ts,
+        cancelled_at=None,
+        notes=None,
+        created_by="test",
+    )
+    en.id = eid
+    en.instance = inst
+    en.ticket_tier = None
+    en.contact = MagicMock(email="x@example.com", first_name="X", last_name="Y")
+    en.family = None
+    en.organization = None
+    en.bill_to_contact = None
+    en.bill_to_family = None
+    en.bill_to_organization = None
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            sql = str(stmt)
+            if "FROM enrollments" in sql or "enrollments." in sql:
+                out.unique.return_value.scalars.return_value.all.return_value = [en]
+            elif "customer_invoice_lines" in sql:
+                out.scalars.return_value.all.return_value = []
+            else:
+                out.unique.return_value.scalars.return_value.all.return_value = []
+                out.scalars.return_value.all.return_value = []
+                out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    monkeypatch.setattr(
+        admin_billing_enrollment_queries_mod, "_session_with_audit", _fake_session
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/enrollments/recent-for-invoicing",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/enrollments/recent-for-invoicing"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    row = body["items"][0]
+    assert row["instanceTitle"] is None
+    assert row["parentServiceTitle"] == "Parent Course"
+    assert row["serviceTierName"] == "Standard"
+    assert row["instanceCohort"] == "Cohort A"
+
+
 def test_confirm_payment_creates_receipt_for_pending_inbound(
     api_gateway_event: Any,
     admin_identity: dict[str, str],

@@ -6283,9 +6283,17 @@ components:
         instanceTitle:
           type: string
           nullable: true
+          description: Trimmed instance-specific title when set.
+        parentServiceTitle:
+          type: string
+          nullable: true
+          description: Parent service template title from the instance's service (for display when `instanceTitle` is empty).
         serviceTierName:
           type: string
           nullable: true
+          description: >
+            Display tier label: event ticket tier name when the enrollment has a ticket tier;
+            otherwise the parent service's `service_tier` when present.
         instanceCohort:
           type: string
           nullable: true
