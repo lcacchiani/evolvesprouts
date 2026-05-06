@@ -148,6 +148,12 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     logger.debug("Parsing service instance list filters")
     limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    include_raw = query_param(event, "include_bookings")
+    include_bookings = str(include_raw or "").strip().lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -157,6 +163,7 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
             InstanceStatus,
             "status",
         ),
+        "include_bookings": include_bookings,
     }
 
 
@@ -165,6 +172,12 @@ def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, An
     logger.debug("Parsing global service instance list filters")
     limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    include_raw = query_param(event, "include_bookings")
+    include_bookings = str(include_raw or "").strip().lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -182,6 +195,7 @@ def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, An
             ServiceType,
             "service_type",
         ),
+        "include_bookings": include_bookings,
     }
 
 

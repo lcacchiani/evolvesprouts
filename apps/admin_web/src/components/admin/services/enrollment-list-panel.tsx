@@ -161,6 +161,15 @@ export function EnrollmentListPanel({
     [discountOptions, selectedEnrollment?.discountCodeId]
   );
 
+  const showBookingInstanceSlugColumn = useMemo(
+    () => enrollments.some((row) => Boolean(row.bookingInstanceSlug?.trim())),
+    [enrollments]
+  );
+  const showScheduledStartColumn = useMemo(
+    () => enrollments.some((row) => Boolean(row.scheduledStartAt?.trim())),
+    [enrollments]
+  );
+
   const formatEnrollmentParentCell = (enrollment: Enrollment): string => {
     if (enrollment.contactId) {
       return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
@@ -444,10 +453,16 @@ export function EnrollmentListPanel({
         loadingLabel='Loading enrollments...'
         onLoadMore={onLoadMore}
       >
-        <AdminDataTable tableClassName='min-w-[840px]'>
+        <AdminDataTable tableClassName='min-w-[1040px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Parent</th>
+              {showBookingInstanceSlugColumn ? (
+                <th className='px-4 py-3 font-semibold'>Booking slug</th>
+              ) : null}
+              {showScheduledStartColumn ? (
+                <th className='px-4 py-3 font-semibold'>Scheduled start</th>
+              ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Amount</th>
               <th className='px-4 py-3 font-semibold'>Discount</th>
@@ -474,6 +489,18 @@ export function EnrollmentListPanel({
                   onClick={() => applyEnrollmentSelection(enrollment)}
                 >
                   <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
+                  {showBookingInstanceSlugColumn ? (
+                    <td className='px-4 py-3 font-mono text-xs'>
+                      {enrollment.bookingInstanceSlug?.trim() || '—'}
+                    </td>
+                  ) : null}
+                  {showScheduledStartColumn ? (
+                    <td className='px-4 py-3'>
+                      {enrollment.scheduledStartAt?.trim()
+                        ? formatDate(enrollment.scheduledStartAt)
+                        : '—'}
+                    </td>
+                  ) : null}
                   <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
                   <td className='px-4 py-3'>{amountDisplay}</td>
                   <td className='px-4 py-3'>

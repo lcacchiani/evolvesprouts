@@ -20,6 +20,7 @@ from app.db.models import (
     Service,
     ServiceInstance,
 )
+from app.db.models.enums import ServiceType
 from app.db.repositories.service_instance import (
     public_calendar_blocker_instance_predicates,
 )
@@ -45,7 +46,8 @@ _INTRO_CALL_SLOT_DURATION_MINUTES = 15
 _INTRO_CALL_LEAD_HOURS = 2
 _INTRO_CALL_HORIZON_DAYS = 21
 _INTRO_CALL_PURPOSE = "intro_call_booking"
-_INTRO_CALL_INSTANCE_SLUG = "intro-call-free-15min"
+# Intro-call busy intervals include every booked slot on instances whose parent service is
+# ``intro_call`` (template tier rows and per-booking child instances).
 
 _MANUAL_BLOCK_PURPOSES: frozenset[str] = frozenset(
     {"consultation_booking", _INTRO_CALL_PURPOSE}
@@ -197,7 +199,7 @@ def _non_intro_session_busy_intervals_utc(
         .where(
             InstanceSessionSlot.starts_at < range_end_utc,
             InstanceSessionSlot.ends_at > range_start_utc,
-            ServiceInstance.slug != _INTRO_CALL_INSTANCE_SLUG,
+            Service.service_type != ServiceType.INTRO_CALL,
             *public_calendar_blocker_instance_predicates(),
         )
     )
@@ -220,8 +222,9 @@ def _intro_instance_busy_intervals_utc(
     stmt = (
         select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
         .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
         .where(
-            ServiceInstance.slug == _INTRO_CALL_INSTANCE_SLUG,
+            Service.service_type == ServiceType.INTRO_CALL,
             InstanceSessionSlot.starts_at < range_end_utc,
             InstanceSessionSlot.ends_at > range_start_utc,
         )
@@ -381,10 +384,7 @@ def recent_intro_call_enrollment_last_booked_at(
     within_days: int = 30,
     now: datetime,
 ) -> datetime | None:
-    """Latest ``Enrollment.updated_at`` for intro-call instance + normalized email.
-
-    Rebook flows reuse the same enrollment row; ``updated_at`` is bumped after each
-    successful slot booking so the rolling cooldown reflects the last booking time.
+    """Latest ``Enrollment.updated_at`` for intro-call service enrollments + normalized email.
 
     ``within_days`` documents the cooldown window for callers; the query returns
     the enrollment timestamp regardless of age so callers can apply a rolling window
@@ -396,8 +396,9 @@ def recent_intro_call_enrollment_last_booked_at(
         select(Enrollment.updated_at)
         .join(Contact, Enrollment.contact_id == Contact.id)
         .join(ServiceInstance, Enrollment.instance_id == ServiceInstance.id)
+        .join(Service, ServiceInstance.service_id == Service.id)
         .where(
-            ServiceInstance.slug == _INTRO_CALL_INSTANCE_SLUG,
+            Service.service_type == ServiceType.INTRO_CALL,
             Contact.email.isnot(None),
             func.lower(Contact.email) == em,
         )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -173,8 +174,13 @@ def _resolved_training_details(
 def _resolved_consultation_details(
     instance: ServiceInstance, service: Service
 ) -> dict[str, Any] | None:
-    if instance.consultation_details is not None:
-        cd = instance.consultation_details
+    chain_detail = instance.consultation_details
+    if chain_detail is None and instance.parent_instance_id is not None:
+        parent = instance.parent
+        if parent is not None and parent.consultation_details is not None:
+            chain_detail = parent.consultation_details
+    if chain_detail is not None:
+        cd = chain_detail
         return {
             "pricing_model": cd.pricing_model.value,
             "price": _decimal_to_string(cd.price),
@@ -316,6 +322,10 @@ def serialize_instance(
         "created_by": instance.created_by,
         "created_at": instance.created_at.isoformat() if instance.created_at else None,
         "updated_at": instance.updated_at.isoformat() if instance.updated_at else None,
+        "parent_instance_id": str(instance.parent_instance_id)
+        if instance.parent_instance_id
+        else None,
+        "is_template": instance.is_template,
         "resolved_title": resolved_title,
         "resolved_slug": resolved_slug,
         "resolved_description": resolved_description,
@@ -382,9 +392,14 @@ def serialize_event_ticket_tier(tier: EventTicketTier) -> dict[str, Any]:
     }
 
 
-def serialize_enrollment(enrollment: Enrollment) -> dict[str, Any]:
+def serialize_enrollment(
+    enrollment: Enrollment,
+    *,
+    booking_instance_slug: str | None = None,
+    scheduled_start_at: datetime | None = None,
+) -> dict[str, Any]:
     """Serialize enrollment payload."""
-    return {
+    payload: dict[str, Any] = {
         "id": str(enrollment.id),
         "instance_id": str(enrollment.instance_id),
         "contact_id": str(enrollment.contact_id) if enrollment.contact_id else None,
@@ -416,6 +431,11 @@ def serialize_enrollment(enrollment: Enrollment) -> dict[str, Any]:
         if enrollment.updated_at
         else None,
     }
+    if booking_instance_slug is not None:
+        payload["booking_instance_slug"] = booking_instance_slug
+    if scheduled_start_at is not None:
+        payload["scheduled_start_at"] = scheduled_start_at.isoformat()
+    return payload
 
 
 def serialize_discount_code(code: DiscountCode) -> dict[str, Any]:

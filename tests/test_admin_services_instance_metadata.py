@@ -14,6 +14,7 @@ from app.api.admin_services_payloads import (
 )
 from app.db.models import (
     ConsultationDetails,
+    ConsultationInstanceDetails,
     EventDetails,
     Service,
     ServiceInstance,
@@ -378,4 +379,109 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
         "price": "120.00",
         "currency": "HKD",
         "package_sessions": None,
+    }
+
+
+def test_serialize_booking_instance_parent_consultation_fallback() -> None:
+    """Booking instances without consultation_instance_details inherit parent tier pricing."""
+    from app.api.admin_services_serializers import serialize_instance
+
+    sid = uuid4()
+    template_id = uuid4()
+    booking_id = uuid4()
+
+    service = Service(
+        id=sid,
+        service_type=ServiceType.CONSULTATION,
+        title="Cons",
+        service_key="cons-template",
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="t",
+    )
+    service.consultation_details = ConsultationDetails(
+        service_id=sid,
+        consultation_format=ConsultationFormat.ONE_ON_ONE,
+        max_group_size=None,
+        duration_minutes=60,
+        pricing_model=ConsultationPricingModel.PACKAGE,
+        default_hourly_rate=None,
+        default_package_price=Decimal("900.00"),
+        default_package_sessions=3,
+        default_currency="HKD",
+    )
+
+    parent = ServiceInstance(
+        id=template_id,
+        service_id=sid,
+        title="Tier",
+        slug="consultation-essentials-package",
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.SCHEDULED,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=None,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="t",
+        external_url=None,
+        parent_instance_id=None,
+        is_template=True,
+    )
+    parent.service = service
+    parent.consultation_details = ConsultationInstanceDetails(
+        instance_id=template_id,
+        pricing_model=ConsultationPricingModel.PACKAGE,
+        price=Decimal("900.00"),
+        currency="HKD",
+        package_sessions=3,
+    )
+    parent.instance_tags = []
+    parent.session_slots = []
+    parent.ticket_tiers = []
+    parent.partner_organization_links = []
+
+    booking = ServiceInstance(
+        id=booking_id,
+        service_id=sid,
+        title="Tier – Pat",
+        slug="consultation-essentials-package-20260506103000-aabbccdd",
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.OPEN,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=1,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="public-reservation",
+        external_url=None,
+        parent_instance_id=template_id,
+        is_template=False,
+    )
+    booking.service = service
+    booking.parent = parent
+    booking.consultation_details = None
+    booking.instance_tags = []
+    booking.session_slots = []
+    booking.ticket_tiers = []
+    booking.partner_organization_links = []
+
+    payload = serialize_instance(booking)
+    assert payload["parent_instance_id"] == str(template_id)
+    assert payload["is_template"] is False
+    assert payload["consultation_details"] is None
+    assert payload["resolved_consultation_details"] == {
+        "pricing_model": "package",
+        "price": "900.00",
+        "currency": "HKD",
+        "package_sessions": 3,
     }

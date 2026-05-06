@@ -25,7 +25,7 @@ from app.api.admin_services_common import (
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Enrollment
+from app.db.models import Enrollment, ServiceInstance
 from app.db.models.enums import EnrollmentStatus
 from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
 from app.db.repositories import (
@@ -38,6 +38,16 @@ from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _enrollment_visible_under_instance_anchor(
+    session: Session, enrollment: Enrollment, anchor_instance_id: UUID
+) -> bool:
+    """True when the enrollment row belongs to ``anchor_instance_id`` or its bookings."""
+    if enrollment.instance_id == anchor_instance_id:
+        return True
+    row = session.get(ServiceInstance, enrollment.instance_id)
+    return row is not None and row.parent_instance_id == anchor_instance_id
 
 
 def handle_admin_enrollments_request(
@@ -100,8 +110,8 @@ def _list_enrollments(event: Mapping[str, Any], *, instance_id: UUID) -> dict[st
     )
     with Session(get_engine()) as session:
         repository = EnrollmentRepository(session)
-        rows = repository.list_enrollments(
-            instance_id=instance_id,
+        rows = repository.list_enrollments_for_instance_scope(
+            anchor_instance_id=instance_id,
             limit=limit + 1,
             status=filters["status"],
             cursor_created_at=filters["cursor_created_at"],
@@ -112,13 +122,23 @@ def _list_enrollments(event: Mapping[str, Any], *, instance_id: UUID) -> dict[st
         next_cursor = (
             encode_enrollment_cursor(page_rows[-1]) if has_more and page_rows else None
         )
-        total_count = repository.count_enrollments(
-            instance_id=instance_id, status=filters["status"]
+        total_count = repository.count_enrollments_for_instance_scope(
+            anchor_instance_id=instance_id, status=filters["status"]
+        )
+        slug_map, start_map = repository.booking_rows_slug_and_first_session_start(
+            [row.instance_id for row in page_rows]
         )
         return json_response(
             200,
             {
-                "items": [serialize_enrollment(row) for row in page_rows],
+                "items": [
+                    serialize_enrollment(
+                        row,
+                        booking_instance_slug=slug_map.get(row.instance_id),
+                        scheduled_start_at=start_map.get(row.instance_id),
+                    )
+                    for row in page_rows
+                ],
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -207,7 +227,9 @@ def _update_enrollment(
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = EnrollmentRepository(session)
         enrollment = repository.get_by_id(enrollment_id)
-        if enrollment is None or enrollment.instance_id != instance_id:
+        if enrollment is None or not _enrollment_visible_under_instance_anchor(
+            session, enrollment, instance_id
+        ):
             raise NotFoundError("Enrollment", str(enrollment_id))
 
         if "status" in payload:
@@ -283,7 +305,9 @@ def _delete_enrollment(
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = EnrollmentRepository(session)
         enrollment = repository.get_by_id(enrollment_id)
-        if enrollment is None or enrollment.instance_id != instance_id:
+        if enrollment is None or not _enrollment_visible_under_instance_anchor(
+            session, enrollment, instance_id
+        ):
             raise NotFoundError("Enrollment", str(enrollment_id))
         discount_repo = DiscountCodeRepository(session)
         if enrollment.discount_code_id is not None:
@@ -295,7 +319,7 @@ def _delete_enrollment(
         repository.delete(enrollment)
         if hasattr(session, "get"):
             instance_repository = ServiceInstanceRepository(session)
-            instance_row = instance_repository.get_by_id(instance_id)
+            instance_row = instance_repository.get_by_id(enrollment.instance_id)
             if instance_row is not None:
                 bulk_reconcile_instance_capacity_status(session, [instance_row])
         session.commit()

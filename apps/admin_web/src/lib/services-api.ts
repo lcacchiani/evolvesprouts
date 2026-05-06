@@ -385,6 +385,8 @@ function parseEnrollment(value: unknown): Enrollment {
     createdBy: asNullableString(item.created_by) ?? '',
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
+    bookingInstanceSlug: asNullableString(item.booking_instance_slug),
+    scheduledStartAt: asNullableString(item.scheduled_start_at),
   };
 }
 

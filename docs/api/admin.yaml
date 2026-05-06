@@ -1278,6 +1278,15 @@ paths:
           description: When set, only instances whose parent service has this type.
           schema:
             $ref: "#/components/schemas/ServiceType"
+        - name: include_bookings
+          in: query
+          required: false
+          description: >
+            When true, includes per-booking child instances (`parent_instance_id` set,
+            `is_template=false`) normally omitted from admin listings.
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Service instance list response.
@@ -1453,6 +1462,16 @@ paths:
       - $ref: "#/components/parameters/ServiceId"
     get:
       summary: List service instances
+      parameters:
+        - name: include_bookings
+          in: query
+          required: false
+          description: >
+            When true, includes per-booking child instances (`parent_instance_id` set,
+            `is_template=false`) normally omitted from admin listings.
+          schema:
+            type: boolean
+            default: false
       security:
         - AdminBearerAuth: []
       responses:
@@ -4797,6 +4816,17 @@ components:
         service_id:
           type: string
           format: uuid
+        parent_instance_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            When set, this instance is a child booking row whose template tier is the parent id.
+        is_template:
+          type: boolean
+          description: >
+            True for catalog tier instances (consultation packages / intro-call template).
+            False for event cohorts, training runs, and per-public-booking child instances.
         title:
           type: string
           nullable: true
@@ -4805,7 +4835,8 @@ components:
           description: >
             Public instance slug (required for all service types). URL-safe: lowercase letters,
             digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized
-            to lowercase. Must be unique among instances.
+            to lowercase. Uniqueness is enforced separately for template rows (`is_template=true`)
+            and non-template rows (`is_template=false`).
         description:
           type: string
           nullable: true
@@ -5181,6 +5212,17 @@ components:
           type: string
           format: date-time
           nullable: true
+        booking_instance_slug:
+          type: string
+          nullable: true
+          description: >
+            Returned by enrollment list when present: `service_instances.slug` for the enrollment's instance.
+        scheduled_start_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >
+            Returned by enrollment list when present: earliest session slot `starts_at` on the enrollment's instance (UTC).
     EnrollmentListResponse:
       type: object
       required: [items, total_count]

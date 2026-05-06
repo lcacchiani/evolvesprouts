@@ -87,7 +87,9 @@ def test_validate_reservation_payload_accepts_service_instance_cohort() -> None:
     assert out["service_instance_cohort"] == "April MBA"
 
 
-def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> None:
+def test_validate_reservation_payload_normalizes_mixed_case_service_instance_slug() -> (
+    None
+):
     body = _reservation_body(
         serviceInstanceSlug="My-Cohort-Slug",
     )
@@ -758,7 +760,9 @@ def test_discount_redemption_rejects_service_scope_mismatch(
         "booking_system": "my-best-auntie-booking",
     }
     with pytest.raises(ValidationError):
-        _validate_discount_code_redemption_scope(object(), payload, resolved_instance=resolved)
+        _validate_discount_code_redemption_scope(
+            object(), payload, template_instance=resolved
+        )
 
 
 def test_discount_redemption_rejects_instance_scope_mismatch(
@@ -795,12 +799,14 @@ def test_discount_redemption_rejects_instance_scope_mismatch(
     payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
     with pytest.raises(ValidationError) as excinfo:
         _validate_discount_code_redemption_scope(
-            object(), payload, resolved_instance=resolved
+            object(), payload, template_instance=resolved
         )
     assert getattr(excinfo.value, "field", None) == "discountCode"
 
 
-def test_discount_redemption_rejects_referral_type(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_discount_redemption_rejects_referral_type(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.exceptions import ValidationError
 
     class _FakeRow:
@@ -829,7 +835,7 @@ def test_discount_redemption_rejects_referral_type(monkeypatch: pytest.MonkeyPat
         _validate_discount_code_redemption_scope(
             object(),
             {"discount_code": "REF"},
-            resolved_instance=_resolved_instance_stub(uuid4(), uuid4()),
+            template_instance=_resolved_instance_stub(uuid4(), uuid4()),
         )
     assert getattr(excinfo.value, "field", None) == "discountCode"
 
@@ -1048,6 +1054,12 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
         "app.api.public_reservations.is_intro_call_slot_available",
         lambda *_a, **_k: True,
     )
+    monkeypatch.setattr(
+        "app.api.public_reservations._create_booking_instance_for_template",
+        lambda *_a, **_k: SimpleNamespace(
+            id=uuid4(), slug="intro-call-free-15min-20360616030000-deadbeef"
+        ),
+    )
 
     slot_start = datetime(2036, 6, 16, 3, 0, 0, tzinfo=UTC)
     slot_end = slot_start + timedelta(minutes=15)
@@ -1101,9 +1113,9 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
         ops = ops_holder["ops"]
         assert "add_intro_slot" in ops
         idx_add = ops.index("add_intro_slot")
-        assert any(
-            i > idx_add and op == "flush" for i, op in enumerate(ops)
-        ), "expected flush after intro slot add before payment record"
+        assert any(i > idx_add and op == "flush" for i, op in enumerate(ops)), (
+            "expected flush after intro slot add before payment record"
+        )
         return (None, None, False)
 
     monkeypatch.setattr(

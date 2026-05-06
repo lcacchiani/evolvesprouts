@@ -1555,6 +1555,8 @@ export interface paths {
                     service_id?: string;
                     /** @description When set, only instances whose parent service has this type. */
                     service_type?: components["schemas"]["ServiceType"];
+                    /** @description When true, includes per-booking child instances (`parent_instance_id` set, `is_template=false`) normally omitted from admin listings. */
+                    include_bookings?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -1850,7 +1852,10 @@ export interface paths {
         /** List service instances */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description When true, includes per-booking child instances (`parent_instance_id` set, `is_template=false`) normally omitted from admin listings. */
+                    include_bookings?: boolean;
+                };
                 header?: never;
                 path: {
                     /** @description Service identifier. */
@@ -5435,8 +5440,15 @@ export interface components {
             id: string;
             /** Format: uuid */
             service_id: string;
+            /**
+             * Format: uuid
+             * @description When set, this instance is a child booking row whose template tier is the parent id.
+             */
+            parent_instance_id?: string | null;
+            /** @description True for catalog tier instances (consultation packages / intro-call template). False for event cohorts, training runs, and per-public-booking child instances. */
+            is_template?: boolean;
             title?: string | null;
-            /** @description Public instance slug (required for all service types). URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Must be unique among instances. */
+            /** @description Public instance slug (required for all service types). URL-safe: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. Uniqueness is enforced separately for template rows (`is_template=true`) and non-template rows (`is_template=false`). */
             slug: string;
             description?: string | null;
             cover_image_s3_key?: string | null;
@@ -5590,6 +5602,13 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+            /** @description Returned by enrollment list when present: `service_instances.slug` for the enrollment's instance. */
+            booking_instance_slug?: string | null;
+            /**
+             * Format: date-time
+             * @description Returned by enrollment list when present: earliest session slot `starts_at` on the enrollment's instance (UTC).
+             */
+            scheduled_start_at?: string | null;
         };
         EnrollmentListResponse: {
             items: components["schemas"]["Enrollment"][];

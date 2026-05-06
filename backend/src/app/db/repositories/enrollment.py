@@ -9,7 +9,12 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from app.db.models import Enrollment, EnrollmentStatus, ServiceInstance
+from app.db.models import (
+    Enrollment,
+    EnrollmentStatus,
+    InstanceSessionSlot,
+    ServiceInstance,
+)
 from app.db.models.enums import CAPACITY_ENROLLMENT_STATUSES
 from app.db.repositories.base import BaseRepository
 
@@ -57,6 +62,95 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
             Enrollment.created_at.desc(), Enrollment.id.desc()
         ).limit(limit)
         return list(self._session.execute(statement).unique().scalars().all())
+
+    def list_enrollments_for_instance_scope(
+        self,
+        *,
+        anchor_instance_id: UUID,
+        limit: int,
+        status: EnrollmentStatus | None = None,
+        cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
+    ) -> list[Enrollment]:
+        """List enrollments on ``anchor_instance_id`` or its per-booking child instances."""
+        scope_ids = select(ServiceInstance.id).where(
+            or_(
+                ServiceInstance.id == anchor_instance_id,
+                ServiceInstance.parent_instance_id == anchor_instance_id,
+            )
+        )
+        statement = (
+            select(Enrollment)
+            .where(Enrollment.instance_id.in_(scope_ids))
+            .options(
+                joinedload(Enrollment.contact),
+                joinedload(Enrollment.family),
+                joinedload(Enrollment.organization),
+                joinedload(Enrollment.ticket_tier),
+                joinedload(Enrollment.discount_code),
+            )
+        )
+        if status is not None:
+            statement = statement.where(Enrollment.status == status)
+        if cursor_created_at is not None and cursor_id is not None:
+            statement = statement.where(
+                or_(
+                    Enrollment.created_at < cursor_created_at,
+                    and_(
+                        Enrollment.created_at == cursor_created_at,
+                        Enrollment.id < cursor_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            Enrollment.created_at.desc(), Enrollment.id.desc()
+        ).limit(limit)
+        return list(self._session.execute(statement).unique().scalars().all())
+
+    def count_enrollments_for_instance_scope(
+        self,
+        *,
+        anchor_instance_id: UUID,
+        status: EnrollmentStatus | None = None,
+    ) -> int:
+        scope_ids = select(ServiceInstance.id).where(
+            or_(
+                ServiceInstance.id == anchor_instance_id,
+                ServiceInstance.parent_instance_id == anchor_instance_id,
+            )
+        )
+        statement = select(func.count(Enrollment.id)).where(
+            Enrollment.instance_id.in_(scope_ids)
+        )
+        if status is not None:
+            statement = statement.where(Enrollment.status == status)
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
+    def booking_rows_slug_and_first_session_start(
+        self, instance_ids: list[UUID]
+    ) -> tuple[dict[UUID, str], dict[UUID, datetime]]:
+        """Map instance id -> slug and earliest session ``starts_at`` for list enrichment."""
+        if not instance_ids:
+            return {}, {}
+        slug_stmt = select(ServiceInstance.id, ServiceInstance.slug).where(
+            ServiceInstance.id.in_(instance_ids)
+        )
+        slug_map = {row[0]: row[1] for row in self._session.execute(slug_stmt).all()}
+        slot_stmt = (
+            select(
+                InstanceSessionSlot.instance_id,
+                func.min(InstanceSessionSlot.starts_at),
+            )
+            .where(InstanceSessionSlot.instance_id.in_(instance_ids))
+            .group_by(InstanceSessionSlot.instance_id)
+        )
+        start_map = {
+            row[0]: row[1]
+            for row in self._session.execute(slot_stmt).all()
+            if row[1] is not None
+        }
+        return slug_map, start_map
 
     def count_enrollments(
         self,

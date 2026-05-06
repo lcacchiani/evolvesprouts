@@ -610,6 +610,24 @@ TTL on any cacheable reads and `no-store` for the consultation purpose.
 **CloudFront path allowlist:** The viewer function matches the path segment **exactly**
 (e.g. `/www/v1/calendar/blockers`); trailing slash variants are not allowlisted.
 
+## Per-booking service instances for consultations and intro calls
+
+**Decision:** Public `consultation-booking` and `intro-call-booking` submissions resolve the
+**template tier** `service_instances` row by slug (`serviceInstanceSlug`), row-lock it,
+allocate a new **booking instance** child (`parent_instance_id`, `is_template = false`)
+with a generated unique slug, attach session slots on that child with denormalized
+`template_instance_id`, and insert exactly one `enrollments` row on the booking instance.
+Concurrent bookings against the same tier + same start instant collide on the partial unique
+index `(template_instance_id, starts_at)` where `template_instance_id` is not null.
+
+**Why:** Event and training reservations remain modeled as enrollments on long-lived
+scheduled instances; consultation packages and the free intro tier instead behave like
+catalog templates with many logical bookings, each needing its own instance container,
+schedule rows, and enrollment without sharing one overcrowded tier row.
+
+**Exclusions:** `event-booking` and `my-best-auntie-booking` keep attaching enrollments to
+the resolved scheduled instance (no child row allocation).
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

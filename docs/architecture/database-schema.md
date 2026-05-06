@@ -517,11 +517,22 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
 - Required public-site field: `slug` (varchar(128), `NOT NULL` from migration
-  `0049_inst_slug_not_null`; unique via `svc_instances_slug_uq`; **canonical public
-  identifier** for calendar/discount/reservation instance scope and public website
-  marketing routes). Legacy NULL slugs for events and training courses were backfilled by
-  migration `0043_backfill_inst_slug`; consultation NULL/empty slugs were backfilled by
-  migration `0048_inst_slug_backfill_consult` before the NOT NULL constraint landed.
+  `0049_inst_slug_not_null`; uniqueness is enforced by partial unique indexes from migration
+  `0061_per_booking_instances`: `svc_instances_slug_uq_template` on `slug` where
+  `is_template IS TRUE`, and `svc_instances_slug_uq_booking` on `slug` where
+  `is_template IS FALSE`. **Canonical public identifier** for calendar/discount/reservation
+  template scope and public website marketing routes. Legacy NULL slugs for events and
+  training courses were backfilled by migration `0043_backfill_inst_slug`; consultation
+  NULL/empty slugs were backfilled by migration `0048_inst_slug_backfill_consult` before
+  the NOT NULL constraint landed.
+- Optional self-FK `parent_instance_id` → `service_instances.id` (`ON DELETE RESTRICT`)
+  with btree index `svc_instances_parent_idx`: child rows are **per-booking instances**
+  for consultation and intro-call public reservations; catalog/template tiers keep
+  `parent_instance_id` NULL.
+- Boolean `is_template` (`NOT NULL`, default `FALSE`): migration `0061_per_booking_instances`
+  backfills `TRUE` for existing consultation and intro_call tier instances (no parent).
+  Admin-created consultation/intro tier instances set `is_template` at insert time; booking
+  children use `is_template = FALSE`.
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
@@ -535,13 +546,17 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
     `eventbrite_retry_count`
 - Scheduling/detail tables:
   - `instance_session_slots` (time blocks + optional location; `starts_at` / `ends_at`
-    are `timestamptz` in Aurora). Migration `0060_intro_call_starts_uniq` adds a unique
-    index on `(instance_id, starts_at)` (`instance_session_slots_instance_starts_uidx`)
-    so two rows cannot share the same start instant on one instance (race-safe public
-    bookings including intro-call). The admin API rejects naive datetimes in
-    `session_slots` payloads so only explicit instants are stored. The public calendar feed
-    eager-loads `Service.location` only in `list_public_offerings`; venue resolution is
-    slot location, then instance `location_id`, then parent `services.location_id`.
+    are `timestamptz` in Aurora). Migration `0061_per_booking_instances` drops the
+    composite unique index `(instance_id, starts_at)` from `0060_intro_call_starts_uniq`
+    and adds nullable `template_instance_id` → `service_instances.id` (`ON DELETE CASCADE`),
+    backfilled from the booking row's `parent_instance_id`. Partial unique index
+    `instance_session_slots_template_starts_uidx` on `(template_instance_id, starts_at)`
+    where `template_instance_id IS NOT NULL` serializes concurrent consultation/intro public
+    bookings against the same template tier and start instant. The admin API rejects naive
+    datetimes in `session_slots` payloads so only explicit instants are stored. The public
+    calendar feed eager-loads `Service.location` only in `list_public_offerings`; venue
+    resolution is slot location, then instance `location_id`, then parent
+    `services.location_id`.
   - `training_instance_details`
   - `event_ticket_tiers`
   - `consultation_instance_details` (Calendly event URL column removed in migration
