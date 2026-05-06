@@ -1,8 +1,8 @@
 {
   "en": {
     "meta": {
-      "title": "Book a free 15-minute intro call",
-      "description": "Pick a time for a free 15-minute intro call with Ida. No commitment — just a conversation about your child, your helper, and whether Evolve Sprouts is the right fit.",
+      "title": "Let's talk about your child, your helper, and what's really happening at home.",
+      "description": "Book a free 15-minute call with Ida. We'll go through what's not working, what you'd like to change, and whether My Best Auntie is the right fit for your family. No commitment — just a conversation.",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Book a free intro call with Evolve Sprouts"
@@ -10,12 +10,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "Choose a time that works for you. In 15 minutes we can talk through your situation and whether the programme is a good fit — no pressure.",
+      "description": "Book a free 15-minute call with me. We'll go through what's not working, what you'd like to change, and whether My Best Auntie is the right fit for your family. No commitment — just a conversation.",
       "imageAlt": "Consultation and coaching session",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "Pick a time"
+      "ctaAnchorLabel": "Book my free 15-min call",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI Montessori-certified" },
+        { "type": "category", "label": "Trusted by families across Hong Kong" }
+      ]
     },
     "description": {
       "eyebrow": "How it works",
@@ -103,10 +107,12 @@
       "whatsappAfterBookLabel": "message me on WhatsApp",
       "slotUnavailableMessage": "That time was just taken. Please pick another slot.",
       "recentIntroMessage": "It looks like you already booked an intro call recently — reply to your previous email or message me on WhatsApp.",
-      "topicsFieldLabel": "Anything you want me to know before our call?",
-      "topicsFieldPlaceholder": "Share context that will help us make the most of 15 minutes.",
-      "submitLabel": "Book my free call",
-      "phoneFieldLabel": "Phone Number",
+      "topicsFieldLabel": "What would you like to talk about?",
+      "topicsFieldPlaceholder": "A few sentences about your child, your helper, and what's not working at home — it helps me make the most of our 15 minutes.",
+      "submitLabel": "Book my free 15-min call",
+      "phoneFieldLabel": "WhatsApp / phone number",
+      "fullNameFieldLabel": "Your name",
+      "emailFieldLabel": "Your email",
       "selectedSlotSummaryHeading": "The time for your free call is",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "Loading available times…",
@@ -117,8 +123,8 @@
   },
   "zh-CN": {
     "meta": {
-      "title": "预约免费 15 分钟介绍通话",
-      "description": "选择合适时间与 Ida 进行免费 15 分钟介绍通话。无需承诺——聊聊孩子、家佣，以及 Evolve Sprouts 是否适合您。",
+      "title": "聊聊你的孩子、家佣，以及家里真实发生的事",
+      "description": "预约与 Ida 的免费 15 分钟通话。我们会一起梳理哪里不顺、你想改变什么，以及「My Best Auntie」是否适合你的家庭。无需承诺——只是一次坦诚的对话。",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "预约 Evolve Sprouts 免费介绍通话"
@@ -126,12 +132,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "选择您方便的时间。用 15 分钟了解您的情况，并判断课程是否合适——没有压力。",
+      "description": "预约与我进行免费 15 分钟通话。我们会一起梳理哪里不顺、你想改变什么，以及「My Best Auntie」是否适合你的家庭。无需承诺——只是一次坦诚的对话。",
       "imageAlt": "咨询与辅导",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "选择时间"
+      "ctaAnchorLabel": "预约我的免费 15 分钟通话",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI 蒙特梭利认证" },
+        { "type": "category", "label": "深受香港家庭信赖" }
+      ]
     },
     "description": {
       "eyebrow": "流程说明",
@@ -219,10 +229,12 @@
       "whatsappAfterBookLabel": "在 WhatsApp 联系我",
       "slotUnavailableMessage": "该时间刚刚被占用，请另选时段。",
       "recentIntroMessage": "您最近似乎已预约过介绍通话 — 请回复之前的确认邮件或通过 WhatsApp 联系我。",
-      "topicsFieldLabel": "在通话前您想让我了解的内容？",
-      "topicsFieldPlaceholder": "分享有助于充分利用 15 分钟的背景信息。",
-      "submitLabel": "预约免费通话",
-      "phoneFieldLabel": "电话号码",
+      "topicsFieldLabel": "您想聊些什么？",
+      "topicsFieldPlaceholder": "简单几句：关于您的孩子、家佣，以及家里哪里不顺——能帮助我充分利用这 15 分钟。",
+      "submitLabel": "预约我的免费 15 分钟通话",
+      "phoneFieldLabel": "WhatsApp / 电话号码",
+      "fullNameFieldLabel": "您的姓名",
+      "emailFieldLabel": "您的邮箱",
       "selectedSlotSummaryHeading": "您的免费通话时间为",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "正在加载可预约时间…",
@@ -233,8 +245,8 @@
   },
   "zh-HK": {
     "meta": {
-      "title": "預約免費 15 分鐘介紹通話",
-      "description": "揀個方便時間同 Ida 做免費 15 分鐘介紹通話。無需承諾——傾下小朋友、家傭，同 Evolve Sprouts 啱唔啱你。",
+      "title": "傾下你嘅小朋友、家傭，同屋企真正發生緊嘅事",
+      "description": "預約同 Ida 免費傾 15 分鐘。我哋會一齊睇邊度唔順、你想改啲咩，同「My Best Auntie」啱唔啱你家庭。無需承諾——只係一次真心嘅對話。",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "預約 Evolve Sprouts 免費介紹通話"
@@ -242,12 +254,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "揀個你方便嘅時間。用 15 分鐘了解你嘅情況，同埋課程啱唔啱——冇壓力。",
+      "description": "預約同我免費傾 15 分鐘。我哋會一齊睇邊度唔順、你想改啲咩，同「My Best Auntie」啱唔啱你家庭。無需承諾——只係一次真心嘅對話。",
       "imageAlt": "諮詢與教練",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "揀時間"
+      "ctaAnchorLabel": "預約我嘅免費 15 分鐘通話",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI 蒙特梭利認證" },
+        { "type": "category", "label": "深受香港家庭信賴" }
+      ]
     },
     "description": {
       "eyebrow": "流程說明",
@@ -335,10 +351,12 @@
       "whatsappAfterBookLabel": "WhatsApp 聯絡我",
       "slotUnavailableMessage": "呢個時間啱啱俾人揀咗，請揀另一個時段。",
       "recentIntroMessage": "你最近好似已經預約過介紹通話 — 請回覆之前嘅確認電郵或透過 WhatsApp 聯絡我。",
-      "topicsFieldLabel": "通話前想我知嘅嘢？",
-      "topicsFieldPlaceholder": "分享有助用盡 15 分鐘嘅背景。",
-      "submitLabel": "預約免費通話",
-      "phoneFieldLabel": "電話號碼",
+      "topicsFieldLabel": "你想傾啲咩？",
+      "topicsFieldPlaceholder": "用幾句講下你嘅小朋友、家傭，同屋企邊度唔順——可以幫我用盡 15 分鐘。",
+      "submitLabel": "預約我嘅免費 15 分鐘通話",
+      "phoneFieldLabel": "WhatsApp / 電話號碼",
+      "fullNameFieldLabel": "你的姓名",
+      "emailFieldLabel": "你的電郵",
       "selectedSlotSummaryHeading": "你嘅免費通話時間係",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "正在載入可預約時間…",

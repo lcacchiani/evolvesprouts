@@ -36,4 +36,16 @@ describe('book-a-free-call landing page locale JSON', () => {
       expect(bookAFreeCall[loc].hero).not.toHaveProperty('eyebrow');
     }
   });
+
+  it('includes two hero quickFactChips in every locale', () => {
+    for (const loc of ['en', 'zh-CN', 'zh-HK'] as const) {
+      const chips = bookAFreeCall[loc].hero.quickFactChips;
+      expect(Array.isArray(chips)).toBe(true);
+      expect(chips).toHaveLength(2);
+      expect(chips?.[0]?.type).toBe('category');
+      expect(chips?.[1]?.type).toBe('category');
+      expect(chips?.[0]?.label?.trim()).toBeTruthy();
+      expect(chips?.[1]?.label?.trim()).toBeTruthy();
+    }
+  });
 });

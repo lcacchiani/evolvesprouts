@@ -1141,7 +1141,7 @@
       "loadingLabel": "Loading…"
     },
     "captcha": {
-      "captchaLabel": "Verification",
+      "captchaLabel": "We'll quickly check you're not a robot when you submit.",
       "deferredHint": "We'll verify you're not a robot when you start filling the form.",
       "requiredError": "Please complete CAPTCHA verification before submitting.",
       "loadError": "CAPTCHA failed to load. Please refresh and try again.",
@@ -1588,7 +1588,7 @@
       "paymentConfirmationNote": "Your spot is confirmed once payment is received",
       "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
       "acknowledgementRequiredError": "Please review and accept the required agreements.",
-      "marketingOptInLabel": "Keep me updated with parenting tips and resources",
+      "marketingOptInLabel": "Yes, send me occasional Montessori tips and resources for parents and helpers in Hong Kong. No spam — unsubscribe any time.",
       "termsAgreementLabel": "I agree with the",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
