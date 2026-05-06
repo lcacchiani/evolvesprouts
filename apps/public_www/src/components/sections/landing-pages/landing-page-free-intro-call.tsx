@@ -13,7 +13,10 @@ import { ReservationFormFields } from '@/components/sections/booking-modal/reser
 import { IntroCallSlotPicker } from '@/components/sections/landing-pages/intro-call-slot-picker';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SubmitButtonLoadingContent } from '@/components/shared/submit-button-loading-content';
+import {
+  submitButtonClassName,
+  SubmitButtonLoadingContent,
+} from '@/components/shared/submit-button-loading-content';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -693,7 +696,7 @@ export function LandingPageFreeIntroCall({
                 <ButtonPrimitive
                   type='submit'
                   variant='primary'
-                  className='w-fit'
+                  className={submitButtonClassName(isSubmitting)}
                   state={isSubmitting ? 'inactive' : 'default'}
                   disabled={
                     isSubmitting
@@ -705,6 +708,7 @@ export function LandingPageFreeIntroCall({
                     isSubmitting={isSubmitting}
                     idleLabel={introContent.submitLabel}
                     submittingLabel={paymentModalContent.submittingLabel}
+                    loadingGearTestId='intro-call-submit-loading-gear'
                   />
                 </ButtonPrimitive>
               </form>
