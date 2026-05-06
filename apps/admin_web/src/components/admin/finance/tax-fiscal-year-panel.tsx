@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { toErrorMessage } from '@/hooks/hook-errors';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { listAllCustomerInvoices, type CustomerInvoiceSummary } from '@/lib/billing-api';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
 import { enumerateFiscalYearStartYears, getFiscalYearRangeInclusive } from '@/lib/fiscal-year';
@@ -19,6 +20,7 @@ import {
   taxFiscalYearRowsToCsv,
   type TaxFiscalYearRow,
 } from '@/lib/tax-fiscal-year-report';
+import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
 import type { Expense } from '@/types/expenses';
 
 /** Earliest Hong Kong FY start year offered in the selector (April Y → March Y+1). */
@@ -42,6 +44,8 @@ export function TaxFiscalYearPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [expensesPayload, setExpensesPayload] = useState<Expense[] | null>(null);
   const [issuedInvoicesPayload, setIssuedInvoicesPayload] = useState<CustomerInvoiceSummary[] | null>(null);
+  const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
+  const [fxError, setFxError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +85,46 @@ export function TaxFiscalYearPanel() {
     return buildTaxFiscalYearRows(expensesPayload, issuedInvoicesPayload, fyStartYear);
   }, [expensesPayload, issuedInvoicesPayload, fyStartYear]);
 
+  const rowsNeedForeignFx = useMemo(() => {
+    const defaultCurrency = getAdminDefaultCurrencyCode();
+    return rows.some((row) => (row.currency?.trim().toUpperCase() || defaultCurrency) !== defaultCurrency);
+  }, [rows]);
+
+  useEffect(() => {
+    if (!expensesPayload || !issuedInvoicesPayload) {
+      return;
+    }
+    let cancelled = false;
+    const defaultCurrency = getAdminDefaultCurrencyCode();
+    const needsFx = rows.some(
+      (row) => (row.currency?.trim().toUpperCase() || defaultCurrency) !== defaultCurrency,
+    );
+    if (!needsFx) {
+      setFxMultipliers(new Map());
+      setFxError('');
+      return;
+    }
+    setFxMultipliers(null);
+    void (async () => {
+      try {
+        const codes = rows.map((row) => row.currency?.trim().toUpperCase()).filter(Boolean);
+        const map = await loadFxMultipliersToAdminDefault(codes);
+        if (!cancelled) {
+          setFxMultipliers(map);
+          setFxError('');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setFxError(toErrorMessage(error, 'Could not load FX rates for currency conversion.'));
+          setFxMultipliers(new Map());
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rows, expensesPayload, issuedInvoicesPayload]);
+
   const fyMeta = useMemo(() => getFiscalYearRangeInclusive(fyStartYear), [fyStartYear]);
 
   const fyYearOptions = useMemo(() => {
@@ -101,7 +145,7 @@ export function TaxFiscalYearPanel() {
     URL.revokeObjectURL(url);
   }, [rows, fyStartYear]);
 
-  const tableError = loadError;
+  const tableError = [loadError, fxError].filter(Boolean).join(' ') || undefined;
 
   return (
     <PaginatedTableCard
@@ -181,26 +225,20 @@ export function TaxFiscalYearPanel() {
                 <p className='font-medium text-slate-900'>{row.description}</p>
               </td>
               <td className='px-4 py-3'>
-                {!row.amount ? (
-                  '—'
-                ) : row.currency ? (
-                  <span className='tabular-nums'>
-                    {row.amount} {row.currency}
-                  </span>
-                ) : (
-                  <span className='tabular-nums'>{row.amount}</span>
-                )}
+                <span className='tabular-nums'>
+                  {fxMultipliers === null && rowsNeedForeignFx
+                    ? '…'
+                    : formatMoneyLineWithFxToDefault(row.amount, row.currency, fxMultipliers ?? new Map())}
+                </span>
               </td>
               <td className='px-4 py-3'>
-                {isTaxDisplayedAsDash(row.tax) ? (
-                  '—'
-                ) : row.currency ? (
-                  <span className='tabular-nums'>
-                    {row.tax} {row.currency}
-                  </span>
-                ) : (
-                  <span className='tabular-nums'>{row.tax}</span>
-                )}
+                <span className='tabular-nums'>
+                  {isTaxDisplayedAsDash(row.tax)
+                    ? '—'
+                    : fxMultipliers === null && rowsNeedForeignFx
+                      ? '…'
+                      : formatMoneyLineWithFxToDefault(row.tax, row.currency, fxMultipliers ?? new Map())}
+                </span>
               </td>
               <td className='px-4 py-3'>
                 {row.kind === 'expense' && row.expenseStatus ? formatEnumLabel(row.expenseStatus) : '—'}

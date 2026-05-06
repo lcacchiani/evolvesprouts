@@ -92,3 +92,70 @@ export function formatAmountInCurrency(value: number, currencyCode: string): str
 export function formatAmountInDefaultCurrency(value: number): string {
   return formatAmountInCurrency(value, getAdminDefaultCurrencyCode());
 }
+
+/**
+ * Parses a decimal amount string from forms/API payloads (commas allowed).
+ * Returns null when empty or unparseable; zero is a valid value for display.
+ */
+export function parseMoneyAmountString(value: string | null | undefined): number | null {
+  if (value == null) {
+    return null;
+  }
+  const trimmed = value.trim().replace(/,/g, '');
+  if (!trimmed) {
+    return null;
+  }
+  const n = Number.parseFloat(trimmed);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Loads Frankfurter multipliers from each ISO code into the admin default currency (see
+ * {@link getAdminDefaultCurrencyCode}). Same conversion basis as vendor spend totals.
+ */
+export async function loadFxMultipliersToAdminDefault(fromIsoCodes: Iterable<string>): Promise<Map<string, number>> {
+  const targetCurrency = getAdminDefaultCurrencyCode();
+  const unique = Array.from(
+    new Set(
+      Array.from(fromIsoCodes, (raw) => raw.trim().toUpperCase()).filter(
+        (code) => Boolean(code) && code !== targetCurrency,
+      ),
+    ),
+  );
+  const multipliers = new Map<string, number>();
+  await Promise.all(
+    unique.map(async (code) => {
+      multipliers.set(code, await getCurrencyConversionMultiplier(code, targetCurrency));
+    }),
+  );
+  return multipliers;
+}
+
+/**
+ * One-line money display in admin default currency when {@link parseMoneyAmountString} succeeds.
+ * When the row currency differs from default: `{converted default} ({original formatted})`, using the same
+ * {@link formatAmountInCurrency} styling as the Vendors total spend column.
+ */
+export function formatMoneyLineWithFxToDefault(
+  amountStr: string,
+  currencyRaw: string | undefined,
+  multipliers: Map<string, number>,
+): string {
+  const amount = parseMoneyAmountString(amountStr);
+  if (amount == null) {
+    return '—';
+  }
+  const defaultCurrency = getAdminDefaultCurrencyCode();
+  const currency = currencyRaw?.trim().toUpperCase() || defaultCurrency;
+  const originalFormatted = formatAmountInCurrency(amount, currency);
+  if (currency === defaultCurrency) {
+    return originalFormatted;
+  }
+  const mult = multipliers.get(currency);
+  if (mult == null) {
+    return originalFormatted;
+  }
+  const converted = amount * mult;
+  const primary = formatAmountInCurrency(converted, defaultCurrency);
+  return `${primary} (${originalFormatted})`;
+}
