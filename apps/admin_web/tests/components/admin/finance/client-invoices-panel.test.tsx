@@ -49,6 +49,11 @@ function firstCustomerInvoiceDataRow(invoiceTable: HTMLElement): HTMLElement {
   return rows[1] as HTMLElement;
 }
 
+function firstCustomerPaymentDataRow(paymentTable: HTMLElement): HTMLElement {
+  const rows = within(paymentTable).getAllByRole('row');
+  return rows[1] as HTMLElement;
+}
+
 describe('ClientInvoicesPanel', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/finance?tab=client-invoices');
@@ -504,9 +509,9 @@ describe('ClientInvoicesPanel', () => {
 
     const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
     await waitFor(() => {
-      expect(within(paymentTable).getAllByRole('button').length).toBeGreaterThan(0);
+      expect(within(paymentTable).getAllByRole('row').length).toBeGreaterThan(1);
     });
-    await userEvent.click(within(paymentTable).getByRole('button', { name: /bbbbbbbb/i }));
+    await userEvent.click(firstCustomerPaymentDataRow(paymentTable));
 
     const user = userEvent.setup();
     await user.selectOptions(screen.getByLabelText(/invoice line/i), lineId);
@@ -603,9 +608,9 @@ describe('ClientInvoicesPanel', () => {
 
     const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
     await waitFor(() => {
-      expect(within(paymentTable).getAllByRole('button').length).toBeGreaterThan(0);
+      expect(within(paymentTable).getAllByRole('row').length).toBeGreaterThan(1);
     });
-    await userEvent.click(within(paymentTable).getByRole('button', { name: /bbbbbbbb/i }));
+    await userEvent.click(firstCustomerPaymentDataRow(paymentTable));
 
     await waitFor(() => {
       const invoiceSelect = document.getElementById('billing-refund-invoice') as HTMLSelectElement;
