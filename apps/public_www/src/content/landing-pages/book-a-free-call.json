@@ -1,8 +1,8 @@
 {
   "en": {
     "meta": {
-      "title": "Book a free 15-minute intro call",
-      "description": "Pick a time for a free 15-minute intro call with Ida. No commitment — just a conversation about your child, your helper, and whether Evolve Sprouts is the right fit.",
+      "title": "Let's talk about your child, your helper, and what's really happening at home.",
+      "description": "Book a free 15-minute call with Ida. We'll go through what's not working, what you'd like to change, and whether My Best Auntie is the right fit for your family. No commitment — just a conversation.",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Book a free intro call with Evolve Sprouts"
@@ -10,12 +10,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "Choose a time that works for you. In 15 minutes we can talk through your situation and whether the programme is a good fit — no pressure.",
+      "description": "Book a free 15-minute call with me. We'll go through what's not working, what you'd like to change, and whether My Best Auntie is the right fit for your family. No commitment — just a conversation.",
       "imageAlt": "Consultation and coaching session",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "Pick a time"
+      "ctaAnchorLabel": "Book my free 15-min call",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI Montessori-certified" },
+        { "type": "category", "label": "Trusted by families across Hong Kong" }
+      ]
     },
     "description": {
       "eyebrow": "How it works",
@@ -44,17 +48,22 @@
         {
           "icon": "⏱",
           "title": "Length",
-          "description": "The call is 15 minutes. Please join on time so we can make the most of it."
+          "description": "15 minutes, focused. We keep it short on purpose so you get clear answers without losing half your day. Please join on time so we can make the most of it."
         },
         {
           "icon": "🌏",
           "title": "Languages",
-          "description": "The intro call is conducted in English."
+          "description": "Intro calls are in English. If you'd prefer Cantonese or Mandarin, message me on WhatsApp and we'll arrange it."
         },
         {
           "icon": "📅",
           "title": "Rescheduling",
-          "description": "Need to change your time? Reply to your confirmation email or message us on WhatsApp and we will help manually."
+          "description": "Life happens. If you need to change your time, just reply to your confirmation email or message us on WhatsApp and we'll find a new slot for you."
+        },
+        {
+          "icon": "👤",
+          "title": "Who you'll speak with",
+          "description": "You'll be on the call with me — Ida, AMI Montessori educator, mum of two and founder of Evolve Sprouts. I've been where you are, so this won't feel like a sales pitch."
         }
       ]
     },
@@ -63,27 +72,27 @@
       "items": [
         {
           "question": "How long is the intro call?",
-          "answer": "15 minutes. We keep it focused so you get clear answers without taking too much out of your day."
+          "answer": "15 minutes. Short on purpose — enough time to understand your situation and point you in the right direction, without taking over your day."
         },
         {
           "question": "Is it really free?",
-          "answer": "Yes. There is no charge for this intro call."
+          "answer": "Yes, completely free. No card details, no catch."
         },
         {
           "question": "What if I am running late?",
-          "answer": "Please try to join on time. If you are delayed, message us on WhatsApp as soon as you can — we may need to reschedule if the window has passed."
+          "answer": "Please try to join on time so we have the full 15 minutes together. If something comes up, message me on WhatsApp as soon as you can — I'll let you know if we can still make it work or find you a new slot."
         },
         {
           "question": "How do I cancel or reschedule?",
-          "answer": "Reply to your confirmation email or message us on WhatsApp. In version one, changes are handled manually by our team."
+          "answer": "Just reply to your confirmation email or message us on WhatsApp and we'll sort it out. No forms, no hassle."
         },
         {
           "question": "Will you try to sell me something?",
-          "answer": "We will explain how the programme works if it is relevant. There is no hard sell — the goal is to help you decide what is right for your family."
+          "answer": "No hard sell — that's not how I work. If My Best Auntie sounds like a fit, I'll explain how it works and what it costs. If it isn't, I'll tell you that too and point you toward something more useful."
         },
         {
           "question": "What language is the intro call in?",
-          "answer": "The intro call is in English."
+          "answer": "Intro calls are usually in English. If you'd prefer Cantonese or Mandarin, message me on WhatsApp before booking and we'll arrange it."
         }
       ]
     },
@@ -98,10 +107,12 @@
       "whatsappAfterBookLabel": "message me on WhatsApp",
       "slotUnavailableMessage": "That time was just taken. Please pick another slot.",
       "recentIntroMessage": "It looks like you already booked an intro call recently — reply to your previous email or message me on WhatsApp.",
-      "topicsFieldLabel": "Anything you want me to know before our call?",
-      "topicsFieldPlaceholder": "Share context that will help us make the most of 15 minutes.",
-      "submitLabel": "Book my free call",
-      "phoneFieldLabel": "Phone Number",
+      "topicsFieldLabel": "What would you like to talk about?",
+      "topicsFieldPlaceholder": "A few sentences about your child, your helper, and what's not working at home — it helps me make the most of our 15 minutes.",
+      "submitLabel": "Book my free 15-min call",
+      "phoneFieldLabel": "WhatsApp / phone number",
+      "fullNameFieldLabel": "Your name",
+      "emailFieldLabel": "Your email",
       "selectedSlotSummaryHeading": "The time for your free call is",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "Loading available times…",
@@ -112,8 +123,8 @@
   },
   "zh-CN": {
     "meta": {
-      "title": "预约免费 15 分钟介绍通话",
-      "description": "选择合适时间与 Ida 进行免费 15 分钟介绍通话。无需承诺——聊聊孩子、家佣，以及 Evolve Sprouts 是否适合您。",
+      "title": "聊聊你的孩子、家佣，以及家里真实发生的事",
+      "description": "预约与 Ida 的免费 15 分钟通话。我们会一起梳理哪里不顺、你想改变什么，以及「My Best Auntie」是否适合你的家庭。无需承诺——只是一次坦诚的对话。",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "预约 Evolve Sprouts 免费介绍通话"
@@ -121,12 +132,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "选择您方便的时间。用 15 分钟了解您的情况，并判断课程是否合适——没有压力。",
+      "description": "预约与我进行免费 15 分钟通话。我们会一起梳理哪里不顺、你想改变什么，以及「My Best Auntie」是否适合你的家庭。无需承诺——只是一次坦诚的对话。",
       "imageAlt": "咨询与辅导",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "选择时间"
+      "ctaAnchorLabel": "预约我的免费 15 分钟通话",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI 蒙特梭利认证" },
+        { "type": "category", "label": "深受香港家庭信赖" }
+      ]
     },
     "description": {
       "eyebrow": "流程说明",
@@ -155,17 +170,22 @@
         {
           "icon": "⏱",
           "title": "时长",
-          "description": "通话为 15 分钟。请准时加入，以便充分利用时间。"
+          "description": "15 分钟，刻意精简，让您在不占用大半天的情况下获得明确答案。请准时上线，充分利用这段时间。"
         },
         {
           "icon": "🌏",
           "title": "语言",
-          "description": "介绍通话以英语进行。"
+          "description": "介绍通话默认使用英语。若您希望使用粤语或普通话，请在 WhatsApp 告知，我们再为您安排。"
         },
         {
           "icon": "📅",
           "title": "改期",
-          "description": "需要改时间？请回复确认邮件或通过 WhatsApp 联系我们，我们将人工协助处理。"
+          "description": "生活总有变动。若需改时间，只需回复确认邮件或通过 WhatsApp 联系我们，我们会为您安排新的时段。"
+        },
+        {
+          "icon": "👤",
+          "title": "通话对象",
+          "description": "与您通话的是我——Ida，AMI 蒙特梭利教育工作者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。我也经历过您现在的阶段，所以这不会像硬性推销。"
         }
       ]
     },
@@ -174,27 +194,27 @@
       "items": [
         {
           "question": "介绍通话有多长？",
-          "answer": "15 分钟。我们保持精简，让您在不占用太多时间的情况下获得明确答案。"
+          "answer": "15 分钟。刻意保持精简——足够了解您的情况并给出方向，又不会占用您一整天。"
         },
         {
           "question": "真的免费吗？",
-          "answer": "是的，这通介绍通话不收费。"
+          "answer": "是的，完全免费。无需银行卡，也没有任何套路。"
         },
         {
           "question": "如果我迟到了怎么办？",
-          "answer": "请尽量准时。若延误，请尽快通过 WhatsApp 告知——若时段已过，我们可能需要改期。"
+          "answer": "请尽量准时，这样我们才能完整利用 15 分钟。若临时有状况，请尽快通过 WhatsApp 告知——我会告诉您是否仍能接通，或帮您另约时段。"
         },
         {
           "question": "如何取消或改期？",
-          "answer": "请回复确认邮件或通过 WhatsApp 联系我们。第一版流程由团队人工处理改期与取消。"
+          "answer": "只需回复确认邮件或通过 WhatsApp 联系我们即可，我们会帮您处理。无需填写额外表格。"
         },
         {
           "question": "会被推销吗？",
-          "answer": "若相关，我们会说明课程如何运作。没有强硬推销——目标是帮助您判断什么对家庭最合适。"
+          "answer": "没有硬性推销——这不是我的风格。若「My Best Auntie」适合您，我会说明流程与费用；若不适合，我也会如实告知，并尽量指向对您更有帮助的去处。"
         },
         {
           "question": "介绍通话使用什么语言？",
-          "answer": "介绍通话以英语进行。"
+          "answer": "介绍通话通常使用英语。若您希望使用粤语或普通话，请在预约前通过 WhatsApp 告知，我们再为您安排。"
         }
       ]
     },
@@ -209,10 +229,12 @@
       "whatsappAfterBookLabel": "在 WhatsApp 联系我",
       "slotUnavailableMessage": "该时间刚刚被占用，请另选时段。",
       "recentIntroMessage": "您最近似乎已预约过介绍通话 — 请回复之前的确认邮件或通过 WhatsApp 联系我。",
-      "topicsFieldLabel": "在通话前您想让我了解的内容？",
-      "topicsFieldPlaceholder": "分享有助于充分利用 15 分钟的背景信息。",
-      "submitLabel": "预约免费通话",
-      "phoneFieldLabel": "电话号码",
+      "topicsFieldLabel": "您想聊些什么？",
+      "topicsFieldPlaceholder": "简单几句：关于您的孩子、家佣，以及家里哪里不顺——能帮助我充分利用这 15 分钟。",
+      "submitLabel": "预约我的免费 15 分钟通话",
+      "phoneFieldLabel": "WhatsApp / 电话号码",
+      "fullNameFieldLabel": "您的姓名",
+      "emailFieldLabel": "您的邮箱",
       "selectedSlotSummaryHeading": "您的免费通话时间为",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "正在加载可预约时间…",
@@ -223,8 +245,8 @@
   },
   "zh-HK": {
     "meta": {
-      "title": "預約免費 15 分鐘介紹通話",
-      "description": "揀個方便時間同 Ida 做免費 15 分鐘介紹通話。無需承諾——傾下小朋友、家傭，同 Evolve Sprouts 啱唔啱你。",
+      "title": "傾下你嘅小朋友、家傭，同屋企真正發生緊嘅事",
+      "description": "預約同 Ida 免費傾 15 分鐘。我哋會一齊睇邊度唔順、你想改啲咩，同「My Best Auntie」啱唔啱你家庭。無需承諾——只係一次真心嘅對話。",
       "socialImage": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "預約 Evolve Sprouts 免費介紹通話"
@@ -232,12 +254,16 @@
     },
     "hero": {
       "subtitle": "",
-      "description": "揀個你方便嘅時間。用 15 分鐘了解你嘅情況，同埋課程啱唔啱——冇壓力。",
+      "description": "預約同我免費傾 15 分鐘。我哋會一齊睇邊度唔順、你想改啲咩，同「My Best Auntie」啱唔啱你家庭。無需承諾——只係一次真心嘅對話。",
       "imageAlt": "諮詢與教練",
       "imageSrc": "/images/hero/consultations-hero.webp",
       "imageMaxWidthPercent": 90,
       "ctaAnchorHref": "#intro-call-booking",
-      "ctaAnchorLabel": "揀時間"
+      "ctaAnchorLabel": "預約我嘅免費 15 分鐘通話",
+      "quickFactChips": [
+        { "type": "category", "label": "AMI 蒙特梭利認證" },
+        { "type": "category", "label": "深受香港家庭信賴" }
+      ]
     },
     "description": {
       "eyebrow": "流程說明",
@@ -266,17 +292,22 @@
         {
           "icon": "⏱",
           "title": "長度",
-          "description": "通話為 15 分鐘。請準時加入，善用時間。"
+          "description": "15 分鐘，刻意精簡，等你可以唔使花大半日都得到清晰答案。請準時加入，善用時間。"
         },
         {
           "icon": "🌏",
           "title": "語言",
-          "description": "介紹通話以英文進行。"
+          "description": "介紹通話預設用英文。若你想用粵語或普通話，請喺 WhatsApp 話我知，我哋再為你安排。"
         },
         {
           "icon": "📅",
           "title": "改期",
-          "description": "需要改時間？請回覆確認電郵或透過 WhatsApp 聯絡我哋，我哋會人手協助。"
+          "description": "生活總有變數。若要改時間，只要回覆確認電郵或者 WhatsApp 聯絡我哋，我哋會幫你揀新時段。"
+        },
+        {
+          "icon": "👤",
+          "title": "你會同邊個傾",
+          "description": "同你傾嘅係我——Ida，AMI 蒙特梭利教育工作者、兩個小朋友嘅媽媽，亦係 Evolve Sprouts 創辦人。我都經歷過你而家嘅階段，所以呢通電話唔會似硬銷。"
         }
       ]
     },
@@ -285,27 +316,27 @@
       "items": [
         {
           "question": "介紹通話有幾長？",
-          "answer": "15 分鐘。我哋保持精簡，等你可以喺唔使花太多時間嘅情況下得到清晰答案。"
+          "answer": "15 分鐘。刻意保持精簡——夠時間了解你嘅情況同俾方向，又唔會霸占你成日。"
         },
         {
           "question": "真係免費？",
-          "answer": "係，呢通介紹通話唔收費。"
+          "answer": "係，完全免費。唔使信用卡，亦冇任何套路。"
         },
         {
           "question": "如果我遲到點算？",
-          "answer": "請盡量準時。若延誤，請盡快透過 WhatsApp 話我哋知——若時段已過，可能需要改期。"
+          "answer": "請盡量準時，咁我哋先有完整 15 分鐘。若臨時有狀況，請盡快 WhatsApp 話我知——我會話你知仲傾唔傾得成，或者幫你另約時段。"
         },
         {
           "question": "點樣取消或改期？",
-          "answer": "請回覆確認電郵或透過 WhatsApp 聯絡我哋。第一版流程由團隊人手處理改期同取消。"
+          "answer": "只要回覆確認電郵或者 WhatsApp 聯絡我哋就得，我哋會搞掂。唔使再填表。"
         },
         {
           "question": "會唔會硬銷？",
-          "answer": "若相關，我哋會解釋課程點運作。冇硬銷——目標係幫你判斷咩先最啱你家庭。"
+          "answer": "冇硬銷——唔係我嘅做法。若「My Best Auntie」啱你，我會講流程同收費；若唔啱，我都會坦白講，並盡量指向對你更有用嘅選擇。"
         },
         {
           "question": "介紹通話用咩語言？",
-          "answer": "介紹通話以英文進行。"
+          "answer": "介紹通話通常用英文。若你想用粵語或普通話，請喺預約前 WhatsApp 話我知，我哋再為你安排。"
         }
       ]
     },
@@ -320,10 +351,12 @@
       "whatsappAfterBookLabel": "WhatsApp 聯絡我",
       "slotUnavailableMessage": "呢個時間啱啱俾人揀咗，請揀另一個時段。",
       "recentIntroMessage": "你最近好似已經預約過介紹通話 — 請回覆之前嘅確認電郵或透過 WhatsApp 聯絡我。",
-      "topicsFieldLabel": "通話前想我知嘅嘢？",
-      "topicsFieldPlaceholder": "分享有助用盡 15 分鐘嘅背景。",
-      "submitLabel": "預約免費通話",
-      "phoneFieldLabel": "電話號碼",
+      "topicsFieldLabel": "你想傾啲咩？",
+      "topicsFieldPlaceholder": "用幾句講下你嘅小朋友、家傭，同屋企邊度唔順——可以幫我用盡 15 分鐘。",
+      "submitLabel": "預約我嘅免費 15 分鐘通話",
+      "phoneFieldLabel": "WhatsApp / 電話號碼",
+      "fullNameFieldLabel": "你的姓名",
+      "emailFieldLabel": "你的電郵",
       "selectedSlotSummaryHeading": "你嘅免費通話時間係",
       "selectedSlotSummaryTemplate": "{date} @ {time}",
       "loadingLabel": "正在載入可預約時間…",

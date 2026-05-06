@@ -1141,7 +1141,7 @@
       "loadingLabel": "加载中…"
     },
     "captcha": {
-      "captchaLabel": "验证",
+      "captchaLabel": "提交时我们会快速确认您不是机器人。",
       "deferredHint": "开始填写表单时，我们会进行验证。",
       "requiredError": "提交前请先完成 CAPTCHA 验证。",
       "loadError": "CAPTCHA 加载失败，请刷新页面后重试。",
@@ -1588,7 +1588,7 @@
       "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "pendingReservationAcknowledgementLabel": "我明白在付款确认前，我的预约仍处于待确认状态",
       "acknowledgementRequiredError": "请阅读并同意必填条款。",
-      "marketingOptInLabel": "订阅育儿技巧与资源更新",
+      "marketingOptInLabel": "愿意偶尔收到面向家长与家佣的蒙特梭利贴士与资源（香港）。不滥发——可随时退订。",
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",

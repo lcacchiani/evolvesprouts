@@ -523,6 +523,12 @@ export function LandingPageFreeIntroCall({
                   content={{
                     ...paymentModalContent,
                     phoneLabel: introContent.phoneFieldLabel,
+                    ...(introContent.fullNameFieldLabel
+                      ? { fullNameLabel: introContent.fullNameFieldLabel }
+                      : {}),
+                    ...(introContent.emailFieldLabel
+                      ? { emailLabel: introContent.emailFieldLabel }
+                      : {}),
                   }}
                   optionalPhone
                   dialCodeOptionTemplate={dialCodeOptionTemplate}
@@ -608,26 +614,19 @@ export function LandingPageFreeIntroCall({
                   }}
                   label={paymentModalContent.marketingOptInLabel}
                 />
-                <label className='block'>
-                  <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                    {captchaContent.captchaLabel}
-                  </span>
-                  {hasFormInteracted ? (
+                {hasFormInteracted ? (
+                  <label className='block'>
+                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                      {captchaContent.captchaLabel}
+                    </span>
                     <TurnstileCaptcha
                       siteKey={turnstileSiteKey}
                       widgetAction='intro_call_booking_submit'
                       onTokenChange={handleCaptchaTokenChange}
                       onLoadError={handleCaptchaLoadError}
                     />
-                  ) : (
-                    <p
-                      className='es-type-body-sm text-neutral-600'
-                      data-testid='intro-call-captcha-placeholder'
-                    >
-                      {captchaContent.deferredHint}
-                    </p>
-                  )}
-                </label>
+                  </label>
+                ) : null}
                 {captchaInlineError ? (
                   <p className='es-form-field-error' role='alert'>
                     {captchaInlineError}

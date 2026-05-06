@@ -93,9 +93,6 @@ describe('LandingPageFreeIntroCall', () => {
     });
 
     expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
-    expect(screen.getByTestId('intro-call-captcha-placeholder')).toHaveTextContent(
-      enContent.common.captcha.deferredHint,
-    );
 
     fireEvent.click(screen.getByRole('button', { name: '09:00' }));
 
@@ -104,10 +101,10 @@ describe('LandingPageFreeIntroCall', () => {
       .toBeInTheDocument();
     expect(selectedSlotCard).toHaveTextContent('05 May @ 09:00');
 
-    fireEvent.change(screen.getByLabelText(/Full Name/i), {
+    fireEvent.change(screen.getByLabelText(/Your name/i), {
       target: { value: 'Test Parent' },
     });
-    fireEvent.change(screen.getByLabelText(/Email/i), {
+    fireEvent.change(screen.getByLabelText(/Your email/i), {
       target: { value: 'parent@example.com' },
     });
 
@@ -178,10 +175,10 @@ describe('LandingPageFreeIntroCall', () => {
       expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText(/Full Name/i), {
+    fireEvent.change(screen.getByLabelText(/Your name/i), {
       target: { value: 'Test Parent' },
     });
-    fireEvent.change(screen.getByLabelText(/Email/i), {
+    fireEvent.change(screen.getByLabelText(/Your email/i), {
       target: { value: 'parent@example.com' },
     });
 

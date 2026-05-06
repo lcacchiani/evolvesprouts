@@ -175,6 +175,30 @@ function buildHeroChips(
   return dedupedChips;
 }
 
+function mergeLandingPageHeroChips(
+  jsonChips: LandingPageLocaleContent['hero']['quickFactChips'],
+  eventChips: HeroQuickFactChip[],
+): HeroQuickFactChip[] {
+  const fromJson: HeroQuickFactChip[] = (jsonChips ?? [])
+    .map((chip) => ({
+      type: chip.type,
+      label: chip.label.trim(),
+    }))
+    .filter((chip) => chip.label.length > 0);
+
+  const seen = new Set<string>();
+  const merged: HeroQuickFactChip[] = [];
+  for (const chip of [...fromJson, ...eventChips]) {
+    const label = chip.label.trim();
+    if (!label || seen.has(label)) {
+      continue;
+    }
+    seen.add(label);
+    merged.push(chip);
+  }
+  return merged;
+}
+
 export function LandingPageHero({
   slug,
   content,
@@ -198,8 +222,12 @@ export function LandingPageHero({
     [content],
   );
   const chips = useMemo(
-    () => buildHeroChips(eventContent, locale),
-    [eventContent, locale],
+    () =>
+      mergeLandingPageHeroChips(
+        content.quickFactChips,
+        buildHeroChips(eventContent, locale),
+      ),
+    [content.quickFactChips, eventContent, locale],
   );
   const partnerSlugs = useMemo(
     () => buildDisplayedPartnerSlugs(eventContent?.partners),

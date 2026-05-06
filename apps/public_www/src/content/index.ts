@@ -99,6 +99,19 @@ export interface LandingPageLocaleContent {
     /** When set with ``ctaAnchorLabel``, hero primary CTA scrolls to this path/hash instead of opening the booking modal. */
     ctaAnchorHref?: string;
     ctaAnchorLabel?: string;
+    /** Static hero chips merged before CRM calendar chips (same styling as event-driven landings). */
+    quickFactChips?: ReadonlyArray<{
+      type:
+        | 'category'
+        | 'cohort'
+        | 'date'
+        | 'duration'
+        | 'location'
+        | 'price'
+        | 'time'
+        | 'visits';
+      label: string;
+    }>;
   };
   outline?: {
     eyebrow?: string;
@@ -165,6 +178,10 @@ export interface LandingPageLocaleContent {
     topicsFieldPlaceholder: string;
     submitLabel: string;
     phoneFieldLabel: string;
+    /** Overrides booking modal full name label on intro-call form only. */
+    fullNameFieldLabel?: string;
+    /** Overrides booking modal email label on intro-call form only. */
+    emailFieldLabel?: string;
     /** Heading above the selected-slot summary card (first line). */
     selectedSlotSummaryHeading: string;
     /** Template for the second line; `{date}` and `{time}` use site timezone formatting. */
