@@ -21,9 +21,23 @@ import {
 } from '@/lib/tax-fiscal-year-report';
 import type { Expense } from '@/types/expenses';
 
+/** Earliest Hong Kong FY start year offered in the selector (April Y → March Y+1). */
+const MIN_FISCAL_YEAR_START = 2024;
+
+function isTaxDisplayedAsDash(tax: string | undefined): boolean {
+  const t = tax?.trim() ?? '';
+  if (t === '') {
+    return true;
+  }
+  const n = Number.parseFloat(t.replace(/,/g, ''));
+  return Number.isFinite(n) && n === 0;
+}
+
 export function TaxFiscalYearPanel() {
   const fySelectId = useId();
-  const [fyStartYear, setFyStartYear] = useState(() => defaultFiscalYearStartYear());
+  const [fyStartYear, setFyStartYear] = useState(
+    () => Math.max(MIN_FISCAL_YEAR_START, defaultFiscalYearStartYear()),
+  );
   const [loadError, setLoadError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [expensesPayload, setExpensesPayload] = useState<Expense[] | null>(null);
@@ -71,7 +85,8 @@ export function TaxFiscalYearPanel() {
 
   const fyYearOptions = useMemo(() => {
     const cur = defaultFiscalYearStartYear();
-    return enumerateFiscalYearStartYears(cur - 15, cur + 1);
+    const throughYear = Math.max(cur + 1, MIN_FISCAL_YEAR_START);
+    return enumerateFiscalYearStartYears(MIN_FISCAL_YEAR_START, throughYear);
   }, []);
 
   const downloadCsv = useCallback(() => {
@@ -90,7 +105,7 @@ export function TaxFiscalYearPanel() {
 
   return (
     <PaginatedTableCard
-      title='Tax (fiscal year)'
+      title='Tax'
       description={`Hong Kong fiscal year ${fyMeta.start} to ${fyMeta.end}. Expenses use invoice date when set; otherwise paid date. Revenue uses issued invoice totals by issue date.`}
       isLoading={isLoading}
       isLoadingMore={false}
@@ -108,14 +123,11 @@ export function TaxFiscalYearPanel() {
               onChange={(event) => setFyStartYear(Number.parseInt(event.target.value, 10))}
               disabled={isLoading || Boolean(tableError)}
             >
-              {fyYearOptions.map((y) => {
-                const meta = getFiscalYearRangeInclusive(y);
-                return (
-                  <option key={y} value={y}>
-                    {meta.label} ({meta.start} – {meta.end})
-                  </option>
-                );
-              })}
+              {fyYearOptions.map((y) => (
+                <option key={y} value={y}>
+                  {y} - {y + 1}
+                </option>
+              ))}
             </Select>
           </div>
           <Button
@@ -167,7 +179,6 @@ export function TaxFiscalYearPanel() {
               </td>
               <td className='px-4 py-3'>
                 <p className='font-medium text-slate-900'>{row.description}</p>
-                <p className='mt-0.5 font-mono text-xs text-slate-500'>{row.referenceId}</p>
               </td>
               <td className='px-4 py-3'>
                 {!row.amount ? (
@@ -181,7 +192,7 @@ export function TaxFiscalYearPanel() {
                 )}
               </td>
               <td className='px-4 py-3'>
-                {!row.tax ? (
+                {isTaxDisplayedAsDash(row.tax) ? (
                   '—'
                 ) : row.currency ? (
                   <span className='tabular-nums'>
