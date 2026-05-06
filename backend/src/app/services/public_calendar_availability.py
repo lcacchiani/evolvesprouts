@@ -192,15 +192,17 @@ def parse_availability_request(
     if from_raw in (None, "") or (isinstance(from_raw, str) and not from_raw.strip()):
         from_date = today
     else:
-        from_date = parse_iso_date_strict(from_raw)
-        if from_date is None:
+        parsed_from = parse_iso_date_strict(from_raw)
+        if parsed_from is None:
             raise ValidationError("Invalid from date", field="from")
+        from_date = parsed_from
 
     default_to = from_date + timedelta(days=spec.window.default_horizon_days)
-    to_date = parse_iso_date_strict(to_raw)
     if to_raw not in (None, "") and str(to_raw).strip() != "":
-        if to_date is None:
+        parsed_to = parse_iso_date_strict(to_raw)
+        if parsed_to is None:
             raise ValidationError("Invalid to date", field="to")
+        to_date = parsed_to
     else:
         to_date = default_to
 

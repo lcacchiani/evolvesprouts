@@ -194,7 +194,7 @@ export async function fetchPublicCalendarAvailability(params: {
   const payload = await client.request({
     endpointPath: buildPublicCalendarAvailabilityPath(params),
     method: 'GET',
-    signal,
+    signal: params.signal,
     bypassGetCache: true,
   });
   return parseAvailabilityPayload(payload);
