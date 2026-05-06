@@ -30,6 +30,7 @@ import {
   resolveDateTimeLocale,
 } from '@/lib/site-datetime';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 export interface IntroCallSlotPickerProps {
@@ -115,7 +116,6 @@ export function IntroCallSlotPicker({
   const [rovingDayIndex, setRovingDayIndex] = useState(0);
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const dayCarouselRef = useRef<HTMLDivElement | null>(null);
   const lastReportedStatusRef = useRef<FetchStatus | null>(null);
 
   const slotTimeFormatter = useMemo(
@@ -221,6 +221,11 @@ export function IntroCallSlotPicker({
     const sorted = Array.from(slotsByDayFull.keys()).sort();
     return sorted.slice(0, MAX_VISIBLE_BOOKING_DAYS);
   }, [slotsByDayFull]);
+
+  const { carouselRef: dayCarouselRef } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: dayKeys.length,
+    enabled: status === 'ready' && slots.length > 0,
+  });
 
   const slotsByDay = useMemo(() => {
     const map = new Map<string, IntroCallSlot[]>();
@@ -388,63 +393,67 @@ export function IntroCallSlotPicker({
 
   return (
     <div className='space-y-4'>
-      <div className='w-full min-w-0'>
+      <div className='relative mt-0 w-full min-w-0'>
         <CarouselTrack
           carouselRef={dayCarouselRef}
           testId='intro-call-day-carousel'
-          presentation='group'
-          ariaLabel={pickerContent.bookingSectionTitle}
-          ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-          className='flex min-w-0 gap-3 pb-2 pr-1'
-        >
-          {dayKeys.map((ymd, idx) => {
-            const count = slotsByDay.get(ymd)?.length ?? 0;
-            if (count === 0) {
-              return null;
-            }
-            const sample = slotsByDay.get(ymd)?.[0];
-            if (!sample) {
-              return null;
-            }
-            const dayAccessibleLabel = dayFormatters.accessibleLabel(sample.startIso);
-            const weekdayShort = dayFormatters.weekdayShort(sample.startIso);
-            const dateLine = dayFormatters.dateLine(sample.startIso);
-            const isSelected = ymd === resolvedDayYmd;
-            return (
-              <ButtonPrimitive
-                key={ymd}
-                type='button'
-                buttonRef={(el) => {
-                  dayRefs.current[idx] = el;
-                }}
-                variant='selection'
-                state={isSelected ? 'active' : 'inactive'}
-                aria-pressed={isSelected}
-                aria-label={dayAccessibleLabel}
-                tabIndex={safeRovingDayIndex === idx ? 0 : -1}
-                onClick={() => {
-                  setCursorDayYmd(ymd);
-                  setRovingDayIndex(idx);
-                  setSelectedSlotIso(null);
-                }}
-                onKeyDown={(e) => handleDayKeyDown(e, idx)}
-                className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-h-[88px] w-[120px] shrink-0 snap-center text-center sm:min-h-0 sm:w-[134.4px]`}
-              >
-                <div className='flex w-full flex-col items-center gap-2'>
-                  <div className='flex items-center justify-center gap-2'>
-                    <span
-                      className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                      aria-hidden='true'
-                    />
-                    <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
-                      {weekdayShort}
-                    </p>
-                  </div>
-                  <p className='text-center text-sm sm:text-sm es-text-heading'>{dateLine}</p>
-                </div>
-              </ButtonPrimitive>
-            );
+          ariaLabel={formatContentTemplate(commonAccessibility.carouselLabelTemplate, {
+            title: pickerContent.bookingSectionTitle,
           })}
+          ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+          className='pb-2 pr-1'
+        >
+          <ul className='flex min-w-0 list-none gap-3 p-0'>
+            {dayKeys.map((ymd, idx) => {
+              const count = slotsByDay.get(ymd)?.length ?? 0;
+              if (count === 0) {
+                return null;
+              }
+              const sample = slotsByDay.get(ymd)?.[0];
+              if (!sample) {
+                return null;
+              }
+              const dayAccessibleLabel = dayFormatters.accessibleLabel(sample.startIso);
+              const weekdayShort = dayFormatters.weekdayShort(sample.startIso);
+              const dateLine = dayFormatters.dateLine(sample.startIso);
+              const isSelected = ymd === resolvedDayYmd;
+              return (
+                <li key={ymd} className='shrink-0 snap-center'>
+                  <ButtonPrimitive
+                    type='button'
+                    buttonRef={(el) => {
+                      dayRefs.current[idx] = el;
+                    }}
+                    variant='selection'
+                    state={isSelected ? 'active' : 'inactive'}
+                    aria-pressed={isSelected}
+                    aria-label={dayAccessibleLabel}
+                    tabIndex={safeRovingDayIndex === idx ? 0 : -1}
+                    onClick={() => {
+                      setCursorDayYmd(ymd);
+                      setRovingDayIndex(idx);
+                      setSelectedSlotIso(null);
+                    }}
+                    onKeyDown={(e) => handleDayKeyDown(e, idx)}
+                    className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-h-[88px] w-[120px] text-center sm:min-h-0 sm:w-[134.4px]`}
+                  >
+                    <div className='flex w-full flex-col items-center gap-2'>
+                      <div className='flex items-center justify-center gap-2'>
+                        <span
+                          className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                          aria-hidden='true'
+                        />
+                        <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
+                          {weekdayShort}
+                        </p>
+                      </div>
+                      <p className='text-center text-sm sm:text-sm es-text-heading'>{dateLine}</p>
+                    </div>
+                  </ButtonPrimitive>
+                </li>
+              );
+            })}
+          </ul>
         </CarouselTrack>
       </div>
 
