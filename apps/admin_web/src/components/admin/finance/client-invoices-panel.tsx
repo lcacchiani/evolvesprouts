@@ -44,8 +44,10 @@ import {
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import {
   getCurrencyOptions,
+  ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatDate,
+  formatEnrollmentPickerInstanceServiceDisplay,
   formatTierCohortDisplay,
 } from '@/lib/format';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
@@ -1091,7 +1093,7 @@ export function ClientInvoicesPanel() {
                         />
                       </th>
                       <th className='px-3 py-2'>Party</th>
-                      <th className='px-3 py-2'>Instance</th>
+                      <th className='px-3 py-2'>{ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER}</th>
                       <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
                       <th className='px-3 py-2 text-right'>Price</th>
                       <th className='px-3 py-2'>Enrolled</th>
@@ -1128,6 +1130,8 @@ export function ClientInvoicesPanel() {
                           row.serviceTierName,
                           row.instanceCohort,
                         );
+                        const instanceServiceDisplay =
+                          formatEnrollmentPickerInstanceServiceDisplay(row);
                         const partyCellDisplay = formatEnrollmentPartyCellDisplay(row);
                         return (
                           <tr
@@ -1163,7 +1167,9 @@ export function ClientInvoicesPanel() {
                             <td className='min-w-0 max-w-[22rem] break-words px-3 py-2 align-top text-sm'>
                               {partyCellDisplay !== '' ? partyCellDisplay : '—'}
                             </td>
-                            <td className='px-3 py-2 align-top text-sm'>{row.instanceTitle ?? '—'}</td>
+                            <td className='px-3 py-2 align-top text-sm'>
+                              {instanceServiceDisplay !== '' ? instanceServiceDisplay : '—'}
+                            </td>
                             <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
                               {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}
                             </td>

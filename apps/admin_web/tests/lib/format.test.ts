@@ -11,6 +11,8 @@ import {
   formatInstanceTableTierCohort,
   formatInstanceTableTitle,
   formatTierCohortDisplay,
+  ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
+  formatEnrollmentPickerInstanceServiceDisplay,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatIsoForDatetimeLocalInput,
   formatServiceListPriceLabel,
@@ -485,6 +487,7 @@ describe('format helpers', () => {
       resolvedConsultationDetails: null,
     });
     expect(INSTANCE_TABLE_TIER_COHORT_HEADER).toBe('Tier \u00b7 Cohort');
+    expect(ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER).toBe('Instance \u00b7 Service');
     expect(formatInstanceTableTierCohort(base())).toBe('tier-a');
     expect(formatInstanceTableTierCohort({ ...base(), cohort: 'spring-2024' })).toBe('tier-a \u00b7 spring-2024');
     expect(
@@ -501,6 +504,22 @@ describe('format helpers', () => {
         cohort: null,
       })
     ).toBe('');
+  });
+
+  it('formatEnrollmentPickerInstanceServiceDisplay prefers instance title then parent service', () => {
+    expect(
+      formatEnrollmentPickerInstanceServiceDisplay({
+        instanceTitle: '  Spring cohort  ',
+        parentServiceTitle: 'Ignored',
+      })
+    ).toBe('Spring cohort');
+    expect(
+      formatEnrollmentPickerInstanceServiceDisplay({
+        instanceTitle: null,
+        parentServiceTitle: 'Parent Name',
+      })
+    ).toBe('Parent Name');
+    expect(formatEnrollmentPickerInstanceServiceDisplay({ instanceTitle: '', parentServiceTitle: null })).toBe('');
   });
 
   it('formatTierCohortDisplay mirrors instance tier/cohort cell rules', () => {

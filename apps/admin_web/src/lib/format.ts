@@ -137,6 +137,28 @@ export function formatInstanceTableTitle(instance: ServiceInstance): string {
 /** Column header for the instances table tier + cohort column (space, interpunct, space between words). */
 export const INSTANCE_TABLE_TIER_COHORT_HEADER = `Tier${DISPLAY_PART_SEP}Cohort`;
 
+/** Billing enrollment picker — column header for instance title vs parent service name. */
+export const ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER = `Instance${DISPLAY_PART_SEP}Service`;
+
+/**
+ * Billing enrollment picker cell: instance title when non-empty, otherwise parent service title.
+ * Returns empty string when neither is present (caller may render an em dash).
+ */
+export function formatEnrollmentPickerInstanceServiceDisplay(row: {
+  instanceTitle?: string | null;
+  parentServiceTitle?: string | null;
+}): string {
+  const own = row.instanceTitle?.trim();
+  if (own) {
+    return own;
+  }
+  const parent = row.parentServiceTitle?.trim();
+  if (parent) {
+    return parent;
+  }
+  return '';
+}
+
 /**
  * Tier and cohort on one line (instances table, billing enrollment picker, and similar).
  * Uses space + interpunct + space only when both tier and cohort are non-empty after trim.
