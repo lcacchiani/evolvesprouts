@@ -423,9 +423,9 @@ describe('ClientInvoicesPanel', () => {
     render(<ClientInvoicesPanel />);
 
     const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
-    await waitFor(() => within(paymentTable).getByRole('button', { name: /confirm/i }));
+    await waitFor(() => within(paymentTable).getByRole('button', { name: /confirm pending payment/i }));
 
-    await userEvent.click(within(paymentTable).getByRole('button', { name: /confirm/i }));
+    await userEvent.click(within(paymentTable).getByRole('button', { name: /confirm pending payment/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /confirm payment/i })).toBeInTheDocument();
