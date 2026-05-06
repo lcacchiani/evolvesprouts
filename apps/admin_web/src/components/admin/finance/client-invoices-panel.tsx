@@ -46,6 +46,7 @@ import {
   ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatDate,
+  formatEnumLabel,
   formatEnrollmentPickerInstanceServiceDisplay,
   formatTierCohortDisplay,
 } from '@/lib/format';
@@ -63,25 +64,6 @@ function formatTruncatedId(id: string | null | undefined): string {
     return id;
   }
   return `${id.slice(0, 8)}…`;
-}
-
-/** Split on `_` and capitalize the first letter of each segment (for example `bank_transfer` → `Bank Transfer`). */
-function formatPaymentUnderscoreWordsLabel(raw: string | null | undefined): string {
-  const t = raw?.trim() ?? '';
-  if (t === '') {
-    return '';
-  }
-  return t
-    .split('_')
-    .map((segment) => {
-      const w = segment.toLowerCase();
-      if (w === '') {
-        return '';
-      }
-      return w.charAt(0).toUpperCase() + w.slice(1);
-    })
-    .filter((segment) => segment !== '')
-    .join(' ');
 }
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
@@ -1802,9 +1784,9 @@ export function ClientInvoicesPanel() {
                     }
                   }}
                 >
-                  <td className='px-3 py-2'>{formatPaymentUnderscoreWordsLabel(p.direction)}</td>
-                  <td className='px-3 py-2'>{formatPaymentUnderscoreWordsLabel(p.status)}</td>
-                  <td className='px-3 py-2'>{formatPaymentUnderscoreWordsLabel(p.method)}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.direction ?? '')}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.status ?? '')}</td>
+                  <td className='px-3 py-2'>{formatEnumLabel(p.method ?? '')}</td>
                   <td className='px-3 py-2'>{amountDisplay}</td>
                   <td className='px-3 py-2'>{formatDate(p.createdAt ?? null)}</td>
                   <td
