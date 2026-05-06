@@ -83,7 +83,7 @@ describe('ConsultationBookingModal', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows loading message and disables date picker while blockers are loading', () => {
+  it('shows the loading gear and message while blockers are loading (calendar hidden)', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
@@ -104,11 +104,11 @@ describe('ConsultationBookingModal', () => {
       />,
     );
 
-    expect(screen.getByTestId('consultation-calendar-blockers-status')).toHaveTextContent(
-      loadingMessage,
-    );
-    const day9 = screen.getByRole('button', { name: 'Day 9, loading availability' });
-    expect(day9).toBeDisabled();
+    expect(screen.getByTestId('consultation-calendar-blockers-loading')).toBeInTheDocument();
+    expect(screen.getByText(loadingMessage)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Day 9, loading availability' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows error message when blockers failed to load but keeps picker interactive', () => {

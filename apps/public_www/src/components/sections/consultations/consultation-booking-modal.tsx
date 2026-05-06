@@ -43,6 +43,7 @@ import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
 
 /** Matches `consultations-booking` level feature list (discs + orange markers via CSS). */
 const CONSULTATION_MODAL_LEVEL_FEATURES_LIST_CLASSNAME =
@@ -384,22 +385,6 @@ export function ConsultationBookingModal({
   const selectedYmd = pickerSelection?.ymd ?? defaultSelection?.ymd ?? '';
   const dayPeriod = pickerSelection?.period ?? defaultSelection?.period ?? 'am';
 
-  const pickerInteractionDisabled = calendarBlockersStatus === 'loading';
-
-  const blockersStatusMessage = useMemo(() => {
-    if (calendarBlockersStatus === 'loading' && calendarBlockersLoadingMessage.trim()) {
-      return calendarBlockersLoadingMessage;
-    }
-    if (calendarBlockersStatus === 'error' && calendarBlockersErrorMessage.trim()) {
-      return calendarBlockersErrorMessage;
-    }
-    return null;
-  }, [
-    calendarBlockersStatus,
-    calendarBlockersLoadingMessage,
-    calendarBlockersErrorMessage,
-  ]);
-
   function handleSelectYmd(ymd: string) {
     setPickerSelection((prev) => {
       const preferredPeriod =
@@ -443,27 +428,38 @@ export function ConsultationBookingModal({
 
   const pickerSlot = (
     <div className='flex flex-col gap-4'>
-      {blockersStatusMessage ? (
+      {calendarBlockersStatus === 'error' && calendarBlockersErrorMessage.trim() ? (
         <p
           className='rounded-lg border border-black/15 px-4 py-3 text-sm font-medium leading-snug es-text-body'
           role='status'
           aria-live='polite'
           data-testid='consultation-calendar-blockers-status'
         >
-          {blockersStatusMessage}
+          {calendarBlockersErrorMessage}
         </p>
       ) : null}
-      <ConsultationDatePickerGrid
-        locale={locale}
-        content={pickerContent}
-        timeZone={timeZone}
-        unavailableByYmd={unavailableByYmd}
-        selectedYmd={selectedYmd}
-        dayPeriod={dayPeriod}
-        interactionDisabled={pickerInteractionDisabled}
-        onSelectYmd={handleSelectYmd}
-        onSelectPeriod={handleSelectPeriod}
-      />
+      {calendarBlockersStatus === 'loading' ? (
+        <SectionSpinnerStatus
+          label={
+            calendarBlockersLoadingMessage.trim()
+              ? calendarBlockersLoadingMessage
+              : '\u00a0'
+          }
+          testId='consultation-calendar-blockers-loading'
+        />
+      ) : (
+        <ConsultationDatePickerGrid
+          locale={locale}
+          content={pickerContent}
+          timeZone={timeZone}
+          unavailableByYmd={unavailableByYmd}
+          selectedYmd={selectedYmd}
+          dayPeriod={dayPeriod}
+          interactionDisabled={false}
+          onSelectYmd={handleSelectYmd}
+          onSelectPeriod={handleSelectPeriod}
+        />
+      )}
     </div>
   );
 
