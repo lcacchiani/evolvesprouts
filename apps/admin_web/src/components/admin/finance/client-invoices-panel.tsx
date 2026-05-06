@@ -8,14 +8,13 @@ import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
-import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
+import { CheckIcon, MarkPaidIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
   CustomizedDraftInvoiceCard,
@@ -64,6 +63,21 @@ function formatTruncatedId(id: string | null | undefined): string {
     return id;
   }
   return `${id.slice(0, 8)}…`;
+}
+
+/** Display payment enum or method slug as camelCase (for example `bank_transfer` → `bankTransfer`). */
+function formatPaymentLabelCamelCase(raw: string | null | undefined): string {
+  const t = raw?.trim() ?? '';
+  if (t === '') {
+    return '';
+  }
+  const parts = t.split(/[\s_\-+/]+/).filter((p) => p !== '');
+  if (parts.length === 0) {
+    return '';
+  }
+  const lower = parts.map((p) => p.toLowerCase());
+  const [head, ...tail] = lower;
+  return head + tail.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
 }
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
@@ -1732,7 +1746,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer payments'
-        description='Recent customer payments and refunds. Select a row for allocation and refund source. Pending inbound: use Confirm in Operations.'
+        description='Recent customer payments and refunds. Select a row for allocation and refund source. Pending inbound: confirm from Operations.'
         isLoading={listLoading}
         isLoadingMore={false}
         hasMore={false}
@@ -1765,6 +1779,14 @@ export function ClientInvoicesPanel() {
             {payments.map((p, index) => {
               const id = p.id ?? '';
               const selected = id && selectedId === id;
+              const amountRaw = p.amount?.trim() ?? '';
+              const parsedPayAmount = Number.parseFloat(amountRaw);
+              const payCurrencyCode =
+                (p.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+              const amountDisplay =
+                amountRaw !== '' && Number.isFinite(parsedPayAmount)
+                  ? formatAmountInCurrency(parsedPayAmount, payCurrencyCode)
+                  : '—';
               return (
                 <tr
                   key={id || `payment-row-${String(index)}`}
@@ -1779,27 +1801,33 @@ export function ClientInvoicesPanel() {
                       {formatTruncatedId(id)}
                     </button>
                   </td>
-                  <td className='px-3 py-2'>{p.direction}</td>
-                  <td className='px-3 py-2'>{p.status}</td>
-                  <td className='px-3 py-2'>{p.method ?? '—'}</td>
-                  <td className='px-3 py-2'>
-                    {p.amount} {p.currency}
-                  </td>
-                  <td className='px-3 py-2 text-xs text-slate-600'>{p.createdAt?.slice(0, 19) ?? '—'}</td>
+                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.direction)}</td>
+                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.status)}</td>
+                  <td className='px-3 py-2'>{formatPaymentLabelCamelCase(p.method)}</td>
+                  <td className='px-3 py-2'>{amountDisplay}</td>
+                  <td className='px-3 py-2'>{formatDate(p.createdAt ?? null)}</td>
                   <td className='px-3 py-2 text-right'>
                     {p.status === 'pending' && p.direction === 'inbound' ? (
                       <Button
                         type='button'
+                        size='sm'
                         variant='secondary'
-                        className='text-xs'
                         disabled={confirmPaymentDialogOpen || busyAction === 'confirm'}
                         onClick={() => openConfirmPaymentDialog(id)}
+                        aria-label='Confirm pending payment'
+                        title='Confirm pending payment'
+                        aria-busy={busyAction === 'confirm' && confirmPaymentId === id}
                       >
-                        Confirm…
+                        {busyAction === 'confirm' && confirmPaymentId === id ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <MarkPaidIcon className='h-4 w-4' aria-hidden />
+                        )}
                       </Button>
-                    ) : (
-                      <span className='text-xs text-slate-400'>—</span>
-                    )}
+                    ) : null}
                   </td>
                 </tr>
               );
@@ -1807,46 +1835,6 @@ export function ClientInvoicesPanel() {
           </AdminDataTableBody>
         </AdminDataTable>
       </PaginatedTableCard>
-
-      <Card
-        title='Selected payment'
-        className='border-slate-200 bg-slate-50/80 p-3 shadow-none sm:p-4'
-      >
-        {!selectedId ? (
-          <p className='text-sm text-slate-600'>
-            Select a row in the payments table to load unapplied balance and pre-fill allocation and refund fields.
-          </p>
-        ) : detailLoading ? (
-          <p className='text-sm text-slate-600'>Loading payment…</p>
-        ) : detailError ? (
-          <AdminInlineError>{detailError}</AdminInlineError>
-        ) : detail ? (
-          <dl className='mt-1 grid gap-1 text-sm text-slate-700 sm:grid-cols-2'>
-            <div>
-              <dt className='text-xs uppercase text-slate-500'>Id</dt>
-              <dd className='font-mono text-xs'>{detail.id}</dd>
-            </div>
-            <div>
-              <dt className='text-xs uppercase text-slate-500'>Status</dt>
-              <dd>{detail.status}</dd>
-            </div>
-            <div>
-              <dt className='text-xs uppercase text-slate-500'>Direction</dt>
-              <dd>{detail.direction}</dd>
-            </div>
-            <div>
-              <dt className='text-xs uppercase text-slate-500'>Amount</dt>
-              <dd>
-                {detail.amount} {detail.currency}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-xs uppercase text-slate-500'>Unapplied</dt>
-              <dd>{detail.unappliedAmount ?? '—'}</dd>
-            </div>
-          </dl>
-        ) : null}
-      </Card>
 
       <ConfirmDialog
         open={voidDialogOpen}
