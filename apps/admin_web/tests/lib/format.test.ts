@@ -60,6 +60,7 @@ function baseSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
 describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
     expect(formatEnumLabel('training_course')).toBe('Training Course');
+    expect(formatEnumLabel('intro_call')).toBe('Intro Call');
     expect(formatEnumLabel('in_person')).toBe('In Person');
   });
 
@@ -701,6 +702,25 @@ describe('format helpers', () => {
             consultationFormat: 'one_on_one',
             maxGroupSize: null,
             durationMinutes: 60,
+            pricingModel: 'free',
+            defaultHourlyRate: null,
+            defaultPackagePrice: null,
+            defaultPackageSessions: null,
+            defaultCurrency: 'HKD',
+          },
+        })
+      )
+    ).toBe('Free');
+
+    expect(
+      formatServiceListPriceLabel(
+        baseSummary({
+          serviceType: 'intro_call',
+          trainingDetails: null,
+          consultationDetails: {
+            consultationFormat: 'one_on_one',
+            maxGroupSize: null,
+            durationMinutes: 15,
             pricingModel: 'free',
             defaultHourlyRate: null,
             defaultPackagePrice: null,

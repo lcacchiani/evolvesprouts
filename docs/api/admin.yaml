@@ -4324,7 +4324,11 @@ components:
                 type: number
     ServiceType:
       type: string
-      enum: [training_course, event, consultation]
+      enum: [training_course, event, consultation, intro_call]
+      description: |
+        Product category for a service template. `intro_call` is the free public intro-call flow
+        (`service_key` / instance slug pair used by public reservations); it stores consultation-style
+        pricing defaults like `consultation`.
     ServiceStatus:
       type: string
       enum: [draft, published, archived]

@@ -19,7 +19,7 @@ import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
+import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES, isConsultationLikeServiceType } from '@/types/services';
 import type { ServiceDeliveryMode } from '@/types/services';
 import type { LocationSummary, ServiceDetail, ServiceType } from '@/types/services';
 
@@ -327,7 +327,11 @@ export function ServiceDetailPanel({
     if (serviceForm.status !== 'published') {
       return false;
     }
-    if (serviceType !== 'event' && serviceType !== 'training_course') {
+    if (
+      serviceType !== 'event' &&
+      serviceType !== 'training_course' &&
+      serviceType !== 'intro_call'
+    ) {
       return false;
     }
     return serviceForm.serviceKey.trim() === '';
@@ -671,7 +675,7 @@ export function ServiceDetailPanel({
             }
             serviceKeyConflictError={serviceKeyConflictInline}
             publishedBookableKeyWarning={
-              (serviceType === 'event' || serviceType === 'training_course') &&
+              (serviceType === 'event' || serviceType === 'training_course' || serviceType === 'intro_call') &&
               serviceForm.status === 'published' &&
               !serviceForm.serviceKey.trim()
                 ? 'A service key is required to take public bookings (discount validation and reservation submission). Set one before publishing.'
@@ -770,7 +774,7 @@ export function ServiceDetailPanel({
           </div>
         ) : null}
 
-        {serviceType === 'consultation' ? (
+        {isConsultationLikeServiceType(serviceType) ? (
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             {deliveryModeSelect}
             <ServiceTierControl
@@ -784,7 +788,7 @@ export function ServiceDetailPanel({
           </div>
         ) : null}
 
-        {serviceType === 'consultation' ? (
+        {isConsultationLikeServiceType(serviceType) ? (
           <>
             <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
               <ConsultationPricingModelControl value={consultationForm} onChange={setConsultationForm} />

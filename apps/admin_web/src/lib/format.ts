@@ -495,7 +495,7 @@ export function formatServiceListPriceLabel(service: ServiceSummary): string {
     }
     return formatAmountInCurrency(amount, resolveIsoCurrencyCode(d.defaultCurrency));
   }
-  if (service.serviceType === 'consultation') {
+  if (service.serviceType === 'consultation' || service.serviceType === 'intro_call') {
     const d = service.consultationDetails;
     if (!d) {
       return '—';
