@@ -275,6 +275,7 @@ def handle_admin_all_service_instances_request(
                 raise NotFoundError("Service", str(service_id_filter))
 
         repository = ServiceInstanceRepository(session)
+        include_bookings = bool(filters.get("include_bookings", False))
         rows = repository.list_instances_global(
             limit=limit + 1,
             status=filters["status"],
@@ -282,13 +283,13 @@ def handle_admin_all_service_instances_request(
             service_type=service_type_filter,
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
-            include_bookings=filters["include_bookings"],
+            include_bookings=include_bookings,
         )
         total_count = repository.count_instances_global(
             status=filters["status"],
             service_id=service_id_filter,
             service_type=service_type_filter,
-            include_bookings=filters["include_bookings"],
+            include_bookings=include_bookings,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
@@ -385,18 +386,19 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
             raise NotFoundError("Service", str(service_id))
 
         repository = ServiceInstanceRepository(session)
+        include_bookings = bool(filters.get("include_bookings", False))
         rows = repository.list_instances(
             service_id=service_id,
             limit=limit + 1,
             status=filters["status"],
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
-            include_bookings=filters["include_bookings"],
+            include_bookings=include_bookings,
         )
         total_count = repository.count_instances(
             service_id=service_id,
             status=filters["status"],
-            include_bookings=filters["include_bookings"],
+            include_bookings=include_bookings,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
