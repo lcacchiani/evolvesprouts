@@ -38,6 +38,18 @@ _PUBLIC_CALENDAR_BLOCKER_DEFAULT_TYPES: tuple[ServiceType, ...] = (
 )
 
 
+def _instances_list_visibility_predicate(
+    *, include_bookings: bool
+) -> ColumnElement[bool] | None:
+    """Hide per-booking child rows from admin/default listings unless requested."""
+    if include_bookings:
+        return None
+    return or_(
+        ServiceInstance.parent_instance_id.is_(None),
+        ServiceInstance.is_template.is_(True),
+    )
+
+
 def public_calendar_blocker_instance_predicates(
     *,
     service_types: tuple[ServiceType, ...] | None = None,
@@ -110,12 +122,16 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         status: InstanceStatus | None = None,
         cursor_created_at: datetime | None = None,
         cursor_id: UUID | None = None,
+        include_bookings: bool = False,
     ) -> list[ServiceInstance]:
         """List instances for a service with stable cursor pagination."""
         statement = (
             select(ServiceInstance)
             .where(ServiceInstance.service_id == service_id)
             .options(
+                joinedload(ServiceInstance.parent).joinedload(
+                    ServiceInstance.consultation_details
+                ),
                 selectinload(ServiceInstance.session_slots),
                 joinedload(ServiceInstance.training_details),
                 joinedload(ServiceInstance.consultation_details),
@@ -128,6 +144,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 ),
             )
         )
+        vis = _instances_list_visibility_predicate(include_bookings=include_bookings)
+        if vis is not None:
+            statement = statement.where(vis)
         if status is not None:
             statement = statement.where(ServiceInstance.status == status)
         if cursor_created_at is not None and cursor_id is not None:
@@ -150,11 +169,15 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         *,
         service_id: UUID,
         status: InstanceStatus | None = None,
+        include_bookings: bool = False,
     ) -> int:
         """Count instances by service and optional status."""
         statement = select(func.count(ServiceInstance.id)).where(
             ServiceInstance.service_id == service_id
         )
+        vis = _instances_list_visibility_predicate(include_bookings=include_bookings)
+        if vis is not None:
+            statement = statement.where(vis)
         if status is not None:
             statement = statement.where(ServiceInstance.status == status)
         count = self._session.execute(statement).scalar_one_or_none()
@@ -169,9 +192,13 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         service_type: ServiceType | None = None,
         cursor_created_at: datetime | None = None,
         cursor_id: UUID | None = None,
+        include_bookings: bool = False,
     ) -> list[ServiceInstance]:
         """List instances across services with optional filters and cursor pagination."""
         statement = select(ServiceInstance).options(
+            joinedload(ServiceInstance.parent).joinedload(
+                ServiceInstance.consultation_details
+            ),
             selectinload(ServiceInstance.session_slots),
             joinedload(ServiceInstance.training_details),
             joinedload(ServiceInstance.consultation_details),
@@ -184,6 +211,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             ),
             joinedload(ServiceInstance.service),
         )
+        vis = _instances_list_visibility_predicate(include_bookings=include_bookings)
+        if vis is not None:
+            statement = statement.where(vis)
         if service_type is not None:
             statement = statement.join(
                 Service, ServiceInstance.service_id == Service.id
@@ -215,9 +245,13 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         status: InstanceStatus | None = None,
         service_id: UUID | None = None,
         service_type: ServiceType | None = None,
+        include_bookings: bool = False,
     ) -> int:
         """Count instances matching optional filters."""
         statement = select(func.count(ServiceInstance.id))
+        vis = _instances_list_visibility_predicate(include_bookings=include_bookings)
+        if vis is not None:
+            statement = statement.where(vis)
         if service_type is not None:
             statement = statement.join(
                 Service, ServiceInstance.service_id == Service.id
@@ -237,6 +271,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             select(ServiceInstance)
             .where(ServiceInstance.id == instance_id)
             .options(
+                joinedload(ServiceInstance.parent),
                 selectinload(ServiceInstance.session_slots),
                 joinedload(ServiceInstance.training_details),
                 joinedload(ServiceInstance.consultation_details),
@@ -260,6 +295,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         service_types: set[ServiceType] | None = None,
         slug: str | None = None,
         service_key: str | None = None,
+        include_bookings: bool = False,
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services.
 
@@ -294,12 +330,20 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                     )
                 )
             )
-            .where(
+        )
+        vis = _instances_list_visibility_predicate(include_bookings=include_bookings)
+        if vis is not None:
+            statement = statement.where(vis)
+        statement = (
+            statement.where(
                 ServiceInstance.session_slots.any(
                     InstanceSessionSlot.ends_at >= now - datetime.resolution
                 )
             )
             .options(
+                joinedload(ServiceInstance.parent).joinedload(
+                    ServiceInstance.consultation_details
+                ),
                 selectinload(ServiceInstance.session_slots).joinedload(
                     InstanceSessionSlot.location
                 ),
@@ -351,7 +395,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         statement = select(ServiceInstance.id).where(
             func.lower(ServiceInstance.slug) == normalized.lower()
         )
-        return self._session.execute(statement).scalar_one_or_none()
+        return self._session.execute(statement).scalars().one_or_none()
 
     def list_event_instances_for_public_feed(
         self,
@@ -392,6 +436,15 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .limit(limit)
         )
         return list(self._session.execute(statement).unique().scalars().all())
+
+    def lock_template_for_booking(self, template_id: UUID) -> ServiceInstance | None:
+        """Load and row-lock a template instance for serialized booking creation."""
+        statement = (
+            select(ServiceInstance)
+            .where(ServiceInstance.id == template_id)
+            .with_for_update()
+        )
+        return self._session.execute(statement).scalar_one_or_none()
 
     def create_instance(
         self,

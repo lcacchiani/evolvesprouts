@@ -257,13 +257,16 @@ their primary responsibilities.
   `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
   fields, persists contact + program-enrollment lead (including discount metadata when
   applicable; referral-type codes are rejected). Requires `serviceKey` and
-  `serviceInstanceSlug`; the server resolves the instance and parent service, derives
-  `service_type`, and may insert an `enrollments` row for the
-  resolved instance when capacity allows (or returns **409** when the instance is
-  full with waitlist disabled). Admin enrollment APIs validate discount code scope to
-  the instance's service before incrementing usage. Then sends booking confirmation
-  (SES), optional Mailchimp subscribe, and a plain-text **sales recap** with extended
-  booking context when provided, and signed upload/download URL generation in
+  `serviceInstanceSlug`; the server resolves the **template tier** instance and parent
+  service, derives `service_type`, and for `consultation-booking` / `intro-call-booking`
+  creates a dedicated **booking** `service_instances` child row (generated slug), inserts
+  session slots tied to the template tier id for race-safe uniqueness, then attaches the
+  enrollment and payment rows to that booking instance. Other booking systems attach the
+  enrollment directly to the resolved instance when capacity allows (or returns **409**
+  when the instance is full with waitlist disabled). Admin enrollment APIs validate discount
+  code scope to the template tier instance id when codes are instance-scoped. Then sends
+  booking confirmation (SES), optional Mailchimp subscribe, and a plain-text **sales recap**
+  with extended booking context when provided, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

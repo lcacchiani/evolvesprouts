@@ -65,10 +65,27 @@ class ServiceInstance(Base):
         Index("svc_instances_service_idx", "service_id"),
         Index("svc_instances_status_idx", "status"),
         Index("svc_instances_instructor_idx", "instructor_id"),
-        Index("svc_instances_slug_uq", "slug", unique=True),
+        Index("svc_instances_parent_idx", "parent_instance_id"),
+        Index(
+            "svc_instances_slug_uq_template",
+            "slug",
+            unique=True,
+            postgresql_where=text("is_template IS TRUE"),
+        ),
+        Index(
+            "svc_instances_slug_uq_booking",
+            "slug",
+            unique=True,
+            postgresql_where=text("is_template IS FALSE"),
+        ),
         CheckConstraint(
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
+        ),
+        CheckConstraint(
+            "(is_template IS TRUE AND parent_instance_id IS NULL) "
+            "OR (is_template IS FALSE)",
+            name="service_instances_template_consistency_chk",
         ),
     )
 
@@ -81,6 +98,15 @@ class ServiceInstance(Base):
         PG_UUID(as_uuid=True),
         ForeignKey("services.id", ondelete="CASCADE"),
         nullable=False,
+    )
+    parent_instance_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("service_instances.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    is_template: Mapped[bool] = mapped_column(
+        nullable=False,
+        server_default=text("false"),
     )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     slug: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -163,11 +189,23 @@ class ServiceInstance(Base):
         "Service",
         back_populates="instances",
     )
+    parent: Mapped[ServiceInstance | None] = relationship(
+        "ServiceInstance",
+        remote_side="ServiceInstance.id",
+        foreign_keys=[parent_instance_id],
+        back_populates="bookings",
+    )
+    bookings: Mapped[list[ServiceInstance]] = relationship(
+        "ServiceInstance",
+        back_populates="parent",
+        foreign_keys=[parent_instance_id],
+    )
     location: Mapped[Location | None] = relationship("Location")
     session_slots: Mapped[list[InstanceSessionSlot]] = relationship(
         "InstanceSessionSlot",
         back_populates="instance",
         cascade="all, delete-orphan",
+        foreign_keys=lambda: [InstanceSessionSlot.instance_id],
     )
     training_details: Mapped[TrainingInstanceDetails | None] = relationship(
         "TrainingInstanceDetails",
@@ -284,6 +322,13 @@ class InstanceSessionSlot(Base):
     __tablename__ = "instance_session_slots"
     __table_args__ = (
         Index("session_slots_instance_idx", "instance_id"),
+        Index(
+            "instance_session_slots_template_starts_uidx",
+            "template_instance_id",
+            "starts_at",
+            unique=True,
+            postgresql_where=text("template_instance_id IS NOT NULL"),
+        ),
         CheckConstraint(
             "ends_at > starts_at",
             name="instance_session_slots_valid_range",
@@ -299,6 +344,11 @@ class InstanceSessionSlot(Base):
         PG_UUID(as_uuid=True),
         ForeignKey("service_instances.id", ondelete="CASCADE"),
         nullable=False,
+    )
+    template_instance_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("service_instances.id", ondelete="CASCADE"),
+        nullable=True,
     )
     location_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
@@ -323,6 +373,11 @@ class InstanceSessionSlot(Base):
     instance: Mapped[ServiceInstance] = relationship(
         "ServiceInstance",
         back_populates="session_slots",
+        foreign_keys=[instance_id],
+    )
+    template_instance: Mapped[ServiceInstance | None] = relationship(
+        "ServiceInstance",
+        foreign_keys=[template_instance_id],
     )
     location: Mapped[Location | None] = relationship("Location")
 

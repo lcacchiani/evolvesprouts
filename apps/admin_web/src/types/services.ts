@@ -307,6 +307,10 @@ export interface ServiceInstance {
   consultationDetails: ConsultationInstanceDetailsRow | null;
   /** Effective consultation pricing including parent service defaults. */
   resolvedConsultationDetails: ConsultationInstanceDetailsRow | null;
+  /** False when this row is a per-booking child instance (consultation / intro). */
+  isTemplate?: boolean;
+  /** Parent template instance id when this row is a per-booking child. */
+  parentInstanceId?: string | null;
 }
 
 export type TrainingInstanceDetailsRow = {
@@ -340,6 +344,9 @@ export interface Enrollment {
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
+  /** Present when the admin enrollment list includes booking-instance metadata. */
+  bookingInstanceSlug?: string | null;
+  scheduledStartAt?: string | null;
 }
 
 export interface DiscountCode {

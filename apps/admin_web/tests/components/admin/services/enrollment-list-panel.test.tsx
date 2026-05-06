@@ -79,6 +79,35 @@ describe('EnrollmentListPanel', () => {
     expect(screen.getByLabelText('Organization')).toBeDisabled();
   });
 
+  it('shows booking slug and scheduled start columns when enrollment rows include them', () => {
+    const enrollmentWithBookingMeta: Enrollment = {
+      ...ENROLLMENT_FIXTURE,
+      bookingInstanceSlug: 'consultation-essentials-package-20260506103000-aabbccdd',
+      scheduledStartAt: '2026-06-15T01:00:00Z',
+    };
+    render(
+      <EnrollmentListPanel
+        enrollments={[enrollmentWithBookingMeta]}
+        serviceId='service-1'
+        instanceId='instance-1'
+        canCreate={true}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('columnheader', { name: 'Booking slug' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Scheduled start' })).toBeInTheDocument();
+    expect(screen.getByText('consultation-essentials-package-20260506103000-aabbccdd')).toBeInTheDocument();
+  });
+
   it('uses selectable currency options in the enrollment editor', () => {
     render(
       <EnrollmentListPanel

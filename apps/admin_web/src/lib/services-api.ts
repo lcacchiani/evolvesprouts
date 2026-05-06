@@ -292,7 +292,7 @@ function requireNonEmptyApiString(
   return parsed;
 }
 
-function parseInstance(value: unknown): ServiceInstance {
+export function parseInstance(value: unknown): ServiceInstance {
   const item = isRecord(value) ? value : {};
   const parentTypeRaw = asNullableString(item.parent_service_type);
   const slug = requireNonEmptyApiString(item.slug, 'slug', 'service instance');
@@ -312,6 +312,8 @@ function parseInstance(value: unknown): ServiceInstance {
     parentServiceKey: asNullableString(item.parent_service_key),
     title: asNullableString(item.title),
     slug,
+    parentInstanceId: asNullableString(item.parent_instance_id),
+    isTemplate: typeof item.is_template === 'boolean' ? item.is_template : undefined,
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     status: (asNullableString(item.status) ?? 'scheduled') as ServiceInstance['status'],
@@ -385,6 +387,8 @@ function parseEnrollment(value: unknown): Enrollment {
     createdBy: asNullableString(item.created_by) ?? '',
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
+    bookingInstanceSlug: asNullableString(item.booking_instance_slug),
+    scheduledStartAt: asNullableString(item.scheduled_start_at),
   };
 }
 
