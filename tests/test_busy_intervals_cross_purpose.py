@@ -14,9 +14,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
-
 from app.services.public_calendar_availability import busy_intervals_utc
+
+pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
 
 
 def _database_url() -> str | None:
