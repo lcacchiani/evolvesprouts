@@ -195,7 +195,7 @@ export function LandingPageFreeIntroCall({
     });
   }, [introContent.selectedSlotSummaryTemplate, locale, selectedSlot]);
 
-  const handleSelectSlot = useCallback((slot: IntroCallSlot) => {
+  const handleSelectSlot = useCallback((slot: IntroCallSlot | null) => {
     setHasFormInteracted(true);
     setSelectedSlot(slot);
     setRecentCooldownMessage(false);

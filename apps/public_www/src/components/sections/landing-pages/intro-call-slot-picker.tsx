@@ -39,7 +39,7 @@ export interface IntroCallSlotPickerProps {
   pickerContent: LandingPageIntroCallContent;
   /** Same WhatsApp URL as the booking section (falls back to site config when unset). */
   whatsappHref?: string;
-  onSelect: (slot: IntroCallSlot) => void;
+  onSelect: (slot: IntroCallSlot | null) => void;
   onBlockersStatusChange?: (status: 'idle' | 'loading' | 'ready' | 'error') => void;
   refreshToken?: number;
 }
@@ -113,6 +113,8 @@ export function IntroCallSlotPicker({
   /** User-picked day; when null or stale, ``resolvedDayYmd`` falls back to the first available day. */
   const [cursorDayYmd, setCursorDayYmd] = useState<string | null>(null);
   const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
+  /** Mirrors ``selectedSlotIso`` so we can clear without impure setState side effects. */
+  const selectedSlotIsoRef = useRef<string | null>(null);
   const [rovingDayIndex, setRovingDayIndex] = useState(0);
   const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -282,18 +284,41 @@ export function IntroCallSlotPicker({
     return formatPartDateTimeLabel(slot.startIso, locale);
   }, [locale, selectedSlotIso, slots]);
 
+  const clearTimeSelection = useCallback(() => {
+    if (selectedSlotIsoRef.current !== null) {
+      selectedSlotIsoRef.current = null;
+      onSelect(null);
+    }
+    setSelectedSlotIso(null);
+  }, [onSelect]);
+
+  const selectDay = useCallback(
+    (ymd: string, index: number) => {
+      if (ymd !== resolvedDayYmd) {
+        clearTimeSelection();
+      }
+      setCursorDayYmd(ymd);
+      setRovingDayIndex(index);
+    },
+    [clearTimeSelection, resolvedDayYmd],
+  );
+
   const handleDayKeyDown = (event: KeyboardEvent, index: number) => {
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       event.preventDefault();
       const next = Math.min(index + 1, dayKeys.length - 1);
-      setRovingDayIndex(next);
-      setCursorDayYmd(dayKeys[next] ?? null);
+      const ymd = dayKeys[next] ?? null;
+      if (ymd) {
+        selectDay(ymd, next);
+      }
       dayRefs.current[next]?.focus();
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       event.preventDefault();
       const next = Math.max(index - 1, 0);
-      setRovingDayIndex(next);
-      setCursorDayYmd(dayKeys[next] ?? null);
+      const ymd = dayKeys[next] ?? null;
+      if (ymd) {
+        selectDay(ymd, next);
+      }
       dayRefs.current[next]?.focus();
     }
   };
@@ -374,6 +399,7 @@ export function IntroCallSlotPicker({
               aria-pressed={pressed}
               className='es-intro-call-slot-selection-btn rounded-md min-h-11 px-3 py-2.5 text-base sm:text-sm'
               onClick={() => {
+                selectedSlotIsoRef.current = slot.startIso;
                 setSelectedSlotIso(slot.startIso);
                 onSelect(slot);
                 trackAnalyticsEvent('intro_call_slot_selected', {
@@ -430,9 +456,7 @@ export function IntroCallSlotPicker({
                     aria-label={dayAccessibleLabel}
                     tabIndex={safeRovingDayIndex === idx ? 0 : -1}
                     onClick={() => {
-                      setCursorDayYmd(ymd);
-                      setRovingDayIndex(idx);
-                      setSelectedSlotIso(null);
+                      selectDay(ymd, idx);
                     }}
                     onKeyDown={(e) => handleDayKeyDown(e, idx)}
                     className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative min-h-[88px] w-[120px] text-center sm:min-h-0 sm:w-[134.4px]`}

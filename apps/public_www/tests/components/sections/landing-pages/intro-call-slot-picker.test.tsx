@@ -125,6 +125,44 @@ describe('IntroCallSlotPicker', () => {
     });
   });
 
+  it('clears the selected time via onSelect(null) when the date changes', async () => {
+    vi.mocked(fetchIntroCallSlots).mockResolvedValue({
+      slots: [
+        { startIso: '2026-05-05T01:00:00.000Z', endIso: '2026-05-05T01:15:00.000Z' },
+        { startIso: '2026-05-06T02:00:00.000Z', endIso: '2026-05-06T02:15:00.000Z' },
+      ],
+      fetchFailed: false,
+    });
+
+    const onSelect = vi.fn();
+
+    render(
+      <IntroCallSlotPicker
+        locale='en'
+        commonAccessibility={enContent.common.accessibility}
+        pickerContent={bookAFreeCall.en.introCall}
+        onSelect={onSelect}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '09:00' }));
+    expect(onSelect).toHaveBeenCalledTimes(1);
+
+    const wedButton = screen.getByRole('button', { name: /Wed\s+06\s+May/i });
+    fireEvent.click(wedButton);
+
+    await waitFor(() => {
+      expect(wedButton).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelect.mock.calls[1][0]).toBeNull();
+  });
+
   it('moves roving tabindex with ArrowRight on the day strip', async () => {
     vi.mocked(fetchIntroCallSlots).mockResolvedValue({
       slots: [
