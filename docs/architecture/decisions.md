@@ -657,6 +657,9 @@ no legacy field aliases). Consultation availability enumerates **discrete** Monâ
 cadence. **Strict reservation validation** rejects consultation submissions whose starts are not exactly 09:00 or 14:00
 local on weekdays before manual-block checks.
 
+**Manual calendar blocks:** Rows scoped to `consultation_booking` affect consultation availability only;
+rows scoped to `intro_call_booking` disable intro-call slots and still block consultations for overlapping wall-clock intervals.
+
 **Why:**
 - One envelope (`slots` + `meta`) reduces drift between consultation UX and intro-call UX.
 - Discrete consultation slots align picker behavior with reservation validation.

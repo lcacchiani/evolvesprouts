@@ -29,6 +29,17 @@ def test_rejects_weekend_primary() -> None:
         _assert_consultation_start_grid_aligned(payload)
 
 
+def test_rejects_malformed_primary_iso() -> None:
+    payload: dict[str, Any] = {
+        "primary_session_start_iso": "not-a-date",
+        "session_slots": [],
+    }
+    with pytest.raises(ValidationError) as ei:
+        _assert_consultation_start_grid_aligned(payload)
+    assert ei.value.field == "primarySessionStartIso"
+    assert ei.value.message == "Invalid timestamp"
+
+
 def test_accepts_monday_am_grid() -> None:
     payload: dict[str, Any] = {
         "primary_session_start_iso": "2026-05-18T01:00:00Z",

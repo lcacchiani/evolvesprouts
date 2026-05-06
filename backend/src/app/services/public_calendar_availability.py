@@ -64,7 +64,7 @@ class AvailabilitySpec:
     window: AvailabilityWindow
     lead: AvailabilityLead
     compute: Callable[[Session, date, date, datetime], list[tuple[datetime, datetime]]]
-    is_grid_aligned_local: Callable[[datetime], bool]
+    is_grid_aligned_local: Callable[[datetime], bool] | None = None
 
 
 def _is_consultation_grid_aligned_local(dt: datetime) -> bool:
@@ -85,11 +85,8 @@ def is_consultation_booking_start_grid_aligned(dt: datetime) -> bool:
     return _is_consultation_grid_aligned_local(dt)
 
 
-def _intro_grid_placeholder(_dt: datetime) -> bool:
-    return True
-
-
 def _resolve_intro_wall_timezone() -> str:
+    # Lazy import avoids circular dependency with intro_call_slots ↔ public_calendar_availability.
     from app.services.intro_call_slots import resolve_intro_call_wall_timezone
 
     return resolve_intro_call_wall_timezone()
@@ -98,6 +95,7 @@ def _resolve_intro_wall_timezone() -> str:
 def _compute_consultation_slots(
     session: Session, from_date: date, to_date: date, now: datetime
 ) -> list[tuple[datetime, datetime]]:
+    # Lazy import avoids circular dependency: calendar_blockers pulls busy_intervals_utc from here.
     from app.services.calendar_blockers import compute_available_consultation_slots
 
     return compute_available_consultation_slots(
@@ -108,6 +106,7 @@ def _compute_consultation_slots(
 def _compute_intro_slots(
     session: Session, from_date: date, to_date: date, now: datetime
 ) -> list[tuple[datetime, datetime]]:
+    # Lazy import avoids circular dependency: intro_call_slots pulls busy_intervals_utc from here.
     from app.services.intro_call_slots import compute_available_intro_call_slots
 
     return compute_available_intro_call_slots(
@@ -140,7 +139,7 @@ _PUBLIC_AVAILABILITY_SPECS: dict[AvailabilityPurpose, AvailabilitySpec] = {
         ),
         lead=AvailabilityLead(lead_hours=2, lead_calendar_days=None),
         compute=_compute_intro_slots,
-        is_grid_aligned_local=_intro_grid_placeholder,
+        is_grid_aligned_local=None,
     ),
 }
 
@@ -290,16 +289,15 @@ def _manual_calendar_busy_intervals_utc(
     *,
     from_date: date,
     to_date: date,
+    purposes: frozenset[str],
 ) -> list[tuple[datetime, datetime]]:
-    """Manual AM/PM blocks for consultation + intro-call booking purposes."""
-    from app.services.intro_call_slots import intro_call_purpose
-
+    """Manual AM/PM windows for the given ``purposes`` (``calendar_manual_blocks.purpose``)."""
+    if not purposes:
+        return []
     zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
     rows = session.execute(
         select(CalendarManualBlock.block_date, CalendarManualBlock.period).where(
-            CalendarManualBlock.purpose.in_(
-                (consultation_booking_purpose(), intro_call_purpose())
-            ),
+            CalendarManualBlock.purpose.in_(tuple(sorted(purposes))),
             CalendarManualBlock.block_date >= from_date,
             CalendarManualBlock.block_date <= to_date,
         )
@@ -386,8 +384,22 @@ def busy_intervals_utc(
     range_start_utc: datetime,
     range_end_utc: datetime,
     exclude_purposes: frozenset[AvailabilityPurpose] = frozenset(),
+    manual_block_purposes: frozenset[str] | None = None,
 ) -> list[tuple[datetime, datetime]]:
-    """Union of busy intervals (manual, events/training, consultation, intro-call)."""
+    """Union of busy intervals (manual, events/training, consultation, intro-call).
+
+    ``manual_block_purposes`` selects which ``calendar_manual_blocks.purpose`` rows merge into busy
+    time. Defaults to both consultation and intro-call booking purposes (intro-call availability).
+    Consultation slot computation passes consultation-booking only so intro-only manual blocks do
+    not suppress consultation half-days.
+    """
+    from app.services.intro_call_slots import intro_call_purpose
+
+    if manual_block_purposes is None:
+        manual_block_purposes = frozenset(
+            {consultation_booking_purpose(), intro_call_purpose()}
+        )
+
     zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
     local_start = range_start_utc.astimezone(zone).date()
     local_end = range_end_utc.astimezone(zone).date()
@@ -395,7 +407,10 @@ def busy_intervals_utc(
     busy: list[tuple[datetime, datetime]] = []
     busy.extend(
         _manual_calendar_busy_intervals_utc(
-            session, from_date=local_start, to_date=local_end
+            session,
+            from_date=local_start,
+            to_date=local_end,
+            purposes=manual_block_purposes,
         )
     )
 

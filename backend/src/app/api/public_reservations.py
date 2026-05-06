@@ -453,7 +453,7 @@ def _assert_consultation_start_grid_aligned(
         try:
             dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
         except ValueError:
-            continue
+            raise ValidationError("Invalid timestamp", field=field) from None
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         else:

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Contact, Enrollment, Service, ServiceInstance
 from app.db.models.enums import ServiceType
+from app.services.calendar_blockers import consultation_booking_purpose
 from app.services.public_calendar_availability import (
     AvailabilityPurpose,
     busy_intervals_utc,
@@ -129,6 +130,9 @@ def compute_available_intro_call_slots(
         range_start_utc=range_start_utc,
         range_end_utc=range_end_utc,
         exclude_purposes=frozenset(),
+        manual_block_purposes=frozenset(
+            {consultation_booking_purpose(), intro_call_purpose()}
+        ),
     )
     return [
         (s0, s1)
@@ -181,6 +185,9 @@ def is_intro_call_slot_available(
             range_start_utc=range_start_utc,
             range_end_utc=range_end_utc,
             exclude_purposes=frozenset({AvailabilityPurpose.INTRO_CALL_BOOKING}),
+            manual_block_purposes=frozenset(
+                {consultation_booking_purpose(), intro_call_purpose()}
+            ),
         )
     )
     ign = (

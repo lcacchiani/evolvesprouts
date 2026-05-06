@@ -31,50 +31,19 @@ function addOneCalendarDayYmd(ymd: string): string {
   return `${yy}-${mm}-${dd}`;
 }
 
-function utcMillisForWallMidnight(ymd: string, wallTimeZone: string): number {
+function utcMillisForWallMidnightWithFormatter(
+  ymd: string,
+  ymdFormatter: Intl.DateTimeFormat,
+): number {
   const [y, mo, d] = ymd.split('-').map((part) => Number(part));
   let utc = Date.UTC(y, mo - 1, d, 0, 0, 0);
-  const ymdOnly = new Intl.DateTimeFormat('en-CA', {
-    timeZone: wallTimeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
   for (let i = 0; i < 48; i += 1) {
-    if (ymdOnly.format(new Date(utc)) === ymd) {
+    if (ymdFormatter.format(new Date(utc)) === ymd) {
       return utc;
     }
     utc += 3600000;
   }
   return Date.UTC(y, mo - 1, d, 0, 0, 0);
-}
-
-function wallClockParts(isoInstant: Date, timeZone: string): { ymd: string; hour: number; minute: number; weekdayShort: string } {
-  const ymdFmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  const hourFmt = new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  const wdFmt = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    weekday: 'short',
-  });
-  const ymd = ymdFmt.format(isoInstant);
-  const hmRaw = hourFmt.format(isoInstant);
-  const [hh, mm] = hmRaw.split(':').map((x) => Number(x));
-  return {
-    ymd,
-    hour: hh,
-    minute: mm,
-    weekdayShort: wdFmt.format(isoInstant),
-  };
 }
 
 /**
@@ -87,6 +56,23 @@ export function deriveHalfDayBlockersFromSlots(
   wallTimeZone: string,
   ymdRange: { fromYmd: string; toYmd: string },
 ): CalendarUnavailableSlot[] {
+  const ymdFmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: wallTimeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const hourFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: wallTimeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const wdFmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: wallTimeZone,
+    weekday: 'short',
+  });
+
   const amOk = new Set<string>();
   const pmOk = new Set<string>();
 
@@ -100,25 +86,25 @@ export function deriveHalfDayBlockersFromSlots(
     if (Number.isNaN(instant.getTime())) {
       continue;
     }
-    const { ymd, hour, minute, weekdayShort } = wallClockParts(instant, wallTimeZone);
+    const ymd = ymdFmt.format(instant);
+    const hmRaw = hourFmt.format(instant);
+    const [hh, mm] = hmRaw.split(':').map((x) => Number(x));
+    const weekdayShort = wdFmt.format(instant);
     if (weekdayShort === 'Sat' || weekdayShort === 'Sun') {
       continue;
     }
-    if (hour === 9 && minute === 0) {
+    if (hh === 9 && mm === 0) {
       amOk.add(ymd);
     }
-    if (hour === 14 && minute === 0) {
+    if (hh === 14 && mm === 0) {
       pmOk.add(ymd);
     }
   }
 
   const out: CalendarUnavailableSlot[] = [];
   for (const ymd of enumerateInclusiveYmd(ymdRange.fromYmd, ymdRange.toYmd)) {
-    const noonProbe = new Date(utcMillisForWallMidnight(ymd, wallTimeZone) + 12 * 3600000);
-    const wd = new Intl.DateTimeFormat('en-US', {
-      timeZone: wallTimeZone,
-      weekday: 'short',
-    }).format(noonProbe);
+    const noonProbe = new Date(utcMillisForWallMidnightWithFormatter(ymd, ymdFmt) + 12 * 3600000);
+    const wd = wdFmt.format(noonProbe);
     if (wd === 'Sat' || wd === 'Sun') {
       out.push({ date: ymd, period: 'am' }, { date: ymd, period: 'pm' });
       continue;

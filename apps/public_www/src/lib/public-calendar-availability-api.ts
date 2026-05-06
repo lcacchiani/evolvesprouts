@@ -186,10 +186,14 @@ export async function fetchPublicCalendarAvailability(params: {
   fromYmd: string;
   toYmd: string;
   signal: AbortSignal;
-}): Promise<{ slots: PublicCalendarSlot[]; meta: PublicCalendarAvailabilityMeta | null }> {
+}): Promise<{
+  slots: PublicCalendarSlot[];
+  meta: PublicCalendarAvailabilityMeta | null;
+  fetchFailed: boolean;
+}> {
   const client = createPublicCrmApiClient();
   if (!client) {
-    return { slots: [], meta: null };
+    return { slots: [], meta: null, fetchFailed: true };
   }
   const payload = await client.request({
     endpointPath: buildPublicCalendarAvailabilityPath(params),
@@ -197,7 +201,8 @@ export async function fetchPublicCalendarAvailability(params: {
     signal: params.signal,
     bypassGetCache: true,
   });
-  return parseAvailabilityPayload(payload);
+  const parsed = parseAvailabilityPayload(payload);
+  return { ...parsed, fetchFailed: false };
 }
 
 /**
@@ -207,24 +212,22 @@ export async function fetchPublicCalendarAvailability(params: {
 export async function fetchConsultationCalendarAvailability(
   signal: AbortSignal,
 ): Promise<ConsultationCalendarAvailabilityFetchResult> {
-  const client = createPublicCrmApiClient();
-  if (!client) {
-    return { slots: [], fetchFailed: true };
-  }
-
   const { fromYmd, toYmd } = buildConsultationBlockersQueryRange(new Date());
 
   try {
-    const { slots, meta } = await fetchPublicCalendarAvailability({
+    const { slots, meta, fetchFailed } = await fetchPublicCalendarAvailability({
       purpose: 'consultation_booking',
       fromYmd,
       toYmd,
       signal,
     });
-    const wall =
-      meta?.wallTimeZone?.trim() ||
-      /* fallback matches backend default wall resolver */
-      PUBLIC_SITE_IANA_TIMEZONE;
+    if (fetchFailed) {
+      return { slots: [], fetchFailed: true };
+    }
+    const wall = meta?.wallTimeZone?.trim();
+    if (!wall) {
+      return { slots: [], fetchFailed: true };
+    }
     const derived = deriveHalfDayBlockersFromSlots(slots, wall, { fromYmd, toYmd });
     return { slots: derived, fetchFailed: false };
   } catch {
@@ -240,23 +243,21 @@ export function ymdFromSiteTimeZoneForIntro(instant: Date): string {
 }
 
 export async function fetchIntroCallSlots(signal: AbortSignal): Promise<IntroCallSlotsFetchResult> {
-  const client = createPublicCrmApiClient();
-  if (!client) {
-    return { slots: [], fetchFailed: true };
-  }
-
   const now = new Date();
   const fromYmd = ymdFromSiteTimeZoneForIntro(now);
   const end = new Date(now.getTime() + INTRO_CALL_HORIZON_DAYS * 86400000);
   const toYmd = ymdFromSiteTimeZoneForIntro(end);
 
   try {
-    const { slots } = await fetchPublicCalendarAvailability({
+    const { slots, fetchFailed } = await fetchPublicCalendarAvailability({
       purpose: 'intro_call_booking',
       fromYmd,
       toYmd,
       signal,
     });
+    if (fetchFailed) {
+      return { slots: [], fetchFailed: true };
+    }
     return { slots, fetchFailed: false };
   } catch {
     return { slots: [], fetchFailed: true };

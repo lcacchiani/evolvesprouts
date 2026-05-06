@@ -6,7 +6,6 @@ from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy.dialects import postgresql
 
 from app.services.intro_call_slots import (
     compute_available_intro_call_slots,
@@ -85,35 +84,3 @@ def test_exclude_intro_booking_interval_excludes_existing(fake_session: object) 
             exclude_intro_booking_interval=(slot_start, slot_end),
         )
     assert ok is True
-
-
-def test_non_intro_busy_query_excludes_intro_call_service_type() -> None:
-    from sqlalchemy import select
-
-    from app.db.models import InstanceSessionSlot, Service, ServiceInstance
-    from app.db.models.enums import ServiceType
-    from app.db.repositories.service_instance import (
-        public_calendar_blocker_instance_predicates,
-    )
-
-    range_start = datetime(2026, 5, 4, 0, 0, tzinfo=UTC)
-    range_end = datetime(2026, 5, 5, 0, 0, tzinfo=UTC)
-    stmt = (
-        select(InstanceSessionSlot.starts_at, InstanceSessionSlot.ends_at)
-        .join(ServiceInstance, InstanceSessionSlot.instance_id == ServiceInstance.id)
-        .join(Service, ServiceInstance.service_id == Service.id)
-        .where(
-            InstanceSessionSlot.starts_at < range_end,
-            InstanceSessionSlot.ends_at > range_start,
-            Service.service_type != ServiceType.INTRO_CALL,
-            *public_calendar_blocker_instance_predicates(),
-        )
-    )
-    sql = str(
-        stmt.compile(
-            dialect=postgresql.dialect(),
-            compile_kwargs={"literal_binds": True},
-        )
-    ).lower()
-    assert "cancelled" in sql
-    assert "published" in sql

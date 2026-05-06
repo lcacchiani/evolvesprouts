@@ -464,6 +464,7 @@ def compute_available_consultation_slots(
         range_start_utc=range_start_utc,
         range_end_utc=range_end_utc,
         exclude_purposes=frozenset(),
+        manual_block_purposes=frozenset({consultation_booking_purpose()}),
     )
 
     out: list[tuple[datetime, datetime]] = []
