@@ -66,6 +66,11 @@ function formatTruncatedId(id: string | null | undefined): string {
   return `${id.slice(0, 8)}…`;
 }
 
+/** Customer payments Method column: snake_case label with FPS acronym spelled out. */
+function formatPaymentMethodLabel(raw: string | null | undefined): string {
+  return formatEnumLabel(raw ?? '').replace(/\bFps\b/g, 'FPS');
+}
+
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
 
 function invoiceLineSortKey(line: CustomerInvoiceLineRow): number {
@@ -1731,9 +1736,6 @@ export function ClientInvoicesPanel() {
         onLoadMore={() => {}}
         toolbar={
           <div className='mb-3 flex flex-wrap gap-2'>
-            <Button type='button' variant='outline' onClick={() => void loadPayments()} disabled={listLoading}>
-              Refresh
-            </Button>
             <Button type='button' variant='outline' onClick={() => void handleExport()} disabled={exportBusy}>
               {exportBusy ? 'Exporting…' : 'Download CSV export (v2)'}
             </Button>
@@ -1777,7 +1779,7 @@ export function ClientInvoicesPanel() {
                 >
                   <td className='px-3 py-2'>{formatEnumLabel(p.direction ?? '')}</td>
                   <td className='px-3 py-2'>{formatEnumLabel(p.status ?? '')}</td>
-                  <td className='px-3 py-2'>{formatEnumLabel(p.method ?? '')}</td>
+                  <td className='px-3 py-2'>{formatPaymentMethodLabel(p.method)}</td>
                   <td className='px-3 py-2'>{amountDisplay}</td>
                   <td className='px-3 py-2'>{formatDate(p.createdAt ?? null)}</td>
                   <td
