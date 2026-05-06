@@ -2,12 +2,13 @@
 
 import { AdminTabStrip, type AdminTabItem } from '@/components/ui/admin-tab-strip';
 
-export type FinanceView = 'expenses' | 'vendors' | 'client-invoices';
+export type FinanceView = 'expenses' | 'vendors' | 'client-invoices' | 'tax';
 
 export const FINANCE_TAB_ITEMS: readonly AdminTabItem<FinanceView>[] = [
   { key: 'expenses', label: 'Expenses' },
   { key: 'vendors', label: 'Vendors' },
   { key: 'client-invoices', label: 'Client Invoices' },
+  { key: 'tax', label: 'Tax' },
 ] as const;
 
 export const FINANCE_TAB_KEYS: readonly FinanceView[] = FINANCE_TAB_ITEMS.map(

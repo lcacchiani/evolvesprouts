@@ -92,6 +92,10 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
   }),
 }));
 
+vi.mock('@/components/admin/finance/tax-fiscal-year-panel', () => ({
+  TaxFiscalYearPanel: () => <h2>Tax fiscal snapshot</h2>,
+}));
+
 import { FinancePage } from '@/components/admin/finance/finance-page';
 
 describe('FinancePage', () => {
@@ -110,6 +114,7 @@ describe('FinancePage', () => {
     expect(screen.getByRole('button', { name: 'Expenses' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vendors' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Client Invoices' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tax' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Expense Details' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Vendors' }));
@@ -120,6 +125,10 @@ describe('FinancePage', () => {
     await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
     expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
     expect(window.location.search).toBe('?tab=client-invoices');
+
+    await user.click(screen.getByRole('button', { name: 'Tax' }));
+    expect(screen.getByRole('heading', { name: 'Tax fiscal snapshot' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?tab=tax');
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
     expect(window.location.search).toBe('');
