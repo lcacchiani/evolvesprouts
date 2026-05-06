@@ -392,8 +392,8 @@ export function IntroCallSlotPicker({
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='relative mt-0 w-full min-w-0'>
+    <div className='min-w-0 max-w-full space-y-4'>
+      <div className='relative mt-0 w-full min-w-0 max-w-full'>
         <CarouselTrack
           carouselRef={dayCarouselRef}
           testId='intro-call-day-carousel'
@@ -401,9 +401,9 @@ export function IntroCallSlotPicker({
             title: pickerContent.bookingSectionTitle,
           })}
           ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-          className='pb-2 pr-1'
+          className='max-w-full min-w-0 pb-2 pr-1'
         >
-          <ul className='flex min-w-0 list-none gap-3 p-0'>
+          <ul className='flex w-max min-w-full list-none gap-3 p-0'>
             {dayKeys.map((ymd, idx) => {
               const count = slotsByDay.get(ymd)?.length ?? 0;
               if (count === 0) {

@@ -493,8 +493,8 @@ export function LandingPageFreeIntroCall({
             </div>
           </div>
         ) : (
-          <div className='grid gap-8 lg:grid-cols-2 lg:gap-12'>
-            <div ref={pickerWrapRef}>
+          <div className='grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-12'>
+            <div ref={pickerWrapRef} className='min-w-0'>
               <IntroCallSlotPicker
                 locale={locale}
                 commonAccessibility={commonAccessibility}
@@ -520,7 +520,7 @@ export function LandingPageFreeIntroCall({
                 </a>
               </p>
             </div>
-            <div>
+            <div className='min-w-0'>
               {recentCooldownMessage ? (
                 <p className='mb-4 rounded-inner border border-amber-200 bg-amber-50 px-4 py-3 es-type-body'>
                   {introContent.recentIntroMessage}{' '}
