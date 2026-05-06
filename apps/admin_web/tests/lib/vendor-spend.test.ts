@@ -5,6 +5,8 @@ import {
   computeVendorSpendInDefaultCurrencyByVendorId,
   formatAmountInCurrency,
   formatAmountInDefaultCurrency,
+  formatMoneyLineWithFxToDefault,
+  parseMoneyAmountString,
 } from '@/lib/vendor-spend';
 import type { Expense } from '@/types/expenses';
 
@@ -52,6 +54,29 @@ describe('formatAmountInCurrency', () => {
 describe('formatAmountInDefaultCurrency', () => {
   it('delegates to admin default currency', () => {
     expect(formatAmountInDefaultCurrency(1234.56)).toBe('HK$1,234.56');
+  });
+});
+
+describe('parseMoneyAmountString', () => {
+  it('parses commas and zero', () => {
+    expect(parseMoneyAmountString('')).toBeNull();
+    expect(parseMoneyAmountString('1,234.5')).toBe(1234.5);
+    expect(parseMoneyAmountString('0')).toBe(0);
+  });
+});
+
+describe('formatMoneyLineWithFxToDefault', () => {
+  it('formats default currency only when codes match', () => {
+    expect(formatMoneyLineWithFxToDefault('100', 'HKD', new Map())).toBe('HK$100.00');
+  });
+
+  it('shows converted default with original in parentheses when FX is present', () => {
+    const mult = new Map<string, number>([['GBP', 10]]);
+    expect(formatMoneyLineWithFxToDefault('20', 'GBP', mult)).toBe('HK$200.00 (£20.00)');
+  });
+
+  it('falls back to original only when multiplier is missing', () => {
+    expect(formatMoneyLineWithFxToDefault('20', 'GBP', new Map())).toBe('£20.00');
   });
 });
 
