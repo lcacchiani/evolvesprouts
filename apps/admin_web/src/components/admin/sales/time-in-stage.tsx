@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface TimeInStageProps {
@@ -11,7 +11,7 @@ export interface TimeInStageProps {
 export function TimeInStage({ values }: TimeInStageProps) {
   const entries = Object.entries(values).map(([stage, days]) => ({
     stage,
-    label: toTitleCase(stage),
+    label: formatEnumLabel(stage),
     days,
   }));
 

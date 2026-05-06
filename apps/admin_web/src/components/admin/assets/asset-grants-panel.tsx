@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatDate, toTitleCase } from '@/lib/format';
+import { formatDate, formatEnumLabel } from '@/lib/format';
 
 const ASSET_GRANT_FORM_ID = 'admin-asset-grant-form';
 
@@ -141,7 +141,7 @@ export function AssetGrantsPanel({
                 >
                   {ACCESS_GRANT_TYPES.map((type) => (
                     <option key={type} value={type}>
-                      {toTitleCase(type)}
+                      {formatEnumLabel(type)}
                     </option>
                   ))}
                 </Select>
@@ -195,7 +195,7 @@ export function AssetGrantsPanel({
                 ) : (
                   grants.map((grant) => (
                     <tr key={grant.id}>
-                      <td className='px-4 py-3 text-slate-700'>{toTitleCase(grant.grantType)}</td>
+                      <td className='px-4 py-3 text-slate-700'>{formatEnumLabel(grant.grantType)}</td>
                       <td className='px-4 py-3 text-slate-700'>{grant.granteeId || '—'}</td>
                       <td className='px-4 py-3 text-slate-700'>{grant.grantedBy || '—'}</td>
                       <td className='px-4 py-3 text-slate-700'>{formatDate(grant.createdAt)}</td>

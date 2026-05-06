@@ -90,15 +90,6 @@ function formatAllocateLineOptionLabel(
   return base;
 }
 
-/** List table: capitalize first letter of API status (for example `draft` → `Draft`). */
-function formatCustomerInvoiceStatusLabel(status: string | undefined): string {
-  const t = status?.trim() ?? '';
-  if (t === '') {
-    return '—';
-  }
-  return t.charAt(0).toUpperCase() + t.slice(1);
-}
-
 function currencySelectValue(
   code: string,
   options: readonly { value: string }[],
@@ -1395,7 +1386,7 @@ export function ClientInvoicesPanel() {
                   }}
                 >
                   <td className='px-3 py-2'>
-                    {formatCustomerInvoiceStatusLabel(inv.status)}
+                    {formatEnumLabel(inv.status ?? '') || '—'}
                   </td>
                   <td className='px-3 py-2'>{inv.invoiceNumber ?? '—'}</td>
                   <td className='px-3 py-2 text-slate-700'>

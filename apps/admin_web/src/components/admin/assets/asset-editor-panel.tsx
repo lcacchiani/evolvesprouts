@@ -9,10 +9,7 @@ import type {
   UpdateAdminAssetPatchInput,
 } from '@/types/assets';
 
-import {
-  matchAdminSelectableContentLanguage,
-  toTitleCase,
-} from '@/lib/format';
+import { formatEnumLabel, matchAdminSelectableContentLanguage } from '@/lib/format';
 import {
   ASSET_VISIBILITIES,
   CLIENT_DOCUMENT_ASSET_TAG,
@@ -467,7 +464,7 @@ export function AssetEditorPanel({
             >
               {ASSET_VISIBILITIES.map((visibility) => (
                 <option key={visibility} value={visibility}>
-                  {toTitleCase(visibility)}
+                  {formatEnumLabel(visibility)}
                 </option>
               ))}
             </Select>

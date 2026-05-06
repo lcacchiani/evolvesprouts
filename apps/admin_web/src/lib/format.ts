@@ -235,8 +235,9 @@ export function formatLocationCoordinatesLabel(lat: number | null, lng: number |
 
 /**
  * Split on underscores, capitalize the first character of each segment, join with spaces.
- * Drops empty segments (for example from consecutive underscores). Does not change the casing
- * of characters after the first in each segment; use {@link formatEnumLabel} for typical API snake_case enums.
+ * Drops empty segments (for example from consecutive underscores). Does not normalize each
+ * segment’s body to lowercase; most admin UI should call {@link formatEnumLabel} instead so API
+ * snake_case enums render consistently.
  */
 export function toTitleCase(value: string): string {
   return value

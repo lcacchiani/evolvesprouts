@@ -6,7 +6,7 @@ import { CONTACT_SOURCES, FUNNEL_STAGES, LEAD_TYPES } from '@/types/leads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 
 import { getStageBadgeClass } from './stage-utils';
 
@@ -50,7 +50,7 @@ export function LeadsFilterBar({
               }`}
               onClick={() => onFilterChange('stage', toggleArrayValue(filters.stage, stage))}
             >
-              {toTitleCase(stage)}
+              {formatEnumLabel(stage)}
             </button>
           );
         })}
@@ -66,7 +66,7 @@ export function LeadsFilterBar({
           <option value=''>All sources</option>
           {CONTACT_SOURCES.map((source) => (
             <option key={source} value={source}>
-              {toTitleCase(source)}
+              {formatEnumLabel(source)}
             </option>
           ))}
         </Select>
@@ -80,7 +80,7 @@ export function LeadsFilterBar({
           <option value=''>All lead types</option>
           {LEAD_TYPES.map((leadType) => (
             <option key={leadType} value={leadType}>
-              {toTitleCase(leadType)}
+              {formatEnumLabel(leadType)}
             </option>
           ))}
         </Select>

@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { PhoneField } from '@/components/ui/phone-field';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { toTitleCase } from '@/lib/format';
+import { formatEnumLabel } from '@/lib/format';
 import { contactPhoneRequestFields } from '@/lib/phone-request';
 
 export interface CreateLeadDialogProps {
@@ -139,7 +139,7 @@ export function CreateLeadDialog({
         <Select value={source} onChange={(event) => setSource(event.target.value as ContactSource)}>
           {CONTACT_SOURCES.map((sourceOption) => (
             <option key={sourceOption} value={sourceOption}>
-              {toTitleCase(sourceOption)}
+              {formatEnumLabel(sourceOption)}
             </option>
           ))}
         </Select>
@@ -151,7 +151,7 @@ export function CreateLeadDialog({
         <Select value={leadType} onChange={(event) => setLeadType(event.target.value as LeadType)}>
           {LEAD_TYPES.map((leadTypeOption) => (
             <option key={leadTypeOption} value={leadTypeOption}>
-              {toTitleCase(leadTypeOption)}
+              {formatEnumLabel(leadTypeOption)}
             </option>
           ))}
         </Select>
