@@ -18,7 +18,6 @@ import {
   SubmitButtonLoadingContent,
 } from '@/components/shared/submit-button-loading-content';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -38,10 +37,6 @@ import {
   trackEcommerceEvent,
   trackPublicFormOutcome,
 } from '@/lib/analytics';
-import {
-  buildBookingIcsContent,
-  downloadBookingCalendarFile,
-} from '@/lib/booking-calendar-download';
 import { createPublicCrmApiClient, CrmApiRequestError } from '@/lib/crm-api-client';
 import type { IntroCallSlot } from '@/lib/intro-call-slots-api';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -49,13 +44,7 @@ import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { isValidPhoneForRegion } from '@/lib/public-phone-validation';
 import { submitReservation, type ReservationSubmissionPayload } from '@/lib/reservations-data';
 import { resolveCaptchaErrorMessage, useFormSubmission } from '@/components/sections/shared/use-form-submission';
-import {
-  appendTimeZoneLabel,
-  formatSiteCompactDate,
-  formatSitePartDate,
-  formatSiteTimeOfDay,
-  formatSiteTimeZoneShortName,
-} from '@/lib/site-datetime';
+import { formatSitePartDate, formatSiteTimeOfDay } from '@/lib/site-datetime';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 const INTRO_CALL_FORM_ANALYTICS_ID = 'intro-call-booking-form';
@@ -175,16 +164,6 @@ export function LandingPageFreeIntroCall({
   const hasPhoneInvalidForCountry =
     isPhoneTouched && phoneFilled && !isValidPhoneForRegion(phone, phoneCountry);
   const hasTopicsError = false;
-
-  const slotSummaryText = useMemo(() => {
-    if (!selectedSlot) {
-      return '';
-    }
-    const dateLabel = formatSiteCompactDate(selectedSlot.startIso, locale);
-    const timeLabel = formatSiteTimeOfDay(selectedSlot.startIso, locale);
-    const tz = formatSiteTimeZoneShortName(selectedSlot.startIso, locale);
-    return appendTimeZoneLabel(`${dateLabel} · ${timeLabel}`, tz) ?? `${dateLabel} · ${timeLabel}`;
-  }, [locale, selectedSlot]);
 
   const selectedSlotCardSecondLine = useMemo(() => {
     if (!selectedSlot) {
@@ -454,26 +433,6 @@ export function LandingPageFreeIntroCall({
     setIsSuccess(true);
   }
 
-  function handleAddToCalendar() {
-    if (!selectedSlot) {
-      return;
-    }
-    const ics = buildBookingIcsContent({
-      title: pageTitle,
-      dateStartTime: selectedSlot.startIso,
-      dateEndTime: selectedSlot.endIso,
-      location: 'Online',
-    });
-    if (ics) {
-      downloadBookingCalendarFile(ics, 'evolvesprouts-free-intro-call');
-    }
-    trackAnalyticsEvent('booking_thank_you_ics_download', {
-      sectionId: 'intro-call-booking',
-      ctaLocation: 'intro_call_thank_you',
-      params: { total_amount: 0 },
-    });
-  }
-
   return (
     <SectionShell
       id='intro-call-booking'
@@ -488,26 +447,12 @@ export function LandingPageFreeIntroCall({
           align='left'
           className='mb-8 max-w-2xl'
         />
-        {isSuccess && selectedSlot ? (
+        {isSuccess ? (
           <div className='max-w-xl space-y-4 rounded-inner border es-border-panel es-bg-surface-white px-6 py-8'>
             <h3 className='text-2xl font-bold es-text-heading'>
               {introContent.thankYouTitle}
             </h3>
             <p className='es-type-body'>{introContent.thankYouBody}</p>
-            <p className='es-type-body font-semibold es-text-heading'>{slotSummaryText}</p>
-            <div className='flex flex-col gap-3 sm:flex-row sm:flex-wrap'>
-              <ButtonPrimitive
-                type='button'
-                variant='outline'
-                className='w-fit'
-                onClick={handleAddToCalendar}
-              >
-                {introContent.addToCalendarLabel}
-              </ButtonPrimitive>
-              <SectionCtaAnchor href={whatsappHref} variant='primary' className='w-fit'>
-                {introContent.whatsappAfterBookLabel}
-              </SectionCtaAnchor>
-            </div>
           </div>
         ) : (
           <div className='grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-12'>
