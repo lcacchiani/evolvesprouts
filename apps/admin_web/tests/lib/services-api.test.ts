@@ -20,6 +20,7 @@ import {
   listAllVenueAndPartnerLocations,
   listLocations,
   listServices,
+  parseInstance,
 } from '@/lib/services-api';
 
 describe('services-api', () => {
@@ -429,5 +430,52 @@ describe('services-api', () => {
       '00000000-0000-0000-0000-000000000002',
       '00000000-0000-0000-0000-000000000003',
     ]);
+  });
+
+  it('parseInstance maps is_template and parent_instance_id from admin API shape', () => {
+    const parentId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const parsed = parseInstance({
+      id: 'inst-booking-1',
+      service_id: 'svc-1',
+      parent_service_title: 'Consult',
+      parent_service_tier: null,
+      parent_service_type: 'consultation',
+      parent_service_key: 'family-consultation',
+      title: 'Booking',
+      slug: 'booking-slug',
+      description: null,
+      cover_image_s3_key: null,
+      status: 'open',
+      delivery_mode: null,
+      location_id: null,
+      max_capacity: 1,
+      waitlist_enabled: false,
+      external_url: null,
+      partner_organizations: [],
+      instructor_id: null,
+      cohort: null,
+      notes: null,
+      tag_ids: [],
+      created_by: 'admin-sub',
+      created_at: '2026-03-01T10:00:00Z',
+      updated_at: '2026-03-01T10:00:00Z',
+      resolved_title: 'Booking',
+      resolved_slug: 'booking-slug',
+      resolved_description: null,
+      resolved_cover_image_s3_key: null,
+      resolved_delivery_mode: null,
+      resolved_location_id: null,
+      session_slots: [],
+      training_details: null,
+      resolved_training_details: null,
+      event_ticket_tiers: [],
+      resolved_event_ticket_tiers: [],
+      consultation_details: null,
+      resolved_consultation_details: null,
+      is_template: false,
+      parent_instance_id: parentId,
+    });
+    expect(parsed.isTemplate).toBe(false);
+    expect(parsed.parentInstanceId).toBe(parentId);
   });
 });

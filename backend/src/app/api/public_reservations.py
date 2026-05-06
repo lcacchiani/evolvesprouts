@@ -239,6 +239,7 @@ def _consultation_booking_slot_rows(
             "Consultation primary session must end after it starts",
             field="primarySessionEndIso",
         )
+    primary_duration = pe - ps
     rows: list[tuple[datetime, datetime, int]] = [(ps, pe, 0)]
     seen: set[datetime] = {ps}
     extras = payload.get("session_slots") or []
@@ -247,18 +248,21 @@ def _consultation_booking_slot_rows(
         end_s = row.get("end_iso")
         if not isinstance(start_s, str) or not start_s.strip():
             continue
-        if not isinstance(end_s, str) or not end_s.strip():
-            raise ValidationError(
-                "Each consultation session slot must include an end time",
-                field="sessionSlots",
-            )
         ss = _parse_iso_datetime_utc(start_s.strip())
-        es = _parse_iso_datetime_utc(end_s.strip())
-        if ss is None or es is None:
+        if ss is None:
             raise ValidationError(
                 "Invalid consultation session slot timestamps",
                 field="sessionSlots",
             )
+        if isinstance(end_s, str) and end_s.strip():
+            es = _parse_iso_datetime_utc(end_s.strip())
+            if es is None:
+                raise ValidationError(
+                    "Invalid consultation session slot timestamps",
+                    field="sessionSlots",
+                )
+        else:
+            es = ss + primary_duration
         if es <= ss:
             raise ValidationError(
                 "Each session slot must end after its start time",

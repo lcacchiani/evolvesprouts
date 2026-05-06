@@ -341,6 +341,9 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 )
             )
             .options(
+                joinedload(ServiceInstance.parent).joinedload(
+                    ServiceInstance.consultation_details
+                ),
                 selectinload(ServiceInstance.session_slots).joinedload(
                     InstanceSessionSlot.location
                 ),
@@ -382,7 +385,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .where(func.lower(ServiceInstance.slug) == normalized.lower())
             .options(joinedload(ServiceInstance.service))
         )
-        return self._session.execute(statement).unique().scalars().first()
+        return self._session.execute(statement).unique().scalar_one_or_none()
 
     def get_id_by_slug(self, slug: str) -> UUID | None:
         """Resolve ``service_instances.id`` from public slug (case-insensitive)."""
@@ -392,7 +395,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         statement = select(ServiceInstance.id).where(
             func.lower(ServiceInstance.slug) == normalized.lower()
         )
-        return self._session.execute(statement).scalars().first()
+        return self._session.execute(statement).scalars().one_or_none()
 
     def list_event_instances_for_public_feed(
         self,

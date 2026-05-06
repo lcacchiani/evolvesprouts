@@ -195,7 +195,7 @@ def test_get_id_by_slug_compiles_lower_match() -> None:
     mock_session = MagicMock()
     exec_result = MagicMock()
     scalars_result = MagicMock()
-    scalars_result.first.return_value = UUID(int=99)
+    scalars_result.one_or_none.return_value = UUID(int=99)
     exec_result.scalars.return_value = scalars_result
     mock_session.execute.return_value = exec_result
 

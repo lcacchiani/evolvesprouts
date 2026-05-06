@@ -292,7 +292,7 @@ function requireNonEmptyApiString(
   return parsed;
 }
 
-function parseInstance(value: unknown): ServiceInstance {
+export function parseInstance(value: unknown): ServiceInstance {
   const item = isRecord(value) ? value : {};
   const parentTypeRaw = asNullableString(item.parent_service_type);
   const slug = requireNonEmptyApiString(item.slug, 'slug', 'service instance');
