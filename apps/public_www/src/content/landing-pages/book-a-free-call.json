@@ -44,17 +44,22 @@
         {
           "icon": "⏱",
           "title": "Length",
-          "description": "The call is 15 minutes. Please join on time so we can make the most of it."
+          "description": "15 minutes, focused. We keep it short on purpose so you get clear answers without losing half your day. Please join on time so we can make the most of it."
         },
         {
           "icon": "🌏",
           "title": "Languages",
-          "description": "The intro call is conducted in English."
+          "description": "Intro calls are in English. If you'd prefer Cantonese or Mandarin, message me on WhatsApp and we'll arrange it."
         },
         {
           "icon": "📅",
           "title": "Rescheduling",
-          "description": "Need to change your time? Reply to your confirmation email or message us on WhatsApp and we will help manually."
+          "description": "Life happens. If you need to change your time, just reply to your confirmation email or message us on WhatsApp and we'll find a new slot for you."
+        },
+        {
+          "icon": "👤",
+          "title": "Who you'll speak with",
+          "description": "You'll be on the call with me — Ida, AMI Montessori educator, mum of two and founder of Evolve Sprouts. I've been where you are, so this won't feel like a sales pitch."
         }
       ]
     },
@@ -63,27 +68,27 @@
       "items": [
         {
           "question": "How long is the intro call?",
-          "answer": "15 minutes. We keep it focused so you get clear answers without taking too much out of your day."
+          "answer": "15 minutes. Short on purpose — enough time to understand your situation and point you in the right direction, without taking over your day."
         },
         {
           "question": "Is it really free?",
-          "answer": "Yes. There is no charge for this intro call."
+          "answer": "Yes, completely free. No card details, no catch."
         },
         {
           "question": "What if I am running late?",
-          "answer": "Please try to join on time. If you are delayed, message us on WhatsApp as soon as you can — we may need to reschedule if the window has passed."
+          "answer": "Please try to join on time so we have the full 15 minutes together. If something comes up, message me on WhatsApp as soon as you can — I'll let you know if we can still make it work or find you a new slot."
         },
         {
           "question": "How do I cancel or reschedule?",
-          "answer": "Reply to your confirmation email or message us on WhatsApp. In version one, changes are handled manually by our team."
+          "answer": "Just reply to your confirmation email or message us on WhatsApp and we'll sort it out. No forms, no hassle."
         },
         {
           "question": "Will you try to sell me something?",
-          "answer": "We will explain how the programme works if it is relevant. There is no hard sell — the goal is to help you decide what is right for your family."
+          "answer": "No hard sell — that's not how I work. If My Best Auntie sounds like a fit, I'll explain how it works and what it costs. If it isn't, I'll tell you that too and point you toward something more useful."
         },
         {
           "question": "What language is the intro call in?",
-          "answer": "The intro call is in English."
+          "answer": "Intro calls are usually in English. If you'd prefer Cantonese or Mandarin, message me on WhatsApp before booking and we'll arrange it."
         }
       ]
     },
@@ -155,17 +160,22 @@
         {
           "icon": "⏱",
           "title": "时长",
-          "description": "通话为 15 分钟。请准时加入，以便充分利用时间。"
+          "description": "15 分钟，刻意精简，让您在不占用大半天的情况下获得明确答案。请准时上线，充分利用这段时间。"
         },
         {
           "icon": "🌏",
           "title": "语言",
-          "description": "介绍通话以英语进行。"
+          "description": "介绍通话默认使用英语。若您希望使用粤语或普通话，请在 WhatsApp 告知，我们再为您安排。"
         },
         {
           "icon": "📅",
           "title": "改期",
-          "description": "需要改时间？请回复确认邮件或通过 WhatsApp 联系我们，我们将人工协助处理。"
+          "description": "生活总有变动。若需改时间，只需回复确认邮件或通过 WhatsApp 联系我们，我们会为您安排新的时段。"
+        },
+        {
+          "icon": "👤",
+          "title": "通话对象",
+          "description": "与您通话的是我——Ida，AMI 蒙特梭利教育工作者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。我也经历过您现在的阶段，所以这不会像硬性推销。"
         }
       ]
     },
@@ -174,27 +184,27 @@
       "items": [
         {
           "question": "介绍通话有多长？",
-          "answer": "15 分钟。我们保持精简，让您在不占用太多时间的情况下获得明确答案。"
+          "answer": "15 分钟。刻意保持精简——足够了解您的情况并给出方向，又不会占用您一整天。"
         },
         {
           "question": "真的免费吗？",
-          "answer": "是的，这通介绍通话不收费。"
+          "answer": "是的，完全免费。无需银行卡，也没有任何套路。"
         },
         {
           "question": "如果我迟到了怎么办？",
-          "answer": "请尽量准时。若延误，请尽快通过 WhatsApp 告知——若时段已过，我们可能需要改期。"
+          "answer": "请尽量准时，这样我们才能完整利用 15 分钟。若临时有状况，请尽快通过 WhatsApp 告知——我会告诉您是否仍能接通，或帮您另约时段。"
         },
         {
           "question": "如何取消或改期？",
-          "answer": "请回复确认邮件或通过 WhatsApp 联系我们。第一版流程由团队人工处理改期与取消。"
+          "answer": "只需回复确认邮件或通过 WhatsApp 联系我们即可，我们会帮您处理。无需填写额外表格。"
         },
         {
           "question": "会被推销吗？",
-          "answer": "若相关，我们会说明课程如何运作。没有强硬推销——目标是帮助您判断什么对家庭最合适。"
+          "answer": "没有硬性推销——这不是我的风格。若「My Best Auntie」适合您，我会说明流程与费用；若不适合，我也会如实告知，并尽量指向对您更有帮助的去处。"
         },
         {
           "question": "介绍通话使用什么语言？",
-          "answer": "介绍通话以英语进行。"
+          "answer": "介绍通话通常使用英语。若您希望使用粤语或普通话，请在预约前通过 WhatsApp 告知，我们再为您安排。"
         }
       ]
     },
@@ -266,17 +276,22 @@
         {
           "icon": "⏱",
           "title": "長度",
-          "description": "通話為 15 分鐘。請準時加入，善用時間。"
+          "description": "15 分鐘，刻意精簡，等你可以唔使花大半日都得到清晰答案。請準時加入，善用時間。"
         },
         {
           "icon": "🌏",
           "title": "語言",
-          "description": "介紹通話以英文進行。"
+          "description": "介紹通話預設用英文。若你想用粵語或普通話，請喺 WhatsApp 話我知，我哋再為你安排。"
         },
         {
           "icon": "📅",
           "title": "改期",
-          "description": "需要改時間？請回覆確認電郵或透過 WhatsApp 聯絡我哋，我哋會人手協助。"
+          "description": "生活總有變數。若要改時間，只要回覆確認電郵或者 WhatsApp 聯絡我哋，我哋會幫你揀新時段。"
+        },
+        {
+          "icon": "👤",
+          "title": "你會同邊個傾",
+          "description": "同你傾嘅係我——Ida，AMI 蒙特梭利教育工作者、兩個小朋友嘅媽媽，亦係 Evolve Sprouts 創辦人。我都經歷過你而家嘅階段，所以呢通電話唔會似硬銷。"
         }
       ]
     },
@@ -285,27 +300,27 @@
       "items": [
         {
           "question": "介紹通話有幾長？",
-          "answer": "15 分鐘。我哋保持精簡，等你可以喺唔使花太多時間嘅情況下得到清晰答案。"
+          "answer": "15 分鐘。刻意保持精簡——夠時間了解你嘅情況同俾方向，又唔會霸占你成日。"
         },
         {
           "question": "真係免費？",
-          "answer": "係，呢通介紹通話唔收費。"
+          "answer": "係，完全免費。唔使信用卡，亦冇任何套路。"
         },
         {
           "question": "如果我遲到點算？",
-          "answer": "請盡量準時。若延誤，請盡快透過 WhatsApp 話我哋知——若時段已過，可能需要改期。"
+          "answer": "請盡量準時，咁我哋先有完整 15 分鐘。若臨時有狀況，請盡快 WhatsApp 話我知——我會話你知仲傾唔傾得成，或者幫你另約時段。"
         },
         {
           "question": "點樣取消或改期？",
-          "answer": "請回覆確認電郵或透過 WhatsApp 聯絡我哋。第一版流程由團隊人手處理改期同取消。"
+          "answer": "只要回覆確認電郵或者 WhatsApp 聯絡我哋就得，我哋會搞掂。唔使再填表。"
         },
         {
           "question": "會唔會硬銷？",
-          "answer": "若相關，我哋會解釋課程點運作。冇硬銷——目標係幫你判斷咩先最啱你家庭。"
+          "answer": "冇硬銷——唔係我嘅做法。若「My Best Auntie」啱你，我會講流程同收費；若唔啱，我都會坦白講，並盡量指向對你更有用嘅選擇。"
         },
         {
           "question": "介紹通話用咩語言？",
-          "answer": "介紹通話以英文進行。"
+          "answer": "介紹通話通常用英文。若你想用粵語或普通話，請喺預約前 WhatsApp 話我知，我哋再為你安排。"
         }
       ]
     },
