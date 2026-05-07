@@ -1,0 +1,62 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mockAdminApiRequest = vi.fn();
+
+vi.mock('@/lib/api-admin-client', () => ({
+  adminApiRequest: (...args: unknown[]) => mockAdminApiRequest(...args),
+}));
+
+import { listRecentEnrollmentsForInvoicing } from '@/lib/billing-api';
+
+describe('listRecentEnrollmentsForInvoicing', () => {
+  beforeEach(() => {
+    mockAdminApiRequest.mockReset();
+  });
+
+  const minimalRow = {
+    enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    partyDisplayName: 'Party',
+    invoiceLinked: false,
+    currency: 'HKD',
+    billToMergeKey: 'contact|||',
+  };
+
+  it('aggregates multiple pages when truncated', async () => {
+    mockAdminApiRequest
+      .mockResolvedValueOnce({
+        items: [{ ...minimalRow, enrollmentId: '11111111-1111-1111-1111-111111111111' }],
+        truncated: true,
+        next_cursor: 'c1',
+      })
+      .mockResolvedValueOnce({
+        items: [{ ...minimalRow, enrollmentId: '22222222-2222-2222-2222-222222222222' }],
+        truncated: false,
+        next_cursor: null,
+      });
+
+    const out = await listRecentEnrollmentsForInvoicing();
+    expect(mockAdminApiRequest).toHaveBeenCalledTimes(2);
+    expect(out.items).toHaveLength(2);
+    expect(out.truncated).toBe(true);
+  });
+
+  it('keeps first page when a later page fails', async () => {
+    mockAdminApiRequest
+      .mockResolvedValueOnce({
+        items: [minimalRow],
+        truncated: true,
+        next_cursor: 'c1',
+      })
+      .mockRejectedValueOnce(new Error('Server error'));
+
+    const out = await listRecentEnrollmentsForInvoicing();
+    expect(out.items).toHaveLength(1);
+    expect(out.truncated).toBe(true);
+  });
+
+  it('rethrows when the first page fails', async () => {
+    mockAdminApiRequest.mockRejectedValueOnce(new Error('Unavailable'));
+
+    await expect(listRecentEnrollmentsForInvoicing()).rejects.toThrow('Unavailable');
+  });
+});

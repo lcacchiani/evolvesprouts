@@ -202,15 +202,31 @@ export async function listRecentEnrollmentsForInvoicing(
     if (cursor) {
       query.set('cursor', cursor);
     }
-    const payload = await adminApiRequest<{
+    let payload: {
       items?: BillingEnrollmentPickerRow[];
       truncated?: boolean;
       next_cursor?: string | null;
-    }>({
-      endpointPath: `/v1/admin/billing/enrollments/recent-for-invoicing?${query.toString()}`,
-      method: 'GET',
-      signal,
-    });
+    };
+    try {
+      payload = await adminApiRequest<{
+        items?: BillingEnrollmentPickerRow[];
+        truncated?: boolean;
+        next_cursor?: string | null;
+      }>({
+        endpointPath: `/v1/admin/billing/enrollments/recent-for-invoicing?${query.toString()}`,
+        method: 'GET',
+        signal,
+      });
+    } catch (caught) {
+      if (caught instanceof Error && caught.name === 'AbortError') {
+        throw caught;
+      }
+      if (merged.length > 0) {
+        truncatedOverall = true;
+        break;
+      }
+      throw caught;
+    }
     const root = unwrapPayload(payload);
     const page = Array.isArray(root.items) ? root.items : [];
     merged.push(...page);

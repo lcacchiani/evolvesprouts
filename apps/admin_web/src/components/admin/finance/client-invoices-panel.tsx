@@ -1101,6 +1101,11 @@ export function ClientInvoicesPanel() {
                   contact support for full exports.
                 </p>
               ) : null}
+              {enrollmentPickerError ? (
+                <p className='text-sm text-red-800' role='alert'>
+                  {enrollmentPickerError}
+                </p>
+              ) : null}
               <section aria-label='Enrollment picker'>
                 <AdminDataTable>
                   <AdminDataTableHead>
