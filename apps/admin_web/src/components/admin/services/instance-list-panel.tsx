@@ -195,100 +195,126 @@ export function InstanceListPanel({
           ) : undefined
         }
       >
-        <AdminDataTable tableClassName='table-fixed min-w-[960px]'>
-          <AdminDataTableHead>
-            <tr>
-              {showServiceColumn ? (
-                <th className='w-[20%] px-4 py-3 font-semibold'>Title</th>
-              ) : null}
-              {showServiceColumn ? (
-                <th className='max-w-[14rem] px-4 py-3 font-semibold'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
-              ) : null}
-              {showServiceColumn ? (
-                <th className='px-4 py-3 font-semibold'>Locations</th>
-              ) : null}
-              {showServiceColumn ? (
-                <th className='whitespace-nowrap px-4 py-3 align-middle font-semibold'>First slot</th>
-              ) : null}
-              <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Capacity</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
-            </tr>
-          </AdminDataTableHead>
-          <AdminDataTableBody>
-            {instances.map((instance) => {
-              const instanceTableTitle = formatInstanceTableTitle(instance);
-              const tierCohortDisplay = formatInstanceTableTierCohort(instance);
-              const firstSlot = getFirstSessionSlotForDisplay(instance.sessionSlots);
-              return (
-                <tr
-                  key={instance.id}
-                  className={`cursor-pointer transition ${
-                    selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => onSelectInstance(instance.id)}
-                  onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
-                  tabIndex={0}
-                  role='row'
-                  aria-selected={selectedInstanceId === instance.id}
+        <div className='min-w-0'>
+          <AdminDataTable tableClassName='w-full table-fixed'>
+            <AdminDataTableHead>
+              <tr>
+                {showServiceColumn ? (
+                  <th className='w-[22%] min-w-0 px-4 py-3 font-semibold'>Title</th>
+                ) : null}
+                {showServiceColumn ? (
+                  <th className='w-[17%] min-w-0 px-4 py-3 font-semibold'>
+                    {INSTANCE_TABLE_TIER_COHORT_HEADER}
+                  </th>
+                ) : null}
+                {showServiceColumn ? (
+                  <th className='w-[17%] min-w-0 px-4 py-3 font-semibold'>Locations</th>
+                ) : null}
+                {showServiceColumn ? (
+                  <th className='w-[13%] whitespace-nowrap px-4 py-3 align-middle font-semibold'>
+                    First slot
+                  </th>
+                ) : null}
+                <th
+                  className={
+                    showServiceColumn
+                      ? 'w-[10%] px-4 py-3 font-semibold'
+                      : 'w-[35%] px-4 py-3 font-semibold'
+                  }
                 >
-                  {showServiceColumn ? (
-                    <td className='w-[20%] min-w-0 break-words px-4 py-3'>
-                      <span className='inline-flex flex-wrap items-center gap-2'>
-                        <span>
-                          {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
+                  Status
+                </th>
+                <th
+                  className={
+                    showServiceColumn
+                      ? 'w-[10%] whitespace-nowrap px-4 py-3 font-semibold'
+                      : 'w-[35%] whitespace-nowrap px-4 py-3 font-semibold'
+                  }
+                >
+                  Capacity
+                </th>
+                <th className='w-[7rem] whitespace-nowrap px-4 py-3 text-right font-semibold'>
+                  Operations
+                </th>
+              </tr>
+            </AdminDataTableHead>
+            <AdminDataTableBody>
+              {instances.map((instance) => {
+                const instanceTableTitle = formatInstanceTableTitle(instance);
+                const tierCohortDisplay = formatInstanceTableTierCohort(instance);
+                const firstSlot = getFirstSessionSlotForDisplay(instance.sessionSlots);
+                return (
+                  <tr
+                    key={instance.id}
+                    className={`cursor-pointer transition ${
+                      selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                    }`}
+                    onClick={() => onSelectInstance(instance.id)}
+                    onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
+                    tabIndex={0}
+                    role='row'
+                    aria-selected={selectedInstanceId === instance.id}
+                  >
+                    {showServiceColumn ? (
+                      <td className='min-w-0 break-words px-4 py-3'>
+                        <span className='inline-flex flex-wrap items-center gap-2'>
+                          <span>
+                            {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
+                          </span>
                         </span>
-                      </span>
+                      </td>
+                    ) : null}
+                    {showServiceColumn ? (
+                      <td className='min-w-0 break-words px-4 py-3 text-sm'>
+                        {tierCohortDisplay !== '' ? tierCohortDisplay : '-'}
+                      </td>
+                    ) : null}
+                    {showServiceColumn ? (
+                      <td className='min-w-0 break-words px-4 py-3 text-sm'>
+                        {formatInstanceSlotLocationSummary(instance, locationById)}
+                      </td>
+                    ) : null}
+                    {showServiceColumn ? (
+                      <td className='whitespace-nowrap px-4 py-3 align-middle text-sm'>
+                        {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
+                      </td>
+                    ) : null}
+                    <td className='break-words px-4 py-3'>{formatEnumLabel(instance.status)}</td>
+                    <td className='whitespace-nowrap px-4 py-3'>
+                      {formatInstanceTableCapacity(instance)}
                     </td>
-                  ) : null}
-                  {showServiceColumn ? (
-                    <td className='max-w-[14rem] min-w-0 break-words px-4 py-3 text-sm'>
-                      {tierCohortDisplay !== '' ? tierCohortDisplay : '-'}
+                    <td className='whitespace-nowrap px-4 py-3 text-right'>
+                      <div className='flex justify-end gap-2'>
+                        <CopyFeedbackIconButton
+                          copied={duplicateDraftFeedbackId === instance.id}
+                          idleVariant='outline'
+                          idleIcon={<DuplicateIcon className='h-4 w-4' />}
+                          disabled={isMutating}
+                          onClick={(event) => void handleDuplicateInstance(instance, event)}
+                          idleLabel='Duplicate instance as new row'
+                          copiedLabel='Draft copy ready'
+                          idleTitle='Duplicate instance as new row'
+                          copiedTitle='Copied'
+                        />
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          onClick={(event) => void handleDeleteInstance(instance, event)}
+                          disabled={isMutating}
+                          aria-label='Delete instance'
+                          title='Delete instance'
+                        >
+                          <DeleteIcon className='h-4 w-4' />
+                        </Button>
+                      </div>
                     </td>
-                  ) : null}
-                  {showServiceColumn ? (
-                    <td className='max-w-[14rem] px-4 py-3 text-sm'>
-                      {formatInstanceSlotLocationSummary(instance, locationById)}
-                    </td>
-                  ) : null}
-                  {showServiceColumn ? (
-                    <td className='whitespace-nowrap px-4 py-3 align-middle text-sm'>
-                      {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
-                    </td>
-                  ) : null}
-                  <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
-                  <td className='px-4 py-3'>{formatInstanceTableCapacity(instance)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <div className='flex justify-end gap-2'>
-                      <CopyFeedbackIconButton
-                        copied={duplicateDraftFeedbackId === instance.id}
-                        idleVariant='outline'
-                        idleIcon={<DuplicateIcon className='h-4 w-4' />}
-                        disabled={isMutating}
-                        onClick={(event) => void handleDuplicateInstance(instance, event)}
-                        idleLabel='Duplicate instance as new row'
-                        copiedLabel='Draft copy ready'
-                        idleTitle='Duplicate instance as new row'
-                        copiedTitle='Copied'
-                      />
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='danger'
-                        onClick={(event) => void handleDeleteInstance(instance, event)}
-                        disabled={isMutating}
-                        aria-label='Delete instance'
-                        title='Delete instance'
-                      >
-                        <DeleteIcon className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </AdminDataTableBody>
-        </AdminDataTable>
+                  </tr>
+                );
+              })}
+            </AdminDataTableBody>
+          </AdminDataTable>
+        </div>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>
