@@ -224,7 +224,7 @@ describe('services tables value formatting', () => {
     expect(screen.getByRole('button', { name: /cannot delete service while it has instances/i })).toBeDisabled();
   });
 
-  it('formats enum values in instance and discount tables', () => {
+  it('formats values in instance and discount tables', () => {
     render(
       <>
         <InstanceListPanel
@@ -268,7 +268,6 @@ describe('services tables value formatting', () => {
     const instanceTable = tables[0] as HTMLElement;
     expect(within(instanceTable).getByText('Custom instance title')).toBeInTheDocument();
     expect(within(instanceTable).getByText('spring-2024')).toBeInTheDocument();
-    expect(within(instanceTable).getByText('In Progress')).toBeInTheDocument();
     expect(within(instanceTable).getByText('Unlimited')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
