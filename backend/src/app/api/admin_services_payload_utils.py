@@ -6,7 +6,7 @@ import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any, TypeVar, assert_never
+from typing import Any, TypeVar
 from uuid import UUID
 
 from app.api.admin_validators import (
@@ -253,7 +253,9 @@ def parse_instance_type_details(
     if service_type in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL):
         reject_consultation_instance_pricing_payload(body)
         return {}
-    assert_never(service_type)
+    raise AssertionError(
+        f"Unhandled service_type for instance details: {service_type!r}"
+    )
 
 
 def parse_required_aware_datetime(value: Any, field: str) -> datetime:
