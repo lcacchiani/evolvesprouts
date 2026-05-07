@@ -135,6 +135,9 @@ class ServiceInstance(Base):
     )
     eventbrite_event_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     eventbrite_event_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # SQL default 'pending' is correct for event/training cohorts; consultation/intro-call
+    # booking children are created with EventbriteSyncStatus.SKIPPED set explicitly by the
+    # public reservation handler. See ADR "Tier-per-service catalog (drop template instance row)".
     eventbrite_sync_status: Mapped[EventbriteSyncStatus] = mapped_column(
         Enum(
             EventbriteSyncStatus,

@@ -165,7 +165,11 @@ def _generate_booking_instance_slug(*, service_key: str, now_utc: datetime) -> s
 def _resolve_consultation_or_intro_service(
     session: Session, payload: Mapping[str, Any]
 ) -> Service:
-    """Load the catalog ``services`` row for consultation or intro-call bookings."""
+    """Load the catalog ``services`` row for consultation or intro-call bookings.
+
+    Does not row-lock the service; callers that mutate booking instances must lock
+    the catalog row separately (see ``_create_booking_instance_for_service``).
+    """
     raw_key = payload.get("service_key")
     service_key_str = str(raw_key).strip().lower() if raw_key not in (None, "") else ""
     if not service_key_str:
@@ -178,10 +182,8 @@ def _resolve_consultation_or_intro_service(
             field="serviceKey",
         )
     booking_system = str(payload.get("booking_system") or "").strip().lower()
-    statement = (
-        select(Service)
-        .where(func.lower(Service.service_key) == service_key_str)
-        .with_for_update()
+    statement = select(Service).where(
+        func.lower(Service.service_key) == service_key_str
     )
     row = session.execute(statement).scalar_one_or_none()
     if row is None:
