@@ -257,7 +257,8 @@ their primary responsibilities.
   on `(purpose_service_id, starts_at)` uniqueness, then attach enrollment and payment rows.
   Other booking systems attach the enrollment directly to the resolved instance when capacity allows
   (or return **409** when the instance is full with waitlist disabled). Admin enrollment APIs validate
-  discount code scope to `services.id` / `service_instances.id` as scoped on the code row.
+  discount code scope to `services.id` / `service_instances.id` as scoped on the code row; `PATCH`
+  enrollments may update `enrolled_at` (ISO instant; omit to leave unchanged).
   Then sends
   booking confirmation (SES), optional Mailchimp subscribe, and a plain-text **sales recap**
   with extended booking context when provided, and signed upload/download URL generation in

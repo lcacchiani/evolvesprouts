@@ -5293,6 +5293,12 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/EnrollmentStatus"
+        enrolled_at:
+          type: string
+          format: date-time
+          description: >
+            ISO 8601 instant for when the enrollment was recorded. Omit to leave unchanged.
+            Null or empty strings are rejected (the enrollment row requires a timestamp).
         amount_paid:
           type: string
           nullable: true

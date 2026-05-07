@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 
 from app.api import admin_enrollments
+from app.api.admin_services_payloads import parse_update_enrollment_payload
 from app.db.models.enums import EnrollmentStatus
 from app.exceptions import ValidationError
 
@@ -309,6 +310,23 @@ def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gat
     assert resp["statusCode"] == 200
     assert decrement_calls == [old_dc]
     assert increment_calls == [new_dc]
+
+
+def test_parse_update_enrollment_payload_accepts_enrolled_at() -> None:
+    parsed = parse_update_enrollment_payload({"enrolled_at": "2026-05-01T08:30:00+00:00"})
+    assert parsed["enrolled_at"].year == 2026
+    assert parsed["enrolled_at"].month == 5
+    assert parsed["enrolled_at"].day == 1
+
+
+def test_parse_update_enrollment_payload_rejects_cleared_enrolled_at() -> None:
+    with pytest.raises(ValidationError, match="enrolled_at"):
+        parse_update_enrollment_payload({"enrolled_at": None})
+
+
+def test_parse_update_enrollment_payload_rejects_empty_enrolled_at() -> None:
+    with pytest.raises(ValidationError, match="enrolled_at"):
+        parse_update_enrollment_payload({"enrolled_at": ""})
 
 
 def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gateway_event: Any) -> None:

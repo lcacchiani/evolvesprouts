@@ -5679,6 +5679,11 @@ export interface components {
         };
         UpdateEnrollmentRequest: {
             status?: components["schemas"]["EnrollmentStatus"];
+            /**
+             * Format: date-time
+             * @description ISO 8601 instant for when the enrollment was recorded. Omit to leave unchanged. Null or empty strings are rejected (the enrollment row requires a timestamp).
+             */
+            enrolled_at?: string;
             amount_paid?: string | null;
             currency?: string | null;
             /**
