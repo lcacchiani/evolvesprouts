@@ -226,6 +226,8 @@ def _update_enrollment(
                 enrollment.cancelled_at = datetime.now(UTC)
             else:
                 enrollment.cancelled_at = None
+        if "enrolled_at" in payload:
+            enrollment.enrolled_at = payload["enrolled_at"]
         if "amount_paid" in payload:
             enrollment.amount_paid = payload["amount_paid"]
         if "currency" in payload:

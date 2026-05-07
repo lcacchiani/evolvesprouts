@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { EnrollmentListPanel } from '@/components/admin/services/enrollment-list-panel';
+import { parseDatetimeLocalToIsoUtc } from '@/lib/format';
 import type { Enrollment } from '@/types/services';
 
 vi.mock('@/lib/services-api', () => ({
@@ -77,6 +78,64 @@ describe('EnrollmentListPanel', () => {
     expect(screen.getByLabelText('Contact')).toBeDisabled();
     expect(screen.getByLabelText('Family')).toBeDisabled();
     expect(screen.getByLabelText('Organization')).toBeDisabled();
+    expect(screen.getByLabelText('Enrolled at')).toBeEnabled();
+  });
+
+  it('disables enrolled at while adding a new enrollment', () => {
+    render(
+      <EnrollmentListPanel
+        enrollments={[ENROLLMENT_FIXTURE]}
+        serviceId='service-1'
+        instanceId='instance-1'
+        canCreate={true}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText('Enrolled at')).toBeDisabled();
+  });
+
+  it('includes enrolled_at in the update payload after changing datetime-local', () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <EnrollmentListPanel
+        enrollments={[ENROLLMENT_FIXTURE]}
+        serviceId='service-1'
+        instanceId='instance-1'
+        canCreate={true}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onDelete={vi.fn()}
+      />
+    );
+
+    const table = screen.getByRole('table');
+    fireEvent.click(within(table).getByText('Jane Doe').closest('tr') as HTMLTableRowElement);
+
+    const enrolledInput = screen.getByLabelText('Enrolled at');
+    fireEvent.change(enrolledInput, { target: { value: '2026-06-15T14:30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Update enrollment' }));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      'enrollment-1',
+      expect.objectContaining({
+        enrolled_at: parseDatetimeLocalToIsoUtc('2026-06-15T14:30'),
+      }),
+    );
   });
 
   it('shows scheduled start column when enrollment rows include scheduled start', () => {

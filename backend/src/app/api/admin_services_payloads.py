@@ -540,6 +540,16 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         payload["status"] = parse_required_enum(
             body.get("status"), EnrollmentStatus, "status"
         )
+    if has_field(body, "enrolled_at"):
+        parsed_enrolled_at = parse_optional_datetime(
+            body.get("enrolled_at"), "enrolled_at"
+        )
+        if parsed_enrolled_at is None:
+            raise ValidationError(
+                "enrolled_at cannot be cleared; omit the field to leave unchanged",
+                field="enrolled_at",
+            )
+        payload["enrolled_at"] = parsed_enrolled_at
     if has_field(body, "amount_paid"):
         payload["amount_paid"] = parse_optional_decimal(
             body.get("amount_paid"), "amount_paid"

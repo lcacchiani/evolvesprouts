@@ -15,7 +15,13 @@ import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
-import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
+import {
+  formatDate,
+  formatEnumLabel,
+  formatIsoForDatetimeLocalInput,
+  getCurrencyOptions,
+  parseDatetimeLocalToIsoUtc,
+} from '@/lib/format';
 import { isAbortRequestError, listEnrollmentDiscountOptions } from '@/lib/services-api';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
 
@@ -101,6 +107,8 @@ export function EnrollmentListPanel({
   const [discountOptionsLoading, setDiscountOptionsLoading] = useState(false);
   const [discountOptionsError, setDiscountOptionsError] = useState('');
   const [notes, setNotes] = useState('');
+  const [enrolledAtLocal, setEnrolledAtLocal] = useState('');
+  const [enrolledAtError, setEnrolledAtError] = useState('');
 
   const selectedEnrollment = useMemo(
     () => enrollments.find((entry) => entry.id === selectedEnrollmentId) ?? null,
@@ -192,6 +200,8 @@ export function EnrollmentListPanel({
     setCurrency('HKD');
     setDiscountCodeId('');
     setNotes('');
+    setEnrolledAtLocal('');
+    setEnrolledAtError('');
   };
 
   const buildCreatePayload = (): ApiSchemas['CreateEnrollmentRequest'] => ({
@@ -206,12 +216,16 @@ export function EnrollmentListPanel({
   });
 
   const buildUpdatePayload = (): ApiSchemas['UpdateEnrollmentRequest'] => {
+    const enrolledIso = parseDatetimeLocalToIsoUtc(enrolledAtLocal);
     const base: ApiSchemas['UpdateEnrollmentRequest'] = {
       status,
       amount_paid: amountPaid.trim() || null,
       currency: currency.trim() || null,
       notes: notes.trim() || null,
     };
+    if (enrolledIso) {
+      base.enrolled_at = enrolledIso;
+    }
     const nextDiscount = discountCodeId.trim() || null;
     const prev = selectedEnrollment?.discountCodeId?.trim() || null;
     if (nextDiscount !== prev) {
@@ -230,6 +244,12 @@ export function EnrollmentListPanel({
       if (!selectedEnrollment) {
         return;
       }
+      const enrolledIso = parseDatetimeLocalToIsoUtc(enrolledAtLocal);
+      if (!enrolledIso) {
+        setEnrolledAtError('Choose a valid enrolled date and time.');
+        return;
+      }
+      setEnrolledAtError('');
       await onUpdate(selectedEnrollment.id, buildUpdatePayload());
     } catch {
       // Keep inline form state visible to let users retry.
@@ -246,6 +266,8 @@ export function EnrollmentListPanel({
     setCurrency(enrollment.currency ?? 'HKD');
     setDiscountCodeId(enrollment.discountCodeId ?? '');
     setNotes(enrollment.notes ?? '');
+    setEnrolledAtLocal(formatIsoForDatetimeLocalInput(enrollment.enrolledAt));
+    setEnrolledAtError('');
   };
 
   const handleDeleteEnrollment = async (enrollment: Enrollment) => {
@@ -312,7 +334,7 @@ export function EnrollmentListPanel({
             {parentPickersError}
           </p>
         ) : null}
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
           <div>
             <Label htmlFor='enrollment-contact'>Contact</Label>
             <Select
@@ -373,10 +395,25 @@ export function EnrollmentListPanel({
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor='enrollment-enrolled-at'>Enrolled at</Label>
+            <Input
+              id='enrollment-enrolled-at'
+              type='datetime-local'
+              value={isEditMode ? enrolledAtLocal : ''}
+              onChange={(event) => setEnrolledAtLocal(event.target.value)}
+              disabled={!isEditMode || !canCreate || isMutating}
+            />
+          </div>
         </div>
+        {enrolledAtError ? (
+          <p className='text-xs text-red-600' role='alert'>
+            {enrolledAtError}
+          </p>
+        ) : null}
         <p className='text-xs text-slate-500'>
           Contact, family, and organization are chosen when creating an enrollment and cannot be changed
-          afterward.
+          afterward. Enrolled at can be edited when updating an enrollment.
         </p>
         {canCreate && discountOptionsError ? (
           <p className='text-xs text-red-600' role='alert'>
