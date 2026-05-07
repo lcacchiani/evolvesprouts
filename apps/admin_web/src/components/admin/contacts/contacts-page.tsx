@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
 import { OrganizationsPanel } from '@/components/admin/contacts/organizations-panel';
-import { StatusBanner } from '@/components/status-banner';
+import { AdminPageErrorBanner } from '@/components/admin/admin-page-error-banner';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
 import { listEntityTags, type EntityTagRef } from '@/lib/entity-api';
 import { listAllLocations, listGeographicAreas } from '@/lib/services-api';
@@ -117,11 +117,7 @@ export function ContactsPage() {
 
   return (
     <div className='space-y-4'>
-      {hasAnyError ? (
-        <StatusBanner variant='error' title='Contacts'>
-          {hasAnyError}
-        </StatusBanner>
-      ) : null}
+      <AdminPageErrorBanner title='Contacts' message={hasAnyError} />
 
       <AdminTabStrip
         items={TAB_ITEMS}

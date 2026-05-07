@@ -6,7 +6,7 @@ import { LeadDetailPanel } from './lead-detail-panel';
 import { LeadsTable } from './leads-table';
 import { SalesHeader } from './sales-header';
 
-import { StatusBanner } from '@/components/status-banner';
+import { AdminPageErrorBanner } from '@/components/admin/admin-page-error-banner';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
 import { type SalesView, useSalesPage } from '@/hooks/use-sales-page';
 
@@ -26,11 +26,7 @@ export function SalesPage() {
 
   return (
     <div className='space-y-4'>
-      {hasAnyError ? (
-        <StatusBanner variant='error' title='Sales'>
-          {hasAnyError}
-        </StatusBanner>
-      ) : null}
+      <AdminPageErrorBanner title='Sales' message={hasAnyError} />
 
       <AdminTabStrip
         aria-label='Sales views'

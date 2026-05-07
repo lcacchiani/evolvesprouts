@@ -27,6 +27,10 @@ import {
   ViewIcon,
   VoidExpenseIcon,
 } from '@/components/icons/action-icons';
+import {
+  formatPaymentMethodLabel,
+  formatTruncatedId,
+} from '@/components/admin/finance/client-invoices-format-helpers';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
@@ -70,21 +74,6 @@ import { formatAmountInCurrency } from '@/lib/vendor-spend';
 const DRAFT_FORM_ID = 'client-billing-draft-invoice-form';
 const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
 const REFUND_FORM_ID = 'client-billing-refund-form';
-
-function formatTruncatedId(id: string | null | undefined): string {
-  if (!id) {
-    return '—';
-  }
-  if (id.length <= 12) {
-    return id;
-  }
-  return `${id.slice(0, 8)}…`;
-}
-
-/** Customer payments Method column: snake_case label with FPS acronym spelled out. */
-function formatPaymentMethodLabel(raw: string | null | undefined): string {
-  return formatEnumLabel(raw ?? '').replace(/\bFps\b/g, 'FPS');
-}
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
 
