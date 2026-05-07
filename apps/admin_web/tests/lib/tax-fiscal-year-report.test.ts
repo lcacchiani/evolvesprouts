@@ -43,23 +43,26 @@ describe('tax-fiscal-year-report', () => {
     expect(defaultFiscalYearStartYear(new Date('2026-03-20T12:00:00.000Z'))).toBe(2025);
   });
 
-  it('excludes voided expenses', () => {
-    const rows = buildTaxFiscalYearRows(
-      [
-        expenseStub({
-          id: 'x',
-          status: 'voided',
-          invoiceDate: '2025-06-01',
-          total: '50',
-        }),
-      ],
-      [],
-      2025,
-    );
-    expect(rows).toHaveLength(0);
+  it('filters expenses by selected status', () => {
+    const voided = expenseStub({
+      id: 'v',
+      status: 'voided',
+      invoiceDate: '2025-06-01',
+      total: '50',
+    });
+    const paid = expenseStub({
+      id: 'p',
+      status: 'paid',
+      invoiceDate: '2025-06-01',
+      total: '100',
+    });
+    expect(buildTaxFiscalYearRows([voided, paid], [], 2025, 'paid')).toHaveLength(1);
+    expect(buildTaxFiscalYearRows([voided, paid], [], 2025, 'paid')[0]?.referenceId).toBe('p');
+    expect(buildTaxFiscalYearRows([voided, paid], [], 2025, 'voided')).toHaveLength(1);
+    expect(buildTaxFiscalYearRows([voided, paid], [], 2025, 'voided')[0]?.referenceId).toBe('v');
   });
 
-  it('includes non-void expenses in range and revenue by issued date', () => {
+  it('includes expenses matching the status filter in range and revenue by issued date', () => {
     const rows = buildTaxFiscalYearRows(
       [
         expenseStub({
@@ -85,6 +88,7 @@ describe('tax-fiscal-year-report', () => {
         } satisfies CustomerInvoiceSummary,
       ],
       2025,
+      'draft',
     );
     expect(rows.map((r) => r.kind)).toEqual(['expense', 'revenue']);
     expect(rows[0]?.kind).toBe('expense');
@@ -105,6 +109,7 @@ describe('tax-fiscal-year-report', () => {
       ],
       [],
       2025,
+      'paid',
     );
     expect(rows).toHaveLength(1);
     expect(rows[0]?.needsInvoiceDateWarning).toBe(true);
