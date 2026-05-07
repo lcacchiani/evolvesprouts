@@ -45,6 +45,26 @@ def _decimal_to_string(value: Decimal | None) -> str | None:
     return format(value, "f")
 
 
+def _effective_bill_to_kind(enrollment: Enrollment) -> BillingBillToKind:
+    """Resolve bill-to kind for picker labels when legacy rows omit ``billing_bill_to_kind``.
+
+    Some enrollments only set structural ``family_id`` / ``organization_id`` (or bill-to FKs)
+    without persisting ``bill_to_kind``. Infer family/org for lookups and ``billToKind`` JSON.
+    """
+    raw = enrollment.bill_to_kind
+    if raw is not None:
+        return raw
+    if enrollment.bill_to_family_id is not None:
+        return BillingBillToKind.FAMILY
+    if enrollment.bill_to_organization_id is not None:
+        return BillingBillToKind.ORGANIZATION
+    if enrollment.contact_id is None and enrollment.family_id is not None:
+        return BillingBillToKind.FAMILY
+    if enrollment.contact_id is None and enrollment.organization_id is not None:
+        return BillingBillToKind.ORGANIZATION
+    return BillingBillToKind.CONTACT
+
+
 def _compose_party_display_name(
     enrollment: Enrollment,
     *,
@@ -52,15 +72,46 @@ def _compose_party_display_name(
     org_primary_contact_name: str | None,
 ) -> str:
     """Party label for picker rows: contact name; family/org use entity · primary contact name."""
-    bk = enrollment.bill_to_kind or BillingBillToKind.CONTACT
+    bk = _effective_bill_to_kind(enrollment)
+    enrolled_nm = contact_display_name(enrollment.contact)
     if bk == BillingBillToKind.CONTACT:
         c = enrollment.bill_to_contact or enrollment.contact
         name = contact_display_name(c)
-        return name if name else "—"
+        if name:
+            return name
+        fid = enrollment.bill_to_family_id or enrollment.family_id
+        if fid is not None:
+            fam = enrollment.bill_to_family or enrollment.family
+            entity = (fam.family_name or "").strip() if fam else ""
+            pc = (family_primary_contact_name or "").strip()
+            if not pc and enrolled_nm:
+                pc = enrolled_nm.strip()
+            if entity and pc:
+                return f"{entity} \u00b7 {pc}"
+            if entity:
+                return entity
+            if pc:
+                return pc
+        oid = enrollment.bill_to_organization_id or enrollment.organization_id
+        if oid is not None:
+            org = enrollment.bill_to_organization or enrollment.organization
+            entity = (org.name or "").strip() if org else ""
+            pc = (org_primary_contact_name or "").strip()
+            if not pc and enrolled_nm:
+                pc = enrolled_nm.strip()
+            if entity and pc:
+                return f"{entity} \u00b7 {pc}"
+            if entity:
+                return entity
+            if pc:
+                return pc
+        return "—"
     if bk == BillingBillToKind.FAMILY:
         fam = enrollment.bill_to_family or enrollment.family
         entity = (fam.family_name or "").strip() if fam else ""
         pc = (family_primary_contact_name or "").strip()
+        if not pc and enrolled_nm:
+            pc = enrolled_nm.strip()
         if entity and pc:
             return f"{entity} \u00b7 {pc}"
         if entity:
@@ -72,6 +123,8 @@ def _compose_party_display_name(
         org = enrollment.bill_to_organization or enrollment.organization
         entity = (org.name or "").strip() if org else ""
         pc = (org_primary_contact_name or "").strip()
+        if not pc and enrolled_nm:
+            pc = enrolled_nm.strip()
         if entity and pc:
             return f"{entity} \u00b7 {pc}"
         if entity:
@@ -83,18 +136,16 @@ def _compose_party_display_name(
 
 
 def _collect_family_org_ids(rows: list[Enrollment]) -> tuple[set[UUID], set[UUID]]:
+    """Collect distinct family and organization ids referenced by enrollments (bill-to or structural)."""
     fam: set[UUID] = set()
     org: set[UUID] = set()
     for en in rows:
-        bk = en.bill_to_kind or BillingBillToKind.CONTACT
-        if bk == BillingBillToKind.FAMILY:
-            fid = en.bill_to_family_id or en.family_id
-            if fid:
-                fam.add(fid)
-        elif bk == BillingBillToKind.ORGANIZATION:
-            oid = en.bill_to_organization_id or en.organization_id
-            if oid:
-                org.add(oid)
+        fid = en.bill_to_family_id or en.family_id
+        if fid:
+            fam.add(fid)
+        oid = en.bill_to_organization_id or en.organization_id
+        if oid:
+            org.add(oid)
     return fam, org
 
 
@@ -104,7 +155,7 @@ def _party_email(
     family_emails: dict[UUID, str],
     org_emails: dict[UUID, str],
 ) -> str | None:
-    bk = enrollment.bill_to_kind or BillingBillToKind.CONTACT
+    bk = _effective_bill_to_kind(enrollment)
     if bk == BillingBillToKind.CONTACT:
         c = enrollment.bill_to_contact or enrollment.contact
         return c.email if c and c.email else None
@@ -112,12 +163,14 @@ def _party_email(
         fid = enrollment.bill_to_family_id or enrollment.family_id
         if fid and fid in family_emails:
             return family_emails[fid]
-        return None
+        c = enrollment.contact
+        return c.email if c and c.email else None
     if bk == BillingBillToKind.ORGANIZATION:
         oid = enrollment.bill_to_organization_id or enrollment.organization_id
         if oid and oid in org_emails:
             return org_emails[oid]
-        return None
+        c = enrollment.contact
+        return c.email if c and c.email else None
     return None
 
 
@@ -345,17 +398,11 @@ def list_recent_enrollments_for_invoicing(
                 tier_name = _trimmed_str_or_none(svc_obj.service_tier)
             currency = (en.currency or default_ccy).upper()[:3]
             email = _party_email(session, en, fam_emails, org_emails)
-            bk = en.bill_to_kind or BillingBillToKind.CONTACT
-            fam_pc: str | None = None
-            org_pc: str | None = None
-            if bk == BillingBillToKind.FAMILY:
-                fid = en.bill_to_family_id or en.family_id
-                if fid:
-                    fam_pc = fam_primary_names.get(fid)
-            elif bk == BillingBillToKind.ORGANIZATION:
-                oid = en.bill_to_organization_id or en.organization_id
-                if oid:
-                    org_pc = org_primary_names.get(oid)
+            bk = _effective_bill_to_kind(en)
+            fid = en.bill_to_family_id or en.family_id
+            oid = en.bill_to_organization_id or en.organization_id
+            fam_pc = fam_primary_names.get(fid) if fid else None
+            org_pc = org_primary_names.get(oid) if oid else None
             party_display = _compose_party_display_name(
                 en,
                 family_primary_contact_name=fam_pc,
