@@ -249,14 +249,15 @@ def test_0063_splits_consultation_tiers_and_repoints_children() -> None:
             ).scalar_one()
             assert UUID(str(child_svc)) == UUID(str(ess_key))
 
-            parent_null = verify.execute(
+            # Migration 0063 clears parent linkage then drops ``parent_instance_id``.
+            parent_col = verify.execute(
                 text(
-                    "SELECT parent_instance_id FROM service_instances "
-                    "WHERE id = CAST(:id AS uuid)"
-                ),
-                {"id": str(CHILD)},
+                    "SELECT COUNT(*) FROM information_schema.columns WHERE "
+                    "table_name = 'service_instances' AND column_name = "
+                    "'parent_instance_id'"
+                )
             ).scalar_one()
-            assert parent_null is None
+            assert int(parent_col) == 0
 
             dc_svc, dc_inst = verify.execute(
                 text(
