@@ -161,6 +161,11 @@ export function EnrollmentListPanel({
     [discountOptions, selectedEnrollment?.discountCodeId]
   );
 
+  const showScheduledStartColumn = useMemo(
+    () => enrollments.some((row) => Boolean(row.scheduledStartAt?.trim())),
+    [enrollments]
+  );
+
   const formatEnrollmentParentCell = useCallback(
     (enrollment: Enrollment) => {
       if (enrollment.contactId) {
@@ -451,6 +456,9 @@ export function EnrollmentListPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Parent</th>
+              {showScheduledStartColumn ? (
+                <th className='px-4 py-3 font-semibold'>Scheduled start</th>
+              ) : null}
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Amount</th>
               <th className='px-4 py-3 font-semibold'>Discount</th>
@@ -477,6 +485,13 @@ export function EnrollmentListPanel({
                   onClick={() => applyEnrollmentSelection(enrollment)}
                 >
                   <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
+                  {showScheduledStartColumn ? (
+                    <td className='px-4 py-3'>
+                      {enrollment.scheduledStartAt?.trim()
+                        ? formatDate(enrollment.scheduledStartAt)
+                        : '—'}
+                    </td>
+                  ) : null}
                   <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
                   <td className='px-4 py-3'>{amountDisplay}</td>
                   <td className='px-4 py-3'>
