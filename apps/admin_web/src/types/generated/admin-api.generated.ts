@@ -4006,7 +4006,33 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete orphan inbound customer payment
+         * @description Removes an inbound payment row only when it is safe cleanup: the payment must be pending **or** free ($0 method or zero amount), not linked to an active enrollment (enrollment id null, enrollment cancelled, or enrollment row missing), and must have no invoice allocations, no customer receipt row, and no refund rows pointing at it.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Payment deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -6024,6 +6050,8 @@ export interface components {
             enrollmentId?: string | null;
             /** Format: uuid */
             contactId?: string | null;
+            /** @description True when DELETE /v1/admin/billing/payments/{id} is allowed for this row (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations, receipt, or refund children). */
+            orphanPaymentDeletable: boolean;
             /** Format: date-time */
             succeededAt?: string | null;
             /** Format: date-time */

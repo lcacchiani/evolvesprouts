@@ -2882,6 +2882,31 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete orphan inbound customer payment
+      description: >
+        Removes an inbound payment row only when it is safe cleanup: the payment must be
+        pending **or** free ($0 method or zero amount), not linked to an active enrollment
+        (enrollment id null, enrollment cancelled, or enrollment row missing), and must have
+        no invoice allocations, no customer receipt row, and no refund rows pointing at it.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Payment deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /v1/admin/billing/payments/{id}/unapplied:
     get:
@@ -6086,6 +6111,8 @@ components:
           nullable: true
     CustomerPaymentSummary:
       type: object
+      required:
+        - orphanPaymentDeletable
       properties:
         id:
           type: string
@@ -6122,6 +6149,12 @@ components:
           type: string
           format: uuid
           nullable: true
+        orphanPaymentDeletable:
+          type: boolean
+          description: >
+            True when DELETE /v1/admin/billing/payments/{id} is allowed for this row
+            (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations,
+            receipt, or refund children).
         succeededAt:
           type: string
           format: date-time

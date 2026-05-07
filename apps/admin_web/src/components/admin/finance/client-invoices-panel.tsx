@@ -14,7 +14,13 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckIcon, MarkPaidIcon, ViewIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
+import {
+  CheckIcon,
+  DeleteIcon,
+  MarkPaidIcon,
+  ViewIcon,
+  VoidExpenseIcon,
+} from '@/components/icons/action-icons';
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
   CustomizedDraftInvoiceCard,
@@ -24,6 +30,7 @@ import {
   createCustomerRefund,
   createDraftInvoice,
   createPaymentAllocation,
+  deleteCustomerPayment,
   emailInvoice,
   exportBillingCsv,
   getCustomerInvoice,
@@ -195,6 +202,10 @@ export function ClientInvoicesPanel() {
   const [confirmPaymentId, setConfirmPaymentId] = useState<string | null>(null);
   const [confirmPaymentExternalRef, setConfirmPaymentExternalRef] = useState('');
   const [confirmPaymentError, setConfirmPaymentError] = useState('');
+
+  const [deletePaymentDialogOpen, setDeletePaymentDialogOpen] = useState(false);
+  const [deletePaymentId, setDeletePaymentId] = useState<string | null>(null);
+  const [deletePaymentError, setDeletePaymentError] = useState('');
 
   const [enrollmentPickerRows, setEnrollmentPickerRows] = useState<BillingEnrollmentPickerRow[]>([]);
   const [enrollmentPickerTruncated, setEnrollmentPickerTruncated] = useState(false);
@@ -796,6 +807,41 @@ export function ClientInvoicesPanel() {
       }
     } catch (caught) {
       setConfirmPaymentError(caught instanceof Error ? caught.message : 'Confirm failed.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const openDeletePaymentDialog = (paymentId: string) => {
+    setDeletePaymentId(paymentId);
+    setDeletePaymentError('');
+    setDeletePaymentDialogOpen(true);
+  };
+
+  const closeDeletePaymentDialog = () => {
+    setDeletePaymentDialogOpen(false);
+    setDeletePaymentId(null);
+    setDeletePaymentError('');
+  };
+
+  const submitDeletePayment = async () => {
+    const id = deletePaymentId?.trim();
+    if (!id) {
+      return;
+    }
+    setDeletePaymentError('');
+    setBusy('delete-payment');
+    try {
+      await deleteCustomerPayment(id);
+      setActionMessage(`Payment deleted: ${id}`);
+      closeDeletePaymentDialog();
+      await loadPayments();
+      if (selectedId === id) {
+        setSelectedId(null);
+        setDetail(null);
+      }
+    } catch (caught) {
+      setDeletePaymentError(caught instanceof Error ? caught.message : 'Delete failed.');
     } finally {
       setBusy(null);
     }
@@ -1728,7 +1774,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer payments'
-        description='Recent customer payments and refunds. Select a row for allocation and refund source. Pending inbound: confirm from Operations.'
+        description='Recent customer payments and refunds. Select a row for allocation and refund source. Pending inbound: confirm from Operations. Deletable orphan rows: delete from Operations (see server rules).'
         isLoading={listLoading}
         isLoadingMore={false}
         hasMore={false}
@@ -1788,27 +1834,42 @@ export function ClientInvoicesPanel() {
                       event.stopPropagation();
                     }}
                   >
-                    {p.status === 'pending' && p.direction === 'inbound' ? (
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='secondary'
-                        disabled={confirmPaymentDialogOpen || busyAction === 'confirm'}
-                        onClick={() => openConfirmPaymentDialog(id)}
-                        aria-label='Confirm pending payment'
-                        title='Confirm pending payment'
-                        aria-busy={busyAction === 'confirm' && confirmPaymentId === id}
-                      >
-                        {busyAction === 'confirm' && confirmPaymentId === id ? (
-                          <span
-                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
-                            aria-hidden
-                          />
-                        ) : (
-                          <MarkPaidIcon className='h-4 w-4' aria-hidden />
-                        )}
-                      </Button>
-                    ) : null}
+                    <div className='flex flex-wrap justify-end gap-1'>
+                      {p.status === 'pending' && p.direction === 'inbound' ? (
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='secondary'
+                          disabled={editorBusy || deletePaymentDialogOpen || busyAction === 'confirm'}
+                          onClick={() => openConfirmPaymentDialog(id)}
+                          aria-label='Confirm pending payment'
+                          title='Confirm pending payment'
+                          aria-busy={busyAction === 'confirm' && confirmPaymentId === id}
+                        >
+                          {busyAction === 'confirm' && confirmPaymentId === id ? (
+                            <span
+                              className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                              aria-hidden
+                            />
+                          ) : (
+                            <MarkPaidIcon className='h-4 w-4' aria-hidden />
+                          )}
+                        </Button>
+                      ) : null}
+                      {p.orphanPaymentDeletable ? (
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          disabled={editorBusy || deletePaymentDialogOpen || !id}
+                          onClick={() => openDeletePaymentDialog(id)}
+                          aria-label='Delete customer payment'
+                          title='Delete customer payment'
+                        >
+                          <DeleteIcon className='h-4 w-4' aria-hidden />
+                        </Button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               );
@@ -1866,6 +1927,20 @@ export function ClientInvoicesPanel() {
           />
           {confirmPaymentError ? <AdminInlineError>{confirmPaymentError}</AdminInlineError> : null}
         </div>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={deletePaymentDialogOpen}
+        title='Delete customer payment'
+        description='Permanently removes this payment row. Allowed only when the server marks the row as deletable (pending or free payment, no active enrollment link, and no allocations or receipt).'
+        confirmLabel='Delete payment'
+        cancelLabel='Cancel'
+        variant='danger'
+        confirmDisabled={busyAction === 'delete-payment'}
+        onCancel={closeDeletePaymentDialog}
+        onConfirm={() => void submitDeletePayment()}
+      >
+        {deletePaymentError ? <AdminInlineError>{deletePaymentError}</AdminInlineError> : null}
       </ConfirmDialog>
     </div>
   );
