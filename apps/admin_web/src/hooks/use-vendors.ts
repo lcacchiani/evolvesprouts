@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { createAdminVendor, listAdminVendors, updateAdminVendor } from '@/lib/vendors-api';
 import { DEFAULT_VENDOR_FILTERS } from '@/types/vendors';
 import type { Vendor, VendorFilters } from '@/types/vendors';
 import type { components } from '@/types/generated/admin-api.generated';
 
+import { useListMutate } from './use-list-mutate';
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
@@ -24,21 +25,7 @@ export function useVendors() {
     debounceKeys: ['query'],
   });
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const mutate = useCallback(
-    async <TResult>(work: () => Promise<TResult>): Promise<TResult> => {
-      setIsSaving(true);
-      try {
-        const result = await work();
-        await list.refetch();
-        return result;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [list]
-  );
+  const { isSaving, mutate } = useListMutate(list.refetch);
 
   const createVendor = useCallback(
     async (payload: ApiSchemas['CreateAdminOrganizationRequest']) =>

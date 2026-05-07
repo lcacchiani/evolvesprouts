@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import {
   createAdminContact,
@@ -11,6 +11,7 @@ import {
 import { DEFAULT_CONTACT_LIST_FILTERS, type EntityListFilters } from '@/types/entity-list';
 import type { components } from '@/types/generated/admin-api.generated';
 
+import { useListMutate } from './use-list-mutate';
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
@@ -48,21 +49,7 @@ export function useAdminEntityContacts() {
     limit: 50,
   });
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const mutate = useCallback(
-    async <TResult,>(work: () => Promise<TResult>): Promise<TResult> => {
-      setIsSaving(true);
-      try {
-        const result = await work();
-        await refetchContacts();
-        return result;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [refetchContacts]
-  );
+  const { isSaving, mutate } = useListMutate(refetchContacts);
 
   const createContact = useCallback(
     async (payload: ApiSchemas['CreateAdminContactRequest']) =>

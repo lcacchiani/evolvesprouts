@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import {
   addPartnerMember,
@@ -14,6 +14,7 @@ import {
 import { DEFAULT_PARTNER_FILTERS, type PartnerFilters } from '@/types/partners';
 import type { components } from '@/types/generated/admin-api.generated';
 
+import { useListMutate } from './use-list-mutate';
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
@@ -40,21 +41,7 @@ export function usePartners() {
     limit: 50,
   });
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const mutate = useCallback(
-    async <TResult,>(work: () => Promise<TResult>): Promise<TResult> => {
-      setIsSaving(true);
-      try {
-        const result = await work();
-        await list.refetch();
-        return result;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [list]
-  );
+  const { isSaving, mutate } = useListMutate(list.refetch);
 
   const createPartner = useCallback(
     async (payload: ApiSchemas['CreateAdminOrganizationRequest']) =>
