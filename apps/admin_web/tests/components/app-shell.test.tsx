@@ -69,4 +69,41 @@ describe('AppShell', () => {
     await user.click(signOutButtons[0]);
     expect(onLogout).toHaveBeenCalledTimes(1);
   });
+
+  it('persists desktop sidebar collapse to localStorage when toggled', async () => {
+    const user = userEvent.setup();
+    const onLogout = vi.fn();
+    const store: Record<string, string> = {};
+
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(
+      (key) => store[key] ?? null
+    );
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(
+      (key, value) => {
+        store[key] = String(value);
+      }
+    );
+
+    try {
+      render(
+        <AppShell
+          navItems={navItems}
+          activeKey='a'
+          onLogout={onLogout}
+          userEmail='admin@example.com'
+        >
+          <p>Main</p>
+        </AppShell>
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Collapse navigation panel' }));
+      expect(setItemSpy).toHaveBeenCalledWith('evolvesprouts-admin-sidebar-collapsed', '1');
+
+      await user.click(screen.getByRole('button', { name: 'Expand navigation panel' }));
+      expect(setItemSpy).toHaveBeenCalledWith('evolvesprouts-admin-sidebar-collapsed', '0');
+    } finally {
+      getItemSpy.mockRestore();
+      setItemSpy.mockRestore();
+    }
+  });
 });
