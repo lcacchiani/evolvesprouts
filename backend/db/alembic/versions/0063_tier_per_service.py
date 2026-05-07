@@ -419,7 +419,7 @@ def downgrade() -> None:
         SELECT * FROM (
           SELECT
             gen_random_uuid(),
-            'consultation',
+            'consultation'::service_type,
             'Family Consultation',
             'family-consultation',
             src.booking_system,
