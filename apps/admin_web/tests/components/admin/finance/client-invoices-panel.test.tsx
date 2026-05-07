@@ -12,6 +12,7 @@ const billingMocks = vi.hoisted(() => ({
   voidInvoice: vi.fn(),
   emailInvoice: vi.fn(),
   confirmCustomerPayment: vi.fn(),
+  deleteCustomerPayment: vi.fn(),
   createDraftInvoice: vi.fn(),
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
@@ -403,6 +404,7 @@ describe('ClientInvoicesPanel', () => {
         amount: '10',
         currency: 'HKD',
         createdAt: '2026-01-01T00:00:00+00:00',
+        orphanPaymentDeletable: false,
       },
     ]);
     billingMocks.getCustomerPayment.mockResolvedValue({
@@ -414,6 +416,7 @@ describe('ClientInvoicesPanel', () => {
       currency: 'HKD',
       unappliedAmount: '10',
       createdAt: '2026-01-01T00:00:00+00:00',
+      orphanPaymentDeletable: false,
     });
     billingMocks.confirmCustomerPayment.mockResolvedValue({
       id: payId,
@@ -423,6 +426,7 @@ describe('ClientInvoicesPanel', () => {
       amount: '10',
       currency: 'HKD',
       createdAt: '2026-01-01T00:00:00+00:00',
+      orphanPaymentDeletable: false,
     });
 
     render(<ClientInvoicesPanel />);
@@ -445,6 +449,42 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.confirmCustomerPayment).toHaveBeenCalledWith(payId, {
         externalReference: 'REF-99',
       });
+    });
+  });
+
+  it('delete payment dialog calls deleteCustomerPayment when server marks row deletable', async () => {
+    const payId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    billingMocks.listCustomerPayments.mockResolvedValue([
+      {
+        id: payId,
+        direction: 'inbound',
+        status: 'pending',
+        method: 'bank_transfer',
+        amount: '10',
+        currency: 'HKD',
+        createdAt: '2026-01-01T00:00:00+00:00',
+        orphanPaymentDeletable: true,
+      },
+    ]);
+    billingMocks.deleteCustomerPayment.mockResolvedValue(undefined);
+
+    render(<ClientInvoicesPanel />);
+
+    const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
+    await waitFor(() =>
+      within(paymentTable).getByRole('button', { name: /delete customer payment/i }),
+    );
+
+    await userEvent.click(within(paymentTable).getByRole('button', { name: /delete customer payment/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /delete customer payment/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /^delete payment$/i }));
+
+    await waitFor(() => {
+      expect(billingMocks.deleteCustomerPayment).toHaveBeenCalledWith(payId);
     });
   });
 

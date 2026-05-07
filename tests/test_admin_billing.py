@@ -29,7 +29,7 @@ from app.db.models.enums import (
     BillingPaymentStatus,
     EnrollmentStatus,
 )
-from app.exceptions import ValidationError
+from app.exceptions import NotFoundError, ValidationError
 from app.services import customer_billing
 
 
@@ -78,6 +78,11 @@ def test_handle_admin_billing_get_payment_and_unapplied_no_name_error(
     _patch_billing_sessions(monkeypatch, _fake_session)
     monkeypatch.setattr(
         admin_billing_payments_mod,
+        "_batch_orphan_payment_deletable",
+        lambda _session, rows: {r.id: False for r in rows},
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
         "payment_unapplied_amount",
         lambda _s, _pid: Decimal("3"),
     )
@@ -93,6 +98,7 @@ def test_handle_admin_billing_get_payment_and_unapplied_no_name_error(
     assert r1["statusCode"] == 200
     body1 = json.loads(r1["body"])
     assert body1["unappliedAmount"] == "3"
+    assert body1["orphanPaymentDeletable"] is False
 
     ev2 = api_gateway_event(
         method="GET",
@@ -1196,6 +1202,11 @@ def test_confirm_payment_creates_receipt_for_pending_inbound(
     _patch_billing_sessions(monkeypatch, _fake_session)
     monkeypatch.setattr(
         admin_billing_payments_mod,
+        "_batch_orphan_payment_deletable",
+        lambda _session, rows: {r.id: False for r in rows},
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
         "create_receipt_for_succeeded_inbound_payment",
         _create_rcpt,
     )
@@ -1216,6 +1227,82 @@ def test_confirm_payment_creates_receipt_for_pending_inbound(
     )
     assert r["statusCode"] == 200
     assert created["n"] == 1
+
+
+def test_delete_orphan_payment_succeeds(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pid = uuid4()
+    pay = MagicMock()
+    pay.id = pid
+    pay.to_audit_dict.return_value = {"id": str(pid)}
+    holder: dict[str, Any] = {}
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        holder["s"] = s
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is admin_billing_payments_mod.CustomerPayment and pk == pid:
+                return pay
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    class _FakeAudit:
+        def __init__(self, *_a: Any, **_k: Any) -> None:
+            pass
+
+        def log_custom(self, **_kw: Any) -> None:
+            return None
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payments_mod, "_validate_orphan_delete", lambda *_a, **_k: None
+    )
+    monkeypatch.setattr(admin_billing_payments_mod, "AuditService", _FakeAudit)
+
+    ev = api_gateway_event(
+        method="DELETE",
+        path=f"/v1/admin/billing/payments/{pid}",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "DELETE", f"/v1/admin/billing/payments/{pid}"
+    )
+    assert r["statusCode"] == 204
+    assert json.loads(r["body"]) == {}
+    holder["s"].delete.assert_called_once_with(pay)
+
+
+def test_delete_orphan_payment_not_found_raises(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pid = uuid4()
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.get.return_value = None
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="DELETE",
+        path=f"/v1/admin/billing/payments/{pid}",
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(NotFoundError):
+        admin_billing.handle_admin_billing_request(
+            ev, "DELETE", f"/v1/admin/billing/payments/{pid}"
+        )
 
 
 def test_refund_create_rejects_currency_mismatch_with_original(

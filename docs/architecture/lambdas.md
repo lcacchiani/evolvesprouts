@@ -110,7 +110,7 @@ their primary responsibilities.
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
   `/v1/admin/expenses/*`,
-  `/v1/admin/billing/*` (customer AR: `GET /v1/admin/billing/payments` optional `invoice_id` filters to payments with an allocation to that invoice; `GET /v1/admin/billing/payments/{id}` includes `allocationInvoices`; payments, invoices list/detail, draft invoices via
+  `/v1/admin/billing/*` (customer AR: `GET /v1/admin/billing/payments` optional `invoice_id` filters to payments with an allocation to that invoice; `GET /v1/admin/billing/payments/{id}` includes `allocationInvoices` and `orphanPaymentDeletable`; `DELETE /v1/admin/billing/payments/{id}` removes eligible orphan inbound payments (pending or free/zero, enrollment unlinked or cancelled, no allocations/receipt/refund children); payments, invoices list/detail, draft invoices via
   `POST /v1/admin/billing/invoices` with `draftKind` `enrollment_merge` or `customized_manual`,
   `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`
   (returns a CloudFront-signed URL; each response includes a unique cache-bust query on the

@@ -159,6 +159,13 @@ export async function confirmCustomerPayment(
   return root.payment;
 }
 
+export async function deleteCustomerPayment(id: string): Promise<void> {
+  await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/billing/payments/${id}`,
+    method: 'DELETE',
+  });
+}
+
 export async function createCustomerRefund(
   body: ApiSchemas['CreateCustomerRefundRequest'],
 ): Promise<CustomerPaymentSummary> {

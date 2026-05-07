@@ -8,7 +8,7 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
 from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
@@ -18,7 +18,12 @@ from app.db.engine import get_engine
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
-from app.db.models.enums import BillingPaymentDirection, BillingPaymentStatus
+from app.db.models.enrollment import Enrollment
+from app.db.models.enums import (
+    BillingPaymentDirection,
+    BillingPaymentStatus,
+    EnrollmentStatus,
+)
 from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
@@ -74,7 +79,9 @@ def _payment_allocation_invoice_refs(
     return out
 
 
-def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
+def _serialize_payment(
+    p: CustomerPayment, *, orphan_payment_deletable: bool
+) -> dict[str, Any]:
     return {
         "id": str(p.id),
         "direction": p.direction.value,
@@ -91,7 +98,160 @@ def _serialize_payment(p: CustomerPayment) -> dict[str, Any]:
         "contactId": str(p.contact_id) if p.contact_id else None,
         "succeededAt": p.succeeded_at.isoformat() if p.succeeded_at else None,
         "createdAt": p.created_at.isoformat(),
+        "orphanPaymentDeletable": orphan_payment_deletable,
     }
+
+
+def _pending_or_free_payment(p: CustomerPayment) -> bool:
+    if p.status == BillingPaymentStatus.PENDING:
+        return True
+    if p.method.strip().lower() == "free":
+        return True
+    if p.amount == Decimal("0"):
+        return True
+    return False
+
+
+def _enrollment_unlinked_or_cancelled(
+    enrollment_id: UUID | None,
+    enrollment_status_by_id: dict[UUID, EnrollmentStatus],
+) -> bool:
+    if enrollment_id is None:
+        return True
+    status = enrollment_status_by_id.get(enrollment_id)
+    if status is None:
+        return True
+    return status == EnrollmentStatus.CANCELLED
+
+
+def _batch_orphan_payment_deletable(
+    session: Session, rows: list[CustomerPayment]
+) -> dict[UUID, bool]:
+    """Server-side eligibility for DELETE (matches single-payment validation)."""
+    if not rows:
+        return {}
+    pay_ids = [p.id for p in rows]
+    allocation_pay_ids = {
+        row[0]
+        for row in session.execute(
+            select(PaymentAllocation.payment_id).where(
+                PaymentAllocation.payment_id.in_(pay_ids)
+            )
+        ).all()
+    }
+    receipt_pay_ids = {
+        row[0]
+        for row in session.execute(
+            select(CustomerReceipt.customer_payment_id).where(
+                CustomerReceipt.customer_payment_id.in_(pay_ids)
+            )
+        ).all()
+    }
+    refund_parent_ids: set[UUID] = set()
+    for (orig_id,) in session.execute(
+        select(CustomerPayment.original_payment_id).where(
+            CustomerPayment.original_payment_id.in_(pay_ids),
+            CustomerPayment.direction == BillingPaymentDirection.REFUND,
+        )
+    ).all():
+        if orig_id is not None:
+            refund_parent_ids.add(orig_id)
+    enrollment_ids = [p.enrollment_id for p in rows if p.enrollment_id is not None]
+    enrollment_status_by_id: dict[UUID, EnrollmentStatus] = {}
+    if enrollment_ids:
+        for eid, st in session.execute(
+            select(Enrollment.id, Enrollment.status).where(
+                Enrollment.id.in_(enrollment_ids)
+            )
+        ):
+            enrollment_status_by_id[eid] = st
+
+    out: dict[UUID, bool] = {}
+    for p in rows:
+        ok = (
+            p.direction == BillingPaymentDirection.INBOUND
+            and _pending_or_free_payment(p)
+            and _enrollment_unlinked_or_cancelled(
+                p.enrollment_id, enrollment_status_by_id
+            )
+            and p.id not in allocation_pay_ids
+            and p.id not in receipt_pay_ids
+            and p.id not in refund_parent_ids
+        )
+        out[p.id] = ok
+    return out
+
+
+def _validate_orphan_delete(session: Session, p: CustomerPayment) -> None:
+    if p.direction != BillingPaymentDirection.INBOUND:
+        raise ValidationError("Only inbound payments can be deleted", field="paymentId")
+    if not _pending_or_free_payment(p):
+        raise ValidationError(
+            "Only pending inbound or free ($0) payments can be deleted",
+            field="paymentId",
+        )
+    if p.enrollment_id is not None:
+        en = session.get(Enrollment, p.enrollment_id)
+        if en is not None and en.status != EnrollmentStatus.CANCELLED:
+            raise ValidationError(
+                "Payment is still linked to an enrollment that is not cancelled",
+                field="enrollmentId",
+            )
+    has_alloc = session.execute(
+        select(
+            exists().where(PaymentAllocation.payment_id == p.id),
+        )
+    ).scalar_one()
+    if has_alloc:
+        raise ValidationError(
+            "Payment has invoice allocations and cannot be deleted",
+            field="paymentId",
+        )
+    has_rcpt = session.execute(
+        select(exists().where(CustomerReceipt.customer_payment_id == p.id))
+    ).scalar_one()
+    if has_rcpt:
+        raise ValidationError(
+            "Payment has a receipt row and cannot be deleted", field="paymentId"
+        )
+    has_refund = session.execute(
+        select(
+            exists().where(
+                CustomerPayment.original_payment_id == p.id,
+                CustomerPayment.direction == BillingPaymentDirection.REFUND,
+            )
+        )
+    ).scalar_one()
+    if has_refund:
+        raise ValidationError(
+            "Payment has linked refund rows and cannot be deleted",
+            field="paymentId",
+        )
+
+
+def _delete_payment(
+    event: Mapping[str, Any],
+    payment_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    with _session_with_audit(user_sub, request_id) as session:
+        p = session.get(CustomerPayment, payment_id)
+        if p is None:
+            raise NotFoundError("CustomerPayment", str(payment_id))
+        _validate_orphan_delete(session, p)
+        old_values = p.to_audit_dict()
+        audit = AuditService(session, user_id=user_sub, request_id=request_id)
+        audit.log_custom(
+            table_name="customer_payments",
+            record_id=payment_id,
+            action="ORPHAN_INBOUND_PAYMENT_DELETED",
+            old_values=old_values,
+        )
+        session.delete(p)
+        session.flush()
+    return json_response(204, {}, event=event)
 
 
 def _list_payments(
@@ -123,9 +283,17 @@ def _list_payments(
             )
         stmt = stmt.limit(DEFAULT_BILLING_LIST_LIMIT)
         rows = list(session.execute(stmt).scalars().all())
+        deletable_by_id = _batch_orphan_payment_deletable(session, rows)
         return json_response(
             200,
-            {"items": [_serialize_payment(p) for p in rows]},
+            {
+                "items": [
+                    _serialize_payment(
+                        p, orphan_payment_deletable=deletable_by_id.get(p.id, False)
+                    )
+                    for p in rows
+                ]
+            },
             event=event,
         )
 
@@ -143,10 +311,11 @@ def _get_payment(
             raise NotFoundError("CustomerPayment", str(payment_id))
         unapplied = str(payment_unapplied_amount(session, payment_id))
         allocation_invoices = _payment_allocation_invoice_refs(session, payment_id)
+        deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
         return json_response(
             200,
             {
-                **_serialize_payment(p),
+                **_serialize_payment(p, orphan_payment_deletable=deletable),
                 "unappliedAmount": unapplied,
                 "allocationInvoices": allocation_invoices,
             },
@@ -235,7 +404,7 @@ def _create_payment(
             action="REFUND_CREATED",
             new_values={"original_payment_id": str(orig_id), "amount": str(amount)},
         )
-        payload = _serialize_payment(refund)
+        payload = _serialize_payment(refund, orphan_payment_deletable=False)
     return json_response(201, {"payment": payload}, event=event)
 
 
@@ -270,7 +439,8 @@ def _confirm_payment(
         if existing_receipt is None:
             rcpt = create_receipt_for_succeeded_inbound_payment(session, payment=p)
             receipt_id_for_upload = rcpt.id
-        out = _serialize_payment(p)
+        deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
+        out = _serialize_payment(p, orphan_payment_deletable=deletable)
     if receipt_id_for_upload is not None:
         try:
             with Session(get_engine()) as upload_session:

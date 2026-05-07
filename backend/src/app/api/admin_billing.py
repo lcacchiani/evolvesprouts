@@ -26,6 +26,7 @@ from app.api.admin_billing_payments import (
     CustomerReceipt,
     _confirm_payment,
     _create_payment,
+    _delete_payment,
     _get_payment,
     _list_payments,
     _unapplied,
@@ -76,6 +77,10 @@ def handle_admin_billing_request(
         pid = parse_uuid(parts[3])
         if method == "GET":
             return _get_payment(event, pid, user_sub=identity.user_sub, request_id=req)
+        if method == "DELETE":
+            return _delete_payment(
+                event, pid, user_sub=identity.user_sub, request_id=req
+            )
 
     if sub == "payments" and len(parts) == 5 and parts[4] == "unapplied":
         pid = parse_uuid(parts[3])
