@@ -551,19 +551,24 @@ array, one object per tier).
 **Decision:** The public calendar feed (`GET /v1/calendar/public`) exposes each offering’s
 stable **`slug`** from `service_instances.slug` (required on emitted rows; UUIDs are not
 returned). Session slots use dense 1-based **`part`** ordinals after `(sort_order, starts_at)`
-ordering. Public discount validation accepts **`service_instance_slug`** (not
-`service_instance_id` or `service_id`); public reservations accept **`serviceInstanceSlug`**
-for the same instance scope check (resolved server-side to the instance UUID).
+ordering. Public discount validation accepts optional **`service_instance_slug`** (not
+`service_instance_id` or `service_id`); when supplied it pairs with `service_key` for identity.
+Public reservations accept optional **`serviceInstanceSlug`** for the same pattern on **event**
+and **MBA** bookings; **consultation** and **intro-call** bookings omit it and use **`serviceKey`**
+against catalog `services` rows instead.
 
 **Why:** Public clients should not handle Aurora primary keys; slugs are human-meaningful
 and align static content fixtures with the API contract.
 
-**Scope checks:** `POST /v1/discounts/validate` and `POST /v1/reservations` require the
-pair (`service_key`, `service_instance_slug`) on the wire. The handler resolves the
-instance (and parent service) in one query; unknown instance slug or a key that does not
-match the instance’s parent service returns **404** with structured rejection reasons.
-Unscoped codes still validate once the pair resolves; scoped codes compare against the
-resolved `services.id` / `service_instances.id` as before.
+**Scope checks:** `POST /v1/discounts/validate` and `POST /v1/reservations` accept
+`service_key` always; `service_instance_slug` / `serviceInstanceSlug` pair-resolution remains
+required for **event** and **MBA** bookings. Consultation-tier and intro-call reservations resolve
+catalog rows by `service_key` only (`family-consultation-essentials`, `family-consultation-deep-dive`,
+`intro-call`) and omit instance slug on the wire (ignored when present). Discount validate mirrors
+the split: slug omitted validates against `services.id` only; instance-scoped promo codes still require
+a slug. Unknown instance slug or a key that does not match the instance's parent service returns **404**
+with structured rejection reasons on slug-mode requests; unknown `service_key` in slug-less validate
+requests returns **404** `unknown_service_key`.
 
 ## Public calendar blockers and consultation half-day contract
 
@@ -612,6 +617,9 @@ TTL on any cacheable reads and `no-store` for the consultation purpose.
 
 ## Per-booking service instances for consultations and intro calls
 
+**Status:** Superseded by **Tier-per-service catalog (drop template instance row)** below.
+Retained for history.
+
 **Decision:** Public `consultation-booking` and `intro-call-booking` submissions resolve the
 **template tier** `service_instances` row by slug (`serviceInstanceSlug`), row-lock it,
 allocate a new **booking instance** child (`parent_instance_id`, `is_template = false`)
@@ -633,19 +641,21 @@ the resolved scheduled instance (no child row allocation).
 persistence and does not create an additional ``PROGRAM_ENROLLMENT`` sales lead; the first
 successful request still records the lead.
 
-## Keeping Documentation Up to Date
+## Tier-per-service catalog (drop template instance row)
 
-**Decision:** Architecture documentation in `docs/architecture/` describes
-high-level design, patterns, and decisions. API endpoint details (paths,
-methods, parameters, schemas) are documented exclusively in the OpenAPI
-specs under `docs/api/`. Architecture docs must link to the OpenAPI specs
-rather than duplicating endpoint information.
+**Decision:** Each consultation package tier is its own `services` catalog row
+(`family-consultation-essentials`, `family-consultation-deep-dive`); intro-call keeps a single
+`services` row (`intro-call`). `service_instances` no longer mixes catalog templates with booking
+containers: public reservations row-lock the catalog `services` row, allocate one booking
+`service_instances` row per submission (generated slug, `eventbrite_sync_status = skipped`),
+and attach `instance_session_slots.purpose_service_id` → that catalog service for concurrency
+control on `(purpose_service_id, starts_at)`. `consultation_instance_details`, `is_template`,
+`parent_instance_id`, and `template_instance_id` are removed in migrations `0062_eventbrite_skipped`
++ `0063_tier_per_service` (**hard cutover**, lossy downgrade after production writes).
 
-When making changes:
-1. Update the relevant OpenAPI spec if adding/changing endpoints.
-2. Update `docs/architecture/lambdas.md` if adding/changing Lambda functions.
-3. Update `docs/architecture/database-schema.md` if adding/changing tables.
-4. Update other architecture docs if design decisions or patterns change.
+**Why:** Eliminates dual-purpose instance rows (tier vs occurrence), simplifies admin Services UX
+(two visible consultation tiers instead of template + booking forest), and aligns public identity with
+`serviceKey` for consultations/intro-call while keeping slug-based resolution for events/MBA.
 
 ## Public calendar availability is slot-based for all purposes
 
@@ -674,9 +684,24 @@ block targets the operator's intro-call calendar without disabling consultations
 
 **Decision:** Free intro-call candidate starts advance on a **30-minute** wall-clock grid
 (Mon–Fri 09:00–17:30 `Asia/Hong_Kong` by default); each offered interval remains **15 minutes**
-long (`end = start + 15m`) so copy and the `intro-call-free-15min` instance slug stay aligned
-with call length while halving the number of start times versus a 15-minute grid.
+long (`end = start + 15m`) so copy stays aligned with call length while halving the number of
+start times versus a 15-minute grid. Reservations resolve the intro-call catalog **service** by
+`service_key` (`intro-call`); booking rows use generated instance slugs.
 
 **Maintenance note (section backgrounds):** Some public sections pair a white surface with
 the light watermark treatment by registering the same class name in two CSS selector lists
 (watermark variables vs solid background). Prefer a single utility class when refactoring.
+
+## Keeping Documentation Up to Date
+
+**Decision:** Architecture documentation in `docs/architecture/` describes
+high-level design, patterns, and decisions. API endpoint details (paths,
+methods, parameters, schemas) are documented exclusively in the OpenAPI
+specs under `docs/api/`. Architecture docs must link to the OpenAPI specs
+rather than duplicating endpoint information.
+
+When making changes:
+1. Update the relevant OpenAPI spec if adding/changing endpoints.
+2. Update `docs/architecture/lambdas.md` if adding/changing Lambda functions.
+3. Update `docs/architecture/database-schema.md` if adding/changing tables.
+4. Update other architecture docs if design decisions or patterns change.

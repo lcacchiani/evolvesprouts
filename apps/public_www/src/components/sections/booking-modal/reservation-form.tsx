@@ -54,6 +54,10 @@ import {
 } from '@/lib/design-tokens';
 import { trackMetaPixelEvent, type MetaPixelContentName } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
+import {
+  EVENT_BOOKING_SYSTEM,
+  MY_BEST_AUNTIE_BOOKING_SYSTEM,
+} from '@/lib/events-data';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { getContent } from '@/content';
@@ -114,8 +118,11 @@ interface BookingReservationFormProps {
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
-  /** Public instance slug (`service_instances.slug`) for discount validate and reservation identity. */
-  serviceInstanceSlug: string;
+  /**
+   * Public instance slug (`service_instances.slug`) for discount validate and reservation identity.
+   * Required for `event-booking` and `my-best-auntie-booking`; omit for consultation / intro-call flows.
+   */
+  serviceInstanceSlug?: string;
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
@@ -463,13 +470,16 @@ export function BookingReservationForm({
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
-  serviceInstanceSlug,
+  serviceInstanceSlug = '',
   prefilledDiscountCode = '',
   referralAppliedNote = '',
   referralAppliedAnnouncement = '',
   initiallyInteracted = false,
   onSubmitReservation,
 }: BookingReservationFormProps) {
+  const requiresServiceInstanceSlug =
+    bookingSystem === EVENT_BOOKING_SYSTEM ||
+    bookingSystem === MY_BEST_AUNTIE_BOOKING_SYSTEM;
   const dialCodeOptionTemplate = getContent(locale).common.phoneDialCodeOptionTemplate;
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [fullName, setFullName] = useState('');
@@ -838,7 +848,7 @@ export function BookingReservationForm({
         setDiscountError('');
       }
       try {
-        if (!scopeKey || !instanceSlugForValidate) {
+        if (!scopeKey || (requiresServiceInstanceSlug && !instanceSlugForValidate)) {
           setDiscountRule(null);
           if (options.autoApply) {
             trackAnalyticsEvent('booking_discount_autoapply_error', {
@@ -868,7 +878,9 @@ export function BookingReservationForm({
         const validatedRule = await validateDiscountCode(crmApiClient, {
           code: normalizedCode,
           serviceKey: scopeKey,
-          serviceInstanceSlug: instanceSlugForValidate,
+          ...(instanceSlugForValidate
+            ? { serviceInstanceSlug: instanceSlugForValidate }
+            : {}),
         });
         if (!validatedRule) {
           if (options.autoApply) {
@@ -961,6 +973,7 @@ export function BookingReservationForm({
       discountRule,
       serviceKey,
       serviceInstanceSlug,
+      requiresServiceInstanceSlug,
       originalPriceAmount,
       referralAppliedAnnouncement,
     ],
@@ -1050,7 +1063,7 @@ export function BookingReservationForm({
 
     const sanitizedSubmitServiceKey = sanitizeSingleLineValue(serviceKey);
     const sanitizedSubmitInstanceSlug = sanitizeSingleLineValue(serviceInstanceSlug);
-    if (!sanitizedSubmitServiceKey || !sanitizedSubmitInstanceSlug) {
+    if (!sanitizedSubmitServiceKey || (requiresServiceInstanceSlug && !sanitizedSubmitInstanceSlug)) {
       trackPublicFormOutcome('booking_submit_error', {
         formKind: 'reservation',
         formId: BOOKING_RESERVATION_FORM_ANALYTICS_ID,
@@ -1297,7 +1310,7 @@ export function BookingReservationForm({
         return {
           serviceKey: sanitizedServiceKey,
           bookingSystem: sanitizeSingleLineValue(bookingSystem) || undefined,
-          serviceInstanceSlug: instanceSlug,
+          ...(instanceSlug ? { serviceInstanceSlug: instanceSlug } : {}),
           ...(sanitizeSingleLineValue(selectedCohortDateLabel)
             ? {
                 serviceInstanceCohort: sanitizeSingleLineValue(selectedCohortDateLabel),

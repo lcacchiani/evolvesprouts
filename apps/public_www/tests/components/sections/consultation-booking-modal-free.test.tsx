@@ -244,10 +244,13 @@ describe('ConsultationBookingModal free price', () => {
         payload: expect.objectContaining({
           paymentMethod: 'free',
           totalAmount: 0,
-          serviceKey: 'family-consultation',
-          serviceInstanceSlug: 'consultation-essentials-package',
+          serviceKey: 'family-consultation-essentials',
         }),
       }),
     );
+    const submitted = vi.mocked(submitReservation).mock.calls[0]?.[1]?.payload as {
+      serviceInstanceSlug?: string;
+    };
+    expect(submitted.serviceInstanceSlug).toBeUndefined();
   });
 });

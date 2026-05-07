@@ -14,7 +14,7 @@ from urllib.parse import quote
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -42,6 +42,7 @@ from app.db.models import (
     CustomerPayment,
     Enrollment,
     InstanceSessionSlot,
+    Service,
     ServiceInstance,
 )
 from app.db.repositories import (
@@ -131,8 +132,10 @@ _MAX_MARKETING_ATTRIBUTION_UTM_MEDIUM = 100
 _MAX_MARKETING_ATTRIBUTION_UTM_CAMPAIGN = 200
 _MAX_MARKETING_ATTRIBUTION_UTM_CONTENT = 200
 _MAX_MARKETING_ATTRIBUTION_REFERRER = 500
-_INTRO_CALL_INSTANCE_SLUG = "intro-call-free-15min"
 _INTRO_CALL_SERVICE_KEY = "intro-call"
+_ALLOWED_CONSULTATION_SERVICE_KEYS = frozenset(
+    {"family-consultation-essentials", "family-consultation-deep-dive"}
+)
 _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES = frozenset(
     {
         "consultation-booking",
@@ -144,8 +147,8 @@ _PUBLIC_RESERVATION_BOOKING_SYSTEM_CODES = frozenset(
 _PER_BOOKING_BOOKING_SYSTEMS = frozenset({"consultation-booking", "intro-call-booking"})
 
 
-def _generate_booking_instance_slug(*, template_slug: str, now_utc: datetime) -> str:
-    slug_part = template_slug.strip().lower()
+def _generate_booking_instance_slug(*, service_key: str, now_utc: datetime) -> str:
+    slug_part = service_key.strip().lower()
     suffix = secrets.token_hex(4)
     raw = f"{slug_part}-{now_utc:%Y%m%d%H%M%S}-{suffix}"
     if len(raw) > _MAX_INSTANCE_SLUG_LENGTH:
@@ -159,35 +162,101 @@ def _generate_booking_instance_slug(*, template_slug: str, now_utc: datetime) ->
     return raw
 
 
-def _create_booking_instance_for_template(
+def _resolve_consultation_or_intro_service(
+    session: Session, payload: Mapping[str, Any]
+) -> Service:
+    """Load the catalog ``services`` row for consultation or intro-call bookings."""
+    raw_key = payload.get("service_key")
+    service_key_str = str(raw_key).strip().lower() if raw_key not in (None, "") else ""
+    if not service_key_str:
+        raise ValidationError("serviceKey is required", field="serviceKey")
+    if len(service_key_str) > _MAX_SERVICE_KEY_LENGTH:
+        raise ValidationError("serviceKey is too long", field="serviceKey")
+    if not _SERVICE_KEY_PATTERN.fullmatch(service_key_str):
+        raise ValidationError(
+            "serviceKey must match the public service key pattern",
+            field="serviceKey",
+        )
+    booking_system = str(payload.get("booking_system") or "").strip().lower()
+    statement = (
+        select(Service)
+        .where(func.lower(Service.service_key) == service_key_str)
+        .with_for_update()
+    )
+    row = session.execute(statement).scalar_one_or_none()
+    if row is None:
+        raise ValidationError(
+            "serviceKey does not match a published service",
+            field="serviceKey",
+            status_code=400,
+        )
+    if booking_system == "consultation-booking":
+        if service_key_str not in _ALLOWED_CONSULTATION_SERVICE_KEYS:
+            raise ValidationError(
+                "serviceKey must be a consultation tier service key",
+                field="serviceKey",
+                status_code=400,
+            )
+        if row.service_type != ServiceType.CONSULTATION:
+            raise ValidationError(
+                "serviceKey must reference a consultation service",
+                field="serviceKey",
+                status_code=400,
+            )
+    elif booking_system == "intro-call-booking":
+        if service_key_str != _INTRO_CALL_SERVICE_KEY:
+            raise ValidationError(
+                "serviceKey mismatch for intro-call booking",
+                field="serviceKey",
+            )
+        if row.service_type != ServiceType.INTRO_CALL:
+            raise ValidationError(
+                "serviceKey must reference an intro-call service",
+                field="serviceKey",
+                status_code=400,
+            )
+    else:
+        raise ValidationError(
+            "bookingSystem must be consultation-booking or intro-call-booking",
+            field="bookingSystem",
+        )
+    return row
+
+
+def _create_booking_instance_for_service(
     session: Session,
     instance_repo: ServiceInstanceRepository,
-    template: ServiceInstance,
+    service: Service,
     payload: Mapping[str, Any],
     *,
     now_utc: datetime,
 ) -> ServiceInstance:
-    locked = instance_repo.lock_template_for_booking(template.id)
+    locked = session.execute(
+        select(Service).where(Service.id == service.id).with_for_update()
+    ).scalar_one_or_none()
     if locked is None:
         raise ValidationError(
-            "service_instance_slug_mismatch",
-            field="serviceInstanceSlug",
+            "serviceKey does not match a published service",
+            field="serviceKey",
+            status_code=400,
+        )
+    service_key_str = (locked.service_key or "").strip().lower()
+    if not service_key_str:
+        raise ValidationError(
+            "serviceKey does not match a published service",
+            field="serviceKey",
             status_code=400,
         )
     attendee = str(payload.get("attendee_name") or "").strip()
-    title_base = (
-        f"{locked.title or locked.slug} – {attendee}" if attendee else locked.title
-    )
+    title_base = f"{locked.title} – {attendee}" if attendee else locked.title
     last_exc: IntegrityError | None = None
     for _attempt in range(3):
         slug = _generate_booking_instance_slug(
-            template_slug=locked.slug,
+            service_key=service_key_str,
             now_utc=now_utc,
         )
         booking = ServiceInstance(
-            service_id=locked.service_id,
-            parent_instance_id=locked.id,
-            is_template=False,
+            service_id=locked.id,
             title=title_base,
             slug=slug,
             description=None,
@@ -197,12 +266,12 @@ def _create_booking_instance_for_template(
             location_id=locked.location_id,
             max_capacity=1,
             waitlist_enabled=False,
-            instructor_id=locked.instructor_id,
+            instructor_id=None,
             cohort=None,
             notes=None,
             created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
             external_url=None,
-            eventbrite_sync_status=EventbriteSyncStatus.PENDING,
+            eventbrite_sync_status=EventbriteSyncStatus.SKIPPED,
         )
         try:
             with session.begin_nested():
@@ -282,7 +351,7 @@ def _persist_session_slots_for_booking_instance(
     session: Session,
     *,
     booking_instance_id: UUID,
-    template_id: UUID,
+    purpose_service_id: UUID,
     slots: list[tuple[datetime, datetime, int]],
     reservation_payload: Mapping[str, Any],
     now_utc: datetime,
@@ -292,7 +361,7 @@ def _persist_session_slots_for_booking_instance(
         session.add(
             InstanceSessionSlot(
                 instance_id=booking_instance_id,
-                template_instance_id=template_id,
+                purpose_service_id=purpose_service_id,
                 location_id=None,
                 starts_at=start_u,
                 ends_at=end_u,
@@ -303,7 +372,7 @@ def _persist_session_slots_for_booking_instance(
         session.flush()
     except IntegrityError as exc:
         logger.info(
-            "booking_template_slot_unique_violation",
+            "booking_purpose_service_slot_unique_violation",
             extra={
                 "attendee_email": mask_email(
                     str(reservation_payload.get("attendee_email"))
@@ -469,19 +538,13 @@ def _assert_consultation_start_grid_aligned(
 def _enforce_intro_call_invariants(
     session: Session,
     payload: Mapping[str, Any],
-    resolved_instance: ServiceInstance,
+    catalog_service: Service,
     *,
     now: datetime,
 ) -> tuple[datetime, datetime]:
     if (payload.get("service_key") or "").strip().lower() != _INTRO_CALL_SERVICE_KEY:
         raise ValidationError(
             "serviceKey mismatch for intro-call booking", field="serviceKey"
-        )
-    slug = (payload.get("service_instance_slug") or "").strip().lower()
-    if slug != _INTRO_CALL_INSTANCE_SLUG:
-        raise ValidationError(
-            "serviceInstanceSlug mismatch for intro-call booking",
-            field="serviceInstanceSlug",
         )
     if payload.get("total_amount") != Decimal("0"):
         raise ValidationError(
@@ -561,7 +624,7 @@ def _enforce_intro_call_invariants(
         cooldown_days=30,
     ):
         raise ConflictError("recent_intro_call_exists")
-    if resolved_instance.service.service_type != ServiceType.INTRO_CALL:
+    if catalog_service.service_type != ServiceType.INTRO_CALL:
         raise ValidationError(
             "serviceType mismatch for intro-call booking", field="serviceKey"
         )
@@ -741,17 +804,33 @@ def _handle_public_reservation(
                     user_id=None,
                     request_id=request_id_str or None,
                 )
-                resolved_instance = _resolve_booking_identity(
-                    session, reservation_payload
-                )
-                template_instance = resolved_instance
-                reservation_payload = {
-                    **reservation_payload,
-                    "service_type": template_instance.service.service_type.value,
-                }
-                now_utc = datetime.now(tz=UTC)
                 booking_system = reservation_payload.get("booking_system")
                 per_booking = booking_system in _PER_BOOKING_BOOKING_SYSTEMS
+                scheduled_instance: ServiceInstance | None = None
+                if per_booking:
+                    raw_slug_ignored = reservation_payload.get("service_instance_slug")
+                    if raw_slug_ignored not in (None, ""):
+                        logger.debug(
+                            "Ignoring serviceInstanceSlug for per-booking reservation",
+                            extra={
+                                "booking_system": booking_system,
+                                "service_instance_slug": str(raw_slug_ignored).strip(),
+                            },
+                        )
+                    catalog_service = _resolve_consultation_or_intro_service(
+                        session, reservation_payload
+                    )
+                else:
+                    scheduled_instance = _resolve_booking_identity(
+                        session, reservation_payload
+                    )
+                    catalog_service = scheduled_instance.service
+
+                reservation_payload = {
+                    **reservation_payload,
+                    "service_type": catalog_service.service_type.value,
+                }
+                now_utc = datetime.now(tz=UTC)
                 intro_slot_bounds: tuple[datetime, datetime] | None = None
                 consultation_slot_rows: list[tuple[datetime, datetime, int]] | None = (
                     None
@@ -760,7 +839,7 @@ def _handle_public_reservation(
                     intro_slot_bounds = _enforce_intro_call_invariants(
                         session,
                         reservation_payload,
-                        template_instance,
+                        catalog_service,
                         now=now_utc,
                     )
                 elif booking_system == "consultation-booking":
@@ -794,7 +873,10 @@ def _handle_public_reservation(
                         reservation_payload
                     )
                 _validate_discount_code_redemption_scope(
-                    session, reservation_payload, template_instance=template_instance
+                    session,
+                    reservation_payload,
+                    resolved_service=catalog_service,
+                    resolved_instance=scheduled_instance,
                 )
 
                 stripe_pi = str(
@@ -812,7 +894,11 @@ def _handle_public_reservation(
                         stripe_pi_existing_payment_id = existing_pi_payment.id
                         skip_persistence = True
 
-                instance_id_for_audit: UUID = template_instance.id
+                instance_id_for_audit: UUID = (
+                    scheduled_instance.id
+                    if scheduled_instance is not None
+                    else catalog_service.id
+                )
                 booking_instance_slug_for_lead: str | None = None
                 dc_row = None
                 dc_text = reservation_payload.get("discount_code")
@@ -877,18 +963,20 @@ def _handle_public_reservation(
                     enrollment_repo = EnrollmentRepository(session)
                     discount_repo = DiscountCodeRepository(session)
 
-                    target_instance_id = template_instance.id
                     if per_booking:
-                        booking_row = _create_booking_instance_for_template(
+                        booking_row = _create_booking_instance_for_service(
                             session,
                             instance_repo,
-                            template_instance,
+                            catalog_service,
                             reservation_payload,
                             now_utc=now_utc,
                         )
                         target_instance_id = booking_row.id
                         instance_id_for_audit = booking_row.id
                         booking_instance_slug_for_lead = booking_row.slug
+                    else:
+                        assert scheduled_instance is not None
+                        target_instance_id = scheduled_instance.id
 
                     has_enrollment = (
                         enrollment_repo.contact_has_enrollment_for_instance(
@@ -899,13 +987,13 @@ def _handle_public_reservation(
                     is_intro_booking = booking_system == "intro-call-booking"
 
                     if not has_enrollment:
-                        instance_service_id = template_instance.service.id
+                        instance_service_id = catalog_service.id
                         if dc_row is not None:
                             ensure_discount_code_eligible_for_instance(
                                 session,
                                 discount_code_id=dc_row.id,
                                 service_id=instance_service_id,
-                                instance_id=template_instance.id,
+                                instance_id=target_instance_id,
                             )
                         enrollment_row = Enrollment(
                             instance_id=target_instance_id,
@@ -966,7 +1054,7 @@ def _handle_public_reservation(
                                 _persist_session_slots_for_booking_instance(
                                     session,
                                     booking_instance_id=target_instance_id,
-                                    template_id=template_instance.id,
+                                    purpose_service_id=catalog_service.id,
                                     slots=[(s0, s1, 0)],
                                     reservation_payload=reservation_payload,
                                     now_utc=now_utc,
@@ -979,7 +1067,7 @@ def _handle_public_reservation(
                                 _persist_session_slots_for_booking_instance(
                                     session,
                                     booking_instance_id=target_instance_id,
-                                    template_id=template_instance.id,
+                                    purpose_service_id=catalog_service.id,
                                     slots=consultation_slot_rows,
                                     reservation_payload=reservation_payload,
                                     now_utc=now_utc,
@@ -1413,17 +1501,35 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "discountCode",
         _MAX_DISCOUNT_CODE,
     )
-    service_instance_slug_raw = _require_text(
-        body.get("serviceInstanceSlug"),
-        "serviceInstanceSlug",
-        _MAX_INSTANCE_SLUG_LENGTH,
-    )
-    service_instance_slug = service_instance_slug_raw.strip().lower()
-    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(service_instance_slug):
-        raise ValidationError(
-            "serviceInstanceSlug must match the public slug pattern",
-            field="serviceInstanceSlug",
+    per_booking_slug_optional = booking_system_early in _PER_BOOKING_BOOKING_SYSTEMS
+    service_instance_slug: str | None = None
+    if per_booking_slug_optional:
+        raw_inst_slug = body.get("serviceInstanceSlug")
+        if raw_inst_slug is not None and str(raw_inst_slug).strip():
+            service_instance_slug_raw = _require_text(
+                raw_inst_slug,
+                "serviceInstanceSlug",
+                _MAX_INSTANCE_SLUG_LENGTH,
+            )
+            service_instance_slug_norm = service_instance_slug_raw.strip().lower()
+            if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(service_instance_slug_norm):
+                raise ValidationError(
+                    "serviceInstanceSlug must match the public slug pattern",
+                    field="serviceInstanceSlug",
+                )
+            service_instance_slug = service_instance_slug_norm
+    else:
+        service_instance_slug_raw = _require_text(
+            body.get("serviceInstanceSlug"),
+            "serviceInstanceSlug",
+            _MAX_INSTANCE_SLUG_LENGTH,
         )
+        service_instance_slug = service_instance_slug_raw.strip().lower()
+        if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(service_instance_slug):
+            raise ValidationError(
+                "serviceInstanceSlug must match the public slug pattern",
+                field="serviceInstanceSlug",
+            )
     service_instance_cohort = _optional_text(
         body.get("serviceInstanceCohort") or body.get("service_instance_cohort"),
         "serviceInstanceCohort",
@@ -1507,7 +1613,8 @@ def _validate_discount_code_redemption_scope(
     session: Session,
     payload: Mapping[str, Any],
     *,
-    template_instance: ServiceInstance,
+    resolved_service: Service,
+    resolved_instance: ServiceInstance | None,
 ) -> None:
     """Ensure discount code scope matches the reservation context."""
     code = payload.get("discount_code")
@@ -1523,7 +1630,12 @@ def _validate_discount_code_redemption_scope(
         raise ValidationError("Invalid discount code", field="discountCode")
 
     if row.instance_id is not None:
-        if template_instance.id != row.instance_id:
+        if resolved_instance is None:
+            raise ValidationError(
+                "Discount code is not valid for this booking",
+                field="discountCode",
+            )
+        if row.instance_id != resolved_instance.id:
             raise ValidationError(
                 "Discount code is not valid for this booking",
                 field="discountCode",
@@ -1533,7 +1645,7 @@ def _validate_discount_code_redemption_scope(
     if row.service_id is None:
         return
 
-    if template_instance.service.id != row.service_id:
+    if row.service_id != resolved_service.id:
         raise ValidationError(
             "Discount code is not valid for this booking",
             field="discountCode",

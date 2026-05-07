@@ -105,8 +105,6 @@ export interface ConsultationEventBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
   serviceKey: string;
-  /** Public instance slug for the selected consultation slot (required for booking). */
-  instanceSlug: string;
   title: string;
   subtitle: string;
   originalAmount: number;

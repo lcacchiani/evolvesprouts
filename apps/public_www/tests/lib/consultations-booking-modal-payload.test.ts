@@ -13,8 +13,7 @@ describe('buildConsultationsBookingModalPayload', () => {
 
     expect(payload.variant).toBe('event');
     expect(payload.bookingSystem).toBe(CONSULTATION_BOOKING_SYSTEM);
-    expect(payload.serviceKey).toBe('family-consultation');
-    expect(payload.instanceSlug).toBe('consultation-essentials-package');
+    expect(payload.serviceKey).toBe('family-consultation-essentials');
     expect(payload.locationName).toBe('Your Home');
     expect(payload.locationAddress).toBe('Hong Kong');
     expect(payload.title).toBe(reservation.modalTitle);
@@ -33,8 +32,7 @@ describe('buildConsultationsBookingModalPayload', () => {
     };
     const payload = buildConsultationsBookingModalPayload(reservation, 'en');
 
-    expect(payload.serviceKey).toBe('family-consultation');
-    expect(payload.instanceSlug).toBe('consultation-deep-dive-package');
+    expect(payload.serviceKey).toBe('family-consultation-deep-dive');
     expect(payload.originalAmount).toBe(reservation.deepDive.priceHkd);
     expect(payload.dateParts).toHaveLength(reservation.deepDive.dateParts.length);
   });

@@ -321,7 +321,6 @@ export function LandingPageFreeIntroCall({
       title: pageTitle,
       serviceKey: 'intro-call',
       bookingSystem: 'intro-call-booking',
-      serviceInstanceSlug: 'intro-call-free-15min',
       primarySessionStartIso: selectedSlot.startIso,
       primarySessionEndIso: selectedSlot.endIso,
       marketingAttribution: marketingAttributionRef.current,

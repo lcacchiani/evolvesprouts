@@ -30,7 +30,6 @@ from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import (
-    ConsultationInstanceDetails,
     EventCategory,
     EventTicketTier,
     InstanceSessionSlot,
@@ -68,21 +67,10 @@ def _is_service_instance_slug_unique_violation(exc: IntegrityError) -> bool:
     orig = getattr(exc.orig, "__cause__", None) or exc.orig
     diag = getattr(orig, "diag", None)
     constraint = getattr(diag, "constraint_name", None) if diag else None
-    if constraint in (
-        "svc_instances_slug_uq",
-        "svc_instances_slug_uq_template",
-        "svc_instances_slug_uq_booking",
-    ):
+    if constraint == "svc_instances_slug_uq":
         return True
     lowered = str(exc).lower()
-    return any(
-        name in lowered
-        for name in (
-            "svc_instances_slug_uq",
-            "svc_instances_slug_uq_template",
-            "svc_instances_slug_uq_booking",
-        )
-    )
+    return "svc_instances_slug_uq" in lowered
 
 
 def _event_category_name(service: Service) -> str:
@@ -275,7 +263,6 @@ def handle_admin_all_service_instances_request(
                 raise NotFoundError("Service", str(service_id_filter))
 
         repository = ServiceInstanceRepository(session)
-        include_bookings = bool(filters.get("include_bookings", False))
         rows = repository.list_instances_global(
             limit=limit + 1,
             status=filters["status"],
@@ -283,13 +270,11 @@ def handle_admin_all_service_instances_request(
             service_type=service_type_filter,
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
-            include_bookings=include_bookings,
         )
         total_count = repository.count_instances_global(
             status=filters["status"],
             service_id=service_id_filter,
             service_type=service_type_filter,
-            include_bookings=include_bookings,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
@@ -386,19 +371,16 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
             raise NotFoundError("Service", str(service_id))
 
         repository = ServiceInstanceRepository(session)
-        include_bookings = bool(filters.get("include_bookings", False))
         rows = repository.list_instances(
             service_id=service_id,
             limit=limit + 1,
             status=filters["status"],
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
-            include_bookings=include_bookings,
         )
         total_count = repository.count_instances(
             service_id=service_id,
             status=filters["status"],
-            include_bookings=include_bookings,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
@@ -463,9 +445,6 @@ def _create_instance(
             notes=payload["notes"],
             external_url=payload["external_url"],
             created_by=actor_sub,
-            parent_instance_id=None,
-            is_template=service.service_type
-            in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL),
         )
         type_details_raw = payload["type_details"]
         if service.service_type == ServiceType.EVENT:
@@ -751,12 +730,7 @@ def _build_instance_type_details(
             )
             for tier in parsed["event_ticket_tiers"]
         ]
-    return ConsultationInstanceDetails(
-        pricing_model=parsed["pricing_model"],
-        price=parsed["price"],
-        currency=parsed["currency"],
-        package_sessions=parsed["package_sessions"],
-    )
+    return None
 
 
 def _apply_instance_type_details(
@@ -799,15 +773,13 @@ def _apply_instance_type_details(
                     )
                 )
         instance.training_details = None
-        instance.consultation_details = None
         return
 
-    details = _build_instance_type_details(service_type, parsed_details)
     if service_type == ServiceType.TRAINING_COURSE:
+        details = _build_instance_type_details(service_type, parsed_details)
         instance.training_details = details
-        instance.consultation_details = None
         instance.ticket_tiers.clear()
-    else:
-        instance.consultation_details = details
-        instance.training_details = None
-        instance.ticket_tiers.clear()
+        return
+
+    instance.training_details = None
+    instance.ticket_tiers.clear()

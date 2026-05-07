@@ -70,4 +70,27 @@ describe('reservations-data', () => {
     const call = requestSpy.mock.calls[0]?.[0] as { body: Record<string, unknown> };
     expect(call.body).not.toHaveProperty('serviceTier');
   });
+
+  it('omits serviceInstanceSlug from the JSON body when not provided', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ status: 'ok' });
+    const client = { request: requestSpy };
+
+    await submitReservation(client, {
+      payload: {
+        attendeeName: 'Test User',
+        attendeeEmail: 'test@example.com',
+        attendeePhone: '91234567',
+        totalAmount: 0,
+        reservationPendingUntilPaymentConfirmed: false,
+        agreedToTermsAndConditions: true,
+        paymentMethod: 'free',
+        serviceKey: 'family-consultation-essentials',
+        bookingSystem: 'consultation-booking',
+      },
+      turnstileToken: 'mock-turnstile-token',
+    });
+
+    const call = requestSpy.mock.calls[0]?.[0] as { body: Record<string, unknown> };
+    expect(call.body).not.toHaveProperty('serviceInstanceSlug');
+  });
 });

@@ -62,7 +62,6 @@ from app.db.models.service import (
     TrainingCourseDetails,
 )
 from app.db.models.service_instance import (
-    ConsultationInstanceDetails,
     EventTicketTier,
     InstanceSessionSlot,
     ServiceInstance,
@@ -88,7 +87,6 @@ __all__ = [
     "CalendarManualBlock",
     "ConsultationDetails",
     "ConsultationFormat",
-    "ConsultationInstanceDetails",
     "ConsultationPricingModel",
     "Contact",
     "ContactSource",

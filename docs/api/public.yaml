@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     Public endpoint contract.
 
@@ -537,17 +537,20 @@ paths:
         succeeds only while the server UTC instant is **on or after** `valid_from` and
         **on or before** `valid_until` (both ends inclusive).
 
-        **Identity:** every request must include `service_key` and `service_instance_slug`.
-        The pair must resolve to a real `service_instances` row whose parent service's
-        `services.service_key` matches `service_key` case-insensitively; otherwise **404**
-        with `rejection_reason` `unknown_service_instance_slug` or `service_key_instance_mismatch`
-        (same generic `error` message as inactive codes).
+        **Identity:** requests always include `service_key`. When `service_instance_slug`
+        is present and non-empty, it resolves with `service_key` to a real `service_instances`
+        row whose parent service's `services.service_key` matches `service_key` case-insensitively;
+        otherwise **404** with `rejection_reason` `unknown_service_instance_slug` or
+        `service_key_instance_mismatch` (same generic `error` message as inactive codes).
+        When `service_instance_slug` is omitted or blank, identity is **service-key-only**:
+        the handler resolves the `services` row by `service_key`. Unknown keys return **404**
+        with `rejection_reason` `unknown_service_key`.
 
         **Service scoping:** codes may be limited to a service and/or instance in Aurora.
-        Unscoped codes (no `service_id` / `instance_id`) validate as long as the pair resolves.
+        Unscoped codes (no `service_id` / `instance_id`) validate as long as identity resolves.
         When the code is scoped to a **service only**, `services.service_key` must match the
-        resolved parent service. When scoped to an **instance**, `service_instances.slug` must
-        match the resolved instance.
+        resolved parent service. When scoped to an **instance**, `service_instance_slug` must be
+        supplied and must match the resolved instance (instance-scoped codes reject service-key-only requests).
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -570,8 +573,9 @@ paths:
         "404":
           description: >
             Code not found, inactive, expired, fully used, or identity/scoping mismatch.
-            When `rejection_reason` is present it may be `unknown_service_instance_slug` or
-            `service_key_instance_mismatch` (other rejections use the same generic body without this field).
+            When `rejection_reason` is present it may be `unknown_service_instance_slug`,
+            `service_key_instance_mismatch`, or `unknown_service_key`
+            (other rejections use the same generic body without this field).
           content:
             application/json:
               schema:
@@ -606,8 +610,9 @@ paths:
         "404":
           description: >
             Code not found, inactive, expired, fully used, or identity/scoping mismatch.
-            When `rejection_reason` is present it may be `unknown_service_instance_slug` or
-            `service_key_instance_mismatch` (other rejections use the same generic body without this field).
+            When `rejection_reason` is present it may be `unknown_service_instance_slug`,
+            `service_key_instance_mismatch`, or `unknown_service_key`
+            (other rejections use the same generic body without this field).
           content:
             application/json:
               schema:
@@ -1440,7 +1445,6 @@ components:
       required:
         - code
         - service_key
-        - service_instance_slug
       properties:
         code:
           type: string
@@ -1450,17 +1454,19 @@ components:
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Parent service public key (e.g. `my-best-auntie-training-course`). Matched case-insensitively
-            against `services.service_key`. Must pair with `service_instance_slug` to resolve
-            a real instance whose parent service has this key.
+            Parent service public key (e.g. `my-best-auntie-training-course`,
+            `family-consultation-essentials`, `intro-call`). Matched case-insensitively
+            against `services.service_key`. With `service_instance_slug`, must pair-resolve to an
+            instance on this service; without `service_instance_slug`, must identify an existing service row.
         service_instance_slug:
           type: string
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           maxLength: 128
           description: >
-            Public instance slug (`service_instances.slug`). Matched case-insensitively;
-            combined with `service_key` must resolve to an instance whose parent service's
-            `service_key` matches.
+            Optional public instance slug (`service_instances.slug`). When present, matched
+            case-insensitively and combined with `service_key` must resolve to an instance whose
+            parent service `service_key` matches. Omit for consultation-tier and intro-call catalog
+            bookings that validate discounts against `services.id` only.
     DiscountRule:
       type: object
       additionalProperties: false
@@ -1517,7 +1523,6 @@ components:
         - title
         - agreedToTermsAndConditions
         - serviceKey
-        - serviceInstanceSlug
       properties:
         attendeeName:
           type: string
@@ -1628,14 +1633,15 @@ components:
           maxLength: 100
         serviceInstanceSlug:
           type: string
+          nullable: true
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           maxLength: 128
           description: >
-            Public `service_instances.slug` for the booked cohort/instance (event/training)
-            or **template tier** (consultation packages / intro-call). Required with
-            `serviceKey` to resolve booking identity. For `consultation-booking` and
-            `intro-call-booking`, the server allocates a dedicated booking instance child row;
-            the slug here remains the template tier slug for discount validation and lead metadata.
+            Public `service_instances.slug` for the booked cohort/instance (`event-booking` and
+            `my-best-auntie-booking`). **Required** for those flows together with `serviceKey`.
+            For `consultation-booking` and `intro-call-booking`, omit this field or send a legacy
+            template slug for compatibility; the server resolves catalog rows by `serviceKey` only
+            and ignores `serviceInstanceSlug` when present (logged at debug level).
         serviceInstanceCohort:
           type: string
           maxLength: 200
@@ -1657,8 +1663,10 @@ components:
           maxLength: 80
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
           description: >
-            Parent service public key; must pair with `serviceInstanceSlug` to resolve a real
-            instance (same rules as discount validate).
+            Service public key. For `event-booking` and `my-best-auntie-booking`, pair with
+            `serviceInstanceSlug` to resolve the scheduled instance. For `consultation-booking`,
+            must be `family-consultation-essentials` or `family-consultation-deep-dive` (each tier is a
+            catalog `services` row). For `intro-call-booking`, must be `intro-call`.
         bookingSystem:
           type: string
           maxLength: 100
@@ -1670,18 +1678,19 @@ components:
           description: >
             Optional booking flow code. When set, must be exactly one of the enum values
             (case-insensitive on input; stored lowercased). Drives confirmation email formatting
-            (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
-            `consultation-booking` on the public site pairs with `serviceKey=family-consultation`
-            and tier instance slugs from `family-consultations.json`. Discrete slots come from
-            `/v1/calendar/availability?purpose=consultation_booking`; reservations must use grid-aligned
-            start times (09:00 or 14:00 local on Mon–Fri).
-            `intro-call-booking` requires `serviceKey=intro-call`, `serviceInstanceSlug=intro-call-free-15min`,
-            `totalAmount=0`, `paymentMethod=free` (or omit payment method to default to free), and
-            `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot at a
-            30-minute-aligned start time (Asia/Hong_Kong office-hours template; end 15 minutes after start).
+            (schedule/details). For `event-booking` and `my-best-auntie-booking`, booking identity
+            uses `serviceKey` + `serviceInstanceSlug`. For `consultation-booking`, identity uses
+            `serviceKey` only (`family-consultation-essentials`, `family-consultation-deep-dive`).
+            Discrete slots come from `/v1/calendar/availability?purpose=consultation_booking`; reservations
+            must use grid-aligned start times (09:00 or 14:00 local on Mon–Fri).
+            `intro-call-booking` requires `serviceKey=intro-call`, `totalAmount=0`, `paymentMethod=free`
+            (or omit payment method to default to free), and `primarySessionStartIso` /
+            `primarySessionEndIso` for a valid 15-minute slot at a 30-minute-aligned start time
+            (Asia/Hong_Kong office-hours template; end 15 minutes after start).
             Discrete slots come from `/v1/calendar/availability?purpose=intro_call_booking`.
-            Successful submissions allocate a new booking-specific service instance (child of the tier template)
-            with session slots and enrollment attached to that instance (race protection uses the tier template id + slot start).
+            Successful submissions allocate a new booking-specific service instance with session slots
+            and enrollment attached; concurrent bookings race on `(purpose_service_id, starts_at)` where
+            `purpose_service_id` is the intro-call or tier consultation `services.id`.
         marketingAttribution:
           type: object
           additionalProperties: false

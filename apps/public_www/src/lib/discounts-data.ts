@@ -127,7 +127,11 @@ export function buildDiscountValidationApiUrl(crmApiBaseUrl: string): string {
 export interface ValidateDiscountCodeOptions {
   code: string;
   serviceKey: string;
-  serviceInstanceSlug: string;
+  /**
+   * When set and non-empty, sent as `service_instance_slug` (instance + parent service resolution).
+   * When omitted or blank, validation uses `service_key` only (consultation-tier / intro-call catalog rows).
+   */
+  serviceInstanceSlug?: string;
   signal?: AbortSignal;
 }
 
@@ -141,16 +145,19 @@ export async function validateDiscountCode(
   }
 
   const scopedKey = readRequiredText(options.serviceKey);
-  const instanceSlug = readRequiredText(options.serviceInstanceSlug);
-  if (!scopedKey || !instanceSlug) {
+  if (!scopedKey) {
     return null;
   }
+
+  const rawSlug = options.serviceInstanceSlug?.trim() ?? '';
 
   const body: Record<string, string> = {
     code: normalizedCode,
     service_key: scopedKey,
-    service_instance_slug: instanceSlug,
   };
+  if (rawSlug) {
+    body.service_instance_slug = rawSlug;
+  }
 
   const payload = await crmApiClient.request({
     endpointPath: DISCOUNT_VALIDATE_API_PATH,

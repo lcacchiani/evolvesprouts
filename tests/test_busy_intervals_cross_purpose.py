@@ -57,13 +57,13 @@ def test_intro_call_slot_blocks_consultation_am() -> None:
     with engine.connect() as setup:
         row = setup.execute(
             text(
-                "SELECT id FROM service_instances WHERE lower(slug) = "
-                "'intro-call-free-15min' LIMIT 1"
+                "SELECT si.id, si.service_id FROM service_instances si "
+                "WHERE lower(si.slug) = 'intro-call-free-15min' LIMIT 1"
             )
         ).first()
         if row is None:
             pytest.skip("intro-call-free-15min instance missing in test database")
-        template_id = row[0]
+        _carrier_id, purpose_svc_id = row[0], row[1]
         setup.execute(
             text(
                 "DELETE FROM instance_session_slots WHERE instance_id IN ("
@@ -83,26 +83,26 @@ def test_intro_call_slot_blocks_consultation_am() -> None:
             intro_child_id = conn.execute(
                 text(
                     "INSERT INTO service_instances ("
-                    "service_id, slug, created_by, parent_instance_id, is_template, "
-                    "status, waitlist_enabled, delivery_mode, eventbrite_sync_status"
+                    "service_id, slug, created_by, "
+                    "status, waitlist_enabled, delivery_mode, eventbrite_sync_status, "
+                    "eventbrite_retry_count"
                     ") "
-                    "SELECT service_id, "
+                    "VALUES (:svc, "
                     "'cross-purpose-test-intro-' || substr(md5(random()::text), 1, 16), "
-                    "'pytest', id, FALSE, 'open', FALSE, 'online', 'pending' "
-                    "FROM service_instances WHERE id = :tid RETURNING id"
+                    "'pytest', 'open', FALSE, 'online', 'skipped', 0) RETURNING id"
                 ),
-                {"tid": str(template_id)},
+                {"svc": str(purpose_svc_id)},
             ).scalar_one()
             conn.execute(
                 text(
                     "INSERT INTO instance_session_slots "
-                    "(instance_id, template_instance_id, location_id, starts_at, ends_at, "
+                    "(instance_id, purpose_service_id, location_id, starts_at, ends_at, "
                     "sort_order) "
-                    "VALUES (:iid, :tid, NULL, :st, :en, 0)"
+                    "VALUES (:iid, :psid, NULL, :st, :en, 0)"
                 ),
                 {
                     "iid": str(intro_child_id),
-                    "tid": str(template_id),
+                    "psid": str(purpose_svc_id),
                     "st": _INTRO_START_UTC,
                     "en": _INTRO_END_UTC,
                 },
@@ -134,7 +134,6 @@ def test_consultation_booking_blocks_intro_slot() -> None:
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine)
 
-    template_id = None
     booking_id = None
     created_service_id = None
 
@@ -163,48 +162,45 @@ def test_consultation_booking_blocks_intro_slot() -> None:
                     )
                 ).scalar_one()
                 service_id = created_service_id
+                conn.execute(
+                    text(
+                        "INSERT INTO consultation_details ("
+                        "service_id, consultation_format, max_group_size, duration_minutes, "
+                        "pricing_model, default_hourly_rate, default_package_price, "
+                        "default_package_sessions, default_currency"
+                        ") VALUES ("
+                        ":sid, 'one_on_one', NULL, 60, 'hourly', 100.00, NULL, NULL, 'HKD'"
+                        ")"
+                    ),
+                    {"sid": str(service_id)},
+                )
             else:
                 service_id = svc_row[0]
 
             slug_prefix = f"cross-purpose-cpt-{uuid4().hex[:12]}"
-            template_id = conn.execute(
-                text(
-                    "INSERT INTO service_instances ("
-                    "service_id, slug, created_by, parent_instance_id, is_template, "
-                    "status, waitlist_enabled, delivery_mode, eventbrite_sync_status"
-                    ") VALUES ("
-                    ":sid, :slug, 'pytest', NULL, TRUE, 'open', FALSE, 'online', 'pending'"
-                    ") RETURNING id"
-                ),
-                {"sid": str(service_id), "slug": f"{slug_prefix}-tmpl"},
-            ).scalar_one()
-
             booking_id = conn.execute(
                 text(
                     "INSERT INTO service_instances ("
-                    "service_id, slug, created_by, parent_instance_id, is_template, "
-                    "status, waitlist_enabled, delivery_mode, eventbrite_sync_status"
+                    "service_id, slug, created_by, "
+                    "status, waitlist_enabled, delivery_mode, eventbrite_sync_status, "
+                    "eventbrite_retry_count"
                     ") VALUES ("
-                    ":sid, :slug, 'pytest', :tid, FALSE, 'open', FALSE, 'online', 'pending'"
+                    ":sid, :slug, 'pytest', 'open', FALSE, 'online', 'skipped', 0"
                     ") RETURNING id"
                 ),
-                {
-                    "sid": str(service_id),
-                    "slug": f"{slug_prefix}-book",
-                    "tid": str(template_id),
-                },
+                {"sid": str(service_id), "slug": f"{slug_prefix}-book"},
             ).scalar_one()
 
             conn.execute(
                 text(
                     "INSERT INTO instance_session_slots "
-                    "(instance_id, template_instance_id, location_id, starts_at, ends_at, "
+                    "(instance_id, purpose_service_id, location_id, starts_at, ends_at, "
                     "sort_order) "
-                    "VALUES (:iid, :tid, NULL, :st, :en, 0)"
+                    "VALUES (:iid, :psid, NULL, :st, :en, 0)"
                 ),
                 {
                     "iid": str(booking_id),
-                    "tid": str(template_id),
+                    "psid": str(service_id),
                     "st": _AM_START_UTC,
                     "en": _AM_END_UTC,
                 },
@@ -227,11 +223,6 @@ def test_consultation_booking_blocks_intro_slot() -> None:
                 conn.execute(
                     text("DELETE FROM service_instances WHERE id = :id"),
                     {"id": str(booking_id)},
-                )
-            if template_id is not None:
-                conn.execute(
-                    text("DELETE FROM service_instances WHERE id = :id"),
-                    {"id": str(template_id)},
                 )
             if created_service_id is not None:
                 conn.execute(

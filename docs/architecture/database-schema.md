@@ -513,29 +513,20 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 
 ### `service_instances` + schedule/detail tables
 
-- `service_instances` stores dated offerings linked to a `services` template.
+- `service_instances` stores dated offerings linked to a parent `services` row (`service_id`).
+  **Event and training** cohorts use one row per scheduled public occurrence (calendar feed +
+  enrollments share that slug). **Consultation tiers and intro call** use one `services` row
+  per catalog tier (`services.service_key`); each public reservation allocates a dedicated
+  `service_instances` booking row with a generated unique slug (no template/catalog sibling).
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
 - Required public-site field: `slug` (varchar(128), `NOT NULL` from migration
-  `0049_inst_slug_not_null`; uniqueness is enforced by partial unique indexes from migration
-  `0061_per_booking_instances`: `svc_instances_slug_uq_template` on `slug` where
-  `is_template IS TRUE`, and `svc_instances_slug_uq_booking` on `slug` where
-  `is_template IS FALSE`. **Canonical public identifier** for calendar/discount/reservation
-  template scope and public website marketing routes. Legacy NULL slugs for events and
-  training courses were backfilled by migration `0043_backfill_inst_slug`; consultation
-  NULL/empty slugs were backfilled by migration `0048_inst_slug_backfill_consult` before
-  the NOT NULL constraint landed.
-- Optional self-FK `parent_instance_id` → `service_instances.id` (`ON DELETE RESTRICT`)
-  with btree index `svc_instances_parent_idx`: child rows are **per-booking instances**
-  for consultation and intro-call public reservations; catalog/template tiers keep
-  `parent_instance_id` NULL.
-- Boolean `is_template` (`NOT NULL`, default `FALSE`): migration `0061_per_booking_instances`
-  backfills `TRUE` for existing consultation and intro_call tier instances (no parent).
-  Admin-created consultation/intro tier instances set `is_template` at insert time; booking
-  children use `is_template = FALSE`.
-- Check constraint `service_instances_template_consistency_chk`: template rows require
-  `is_template IS TRUE AND parent_instance_id IS NULL`; non-template rows (`is_template IS FALSE`)
-  may have any `parent_instance_id` (NULL for cohort/event rows or set for booking children).
+  `0049_inst_slug_not_null`). Migration `0063_tier_per_service` replaces the dual partial
+  unique indexes with a single btree unique index `svc_instances_slug_uq` on `slug`
+  (global uniqueness across all instances).
+  Legacy NULL slugs for events and training courses were backfilled by migration
+  `0043_backfill_inst_slug`; consultation NULL/empty slugs were backfilled by migration
+  `0048_inst_slug_backfill_consult` before the NOT NULL constraint landed.
 - Optional `cohort` varchar(128): admin label stored with the same normalization rules as
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
@@ -543,29 +534,25 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
   of truth while tracking downstream publish state:
   - `eventbrite_event_id`, `eventbrite_event_url`
-  - `eventbrite_sync_status` (`pending`, `syncing`, `synced`, `failed`)
+  - `eventbrite_sync_status` (`pending`, `syncing`, `synced`, `failed`, `skipped`; migration
+    `0062_eventbrite_skipped` adds `skipped`—consultation/intro-call booking children default to it)
   - `eventbrite_last_synced_at`, `eventbrite_last_error`
   - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
     `eventbrite_retry_count`
 - Scheduling/detail tables:
   - `instance_session_slots` (time blocks + optional location; `starts_at` / `ends_at`
-    are `timestamptz` in Aurora). Migration `0061_per_booking_instances` drops the
-    composite unique index `(instance_id, starts_at)` from `0060_intro_call_starts_uniq`
-    and adds nullable `template_instance_id` → `service_instances.id` (`ON DELETE CASCADE`),
-    backfilled as ``COALESCE(service_instances.parent_instance_id,
-    CASE WHEN service_instances.is_template THEN service_instances.id END)`` for each slot's
-    owning instance so legacy template-tier rows self-reference the tier id. Partial unique index
-    `instance_session_slots_template_starts_uidx` on `(template_instance_id, starts_at)`
-    where `template_instance_id IS NOT NULL` serializes concurrent consultation/intro public
-    bookings against the same template tier and start instant. The admin API rejects naive
+    are `timestamptz` in Aurora). Migration `0063_tier_per_service` replaces
+    `template_instance_id` with nullable `purpose_service_id` → `services.id` (`ON DELETE CASCADE`),
+    backfilled from the owning booking instance's catalog service for consultation/intro-call rows.
+    Partial unique index `instance_session_slots_purpose_service_starts_uidx` on
+    `(purpose_service_id, starts_at)` where `purpose_service_id IS NOT NULL` serializes concurrent
+    public bookings against the same catalog service id and start instant. The admin API rejects naive
     datetimes in `session_slots` payloads so only explicit instants are stored. The public
     calendar feed eager-loads `Service.location` only in `list_public_offerings`; venue
     resolution is slot location, then instance `location_id`, then parent
     `services.location_id`.
   - `training_instance_details`
   - `event_ticket_tiers`
-  - `consultation_instance_details` (Calendly event URL column removed in migration
-    `0034_drop_calendly_fields`)
 
 ### `service_instance_organizations`
 

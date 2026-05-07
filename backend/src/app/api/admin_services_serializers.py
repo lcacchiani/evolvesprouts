@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -174,19 +173,7 @@ def _resolved_training_details(
 def _resolved_consultation_details(
     instance: ServiceInstance, service: Service
 ) -> dict[str, Any] | None:
-    chain_detail = instance.consultation_details
-    if chain_detail is None and instance.parent_instance_id is not None:
-        parent = instance.parent
-        if parent is not None and parent.consultation_details is not None:
-            chain_detail = parent.consultation_details
-    if chain_detail is not None:
-        cd = chain_detail
-        return {
-            "pricing_model": cd.pricing_model.value,
-            "price": _decimal_to_string(cd.price),
-            "currency": cd.currency,
-            "package_sessions": cd.package_sessions,
-        }
+    del instance  # Tier/consultation pricing is catalog-level only after tier-per-service migration.
     scd = service.consultation_details
     if (
         service.service_type not in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL)
@@ -322,10 +309,6 @@ def serialize_instance(
         "created_by": instance.created_by,
         "created_at": instance.created_at.isoformat() if instance.created_at else None,
         "updated_at": instance.updated_at.isoformat() if instance.updated_at else None,
-        "parent_instance_id": str(instance.parent_instance_id)
-        if instance.parent_instance_id
-        else None,
-        "is_template": instance.is_template,
         "resolved_title": resolved_title,
         "resolved_slug": resolved_slug,
         "resolved_description": resolved_description,
@@ -350,16 +333,7 @@ def serialize_instance(
             serialize_event_ticket_tier(tier) for tier in instance.ticket_tiers
         ],
         "resolved_event_ticket_tiers": _resolved_event_ticket_tiers(instance, service),
-        "consultation_details": (
-            {
-                "pricing_model": instance.consultation_details.pricing_model.value,
-                "price": _decimal_to_string(instance.consultation_details.price),
-                "currency": instance.consultation_details.currency,
-                "package_sessions": instance.consultation_details.package_sessions,
-            }
-            if instance.consultation_details is not None
-            else None
-        ),
+        "consultation_details": None,
         "resolved_consultation_details": _resolved_consultation_details(
             instance, service
         ),
@@ -371,6 +345,9 @@ def serialize_session_slot(slot: InstanceSessionSlot) -> dict[str, Any]:
     return {
         "id": str(slot.id),
         "instance_id": str(slot.instance_id),
+        "purpose_service_id": str(slot.purpose_service_id)
+        if slot.purpose_service_id
+        else None,
         "location_id": str(slot.location_id) if slot.location_id else None,
         "starts_at": slot.starts_at.isoformat() if slot.starts_at else None,
         "ends_at": slot.ends_at.isoformat() if slot.ends_at else None,
@@ -394,9 +371,6 @@ def serialize_event_ticket_tier(tier: EventTicketTier) -> dict[str, Any]:
 
 def serialize_enrollment(
     enrollment: Enrollment,
-    *,
-    booking_instance_slug: str | None = None,
-    scheduled_start_at: datetime | None = None,
 ) -> dict[str, Any]:
     """Serialize enrollment payload."""
     payload: dict[str, Any] = {
@@ -431,10 +405,6 @@ def serialize_enrollment(
         if enrollment.updated_at
         else None,
     }
-    if booking_instance_slug is not None:
-        payload["booking_instance_slug"] = booking_instance_slug
-    if scheduled_start_at is not None:
-        payload["scheduled_start_at"] = scheduled_start_at.isoformat()
     return payload
 
 
