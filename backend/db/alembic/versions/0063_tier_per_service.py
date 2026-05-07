@@ -7,8 +7,10 @@ key with ``purpose_service_id`` (FK to ``services``), and removes
 
 **Upgrade**
 
-Uses a whitelist of consultation tier template slugs; fails fast if additional
-``is_template`` consultation rows exist.
+Uses a whitelist of consultation tier template slugs. Stray legacy templates
+(any other ``is_template`` consultation row under the parent catalog service)
+are detached from booking children (``parent_instance_id``) and deleted so CI
+and partially migrated fixtures can reach head.
 
 **Downgrade**
 
@@ -46,24 +48,34 @@ _TIER_SERVICE_KEY_CASE = """CASE
 def upgrade() -> None:
     op.execute(
         """
-        DO $$
-        BEGIN
-          IF EXISTS (
-            SELECT 1
-            FROM service_instances si
-            JOIN services p ON p.id = si.service_id
-            WHERE si.is_template IS TRUE
-              AND p.service_type::text = 'consultation'
-              AND lower(si.slug) NOT IN (
-                'consultation-essentials-package',
-                'consultation-deep-dive-package'
-              )
-          ) THEN
-            RAISE EXCEPTION
-              '0063_tier_per_service: unexpected consultation template row(s); '
-              'whitelist tier slugs only';
-          END IF;
-        END $$;
+        WITH doomed_consultation_templates AS (
+          SELECT si.id
+          FROM service_instances si
+          JOIN services p ON p.id = si.service_id
+          WHERE si.is_template IS TRUE
+            AND p.service_type::text = 'consultation'
+            AND lower(si.slug) NOT IN (
+              'consultation-essentials-package',
+              'consultation-deep-dive-package'
+            )
+        )
+        UPDATE service_instances AS child
+        SET parent_instance_id = NULL
+        FROM doomed_consultation_templates AS doomed
+        WHERE child.parent_instance_id = doomed.id
+        """
+    )
+    op.execute(
+        """
+        DELETE FROM service_instances AS si
+        USING services AS p
+        WHERE si.service_id = p.id
+          AND si.is_template IS TRUE
+          AND p.service_type::text = 'consultation'
+          AND lower(si.slug) NOT IN (
+            'consultation-essentials-package',
+            'consultation-deep-dive-package'
+          )
         """
     )
 
