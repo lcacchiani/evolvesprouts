@@ -105,7 +105,7 @@ describe('EventNotification section', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('reveals email input and captcha after initial CTA click', () => {
+  it('reveals email input after initial CTA click without mounting Turnstile yet', () => {
     render(
       <EventNotification
         content={enContent.events.notification}
@@ -124,13 +124,67 @@ describe('EventNotification section', () => {
     expect(
       screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
     ).toBeInTheDocument();
-    expect(screen.getByText(enContent.common.captcha.captchaLabel)).toBeInTheDocument();
-    expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
     expect(
       screen.getByRole('button', {
         name: enContent.events.notification.formSubmitLabel,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('does not render Turnstile after reveal CTA alone; mounts after field focus', async () => {
+    render(
+      <EventNotification
+        content={enContent.events.notification}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.events.notification.ctaLabel,
+      }),
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Turnstile after email field change once the form is visible', async () => {
+    render(
+      <EventNotification
+        content={enContent.events.notification}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.events.notification.ctaLabel,
+      }),
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.events.notification.emailLabel)),
+      { target: { value: 'events@example.com' } },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
   });
 
   it('shows the loading gear on the submit button while the request is in flight', async () => {

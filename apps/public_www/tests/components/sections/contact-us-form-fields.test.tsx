@@ -1,10 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
   ContactFormFields,
   type ContactUsFormState,
 } from '@/components/sections/contact-us-form-fields';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/turnstile-captcha', () => ({
@@ -15,10 +17,10 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
     onTokenChange: (token: string | null) => void;
     onLoadError: () => void;
   }) => (
-    <div>
+    <div data-testid='mock-turnstile-captcha'>
       <button
         type='button'
-        data-testid='captcha-solve'
+        data-testid='mock-turnstile-captcha-solve'
         onClick={() => {
           onTokenChange('test-token');
         }}
@@ -27,7 +29,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
       </button>
       <button
         type='button'
-        data-testid='captcha-fail'
+        data-testid='mock-turnstile-captcha-fail'
         onClick={onLoadError}
       >
         fail
@@ -35,6 +37,27 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
     </div>
   ),
 }));
+
+function ContactFormFieldsWithGate(
+  props: Omit<
+    ComponentProps<typeof ContactFormFields>,
+    'hasFormInteracted' | 'formInteractionProps'
+  >,
+) {
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate();
+  return (
+    <ContactFormFields
+      {...props}
+      hasFormInteracted={hasFormInteracted}
+      formInteractionProps={formInteractionProps}
+      onUpdateField={(field, value) => {
+        markFormInteracted();
+        props.onUpdateField(field, value);
+      }}
+    />
+  );
+}
 
 describe('ContactFormFields', () => {
   it('renders validation errors and emits field + captcha events', () => {
@@ -56,7 +79,7 @@ describe('ContactFormFields', () => {
     );
 
     render(
-      <ContactFormFields
+      <ContactFormFieldsWithGate
         content={enContent.contactUs.form}
         dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
         formState={formState}
@@ -82,6 +105,10 @@ describe('ContactFormFields', () => {
       />,
     );
 
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+    );
+
     fireEvent.change(screen.getByLabelText(/Email/i), {
       target: { value: 'valid@example.com' },
     });
@@ -99,8 +126,8 @@ describe('ContactFormFields', () => {
         name: new RegExp(`^${enContent.contactUs.form.phoneLabel}`),
       }),
     );
-    fireEvent.click(screen.getByTestId('captcha-solve'));
-    fireEvent.click(screen.getByTestId('captcha-fail'));
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-fail'));
 
     const submitButton = screen.getByRole('button', {
       name: enContent.contactUs.form.submitLabel,
@@ -125,5 +152,100 @@ describe('ContactFormFields', () => {
     expect(
       screen.getByText(enContent.contactUs.form.phoneInvalidForCountry),
     ).toBeInTheDocument();
+  });
+
+  it('does not render Turnstile until the user focuses a field', async () => {
+    const formState: ContactUsFormState = {
+      firstName: '',
+      email: '',
+      phoneCountry: 'HK',
+      phone: '',
+      message: '',
+    };
+
+    render(
+      <ContactFormFieldsWithGate
+        content={enContent.contactUs.form}
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
+        formState={formState}
+        hasEmailError={false}
+        hasPhoneError={false}
+        hasFirstNameError={false}
+        hasMessageError={false}
+        marketingOptIn={false}
+        captchaErrorMessage=''
+        submitErrorMessage=''
+        turnstileSiteKey='site-key'
+        isSubmitting={false}
+        isSubmitDisabled={false}
+        onSubmit={(e) => e.preventDefault()}
+        onUpdateField={vi.fn()}
+        onEmailBlur={vi.fn()}
+        onPhoneBlur={vi.fn()}
+        onFirstNameBlur={vi.fn()}
+        onMessageBlur={vi.fn()}
+        onMarketingOptInChange={vi.fn()}
+        onCaptchaTokenChange={vi.fn()}
+        onCaptchaLoadError={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Turnstile after a typed field change', async () => {
+    const formState: ContactUsFormState = {
+      firstName: '',
+      email: '',
+      phoneCountry: 'HK',
+      phone: '',
+      message: '',
+    };
+
+    render(
+      <ContactFormFieldsWithGate
+        content={enContent.contactUs.form}
+        dialCodeOptionTemplate={enContent.common.phoneDialCodeOptionTemplate}
+        formState={formState}
+        hasEmailError={false}
+        hasPhoneError={false}
+        hasFirstNameError={false}
+        hasMessageError={false}
+        marketingOptIn={false}
+        captchaErrorMessage=''
+        submitErrorMessage=''
+        turnstileSiteKey='site-key'
+        isSubmitting={false}
+        isSubmitDisabled={false}
+        onSubmit={(e) => e.preventDefault()}
+        onUpdateField={vi.fn()}
+        onEmailBlur={vi.fn()}
+        onPhoneBlur={vi.fn()}
+        onFirstNameBlur={vi.fn()}
+        onMessageBlur={vi.fn()}
+        onMarketingOptInChange={vi.fn()}
+        onCaptchaTokenChange={vi.fn()}
+        onCaptchaLoadError={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+      { target: { value: 'Pat' } },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
   });
 });

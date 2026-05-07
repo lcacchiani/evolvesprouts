@@ -43,7 +43,11 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { isValidPhoneForRegion } from '@/lib/public-phone-validation';
 import { submitReservation, type ReservationSubmissionPayload } from '@/lib/reservations-data';
-import { resolveCaptchaErrorMessage, useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
+import {
+  resolveCaptchaErrorMessage,
+  useFormSubmission,
+} from '@/components/sections/shared/use-form-submission';
 import { formatSitePartDate, formatSiteTimeOfDay } from '@/lib/site-datetime';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
@@ -119,7 +123,6 @@ export function LandingPageFreeIntroCall({
   const [phone, setPhone] = useState('');
   const [interestedTopics, setInterestedTopics] = useState('');
   const [marketingOptIn, setMarketingOptIn] = useState(false);
-  const [hasFormInteracted, setHasFormInteracted] = useState(false);
   const [isFullNameTouched, setIsFullNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
@@ -143,6 +146,8 @@ export function LandingPageFreeIntroCall({
     submitErrorMessage,
     withSubmitting,
   } = useFormSubmission({ turnstileSiteKey });
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate();
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -178,11 +183,11 @@ export function LandingPageFreeIntroCall({
   }, [introContent.selectedSlotSummaryTemplate, locale, selectedSlot]);
 
   const handleSelectSlot = useCallback((slot: IntroCallSlot | null) => {
-    setHasFormInteracted(true);
+    markFormInteracted();
     setSelectedSlot(slot);
     setRecentCooldownMessage(false);
     clearSubmissionError();
-  }, [clearSubmissionError]);
+  }, [clearSubmissionError, markFormInteracted]);
 
   const captchaInlineError = resolveCaptchaErrorMessage(
     {
@@ -195,7 +200,7 @@ export function LandingPageFreeIntroCall({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setHasFormInteracted(true);
+    markFormInteracted();
     if (isSubmitting || isSuccess) {
       return;
     }
@@ -506,14 +511,11 @@ export function LandingPageFreeIntroCall({
                   </a>
                 </p>
               ) : null}
-              {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- defer Turnstile until focus enters booking fields */}
               <form
+                {...formInteractionProps}
                 id='intro-call-booking-form'
                 aria-labelledby='intro-call-booking-heading'
                 noValidate
-                onFocus={() => {
-                  setHasFormInteracted(true);
-                }}
                 onSubmit={(e) => {
                   void handleSubmit(e);
                 }}
@@ -548,26 +550,26 @@ export function LandingPageFreeIntroCall({
                     required: false,
                   }}
                   onFullNameChange={(v) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setFullName(v);
                   }}
                   onFullNameBlur={() => setIsFullNameTouched(true)}
                   onEmailChange={(v) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setEmail(v);
                   }}
                   onEmailBlur={() => setIsEmailTouched(true)}
                   onPhoneCountryChange={(v) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setPhoneCountry(v);
                   }}
                   onPhoneChange={(v) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setPhone(v);
                   }}
                   onPhoneBlur={() => setIsPhoneTouched(true)}
                   onTopicsChange={(v) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setInterestedTopics(v);
                   }}
                   onTopicsBlur={() => {}}
@@ -578,7 +580,7 @@ export function LandingPageFreeIntroCall({
                     required
                     checked={hasTermsAgreement}
                     onChange={(event) => {
-                      setHasFormInteracted(true);
+                      markFormInteracted();
                       setHasTermsAgreement(event.target.checked);
                     }}
                     className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
@@ -609,7 +611,7 @@ export function LandingPageFreeIntroCall({
                 <MarketingOptInCheckbox
                   checked={marketingOptIn}
                   onChange={(checked) => {
-                    setHasFormInteracted(true);
+                    markFormInteracted();
                     setMarketingOptIn(checked);
                   }}
                   label={paymentModalContent.marketingOptInLabel}

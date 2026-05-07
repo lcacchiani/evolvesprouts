@@ -35,6 +35,8 @@ interface ContactFormFieldsProps {
   hasFirstNameError: boolean;
   hasMessageError: boolean;
   marketingOptIn: boolean;
+  hasFormInteracted: boolean;
+  formInteractionProps: { onFocus: () => void };
   captchaErrorMessage: string;
   submitErrorMessage: string;
   turnstileSiteKey: string;
@@ -60,6 +62,8 @@ export function ContactFormFields({
   hasFirstNameError,
   hasMessageError,
   marketingOptIn,
+  hasFormInteracted,
+  formInteractionProps,
   captchaErrorMessage,
   submitErrorMessage,
   turnstileSiteKey,
@@ -89,7 +93,7 @@ export function ContactFormFields({
       : undefined;
 
   return (
-    <form noValidate onSubmit={onSubmit} className='relative z-10 space-y-3'>
+    <form noValidate {...formInteractionProps} onSubmit={onSubmit} className='relative z-10 space-y-3'>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
           {content.firstNameLabel}
@@ -223,17 +227,19 @@ export function ContactFormFields({
         onChange={onMarketingOptInChange}
       />
 
-      <label className='block'>
-        <span className='mb-1 block text-sm font-semibold es-text-heading'>
-          {content.captchaLabel}
-        </span>
-        <TurnstileCaptcha
-          siteKey={turnstileSiteKey}
-          widgetAction='contact_us_form_submit'
-          onTokenChange={onCaptchaTokenChange}
-          onLoadError={onCaptchaLoadError}
-        />
-      </label>
+      {hasFormInteracted ? (
+        <label className='block'>
+          <span className='mb-1 block text-sm font-semibold es-text-heading'>
+            {content.captchaLabel}
+          </span>
+          <TurnstileCaptcha
+            siteKey={turnstileSiteKey}
+            widgetAction='contact_us_form_submit'
+            onTokenChange={onCaptchaTokenChange}
+            onLoadError={onCaptchaLoadError}
+          />
+        </label>
+      ) : null}
       {captchaErrorMessage ? (
         <p
           id={CAPTCHA_ERROR_MESSAGE_ID}

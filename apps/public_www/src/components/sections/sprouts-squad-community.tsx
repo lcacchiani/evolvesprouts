@@ -10,6 +10,7 @@ import {
   submitButtonClassName,
 } from '@/components/shared/submit-button-loading-content';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import {
@@ -81,6 +82,8 @@ export function SproutsSquadCommunity({
   } = useFormSubmission({
     turnstileSiteKey,
   });
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate();
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
   const submitLoadingLabel = commonFormActionsContent.submittingLabel;
@@ -128,6 +131,7 @@ export function SproutsSquadCommunity({
     clearSubmissionError();
     setIsEmailTouched(true);
     markCaptchaTouched();
+    markFormInteracted();
 
     trackPublicFormOutcome('community_signup_submit_attempt', {
       formKind: 'community',
@@ -280,6 +284,7 @@ export function SproutsSquadCommunity({
                 }`}
               >
                 <form
+                  {...formInteractionProps}
                   onSubmit={handleSubmit}
                   noValidate
                   className={`flex min-h-0 flex-col gap-3 overflow-hidden transition-opacity duration-300 ease-out motion-reduce:transition-none ${
@@ -320,6 +325,7 @@ export function SproutsSquadCommunity({
                           autoComplete='email'
                           value={email}
                           onChange={(event) => {
+                            markFormInteracted();
                             setEmail(event.target.value);
                           }}
                           onBlur={() => {
@@ -344,22 +350,24 @@ export function SproutsSquadCommunity({
                           {content.emailValidationMessage}
                         </p>
                       ) : null}
-                      <label className='block'>
-                        <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                          {captchaLabel}
-                        </span>
-                        <TurnstileCaptcha
-                          siteKey={turnstileSiteKey}
-                          widgetAction='sprouts_squad_community_submit'
-                          onTokenChange={handleCaptchaTokenChange}
-                          onLoadError={() => {
-                            handleCaptchaLoadError();
-                            setSubmissionError(
-                              content.captchaLoadError ?? commonCaptchaContent.loadError,
-                            );
-                          }}
-                        />
-                      </label>
+                      {hasFormInteracted ? (
+                        <label className='block'>
+                          <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                            {captchaLabel}
+                          </span>
+                          <TurnstileCaptcha
+                            siteKey={turnstileSiteKey}
+                            widgetAction='sprouts_squad_community_submit'
+                            onTokenChange={handleCaptchaTokenChange}
+                            onLoadError={() => {
+                              handleCaptchaLoadError();
+                              setSubmissionError(
+                                content.captchaLoadError ?? commonCaptchaContent.loadError,
+                              );
+                            }}
+                          />
+                        </label>
+                      ) : null}
                       {captchaErrorMessage ? (
                         <p
                           id={CAPTCHA_ERROR_MESSAGE_ID}

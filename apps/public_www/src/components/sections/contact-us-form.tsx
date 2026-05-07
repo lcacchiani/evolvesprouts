@@ -10,6 +10,7 @@ import {
   type ContactUsFormState,
 } from '@/components/sections/contact-us-form-fields';
 import { ContactFormSuccess } from '@/components/sections/contact-us-form-success';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
 import {
   resolveCaptchaErrorMessage,
   useFormSubmission,
@@ -85,6 +86,8 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   } = useFormSubmission({
     turnstileSiteKey,
   });
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate();
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
   const phoneNationalDigits = formState.phone.replace(/\D/g, '');
@@ -110,6 +113,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
   const whatsappHref = contactConfig.whatsappUrl?.trim() ?? '';
   function updateField(field: keyof ContactUsFormState, value: string) {
+    markFormInteracted();
     setFormState((currentState) => ({
       ...currentState,
       [field]: value,
@@ -133,6 +137,7 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
     setIsFirstNameTouched(true);
     setIsMessageTouched(true);
     markCaptchaTouched();
+    markFormInteracted();
 
     if (
       !sanitizeSingleLineValue(formState.firstName) ||
@@ -368,6 +373,8 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
                 hasFirstNameError={hasFirstNameError}
                 hasMessageError={hasMessageError}
                 marketingOptIn={marketingOptIn}
+                hasFormInteracted={hasFormInteracted}
+                formInteractionProps={formInteractionProps}
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
                 turnstileSiteKey={turnstileSiteKey}
@@ -387,7 +394,10 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
                 onMessageBlur={() => {
                   setIsMessageTouched(true);
                 }}
-                onMarketingOptInChange={setMarketingOptIn}
+                onMarketingOptInChange={(checked) => {
+                  markFormInteracted();
+                  setMarketingOptIn(checked);
+                }}
                 onCaptchaTokenChange={handleCaptchaTokenChange}
                 onCaptchaLoadError={handleCaptchaLoadError}
               />

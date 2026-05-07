@@ -149,7 +149,7 @@ describe('SproutsSquadCommunity section', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('reveals email input and captcha after initial CTA click', () => {
+  it('reveals email input after initial CTA click without mounting Turnstile yet', () => {
     render(
       <SproutsSquadCommunity
         content={enContent.sproutsSquadCommunity}
@@ -170,13 +170,67 @@ describe('SproutsSquadCommunity section', () => {
     );
     expect(emailField).toBeInTheDocument();
     expect(emailField.closest('form')).toHaveClass('gap-3');
-    expect(screen.getByText(enContent.common.captcha.captchaLabel)).toBeInTheDocument();
-    expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
     expect(
       screen.getByRole('button', {
         name: enContent.sproutsSquadCommunity.formSubmitLabel,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('does not render Turnstile after reveal CTA alone; mounts after field focus', async () => {
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Turnstile after email field change once the form is visible', async () => {
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+        commonFormActionsContent={enContent.common.formActions}
+        locale='en'
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.sproutsSquadCommunity.emailLabel)),
+      { target: { value: 'a@b.co' } },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
   });
 
   it('opens with empty email when sessionStorage has no prefill data', () => {
