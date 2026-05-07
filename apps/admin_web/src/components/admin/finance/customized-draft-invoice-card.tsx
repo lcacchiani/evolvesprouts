@@ -5,6 +5,11 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+} from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,9 +62,6 @@ function parseAmountInput(raw: string): number | null {
   const n = Number.parseFloat(t);
   return Number.isNaN(n) ? null : n;
 }
-
-const lineGridClassName =
-  'grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,5.5rem)_minmax(0,6.5rem)_minmax(0,6rem)_minmax(0,5.5rem)_minmax(0,6.5rem)_auto] sm:items-end';
 
 export interface CustomizedDraftInvoiceCardProps {
   defaultCurrency: string;
@@ -346,182 +348,151 @@ export function CustomizedDraftInvoiceCard({
           title='Line items'
           disabled={editorBusy}
         >
-          <div className='grid grid-rows-[auto_1fr_auto] gap-3'>
-            <div className='min-h-0' />
-            <div className='flex min-h-0 flex-col gap-3 overflow-y-auto'>
-              {customizedLines.map((ln, index) => (
-                <div key={ln.id} className={lineGridClassName}>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-desc-${ln.id}`}
-                      >
-                        Description
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-desc-${ln.id}`}
-                      disabled={editorBusy}
-                      aria-label='Description'
-                      value={ln.description}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, description: e.target.value } : row,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-qty-${ln.id}`}
-                      >
-                        Quantity
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-qty-${ln.id}`}
-                      className='font-mono tabular-nums'
-                      inputMode='decimal'
-                      disabled={editorBusy}
-                      aria-label='Quantity'
-                      value={ln.quantity}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, quantity: e.target.value } : row,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-unit-${ln.id}`}
-                      >
-                        Unit price
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-unit-${ln.id}`}
-                      className='font-mono tabular-nums'
-                      inputMode='decimal'
-                      disabled={editorBusy}
-                      aria-label='Unit price'
-                      value={ln.unitAmount}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, unitAmount: e.target.value } : row,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-disc-${ln.id}`}
-                      >
-                        Discount
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-disc-${ln.id}`}
-                      className='font-mono tabular-nums'
-                      inputMode='decimal'
-                      disabled={editorBusy}
-                      aria-label='Discount'
-                      value={ln.discountAmount}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, discountAmount: e.target.value } : row,
-                          ),
-                        )
-                      }
-                      placeholder='0'
-                    />
-                  </div>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-tr-${ln.id}`}
-                      >
-                        Tax rate
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-tr-${ln.id}`}
-                      className='font-mono tabular-nums'
-                      inputMode='decimal'
-                      disabled={editorBusy}
-                      aria-label='Tax rate'
-                      value={ln.taxRate}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, taxRate: e.target.value } : row,
-                          ),
-                        )
-                      }
-                      placeholder='—'
-                    />
-                  </div>
-                  <div className='space-y-1'>
-                    {index === 0 ? (
-                      <Label
-                        className='text-xs font-medium text-slate-600'
-                        htmlFor={`${CUSTOMIZED_FORM_ID}-ta-${ln.id}`}
-                      >
-                        Tax amount
-                      </Label>
-                    ) : null}
-                    <Input
-                      id={`${CUSTOMIZED_FORM_ID}-ta-${ln.id}`}
-                      className='font-mono tabular-nums'
-                      inputMode='decimal'
-                      disabled={editorBusy}
-                      aria-label='Tax amount'
-                      value={ln.taxAmount}
-                      onChange={(e) =>
-                        setCustomizedLines((prev) =>
-                          prev.map((row) =>
-                            row.id === ln.id ? { ...row, taxAmount: e.target.value } : row,
-                          ),
-                        )
-                      }
-                      placeholder='—'
-                    />
-                  </div>
-                  <div className='flex justify-end pb-0.5 sm:justify-start'>
-                    <Button
-                      type='button'
-                      variant='danger'
-                      size='sm'
-                      disabled={editorBusy || customizedLines.length <= 1}
-                      className='min-w-8 px-2'
-                      aria-label='Delete line'
-                      title='Delete line'
-                      onClick={() =>
-                        setCustomizedLines((prev) => prev.filter((row) => row.id !== ln.id))
-                      }
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+          <div className='space-y-3'>
+            <div className='max-h-[min(28rem,70vh)] overflow-y-auto overflow-x-auto'>
+              <AdminDataTable tableClassName='min-w-[52rem]'>
+                <AdminDataTableHead sticky>
+                  <tr>
+                    <th className='min-w-[12rem] px-3 py-2'>Description</th>
+                    <th className='w-[5.5rem] px-3 py-2 text-right'>Quantity</th>
+                    <th className='w-[6.5rem] px-3 py-2 text-right'>Unit price</th>
+                    <th className='w-[6rem] px-3 py-2 text-right'>Discount</th>
+                    <th className='w-[5.5rem] px-3 py-2 text-right'>Tax rate</th>
+                    <th className='w-[6.5rem] px-3 py-2 text-right'>Tax amount</th>
+                    <th className='px-3 py-2 text-right'>Operations</th>
+                  </tr>
+                </AdminDataTableHead>
+                <AdminDataTableBody>
+                  {customizedLines.map((ln) => (
+                    <tr key={ln.id}>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-desc-${ln.id}`}
+                          className='w-full min-w-0'
+                          disabled={editorBusy}
+                          aria-label='Description'
+                          value={ln.description}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, description: e.target.value } : row,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-qty-${ln.id}`}
+                          className='w-full min-w-0 font-mono tabular-nums'
+                          inputMode='decimal'
+                          disabled={editorBusy}
+                          aria-label='Quantity'
+                          value={ln.quantity}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, quantity: e.target.value } : row,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-unit-${ln.id}`}
+                          className='w-full min-w-0 font-mono tabular-nums'
+                          inputMode='decimal'
+                          disabled={editorBusy}
+                          aria-label='Unit price'
+                          value={ln.unitAmount}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, unitAmount: e.target.value } : row,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-disc-${ln.id}`}
+                          className='w-full min-w-0 font-mono tabular-nums'
+                          inputMode='decimal'
+                          disabled={editorBusy}
+                          aria-label='Discount'
+                          value={ln.discountAmount}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, discountAmount: e.target.value } : row,
+                              ),
+                            )
+                          }
+                          placeholder='0'
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-tr-${ln.id}`}
+                          className='w-full min-w-0 font-mono tabular-nums'
+                          inputMode='decimal'
+                          disabled={editorBusy}
+                          aria-label='Tax rate'
+                          value={ln.taxRate}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, taxRate: e.target.value } : row,
+                              ),
+                            )
+                          }
+                          placeholder='—'
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2'>
+                        <Input
+                          id={`${CUSTOMIZED_FORM_ID}-ta-${ln.id}`}
+                          className='w-full min-w-0 font-mono tabular-nums'
+                          inputMode='decimal'
+                          disabled={editorBusy}
+                          aria-label='Tax amount'
+                          value={ln.taxAmount}
+                          onChange={(e) =>
+                            setCustomizedLines((prev) =>
+                              prev.map((row) =>
+                                row.id === ln.id ? { ...row, taxAmount: e.target.value } : row,
+                              ),
+                            )
+                          }
+                          placeholder='—'
+                        />
+                      </td>
+                      <td className='align-top px-3 py-2 text-right'>
+                        <div className='flex flex-wrap justify-end gap-1'>
+                          <Button
+                            type='button'
+                            variant='danger'
+                            size='sm'
+                            disabled={editorBusy || customizedLines.length <= 1}
+                            className='min-w-8 px-2'
+                            aria-label='Delete line'
+                            title='Delete line'
+                            onClick={() =>
+                              setCustomizedLines((prev) => prev.filter((row) => row.id !== ln.id))
+                            }
+                          >
+                            <DeleteIcon className='h-4 w-4' />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </AdminDataTableBody>
+              </AdminDataTable>
             </div>
-            <div className='flex justify-start justify-self-start'>
+            <div className='flex justify-start'>
               <Button
                 type='button'
                 variant='secondary'
