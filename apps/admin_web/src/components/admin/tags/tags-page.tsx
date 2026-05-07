@@ -3,6 +3,7 @@
 import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead, AdminDataTableOperationsHeadCell } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -13,8 +14,8 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
 import {
   createAdminTag,
@@ -69,7 +70,7 @@ export function TagsPage() {
       const rows = await listAdminTags({ filter: listFilter });
       setTags(rows);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Failed to load tags.';
+      const message = toErrorMessage(caught, 'Failed to load tags.');
       setError(message);
     } finally {
       setIsLoading(false);
@@ -113,7 +114,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Restore failed.';
+      const message = toErrorMessage(caught, 'Restore failed.');
       setError(message);
     } finally {
       setRestoreBusyId(null);
@@ -142,7 +143,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Archive failed.';
+      const message = toErrorMessage(caught, 'Archive failed.');
       setError(message);
     } finally {
       setArchiveBusyId(null);
@@ -182,7 +183,7 @@ export function TagsPage() {
         setSaveError('A tag with this name already exists.');
         return;
       }
-      const message = caught instanceof Error ? caught.message : 'Save failed.';
+      const message = toErrorMessage(caught, 'Save failed.');
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -214,7 +215,7 @@ export function TagsPage() {
       }
       await loadTags();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Delete failed.';
+      const message = toErrorMessage(caught, 'Delete failed.');
       setError(message);
     } finally {
       setDeleteBusyId(null);

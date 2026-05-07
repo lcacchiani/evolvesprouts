@@ -27,6 +27,7 @@ import {
   ViewIcon,
   VoidExpenseIcon,
 } from '@/components/icons/action-icons';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
   CustomizedDraftInvoiceCard,
@@ -270,7 +271,7 @@ export function ClientInvoicesPanel() {
       if (caught instanceof Error && caught.name === 'AbortError') {
         return;
       }
-      const message = caught instanceof Error ? caught.message : 'Failed to load payments.';
+      const message = toErrorMessage(caught, 'Failed to load payments.');
       setListError(message);
     } finally {
       setListLoading(false);
@@ -320,7 +321,7 @@ export function ClientInvoicesPanel() {
           return;
         }
         const message =
-          caught instanceof Error ? caught.message : 'Failed to load enrollments for invoicing.';
+          toErrorMessage(caught, 'Failed to load enrollments for invoicing.');
         setEnrollmentPickerError(message);
         setEnrollmentPickerRows([]);
         setEnrollmentPickerTruncated(false);
@@ -399,7 +400,7 @@ export function ClientInvoicesPanel() {
       if (caught instanceof Error && caught.name === 'AbortError') {
         return;
       }
-      const message = caught instanceof Error ? caught.message : 'Failed to load invoices.';
+      const message = toErrorMessage(caught, 'Failed to load invoices.');
       setInvoiceListError(message);
       setInvoices([]);
     } finally {
@@ -429,7 +430,7 @@ export function ClientInvoicesPanel() {
       setInvoices((prev) => [...prev, ...items]);
       setInvoiceListCursor(next_cursor);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Failed to load more invoices.';
+      const message = toErrorMessage(caught, 'Failed to load more invoices.');
       setInvoiceListError(message);
     } finally {
       setInvoiceListLoadingMore(false);
@@ -525,7 +526,7 @@ export function ClientInvoicesPanel() {
           setAllocateInvoiceLines([]);
           setAllocateLineId('');
           setAllocateInvoiceLinesError(
-            caught instanceof Error ? caught.message : 'Failed to load invoice lines.',
+            toErrorMessage(caught, 'Failed to load invoice lines.'),
           );
         }
       } finally {
@@ -584,7 +585,7 @@ export function ClientInvoicesPanel() {
         if (caught instanceof Error && caught.name === 'AbortError') {
           return;
         }
-        const message = caught instanceof Error ? caught.message : 'Failed to load payment.';
+        const message = toErrorMessage(caught, 'Failed to load payment.');
         setDetailError(message);
         setDetail(null);
       } finally {
@@ -679,7 +680,7 @@ export function ClientInvoicesPanel() {
           setRefundPaymentsForInvoice([]);
           setRefundPaymentSelectId('');
           setRefundPaymentsError(
-            caught instanceof Error ? caught.message : 'Failed to load payments for invoice.',
+            toErrorMessage(caught, 'Failed to load payments for invoice.'),
           );
         }
       } finally {
@@ -727,7 +728,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setVoidError(caught instanceof Error ? caught.message : 'Void failed.');
+      setVoidError(toErrorMessage(caught, 'Void failed.'));
     } finally {
       setBusy(null);
     }
@@ -766,7 +767,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setDeleteDraftError(caught instanceof Error ? caught.message : 'Delete failed.');
+      setDeleteDraftError(toErrorMessage(caught, 'Delete failed.'));
     } finally {
       setBusy(null);
     }
@@ -789,7 +790,7 @@ export function ClientInvoicesPanel() {
       setActionMessage(out.sent ? 'Email send accepted.' : 'Email was not confirmed sent.');
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setIssuedInvoiceEmailError(caught instanceof Error ? caught.message : 'Email failed.');
+      setIssuedInvoiceEmailError(toErrorMessage(caught, 'Email failed.'));
     } finally {
       setBusy(null);
     }
@@ -807,7 +808,7 @@ export function ClientInvoicesPanel() {
       );
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Issue failed.');
+      setActionError(toErrorMessage(caught, 'Issue failed.'));
     } finally {
       setBusy(null);
     }
@@ -820,7 +821,7 @@ export function ClientInvoicesPanel() {
       const { downloadUrl } = await getCustomerInvoicePdfDownload(invoiceId);
       window.open(downloadUrl, '_blank', 'noopener,noreferrer');
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Could not open invoice preview.');
+      setActionError(toErrorMessage(caught, 'Could not open invoice preview.'));
     } finally {
       setBusy(null);
     }
@@ -860,7 +861,7 @@ export function ClientInvoicesPanel() {
         await loadDetail(confirmPaymentId, ac.signal);
       }
     } catch (caught) {
-      setConfirmPaymentError(caught instanceof Error ? caught.message : 'Confirm failed.');
+      setConfirmPaymentError(toErrorMessage(caught, 'Confirm failed.'));
     } finally {
       setBusy(null);
     }
@@ -895,7 +896,7 @@ export function ClientInvoicesPanel() {
         setDetail(null);
       }
     } catch (caught) {
-      setDeletePaymentError(caught instanceof Error ? caught.message : 'Delete failed.');
+      setDeletePaymentError(toErrorMessage(caught, 'Delete failed.'));
     } finally {
       setBusy(null);
     }
@@ -957,7 +958,7 @@ export function ClientInvoicesPanel() {
       await loadInvoicesFirstPage();
       await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Create draft failed.');
+      setActionError(toErrorMessage(caught, 'Create draft failed.'));
     } finally {
       setBusy(null);
     }
@@ -1001,7 +1002,7 @@ export function ClientInvoicesPanel() {
       await loadDetail(selectedId, ac.signal);
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Allocation failed.');
+      setActionError(toErrorMessage(caught, 'Allocation failed.'));
     } finally {
       setBusy(null);
     }
@@ -1035,7 +1036,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       setRefundInvoicePaymentsRefresh((n) => n + 1);
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Refund failed.');
+      setActionError(toErrorMessage(caught, 'Refund failed.'));
     } finally {
       setBusy(null);
     }
@@ -1055,7 +1056,7 @@ export function ClientInvoicesPanel() {
       URL.revokeObjectURL(url);
       setActionMessage('Export downloaded (v2 CSV).');
     } catch (caught) {
-      setActionError(caught instanceof Error ? caught.message : 'Export failed.');
+      setActionError(toErrorMessage(caught, 'Export failed.'));
     } finally {
       setExportBusy(false);
     }

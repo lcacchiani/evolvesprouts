@@ -184,7 +184,7 @@ export function ExpensesListPanel({
       await onVoidExpense(voidExpenseId, voidReason.trim());
       closeVoidDialog();
     } catch (caught) {
-      setVoidError(caught instanceof Error ? caught.message : 'Could not void this expense.');
+      setVoidError(toErrorMessage(caught, 'Could not void this expense.'));
     }
   };
 
@@ -209,7 +209,7 @@ export function ExpensesListPanel({
       await onDeleteDraft(deleteDraftExpenseId);
       closeDeleteDraftDialog();
     } catch (caught) {
-      setDeleteDraftError(caught instanceof Error ? caught.message : 'Could not delete this expense.');
+      setDeleteDraftError(toErrorMessage(caught, 'Could not delete this expense.'));
     }
   };
 

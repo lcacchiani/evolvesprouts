@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { createDraftInvoice } from '@/lib/billing-api';
 
 export const CUSTOMIZED_DRAFT_INVOICE_FORM_ID = 'client-billing-customized-draft-form';
@@ -268,7 +269,7 @@ export function CustomizedDraftInvoiceCard({
       setCustomizedLines([makeCustomizedLineRow(customizedLineIdSeq.current)]);
     } catch (caught) {
       onDraftError?.(
-        caught instanceof Error ? caught.message : 'Create draft failed.',
+        toErrorMessage(caught, 'Create draft failed.'),
       );
     } finally {
       onRequestBusy?.(false);

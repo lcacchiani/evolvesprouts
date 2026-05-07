@@ -20,6 +20,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import {
   CONSULTATION_BOOKING_BLOCK_PURPOSE,
   createCalendarManualBlock,
@@ -85,7 +86,7 @@ export function CalendarManualBlocksPage() {
       });
       setRows(items);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Failed to load blocks.';
+      const message = toErrorMessage(caught, 'Failed to load blocks.');
       setError(message);
     } finally {
       setIsLoading(false);
@@ -159,7 +160,7 @@ export function CalendarManualBlocksPage() {
       );
       await loadRows();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Save failed.';
+      const message = toErrorMessage(caught, 'Save failed.');
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -185,7 +186,7 @@ export function CalendarManualBlocksPage() {
       }
       await loadRows();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Delete failed.';
+      const message = toErrorMessage(caught, 'Delete failed.');
       setError(message);
     } finally {
       setDeleteBusyId(null);
