@@ -10,6 +10,7 @@ import {
 } from '@/components/shared/submit-button-loading-content';
 import { MarketingOptInCheckbox } from '@/components/shared/marketing-opt-in-checkbox';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
 import {
   resolveCaptchaErrorMessage,
   useFormSubmission,
@@ -119,6 +120,8 @@ export function MediaForm({
   } = useFormSubmission({
     turnstileSiteKey,
   });
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate();
   const isServiceUnavailable = !crmApiClient || isCaptchaUnavailable;
   const hasFirstNameError = isFirstNameTouched && !sanitizeSingleLineValue(firstName);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
@@ -192,6 +195,7 @@ export function MediaForm({
     setIsFirstNameTouched(true);
     setIsEmailTouched(true);
     markCaptchaTouched();
+    markFormInteracted();
 
     const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
     trackPublicFormOutcome('media_form_submit_attempt', {
@@ -314,6 +318,7 @@ export function MediaForm({
 
   return (
     <form
+      {...formInteractionProps}
       onSubmit={handleSubmit}
       className={mergeClassNames(
         'mt-7 w-full max-w-[420px] space-y-3 opacity-0 transition-opacity duration-300 ease-out motion-reduce:transition-none',
@@ -335,6 +340,7 @@ export function MediaForm({
           autoComplete='given-name'
           value={firstName}
           onChange={(event) => {
+            markFormInteracted();
             setFirstName(event.target.value);
           }}
           onBlur={() => {
@@ -366,6 +372,7 @@ export function MediaForm({
           autoComplete='email'
           value={email}
           onChange={(event) => {
+            markFormInteracted();
             setEmail(event.target.value);
           }}
           onBlur={() => {
@@ -387,20 +394,25 @@ export function MediaForm({
       <MarketingOptInCheckbox
         label={formMarketingOptInLabel}
         checked={marketingOptIn}
-        onChange={setMarketingOptIn}
+        onChange={(checked) => {
+          markFormInteracted();
+          setMarketingOptIn(checked);
+        }}
       />
 
-      <label className='block'>
-        <span className='mb-1 block text-sm font-semibold es-text-heading'>
-          {formCaptchaLabel}
-        </span>
-        <TurnstileCaptcha
-          siteKey={turnstileSiteKey}
-          widgetAction='media_submit'
-          onTokenChange={handleCaptchaTokenChange}
-          onLoadError={handleCaptchaLoadError}
-        />
-      </label>
+      {hasFormInteracted ? (
+        <label className='block'>
+          <span className='mb-1 block text-sm font-semibold es-text-heading'>
+            {formCaptchaLabel}
+          </span>
+          <TurnstileCaptcha
+            siteKey={turnstileSiteKey}
+            widgetAction='media_submit'
+            onTokenChange={handleCaptchaTokenChange}
+            onLoadError={handleCaptchaLoadError}
+          />
+        </label>
+      ) : null}
 
       {captchaErrorMessage ? (
         <p id={captchaErrorId} className='es-form-submit-error' role='alert'>

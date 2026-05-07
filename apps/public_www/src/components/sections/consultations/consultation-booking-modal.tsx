@@ -523,6 +523,8 @@ export function ConsultationBookingModal({
         subtitleSlot={subtitleSlot}
       />
       <BookingReservationForm
+        // Modal open implies user intent; pre-mount Turnstile to keep Stripe PaymentIntent prefetch.
+        initiallyInteracted
         locale={locale}
         content={paymentModalContent}
         eventTitle={bookingPayload.title}

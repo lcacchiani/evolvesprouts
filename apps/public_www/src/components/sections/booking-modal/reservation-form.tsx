@@ -33,6 +33,7 @@ import {
   resolveCaptchaErrorMessage,
   useFormSubmission,
 } from '@/components/sections/shared/use-form-submission';
+import { useFormInteractionGate } from '@/components/sections/shared/use-form-interaction';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
   SubmitButtonLoadingContent,
@@ -118,6 +119,13 @@ interface BookingReservationFormProps {
   prefilledDiscountCode?: string;
   referralAppliedNote?: string;
   referralAppliedAnnouncement?: string;
+  /**
+   * Pre-flips the captcha-load gate so the Turnstile widget mounts as soon
+   * as the form renders. Pass `true` when the form is rendered inside a
+   * modal that opens on user intent (the modal-open click already implies
+   * interaction). Defaults to `false`.
+   */
+  initiallyInteracted?: boolean;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
@@ -458,6 +466,7 @@ export function BookingReservationForm({
   prefilledDiscountCode = '',
   referralAppliedNote = '',
   referralAppliedAnnouncement = '',
+  initiallyInteracted = false,
   onSubmitReservation,
 }: BookingReservationFormProps) {
   const dialCodeOptionTemplate = getContent(locale).common.phoneDialCodeOptionTemplate;
@@ -503,6 +512,8 @@ export function BookingReservationForm({
   } = useFormSubmission({
     turnstileSiteKey,
   });
+  const { hasFormInteracted, markFormInteracted, formInteractionProps } =
+    useFormInteractionGate({ initiallyInteracted });
   const paymentMethodFlags = useMemo(() => {
     return resolvePaymentMethodFlags(resolvePublicBookingPaymentOptionFlags());
   }, []);
@@ -987,6 +998,7 @@ export function BookingReservationForm({
     }
     setIsAcknowledgementsTouched(true);
     markCaptchaTouched();
+    markFormInteracted();
     clearSubmissionError();
 
     trackPublicFormOutcome('booking_submit_attempt', {
@@ -1466,6 +1478,7 @@ export function BookingReservationForm({
         </p>
 
         <form
+          {...formInteractionProps}
           noValidate
           className='relative z-10 mt-4 space-y-3'
           onSubmit={handleSubmit}
@@ -1484,20 +1497,35 @@ export function BookingReservationForm({
             hasPhoneInvalidForCountry={hasPhoneInvalidForCountry}
             hasTopicsError={hasTopicsError}
             topicsFieldConfig={topicsFieldConfig}
-            onFullNameChange={setFullName}
+            onFullNameChange={(value) => {
+              markFormInteracted();
+              setFullName(value);
+            }}
             onFullNameBlur={() => {
               setIsFullNameTouched(true);
             }}
-            onEmailChange={setEmail}
+            onEmailChange={(value) => {
+              markFormInteracted();
+              setEmail(value);
+            }}
             onEmailBlur={() => {
               setIsEmailTouched(true);
             }}
-            onPhoneCountryChange={setPhoneCountry}
-            onPhoneChange={setPhone}
+            onPhoneCountryChange={(value) => {
+              markFormInteracted();
+              setPhoneCountry(value);
+            }}
+            onPhoneChange={(value) => {
+              markFormInteracted();
+              setPhone(value);
+            }}
             onPhoneBlur={() => {
               setIsPhoneTouched(true);
             }}
-            onTopicsChange={setInterestedTopics}
+            onTopicsChange={(value) => {
+              markFormInteracted();
+              setInterestedTopics(value);
+            }}
             onTopicsBlur={() => {
               setIsTopicsTouched(true);
             }}
@@ -1510,6 +1538,7 @@ export function BookingReservationForm({
             hasDiscountRule={Boolean(discountRule)}
             isDiscountValidationSubmitting={isDiscountValidationSubmitting}
             onDiscountCodeChange={(value) => {
+              markFormInteracted();
               setDiscountCode(value);
               setDiscountError('');
             }}
@@ -1577,6 +1606,7 @@ export function BookingReservationForm({
                             value={PAYMENT_METHOD_FPS}
                             checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
                             onChange={() => {
+                              markFormInteracted();
                               setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
                               trackAnalyticsEvent('booking_payment_method_selected', {
                                 sectionId: analyticsSectionId,
@@ -1625,6 +1655,7 @@ export function BookingReservationForm({
                             value={PAYMENT_METHOD_BANK_TRANSFER}
                             checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
                             onChange={() => {
+                              markFormInteracted();
                               setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
                               trackAnalyticsEvent('booking_payment_method_selected', {
                                 sectionId: analyticsSectionId,
@@ -1675,6 +1706,7 @@ export function BookingReservationForm({
                             value={PAYMENT_METHOD_STRIPE}
                             checked={selectedPaymentMethod === PAYMENT_METHOD_STRIPE}
                             onChange={() => {
+                              markFormInteracted();
                               setSelectedPaymentMethod(PAYMENT_METHOD_STRIPE);
                               trackAnalyticsEvent('booking_payment_method_selected', {
                                 sectionId: analyticsSectionId,
@@ -1800,6 +1832,7 @@ export function BookingReservationForm({
                 required
                 checked={hasPendingReservationAcknowledgement}
                 onChange={(event) => {
+                  markFormInteracted();
                   setHasPendingReservationAcknowledgement(event.target.checked);
                 }}
                 className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
@@ -1819,6 +1852,7 @@ export function BookingReservationForm({
                 required
                 checked={hasTermsAgreement}
                 onChange={(event) => {
+                  markFormInteracted();
                   setHasTermsAgreement(event.target.checked);
                 }}
                 className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
@@ -1855,6 +1889,7 @@ export function BookingReservationForm({
                 type='checkbox'
                 checked={marketingOptIn}
                 onChange={(event) => {
+                  markFormInteracted();
                   setMarketingOptIn(event.target.checked);
                 }}
                 className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
@@ -1865,17 +1900,19 @@ export function BookingReservationForm({
             </label>
           </div>
 
-          <label className='relative z-20 block overflow-visible'>
-            <span className='mb-1 block text-sm font-semibold es-text-heading'>
-              {content.captchaLabel}
-            </span>
-            <TurnstileCaptcha
-              siteKey={turnstileSiteKey}
-              widgetAction={captchaWidgetAction}
-              onTokenChange={handleCaptchaTokenChange}
-              onLoadError={handleCaptchaLoadError}
-            />
-          </label>
+          {hasFormInteracted ? (
+            <label className='relative z-20 block overflow-visible'>
+              <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                {content.captchaLabel}
+              </span>
+              <TurnstileCaptcha
+                siteKey={turnstileSiteKey}
+                widgetAction={captchaWidgetAction}
+                onTokenChange={handleCaptchaTokenChange}
+                onLoadError={handleCaptchaLoadError}
+              />
+            </label>
+          ) : null}
           {captchaErrorMessage ? (
             <p
               id={CAPTCHA_ERROR_MESSAGE_ID}

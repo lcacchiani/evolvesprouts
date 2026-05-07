@@ -260,8 +260,10 @@ describe('MediaForm', () => {
     expect(
       screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel))).toBeInTheDocument();
-    expect(screen.getByText(enContent.resources.formCaptchaLabel)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(new RegExp(enContent.resources.formEmailLabel)),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
     expect(mockedTrackPublicFormOutcome).toHaveBeenCalledWith('media_form_open', {
       formKind: 'media_request',
       formId: 'media-form__media-form',
@@ -438,6 +440,39 @@ describe('MediaForm', () => {
           error_type: 'api_error',
         },
       });
+    });
+  });
+
+  it('does not render Turnstile after reveal CTA alone; mounts after field focus', async () => {
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Turnstile after a typed field change once the form is visible', async () => {
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.resources.formFirstNameLabel)),
+      { target: { value: 'Ida' } },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     });
   });
 

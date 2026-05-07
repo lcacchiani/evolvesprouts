@@ -110,6 +110,35 @@ describe('ContactUsForm section', () => {
 
   });
 
+  it('does not render Turnstile until the user focuses a field', async () => {
+    renderContactUsForm();
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.focus(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Turnstile after a typed field change', async () => {
+    renderContactUsForm();
+
+    expect(screen.queryByTestId('mock-turnstile-captcha')).toBeNull();
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(`^${enContent.contactUs.form.firstNameLabel}`)),
+      { target: { value: 'Pat' } },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    });
+  });
+
   it('removes mobile top padding while preserving responsive section spacing', () => {
     renderContactUsForm();
 
