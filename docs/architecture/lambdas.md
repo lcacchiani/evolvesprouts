@@ -523,6 +523,7 @@ their primary responsibilities.
 - Trigger: Lambda-to-Lambda invocation (from in-VPC Lambdas)
 - Purpose: generic proxy for AWS API calls and outbound HTTP requests
   that cannot be made from inside the VPC
+- Timeout: 90s (aligned with `ExpenseParserFunction`, which invokes this Lambda for OpenRouter)
 - VPC: **No** (runs outside VPC for internet access)
 - Allow-lists:
   - `ALLOWED_ACTIONS`: comma-separated `service:action` pairs for AWS
