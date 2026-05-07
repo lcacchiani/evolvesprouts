@@ -1,7 +1,7 @@
 'use client';
 
 import type { KeyboardEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
 import { DeleteIcon, MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
@@ -14,9 +14,12 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { primaryExpenseAttachmentAssetId } from '@/lib/expense-attachments';
 import { formatDateOnly, formatEnumLabel } from '@/lib/format';
+import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
 import {
   EXPENSE_PARSE_STATUSES,
   EXPENSE_STATUSES,
@@ -98,6 +101,45 @@ export function ExpensesListPanel({
   const [voidExpenseId, setVoidExpenseId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
+  const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
+  const [fxError, setFxError] = useState('');
+
+  const expensesNeedForeignFx = useMemo(() => {
+    const defaultCurrency = getAdminDefaultCurrencyCode();
+    return expenses.some(
+      (expense) => (expense.currency?.trim().toUpperCase() || defaultCurrency) !== defaultCurrency,
+    );
+  }, [expenses]);
+
+  useEffect(() => {
+    if (!expensesNeedForeignFx) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      setFxMultipliers(null);
+      try {
+        const codes = expenses
+          .map((expense) => expense.currency?.trim().toUpperCase())
+          .filter((code): code is string => Boolean(code));
+        const map = await loadFxMultipliersToAdminDefault(codes);
+        if (!cancelled) {
+          setFxMultipliers(map);
+          setFxError('');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFxError(toErrorMessage(err, 'Could not load FX rates for currency conversion.'));
+          setFxMultipliers(new Map());
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [expenses, expensesNeedForeignFx]);
+
+  const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' ');
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, expenseId: string) => {
     if (event.target !== event.currentTarget) {
@@ -172,7 +214,7 @@ export function ExpensesListPanel({
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
-        error={error}
+        error={tableError}
         loadingLabel='Loading submitted expenses...'
         onLoadMore={onLoadMore}
         toolbar={
@@ -255,18 +297,15 @@ export function ExpensesListPanel({
                     </p>
                   </td>
                   <td className='px-4 py-3'>
-                    {!expense.total ? (
-                      '—'
-                    ) : expense.currency ? (
-                      <span className='tabular-nums'>
-                        {expense.total} {expense.currency}
-                      </span>
-                    ) : (
-                      <div>
-                        <span className='tabular-nums'>{expense.total}</span>
-                        <p className='mt-0.5 text-xs text-slate-500'>No currency code</p>
-                      </div>
-                    )}
+                    <span className='tabular-nums'>
+                      {fxMultipliers === null && expensesNeedForeignFx
+                        ? '…'
+                        : formatMoneyLineWithFxToDefault(
+                            expense.total?.trim() ?? '',
+                            expense.currency ?? undefined,
+                            expensesNeedForeignFx ? (fxMultipliers ?? new Map()) : new Map(),
+                          )}
+                    </span>
                   </td>
                   <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
                   <td className='px-4 py-3'>{formatDateOnly(expense.invoiceDate)}</td>

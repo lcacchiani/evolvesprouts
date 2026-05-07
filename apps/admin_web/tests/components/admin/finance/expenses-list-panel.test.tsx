@@ -14,8 +14,28 @@ vi.mock('@/lib/assets-api', async (importOriginal) => {
   };
 });
 
+vi.mock('@/lib/currency-converter', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/currency-converter')>();
+  return {
+    ...actual,
+    getCurrencyConversionMultiplier: vi.fn(async (fromCurrency: string, toCurrency: string) => {
+      const from = fromCurrency.trim().toUpperCase();
+      const to = toCurrency.trim().toUpperCase();
+      if (!from || !to || from === to) {
+        return 1;
+      }
+      if (from === 'USD' && to === 'HKD') {
+        return 7.8;
+      }
+      return 1;
+    }),
+  };
+});
+
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
+import { clearCurrencyConversionRateCacheForTests } from '@/lib/currency-converter';
 import { formatDateOnly } from '@/lib/format';
+import { formatMoneyLineWithFxToDefault } from '@/lib/vendor-spend';
 
 import type { Expense } from '@/types/expenses';
 
@@ -91,6 +111,7 @@ describe('ExpensesListPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetUserAssetDownloadUrl.mockReset();
+    clearCurrencyConversionRateCacheForTests();
   });
 
   it('renders core columns without Invoice or Parse headers', () => {
@@ -146,7 +167,7 @@ describe('ExpensesListPanel', () => {
     expect(screen.getByRole('button', { name: 'No invoice document available' })).toBeDisabled();
   });
 
-  it('shows invoice date without time in Issued column and labels missing currency', () => {
+  it('shows invoice date without time in Issued column and formats total like tax amounts when currency is missing', () => {
     render(
       <ExpensesListPanel
         {...listProps}
@@ -163,8 +184,35 @@ describe('ExpensesListPanel', () => {
     );
 
     expect(screen.getByText(formatDateOnly('2026-02-15T14:30:00Z'))).toBeInTheDocument();
-    expect(screen.getByText('30.00')).toBeInTheDocument();
-    expect(screen.getByText('No currency code')).toBeInTheDocument();
+    expect(
+      screen.getByText(formatMoneyLineWithFxToDefault('30.00', undefined, new Map())),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('No currency code')).not.toBeInTheDocument();
+  });
+
+  it('formats total with FX line for non-default currency (same helper as tax fiscal year table)', async () => {
+    const multipliers = new Map([['USD', 7.8]]);
+    const expected = formatMoneyLineWithFxToDefault('100.00', 'USD', multipliers);
+
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        expenses={[{ ...baseExpense, currency: 'USD', total: '100.00' }]}
+        {...makeRowActions()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    });
+  });
+
+  it('formats HKD total with locale currency styling', () => {
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} />);
+
+    expect(
+      screen.getByText(formatMoneyLineWithFxToDefault('10.00', 'HKD', new Map())),
+    ).toBeInTheDocument();
   });
 
   it('calls onSelectExpense when a row is clicked', async () => {
