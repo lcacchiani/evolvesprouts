@@ -522,6 +522,93 @@ def test_list_recent_enrollments_orders_and_filters(
     assert body["items"][1]["billToKind"] == "family"
 
 
+def test_list_recent_enrollments_infers_family_when_bill_to_kind_null(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Legacy enrollments may omit bill_to_kind while still being family-scoped (family_id only)."""
+
+    iid = uuid4()
+    fam_id = uuid4()
+    ts = datetime(2026, 3, 1, tzinfo=UTC)
+    eid = uuid4()
+
+    en = Enrollment(
+        instance_id=iid,
+        contact_id=None,
+        family_id=fam_id,
+        organization_id=None,
+        ticket_tier_id=None,
+        discount_code_id=None,
+        bill_to_kind=None,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        status=EnrollmentStatus.CONFIRMED,
+        amount_paid=Decimal("10"),
+        currency="HKD",
+        enrolled_at=ts,
+        cancelled_at=None,
+        notes=None,
+        created_by="test",
+    )
+    en.id = eid
+    en.instance = MagicMock(title="Workshop", cohort=None)
+    en.ticket_tier = None
+    en.contact = None
+    fam_m = MagicMock()
+    fam_m.family_name = "Ng Household"
+    en.family = fam_m
+    en.bill_to_family = fam_m
+    en.organization = None
+    en.bill_to_organization = None
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            sql = str(stmt)
+            if "FROM enrollments" in sql or "enrollments." in sql:
+                out.unique.return_value.scalars.return_value.all.return_value = [en]
+            elif "customer_invoice_lines" in sql:
+                out.scalars.return_value.all.return_value = []
+            elif "FamilyMember" in sql or "family_members" in sql:
+                if "first_name" in sql.lower():
+                    out.all.return_value = [(fam_id, "Pat", "Ng")]
+                else:
+                    out.all.return_value = [(fam_id, "pat.ng@example.com")]
+            elif "organization_members" in sql:
+                out.all.return_value = []
+            else:
+                out.unique.return_value.scalars.return_value.all.return_value = []
+                out.scalars.return_value.all.return_value = []
+                out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    monkeypatch.setattr(
+        admin_billing_enrollment_queries_mod, "_session_with_audit", _fake_session
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/enrollments/recent-for-invoicing",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/enrollments/recent-for-invoicing"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert body["items"][0]["billToKind"] == "family"
+    assert body["items"][0]["partyDisplayName"] == "Ng Household · Pat Ng"
+
+
 def test_create_invoice_draft_currency_empty_string_derives(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
