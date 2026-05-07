@@ -82,3 +82,47 @@ def primary_org_emails(session: Session, org_ids: set[UUID]) -> dict[UUID, str]:
         if email and oid not in out:
             out[oid] = str(email)
     return out
+
+
+def primary_family_contact_names(
+    session: Session, family_ids: set[UUID]
+) -> dict[UUID, str]:
+    """Map family id -> primary contact display name (first + last) when non-empty."""
+    if not family_ids:
+        return {}
+    stmt = (
+        select(FamilyMember.family_id, Contact.first_name, Contact.last_name)
+        .join(Contact, FamilyMember.contact_id == Contact.id)
+        .where(FamilyMember.family_id.in_(family_ids))
+        .where(FamilyMember.is_primary_contact.is_(True))
+    )
+    out: dict[UUID, str] = {}
+    for fid, fn, ln in session.execute(stmt).all():
+        if fid in out:
+            continue
+        display = " ".join(x for x in (fn, ln) if x).strip()
+        if display:
+            out[fid] = display
+    return out
+
+
+def primary_org_contact_names(session: Session, org_ids: set[UUID]) -> dict[UUID, str]:
+    """Map organization id -> primary contact display name (first + last) when non-empty."""
+    if not org_ids:
+        return {}
+    stmt = (
+        select(
+            OrganizationMember.organization_id, Contact.first_name, Contact.last_name
+        )
+        .join(Contact, OrganizationMember.contact_id == Contact.id)
+        .where(OrganizationMember.organization_id.in_(org_ids))
+        .where(OrganizationMember.is_primary_contact.is_(True))
+    )
+    out: dict[UUID, str] = {}
+    for oid, fn, ln in session.execute(stmt).all():
+        if oid in out:
+            continue
+        display = " ".join(x for x in (fn, ln) if x).strip()
+        if display:
+            out[oid] = display
+    return out

@@ -133,10 +133,14 @@ function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
   return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
 }
 
-/** Party column: `name · email` when email is non-empty; otherwise party name only. */
+/** Party column: contact rows use `name · email`. Family/org rows use `partyDisplayName` only (entity · primary). */
 function formatEnrollmentPartyCellDisplay(row: BillingEnrollmentPickerRow): string {
   const party = row.partyDisplayName?.trim() ?? '';
   const email = row.partyEmail?.trim() ?? '';
+  const kind = row.billToKind;
+  if (kind === 'family' || kind === 'organization') {
+    return party;
+  }
   if (email === '') {
     return party;
   }

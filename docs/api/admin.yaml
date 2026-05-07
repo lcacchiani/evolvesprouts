@@ -6333,11 +6333,22 @@ components:
           format: uuid
         partyDisplayName:
           type: string
-          description: Contact, family, or organization display name for bill-to / enrollment party.
+          description: >
+            Display label for the bill-to / enrollment party. For `contact` this is the contact
+            name. For `family` or `organization` this is `entity name · primary contact name` (middle
+            dot) when both the entity and primary contact names are known; otherwise the best
+            available single label.
         partyEmail:
           type: string
           format: email
           nullable: true
+        billToKind:
+          type: string
+          enum:
+            - contact
+            - family
+            - organization
+          description: Bill-to kind for this enrollment (matches `billing_bill_to_kind`).
         instanceTitle:
           type: string
           nullable: true

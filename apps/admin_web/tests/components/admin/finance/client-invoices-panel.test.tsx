@@ -763,11 +763,13 @@ describe('ClientInvoicesPanel', () => {
       billToMergeKey: string;
       invoiceLinked: boolean;
       amountPaid: string | null;
+      billToKind: 'contact' | 'family' | 'organization';
     }>,
   ) => ({
     enrollmentId: overrides.enrollmentId ?? 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     partyDisplayName: overrides.partyDisplayName ?? 'Pat',
     partyEmail: overrides.partyEmail !== undefined ? overrides.partyEmail : 'pat@example.com',
+    billToKind: overrides.billToKind ?? 'contact',
     instanceTitle: 'Inst',
     serviceTierName: null,
     instanceCohort: null,
@@ -1143,5 +1145,25 @@ describe('ClientInvoicesPanel', () => {
     expect(screen.getByText('No Email Party')).toBeInTheDocument();
     const enrollmentPicker = screen.getByRole('region', { name: 'Enrollment picker' });
     expect(within(enrollmentPicker).queryByRole('columnheader', { name: 'Email' })).not.toBeInTheDocument();
+  });
+
+  it('draft enrollment picker Party column for family bill-to uses composed label without appending email', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        pickerRow({
+          enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
+          partyDisplayName: 'Smith Family · Jane Primary',
+          partyEmail: 'jane@example.com',
+          billToKind: 'family',
+        }),
+      ],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Smith Family · Jane Primary')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Smith Family · Jane Primary · jane@example.com/)).not.toBeInTheDocument();
   });
 });
