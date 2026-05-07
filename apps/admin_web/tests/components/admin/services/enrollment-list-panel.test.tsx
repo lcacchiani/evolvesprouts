@@ -45,7 +45,7 @@ const ENROLLMENT_FIXTURE: Enrollment = {
 };
 
 describe('EnrollmentListPanel', () => {
-  it('uses the same copy for create/edit and locks parent pickers in edit mode', () => {
+  it('locks contact in edit mode; allows family and org for contact-only conversion', () => {
     render(
       <EnrollmentListPanel
         enrollments={[ENROLLMENT_FIXTURE]}
@@ -76,9 +76,43 @@ describe('EnrollmentListPanel', () => {
 
     expect(screen.getByText('Add or update an enrollment using the same fields below.')).toBeInTheDocument();
     expect(screen.getByLabelText('Contact')).toBeDisabled();
+    expect(screen.getByLabelText('Family')).toBeEnabled();
+    expect(screen.getByLabelText('Organization')).toBeEnabled();
+    expect(screen.getByLabelText('Enrolled at')).toBeEnabled();
+  });
+
+  it('locks family and organization pickers when enrollment is not contact-only', () => {
+    const familyEnrollment: Enrollment = {
+      ...ENROLLMENT_FIXTURE,
+      id: 'enrollment-2',
+      contactId: null,
+      familyId: 'family-1',
+      organizationId: null,
+    };
+    render(
+      <EnrollmentListPanel
+        enrollments={[familyEnrollment]}
+        serviceId='service-1'
+        instanceId='instance-1'
+        canCreate={true}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    const table = screen.getByRole('table');
+    fireEvent.click(within(table).getByText('Smith family').closest('tr') as HTMLTableRowElement);
+
+    expect(screen.getByLabelText('Contact')).toBeDisabled();
     expect(screen.getByLabelText('Family')).toBeDisabled();
     expect(screen.getByLabelText('Organization')).toBeDisabled();
-    expect(screen.getByLabelText('Enrolled at')).toBeEnabled();
   });
 
   it('disables enrolled at while adding a new enrollment', () => {

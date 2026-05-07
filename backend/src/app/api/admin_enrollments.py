@@ -23,11 +23,13 @@ from app.api.admin_services_common import (
     serialize_enrollment,
 )
 from app.api.assets.assets_common import extract_identity, split_route_parts
+from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment
-from app.db.models.enums import EnrollmentStatus
-from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
+from app.db.models.enums import BillingBillToKind, EnrollmentStatus
+from app.db.models.family import Family
+from app.db.models.organization import Organization
 from app.db.repositories import (
     DiscountCodeRepository,
     EnrollmentRepository,
@@ -219,6 +221,47 @@ def _update_enrollment(
             session, enrollment, instance_id
         ):
             raise NotFoundError("Enrollment", str(enrollment_id))
+
+        if "promote_to_family_id" in payload or "promote_to_organization_id" in payload:
+            if (
+                enrollment.contact_id is None
+                or enrollment.family_id is not None
+                or enrollment.organization_id is not None
+            ):
+                raise ValidationError(
+                    "Promoting to family or organization is only allowed for contact-only "
+                    "enrollments",
+                    field="body",
+                )
+            if "promote_to_family_id" in payload:
+                fid = payload["promote_to_family_id"]
+                fam = session.get(Family, fid)
+                if fam is None:
+                    raise ValidationError(
+                        "Family not found", field="promote_to_family_id"
+                    )
+                enrollment.contact_id = None
+                enrollment.family_id = fid
+                enrollment.organization_id = None
+                enrollment.bill_to_kind = BillingBillToKind.FAMILY
+                enrollment.bill_to_family_id = fid
+                enrollment.bill_to_contact_id = None
+                enrollment.bill_to_organization_id = None
+            else:
+                oid = payload["promote_to_organization_id"]
+                org = session.get(Organization, oid)
+                if org is None:
+                    raise ValidationError(
+                        "Organization not found",
+                        field="promote_to_organization_id",
+                    )
+                enrollment.contact_id = None
+                enrollment.family_id = None
+                enrollment.organization_id = oid
+                enrollment.bill_to_kind = BillingBillToKind.ORGANIZATION
+                enrollment.bill_to_organization_id = oid
+                enrollment.bill_to_contact_id = None
+                enrollment.bill_to_family_id = None
 
         if "status" in payload:
             enrollment.status = payload["status"]

@@ -5710,6 +5710,16 @@ export interface components {
             notes?: string | null;
         };
         UpdateEnrollmentRequest: {
+            /**
+             * Format: uuid
+             * @description One-time conversion from a contact-only enrollment (contact_id set, family and organization null) to a family enrollment. Mutually exclusive with promote_to_organization_id. Clears contact_id, sets family_id, and aligns bill-to fields to the family.
+             */
+            promote_to_family_id?: string;
+            /**
+             * Format: uuid
+             * @description One-time conversion from a contact-only enrollment to an organization enrollment. Mutually exclusive with promote_to_family_id. Clears contact_id, sets organization_id, and aligns bill-to fields to the organization.
+             */
+            promote_to_organization_id?: string;
             status?: components["schemas"]["EnrollmentStatus"];
             /**
              * Format: date-time

@@ -116,6 +116,13 @@ export function EnrollmentListPanel({
   );
   const isEditMode = Boolean(selectedEnrollment);
 
+  /** Structural party is contact-only; API allows a single conversion to family or organization. */
+  const canPromoteContactEnrollment = Boolean(
+    selectedEnrollment?.contactId?.trim() &&
+      !selectedEnrollment?.familyId?.trim() &&
+      !selectedEnrollment?.organizationId?.trim()
+  );
+
   const contactSelectOptions = useMemo(
     () => ensureOption(contactOptions, selectedEnrollment?.contactId ?? null, 'Contact'),
     [contactOptions, selectedEnrollment?.contactId]
@@ -230,6 +237,13 @@ export function EnrollmentListPanel({
     const prev = selectedEnrollment?.discountCodeId?.trim() || null;
     if (nextDiscount !== prev) {
       base.discount_code_id = nextDiscount;
+    }
+    const nextFamily = familyId.trim();
+    const nextOrg = organizationId.trim();
+    if (canPromoteContactEnrollment && nextFamily) {
+      base.promote_to_family_id = nextFamily;
+    } else if (canPromoteContactEnrollment && nextOrg) {
+      base.promote_to_organization_id = nextOrg;
     }
     return base;
   };
@@ -362,9 +376,15 @@ export function EnrollmentListPanel({
               value={familyId || EMPTY_PARENT_VALUE}
               onChange={(event) => {
                 const next = event.target.value;
-                setFamilyId(next === EMPTY_PARENT_VALUE ? '' : next);
+                const resolved = next === EMPTY_PARENT_VALUE ? '' : next;
+                setFamilyId(resolved);
+                if (resolved.trim()) {
+                  setOrganizationId('');
+                }
               }}
-              disabled={isEditMode || parentPickersLoading}
+              disabled={
+                parentPickersLoading || (isEditMode && !canPromoteContactEnrollment)
+              }
               aria-busy={parentPickersLoading}
             >
               <option value={EMPTY_PARENT_VALUE}>None</option>
@@ -382,9 +402,15 @@ export function EnrollmentListPanel({
               value={organizationId || EMPTY_PARENT_VALUE}
               onChange={(event) => {
                 const next = event.target.value;
-                setOrganizationId(next === EMPTY_PARENT_VALUE ? '' : next);
+                const resolved = next === EMPTY_PARENT_VALUE ? '' : next;
+                setOrganizationId(resolved);
+                if (resolved.trim()) {
+                  setFamilyId('');
+                }
               }}
-              disabled={isEditMode || parentPickersLoading}
+              disabled={
+                parentPickersLoading || (isEditMode && !canPromoteContactEnrollment)
+              }
               aria-busy={parentPickersLoading}
             >
               <option value={EMPTY_PARENT_VALUE}>None</option>
@@ -412,8 +438,19 @@ export function EnrollmentListPanel({
           </p>
         ) : null}
         <p className='text-xs text-slate-500'>
-          Contact, family, and organization are chosen when creating an enrollment and cannot be changed
-          afterward. Enrolled at can be edited when updating an enrollment.
+          {canPromoteContactEnrollment ? (
+            <>
+              This enrollment is contact-only. You may convert it once to family or organization using the
+              Family or Organization field (not both). Contact cannot be changed here. Enrolled at can be
+              edited when updating.
+            </>
+          ) : (
+            <>
+              Contact, family, and organization are chosen when creating an enrollment and cannot be changed
+              afterward (except converting a contact-only enrollment once). Enrolled at can be edited when
+              updating an enrollment.
+            </>
+          )}
         </p>
         {canCreate && discountOptionsError ? (
           <p className='text-xs text-red-600' role='alert'>

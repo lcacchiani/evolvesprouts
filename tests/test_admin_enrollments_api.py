@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
 from app.api import admin_enrollments
 from app.api.admin_services_payloads import parse_update_enrollment_payload
-from app.db.models.enums import EnrollmentStatus
+from app.db.models.enums import BillingBillToKind, EnrollmentStatus
 from app.exceptions import ValidationError
 
 
@@ -327,6 +327,139 @@ def test_parse_update_enrollment_payload_rejects_cleared_enrolled_at() -> None:
 def test_parse_update_enrollment_payload_rejects_empty_enrolled_at() -> None:
     with pytest.raises(ValidationError, match="enrolled_at"):
         parse_update_enrollment_payload({"enrolled_at": ""})
+
+
+def test_parse_update_enrollment_payload_accepts_promote_to_family_id() -> None:
+    fid = uuid4()
+    parsed = parse_update_enrollment_payload({"promote_to_family_id": str(fid)})
+    assert parsed["promote_to_family_id"] == fid
+
+
+def test_parse_update_enrollment_payload_accepts_promote_to_organization_id() -> None:
+    oid = uuid4()
+    parsed = parse_update_enrollment_payload({"promote_to_organization_id": str(oid)})
+    assert parsed["promote_to_organization_id"] == oid
+
+
+def test_parse_update_enrollment_payload_rejects_both_promote_fields() -> None:
+    with pytest.raises(ValidationError, match="promote"):
+        parse_update_enrollment_payload(
+            {
+                "promote_to_family_id": str(uuid4()),
+                "promote_to_organization_id": str(uuid4()),
+            }
+        )
+
+
+def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_gateway_event: Any) -> None:
+    target_instance_id = uuid4()
+    enrollment_id = uuid4()
+    contact_uuid = uuid4()
+    family_id = uuid4()
+
+    class _MutableEnrollment:
+        instance_id = target_instance_id
+        contact_id: UUID | None = contact_uuid
+        family_id: UUID | None = None
+        organization_id: UUID | None = None
+        bill_to_kind = None
+        bill_to_contact_id: UUID | None = contact_uuid
+        bill_to_family_id = None
+        bill_to_organization_id = None
+        discount_code_id = None
+        status = EnrollmentStatus.REGISTERED
+        cancelled_at = None
+        amount_paid = None
+        currency = None
+        notes = None
+
+    held: dict[str, Any] = {"row": _MutableEnrollment()}
+
+    class _FakeEnrollmentRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id(self, eid: Any) -> Any:
+            if eid == enrollment_id:
+                return held["row"]
+            return None
+
+        def update(self, enrollment: Any) -> Any:
+            return enrollment
+
+    class _FakeDiscountRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+    class _FakeSession:
+        def commit(self) -> None:
+            return None
+
+        def get(self, model: Any, eid: Any) -> Any:
+            name = getattr(model, "__name__", "")
+            if name == "Family" and eid == family_id:
+                return object()
+            return None
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    monkeypatch.setattr(admin_enrollments, "Session", _SessionCtx)
+    monkeypatch.setattr(admin_enrollments, "get_engine", lambda: object())
+    monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_enrollments,
+        "parse_body",
+        lambda _e: json.loads(_e["body"]),
+    )
+    monkeypatch.setattr(admin_enrollments, "EnrollmentRepository", _FakeEnrollmentRepo)
+    monkeypatch.setattr(admin_enrollments, "DiscountCodeRepository", _FakeDiscountRepo)
+
+    class _FakeSvcRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id(self, _iid: Any) -> None:
+            return None
+
+    monkeypatch.setattr(admin_enrollments, "ServiceInstanceRepository", _FakeSvcRepo)
+    monkeypatch.setattr(
+        admin_enrollments,
+        "bulk_reconcile_instance_capacity_status",
+        lambda *_a, **_k: None,
+    )
+    monkeypatch.setattr(
+        admin_enrollments,
+        "serialize_enrollment",
+        lambda e: {"id": str(enrollment_id), "family_id": str(e.family_id)},
+    )
+    _patch_enrollment_discount_scope_ok(monkeypatch)
+
+    resp = admin_enrollments._update_enrollment(
+        api_gateway_event(
+            method="PATCH",
+            path="/v1/admin/services/x/instances/y/enrollments/z",
+            body=json.dumps({"promote_to_family_id": str(family_id), "status": "registered"}),
+        ),
+        instance_id=target_instance_id,
+        enrollment_id=enrollment_id,
+        actor_sub="test-admin-sub-12345",
+    )
+    assert resp["statusCode"] == 200
+    row = held["row"]
+    assert row.contact_id is None
+    assert row.family_id == family_id
+    assert row.organization_id is None
+    assert row.bill_to_kind == BillingBillToKind.FAMILY
+    assert row.bill_to_family_id == family_id
+    assert row.bill_to_contact_id is None
 
 
 def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gateway_event: Any) -> None:
