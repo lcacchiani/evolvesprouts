@@ -757,9 +757,10 @@ paths:
         "202":
           description: >
             Reservation submitted. For `consultation-booking` and `intro-call-booking`,
-            the server creates a booking-specific `service_instances` row (child of the resolved
-            template tier), inserts scheduled session slots with tier linkage, and attaches the
-            enrollment to that booking instance.
+            the server creates a booking-specific `service_instances` row (child of the
+            resolved catalog service), inserts scheduled session slots tagged with
+            `purpose_service_id` for race protection, and attaches the enrollment to
+            that booking instance.
           content:
             application/json:
               schema:
@@ -809,9 +810,10 @@ paths:
         "202":
           description: >
             Reservation submitted. For `consultation-booking` and `intro-call-booking`,
-            the server creates a booking-specific `service_instances` row (child of the resolved
-            template tier), inserts scheduled session slots with tier linkage, and attaches the
-            enrollment to that booking instance.
+            the server creates a booking-specific `service_instances` row (child of the
+            resolved catalog service), inserts scheduled session slots tagged with
+            `purpose_service_id` for race protection, and attaches the enrollment to
+            that booking instance.
           content:
             application/json:
               schema:
