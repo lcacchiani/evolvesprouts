@@ -5,13 +5,20 @@ import { useCallback } from 'react';
 import { createEnrollment, deleteEnrollment, updateEnrollment } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
+import type { Enrollment } from '@/types/services';
 
 import { useMutationRunner } from './use-mutation-runner';
 
 type ApiSchemas = components['schemas'];
 
+export interface EnrollmentMutationSuccessDetail {
+  operation: 'create' | 'update' | 'delete';
+  enrollment: Enrollment | null;
+  enrollmentId: string | null;
+}
+
 export interface UseEnrollmentMutationsOptions {
-  onSuccess?: (enrollmentId?: string) => Promise<void> | void;
+  onSuccess?: (detail: EnrollmentMutationSuccessDetail) => Promise<void> | void;
 }
 
 export function useEnrollmentMutations(options: UseEnrollmentMutationsOptions = {}) {
@@ -27,7 +34,11 @@ export function useEnrollmentMutations(options: UseEnrollmentMutationsOptions = 
     ) =>
       runWithState(async () => {
         const created = await createEnrollment(serviceId, instanceId, payload);
-        await options.onSuccess?.(created?.id);
+        await options.onSuccess?.({
+          operation: 'create',
+          enrollment: created,
+          enrollmentId: created?.id ?? null,
+        });
         return created;
       }),
     [options, runWithState]
@@ -42,7 +53,11 @@ export function useEnrollmentMutations(options: UseEnrollmentMutationsOptions = 
     ) =>
       runWithState(async () => {
         const updated = await updateEnrollment(serviceId, instanceId, enrollmentId, payload);
-        await options.onSuccess?.(updated?.id ?? enrollmentId);
+        await options.onSuccess?.({
+          operation: 'update',
+          enrollment: updated,
+          enrollmentId: updated?.id ?? enrollmentId,
+        });
         return updated;
       }),
     [options, runWithState]
@@ -52,7 +67,11 @@ export function useEnrollmentMutations(options: UseEnrollmentMutationsOptions = 
     async (serviceId: string, instanceId: string, enrollmentId: string) =>
       runWithState(async () => {
         await deleteEnrollment(serviceId, instanceId, enrollmentId);
-        await options.onSuccess?.();
+        await options.onSuccess?.({
+          operation: 'delete',
+          enrollment: null,
+          enrollmentId,
+        });
       }),
     [options, runWithState]
   );

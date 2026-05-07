@@ -133,7 +133,12 @@ export function useServicesPage() {
     },
   });
   const enrollmentMutations = useEnrollmentMutations({
-    onSuccess: async () => {
+    onSuccess: async (detail) => {
+      if (detail.operation === 'delete' && detail.enrollmentId) {
+        enrollmentList.removeEnrollmentFromList(detail.enrollmentId);
+      } else if (detail.enrollment) {
+        enrollmentList.upsertEnrollmentInList(detail.enrollment);
+      }
       await enrollmentList.refetch();
       await instanceList.refetch();
     },
