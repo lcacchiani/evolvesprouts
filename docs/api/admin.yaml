@@ -5141,6 +5141,8 @@ components:
               $ref: "#/components/schemas/TrainingFormat"
             price:
               type: string
+              description: >
+                Required for training_course instances. Decimal amount as a string; zero is allowed (free offerings).
             currency:
               type: string
             pricing_unit:

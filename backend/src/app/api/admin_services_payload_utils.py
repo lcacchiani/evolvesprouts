@@ -193,7 +193,7 @@ def parse_instance_type_details(
                 TrainingFormat,
                 "training_format",
             ),
-            "price": parse_required_decimal(
+            "price": parse_required_non_negative_decimal(
                 source.get("price") if "price" in source else body.get("price"),
                 "price",
             ),
