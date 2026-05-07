@@ -1738,7 +1738,7 @@ export class ApiStack extends cdk.Stack {
     const awsProxyFunction = createPythonFunction("AwsApiProxyFunction", {
       handler: "lambda/aws_proxy/handler.lambda_handler",
       memorySize: 256,
-      timeout: cdk.Duration.seconds(15),
+      timeout: cdk.Duration.seconds(90),
       noVpc: true,
       environment: {
         ALLOWED_ACTIONS: allowedProxyActions.join(","),
