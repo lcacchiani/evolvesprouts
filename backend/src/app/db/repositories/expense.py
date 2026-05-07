@@ -121,6 +121,15 @@ class ExpenseRepository(BaseRepository[Expense]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
+    def count_amendments_targeting(self, expense_id: UUID) -> int:
+        """Count expense rows that reference this expense as their amendment parent."""
+        stmt = (
+            select(func.count())
+            .select_from(Expense)
+            .where(Expense.amends_expense_id == expense_id)
+        )
+        return int(self._session.execute(stmt).scalar_one() or 0)
+
     def create_expense(
         self,
         *,

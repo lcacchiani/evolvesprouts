@@ -38,6 +38,7 @@ from app.db.engine import get_engine
 from app.db.models import ExpenseParseStatus, ExpenseStatus
 from app.db.repositories import ExpenseRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
 from app.services.expense_events import enqueue_expense_parse
 from app.utils import json_response
 from app.utils.logging import get_logger
@@ -75,6 +76,10 @@ def handle_admin_expenses_request(
             return _get_expense(event, expense_id=expense_id)
         if method == "PATCH":
             return _update_expense(
+                event, expense_id=expense_id, actor_sub=identity.user_sub
+            )
+        if method == "DELETE":
+            return _delete_draft_expense(
                 event, expense_id=expense_id, actor_sub=identity.user_sub
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)
@@ -201,6 +206,42 @@ def _get_expense(event: Mapping[str, Any], *, expense_id: UUID) -> dict[str, Any
         if expense is None:
             raise NotFoundError("Expense", str(expense_id))
         return json_response(200, {"expense": serialize_expense(expense)}, event=event)
+
+
+def _delete_draft_expense(
+    event: Mapping[str, Any],
+    *,
+    expense_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    logger.info(
+        "Deleting draft expense",
+        extra={"expense_id": str(expense_id), "actor": actor_sub},
+    )
+    req_id = request_id(event)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        repository = ExpenseRepository(session)
+        expense = repository.get_with_attachments(expense_id)
+        if expense is None:
+            raise NotFoundError("Expense", str(expense_id))
+        if expense.status != ExpenseStatus.DRAFT:
+            raise ValidationError(
+                "Only draft expenses can be deleted",
+                field="status",
+            )
+        if repository.count_amendments_targeting(expense_id) > 0:
+            raise ValidationError(
+                "Cannot delete an expense that has linked amendment records",
+                field="amends_expense_id",
+            )
+        asset_ids = {row.asset_id for row in expense.attachments}
+        repository.delete(expense)
+        session.flush()
+        sync_expense_attachment_tags_for_assets(session, asset_ids)
+        session.commit()
+    return json_response(204, {}, event=event)
 
 
 def _update_expense(

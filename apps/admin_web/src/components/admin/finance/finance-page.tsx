@@ -141,6 +141,7 @@ export function FinancePage() {
         isVoidingId={expenses.isDeletingId}
         isMarkingPaidId={expenses.isMarkingPaidId}
         isReparsingId={expenses.isReparsingId}
+        isDeletingDraftId={expenses.isDeletingDraftId}
         onLoadMore={expenses.loadMore}
         onSelectExpense={expenses.selectExpense}
         onQueryChange={(value) => expenses.setFilter('query', value)}
@@ -149,6 +150,7 @@ export function FinancePage() {
         onReparse={expenses.reparseExpenseEntry}
         onMarkPaid={expenses.markPaidExpenseEntry}
         onVoidExpense={expenses.cancelExpenseEntry}
+        onDeleteDraft={expenses.deleteDraftExpenseEntry}
       />
     </div>
   );

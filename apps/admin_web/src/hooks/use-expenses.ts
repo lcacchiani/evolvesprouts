@@ -7,6 +7,7 @@ import {
   amendAdminExpense,
   cancelAdminExpense,
   createAdminExpense,
+  deleteAdminDraftExpense,
   listAdminExpenses,
   markAdminExpensePaid,
   reparseAdminExpense,
@@ -37,6 +38,7 @@ export function useExpenses() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  const [isDeletingDraftId, setIsDeletingDraftId] = useState<string | null>(null);
   const [isMarkingPaidId, setIsMarkingPaidId] = useState<string | null>(null);
   const [isReparsingId, setIsReparsingId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
@@ -240,6 +242,24 @@ export function useExpenses() {
     [cleanupUploadedAssets, list, uploadExpenseFiles]
   );
 
+  const deleteDraftExpenseEntry = useCallback(
+    async (expenseId: string) => {
+      setIsDeletingDraftId(expenseId);
+      setMutationError('');
+      try {
+        await deleteAdminDraftExpense(expenseId);
+        await list.refetch();
+        setSelectedExpenseId((current) => (current === expenseId ? null : current));
+      } catch (error) {
+        setMutationError(toErrorMessage(error, 'Failed to delete draft expense.'));
+        throw error;
+      } finally {
+        setIsDeletingDraftId(null);
+      }
+    },
+    [list]
+  );
+
   const cancelExpenseEntry = useCallback(
     async (expenseId: string, reason: string) => {
       setIsDeletingId(expenseId);
@@ -298,6 +318,7 @@ export function useExpenses() {
     isSaving,
     isUploadingFiles,
     isDeletingId,
+    isDeletingDraftId,
     isMarkingPaidId,
     isReparsingId,
     mutationError,
@@ -308,6 +329,7 @@ export function useExpenses() {
     updateExpenseEntry,
     amendExpenseEntry,
     cancelExpenseEntry,
+    deleteDraftExpenseEntry,
     markPaidExpenseEntry,
     reparseExpenseEntry,
   };

@@ -4,7 +4,7 @@ import type { KeyboardEvent } from 'react';
 import { useState } from 'react';
 
 import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
-import { MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -54,6 +54,7 @@ interface ExpensesListPanelProps {
   isVoidingId: string | null;
   isMarkingPaidId: string | null;
   isReparsingId: string | null;
+  isDeletingDraftId: string | null;
   onLoadMore: () => Promise<void> | void;
   onSelectExpense: (expenseId: string) => void;
   onQueryChange: (value: string) => void;
@@ -62,6 +63,7 @@ interface ExpensesListPanelProps {
   onReparse: (expenseId: string) => Promise<void> | void;
   onMarkPaid: (expenseId: string) => Promise<void> | void;
   onVoidExpense: (expenseId: string, reason: string) => Promise<void> | void;
+  onDeleteDraft: (expenseId: string) => Promise<void> | void;
 }
 
 export function ExpensesListPanel({
@@ -77,6 +79,7 @@ export function ExpensesListPanel({
   isVoidingId,
   isMarkingPaidId,
   isReparsingId,
+  isDeletingDraftId,
   onLoadMore,
   onSelectExpense,
   onQueryChange,
@@ -85,8 +88,12 @@ export function ExpensesListPanel({
   onReparse,
   onMarkPaid,
   onVoidExpense,
+  onDeleteDraft,
 }: ExpensesListPanelProps) {
   const { openingAssetId, openError: documentOpenError, openAssetInNewTab } = useOpenAdminAssetInNewTab();
+  const [deleteDraftDialogOpen, setDeleteDraftDialogOpen] = useState(false);
+  const [deleteDraftExpenseId, setDeleteDraftExpenseId] = useState<string | null>(null);
+  const [deleteDraftError, setDeleteDraftError] = useState('');
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [voidExpenseId, setVoidExpenseId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
@@ -130,6 +137,31 @@ export function ExpensesListPanel({
       closeVoidDialog();
     } catch (caught) {
       setVoidError(caught instanceof Error ? caught.message : 'Could not void this expense.');
+    }
+  };
+
+  const openDeleteDraftDialog = (expenseId: string) => {
+    setDeleteDraftExpenseId(expenseId);
+    setDeleteDraftError('');
+    setDeleteDraftDialogOpen(true);
+  };
+
+  const closeDeleteDraftDialog = () => {
+    setDeleteDraftDialogOpen(false);
+    setDeleteDraftExpenseId(null);
+    setDeleteDraftError('');
+  };
+
+  const confirmDeleteDraft = async () => {
+    setDeleteDraftError('');
+    if (!deleteDraftExpenseId) {
+      return;
+    }
+    try {
+      await onDeleteDraft(deleteDraftExpenseId);
+      closeDeleteDraftDialog();
+    } catch (caught) {
+      setDeleteDraftError(caught instanceof Error ? caught.message : 'Could not delete this expense.');
     }
   };
 
@@ -329,6 +361,27 @@ export function ExpensesListPanel({
                           <VoidExpenseIcon className='h-4 w-4' />
                         )}
                       </Button>
+                      {expense.status === 'draft' ? (
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          disabled={isDeletingDraftId === expense.id}
+                          onClick={() => openDeleteDraftDialog(expense.id)}
+                          aria-label='Delete draft expense'
+                          title='Delete draft expense'
+                          aria-busy={isDeletingDraftId === expense.id}
+                        >
+                          {isDeletingDraftId === expense.id ? (
+                            <span
+                              className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
+                              aria-hidden
+                            />
+                          ) : (
+                            <DeleteIcon className='h-4 w-4' />
+                          )}
+                        </Button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>
@@ -363,6 +416,20 @@ export function ExpensesListPanel({
           />
           {voidError ? <AdminInlineError>{voidError}</AdminInlineError> : null}
         </div>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={deleteDraftDialogOpen}
+        title='Delete draft expense'
+        description='This permanently removes the draft from the list. You cannot undo this action.'
+        confirmLabel='Delete expense'
+        cancelLabel='Cancel'
+        variant='danger'
+        confirmDisabled={Boolean(deleteDraftExpenseId && isDeletingDraftId === deleteDraftExpenseId)}
+        onCancel={closeDeleteDraftDialog}
+        onConfirm={() => void confirmDeleteDraft()}
+      >
+        {deleteDraftError ? <AdminInlineError>{deleteDraftError}</AdminInlineError> : null}
       </ConfirmDialog>
     </>
   );

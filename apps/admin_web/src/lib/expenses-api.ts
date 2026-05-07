@@ -274,6 +274,14 @@ export async function reparseAdminExpense(expenseId: string): Promise<void> {
   });
 }
 
+export async function deleteAdminDraftExpense(expenseId: string): Promise<void> {
+  await adminApiRequest({
+    endpointPath: `/v1/admin/expenses/${expenseId}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [204],
+  });
+}
+
 export async function safeGetAdminExpense(expenseId: string): Promise<Expense | null> {
   try {
     return await getAdminExpense(expenseId);

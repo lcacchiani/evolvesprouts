@@ -49,7 +49,7 @@ info:
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
-    - `GET|PATCH /v1/admin/expenses/{id}`
+    - `GET|PATCH|DELETE /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
     - `POST /v1/admin/expenses/{id}/mark-paid`
     - `POST /v1/admin/expenses/{id}/reparse`
@@ -3432,6 +3432,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExpenseResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete draft expense
+      description: >
+        Hard-deletes the expense row when its status is `draft`. Returns **400** when the expense is
+        not a draft or when other expense rows reference this record as their amendment parent.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Expense deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
