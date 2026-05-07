@@ -5606,6 +5606,7 @@ export interface components {
             session_slots?: components["schemas"]["SessionSlot"][];
             training_details?: {
                 training_format?: components["schemas"]["TrainingFormat"];
+                /** @description Required for training_course instances. Decimal amount as a string; zero is allowed (free offerings). */
                 price?: string;
                 currency?: string;
                 pricing_unit?: components["schemas"]["TrainingPricingUnit"];

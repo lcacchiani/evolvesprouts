@@ -187,6 +187,38 @@ def test_parse_create_instance_payload_accepts_tag_ids() -> None:
     assert parsed["tag_ids"] == [t2, t1]
 
 
+def test_parse_create_training_instance_accepts_zero_price() -> None:
+    service = _minimal_training_service()
+    body = {
+        "slug": "free-run",
+        "training_details": {
+            "training_format": "group",
+            "price": "0",
+            "currency": "HKD",
+            "pricing_unit": "per_person",
+        },
+    }
+    parsed = parse_create_instance_payload(body, service)
+    assert parsed["type_details"]["price"] == Decimal("0")
+
+
+def test_parse_create_training_instance_rejects_negative_price() -> None:
+    service = _minimal_training_service()
+    body = {
+        "slug": "bad-price",
+        "training_details": {
+            "training_format": "group",
+            "price": "-1.00",
+            "currency": "HKD",
+            "pricing_unit": "per_person",
+        },
+    }
+    with pytest.raises(ValidationError) as exc:
+        parse_create_instance_payload(body, service)
+    assert exc.value.field == "price"
+    assert "must be >= 0" in exc.value.message
+
+
 def test_training_instance_round_trip_cohort_tags_in_memory() -> None:
     """ORM-only check: fields map and serializer ordering matches tag name (case-insensitive)."""
     from app.api.admin_services_serializers import serialize_instance
