@@ -1,14 +1,18 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { startTransition, useEffect, useMemo, useState, type ReactNode } from 'react';
+import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { NAVBAR_LOCAL_DATETIME_OPTIONS } from '@/lib/format';
 
+import ArrowRightIcon from './icons/svg/arrow-right-icon.svg';
 import CloseIcon from './icons/svg/close-icon.svg';
 import MenuIcon from './icons/svg/menu-icon.svg';
 import { Button } from './ui/button';
+
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'evolvesprouts-admin-sidebar-collapsed';
 
 export interface AppShellNavItem {
   key: string;
@@ -60,11 +64,36 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopNavCollapsed, setIsDesktopNavCollapsed] = useState(false);
   const activeLabel = useMemo(
     () => navItems.find((item) => item.key === activeKey)?.label ?? '',
     [activeKey, navItems]
   );
   const formattedLastLoginTime = formatTimestamp(lastAuthTime);
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === '1') {
+        startTransition(() => {
+          setIsDesktopNavCollapsed(true);
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function setDesktopNavCollapsed(collapsed: boolean) {
+    setIsDesktopNavCollapsed(collapsed);
+    try {
+      window.localStorage.setItem(
+        SIDEBAR_COLLAPSED_STORAGE_KEY,
+        collapsed ? '1' : '0'
+      );
+    } catch {
+      // ignore
+    }
+  }
 
   return (
     <div className='min-h-screen bg-slate-50 text-slate-900'>
@@ -121,9 +150,21 @@ export function AppShell({
         </div>
       </header>
 
-      <div className='mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)]'>
+      <div
+        className={clsx(
+          'mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6',
+          isDesktopNavCollapsed
+            ? 'lg:grid-cols-[3rem_minmax(0,1fr)]'
+            : 'lg:grid-cols-[220px_minmax(0,1fr)]'
+        )}
+      >
         <aside
-          className={`${isMobileMenuOpen ? 'block' : 'hidden'} rounded-xl border border-slate-200 bg-white p-3 lg:block`}
+          aria-label='Admin navigation'
+          className={clsx(
+            isMobileMenuOpen ? 'block' : 'hidden',
+            'rounded-xl border border-slate-200 bg-white p-3 lg:block',
+            isDesktopNavCollapsed && 'lg:flex lg:flex-col lg:items-center lg:p-2'
+          )}
         >
           {userEmail ? (
             <div className='mb-3 border-b border-slate-200 pb-3 lg:hidden'>
@@ -133,7 +174,29 @@ export function AppShell({
               ) : null}
             </div>
           ) : null}
-          <nav className='space-y-1'>
+
+          <div
+            className={clsx(
+              'mb-3 hidden w-full flex-col items-center gap-1 border-b border-slate-200 pb-3',
+              isDesktopNavCollapsed ? 'lg:flex' : 'lg:hidden'
+            )}
+          >
+            <button
+              type='button'
+              onClick={() => {
+                setDesktopNavCollapsed(false);
+              }}
+              className='inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100'
+              aria-label='Expand navigation panel'
+            >
+              <ArrowRightIcon className='h-4 w-4' />
+            </button>
+          </div>
+
+          <nav
+            id='admin-primary-nav'
+            className={clsx('space-y-1', isDesktopNavCollapsed && 'lg:hidden')}
+          >
             {navItems.map((item) => {
               const isActive = item.key === activeKey;
               return (
@@ -155,6 +218,25 @@ export function AppShell({
               );
             })}
           </nav>
+
+          <div
+            className={clsx(
+              'mt-3 hidden border-t border-slate-200 pt-3 lg:block',
+              isDesktopNavCollapsed && 'lg:hidden'
+            )}
+          >
+            <button
+              type='button'
+              onClick={() => {
+                setDesktopNavCollapsed(true);
+              }}
+              className='inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-2 py-2 text-slate-700 hover:bg-slate-100'
+              aria-label='Collapse navigation panel'
+            >
+              <ArrowRightIcon className='h-4 w-4 rotate-180' />
+            </button>
+          </div>
+
           <div className='mt-3 border-t border-slate-200 pt-3 lg:hidden'>
             <Button
               type='button'
