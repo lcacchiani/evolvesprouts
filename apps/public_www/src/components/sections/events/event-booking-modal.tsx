@@ -111,9 +111,7 @@ export function EventBookingModal({
         serviceTypeLabelKey='event'
         bookingSystem={EVENT_BOOKING_SYSTEM}
         serviceInstanceSlug={
-          bookingPayload.bookingSystem === EVENT_BOOKING_SYSTEM
-            ? bookingPayload.instanceSlug
-            : ''
+          'instanceSlug' in bookingPayload ? bookingPayload.instanceSlug : ''
         }
         eventSubtitle={bookingPayload.subtitle}
         sessionSlots={bookingPayload.dateParts.map((part) => {

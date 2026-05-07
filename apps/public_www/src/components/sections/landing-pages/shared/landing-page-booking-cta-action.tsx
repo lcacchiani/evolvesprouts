@@ -17,7 +17,10 @@ import type {
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import type { EventBookingModalPayload } from '@/lib/events-data';
+import {
+  EVENT_BOOKING_SYSTEM,
+  type EventBookingModalPayload,
+} from '@/lib/events-data';
 import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
@@ -214,7 +217,10 @@ export function LandingPageBookingCtaAction({
         </ButtonPrimitive>
       )}
 
-      {isPaymentModalOpen && bookingPayload && !isFullyBooked && (
+      {isPaymentModalOpen &&
+        bookingPayload &&
+        !isFullyBooked &&
+        bookingPayload.bookingSystem === EVENT_BOOKING_SYSTEM && (
         <EventBookingModal
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
