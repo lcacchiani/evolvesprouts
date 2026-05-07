@@ -17,6 +17,7 @@ from app.api.admin_billing_common import (
     _session_with_audit,
     contact_display_name,
     enrollment_bill_to_merge_key,
+    family_or_organization_bill_to_display_label,
     primary_family_contact_names,
     primary_family_emails,
     primary_org_contact_names,
@@ -112,26 +113,22 @@ def _compose_party_display_name(
         pc = (family_primary_contact_name or "").strip()
         if not pc and enrolled_nm:
             pc = enrolled_nm.strip()
-        if entity and pc:
-            return f"{entity} \u00b7 {pc}"
-        if entity:
-            return entity
-        if pc:
-            return pc
-        return "—"
+        label = family_or_organization_bill_to_display_label(
+            entity_name=entity or None,
+            primary_display_name=pc or None,
+        )
+        return label if label else "—"
     if bk == BillingBillToKind.ORGANIZATION:
         org = enrollment.bill_to_organization or enrollment.organization
         entity = (org.name or "").strip() if org else ""
         pc = (org_primary_contact_name or "").strip()
         if not pc and enrolled_nm:
             pc = enrolled_nm.strip()
-        if entity and pc:
-            return f"{entity} \u00b7 {pc}"
-        if entity:
-            return entity
-        if pc:
-            return pc
-        return "—"
+        label = family_or_organization_bill_to_display_label(
+            entity_name=entity or None,
+            primary_display_name=pc or None,
+        )
+        return label if label else "—"
     return "—"
 
 

@@ -34,6 +34,27 @@ def contact_display_name(c: Contact | None) -> str | None:
     return " ".join(x for x in [c.first_name, c.last_name] if x).strip() or None
 
 
+def family_or_organization_bill_to_display_label(
+    *,
+    entity_name: str | None,
+    primary_display_name: str | None,
+) -> str | None:
+    """Bill-to line for family or organization: ``{entity} · {primary}`` when both exist.
+
+    Keeps customer invoices and enrollment invoicing labels aligned when the party
+    is a family or organization and billing names the main (primary) contact.
+    """
+    entity = (entity_name or "").strip()
+    primary = (primary_display_name or "").strip()
+    if entity and primary:
+        return f"{entity} \u00b7 {primary}"
+    if entity:
+        return entity
+    if primary:
+        return primary
+    return None
+
+
 def enrollment_bill_to_merge_key(enrollment: Enrollment) -> str:
     """Stable string key for comparing bill-to identity across enrollments."""
     bk = enrollment.bill_to_kind or BillingBillToKind.CONTACT

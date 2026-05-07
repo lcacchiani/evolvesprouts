@@ -10,7 +10,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.admin_billing_common import contact_display_name
+from app.api.admin_billing_common import (
+    contact_display_name,
+    family_or_organization_bill_to_display_label,
+)
 from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import BillingBillToKind
@@ -59,7 +62,6 @@ def _resolve_bill_to_party_from_invoice_fks(
         fam = session.get(Family, inv.bill_to_family_id)
         if fam is None:
             return
-        inv.bill_to_display_name = fam.family_name
         stmt = (
             select(Contact)
             .join(FamilyMember, FamilyMember.contact_id == Contact.id)
@@ -68,6 +70,12 @@ def _resolve_bill_to_party_from_invoice_fks(
             .limit(1)
         )
         primary = session.execute(stmt).scalar_one_or_none()
+        label = family_or_organization_bill_to_display_label(
+            entity_name=fam.family_name,
+            primary_display_name=contact_display_name(primary),
+        )
+        if label:
+            inv.bill_to_display_name = label
         if primary and primary.email:
             inv.bill_to_email = primary.email
         return
@@ -78,7 +86,6 @@ def _resolve_bill_to_party_from_invoice_fks(
         org = session.get(Organization, inv.bill_to_organization_id)
         if org is None:
             return
-        inv.bill_to_display_name = org.name
         stmt = (
             select(Contact)
             .join(
@@ -90,6 +97,12 @@ def _resolve_bill_to_party_from_invoice_fks(
             .limit(1)
         )
         primary = session.execute(stmt).scalar_one_or_none()
+        label = family_or_organization_bill_to_display_label(
+            entity_name=org.name,
+            primary_display_name=contact_display_name(primary),
+        )
+        if label:
+            inv.bill_to_display_name = label
         if primary and primary.email:
             inv.bill_to_email = primary.email
 
