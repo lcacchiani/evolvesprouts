@@ -613,7 +613,9 @@ def downgrade() -> None:
         """
     )
 
-    op.execute("DROP INDEX IF EXISTS instance_session_slots_purpose_service_starts_uidx")
+    op.execute(
+        "DROP INDEX IF EXISTS instance_session_slots_purpose_service_starts_uidx"
+    )
     op.drop_constraint(
         "instance_session_slots_purpose_service_id_fkey",
         "instance_session_slots",

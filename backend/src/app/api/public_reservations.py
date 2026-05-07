@@ -975,7 +975,11 @@ def _handle_public_reservation(
                         instance_id_for_audit = booking_row.id
                         booking_instance_slug_for_lead = booking_row.slug
                     else:
-                        assert scheduled_instance is not None
+                        if scheduled_instance is None:
+                            raise ValidationError(
+                                "service instance could not be resolved",
+                                field="serviceInstanceSlug",
+                            )
                         target_instance_id = scheduled_instance.id
 
                     has_enrollment = (

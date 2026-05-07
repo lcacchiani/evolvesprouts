@@ -24,9 +24,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "ALTER TYPE eventbrite_sync_status ADD VALUE IF NOT EXISTS 'skipped'"
-    )
+    op.execute("ALTER TYPE eventbrite_sync_status ADD VALUE IF NOT EXISTS 'skipped'")
 
 
 def downgrade() -> None:
