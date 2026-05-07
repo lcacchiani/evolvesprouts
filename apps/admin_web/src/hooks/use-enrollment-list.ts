@@ -97,6 +97,23 @@ export function useEnrollmentList(serviceId: string | null, instanceId: string |
     [refetch]
   );
 
+  /** Merges a row from a mutation response so the table updates before refetch finishes. */
+  const upsertEnrollmentInList = useCallback((enrollment: Enrollment) => {
+    setEnrollments((current) => {
+      const index = current.findIndex((row) => row.id === enrollment.id);
+      if (index === -1) {
+        return [enrollment, ...current];
+      }
+      const next = [...current];
+      next[index] = enrollment;
+      return next;
+    });
+  }, []);
+
+  const removeEnrollmentFromList = useCallback((enrollmentId: string) => {
+    setEnrollments((current) => current.filter((row) => row.id !== enrollmentId));
+  }, []);
+
   return {
     enrollments,
     filters,
@@ -108,5 +125,7 @@ export function useEnrollmentList(serviceId: string | null, instanceId: string |
     loadMore,
     hasMore: Boolean(nextCursor),
     totalCount,
+    upsertEnrollmentInList,
+    removeEnrollmentFromList,
   };
 }
