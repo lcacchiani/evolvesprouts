@@ -51,17 +51,21 @@ function makeRowActions(overrides: {
   isVoidingId?: string | null;
   isMarkingPaidId?: string | null;
   isReparsingId?: string | null;
+  isDeletingDraftId?: string | null;
   onReparse?: () => Promise<void> | void;
   onMarkPaid?: () => Promise<void> | void;
   onVoidExpense?: (expenseId: string, reason: string) => Promise<void> | void;
+  onDeleteDraft?: (expenseId: string) => Promise<void> | void;
 } = {}) {
   return {
     isVoidingId: null as string | null,
     isMarkingPaidId: null as string | null,
     isReparsingId: null as string | null,
+    isDeletingDraftId: null as string | null,
     onReparse: vi.fn().mockResolvedValue(undefined),
     onMarkPaid: vi.fn().mockResolvedValue(undefined),
     onVoidExpense: vi.fn().mockResolvedValue(undefined),
+    onDeleteDraft: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -282,6 +286,37 @@ describe('ExpensesListPanel', () => {
     });
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(rowActions.onVoidExpense).toHaveBeenCalledWith('exp-1', 'Bad invoice');
+  });
+
+  it('delete draft opens confirm dialog and calls onDeleteDraft', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions();
+
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, status: 'draft' }]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete draft expense' }));
+    expect(screen.getByRole('alertdialog', { name: 'Delete draft expense' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Delete expense' }));
+
+    await waitFor(() => {
+      expect(rowActions.onDeleteDraft).toHaveBeenCalledWith('exp-1');
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog', { name: 'Delete draft expense' })).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not render delete for non-draft expenses', () => {
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} />);
+
+    expect(screen.queryByRole('button', { name: 'Delete draft expense' })).not.toBeInTheDocument();
   });
 
   it('disables void confirm while void mutation is in flight for that expense', async () => {
