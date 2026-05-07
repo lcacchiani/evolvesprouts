@@ -130,7 +130,6 @@ describe('LandingPageFreeIntroCall', () => {
     expect(firstCall?.[1]?.payload).toMatchObject({
       bookingSystem: 'intro-call-booking',
       serviceKey: 'intro-call',
-      serviceInstanceSlug: 'intro-call-free-15min',
       attendeeName: 'Test Parent',
       attendeeEmail: 'parent@example.com',
       primarySessionStartIso: '2026-05-05T01:00:00.000Z',
@@ -138,6 +137,9 @@ describe('LandingPageFreeIntroCall', () => {
       totalAmount: 0,
       paymentMethod: 'free',
     });
+    expect(
+      (firstCall?.[1]?.payload as { serviceInstanceSlug?: string }).serviceInstanceSlug,
+    ).toBeUndefined();
     expect(firstCall?.[1]?.turnstileToken).toBe('mock-turnstile-token');
 
     expect(screen.getByRole('heading', { name: bookAFreeCall.en.introCall.thankYouTitle }))

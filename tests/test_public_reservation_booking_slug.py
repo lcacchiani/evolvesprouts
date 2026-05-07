@@ -13,7 +13,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.api.public_reservations import (
-    _create_booking_instance_for_template,
+    _create_booking_instance_for_service,
     _generate_booking_instance_slug,
 )
 from app.exceptions import ValidationError
@@ -22,27 +22,27 @@ from app.exceptions import ValidationError
 def test_generate_booking_instance_slug_matches_pattern_and_length() -> None:
     now = datetime(2026, 5, 6, 8, 15, 30, tzinfo=UTC)
     slug = _generate_booking_instance_slug(
-        template_slug="consultation-essentials-package",
+        service_key="family-consultation-essentials",
         now_utc=now,
     )
     assert len(slug) <= 128
     parts = slug.split("-")
-    assert len(parts) >= 3
+    assert len(parts) >= 4
     assert parts[-1].isalnum()
     assert parts[-2].isdigit()
 
 
 def test_generate_booking_instance_slug_truncates_long_template() -> None:
-    long_template = "x" * 120
+    long_key = "x" * 120
     now = datetime(2026, 5, 6, 8, 15, 30, tzinfo=UTC)
-    slug = _generate_booking_instance_slug(template_slug=long_template, now_utc=now)
+    slug = _generate_booking_instance_slug(service_key=long_key, now_utc=now)
     assert len(slug) == 128
 
 
 def test_generate_booking_instance_slug_rejects_invalid_composition() -> None:
     now = datetime(2026, 5, 6, 8, 15, 30, tzinfo=UTC)
     with pytest.raises(ValidationError) as exc:
-        _generate_booking_instance_slug(template_slug="bad_slug_", now_utc=now)
+        _generate_booking_instance_slug(service_key="bad_slug_", now_utc=now)
     assert getattr(exc.value, "field", None) == "serviceInstanceSlug"
 
 
@@ -53,30 +53,23 @@ def test_generate_booking_instance_slug_changes_when_token_hex_changes(
     now = datetime(2026, 5, 6, 8, 15, 30, tzinfo=UTC)
     tokens = iter(["aaaaaaaa", "bbbbbbbb"])
     monkeypatch.setattr(secrets, "token_hex", lambda nbytes=4: next(tokens))
-    first = _generate_booking_instance_slug(template_slug="consult-tier", now_utc=now)
-    second = _generate_booking_instance_slug(template_slug="consult-tier", now_utc=now)
+    first = _generate_booking_instance_slug(service_key="consult-tier", now_utc=now)
+    second = _generate_booking_instance_slug(service_key="consult-tier", now_utc=now)
     assert first != second
 
 
-def test_create_booking_instance_for_template_retries_after_integrity_error() -> None:
-    template_id = uuid4()
+def test_create_booking_instance_for_service_retries_after_integrity_error() -> None:
     svc_id = uuid4()
     locked = SimpleNamespace(
-        id=template_id,
-        slug="intro-call-free-15min",
+        id=svc_id,
+        service_key="intro-call",
         title="Intro",
-        service_id=svc_id,
         delivery_mode=MagicMock(),
         location_id=None,
-        instructor_id=None,
     )
     calls = {"n": 0}
 
     class _FakeRepo:
-        def lock_template_for_booking(self, tid: object) -> object:
-            assert tid == template_id
-            return locked
-
         def create_instance(
             self, booking: object, type_details=None, session_slots=None
         ):
@@ -93,14 +86,21 @@ def test_create_booking_instance_for_template_retries_after_integrity_error() ->
         def __exit__(self, *_args: object) -> bool:
             return False
 
+    class _FakeExec:
+        def scalar_one_or_none(self) -> object:
+            return locked
+
     class _FakeSession:
+        def execute(self, _stmt: object) -> _FakeExec:
+            return _FakeExec()
+
         def begin_nested(self) -> _Nested:
             return _Nested()
 
-    out = _create_booking_instance_for_template(
+    out = _create_booking_instance_for_service(
         _FakeSession(),
         _FakeRepo(),
-        SimpleNamespace(id=template_id),
+        locked,
         {"attendee_name": "Pat"},
         now_utc=datetime(2026, 5, 6, tzinfo=UTC),
     )
@@ -108,24 +108,17 @@ def test_create_booking_instance_for_template_retries_after_integrity_error() ->
     assert getattr(out, "id", None) is not None
 
 
-def test_create_booking_instance_for_template_raises_after_three_integrity_errors() -> (
-    None
-):
-    template_id = uuid4()
+def test_create_booking_instance_for_service_raises_after_three_integrity_errors() -> None:
+    svc_id = uuid4()
     locked = SimpleNamespace(
-        id=template_id,
-        slug="intro-call-free-15min",
+        id=svc_id,
+        service_key="intro-call",
         title="Intro",
-        service_id=uuid4(),
         delivery_mode=MagicMock(),
         location_id=None,
-        instructor_id=None,
     )
 
     class _FakeRepo:
-        def lock_template_for_booking(self, tid: object) -> object:
-            return locked
-
         def create_instance(
             self, _booking: object, type_details=None, session_slots=None
         ):
@@ -138,15 +131,22 @@ def test_create_booking_instance_for_template_raises_after_three_integrity_error
         def __exit__(self, *_args: object) -> bool:
             return False
 
+    class _FakeExec:
+        def scalar_one_or_none(self) -> object:
+            return locked
+
     class _FakeSession:
+        def execute(self, _stmt: object) -> _FakeExec:
+            return _FakeExec()
+
         def begin_nested(self) -> _Nested:
             return _Nested()
 
     with pytest.raises(ValidationError) as excinfo:
-        _create_booking_instance_for_template(
+        _create_booking_instance_for_service(
             _FakeSession(),
             _FakeRepo(),
-            SimpleNamespace(id=template_id),
+            locked,
             {"attendee_name": "Pat"},
             now_utc=datetime(2026, 5, 6, tzinfo=UTC),
         )

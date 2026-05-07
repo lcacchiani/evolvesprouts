@@ -19,13 +19,15 @@ def _discount_validate_body(
     *,
     service_key: str = _DEFAULT_VALIDATE_SERVICE_KEY,
     service_instance_slug: str = _DEFAULT_VALIDATE_INSTANCE_SLUG,
+    include_service_instance_slug: bool = True,
     **extra: object,
 ) -> str:
     payload: dict[str, object] = {
         "code": code,
         "service_key": service_key,
-        "service_instance_slug": service_instance_slug,
     }
+    if include_service_instance_slug:
+        payload["service_instance_slug"] = service_instance_slug
     payload.update(extra)
     return json.dumps(payload)
 
@@ -1114,3 +1116,151 @@ def test_public_discount_validate_instance_slug_mixed_case_resolves(
     )
     response = public_discount_validate.handle_public_discount_validate(event, "POST")
     assert response["statusCode"] == 200
+
+
+def _patch_discount_validate_service_key_only(
+    monkeypatch: Any,
+    *,
+    discount_row: SimpleNamespace,
+    resolved_service_id: UUID,
+    resolved_service_key: str,
+) -> None:
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeDiscountRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, code: str) -> Any:
+            assert code.strip().lower() == discount_row.code.strip().lower()
+            return discount_row
+
+    expected_key = resolved_service_key.strip().lower()
+
+    class _FakeServiceRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_service_key(self, key: str) -> Any:
+            if key.strip().lower() == expected_key:
+                return SimpleNamespace(id=resolved_service_id, service_key=key)
+            return None
+
+    class _FakeServiceInstanceRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_with_service_by_slug(self, slug: str) -> Any:
+            raise AssertionError(
+                f"unexpected slug lookup in service-key-only mode: {slug!r}",
+            )
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeDiscountRepository,
+    )
+    monkeypatch.setattr(
+        public_discount_validate,
+        "ServiceRepository",
+        _FakeServiceRepository,
+    )
+    monkeypatch.setattr(
+        public_discount_validate,
+        "ServiceInstanceRepository",
+        _FakeServiceInstanceRepository,
+    )
+
+
+def test_public_discount_validate_service_key_only_service_scoped_match(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    row = _usable_row(code="ESS", service_id=svc, instance_id=None)
+    _patch_discount_validate_service_key_only(
+        monkeypatch,
+        discount_row=row,
+        resolved_service_id=svc,
+        resolved_service_key="family-consultation-essentials",
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=_discount_validate_body(
+            "ESS",
+            service_key="family-consultation-essentials",
+            include_service_instance_slug=False,
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
+def test_public_discount_validate_service_key_only_instance_scoped_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    inst = uuid4()
+    row = _usable_row(code="INSTONLY", service_id=svc, instance_id=inst)
+    _patch_discount_validate_service_key_only(
+        monkeypatch,
+        discount_row=row,
+        resolved_service_id=svc,
+        resolved_service_key="family-consultation-essentials",
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=_discount_validate_body(
+            "INSTONLY",
+            service_key="family-consultation-essentials",
+            include_service_instance_slug=False,
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+
+
+def test_public_discount_validate_service_key_only_unknown_service_returns_404(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    svc = uuid4()
+    row = _usable_row(code="ESS", service_id=svc, instance_id=None)
+    _patch_discount_validate_service_key_only(
+        monkeypatch,
+        discount_row=row,
+        resolved_service_id=svc,
+        resolved_service_key="family-consultation-essentials",
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=_discount_validate_body(
+            "ESS",
+            service_key="no-such-consultation-tier",
+            include_service_instance_slug=False,
+        ),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
+    body = json.loads(response["body"])
+    assert body.get("rejection_reason") == "unknown_service_key"

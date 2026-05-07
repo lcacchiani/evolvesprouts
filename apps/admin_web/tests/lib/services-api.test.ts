@@ -432,15 +432,14 @@ describe('services-api', () => {
     ]);
   });
 
-  it('parseInstance maps is_template and parent_instance_id from admin API shape', () => {
-    const parentId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  it('parseInstance maps core admin API instance shape', () => {
     const parsed = parseInstance({
       id: 'inst-booking-1',
       service_id: 'svc-1',
       parent_service_title: 'Consult',
       parent_service_tier: null,
       parent_service_type: 'consultation',
-      parent_service_key: 'family-consultation',
+      parent_service_key: 'family-consultation-essentials',
       title: 'Booking',
       slug: 'booking-slug',
       description: null,
@@ -472,10 +471,9 @@ describe('services-api', () => {
       resolved_event_ticket_tiers: [],
       consultation_details: null,
       resolved_consultation_details: null,
-      is_template: false,
-      parent_instance_id: parentId,
     });
-    expect(parsed.isTemplate).toBe(false);
-    expect(parsed.parentInstanceId).toBe(parentId);
+    expect(parsed.slug).toBe('booking-slug');
+    expect(parsed.serviceId).toBe('svc-1');
+    expect(parsed.parentServiceKey).toBe('family-consultation-essentials');
   });
 });

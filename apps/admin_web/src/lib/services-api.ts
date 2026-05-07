@@ -312,8 +312,6 @@ export function parseInstance(value: unknown): ServiceInstance {
     parentServiceKey: asNullableString(item.parent_service_key),
     title: asNullableString(item.title),
     slug,
-    parentInstanceId: asNullableString(item.parent_instance_id),
-    isTemplate: typeof item.is_template === 'boolean' ? item.is_template : undefined,
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
     status: (asNullableString(item.status) ?? 'scheduled') as ServiceInstance['status'],

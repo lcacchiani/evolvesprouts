@@ -233,6 +233,50 @@ describe('InstanceDetailPanel', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Pricing model')).toHaveValue('package');
     });
+    expect(screen.getByLabelText('Pricing model')).toBeDisabled();
+  });
+
+  it('shows catalog pricing hint and read-only consultation pricing fields when the service has catalog consultation details', async () => {
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={null}
+        selectedServiceId='service-1'
+        serviceOptions={[
+          buildServiceSummary({
+            serviceType: 'consultation',
+            trainingDetails: null,
+            consultationDetails: {
+              consultationFormat: 'one_on_one',
+              maxGroupSize: null,
+              durationMinutes: 60,
+              pricingModel: 'hourly',
+              defaultHourlyRate: '200',
+              defaultPackagePrice: null,
+              defaultPackageSessions: null,
+              defaultCurrency: 'HKD',
+            },
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='consultation'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Pricing is managed on the service catalog/i)).toBeInTheDocument();
+    });
+    expect(screen.getByLabelText('Pricing model')).toBeDisabled();
+    expect(screen.getByLabelText('Hourly rate')).toBeDisabled();
+    expect(screen.getByLabelText('Currency')).toBeDisabled();
+    expect(screen.getByLabelText('Package sessions')).toBeDisabled();
   });
 
   it('prefills delivery, location, and training pricing from the selected service but not title or description', async () => {
@@ -905,5 +949,7 @@ describe('InstanceDetailPanel', () => {
       'service-1',
       expect.objectContaining({ slug: 'consultation-instance-1' }),
     );
+    const payload = onCreate.mock.calls[0][1] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty('consultation_details');
   });
 });

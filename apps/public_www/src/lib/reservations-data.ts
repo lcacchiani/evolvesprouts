@@ -32,12 +32,15 @@ export interface ReservationSubmissionPayload {
   marketingOptIn?: boolean;
   locale?: string;
   title?: string;
-  /** Parent service public key (required; identity with serviceInstanceSlug). */
+  /** Parent service public key (required for all booking systems). */
   serviceKey: string;
   /** Optional booking flow code (e.g. event vs MBA vs consultation). */
   bookingSystem?: string;
-  /** Public service_instances.slug (required; identity with serviceKey). */
-  serviceInstanceSlug: string;
+  /**
+   * Public `service_instances.slug` for event-booking and my-best-auntie-booking.
+   * Omit for consultation-booking and intro-call-booking (resolved by `serviceKey` only).
+   */
+  serviceInstanceSlug?: string;
   /**
    * Optional cohort display label for the selected instance (e.g. MBA cohort title).
    * Shown on internal sales recap; not used for booking identity.

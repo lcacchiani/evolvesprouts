@@ -531,7 +531,6 @@ export function ConsultationBookingModal({
         serviceKey={bookingPayload.serviceKey}
         serviceTypeLabelKey='consultation'
         bookingSystem={CONSULTATION_BOOKING_SYSTEM}
-        serviceInstanceSlug={bookingPayload.instanceSlug}
         eventSubtitle={bookingPayload.subtitle}
         sessionSlots={rebasedParts.map((part) => {
           return {

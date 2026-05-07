@@ -172,7 +172,7 @@ describe('discounts-data', () => {
     );
   });
 
-  it('rejects validateDiscountCode when serviceInstanceSlug is empty', async () => {
+  it('omits service_instance_slug in the POST body when serviceInstanceSlug is blank', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -207,8 +207,17 @@ describe('discounts-data', () => {
       serviceInstanceSlug: '',
     });
 
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(rule).toBeNull();
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          code: 'SAVE',
+          service_key: 'my-best-auntie-training-course',
+        }),
+      }),
+    );
+    expect(rule).not.toBeNull();
   });
 
   it('rejects invalid CRM API client configuration', () => {

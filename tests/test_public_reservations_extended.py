@@ -17,7 +17,7 @@ from app.api.public_reservations import (
     _validate_reservation_payload,
 )
 from app.db.models import InstanceSessionSlot
-from app.db.models.enums import DiscountType
+from app.db.models.enums import DiscountType, ServiceType
 
 
 class _FakeBeginNestedCM:
@@ -714,7 +714,7 @@ def test_handle_public_reservation_event_booking_skips_booking_child_allocation(
 ) -> None:
     booking_child_spy = MagicMock()
     monkeypatch.setattr(
-        "app.api.public_reservations._create_booking_instance_for_template",
+        "app.api.public_reservations._create_booking_instance_for_service",
         booking_child_spy,
     )
     monkeypatch.setattr(
@@ -848,7 +848,7 @@ def test_handle_public_reservation_mba_style_skips_booking_child_allocation(
     """Omitted ``bookingSystem`` is not a per-booking flow; enroll on the template instance."""
     booking_child_spy = MagicMock()
     monkeypatch.setattr(
-        "app.api.public_reservations._create_booking_instance_for_template",
+        "app.api.public_reservations._create_booking_instance_for_service",
         booking_child_spy,
     )
     monkeypatch.setattr(
@@ -1027,7 +1027,10 @@ def test_discount_redemption_rejects_service_scope_mismatch(
     }
     with pytest.raises(ValidationError):
         _validate_discount_code_redemption_scope(
-            object(), payload, template_instance=resolved
+            object(),
+            payload,
+            resolved_service=resolved.service,
+            resolved_instance=resolved,
         )
 
 
@@ -1065,7 +1068,10 @@ def test_discount_redemption_rejects_instance_scope_mismatch(
     payload = {"discount_code": "SAVE", "service_key": "cohort-1"}
     with pytest.raises(ValidationError) as excinfo:
         _validate_discount_code_redemption_scope(
-            object(), payload, template_instance=resolved
+            object(),
+            payload,
+            resolved_service=resolved.service,
+            resolved_instance=resolved,
         )
     assert getattr(excinfo.value, "field", None) == "discountCode"
 
@@ -1097,11 +1103,13 @@ def test_discount_redemption_rejects_referral_type(
         _FakeDiscountRepo,
     )
 
+    stub = _resolved_instance_stub(uuid4(), uuid4())
     with pytest.raises(ValidationError) as excinfo:
         _validate_discount_code_redemption_scope(
             object(),
             {"discount_code": "REF"},
-            template_instance=_resolved_instance_stub(uuid4(), uuid4()),
+            resolved_service=stub.service,
+            resolved_instance=stub,
         )
     assert getattr(excinfo.value, "field", None) == "discountCode"
 
@@ -1321,7 +1329,7 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
         lambda *_a, **_k: True,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations._create_booking_instance_for_template",
+        "app.api.public_reservations._create_booking_instance_for_service",
         lambda *_a, **_k: SimpleNamespace(
             id=uuid4(), slug="intro-call-free-15min-20360616030000-deadbeef"
         ),
@@ -1335,8 +1343,15 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
     )
 
     contact_id = uuid4()
-    instance_uuid = uuid4()
     service_uuid = uuid4()
+    intro_catalog_svc = SimpleNamespace(
+        id=service_uuid,
+        service_key="intro-call",
+        title="Intro",
+        delivery_mode=MagicMock(),
+        location_id=None,
+        service_type=ServiceType.INTRO_CALL,
+    )
 
     class _FakeDiscountRepo:
         def __init__(self, _session: object) -> None:
@@ -1349,17 +1364,9 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
-            if slug == "intro-call-free-15min":
-                return SimpleNamespace(
-                    id=instance_uuid,
-                    service=SimpleNamespace(
-                        id=service_uuid,
-                        service_key="intro-call",
-                        service_type=SimpleNamespace(value="intro_call"),
-                    ),
-                )
-            return None
+        def create_instance(self, booking: object, **_kw: object) -> object:
+            booking.id = uuid4()
+            return booking
 
     class _FakeEnrollmentRepo:
         def __init__(self, _session: object) -> None:
@@ -1456,7 +1463,9 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
             self.ops.append("flush")
 
         def execute(self, *_a: object, **_k: object) -> MagicMock:
-            return MagicMock()
+            out = MagicMock()
+            out.scalar_one_or_none.return_value = intro_catalog_svc
+            return out
 
         def commit(self) -> None:
             return None
@@ -1544,10 +1553,17 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
     )
 
     booking_child_id = uuid4()
-    template_uuid = uuid4()
     service_uuid = uuid4()
+    consult_catalog_svc = SimpleNamespace(
+        id=service_uuid,
+        service_key="family-consultation-essentials",
+        title="Essentials",
+        delivery_mode=MagicMock(),
+        location_id=None,
+        service_type=ServiceType.CONSULTATION,
+    )
     monkeypatch.setattr(
-        "app.api.public_reservations._create_booking_instance_for_template",
+        "app.api.public_reservations._create_booking_instance_for_service",
         lambda *_a, **_k: SimpleNamespace(
             id=booking_child_id,
             slug="consult-book-20360701103000-abcd1234",
@@ -1565,17 +1581,9 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
         def __init__(self, _session: object) -> None:
             pass
 
-        def get_with_service_by_slug(self, slug: str) -> SimpleNamespace | None:
-            if slug.strip().lower() == "consult-tier-book":
-                return SimpleNamespace(
-                    id=template_uuid,
-                    service=SimpleNamespace(
-                        id=service_uuid,
-                        service_key="family-consultation",
-                        service_type=SimpleNamespace(value="consultation"),
-                    ),
-                )
-            return None
+        def create_instance(self, booking: object, **_kw: object) -> object:
+            booking.id = booking_child_id
+            return booking
 
     class _FakeEnrollmentRepo:
         def __init__(self, _session: object) -> None:
@@ -1662,7 +1670,9 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
             return None
 
         def execute(self, *_a: object, **_k: object) -> MagicMock:
-            return MagicMock()
+            out = MagicMock()
+            out.scalar_one_or_none.return_value = consult_catalog_svc
+            return out
 
         def commit(self) -> None:
             return None
@@ -1706,8 +1716,7 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
         totalAmount=0,
         reservationPendingUntilPaymentConfirmed=False,
     )
-    body["serviceKey"] = "family-consultation"
-    body["serviceInstanceSlug"] = "consult-tier-book"
+    body["serviceKey"] = "family-consultation-essentials"
     body["bookingSystem"] = "consultation-booking"
     body["primarySessionStartIso"] = "2026-07-01T01:00:00.000Z"
     body["primarySessionEndIso"] = "2026-07-01T04:00:00.000Z"

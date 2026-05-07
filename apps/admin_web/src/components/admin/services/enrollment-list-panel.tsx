@@ -166,18 +166,21 @@ export function EnrollmentListPanel({
     [enrollments]
   );
 
-  const formatEnrollmentParentCell = (enrollment: Enrollment): string => {
-    if (enrollment.contactId) {
-      return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
-    }
-    if (enrollment.familyId) {
-      return labelByFamilyId.get(enrollment.familyId) ?? enrollment.familyId;
-    }
-    if (enrollment.organizationId) {
-      return labelByOrganizationId.get(enrollment.organizationId) ?? enrollment.organizationId;
-    }
-    return '-';
-  };
+  const formatEnrollmentParentCell = useCallback(
+    (enrollment: Enrollment) => {
+      if (enrollment.contactId) {
+        return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
+      }
+      if (enrollment.familyId) {
+        return labelByFamilyId.get(enrollment.familyId) ?? enrollment.familyId;
+      }
+      if (enrollment.organizationId) {
+        return labelByOrganizationId.get(enrollment.organizationId) ?? enrollment.organizationId;
+      }
+      return '-';
+    },
+    [labelByContactId, labelByFamilyId, labelByOrganizationId]
+  );
 
   const resetCreateForm = () => {
     setSelectedEnrollmentId(null);

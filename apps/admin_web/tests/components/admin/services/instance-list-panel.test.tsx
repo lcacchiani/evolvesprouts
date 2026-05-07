@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { InstanceListPanel } from '@/components/admin/services/instance-list-panel';
@@ -45,23 +45,10 @@ const BASE_INSTANCE: ServiceInstance = {
 };
 
 describe('InstanceListPanel', () => {
-  it('shows Booking pill only for non-template instance rows', () => {
-    const templateRow: ServiceInstance = {
-      ...BASE_INSTANCE,
-      id: 'template-row',
-      title: 'Template tier',
-      isTemplate: true,
-    };
-    const bookingRow: ServiceInstance = {
-      ...BASE_INSTANCE,
-      id: 'booking-row',
-      title: 'Per-booking row',
-      isTemplate: false,
-    };
-
+  it('renders instance rows without booking badges', () => {
     render(
       <InstanceListPanel
-        instances={[bookingRow, templateRow]}
+        instances={[BASE_INSTANCE]}
         selectedInstanceId={null}
         isLoading={false}
         isLoadingMore={false}
@@ -76,8 +63,8 @@ describe('InstanceListPanel', () => {
       />,
     );
 
-    const table = screen.getByRole('table');
-    expect(within(table).getByText('Booking')).toBeInTheDocument();
-    expect(screen.getAllByText('Booking')).toHaveLength(1);
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    expect(screen.getByText('Parent service')).toBeInTheDocument();
+    expect(screen.queryByText('Booking')).toBeNull();
   });
 });

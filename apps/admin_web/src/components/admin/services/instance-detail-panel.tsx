@@ -446,6 +446,8 @@ export function InstanceDetailPanel({
   const selectedService =
     serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null;
   const effectiveServiceType = serviceType ?? selectedService?.serviceType ?? 'training_course';
+  const consultationCatalogPricingReadOnly =
+    effectiveServiceType === 'consultation' || effectiveServiceType === 'intro_call';
   const canSubmit = Boolean(selectedServiceId);
   const typeFieldsLocked = !selectedServiceId;
 
@@ -605,15 +607,6 @@ export function InstanceDetailPanel({
           },
         ];
       }
-    } else {
-      payload.consultation_details = {
-        pricing_model: consultationForm.pricingModel,
-        price: consultationForm.defaultHourlyRate || null,
-        currency: consultationForm.defaultCurrency || defaultCurrencyCode,
-        package_sessions: consultationForm.defaultPackageSessions
-          ? Number(consultationForm.defaultPackageSessions)
-          : null,
-      };
     }
 
     return payload;
@@ -825,16 +818,18 @@ export function InstanceDetailPanel({
         </>
       ) : null}
 
-      {effectiveServiceType === 'intro_call' ? (
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-          <p className='md:col-span-4 text-sm text-slate-500'>
-            Intro-call instances use the parent service pricing defaults. Session slots here drive the public booking grid.
-          </p>
-        </div>
-      ) : null}
-
       {isConsultationLikeServiceType(effectiveServiceType) ? (
         <>
+          {consultationCatalogPricingReadOnly ? (
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
+              <p className='md:col-span-4 text-sm text-slate-500'>
+                Pricing is managed on the service catalog. Open the service detail panel to edit.
+                {effectiveServiceType === 'intro_call'
+                  ? ' Intro-call session slots here drive the public booking grid.'
+                  : ''}
+              </p>
+            </div>
+          ) : null}
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <InstanceInstructorField
               value={instanceForm.instructorId}
@@ -845,14 +840,14 @@ export function InstanceDetailPanel({
             />
             <ConsultationInstanceRowDFields
               value={consultationForm}
-              disabled={typeFieldsLocked}
+              disabled={typeFieldsLocked || consultationCatalogPricingReadOnly}
               onChange={setConsultationForm}
             />
           </div>
           <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
             <ConsultationInstanceRowEFields
               value={consultationForm}
-              disabled={typeFieldsLocked}
+              disabled={typeFieldsLocked || consultationCatalogPricingReadOnly}
               onChange={setConsultationForm}
             />
           </div>

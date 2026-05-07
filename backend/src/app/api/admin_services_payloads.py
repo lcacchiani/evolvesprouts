@@ -24,6 +24,7 @@ from app.api.admin_services_payload_utils import (
     has_any_field,
     has_field,
     parse_instance_type_details,
+    reject_consultation_instance_pricing_payload,
     parse_optional_bool,
     parse_optional_currency,
     parse_optional_datetime,
@@ -148,12 +149,6 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     logger.debug("Parsing service instance list filters")
     limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
-    include_raw = query_param(event, "include_bookings")
-    include_bookings = str(include_raw or "").strip().lower() in (
-        "true",
-        "1",
-        "yes",
-    )
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -163,7 +158,6 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
             InstanceStatus,
             "status",
         ),
-        "include_bookings": include_bookings,
     }
 
 
@@ -172,12 +166,6 @@ def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, An
     logger.debug("Parsing global service instance list filters")
     limit = parse_limit(event)
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
-    include_raw = query_param(event, "include_bookings")
-    include_bookings = str(include_raw or "").strip().lower() in (
-        "true",
-        "1",
-        "yes",
-    )
     return {
         "limit": limit,
         "cursor_created_at": cursor_created_at,
@@ -195,7 +183,6 @@ def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, An
             ServiceType,
             "service_type",
         ),
-        "include_bookings": include_bookings,
     }
 
 
@@ -420,6 +407,8 @@ def parse_update_instance_payload(
     if not body:
         raise ValidationError("At least one field is required", field="body")
     _reject_deprecated_instance_age_group(body)
+    if service.service_type in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL):
+        reject_consultation_instance_pricing_payload(body)
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)

@@ -65,27 +65,14 @@ class ServiceInstance(Base):
         Index("svc_instances_service_idx", "service_id"),
         Index("svc_instances_status_idx", "status"),
         Index("svc_instances_instructor_idx", "instructor_id"),
-        Index("svc_instances_parent_idx", "parent_instance_id"),
         Index(
-            "svc_instances_slug_uq_template",
+            "svc_instances_slug_uq",
             "slug",
             unique=True,
-            postgresql_where=text("is_template IS TRUE"),
-        ),
-        Index(
-            "svc_instances_slug_uq_booking",
-            "slug",
-            unique=True,
-            postgresql_where=text("is_template IS FALSE"),
         ),
         CheckConstraint(
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
-        ),
-        CheckConstraint(
-            "(is_template IS TRUE AND parent_instance_id IS NULL) "
-            "OR (is_template IS FALSE)",
-            name="service_instances_template_consistency_chk",
         ),
     )
 
@@ -98,15 +85,6 @@ class ServiceInstance(Base):
         PG_UUID(as_uuid=True),
         ForeignKey("services.id", ondelete="CASCADE"),
         nullable=False,
-    )
-    parent_instance_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True),
-        ForeignKey("service_instances.id", ondelete="RESTRICT"),
-        nullable=True,
-    )
-    is_template: Mapped[bool] = mapped_column(
-        nullable=False,
-        server_default=text("false"),
     )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     slug: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -157,6 +135,9 @@ class ServiceInstance(Base):
     )
     eventbrite_event_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     eventbrite_event_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # SQL default 'pending' is correct for event/training cohorts; consultation/intro-call
+    # booking children are created with EventbriteSyncStatus.SKIPPED set explicitly by the
+    # public reservation handler. See ADR "Tier-per-service catalog (drop template instance row)".
     eventbrite_sync_status: Mapped[EventbriteSyncStatus] = mapped_column(
         Enum(
             EventbriteSyncStatus,
@@ -189,17 +170,6 @@ class ServiceInstance(Base):
         "Service",
         back_populates="instances",
     )
-    parent: Mapped[ServiceInstance | None] = relationship(
-        "ServiceInstance",
-        remote_side="ServiceInstance.id",
-        foreign_keys=[parent_instance_id],
-        back_populates="bookings",
-    )
-    bookings: Mapped[list[ServiceInstance]] = relationship(
-        "ServiceInstance",
-        back_populates="parent",
-        foreign_keys=[parent_instance_id],
-    )
     location: Mapped[Location | None] = relationship("Location")
     session_slots: Mapped[list[InstanceSessionSlot]] = relationship(
         "InstanceSessionSlot",
@@ -217,12 +187,6 @@ class ServiceInstance(Base):
         "EventTicketTier",
         back_populates="instance",
         cascade="all, delete-orphan",
-    )
-    consultation_details: Mapped[ConsultationInstanceDetails | None] = relationship(
-        "ConsultationInstanceDetails",
-        back_populates="instance",
-        cascade="all, delete-orphan",
-        uselist=False,
     )
     enrollments: Mapped[list[Enrollment]] = relationship(
         "Enrollment",
@@ -323,11 +287,11 @@ class InstanceSessionSlot(Base):
     __table_args__ = (
         Index("session_slots_instance_idx", "instance_id"),
         Index(
-            "instance_session_slots_template_starts_uidx",
-            "template_instance_id",
+            "instance_session_slots_purpose_service_starts_uidx",
+            "purpose_service_id",
             "starts_at",
             unique=True,
-            postgresql_where=text("template_instance_id IS NOT NULL"),
+            postgresql_where=text("purpose_service_id IS NOT NULL"),
         ),
         CheckConstraint(
             "ends_at > starts_at",
@@ -345,9 +309,9 @@ class InstanceSessionSlot(Base):
         ForeignKey("service_instances.id", ondelete="CASCADE"),
         nullable=False,
     )
-    template_instance_id: Mapped[UUID | None] = mapped_column(
+    purpose_service_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
-        ForeignKey("service_instances.id", ondelete="CASCADE"),
+        ForeignKey("services.id", ondelete="CASCADE"),
         nullable=True,
     )
     location_id: Mapped[UUID | None] = mapped_column(
@@ -375,9 +339,9 @@ class InstanceSessionSlot(Base):
         back_populates="session_slots",
         foreign_keys=[instance_id],
     )
-    template_instance: Mapped[ServiceInstance | None] = relationship(
-        "ServiceInstance",
-        foreign_keys=[template_instance_id],
+    purpose_service: Mapped[Service | None] = relationship(
+        "Service",
+        foreign_keys=[purpose_service_id],
     )
     location: Mapped[Location | None] = relationship("Location")
 
@@ -463,37 +427,4 @@ class EventTicketTier(Base):
     enrollments: Mapped[list[Enrollment]] = relationship(
         "Enrollment",
         back_populates="ticket_tier",
-    )
-
-
-class ConsultationInstanceDetails(Base):
-    """Consultation-specific instance details."""
-
-    __tablename__ = "consultation_instance_details"
-
-    instance_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        ForeignKey("service_instances.id", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    pricing_model: Mapped[ConsultationPricingModel] = mapped_column(
-        Enum(
-            ConsultationPricingModel,
-            name="consultation_pricing_model",
-            values_callable=_enum_values,
-            create_type=False,
-        ),
-        nullable=False,
-    )
-    price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
-    currency: Mapped[str] = mapped_column(
-        String(3),
-        nullable=False,
-        server_default=text("'HKD'"),
-    )
-    package_sessions: Mapped[int | None] = mapped_column(nullable=True)
-
-    instance: Mapped[ServiceInstance] = relationship(
-        "ServiceInstance",
-        back_populates="consultation_details",
     )

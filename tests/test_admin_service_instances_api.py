@@ -88,7 +88,6 @@ def test_list_instances_returns_repository_total_count(
             "status": None,
             "cursor_created_at": None,
             "cursor_id": None,
-            "include_bookings": False,
         },
     )
     monkeypatch.setattr(admin_service_instances, "Session", _SessionCtx)
@@ -122,7 +121,7 @@ def test_list_instances_returns_repository_total_count(
     body = json.loads(response["body"])
     assert body["total_count"] == 42
     assert captured["list_kwargs"]["limit"] == 2
-    assert captured["list_kwargs"]["include_bookings"] is False
+    assert "include_bookings" not in captured["list_kwargs"]
     assert captured["count_kwargs"]["service_id"] == service_id
 
 
@@ -168,7 +167,6 @@ def test_handle_admin_all_service_instances_lists_global(
             "cursor_id": None,
             "service_id": None,
             "service_type": None,
-            "include_bookings": False,
         },
     )
     monkeypatch.setattr(admin_service_instances, "Session", _SessionCtx)
@@ -205,5 +203,5 @@ def test_handle_admin_all_service_instances_lists_global(
     assert response["statusCode"] == 200
     assert body["total_count"] == 7
     assert captured["list_kwargs"]["limit"] == 2
-    assert captured["list_kwargs"]["include_bookings"] is False
+    assert "include_bookings" not in captured["list_kwargs"]
     assert captured["count_kwargs"]["service_id"] is None

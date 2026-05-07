@@ -124,15 +124,17 @@ their primary responsibilities.
   and `GET /v1/assets/free`,
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation; request body
-  requires `service_key` and `service_instance_slug`. The pair resolves to a
+  requires `service_key`; optional `service_instance_slug` pairs with `service_key` to resolve a
   `service_instances` row whose parent `services.service_key` matches `service_key`
-  (case-insensitive); otherwise **404** with `unknown_service_instance_slug` or
+  (case-insensitive); slug-less requests resolve `services` by `service_key` only—unknown keys **404**
+  with `unknown_service_key`. Otherwise **404** with `unknown_service_instance_slug` or
   `service_key_instance_mismatch`. Scoped codes compare against the resolved service/instance
   ids; codes with `discount_type` `referral` are rejected with the same 404
   envelope as unknown/inactive codes; on each 404 the Lambda logs a structured
   `Public discount validate rejected` entry with `rejection_reason` (for example
   `code_not_found`, `referral_type_not_allowed`, `inactive`, `not_yet_valid`, `expired`,
   `max_uses_exhausted`, `unknown_service_instance_slug`, `service_key_instance_mismatch`,
+  `unknown_service_key`,
   `instance_scope_mismatch`, `service_scope_mismatch`), `code_hash`,
   and `code_prefix`—never the full code),
   `/www/v1/contact-us`, `/www/v1/reservations`,
@@ -247,15 +249,16 @@ their primary responsibilities.
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
   `POST /v1/reservations` (and `/www/v1/reservations`) accepts camelCase booking-modal
   fields, persists contact + program-enrollment lead (including discount metadata when
-  applicable; referral-type codes are rejected). Requires `serviceKey` and
-  `serviceInstanceSlug`; the server resolves the **template tier** instance and parent
-  service, derives `service_type`, and for `consultation-booking` / `intro-call-booking`
-  creates a dedicated **booking** `service_instances` child row (generated slug), inserts
-  session slots tied to the template tier id for race-safe uniqueness, then attaches the
-  enrollment and payment rows to that booking instance. Other booking systems attach the
-  enrollment directly to the resolved instance when capacity allows (or returns **409**
-  when the instance is full with waitlist disabled). Admin enrollment APIs validate discount
-  code scope to the template tier instance id when codes are instance-scoped. Then sends
+  applicable; referral-type codes are rejected). Requires `serviceKey`; `serviceInstanceSlug`
+  pairs with it for **event-booking** and **my-best-auntie-booking**. **consultation-booking**
+  and **intro-call-booking** resolve catalog `services` rows by `serviceKey` only (`serviceInstanceSlug`
+  ignored when sent), derive `service_type`, allocate a dedicated booking `service_instances` row
+  (generated slug, `eventbrite_sync_status = skipped`), attach session slots with `purpose_service_id`
+  on `(purpose_service_id, starts_at)` uniqueness, then attach enrollment and payment rows.
+  Other booking systems attach the enrollment directly to the resolved instance when capacity allows
+  (or return **409** when the instance is full with waitlist disabled). Admin enrollment APIs validate
+  discount code scope to `services.id` / `service_instances.id` as scoped on the code row.
+  Then sends
   booking confirmation (SES), optional Mailchimp subscribe, and a plain-text **sales recap**
   with extended booking context when provided, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.

@@ -226,6 +226,7 @@ class EventbriteSyncStatus(str, enum.Enum):
     SYNCING = "syncing"
     SYNCED = "synced"
     FAILED = "failed"
+    SKIPPED = "skipped"
 
 
 class DiscountType(str, enum.Enum):

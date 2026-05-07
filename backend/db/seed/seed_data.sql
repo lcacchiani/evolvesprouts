@@ -46,6 +46,8 @@ WHERE lower(trim(coalesce(s.service_key, ''))) = 'my-best-auntie'
     OR lower(coalesce(s.title, '')) LIKE '%my best auntie%'
   );
 
+-- Legacy safeguard only (superseded by Alembic migration ``0063_tier_per_service``, which
+-- splits consultation tiers into ``family-consultation-essentials`` / ``family-consultation-deep-dive``).
 UPDATE services s
 SET service_key = 'family-consultation'
 FROM (
@@ -63,6 +65,7 @@ WHERE s.id = pick.id
   ) = 1;
 
 -- Align legacy consultation service key with public_www `family-consultations.json` (`service_key`).
+-- Superseded by migration ``0063_tier_per_service`` for tier-per-service catalog rows.
 UPDATE services
 SET service_key = 'family-consultation'
 WHERE service_type = 'consultation'

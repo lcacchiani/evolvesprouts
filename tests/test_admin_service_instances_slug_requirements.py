@@ -121,13 +121,10 @@ def test_parse_create_instance_accepts_slug_for_consultation() -> None:
     service = _consultation_service()
     body = {
         "slug": "essentials-tier-2026",
-        "consultation_details": {
-            "pricing_model": "free",
-            "currency": "HKD",
-        },
     }
     parsed = parse_create_instance_payload(body, service)
     assert parsed["slug"] == "essentials-tier-2026"
+    assert parsed["type_details"] == {}
 
 
 def test_parse_update_instance_rejects_clearing_slug_for_event() -> None:
@@ -185,10 +182,6 @@ def test_parse_update_instance_rejects_clearing_slug_for_consultation() -> None:
     body = {
         "status": InstanceStatus.SCHEDULED.value,
         "slug": None,
-        "consultation_details": {
-            "pricing_model": "free",
-            "currency": "HKD",
-        },
     }
     with pytest.raises(ValidationError) as exc:
         parse_update_instance_payload(body, service)

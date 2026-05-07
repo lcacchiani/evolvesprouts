@@ -20,7 +20,10 @@ import type {
   MyBestAuntieModalContent,
 } from '@/content';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import { sortUpcomingEvents } from '@/lib/events-data';
+import {
+  EVENT_BOOKING_SYSTEM,
+  sortUpcomingEvents,
+} from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 
@@ -185,7 +188,7 @@ export function Events({
         </SectionContainer>
       </SectionShell>
 
-      {activeBookingPayload?.variant === 'event' && (
+      {activeBookingPayload?.bookingSystem === EVENT_BOOKING_SYSTEM && (
         <EventBookingModal
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}

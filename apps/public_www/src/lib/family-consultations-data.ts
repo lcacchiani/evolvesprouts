@@ -5,7 +5,6 @@ import type { ConsultationsBookingModalTierId } from '@/lib/consultations-bookin
 export interface FamilyConsultationTierRow {
   tier_id: string;
   service_key: string;
-  instance_slug: string;
   location_name: string;
   location_address: string;
   dates: unknown[];
