@@ -493,15 +493,23 @@ export function EnrollmentListPanel({
           <AdminDataTable tableClassName='w-full table-fixed'>
             <AdminDataTableHead>
               <tr>
-                <th className='min-w-0 px-4 py-3 font-semibold'>Party</th>
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[22%] min-w-0 px-4 py-3 font-semibold'
+                      : 'w-[28%] min-w-0 px-4 py-3 font-semibold'
+                  }
+                >
+                  Party
+                </th>
                 {showScheduledStartColumn ? (
-                  <th className='w-[11%] whitespace-nowrap px-4 py-3 font-semibold'>Scheduled start</th>
+                  <th className='w-[10%] whitespace-nowrap px-4 py-3 font-semibold'>Scheduled start</th>
                 ) : null}
                 <th
                   className={
                     showScheduledStartColumn
-                      ? 'w-[10%] px-4 py-3 font-semibold'
-                      : 'w-[12%] px-4 py-3 font-semibold'
+                      ? 'w-[9%] min-w-0 px-4 py-3 font-semibold'
+                      : 'w-[10%] min-w-0 px-4 py-3 font-semibold'
                   }
                 >
                   Status
@@ -510,13 +518,29 @@ export function EnrollmentListPanel({
                   className={
                     showScheduledStartColumn
                       ? 'w-[10%] whitespace-nowrap px-4 py-3 font-semibold'
-                      : 'w-[12%] whitespace-nowrap px-4 py-3 font-semibold'
+                      : 'w-[11%] whitespace-nowrap px-4 py-3 font-semibold'
                   }
                 >
                   Amount
                 </th>
-                <th className='min-w-0 px-4 py-3 font-semibold'>Discount</th>
-                <th className='w-[14%] whitespace-nowrap px-4 py-3 font-semibold'>Enrolled at</th>
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[17%] min-w-0 px-4 py-3 font-semibold'
+                      : 'w-[20%] min-w-0 px-4 py-3 font-semibold'
+                  }
+                >
+                  Discount
+                </th>
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[12%] whitespace-nowrap px-4 py-3 font-semibold'
+                      : 'w-[14%] whitespace-nowrap px-4 py-3 font-semibold'
+                  }
+                >
+                  Enrolled at
+                </th>
                 <th className='w-[4.5rem] whitespace-nowrap px-4 py-3 text-right font-semibold'>
                   Operations
                 </th>
@@ -550,7 +574,9 @@ export function EnrollmentListPanel({
                           : '—'}
                       </td>
                     ) : null}
-                    <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
+                    <td className='min-w-0 break-words px-4 py-3'>
+                      {formatEnumLabel(enrollment.status)}
+                    </td>
                     <td className='whitespace-nowrap px-4 py-3'>{amountDisplay}</td>
                     <td className='min-w-0 break-words px-4 py-3'>
                       {enrollment.discountCodeId
