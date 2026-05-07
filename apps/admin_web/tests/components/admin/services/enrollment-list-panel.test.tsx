@@ -79,15 +79,14 @@ describe('EnrollmentListPanel', () => {
     expect(screen.getByLabelText('Organization')).toBeDisabled();
   });
 
-  it('shows booking slug and scheduled start columns when enrollment rows include them', () => {
-    const enrollmentWithBookingMeta: Enrollment = {
+  it('shows scheduled start column when enrollment rows include scheduled start', () => {
+    const enrollmentWithScheduledStart: Enrollment = {
       ...ENROLLMENT_FIXTURE,
-      bookingInstanceSlug: 'consultation-essentials-package-20260506103000-aabbccdd',
       scheduledStartAt: '2026-06-15T01:00:00Z',
     };
     render(
       <EnrollmentListPanel
-        enrollments={[enrollmentWithBookingMeta]}
+        enrollments={[enrollmentWithScheduledStart]}
         serviceId='service-1'
         instanceId='instance-1'
         canCreate={true}
@@ -103,9 +102,8 @@ describe('EnrollmentListPanel', () => {
       />
     );
 
-    expect(screen.getByRole('columnheader', { name: 'Booking slug' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Scheduled start' })).toBeInTheDocument();
-    expect(screen.getByText('consultation-essentials-package-20260506103000-aabbccdd')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Booking slug' })).not.toBeInTheDocument();
   });
 
   it('uses selectable currency options in the enrollment editor', () => {
