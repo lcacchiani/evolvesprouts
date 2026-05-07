@@ -479,7 +479,10 @@ def test_list_recent_enrollments_orders_and_filters(
             elif "customer_invoice_lines" in sql:
                 out.scalars.return_value.all.return_value = [en_later.id]
             elif "FamilyMember" in sql or "family_members" in sql:
-                out.all.return_value = [(fam_id, "primary@example.com")]
+                if "first_name" in sql.lower():
+                    out.all.return_value = [(fam_id, "Primary", "Person")]
+                else:
+                    out.all.return_value = [(fam_id, "primary@example.com")]
             elif "organization_members" in sql:
                 out.all.return_value = []
             else:
@@ -513,6 +516,10 @@ def test_list_recent_enrollments_orders_and_filters(
     row0 = body["items"][0]
     assert row0["invoiceLinked"] is True
     assert row0["partyEmail"] == "primary@example.com"
+    assert row0["partyDisplayName"] == "Smith Family · Primary Person"
+    assert row0["billToKind"] == "family"
+    assert body["items"][1]["partyDisplayName"] == "Smith Family · Primary Person"
+    assert body["items"][1]["billToKind"] == "family"
 
 
 def test_create_invoice_draft_currency_empty_string_derives(
@@ -1019,10 +1026,12 @@ def test_list_recent_enrollments_org_bill_to_primary_email(
     en.ticket_tier = None
     en.contact = None
     en.family = None
-    en.organization = MagicMock(name="Acme Corp")
+    org_obj = MagicMock()
+    org_obj.name = "Acme Corp"
+    en.organization = org_obj
     en.bill_to_contact = None
     en.bill_to_family = None
-    en.bill_to_organization = MagicMock(name="Acme Corp")
+    en.bill_to_organization = org_obj
 
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
@@ -1036,7 +1045,10 @@ def test_list_recent_enrollments_org_bill_to_primary_email(
             elif "customer_invoice_lines" in sql:
                 out.scalars.return_value.all.return_value = []
             elif "organization_members" in sql:
-                out.all.return_value = [(oid, "org.primary@example.com")]
+                if "first_name" in sql.lower():
+                    out.all.return_value = [(oid, "Jane", "Doe")]
+                else:
+                    out.all.return_value = [(oid, "org.primary@example.com")]
             elif "FamilyMember" in sql or "family_members" in sql:
                 out.all.return_value = []
             else:
@@ -1063,6 +1075,8 @@ def test_list_recent_enrollments_org_bill_to_primary_email(
     assert r["statusCode"] == 200
     body = json.loads(r["body"])
     assert body["items"][0]["partyEmail"] == "org.primary@example.com"
+    assert body["items"][0]["partyDisplayName"] == "Acme Corp · Jane Doe"
+    assert body["items"][0]["billToKind"] == "organization"
 
 
 def test_list_recent_enrollments_parent_service_title_and_service_tier_fallback(
@@ -1153,6 +1167,7 @@ def test_list_recent_enrollments_parent_service_title_and_service_tier_fallback(
     assert row["parentServiceTitle"] == "Parent Course"
     assert row["serviceTierName"] == "Standard"
     assert row["instanceCohort"] == "Cohort A"
+    assert row["billToKind"] == "contact"
 
 
 def test_confirm_payment_creates_receipt_for_pending_inbound(

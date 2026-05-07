@@ -6133,10 +6133,15 @@ export interface components {
         BillingEnrollmentPickerRow: {
             /** Format: uuid */
             enrollmentId: string;
-            /** @description Contact, family, or organization display name for bill-to / enrollment party. */
+            /** @description Display label for the bill-to / enrollment party. For `contact` this is the contact name. For `family` or `organization` this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. */
             partyDisplayName: string;
             /** Format: email */
             partyEmail?: string | null;
+            /**
+             * @description Bill-to kind for this enrollment (matches `billing_bill_to_kind`).
+             * @enum {string}
+             */
+            billToKind?: "contact" | "family" | "organization";
             /** @description Trimmed instance-specific title when set. */
             instanceTitle?: string | null;
             /** @description Parent service template title from the instance's service (for display when `instanceTitle` is empty). */
