@@ -112,7 +112,7 @@ their primary responsibilities.
   `/v1/admin/expenses/*`,
   `/v1/admin/billing/*` (customer AR: `GET /v1/admin/billing/payments` optional `invoice_id` filters to payments with an allocation to that invoice; `GET /v1/admin/billing/payments/{id}` includes `allocationInvoices` and `orphanPaymentDeletable`; `DELETE /v1/admin/billing/payments/{id}` removes eligible orphan inbound payments (pending or free/zero, enrollment unlinked or cancelled, no allocations/receipt/refund children); payments, invoices list/detail, draft invoices via
   `POST /v1/admin/billing/invoices` with `draftKind` `enrollment_merge` or `customized_manual`,
-  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `GET /v1/admin/billing/invoices/{id}/pdf`
+  `GET /v1/admin/billing/enrollments/recent-for-invoicing`, `DELETE /v1/admin/billing/invoices/{id}` (draft-only permanent delete; blocked when allocations exist), `GET /v1/admin/billing/invoices/{id}/pdf`
   (returns a CloudFront-signed URL; each response includes a unique cache-bust query on the
   signed resource so draft/void preview PDFs re-uploaded to the same S3 key are not edge-cached
   as an older file),

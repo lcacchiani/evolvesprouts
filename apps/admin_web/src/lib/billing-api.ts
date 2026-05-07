@@ -294,6 +294,13 @@ export async function issueInvoice(invoiceId: string): Promise<{
   };
 }
 
+export async function deleteDraftCustomerInvoice(invoiceId: string): Promise<void> {
+  await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/billing/invoices/${invoiceId}`,
+    method: 'DELETE',
+  });
+}
+
 export async function voidInvoice(invoiceId: string, reason: string): Promise<{ invoiceId: string; status: string }> {
   const payload = await adminApiRequest<{
     invoiceId?: string;

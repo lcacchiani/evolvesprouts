@@ -10,6 +10,7 @@ const billingMocks = vi.hoisted(() => ({
   getCustomerPayment: vi.fn(),
   issueInvoice: vi.fn(),
   voidInvoice: vi.fn(),
+  deleteDraftCustomerInvoice: vi.fn(),
   emailInvoice: vi.fn(),
   confirmCustomerPayment: vi.fn(),
   deleteCustomerPayment: vi.fn(),
@@ -485,6 +486,46 @@ describe('ClientInvoicesPanel', () => {
 
     await waitFor(() => {
       expect(billingMocks.deleteCustomerPayment).toHaveBeenCalledWith(payId);
+    });
+  });
+
+  it('delete draft invoice dialog calls deleteDraftCustomerInvoice for draft rows', async () => {
+    const invId = 'aaaaaaaa-bbbb-cccc-dddd-ffffffffffff';
+    billingMocks.listCustomerInvoices.mockResolvedValue({
+      items: [
+        {
+          id: invId,
+          status: 'draft',
+          invoiceNumber: null,
+          currency: 'HKD',
+          total: '50',
+          lineCount: 1,
+          billToDisplayName: 'Pat',
+          createdAt: '2026-01-01T00:00:00+00:00',
+        },
+      ],
+      next_cursor: null,
+    });
+    billingMocks.deleteDraftCustomerInvoice.mockResolvedValue(undefined);
+
+    render(<ClientInvoicesPanel />);
+
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+    await waitFor(() =>
+      within(invoiceTable).getByRole('button', { name: /delete draft invoice/i }),
+    );
+
+    await userEvent.click(within(invoiceTable).getByRole('button', { name: /delete draft invoice/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /delete draft invoice/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /^delete draft$/i }));
+
+    await waitFor(() => {
+      expect(billingMocks.deleteDraftCustomerInvoice).toHaveBeenCalledWith(invId);
     });
   });
 

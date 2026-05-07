@@ -31,6 +31,7 @@ import {
   createDraftInvoice,
   createPaymentAllocation,
   deleteCustomerPayment,
+  deleteDraftCustomerInvoice,
   emailInvoice,
   exportBillingCsv,
   getCustomerInvoice,
@@ -201,6 +202,10 @@ export function ClientInvoicesPanel() {
   const [voidInvoiceTargetId, setVoidInvoiceTargetId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
+
+  const [deleteDraftDialogOpen, setDeleteDraftDialogOpen] = useState(false);
+  const [deleteDraftInvoiceId, setDeleteDraftInvoiceId] = useState<string | null>(null);
+  const [deleteDraftError, setDeleteDraftError] = useState('');
 
   const [confirmPaymentDialogOpen, setConfirmPaymentDialogOpen] = useState(false);
   const [confirmPaymentId, setConfirmPaymentId] = useState<string | null>(null);
@@ -717,6 +722,45 @@ export function ClientInvoicesPanel() {
       await loadInvoicesFirstPage();
     } catch (caught) {
       setVoidError(caught instanceof Error ? caught.message : 'Void failed.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const openDeleteDraftInvoiceDialog = (invoiceId: string) => {
+    setDeleteDraftInvoiceId(invoiceId);
+    setDeleteDraftError('');
+    setDeleteDraftDialogOpen(true);
+  };
+
+  const closeDeleteDraftInvoiceDialog = () => {
+    setDeleteDraftDialogOpen(false);
+    setDeleteDraftInvoiceId(null);
+    setDeleteDraftError('');
+  };
+
+  const confirmDeleteDraftInvoice = async () => {
+    const id = deleteDraftInvoiceId?.trim();
+    if (!id) {
+      return;
+    }
+    setDeleteDraftError('');
+    setBusy('delete-draft');
+    try {
+      await deleteDraftCustomerInvoice(id);
+      setActionMessage(`Draft invoice deleted: ${id}`);
+      closeDeleteDraftInvoiceDialog();
+      if (selectedInvoiceId === id) {
+        setSelectedInvoiceId(null);
+      }
+      if (allocateInvoiceId === id) {
+        setAllocateInvoiceId('');
+        setAllocateLineId('');
+      }
+      await loadPayments();
+      await loadInvoicesFirstPage();
+    } catch (caught) {
+      setDeleteDraftError(caught instanceof Error ? caught.message : 'Delete failed.');
     } finally {
       setBusy(null);
     }
@@ -1331,7 +1375,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer invoices'
-        description='Cursor-paginated invoices (newest first). Use Operations to issue or void. Select an issued row to pre-fill allocation; when the selection is issued, use Email recipients and Send email below.'
+        description='Cursor-paginated invoices (newest first). Use Operations to preview, issue, void, or permanently delete **draft** rows. Select an issued row to pre-fill allocation; when the selection is issued, use Email recipients and Send email below.'
         isLoading={invoiceListLoading}
         isLoadingMore={invoiceListLoadingMore}
         hasMore={Boolean(invoiceListCursor)}
@@ -1466,7 +1510,7 @@ export function ClientInvoicesPanel() {
                         type='button'
                         size='sm'
                         variant='outline'
-                        disabled={editorBusy || !id}
+                        disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
                         onClick={() => void handleOpenInvoicePdfPreview(id)}
                         aria-label='Preview invoice PDF'
                         title='Preview invoice PDF'
@@ -1486,7 +1530,7 @@ export function ClientInvoicesPanel() {
                           type='button'
                           size='sm'
                           variant='secondary'
-                          disabled={editorBusy || !id}
+                          disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
                           onClick={() => void handleIssueRow(id)}
                           aria-label='Issue invoice'
                           title='Issue invoice'
@@ -1502,12 +1546,33 @@ export function ClientInvoicesPanel() {
                           )}
                         </Button>
                       ) : null}
+                      {inv.status === 'draft' ? (
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
+                          onClick={() => openDeleteDraftInvoiceDialog(id)}
+                          aria-label='Delete draft invoice'
+                          title='Delete draft invoice'
+                          aria-busy={busyAction === 'delete-draft'}
+                        >
+                          {busyAction === 'delete-draft' ? (
+                            <span
+                              className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                              aria-hidden
+                            />
+                          ) : (
+                            <DeleteIcon className='h-4 w-4' aria-hidden />
+                          )}
+                        </Button>
+                      ) : null}
                       {inv.status !== 'void' ? (
                         <Button
                           type='button'
                           size='sm'
                           variant='danger'
-                          disabled={editorBusy || !id}
+                          disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
                           onClick={() => openVoidInvoiceDialog(id)}
                           aria-label='Void invoice'
                           title='Void invoice'
@@ -1894,7 +1959,7 @@ export function ClientInvoicesPanel() {
         confirmLabel='Void invoice'
         cancelLabel='Cancel'
         variant='danger'
-        confirmDisabled={busyAction === 'void'}
+        confirmDisabled={busyAction === 'void' || deleteDraftDialogOpen}
         onCancel={closeVoidInvoiceDialog}
         onConfirm={() => void confirmVoidInvoice()}
       >
@@ -1912,6 +1977,20 @@ export function ClientInvoicesPanel() {
           />
           {voidError ? <AdminInlineError>{voidError}</AdminInlineError> : null}
         </div>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={deleteDraftDialogOpen}
+        title='Delete draft invoice'
+        description='This permanently removes the draft invoice and its lines. Issued or void invoices cannot be deleted here.'
+        confirmLabel='Delete draft'
+        cancelLabel='Cancel'
+        variant='danger'
+        confirmDisabled={busyAction === 'delete-draft'}
+        onCancel={closeDeleteDraftInvoiceDialog}
+        onConfirm={() => void confirmDeleteDraftInvoice()}
+      >
+        {deleteDraftError ? <AdminInlineError>{deleteDraftError}</AdminInlineError> : null}
       </ConfirmDialog>
 
       <ConfirmDialog

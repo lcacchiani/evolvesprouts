@@ -1,4 +1,4 @@
-"""Admin billing: customer invoice mutations (issue, void, email)."""
+"""Admin billing: customer invoice mutations (issue, void, email, delete draft)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.admin_billing_common import _session_with_audit
@@ -15,6 +16,7 @@ from app.db.audit import AuditService
 from app.db.models import Contact, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
+from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
     next_invoice_number,
@@ -167,6 +169,48 @@ def _void_invoice(
         )
         return json_response(
             200, {"invoiceId": str(inv.id), "status": "void"}, event=event
+        )
+
+
+def _delete_draft_invoice(
+    event: Mapping[str, Any],
+    invoice_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    """Permanently remove a draft invoice and its lines (no issued number)."""
+    with _session_with_audit(user_sub, request_id) as session:
+        inv = session.get(CustomerInvoice, invoice_id)
+        if inv is None:
+            raise NotFoundError("CustomerInvoice", str(invoice_id))
+        if inv.status != BillingInvoiceStatus.DRAFT:
+            raise ValidationError(
+                "Only draft invoices can be deleted", field="invoiceId"
+            )
+        alloc_count = session.execute(
+            select(func.count())
+            .select_from(PaymentAllocation)
+            .where(PaymentAllocation.invoice_id == invoice_id)
+        ).scalar_one()
+        if int(alloc_count or 0) > 0:
+            raise ValidationError(
+                "Cannot delete invoice with payment allocations",
+                field="invoiceId",
+            )
+        audit = AuditService(session, user_id=user_sub, request_id=request_id)
+        audit.log_custom(
+            table_name="customer_invoices",
+            record_id=inv.id,
+            action="DELETE_DRAFT",
+            old_values={"status": inv.status.value},
+        )
+        session.delete(inv)
+        session.flush()
+        return json_response(
+            200,
+            {"invoiceId": str(invoice_id), "deleted": True},
+            event=event,
         )
 
 

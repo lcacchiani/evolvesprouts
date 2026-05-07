@@ -1571,6 +1571,128 @@ def test_get_invoice_returns_detail_with_lines(
     assert body["invoice"]["lines"][0]["id"] == str(line_id)
 
 
+def test_delete_draft_invoice_succeeds(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    inv = MagicMock()
+    inv.id = inv_id
+    inv.status = BillingInvoiceStatus.DRAFT
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            return None
+
+        s.get.side_effect = _get
+        ex = MagicMock()
+        ex.scalar_one.return_value = 0
+        s.execute.return_value = ex
+        yield s
+
+    class _FakeAudit:
+        def __init__(self, *_a: Any, **_k: Any) -> None:
+            pass
+
+        def log_custom(self, **_kw: Any) -> None:
+            return None
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(admin_billing_invoices_mod, "AuditService", _FakeAudit)
+
+    ev = api_gateway_event(
+        method="DELETE",
+        path=f"/v1/admin/billing/invoices/{inv_id}",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "DELETE", f"/v1/admin/billing/invoices/{inv_id}"
+    )
+    assert r["statusCode"] == 200
+    body = json.loads(r["body"])
+    assert body["invoiceId"] == str(inv_id)
+    assert body["deleted"] is True
+
+
+def test_delete_draft_invoice_rejects_issued(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    inv = MagicMock()
+    inv.id = inv_id
+    inv.status = BillingInvoiceStatus.ISSUED
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="DELETE",
+        path=f"/v1/admin/billing/invoices/{inv_id}",
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Only draft"):
+        admin_billing.handle_admin_billing_request(
+            ev, "DELETE", f"/v1/admin/billing/invoices/{inv_id}"
+        )
+
+
+def test_delete_draft_invoice_rejects_when_allocations_exist(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    inv = MagicMock()
+    inv.id = inv_id
+    inv.status = BillingInvoiceStatus.DRAFT
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            return None
+
+        s.get.side_effect = _get
+        ex = MagicMock()
+        ex.scalar_one.return_value = 1
+        s.execute.return_value = ex
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="DELETE",
+        path=f"/v1/admin/billing/invoices/{inv_id}",
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="allocations"):
+        admin_billing.handle_admin_billing_request(
+            ev, "DELETE", f"/v1/admin/billing/invoices/{inv_id}"
+        )
+
+
 def test_get_invoice_pdf_returns_signed_url(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
