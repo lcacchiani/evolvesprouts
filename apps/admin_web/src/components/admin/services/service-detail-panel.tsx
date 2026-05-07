@@ -15,7 +15,7 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
 import { SERVICE_KEY_PATTERN } from '@/lib/service-key-utils';
-import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { isAdminApiConflictOnField } from '@/lib/admin-api-conflict-messages';
 import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -346,11 +346,7 @@ export function ServiceDetailPanel({
     caught: unknown,
     pair: { serviceKey: string | null; tierNormalized: string | null },
   ): boolean {
-    if (!(caught instanceof AdminApiError) || caught.statusCode !== 409) {
-      return false;
-    }
-    const field = readAdminApiErrorField(caught);
-    if (field !== 'service_key_tier') {
+    if (!isAdminApiConflictOnField(caught, 'service_key_tier')) {
       return false;
     }
     const tierNorm = pair.tierNormalized ?? '';

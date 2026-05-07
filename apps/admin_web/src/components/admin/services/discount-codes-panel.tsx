@@ -22,8 +22,9 @@ import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-butto
 import { ReferralLinkQrDialog } from '@/components/admin/services/referral-link-qr-dialog';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
-import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
 import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import { listInstances } from '@/lib/services-api';
 import {
@@ -280,9 +281,7 @@ export function DiscountCodesPanel({
       instance_id: instanceUuid,
     };
     const isDuplicateCodeError = (err: unknown) =>
-      err instanceof AdminApiError &&
-      err.statusCode === 409 &&
-      readAdminApiErrorField(err) === 'code';
+      conflictFieldUserMessage(err, { code: 'duplicate' }) !== null;
 
     try {
       if (editorMode === 'create') {
@@ -351,9 +350,7 @@ export function DiscountCodesPanel({
         instance_id: instanceUuid,
       });
     } catch (err) {
-      if (err instanceof AdminApiError) {
-        setSaveError(err.message);
-      }
+      setSaveError(toErrorMessage(err, 'Save failed.'));
     }
   };
 

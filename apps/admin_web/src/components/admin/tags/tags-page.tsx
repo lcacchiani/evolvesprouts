@@ -16,7 +16,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { toErrorMessage } from '@/hooks/hook-errors';
-import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
 import {
   createAdminTag,
   deleteOrArchiveAdminTag,
@@ -179,8 +179,9 @@ export function TagsPage() {
       await updateAdminTag(selectedTagId, body);
       await loadTags();
     } catch (caught) {
-      if (caught instanceof AdminApiError && readAdminApiErrorField(caught) === 'name') {
-        setSaveError('A tag with this name already exists.');
+      const conflict = conflictFieldUserMessage(caught, { name: 'A tag with this name already exists.' });
+      if (conflict) {
+        setSaveError(conflict);
         return;
       }
       const message = toErrorMessage(caught, 'Save failed.');
