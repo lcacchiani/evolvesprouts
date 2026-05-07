@@ -161,10 +161,6 @@ export function EnrollmentListPanel({
     [discountOptions, selectedEnrollment?.discountCodeId]
   );
 
-  const showBookingInstanceSlugColumn = useMemo(
-    () => enrollments.some((row) => Boolean(row.bookingInstanceSlug?.trim())),
-    [enrollments]
-  );
   const showScheduledStartColumn = useMemo(
     () => enrollments.some((row) => Boolean(row.scheduledStartAt?.trim())),
     [enrollments]
@@ -457,9 +453,6 @@ export function EnrollmentListPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Parent</th>
-              {showBookingInstanceSlugColumn ? (
-                <th className='px-4 py-3 font-semibold'>Booking slug</th>
-              ) : null}
               {showScheduledStartColumn ? (
                 <th className='px-4 py-3 font-semibold'>Scheduled start</th>
               ) : null}
@@ -489,11 +482,6 @@ export function EnrollmentListPanel({
                   onClick={() => applyEnrollmentSelection(enrollment)}
                 >
                   <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
-                  {showBookingInstanceSlugColumn ? (
-                    <td className='px-4 py-3 font-mono text-xs'>
-                      {enrollment.bookingInstanceSlug?.trim() || '—'}
-                    </td>
-                  ) : null}
                   {showScheduledStartColumn ? (
                     <td className='px-4 py-3'>
                       {enrollment.scheduledStartAt?.trim()

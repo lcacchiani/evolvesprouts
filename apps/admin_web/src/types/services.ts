@@ -344,8 +344,6 @@ export interface Enrollment {
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
-  /** Present when the admin enrollment list includes booking-instance metadata. */
-  bookingInstanceSlug?: string | null;
   scheduledStartAt?: string | null;
 }
 
