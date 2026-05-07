@@ -16,6 +16,7 @@ import type { GeographicAreaSummary, LocationSummary, VenueFilters } from '@/typ
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { toErrorMessage } from './hook-errors';
+import { useListMutate } from './use-list-mutate';
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
@@ -75,22 +76,7 @@ export function useVenues(options: { onMutationSuccess?: () => void | Promise<vo
   });
 
   const { refetch } = list;
-  const [isSaving, setIsSaving] = useState(false);
-
-  const mutate = useCallback(
-    async <TResult>(work: () => Promise<TResult>): Promise<TResult> => {
-      setIsSaving(true);
-      try {
-        const result = await work();
-        await refetch();
-        await onMutationSuccess?.();
-        return result;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [refetch, onMutationSuccess]
-  );
+  const { isSaving, mutate } = useListMutate(refetch, { onAfterSuccess: onMutationSuccess });
 
   const createVenue = useCallback(
     async (payload: ApiSchemas['CreateLocationRequest']) => mutate(async () => createLocation(payload)),

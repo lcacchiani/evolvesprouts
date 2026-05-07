@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import {
   createDiscountCode,
@@ -13,7 +13,7 @@ import type { DiscountCode, DiscountCodeFilters } from '@/types/services';
 
 import type { components } from '@/types/generated/admin-api.generated';
 
-import { toErrorMessage } from './hook-errors';
+import { useListMutate, type ListMutateOptions } from './use-list-mutate';
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
@@ -35,38 +35,9 @@ export function useDiscountCodes() {
   });
 
   const { refetch } = list;
-  const [isSaving, setIsSaving] = useState(false);
+  const { isSaving, mutate } = useListMutate(refetch);
 
-  type MutateOptions = {
-    /** When true, skip toggling `isSaving` (caller manages a longer-lived saving state). */
-    suppressSaving?: boolean;
-    /** When true, skip the post-mutation list refetch (caller will refetch once). */
-    suppressRefetch?: boolean;
-  };
-
-  const mutate = useCallback(
-    async <TResult>(
-      work: () => Promise<TResult>,
-      options: MutateOptions = {},
-    ): Promise<TResult> => {
-      const { suppressSaving = false, suppressRefetch = false } = options;
-      if (!suppressSaving) {
-        setIsSaving(true);
-      }
-      try {
-        const result = await work();
-        if (!suppressRefetch) {
-          await refetch();
-        }
-        return result;
-      } finally {
-        if (!suppressSaving) {
-          setIsSaving(false);
-        }
-      }
-    },
-    [refetch],
-  );
+  type MutateOptions = ListMutateOptions;
 
   const createCode = useCallback(
     async (
