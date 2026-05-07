@@ -54,7 +54,65 @@ def _minimal_training_service() -> Service:
     )
 
 
-def test_parse_create_instance_payload_persists_cohort() -> None:
+def _minimal_consultation_service() -> Service:
+    sid = uuid4()
+    return Service(
+        id=sid,
+        service_type=ServiceType.CONSULTATION,
+        title="Consult",
+        service_key="consult-template",
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="tester",
+    )
+
+
+def test_parse_create_consultation_instance_rejects_consultation_details_payload() -> None:
+    service = _minimal_consultation_service()
+    body = {
+        "slug": "tier-instance",
+        "consultation_details": {
+            "pricing_model": "package",
+            "price": "10.00",
+            "currency": "HKD",
+            "package_sessions": 3,
+        },
+    }
+    with pytest.raises(ValidationError) as exc:
+        parse_create_instance_payload(body, service)
+    assert "Consultation pricing now lives" in exc.value.message
+    assert exc.value.field == "consultation_details"
+
+
+def test_parse_create_consultation_instance_without_pricing_payload_succeeds() -> None:
+    service = _minimal_consultation_service()
+    body = {"slug": "clean-consult-instance"}
+    parsed = parse_create_instance_payload(body, service)
+    assert parsed["slug"] == "clean-consult-instance"
+    assert parsed["type_details"] == {}
+
+
+def test_parse_update_consultation_instance_rejects_consultation_details_payload() -> None:
+    service = _minimal_consultation_service()
+    body = {
+        "status": "scheduled",
+        "consultation_details": {"pricing_model": "free"},
+    }
+    with pytest.raises(ValidationError) as exc:
+        parse_update_instance_payload(body, service)
+    assert "Consultation pricing now lives" in exc.value.message
+    assert exc.value.field == "consultation_details"
+
+
+def test_parse_update_consultation_instance_rejects_loose_pricing_model() -> None:
+    service = _minimal_consultation_service()
+    body = {"status": "scheduled", "pricing_model": "hourly"}
+    with pytest.raises(ValidationError) as exc:
+        parse_update_instance_payload(body, service)
+    assert exc.value.field == "consultation_details"
     service = _minimal_training_service()
     body = {
         "slug": "spring-2026-run",

@@ -24,6 +24,7 @@ from app.api.admin_services_payload_utils import (
     has_any_field,
     has_field,
     parse_instance_type_details,
+    reject_consultation_instance_pricing_payload,
     parse_optional_bool,
     parse_optional_currency,
     parse_optional_datetime,
@@ -406,6 +407,8 @@ def parse_update_instance_payload(
     if not body:
         raise ValidationError("At least one field is required", field="body")
     _reject_deprecated_instance_age_group(body)
+    if service.service_type in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL):
+        reject_consultation_instance_pricing_payload(body)
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)

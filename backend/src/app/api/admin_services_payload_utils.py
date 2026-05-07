@@ -6,7 +6,7 @@ import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any, TypeVar
+from typing import Any, TypeVar, assert_never
 from uuid import UUID
 
 from app.api.admin_validators import (
@@ -29,6 +29,36 @@ _MAX_CURRENCY_LENGTH = 3
 
 EnumType = TypeVar("EnumType")
 logger = get_logger(__name__)
+
+_CONSULTATION_INSTANCE_FORBIDDEN_TOP_LEVEL = frozenset(
+    {
+        "pricing_model",
+        "price",
+        "currency",
+        "package_sessions",
+        "default_hourly_rate",
+        "default_package_price",
+        "default_package_sessions",
+        "default_currency",
+    }
+)
+
+
+def reject_consultation_instance_pricing_payload(body: Mapping[str, Any]) -> None:
+    """Reject instance payloads that try to set catalog-level consultation pricing."""
+    if body.get("consultation_details") is not None:
+        raise ValidationError(
+            "Consultation pricing now lives on the parent service catalog row. "
+            "Edit `consultation_details` on the service, not the instance.",
+            field="consultation_details",
+        )
+    for key in _CONSULTATION_INSTANCE_FORBIDDEN_TOP_LEVEL:
+        if key in body:
+            raise ValidationError(
+                "Consultation pricing now lives on the parent service catalog row. "
+                "Edit `consultation_details` on the service, not the instance.",
+                field="consultation_details",
+            )
 
 
 def parse_service_type_details(
@@ -220,31 +250,10 @@ def parse_instance_type_details(
                 }
             )
         return {"event_ticket_tiers": tiers}
-    source = extract_obj(body, "consultation_details")
-    return {
-        "pricing_model": parse_optional_enum(
-            source.get("pricing_model") or body.get("pricing_model"),
-            ConsultationPricingModel,
-            "pricing_model",
-        )
-        or ConsultationPricingModel.FREE,
-        "price": parse_optional_decimal(
-            source.get("price") if "price" in source else body.get("price"),
-            "price",
-        ),
-        "currency": parse_optional_currency(
-            source.get("currency") if "currency" in source else body.get("currency"),
-            "currency",
-        )
-        or "HKD",
-        "package_sessions": parse_optional_int(
-            source.get("package_sessions")
-            if "package_sessions" in source
-            else body.get("package_sessions"),
-            "package_sessions",
-            minimum=1,
-        ),
-    }
+    if service_type in (ServiceType.CONSULTATION, ServiceType.INTRO_CALL):
+        reject_consultation_instance_pricing_payload(body)
+        return {}
+    assert_never(service_type)
 
 
 def parse_required_aware_datetime(value: Any, field: str) -> datetime:
