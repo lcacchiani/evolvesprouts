@@ -154,6 +154,11 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
     monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         admin_enrollments,
+        "batch_enrollment_party_display_names",
+        lambda _session, rows: ["—"] * len(rows),
+    )
+    monkeypatch.setattr(
+        admin_enrollments,
         "parse_body",
         lambda _event: json.loads(_event["body"]),
     )
@@ -199,7 +204,7 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
     monkeypatch.setattr(
         admin_enrollments,
         "serialize_enrollment",
-        lambda e: {"id": "new-1", "discount_code_id": str(e.discount_code_id)},
+        lambda e, **_kwargs: {"id": "new-1", "discount_code_id": str(e.discount_code_id)},
     )
     _patch_enrollment_discount_scope_ok(monkeypatch)
 
@@ -280,6 +285,11 @@ def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gat
     monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_a, **_k: None)
     monkeypatch.setattr(
         admin_enrollments,
+        "batch_enrollment_party_display_names",
+        lambda _session, rows: ["—"] * len(rows),
+    )
+    monkeypatch.setattr(
+        admin_enrollments,
         "parse_body",
         lambda _e: json.loads(_e["body"]),
     )
@@ -293,7 +303,7 @@ def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gat
     monkeypatch.setattr(
         admin_enrollments,
         "serialize_enrollment",
-        lambda e: {"id": str(enrollment_id), "discount_code_id": str(e.discount_code_id)},
+        lambda e, **_kwargs: {"id": str(enrollment_id), "discount_code_id": str(e.discount_code_id)},
     )
     _patch_enrollment_discount_scope_ok(monkeypatch)
 
@@ -416,6 +426,11 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
     monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_a, **_k: None)
     monkeypatch.setattr(
         admin_enrollments,
+        "batch_enrollment_party_display_names",
+        lambda _session, rows: ["—"] * len(rows),
+    )
+    monkeypatch.setattr(
+        admin_enrollments,
         "parse_body",
         lambda _e: json.loads(_e["body"]),
     )
@@ -438,7 +453,7 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
     monkeypatch.setattr(
         admin_enrollments,
         "serialize_enrollment",
-        lambda e: {"id": str(enrollment_id), "family_id": str(e.family_id)},
+        lambda e, **_kwargs: {"id": str(enrollment_id), "family_id": str(e.family_id)},
     )
     _patch_enrollment_discount_scope_ok(monkeypatch)
 

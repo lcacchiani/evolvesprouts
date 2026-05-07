@@ -69,6 +69,129 @@ def enrollment_bill_to_merge_key(enrollment: Enrollment) -> str:
     return "|".join(parts)
 
 
+def effective_enrollment_bill_to_kind(enrollment: Enrollment) -> BillingBillToKind:
+    """Resolve bill-to kind when legacy rows omit ``billing_bill_to_kind``.
+
+    Some enrollments only set structural ``family_id`` / ``organization_id`` (or bill-to FKs)
+    without persisting ``bill_to_kind``. Infer family/org for lookups and JSON labels.
+    """
+    raw = enrollment.bill_to_kind
+    if raw is not None:
+        return raw
+    if enrollment.bill_to_family_id is not None:
+        return BillingBillToKind.FAMILY
+    if enrollment.bill_to_organization_id is not None:
+        return BillingBillToKind.ORGANIZATION
+    if enrollment.contact_id is None and enrollment.family_id is not None:
+        return BillingBillToKind.FAMILY
+    if enrollment.contact_id is None and enrollment.organization_id is not None:
+        return BillingBillToKind.ORGANIZATION
+    return BillingBillToKind.CONTACT
+
+
+def collect_enrollment_family_org_ids(
+    rows: list[Enrollment],
+) -> tuple[set[UUID], set[UUID]]:
+    """Collect distinct family and organization ids (bill-to or structural)."""
+    fam: set[UUID] = set()
+    org: set[UUID] = set()
+    for en in rows:
+        fid = en.bill_to_family_id or en.family_id
+        if fid:
+            fam.add(fid)
+        oid = en.bill_to_organization_id or en.organization_id
+        if oid:
+            org.add(oid)
+    return fam, org
+
+
+def compose_enrollment_party_display_name(
+    enrollment: Enrollment,
+    *,
+    family_primary_contact_name: str | None,
+    org_primary_contact_name: str | None,
+) -> str:
+    """Party label: contact name; family/org use ``entity · primary contact`` when both known."""
+    bk = effective_enrollment_bill_to_kind(enrollment)
+    enrolled_nm = contact_display_name(enrollment.contact)
+    if bk == BillingBillToKind.CONTACT:
+        c = enrollment.bill_to_contact or enrollment.contact
+        name = contact_display_name(c)
+        if name:
+            return name
+        fid = enrollment.bill_to_family_id or enrollment.family_id
+        if fid is not None:
+            fam = enrollment.bill_to_family or enrollment.family
+            entity = (fam.family_name or "").strip() if fam else ""
+            pc = (family_primary_contact_name or "").strip()
+            if not pc and enrolled_nm:
+                pc = enrolled_nm.strip()
+            if entity and pc:
+                return f"{entity} \u00b7 {pc}"
+            if entity:
+                return entity
+            if pc:
+                return pc
+        oid = enrollment.bill_to_organization_id or enrollment.organization_id
+        if oid is not None:
+            org = enrollment.bill_to_organization or enrollment.organization
+            entity = (org.name or "").strip() if org else ""
+            pc = (org_primary_contact_name or "").strip()
+            if not pc and enrolled_nm:
+                pc = enrolled_nm.strip()
+            if entity and pc:
+                return f"{entity} \u00b7 {pc}"
+            if entity:
+                return entity
+            if pc:
+                return pc
+        return "—"
+    if bk == BillingBillToKind.FAMILY:
+        fam = enrollment.bill_to_family or enrollment.family
+        entity = (fam.family_name or "").strip() if fam else ""
+        pc = (family_primary_contact_name or "").strip()
+        if not pc and enrolled_nm:
+            pc = enrolled_nm.strip()
+        label = family_or_organization_bill_to_display_label(
+            entity_name=entity or None,
+            primary_display_name=pc or None,
+        )
+        return label if label else "—"
+    if bk == BillingBillToKind.ORGANIZATION:
+        org = enrollment.bill_to_organization or enrollment.organization
+        entity = (org.name or "").strip() if org else ""
+        pc = (org_primary_contact_name or "").strip()
+        if not pc and enrolled_nm:
+            pc = enrolled_nm.strip()
+        label = family_or_organization_bill_to_display_label(
+            entity_name=entity or None,
+            primary_display_name=pc or None,
+        )
+        return label if label else "—"
+    return "—"
+
+
+def batch_enrollment_party_display_names(
+    session: Session, rows: list[Enrollment]
+) -> list[str]:
+    """Compute party labels for many enrollments with batched primary-contact lookups."""
+    fam_ids, org_ids = collect_enrollment_family_org_ids(rows)
+    fam_pc = primary_family_contact_names(session, fam_ids)
+    org_pc = primary_org_contact_names(session, org_ids)
+    labels: list[str] = []
+    for en in rows:
+        fid = en.bill_to_family_id or en.family_id
+        oid = en.bill_to_organization_id or en.organization_id
+        labels.append(
+            compose_enrollment_party_display_name(
+                en,
+                family_primary_contact_name=fam_pc.get(fid) if fid else None,
+                org_primary_contact_name=org_pc.get(oid) if oid else None,
+            )
+        )
+    return labels
+
+
 def primary_family_emails(session: Session, family_ids: set[UUID]) -> dict[UUID, str]:
     """Map family id -> primary contact email when present."""
     if not family_ids:

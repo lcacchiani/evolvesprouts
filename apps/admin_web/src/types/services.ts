@@ -344,6 +344,8 @@ export interface Enrollment {
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
+  /** Server-computed party label (family/org · primary contact when applicable). */
+  partyDisplayName?: string | null;
   /** Present when the admin enrollment list includes instance scheduled-start metadata. */
   scheduledStartAt?: string | null;
 }
