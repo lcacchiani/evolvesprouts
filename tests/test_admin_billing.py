@@ -1845,3 +1845,33 @@ def test_create_payment_returns_400_on_invalid_amount(
     )
     with pytest.raises(ValidationError, match="amount"):
         admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+
+
+def test_family_or_organization_bill_to_display_label() -> None:
+    from app.api.admin_billing_common import family_or_organization_bill_to_display_label
+
+    assert (
+        family_or_organization_bill_to_display_label(
+            entity_name="Smith Family",
+            primary_display_name="Jane Doe",
+        )
+        == "Smith Family \u00b7 Jane Doe"
+    )
+    assert (
+        family_or_organization_bill_to_display_label(
+            entity_name="Acme Ltd",
+            primary_display_name=None,
+        )
+        == "Acme Ltd"
+    )
+    assert (
+        family_or_organization_bill_to_display_label(
+            entity_name=None,
+            primary_display_name="Pat Lee",
+        )
+        == "Pat Lee"
+    )
+    assert family_or_organization_bill_to_display_label(
+        entity_name="  ",
+        primary_display_name="  ",
+    ) is None
