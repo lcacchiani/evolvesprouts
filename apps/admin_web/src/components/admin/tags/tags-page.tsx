@@ -4,12 +4,13 @@ import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead, AdminDataTableOperationsHeadCell } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
@@ -315,7 +316,7 @@ export function TagsPage() {
         loadingLabel='Loading tags…'
         onLoadMore={() => {}}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='tags-list-search'>Search</Label>
               <Input
@@ -338,7 +339,7 @@ export function TagsPage() {
                 <option value='archived'>Archived</option>
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[720px]'>
@@ -348,7 +349,7 @@ export function TagsPage() {
               <th className='px-4 py-3 font-semibold'>Color</th>
               <th className='px-4 py-3 font-semibold'>Uses</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

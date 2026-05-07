@@ -2,7 +2,12 @@
 
 import type { KeyboardEvent, MouseEvent } from 'react';
 
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -10,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { CopyFeedbackIconButton } from '@/components/ui/copy-feedback-icon-button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
@@ -100,7 +106,7 @@ export function ServiceListPanel({
         loadingLabel='Loading services...'
         onLoadMore={onLoadMore}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='services-filter-search'>Search</Label>
               <Input
@@ -142,7 +148,7 @@ export function ServiceListPanel({
                 ))}
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[800px]'>
@@ -154,7 +160,7 @@ export function ServiceListPanel({
               <th className='px-4 py-3 font-semibold'>Price</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Delivery</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

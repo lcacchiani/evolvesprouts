@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
@@ -160,7 +161,7 @@ export function TaxFiscalYearPanel() {
       loadingLabel='Loading expenses and invoices…'
       onLoadMore={() => {}}
       toolbar={
-        <div className='mb-3 flex flex-wrap items-end gap-3'>
+        <AdminTableToolbar>
           <div className='min-w-[220px]'>
             <Label htmlFor={fySelectId}>Fiscal year</Label>
             <Select
@@ -199,7 +200,7 @@ export function TaxFiscalYearPanel() {
           >
             Download CSV
           </Button>
-        </div>
+        </AdminTableToolbar>
       }
     >
       <AdminDataTable tableClassName='min-w-[920px]'>

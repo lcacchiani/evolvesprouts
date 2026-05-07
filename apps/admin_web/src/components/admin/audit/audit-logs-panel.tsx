@@ -5,7 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuditLogDetailDialog } from '@/components/admin/audit/audit-log-detail-dialog';
 import { ActionBadge } from '@/components/admin/audit/audit-log-badges';
 import { ViewIcon } from '@/components/icons/action-icons';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -299,9 +304,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                 <th className='hidden px-4 py-3 md:table-cell' scope='col'>
                   Changed fields
                 </th>
-                <th className='px-4 py-3 text-right' scope='col'>
-                  Operations
-                </th>
+                <AdminDataTableOperationsHeadCell scope='col' className='px-4 py-3 font-normal' />
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>

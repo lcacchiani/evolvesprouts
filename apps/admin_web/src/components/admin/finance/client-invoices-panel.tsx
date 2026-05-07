@@ -5,13 +5,19 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -1126,7 +1132,7 @@ export function ClientInvoicesPanel() {
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
-              <div className='flex flex-wrap items-end gap-3'>
+              <AdminTableToolbar noMargin>
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor={draftFilterId}>Filter enrollments</Label>
                   <Input
@@ -1138,7 +1144,7 @@ export function ClientInvoicesPanel() {
                     disabled={editorBusy}
                   />
                 </div>
-              </div>
+              </AdminTableToolbar>
               {enrollmentPickerTruncated ? (
                 <p className='text-sm text-amber-800' role='status'>
                   Enrollment list may be incomplete (server capped additional pages). Narrow your filter or
@@ -1462,7 +1468,7 @@ export function ClientInvoicesPanel() {
               <th className='px-3 py-2'>Total</th>
               <th className='px-3 py-2'>Lines</th>
               <th className='px-3 py-2'>Created</th>
-              <th className='px-3 py-2 text-right'>Operations</th>
+              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -1870,7 +1876,7 @@ export function ClientInvoicesPanel() {
               <th className='px-3 py-2'>Method</th>
               <th className='px-3 py-2'>Amount</th>
               <th className='px-3 py-2'>Created</th>
-              <th className='px-3 py-2 text-right'>Operations</th>
+              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

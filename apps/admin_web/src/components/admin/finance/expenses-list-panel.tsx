@@ -6,12 +6,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
 import { DeleteIcon, MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toErrorMessage } from '@/hooks/hook-errors';
@@ -219,7 +225,7 @@ export function ExpensesListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 space-y-2'>
-            <div className='flex flex-wrap items-end gap-3'>
+            <AdminTableToolbar noMargin>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='expenses-query'>Search</Label>
                 <Input
@@ -259,7 +265,7 @@ export function ExpensesListPanel({
                   ))}
                 </Select>
               </div>
-            </div>
+            </AdminTableToolbar>
             {documentOpenError ? <AdminInlineError>{documentOpenError}</AdminInlineError> : null}
           </div>
         }
@@ -271,7 +277,7 @@ export function ExpensesListPanel({
               <th className='px-4 py-3 font-semibold'>Total</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Issued</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

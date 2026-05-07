@@ -4,9 +4,13 @@ import { useMemo, useState } from 'react';
 
 import type { AdminUser, FunnelStage, LeadListFilters, LeadSummary } from '@/types/leads';
 
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
-
 import { LeadsBulkActions } from './leads-bulk-actions';
 import { LeadsFilterBar } from './leads-filter-bar';
 import { LeadsTableRow } from './leads-table-row';
@@ -108,7 +112,7 @@ export function LeadsTable({
             <th className='px-3 py-3 font-semibold'>Assigned</th>
             <th className='px-3 py-3 font-semibold'>Created</th>
             <th className='px-3 py-3 font-semibold'>Days in stage</th>
-            <th className='px-3 py-3 text-right font-semibold'>Operations</th>
+            <AdminDataTableOperationsHeadCell className='px-3 py-3' />
           </tr>
         </AdminDataTableHead>
         <AdminDataTableBody>

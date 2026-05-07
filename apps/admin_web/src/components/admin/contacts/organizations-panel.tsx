@@ -12,12 +12,18 @@ import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { formatEnumLabel } from '@/lib/format';
 import type { EntityTagRef } from '@/lib/entity-api';
@@ -482,7 +488,7 @@ export function OrganizationsPanel({
             <div className='lg:col-span-4'>
               <AdminCollapsibleSection id='crm-org-members' title='Members'>
                 <div className='space-y-3 pt-1'>
-                  <div className='flex flex-wrap items-end gap-3'>
+                  <AdminTableToolbar noMargin>
                     <div className='min-w-[200px] flex-1'>
                       <Label htmlFor='crm-org-member-contact'>Contact</Label>
                       <Select
@@ -505,7 +511,7 @@ export function OrganizationsPanel({
                     >
                       Add member
                     </Button>
-                  </div>
+                  </AdminTableToolbar>
                   <p className='text-xs text-slate-600'>
                     Role for each member follows the contact type set on the contact record.
                   </p>
@@ -515,7 +521,7 @@ export function OrganizationsPanel({
                         <th className='px-3 py-2 font-semibold'>Contact</th>
                         <th className='px-3 py-2 font-semibold'>Role</th>
                         <th className='px-3 py-2 font-semibold'>Primary contact</th>
-                        <th className='px-3 py-2 font-semibold text-right'>Operations</th>
+                        <AdminDataTableOperationsHeadCell className='px-3 py-2' />
                       </tr>
                     </AdminDataTableHead>
                     <AdminDataTableBody>
@@ -574,7 +580,7 @@ export function OrganizationsPanel({
         loadingLabel='Loading organisations...'
         onLoadMore={loadMore}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='crm-orgs-search'>Search</Label>
               <Input
@@ -602,7 +608,7 @@ export function OrganizationsPanel({
                 <option value='false'>Archived</option>
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[800px]'>
@@ -612,7 +618,7 @@ export function OrganizationsPanel({
               <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Members</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

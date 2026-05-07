@@ -3,12 +3,18 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon, QrLinkIcon } from '@/components/icons/action-icons';
@@ -593,7 +599,7 @@ export function DiscountCodesPanel({
         loadingLabel='Loading discount codes...'
         onLoadMore={onLoadMore}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='discount-filter-search'>Search</Label>
               <Input
@@ -630,7 +636,7 @@ export function DiscountCodesPanel({
                 <option value='instance'>Instance-scoped</option>
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[1040px]'>
@@ -643,7 +649,7 @@ export function DiscountCodesPanel({
               <th className='px-4 py-3 font-semibold'>Value</th>
               <th className='px-4 py-3 font-semibold'>Uses</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

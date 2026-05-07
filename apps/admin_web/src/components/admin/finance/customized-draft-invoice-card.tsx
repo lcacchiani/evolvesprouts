@@ -9,6 +9,7 @@ import {
   AdminDataTable,
   AdminDataTableBody,
   AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -359,7 +360,7 @@ export function CustomizedDraftInvoiceCard({
                     <th className='w-[6rem] px-3 py-2 text-right'>Discount</th>
                     <th className='w-[5.5rem] px-3 py-2 text-right'>Tax rate</th>
                     <th className='w-[6.5rem] px-3 py-2 text-right'>Tax amount</th>
-                    <th className='px-3 py-2 text-right'>Operations</th>
+                    <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
                   </tr>
                 </AdminDataTableHead>
                 <AdminDataTableBody>
