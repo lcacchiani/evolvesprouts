@@ -568,6 +568,33 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             payload["discount_code_id"] = parse_optional_uuid(
                 raw_dc, "discount_code_id"
             )
+    promote_family = has_field(body, "promote_to_family_id")
+    promote_org = has_field(body, "promote_to_organization_id")
+    if promote_family and promote_org:
+        raise ValidationError(
+            "Send only one of promote_to_family_id or promote_to_organization_id",
+            field="body",
+        )
+    if promote_family:
+        fid = parse_optional_uuid(
+            body.get("promote_to_family_id"), "promote_to_family_id"
+        )
+        if fid is None:
+            raise ValidationError(
+                "promote_to_family_id must be a UUID",
+                field="promote_to_family_id",
+            )
+        payload["promote_to_family_id"] = fid
+    if promote_org:
+        oid = parse_optional_uuid(
+            body.get("promote_to_organization_id"), "promote_to_organization_id"
+        )
+        if oid is None:
+            raise ValidationError(
+                "promote_to_organization_id must be a UUID",
+                field="promote_to_organization_id",
+            )
+        payload["promote_to_organization_id"] = oid
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")
     return payload
