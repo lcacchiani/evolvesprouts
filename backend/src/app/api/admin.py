@@ -37,10 +37,7 @@ from app.api.admin_audit_logs import handle_admin_audit_logs_request
 from app.api.admin_calendar_manual_blocks import (
     handle_admin_calendar_manual_blocks_request,
 )
-from app.api.public_calendar_blockers import handle_public_calendar_blockers
-from app.api.public_calendar_intro_call_slots import (
-    handle_public_calendar_intro_call_slots,
-)
+from app.api.public_calendar_availability import handle_public_calendar_availability
 from app.api.public_events import handle_public_events
 from app.api.public_contact import handle_public_contact_us
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
@@ -99,28 +96,14 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_public_events(event, method),
     ),
     (
-        "/v1/calendar/blockers",
+        "/v1/calendar/availability",
         True,
-        lambda event, method, _path: handle_public_calendar_blockers(event, method),
+        lambda event, method, _path: handle_public_calendar_availability(event, method),
     ),
     (
-        "/www/v1/calendar/blockers",
+        "/www/v1/calendar/availability",
         True,
-        lambda event, method, _path: handle_public_calendar_blockers(event, method),
-    ),
-    (
-        "/v1/calendar/intro-call-slots",
-        True,
-        lambda event, method, _path: handle_public_calendar_intro_call_slots(
-            event, method
-        ),
-    ),
-    (
-        "/www/v1/calendar/intro-call-slots",
-        True,
-        lambda event, method, _path: handle_public_calendar_intro_call_slots(
-            event, method
-        ),
+        lambda event, method, _path: handle_public_calendar_availability(event, method),
     ),
     (
         "/v1/discounts/validate",

@@ -6,7 +6,7 @@ import enContent from '@/content/en.json';
 import bookAFreeCall from '@/content/landing-pages/book-a-free-call.json';
 import * as reservationsData from '@/lib/reservations-data';
 
-vi.mock('@/lib/intro-call-slots-api', () => ({
+vi.mock('@/lib/public-calendar-availability-api', () => ({
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 30000,
   fetchIntroCallSlots: vi.fn(),
 }));
@@ -21,7 +21,7 @@ vi.mock('@/lib/meta-pixel', () => ({
   trackMetaPixelEvent: vi.fn(),
 }));
 
-const { fetchIntroCallSlots } = await import('@/lib/intro-call-slots-api');
+const { fetchIntroCallSlots } = await import('@/lib/public-calendar-availability-api');
 
 vi.mock('@/components/shared/turnstile-captcha', () => ({
   TurnstileCaptcha: ({

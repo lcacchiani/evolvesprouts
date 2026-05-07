@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.7
+  version: 0.3.0
   description: |
     Public endpoint contract.
 
@@ -16,7 +16,7 @@ info:
       `/v1/assets/free`).
     - Public free-asset listing for the website (`/v1/assets/free`, `/www/v1/assets/free`).
     - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
-    - Public calendar blockers (`/v1/calendar/blockers`, `/www/v1/calendar/blockers`).
+    - Public calendar availability (`/v1/calendar/availability`, `/www/v1/calendar/availability`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
@@ -423,28 +423,23 @@ paths:
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
-  /v1/calendar/blockers:
+  /v1/calendar/availability:
     get:
-      summary: List merged calendar blockers
+      summary: Public calendar availability (slot intervals + meta)
       description: |
-        Returns half-day **blockers** (`am`, `pm`, or `both` for a calendar date) for a
-        caller-defined `purpose`. Manual admin rows from `calendar_manual_blocks` are merged
-        with **session-derived** blocks from published **event** and **training_course**
-        `instance_session_slots` whose intervals intersect nominal local wall-clock windows
-        (09:00–12:00 blocks `am`, 14:00–18:00 blocks `pm`) in the server wall-clock zone
-        (`CALENDAR_BLOCKERS_WALL_TIMEZONE`, default `Asia/Hong_Kong`).
+        Returns discrete bookable UTC intervals (`slots`) plus `meta` for the requested `purpose`.
 
-        For `purpose=consultation_booking`, the merged list matches the public website
-        consultation date picker disable rules; `POST /v1/reservations` rejects
-        `consultation-booking` when `primarySessionStartIso` falls on a blocked half-day.
+        **`consultation_booking`:** Half-day blocks Mon–Fri local (`Asia/Hong_Kong` via
+        `CALENDAR_BLOCKERS_WALL_TIMEZONE`): morning `[09:00,12:00)` and afternoon `[14:00,18:00)`.
+        Two calendar days minimum lead from today’s local date; maximum horizon defaults and caps at 120 days.
+        Success responses use `Cache-Control: no-store`.
 
-        Optional `from` / `to` (`YYYY-MM-DD`) bound the response window (defaults: `from=today`,
-        `to=from+120 days`, capped to 120 days). Invalid dates fall back to defaults.
+        **`intro_call_booking`:** 15-minute calls on a 30-minute cadence Mon–Fri 09:00–18:00 local intro-call wall zone.
+        Two-hour lead time; default horizon 21 days; range span capped at 28 days; `from` not more than 35 days ahead.
+        Success responses use the standard shared-cache GET headers for `/www/*`.
 
-        **Cache keys:** The public website aligns `from` to the Monday of the current week in
-        the site IANA zone (`Asia/Hong_Kong`, same as the consultation picker) and sets
-        `to` = `from + 119` days so the query string stays stable for seven days at a time
-        (still within the 120-day cap).
+        **`from` / `to`:** Optional inclusive `YYYY-MM-DD` dates (strict validation). When omitted, `from`
+        defaults to today in the purpose wall zone and `to` defaults to `from + default_horizon_days`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -452,90 +447,36 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            maxLength: 64
-            pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
-          description: >
-            Blocker namespace. Supported: `consultation_booking` (family consultation home-visit picker),
-            `intro_call_booking` (free intro-call calendar blocks merged with the same half-day rules).
+            $ref: "#/components/schemas/PublicCalendarAvailabilityPurpose"
         - name: from
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: Inclusive range start (`YYYY-MM-DD`). Defaults to today in the server wall-clock zone (`CALENDAR_BLOCKERS_WALL_TIMEZONE`, default `Asia/Hong_Kong`) when omitted.
+          description: Inclusive range start (`YYYY-MM-DD`).
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: Inclusive range end (`YYYY-MM-DD`). Defaults to `from` + 120 days (capped).
+          description: Inclusive range end (`YYYY-MM-DD`).
       responses:
         "200":
-          description: Blocker list response.
+          description: Availability envelope.
           headers:
             Cache-Control:
               schema:
                 type: string
               description: >
-                For `purpose=consultation_booking`, `no-store` so manual blockers are not
-                edge-cached. For other supported purposes, the same value as other public
-                cacheable GETs: `public, max-age=60, s-maxage=300, stale-while-revalidate=600`
-                (TTL capped by cache policy on `/www/*`).
+                `no-store` for `purpose=consultation_booking`. For `intro_call_booking`, the same
+                value as other public cacheable GETs: `public, max-age=60, s-maxage=300, stale-while-revalidate=600`
+                (TTL capped by cache policy on `/www/*`). Errors use `no-store`.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PublicCalendarBlockersResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
-        "405":
-          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
-
-  /v1/calendar/intro-call-slots:
-    get:
-      summary: Available intro-call slots (15-minute calls, 30-minute start cadence)
-      description: >
-        Returns bookable UTC intervals for the free intro-call flow: each slot is a
-        15-minute call with start times on a 30-minute grid (Mon–Fri 09:00–18:00
-        `Asia/Hong_Kong`, minus manual half-day blocks for
-        `consultation_booking` and `intro_call_booking`, minus overlapping session slots).
-        No PII; no Turnstile. `from` / `to` are `YYYY-MM-DD` in the server intro-call wall
-        zone (default `Asia/Hong_Kong`). Span capped at 28 days; `from` not more than 35 days ahead.
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: from
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-      responses:
-        "200":
-          description: Slot list.
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-              description: >
-                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
-                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IntroCallSlotsResponse"
+                $ref: "#/components/schemas/PublicCalendarAvailabilityResponse"
         "400":
           $ref: "#/components/responses/PublicWebsiteCacheableGetBadRequest"
         "403":
@@ -543,51 +484,10 @@ paths:
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
-  /www/v1/calendar/intro-call-slots:
+  /www/v1/calendar/availability:
     get:
-      summary: Available intro-call slots (website proxy path; 15-minute calls, 30-minute starts)
-      description: Same as `GET /v1/calendar/intro-call-slots` for same-origin calls from `public_www`.
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: from
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-      responses:
-        "200":
-          description: Slot list.
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-              description: >
-                `public, max-age=60, s-maxage=300, stale-while-revalidate=600` for
-                CloudFront edge caching on `/www/*` (TTL capped by cache policy).
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IntroCallSlotsResponse"
-        "400":
-          $ref: "#/components/responses/PublicWebsiteCacheableGetBadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "405":
-          $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
-
-  /www/v1/calendar/blockers:
-    get:
-      summary: List public website calendar blockers
-      description: |
-        Same as `GET /v1/calendar/blockers` for same-origin calls from `public_www`.
+      summary: Public calendar availability (website proxy path)
+      description: Same as `GET /v1/calendar/availability` for same-origin calls from `public_www`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -595,9 +495,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            maxLength: 64
-            pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+            $ref: "#/components/schemas/PublicCalendarAvailabilityPurpose"
         - name: from
           in: query
           required: false
@@ -612,26 +510,19 @@ paths:
             format: date
       responses:
         "200":
-          description: Blocker list response.
+          description: Availability envelope.
           headers:
             Cache-Control:
               schema:
                 type: string
-              description: >
-                For `purpose=consultation_booking`, `no-store` so manual blockers are not
-                edge-cached. For other supported purposes, the same value as other public
-                cacheable GETs: `public, max-age=60, s-maxage=300, stale-while-revalidate=600`
-                (TTL capped by cache policy on `/www/*`).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PublicCalendarBlockersResponse"
+                $ref: "#/components/schemas/PublicCalendarAvailabilityResponse"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: "#/components/responses/PublicWebsiteCacheableGetBadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/PublicWebsiteCacheableGetNotFound"
         "405":
           $ref: "#/components/responses/PublicWebsiteCacheableGetMethodNotAllowed"
 
@@ -1473,28 +1364,37 @@ components:
             Deprecated alias of `events` for older clients. Prefer `events`.
           items:
             $ref: "#/components/schemas/PublicCalendarEvent"
-    PublicCalendarBlockerRow:
+    PublicCalendarAvailabilityPurpose:
+      type: string
+      enum:
+        - consultation_booking
+        - intro_call_booking
+    PublicCalendarSlot:
       type: object
       required:
-        - date
-        - period
+        - start_iso
+        - end_iso
+      additionalProperties: false
       properties:
-        date:
+        start_iso:
           type: string
-          format: date
-          description: Calendar date in `YYYY-MM-DD` (wall-clock zone implied by `meta.wall_time_zone` for consultation purposes).
-        period:
+          format: date-time
+        end_iso:
           type: string
-          enum: [am, pm, both]
-    PublicCalendarBlockersMeta:
+          format: date-time
+    PublicCalendarAvailabilityMeta:
       type: object
       required:
         - purpose
         - from
         - to
+        - wall_time_zone
+        - default_horizon_days
+        - max_horizon_days
+      additionalProperties: false
       properties:
         purpose:
-          type: string
+          $ref: "#/components/schemas/PublicCalendarAvailabilityPurpose"
         from:
           type: string
           format: date
@@ -1503,40 +1403,38 @@ components:
           format: date
         wall_time_zone:
           type: string
-          description: Present for `purpose=consultation_booking` (IANA zone used for half-day windows).
-    IntroCallSlotsResponse:
+          description: IANA timezone key used for local wall-clock rules for this purpose.
+        default_horizon_days:
+          type: integer
+          minimum: 1
+        max_horizon_days:
+          type: integer
+          minimum: 1
+        max_forward_days:
+          type: integer
+          minimum: 1
+          description: Present for intro-call (`from` cannot be too far ahead of today).
+        lead_hours:
+          type: integer
+          minimum: 1
+          description: Present for intro-call booking lead-time.
+        lead_calendar_days:
+          type: integer
+          minimum: 1
+          description: Present for consultation booking calendar-day lead-time.
+    PublicCalendarAvailabilityResponse:
       type: object
       required:
         - slots
+        - meta
       additionalProperties: false
       properties:
         slots:
           type: array
           items:
-            type: object
-            required:
-              - start_iso
-              - end_iso
-            additionalProperties: false
-            properties:
-              start_iso:
-                type: string
-                format: date-time
-              end_iso:
-                type: string
-                format: date-time
-    PublicCalendarBlockersResponse:
-      type: object
-      required:
-        - blockers
-        - meta
-      properties:
-        blockers:
-          type: array
-          items:
-            $ref: "#/components/schemas/PublicCalendarBlockerRow"
+            $ref: "#/components/schemas/PublicCalendarSlot"
         meta:
-          $ref: "#/components/schemas/PublicCalendarBlockersMeta"
+          $ref: "#/components/schemas/PublicCalendarAvailabilityMeta"
     DiscountValidationRequest:
       type: object
       required:
@@ -1774,11 +1672,14 @@ components:
             (case-insensitive on input; stored lowercased). Drives confirmation email formatting
             (schedule/details); not used for booking identity (use `serviceKey` + `serviceInstanceSlug`).
             `consultation-booking` on the public site pairs with `serviceKey=family-consultation`
-            and tier instance slugs from `family-consultations.json`.
+            and tier instance slugs from `family-consultations.json`. Discrete slots come from
+            `/v1/calendar/availability?purpose=consultation_booking`; reservations must use grid-aligned
+            start times (09:00 or 14:00 local on Mon–Fri).
             `intro-call-booking` requires `serviceKey=intro-call`, `serviceInstanceSlug=intro-call-free-15min`,
             `totalAmount=0`, `paymentMethod=free` (or omit payment method to default to free), and
             `primarySessionStartIso` / `primarySessionEndIso` for a valid 15-minute slot at a
             30-minute-aligned start time (Asia/Hong_Kong office-hours template; end 15 minutes after start).
+            Discrete slots come from `/v1/calendar/availability?purpose=intro_call_booking`.
             Successful submissions allocate a new booking-specific service instance (child of the tier template)
             with session slots and enrollment attached to that instance (race protection uses the tier template id + slot start).
         marketingAttribution:
@@ -1816,11 +1717,10 @@ components:
           description: >
             Required when `bookingSystem` is `consultation-booking` (home-visit slot start in
             ISO-8601). Interpreted in `CALENDAR_BLOCKERS_WALL_TIMEZONE` (default `Asia/Hong_Kong`):
-            local wall-clock hour **before 12** counts as **morning (AM)**; hour **14 or later**
-            counts as **afternoon (PM)**. Local hours **12–13** (inclusive) are invalid and return
-            **400** on `POST /v1/reservations`. Each `sessionSlots[].startIso` (when present) uses
-            the same rule with field `sessionSlots[n].startIso`. Must not fall on a blocked
-            half-day for `purpose=consultation_booking` per `GET /v1/calendar/blockers`.
+            must align to the bookable grid from `/v1/calendar/availability?purpose=consultation_booking`
+            (Mon–Fri local starts at exactly 09:00 or 14:00). Local hours **12–13** (inclusive) remain invalid.
+            Each `sessionSlots[].startIso` (when present) uses the same grid rule with field `sessionSlots[n].startIso`.
+            Must not fall on a blocked half-day for `purpose=consultation_booking` after grid alignment checks.
         primarySessionEndIso:
           type: string
           maxLength: 50

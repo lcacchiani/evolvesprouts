@@ -431,3 +431,70 @@ def validate_session_slot_chronology(
         if s1 <= s0:
             return "session_slot_end_before_start"
     return None
+
+
+_CONSULTATION_OPEN_DAYS = frozenset({0, 1, 2, 3, 4})
+
+
+def compute_available_consultation_slots(
+    session: Session,
+    *,
+    from_date: date,
+    to_date: date,
+    now: datetime,
+) -> list[tuple[datetime, datetime]]:
+    """Half-day consultation slots Mon–Fri AM/PM local, minus merged busy intervals."""
+    from app.services.public_calendar_availability import (
+        busy_intervals_utc,
+        candidate_overlaps_merged_busy,
+    )
+
+    zone = ZoneInfo(resolve_calendar_blockers_wall_timezone())
+    now_u = now if now.tzinfo else now.replace(tzinfo=UTC)
+    now_local = now_u.astimezone(zone)
+    min_bookable_date = now_local.date() + timedelta(days=2)
+
+    range_start_local = datetime.combine(from_date, time.min, tzinfo=zone)
+    range_end_local = datetime.combine(to_date, time.max, tzinfo=zone)
+    range_start_utc = range_start_local.astimezone(UTC)
+    range_end_utc = range_end_local.astimezone(UTC)
+
+    busy_merged = busy_intervals_utc(
+        session,
+        range_start_utc=range_start_utc,
+        range_end_utc=range_end_utc,
+        exclude_purposes=frozenset(),
+        manual_block_purposes=frozenset({consultation_booking_purpose()}),
+    )
+
+    out: list[tuple[datetime, datetime]] = []
+    cur = from_date
+    while cur <= to_date:
+        if cur.weekday() not in _CONSULTATION_OPEN_DAYS:
+            cur += timedelta(days=1)
+            continue
+        if cur < min_bookable_date:
+            cur += timedelta(days=1)
+            continue
+        ymd = cur.isoformat()
+        am = _window_utc_for_local_hours(
+            ymd,
+            start_hour=_AM_START_HOUR,
+            end_hour=_AM_END_HOUR,
+            zone=zone,
+        )
+        pm = _window_utc_for_local_hours(
+            ymd,
+            start_hour=_PM_START_HOUR,
+            end_hour=_PM_END_HOUR,
+            zone=zone,
+        )
+        for slot in (am, pm):
+            if slot is None:
+                continue
+            s0, s1 = slot
+            if not candidate_overlaps_merged_busy(s0, s1, busy_merged) and s1 > now_u:
+                out.append((s0, s1))
+        cur += timedelta(days=1)
+    out.sort(key=lambda x: x[0])
+    return out

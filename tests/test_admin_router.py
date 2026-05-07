@@ -8,7 +8,9 @@ from app.api.admin import _match_handler, _requires_json_content_type, _safe_han
 def test_safe_handler_hides_internal_exception_details() -> None:
     event = {"headers": {}}
 
-    response = _safe_handler(lambda: (_ for _ in ()).throw(RuntimeError("db leaked")), event)
+    response = _safe_handler(
+        lambda: (_ for _ in ()).throw(RuntimeError("db leaked")), event
+    )
 
     assert response["statusCode"] == 500
     body = json.loads(response["body"])
@@ -58,6 +60,8 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/mailchimp/webhook",
         "/v1/calendar/public",
         "/www/v1/calendar/public",
+        "/v1/calendar/availability",
+        "/www/v1/calendar/availability",
         "/www/v1/assets/free/request",
         "/www/v1/reservations",
         "/www/v1/reservations/payment-intent",
@@ -69,9 +73,13 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
 
 def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> None:
     event = {"headers": {}}
-    assert _match_handler(event=event, method="POST", path="/v1/reservations") is not None
     assert (
-        _match_handler(event=event, method="POST", path="/v1/reservations/payment-intent")
+        _match_handler(event=event, method="POST", path="/v1/reservations") is not None
+    )
+    assert (
+        _match_handler(
+            event=event, method="POST", path="/v1/reservations/payment-intent"
+        )
         is not None
     )
     assert (
@@ -89,15 +97,10 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is not None
     )
     assert (
-        _match_handler(
-            event=event, method="POST", path="/www/v1/assets/free/request"
-        )
+        _match_handler(event=event, method="POST", path="/www/v1/assets/free/request")
         is not None
     )
-    assert (
-        _match_handler(event=event, method="POST", path="/v1/contact-us")
-        is not None
-    )
+    assert _match_handler(event=event, method="POST", path="/v1/contact-us") is not None
     assert (
         _match_handler(event=event, method="POST", path="/v1/discounts/validate")
         is not None
@@ -115,7 +118,8 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is not None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/v1/reservations/extra") is None
+        _match_handler(event=event, method="POST", path="/v1/reservations/extra")
+        is None
     )
     assert (
         _match_handler(
@@ -124,9 +128,7 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
-        _match_handler(
-            event=event, method="POST", path="/v1/assets/free/request/extra"
-        )
+        _match_handler(event=event, method="POST", path="/v1/assets/free/request/extra")
         is None
     )
     assert (
@@ -140,13 +142,10 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/v1/contact-us/extra")
-        is None
+        _match_handler(event=event, method="POST", path="/v1/contact-us/extra") is None
     )
     assert (
-        _match_handler(
-            event=event, method="POST", path="/www/v1/contact-us/extra"
-        )
+        _match_handler(event=event, method="POST", path="/www/v1/contact-us/extra")
         is None
     )
     assert (
@@ -169,6 +168,4 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
 
 def test_requires_json_content_type_skips_mailchimp_webhook() -> None:
     assert _requires_json_content_type("/v1/mailchimp/webhook", "POST") is False
-    assert (
-        _requires_json_content_type("/v1/assets/free/request", "POST") is True
-    )
+    assert _requires_json_content_type("/v1/assets/free/request", "POST") is True

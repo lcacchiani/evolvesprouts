@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildUnavailableSlotMap,
+  deriveHalfDayBlockersFromSlots,
   normalizeAvailabilityYmd,
-  parsePublicCalendarBlockersPayload,
 } from '@/lib/calendar-availability';
 
 describe('calendar-availability', () => {
@@ -25,13 +25,31 @@ describe('calendar-availability', () => {
     expect(map.get('2026-04-11')).toEqual({ am: true, pm: true });
   });
 
-  it('parsePublicCalendarBlockersPayload reads blockers array', () => {
-    expect(
-      parsePublicCalendarBlockersPayload({
-        blockers: [{ date: '2026-05-01', period: 'pm' }],
-      }),
-    ).toEqual([{ date: '2026-05-01', period: 'pm' }]);
-    expect(parsePublicCalendarBlockersPayload({ unavailable_slots: [] })).toEqual([]);
+  it('deriveHalfDayBlockersFromSlots AM available, PM blocked on a weekday', () => {
+    const slots = [{ startIso: '2026-05-18T01:00:00Z' }];
+    const out = deriveHalfDayBlockersFromSlots(slots, 'Asia/Hong_Kong', {
+      fromYmd: '2026-05-18',
+      toYmd: '2026-05-18',
+    });
+    const pmOnly = out.filter((r) => r.date === '2026-05-18' && r.period === 'pm');
+    const amOnly = out.filter((r) => r.date === '2026-05-18' && r.period === 'am');
+    expect(amOnly).toHaveLength(0);
+    expect(pmOnly).toHaveLength(1);
+  });
+
+  it('deriveHalfDayBlockersFromSlots blocks weekends entirely', () => {
+    const out = deriveHalfDayBlockersFromSlots([], 'Asia/Hong_Kong', {
+      fromYmd: '2026-05-16',
+      toYmd: '2026-05-17',
+    });
+    expect(out).toEqual(
+      expect.arrayContaining([
+        { date: '2026-05-16', period: 'am' },
+        { date: '2026-05-16', period: 'pm' },
+        { date: '2026-05-17', period: 'am' },
+        { date: '2026-05-17', period: 'pm' },
+      ]),
+    );
   });
 
   it('buildUnavailableSlotMap round-trips sorted slot list semantics', () => {

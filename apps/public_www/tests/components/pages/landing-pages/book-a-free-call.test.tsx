@@ -8,7 +8,7 @@ import bookAFreeCall from '@/content/landing-pages/book-a-free-call.json';
 import * as eventsData from '@/lib/events-data';
 import { getLandingPageContent } from '@/lib/landing-pages';
 
-vi.mock('@/lib/intro-call-slots-api', () => ({
+vi.mock('@/lib/public-calendar-availability-api', () => ({
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 30000,
   fetchIntroCallSlots: vi.fn().mockResolvedValue({ slots: [], fetchFailed: false }),
 }));

@@ -36,7 +36,7 @@ const { mockFetchConsultationCalendarBlockersSlots } = vi.hoisted(() => ({
   mockFetchConsultationCalendarBlockersSlots: vi.fn(),
 }));
 
-vi.mock('@/lib/calendar-blockers-api', () => ({
+vi.mock('@/lib/public-calendar-availability-api', () => ({
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS: 5000,
   fetchConsultationCalendarBlockersSlots: mockFetchConsultationCalendarBlockersSlots,
 }));

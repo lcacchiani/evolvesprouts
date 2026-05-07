@@ -38,7 +38,7 @@ import {
   trackPublicFormOutcome,
 } from '@/lib/analytics';
 import { createPublicCrmApiClient, CrmApiRequestError } from '@/lib/crm-api-client';
-import type { IntroCallSlot } from '@/lib/intro-call-slots-api';
+import type { IntroCallSlot } from '@/lib/public-calendar-availability-api';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { isValidPhoneForRegion } from '@/lib/public-phone-validation';

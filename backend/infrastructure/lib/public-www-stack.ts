@@ -339,8 +339,7 @@ function handler(event) {
   var allowlist = {
     'GET': {
       '/www/v1/calendar/public': true,
-      '/www/v1/calendar/blockers': true,
-      '/www/v1/calendar/intro-call-slots': true,
+      '/www/v1/calendar/availability': true,
       '/www/v1/assets/free': true
     },
     'POST': {

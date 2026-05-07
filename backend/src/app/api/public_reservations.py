@@ -77,6 +77,9 @@ from app.services.calendar_blockers import (
     raise_if_consultation_reservation_blocked,
     validate_session_slot_chronology,
 )
+from app.services.public_calendar_availability import (
+    is_consultation_booking_start_grid_aligned,
+)
 from app.services.intro_call_slots import (
     enumerate_intro_call_candidate_slots,
     intro_call_cooldown_blocks_from_last_booked_at,
@@ -315,7 +318,7 @@ def _persist_session_slots_for_booking_instance(
             start_utc=s0,
             end_utc=s1,
             now=now_utc,
-            ignore_intro_slot=(s0, s1),
+            exclude_intro_booking_interval=(s0, s1),
         ):
             raise ConflictError("slot_unavailable")
 
@@ -430,6 +433,37 @@ def _parse_marketing_attribution(body: Mapping[str, Any]) -> dict[str, str] | No
             field="marketingAttribution",
         )
     return out or None
+
+
+def _assert_consultation_start_grid_aligned(
+    reservation_payload: Mapping[str, Any],
+) -> None:
+    starts: list[tuple[str, str]] = []
+    primary = reservation_payload.get("primary_session_start_iso")
+    if primary and str(primary).strip():
+        starts.append((str(primary).strip(), "primarySessionStartIso"))
+    for idx, row in enumerate(reservation_payload.get("session_slots") or []):
+        if not isinstance(row, dict):
+            continue
+        s = row.get("start_iso")
+        if isinstance(s, str) and s.strip():
+            starts.append((s.strip(), f"sessionSlots[{idx}].startIso"))
+
+    for iso, field in starts:
+        try:
+            dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValidationError("Invalid timestamp", field=field) from None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        else:
+            dt = dt.astimezone(UTC)
+        if not is_consultation_booking_start_grid_aligned(dt):
+            raise ValidationError(
+                "The selected consultation time is not on the bookable schedule. "
+                "Please pick another slot.",
+                field=field,
+            )
 
 
 def _enforce_intro_call_invariants(
@@ -749,6 +783,7 @@ def _handle_public_reservation(
                             "Invalid session slot date format",
                             field="sessionSlots",
                         )
+                    _assert_consultation_start_grid_aligned(reservation_payload)
                     raise_if_consultation_reservation_blocked(
                         session=session,
                         purpose=consultation_booking_purpose(),
