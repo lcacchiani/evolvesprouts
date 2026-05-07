@@ -17,6 +17,7 @@ from app.api.admin_billing_enrollment_queries import (
 )
 from app.api.admin_billing_invoice_drafts import _create_invoice_draft
 from app.api.admin_billing_invoices import (
+    _delete_draft_invoice,
     _email_invoice,
     _issue_invoice,
     _void_invoice,
@@ -116,6 +117,10 @@ def handle_admin_billing_request(
         inv_id = parse_uuid(parts[3])
         if method == "GET":
             return get_invoice(
+                event, inv_id, user_sub=identity.user_sub, request_id=req
+            )
+        if method == "DELETE":
+            return _delete_draft_invoice(
                 event, inv_id, user_sub=identity.user_sub, request_id=req
             )
 
