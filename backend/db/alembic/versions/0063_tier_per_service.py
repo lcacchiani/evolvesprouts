@@ -27,6 +27,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 revision: str = "0063_tier_per_service"
@@ -344,7 +345,7 @@ def downgrade() -> None:
         ),
         sa.Column(
             "pricing_model",
-            sa.Enum(
+            postgresql.ENUM(
                 "free",
                 "hourly",
                 "package",
