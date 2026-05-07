@@ -21,7 +21,7 @@ import {
   type TaxFiscalYearRow,
 } from '@/lib/tax-fiscal-year-report';
 import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
-import type { Expense } from '@/types/expenses';
+import { EXPENSE_STATUSES, type Expense, type ExpenseStatus } from '@/types/expenses';
 
 /** Earliest Hong Kong FY start year offered in the selector (April Y → March Y+1). */
 const MIN_FISCAL_YEAR_START = 2024;
@@ -37,9 +37,11 @@ function isTaxDisplayedAsDash(tax: string | undefined): boolean {
 
 export function TaxFiscalYearPanel() {
   const fySelectId = useId();
+  const expenseStatusSelectId = useId();
   const [fyStartYear, setFyStartYear] = useState(
     () => Math.max(MIN_FISCAL_YEAR_START, defaultFiscalYearStartYear()),
   );
+  const [expenseStatusFilter, setExpenseStatusFilter] = useState<ExpenseStatus>('paid');
   const [loadError, setLoadError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [expensesPayload, setExpensesPayload] = useState<Expense[] | null>(null);
@@ -82,8 +84,8 @@ export function TaxFiscalYearPanel() {
     if (!expensesPayload || !issuedInvoicesPayload) {
       return [];
     }
-    return buildTaxFiscalYearRows(expensesPayload, issuedInvoicesPayload, fyStartYear);
-  }, [expensesPayload, issuedInvoicesPayload, fyStartYear]);
+    return buildTaxFiscalYearRows(expensesPayload, issuedInvoicesPayload, fyStartYear, expenseStatusFilter);
+  }, [expensesPayload, issuedInvoicesPayload, fyStartYear, expenseStatusFilter]);
 
   const rowsNeedForeignFx = useMemo(() => {
     const defaultCurrency = getAdminDefaultCurrencyCode();
@@ -139,11 +141,11 @@ export function TaxFiscalYearPanel() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `tax-fiscal-year-${fyStartYear}-${fyStartYear + 1}.csv`;
+    anchor.download = `tax-fiscal-year-${fyStartYear}-${fyStartYear + 1}-${expenseStatusFilter}.csv`;
     anchor.rel = 'noopener';
     anchor.click();
     URL.revokeObjectURL(url);
-  }, [rows, fyStartYear]);
+  }, [rows, fyStartYear, expenseStatusFilter]);
 
   const tableError = [loadError, fxError].filter(Boolean).join(' ');
 
@@ -170,6 +172,21 @@ export function TaxFiscalYearPanel() {
               {fyYearOptions.map((y) => (
                 <option key={y} value={y}>
                   {y} - {y + 1}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className='min-w-[180px]'>
+            <Label htmlFor={expenseStatusSelectId}>Expense status</Label>
+            <Select
+              id={expenseStatusSelectId}
+              value={expenseStatusFilter}
+              onChange={(event) => setExpenseStatusFilter(event.target.value as ExpenseStatus)}
+              disabled={isLoading || Boolean(tableError)}
+            >
+              {EXPENSE_STATUSES.map((entry) => (
+                <option key={entry} value={entry}>
+                  {formatEnumLabel(entry)}
                 </option>
               ))}
             </Select>

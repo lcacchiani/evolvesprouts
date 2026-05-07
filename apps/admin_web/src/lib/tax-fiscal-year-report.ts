@@ -7,7 +7,7 @@ import {
   parseIsoDateOnly,
   todayHongKongDateString,
 } from '@/lib/fiscal-year';
-import type { Expense } from '@/types/expenses';
+import type { Expense, ExpenseStatus } from '@/types/expenses';
 
 export interface TaxFiscalYearRow {
   kind: 'expense' | 'revenue';
@@ -34,20 +34,17 @@ function expenseClassificationDate(expense: Expense): {
   return { date: paid, needsInvoiceDateWarning: true };
 }
 
-function expenseIncludedStatuses(expense: Expense): boolean {
-  return expense.status !== 'voided';
-}
-
 export function buildTaxFiscalYearRows(
   expenses: Expense[],
   issuedInvoices: CustomerInvoiceSummary[],
   fyStartYear: number,
+  expenseStatusFilter: ExpenseStatus,
 ): TaxFiscalYearRow[] {
   const { start, end } = getFiscalYearRangeInclusive(fyStartYear);
 
   const expenseRows: TaxFiscalYearRow[] = [];
   for (const expense of expenses) {
-    if (!expenseIncludedStatuses(expense)) {
+    if (expense.status !== expenseStatusFilter) {
       continue;
     }
     const { date, needsInvoiceDateWarning } = expenseClassificationDate(expense);
