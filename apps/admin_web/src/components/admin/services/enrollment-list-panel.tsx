@@ -452,76 +452,106 @@ export function EnrollmentListPanel({
         loadingLabel='Loading enrollments...'
         onLoadMore={onLoadMore}
       >
-        <AdminDataTable tableClassName='min-w-[1040px]'>
-          <AdminDataTableHead>
-            <tr>
-              <th className='px-4 py-3 font-semibold'>Parent</th>
-              {showScheduledStartColumn ? (
-                <th className='px-4 py-3 font-semibold'>Scheduled start</th>
-              ) : null}
-              <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Amount</th>
-              <th className='px-4 py-3 font-semibold'>Discount</th>
-              <th className='px-4 py-3 font-semibold'>Enrolled at</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
-            </tr>
-          </AdminDataTableHead>
-          <AdminDataTableBody>
-            {enrollments.map((enrollment) => {
-              const amountRaw = enrollment.amountPaid?.trim() ?? '';
-              const parsedAmount = Number.parseFloat(amountRaw);
-              const currencyCode =
-                (enrollment.currency ?? defaultCurrencyCode).trim().toUpperCase() || defaultCurrencyCode;
-              const amountDisplay =
-                amountRaw !== '' && Number.isFinite(parsedAmount)
-                  ? formatAmountInCurrency(parsedAmount, currencyCode)
-                  : '—';
-              return (
-                <tr
-                  key={enrollment.id}
-                  className={`cursor-pointer transition ${
-                    selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => applyEnrollmentSelection(enrollment)}
+        <div className='min-w-0'>
+          <AdminDataTable tableClassName='w-full table-fixed'>
+            <AdminDataTableHead>
+              <tr>
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[28%] min-w-0 px-4 py-3 font-semibold'
+                      : 'w-[35%] min-w-0 px-4 py-3 font-semibold'
+                  }
                 >
-                  <td className='px-4 py-3'>{formatEnrollmentParentCell(enrollment)}</td>
-                  {showScheduledStartColumn ? (
-                    <td className='px-4 py-3'>
-                      {enrollment.scheduledStartAt?.trim()
-                        ? formatDate(enrollment.scheduledStartAt)
-                        : '—'}
+                  Parent
+                </th>
+                {showScheduledStartColumn ? (
+                  <th className='w-[11%] whitespace-nowrap px-4 py-3 font-semibold'>Scheduled start</th>
+                ) : null}
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[10%] px-4 py-3 font-semibold'
+                      : 'w-[12%] px-4 py-3 font-semibold'
+                  }
+                >
+                  Status
+                </th>
+                <th
+                  className={
+                    showScheduledStartColumn
+                      ? 'w-[10%] whitespace-nowrap px-4 py-3 font-semibold'
+                      : 'w-[12%] whitespace-nowrap px-4 py-3 font-semibold'
+                  }
+                >
+                  Amount
+                </th>
+                <th className='min-w-0 px-4 py-3 font-semibold'>Discount</th>
+                <th className='w-[14%] whitespace-nowrap px-4 py-3 font-semibold'>Enrolled at</th>
+                <th className='w-[4.5rem] whitespace-nowrap px-4 py-3 text-right font-semibold'>
+                  Operations
+                </th>
+              </tr>
+            </AdminDataTableHead>
+            <AdminDataTableBody>
+              {enrollments.map((enrollment) => {
+                const amountRaw = enrollment.amountPaid?.trim() ?? '';
+                const parsedAmount = Number.parseFloat(amountRaw);
+                const currencyCode =
+                  (enrollment.currency ?? defaultCurrencyCode).trim().toUpperCase() || defaultCurrencyCode;
+                const amountDisplay =
+                  amountRaw !== '' && Number.isFinite(parsedAmount)
+                    ? formatAmountInCurrency(parsedAmount, currencyCode)
+                    : '—';
+                return (
+                  <tr
+                    key={enrollment.id}
+                    className={`cursor-pointer transition ${
+                      selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                    }`}
+                    onClick={() => applyEnrollmentSelection(enrollment)}
+                  >
+                    <td className='min-w-0 break-words px-4 py-3'>
+                      {formatEnrollmentParentCell(enrollment)}
                     </td>
-                  ) : null}
-                  <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
-                  <td className='px-4 py-3'>{amountDisplay}</td>
-                  <td className='px-4 py-3'>
-                    {enrollment.discountCodeId
-                      ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
-                          enrollment.discountCodeId)
-                      : '-'}
-                  </td>
-                  <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='danger'
-                      disabled={isMutating}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleDeleteEnrollment(enrollment);
-                      }}
-                      aria-label='Delete enrollment'
-                      title='Delete enrollment'
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </AdminDataTableBody>
-        </AdminDataTable>
+                    {showScheduledStartColumn ? (
+                      <td className='whitespace-nowrap px-4 py-3'>
+                        {enrollment.scheduledStartAt?.trim()
+                          ? formatDate(enrollment.scheduledStartAt)
+                          : '—'}
+                      </td>
+                    ) : null}
+                    <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
+                    <td className='whitespace-nowrap px-4 py-3'>{amountDisplay}</td>
+                    <td className='min-w-0 break-words px-4 py-3'>
+                      {enrollment.discountCodeId
+                        ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
+                            enrollment.discountCodeId)
+                        : '-'}
+                    </td>
+                    <td className='whitespace-nowrap px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
+                    <td className='px-4 py-3 text-right'>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='danger'
+                        disabled={isMutating}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleDeleteEnrollment(enrollment);
+                        }}
+                        aria-label='Delete enrollment'
+                        title='Delete enrollment'
+                      >
+                        <DeleteIcon className='h-4 w-4' />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </AdminDataTableBody>
+          </AdminDataTable>
+        </div>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>
