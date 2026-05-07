@@ -124,6 +124,7 @@ interface BookingReservationFormProps {
    * as the form renders. Pass `true` when the form is rendered inside a
    * modal that opens on user intent (the modal-open click already implies
    * interaction). Defaults to `false`.
+   * When false, Turnstile (and the Stripe PaymentIntent prefetch that depends on its token) will only initialise after the user begins interacting with the form.
    */
   initiallyInteracted?: boolean;
   onSubmitReservation: (summary: ReservationSummary) => void;

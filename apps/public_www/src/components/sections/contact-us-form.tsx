@@ -375,7 +375,6 @@ export function ContactUsForm({ content, locale, contactConfig }: ContactUsFormP
                 marketingOptIn={marketingOptIn}
                 hasFormInteracted={hasFormInteracted}
                 formInteractionProps={formInteractionProps}
-                onMarkFormInteracted={markFormInteracted}
                 captchaErrorMessage={captchaErrorMessage}
                 submitErrorMessage={submitErrorMessage}
                 turnstileSiteKey={turnstileSiteKey}

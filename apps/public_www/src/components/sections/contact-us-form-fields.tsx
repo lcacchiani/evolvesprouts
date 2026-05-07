@@ -37,7 +37,6 @@ interface ContactFormFieldsProps {
   marketingOptIn: boolean;
   hasFormInteracted: boolean;
   formInteractionProps: { onFocus: () => void };
-  onMarkFormInteracted: () => void;
   captchaErrorMessage: string;
   submitErrorMessage: string;
   turnstileSiteKey: string;
@@ -65,7 +64,6 @@ export function ContactFormFields({
   marketingOptIn,
   hasFormInteracted,
   formInteractionProps,
-  onMarkFormInteracted: _onMarkFormInteracted,
   captchaErrorMessage,
   submitErrorMessage,
   turnstileSiteKey,

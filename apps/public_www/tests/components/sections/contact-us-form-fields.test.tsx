@@ -41,7 +41,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
 function ContactFormFieldsWithGate(
   props: Omit<
     ComponentProps<typeof ContactFormFields>,
-    'hasFormInteracted' | 'formInteractionProps' | 'onMarkFormInteracted'
+    'hasFormInteracted' | 'formInteractionProps'
   >,
 ) {
   const { hasFormInteracted, markFormInteracted, formInteractionProps } =
@@ -51,7 +51,6 @@ function ContactFormFieldsWithGate(
       {...props}
       hasFormInteracted={hasFormInteracted}
       formInteractionProps={formInteractionProps}
-      onMarkFormInteracted={markFormInteracted}
       onUpdateField={(field, value) => {
         markFormInteracted();
         props.onUpdateField(field, value);
