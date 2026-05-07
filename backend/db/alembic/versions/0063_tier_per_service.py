@@ -212,30 +212,27 @@ def upgrade() -> None:
             AND lower(trim(coalesce(service_key, ''))) = 'family-consultation'
           LIMIT 1;
 
-          IF legacy_id IS NULL THEN
-            RAISE EXCEPTION
-              '0063_tier_per_service: legacy family-consultation parent row missing';
+          IF legacy_id IS NOT NULL THEN
+            IF EXISTS (
+              SELECT 1 FROM service_instances WHERE service_id = legacy_id
+            ) THEN
+              RAISE EXCEPTION
+                '0063_tier_per_service: cannot delete legacy consultation service; '
+                'instances still reference it';
+            END IF;
+
+            IF EXISTS (
+              SELECT 1 FROM discount_codes WHERE service_id = legacy_id
+            ) THEN
+              RAISE EXCEPTION
+                '0063_tier_per_service: cannot delete legacy consultation service; '
+                'discount_codes still references it';
+            END IF;
+
+            DELETE FROM consultation_details WHERE service_id = legacy_id;
+
+            DELETE FROM services WHERE id = legacy_id;
           END IF;
-
-          IF EXISTS (
-            SELECT 1 FROM service_instances WHERE service_id = legacy_id
-          ) THEN
-            RAISE EXCEPTION
-              '0063_tier_per_service: cannot delete legacy consultation service; '
-              'instances still reference it';
-          END IF;
-
-          IF EXISTS (
-            SELECT 1 FROM discount_codes WHERE service_id = legacy_id
-          ) THEN
-            RAISE EXCEPTION
-              '0063_tier_per_service: cannot delete legacy consultation service; '
-              'discount_codes still references it';
-          END IF;
-
-          DELETE FROM consultation_details WHERE service_id = legacy_id;
-
-          DELETE FROM services WHERE id = legacy_id;
         END $$;
         """
     )
