@@ -25,8 +25,9 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
-import { formatEnumLabel } from '@/lib/format';
 import type { EntityTagRef } from '@/lib/entity-api';
+import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
+import { formatEnumLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   FAMILY_RELATIONSHIP_TYPES,
@@ -36,16 +37,6 @@ import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
-
-function contactEligibleForFamilyMember(
-  contact: { id: string; family_ids: string[]; organization_ids: string[] },
-  selectedFamilyId: string | null
-): boolean {
-  if (contact.family_ids.length === 0) {
-    return true;
-  }
-  return Boolean(selectedFamilyId && contact.family_ids.includes(selectedFamilyId));
-}
 
 export interface FamiliesPanelProps {
   families: ReturnType<typeof useAdminEntityFamilies>;
@@ -179,7 +170,7 @@ export function FamiliesPanel({
       if (!row) {
         return true;
       }
-      return contactEligibleForFamilyMember(row, selectedId);
+      return contactEligibleForEntityMembership(row, selectedId, 'family');
     });
   }, [contactOptions, contactsForMembership, selectedId]);
 

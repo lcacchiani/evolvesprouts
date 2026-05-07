@@ -1,7 +1,7 @@
 'use client';
 
 import type { KeyboardEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
 import { DeleteIcon, MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
@@ -21,11 +21,12 @@ import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toErrorMessage } from '@/hooks/hook-errors';
+import { useFxMultipliersForCurrencies } from '@/hooks/use-fx-multipliers-for-currencies';
 import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { primaryExpenseAttachmentAssetId } from '@/lib/expense-attachments';
 import { formatDateOnly, formatEnumLabel } from '@/lib/format';
-import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
+import { formatMoneyLineWithFxToDefault } from '@/lib/vendor-spend';
 import {
   EXPENSE_PARSE_STATUSES,
   EXPENSE_STATUSES,
@@ -107,8 +108,6 @@ export function ExpensesListPanel({
   const [voidExpenseId, setVoidExpenseId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
-  const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
-  const [fxError, setFxError] = useState('');
 
   const expensesNeedForeignFx = useMemo(() => {
     const defaultCurrency = getAdminDefaultCurrencyCode();
@@ -117,33 +116,17 @@ export function ExpensesListPanel({
     );
   }, [expenses]);
 
-  useEffect(() => {
-    if (!expensesNeedForeignFx) {
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      setFxMultipliers(null);
-      try {
-        const codes = expenses
-          .map((expense) => expense.currency?.trim().toUpperCase())
-          .filter((code): code is string => Boolean(code));
-        const map = await loadFxMultipliersToAdminDefault(codes);
-        if (!cancelled) {
-          setFxMultipliers(map);
-          setFxError('');
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setFxError(toErrorMessage(err, 'Could not load FX rates for currency conversion.'));
-          setFxMultipliers(new Map());
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [expenses, expensesNeedForeignFx]);
+  const expenseFxCurrencyCodes = useMemo(
+    () =>
+      expenses
+        .map((expense) => expense.currency?.trim().toUpperCase())
+        .filter((code): code is string => Boolean(code)),
+    [expenses],
+  );
+  const { fxMultipliers, fxError } = useFxMultipliersForCurrencies(
+    expenseFxCurrencyCodes,
+    expensesNeedForeignFx,
+  );
 
   const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' ');
 

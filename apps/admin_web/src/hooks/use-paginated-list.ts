@@ -10,7 +10,8 @@ import { useDebouncedCallback } from './use-debounced-callback';
 export interface PaginatedResponse<TItem> {
   items: TItem[];
   nextCursor: string | null;
-  totalCount: number;
+  /** When omitted, list hooks treat totals as unknown and surface `0`. */
+  totalCount?: number;
 }
 
 export interface UsePaginatedListOptions<TItem, TFilters extends object> {
@@ -82,7 +83,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
         }
         setItems(response.items);
         setNextCursor(response.nextCursor);
-        setTotalCount(response.totalCount);
+        setTotalCount(response.totalCount ?? 0);
       } catch (err) {
         if (latestRequestIdRef.current !== requestId) {
           return;
@@ -111,7 +112,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
       });
       setItems((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);
-      setTotalCount(response.totalCount);
+      setTotalCount(response.totalCount ?? 0);
     } catch (err) {
       setError(toErrorMessage(err, `${errorPrefix} more.`));
     } finally {

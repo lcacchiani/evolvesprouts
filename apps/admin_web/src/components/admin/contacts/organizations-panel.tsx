@@ -25,8 +25,9 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
-import { formatEnumLabel } from '@/lib/format';
+import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
 import type { EntityTagRef } from '@/lib/entity-api';
+import { formatEnumLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   ORGANIZATION_RELATIONSHIP_TYPES,
@@ -44,16 +45,6 @@ const ORG_TYPES: ApiSchemas['EntityOrganizationType'][] = [
   'ngo',
   'other',
 ];
-
-function contactEligibleForOrgMember(
-  contact: { id: string; family_ids: string[]; organization_ids: string[] },
-  selectedOrgId: string | null
-): boolean {
-  if (contact.organization_ids.length === 0) {
-    return true;
-  }
-  return Boolean(selectedOrgId && contact.organization_ids.includes(selectedOrgId));
-}
 
 export interface OrganizationsPanelProps {
   organizations: ReturnType<typeof useAdminEntityOrganizations>;
@@ -192,7 +183,7 @@ export function OrganizationsPanel({
       if (!row) {
         return true;
       }
-      return contactEligibleForOrgMember(row, selectedId);
+      return contactEligibleForEntityMembership(row, selectedId, 'organization');
     });
   }, [contactOptions, contactsForMembership, selectedId]);
 
