@@ -183,6 +183,10 @@ export function EnrollmentListPanel({
 
   const formatEnrollmentParentCell = useCallback(
     (enrollment: Enrollment) => {
+      const fromApi = enrollment.partyDisplayName?.trim();
+      if (fromApi) {
+        return fromApi;
+      }
       if (enrollment.contactId) {
         return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
       }

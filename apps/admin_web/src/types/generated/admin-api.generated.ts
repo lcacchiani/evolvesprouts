@@ -5676,6 +5676,8 @@ export interface components {
             /** Format: date-time */
             cancelled_at?: string | null;
             notes?: string | null;
+            /** @description Display label for the enrollment party. For contact bill-to this is the contact name. For family or organization this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. Matches the billing enrollment picker `partyDisplayName` convention. */
+            party_display_name?: string;
             created_by?: string;
             /** Format: date-time */
             created_at?: string | null;

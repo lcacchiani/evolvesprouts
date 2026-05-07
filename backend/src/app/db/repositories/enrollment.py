@@ -39,8 +39,11 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
             .where(Enrollment.instance_id == instance_id)
             .options(
                 joinedload(Enrollment.contact),
+                joinedload(Enrollment.bill_to_contact),
                 joinedload(Enrollment.family),
+                joinedload(Enrollment.bill_to_family),
                 joinedload(Enrollment.organization),
+                joinedload(Enrollment.bill_to_organization),
                 joinedload(Enrollment.ticket_tier),
                 joinedload(Enrollment.discount_code),
             )

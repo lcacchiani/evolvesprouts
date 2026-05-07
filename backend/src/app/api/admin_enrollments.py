@@ -14,6 +14,7 @@ from app.api.discount_enrollment_scope import (
     ensure_discount_code_eligible_for_instance,
     service_id_for_instance,
 )
+from app.api.admin_billing_common import batch_enrollment_party_display_names
 from app.api.admin_services_common import (
     encode_enrollment_cursor,
     parse_create_enrollment_payload,
@@ -125,10 +126,15 @@ def _list_enrollments(event: Mapping[str, Any], *, instance_id: UUID) -> dict[st
         total_count = repository.count_enrollments(
             instance_id=instance_id, status=filters["status"]
         )
+        party_labels = batch_enrollment_party_display_names(session, page_rows)
+        items = [
+            serialize_enrollment(row, party_display_name=party_labels[idx])
+            for idx, row in enumerate(page_rows)
+        ]
         return json_response(
             200,
             {
-                "items": [serialize_enrollment(row) for row in page_rows],
+                "items": items,
                 "next_cursor": next_cursor,
                 "total_count": total_count,
             },
@@ -188,10 +194,15 @@ def _create_enrollment(
             instance_row = instance_repository.get_by_id(created.instance_id)
             if instance_row is not None:
                 bulk_reconcile_instance_capacity_status(session, [instance_row])
+        party_labels = batch_enrollment_party_display_names(session, [created])
         session.commit()
         return json_response(
             201,
-            {"enrollment": serialize_enrollment(created)},
+            {
+                "enrollment": serialize_enrollment(
+                    created, party_display_name=party_labels[0]
+                )
+            },
             event=event,
         )
 
@@ -311,10 +322,15 @@ def _update_enrollment(
             instance_row = instance_repository.get_by_id(updated.instance_id)
             if instance_row is not None:
                 bulk_reconcile_instance_capacity_status(session, [instance_row])
+        party_labels = batch_enrollment_party_display_names(session, [updated])
         session.commit()
         return json_response(
             200,
-            {"enrollment": serialize_enrollment(updated)},
+            {
+                "enrollment": serialize_enrollment(
+                    updated, party_display_name=party_labels[0]
+                )
+            },
             event=event,
         )
 

@@ -371,6 +371,8 @@ def serialize_event_ticket_tier(tier: EventTicketTier) -> dict[str, Any]:
 
 def serialize_enrollment(
     enrollment: Enrollment,
+    *,
+    party_display_name: str,
 ) -> dict[str, Any]:
     """Serialize enrollment payload."""
     payload: dict[str, Any] = {
@@ -404,6 +406,7 @@ def serialize_enrollment(
         "updated_at": enrollment.updated_at.isoformat()
         if enrollment.updated_at
         else None,
+        "party_display_name": party_display_name,
     }
     return payload
 
