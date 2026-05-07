@@ -493,15 +493,7 @@ export function EnrollmentListPanel({
           <AdminDataTable tableClassName='w-full table-fixed'>
             <AdminDataTableHead>
               <tr>
-                <th
-                  className={
-                    showScheduledStartColumn
-                      ? 'w-[28%] min-w-0 px-4 py-3 font-semibold'
-                      : 'w-[35%] min-w-0 px-4 py-3 font-semibold'
-                  }
-                >
-                  Parent
-                </th>
+                <th className='min-w-0 px-4 py-3 font-semibold'>Party</th>
                 {showScheduledStartColumn ? (
                   <th className='w-[11%] whitespace-nowrap px-4 py-3 font-semibold'>Scheduled start</th>
                 ) : null}
