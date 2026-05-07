@@ -174,6 +174,8 @@ export interface LandingPageLocaleContent {
     whatsappAfterBookLabel: string;
     slotUnavailableMessage: string;
     recentIntroMessage: string;
+    /** Shown immediately after the WhatsApp link in the recent-booking notice (typically a full stop). */
+    recentIntroMessageSuffix: string;
     topicsFieldLabel: string;
     topicsFieldPlaceholder: string;
     submitLabel: string;

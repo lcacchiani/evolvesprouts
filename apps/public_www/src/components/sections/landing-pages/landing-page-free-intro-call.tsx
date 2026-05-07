@@ -504,11 +504,12 @@ export function LandingPageFreeIntroCall({
             </div>
             <div className='min-w-0'>
               {recentCooldownMessage ? (
-                <p className='mb-4 rounded-inner border border-amber-200 bg-amber-50 px-4 py-3 es-type-body'>
+                <p className='mb-4 rounded-inner border-2 es-border-warm-2 es-bg-brand-orange-soft px-4 py-3 es-type-body'>
                   {introContent.recentIntroMessage}{' '}
                   <a href={whatsappHref} className='es-focus-ring font-semibold underline'>
-                    {introContent.whatsappHelpCtaLabel}
+                    {introContent.whatsappAfterBookLabel}
                   </a>
+                  {introContent.recentIntroMessageSuffix}
                 </p>
               ) : null}
               <form
