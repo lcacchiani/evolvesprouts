@@ -1078,9 +1078,9 @@ export function ClientInvoicesPanel() {
               onSubmit={(e) => void handleCreateDraft(e)}
             >
               <p className='text-sm text-slate-600'>
-                Shown: enrollments from the last 90 days (by enrolled date), excluding cancelled. Rows
-                already on a draft or issued invoice cannot be selected. Selected rows must share bill-to and
-                currency on the server.
+                Shown: enrollments from the last year (365 rolling days by enrolled date), excluding cancelled.
+                Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
+                and currency on the server.
               </p>
               <div className='flex flex-wrap items-end gap-3'>
                 <div className='min-w-[220px] flex-1'>

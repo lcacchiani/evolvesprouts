@@ -220,12 +220,12 @@ def _encode_enrolled_at_cursor(enrolled_at: datetime, row_id: UUID) -> str:
 def list_recent_enrollments_for_invoicing(
     event: Mapping[str, Any], *, user_sub: str, request_id: str | None
 ) -> dict[str, Any]:
-    """Non-cancelled enrollments from the last 90 days (`enrolled_at`), capped and paginated.
+    """Non-cancelled enrollments from the last 365 days (`enrolled_at`), capped and paginated.
 
     Tenant note: this deployment is single-tenant Aurora; there is no tenant_id column on
     enrollments. Authorization is enforced at API Gateway (admin group).
     """
-    cutoff = datetime.now(UTC) - timedelta(days=90)
+    cutoff = datetime.now(UTC) - timedelta(days=365)
     limit = parse_limit(event, default=_PICKER_MAX_LIMIT, max_limit=_PICKER_MAX_LIMIT)
     cursor_ts, cursor_id = _parse_enrolled_at_cursor(query_param(event, "cursor"))
     q_raw = (query_param(event, "q") or "").strip()
