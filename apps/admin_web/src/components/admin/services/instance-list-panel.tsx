@@ -61,7 +61,7 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (value: string) => void;
   };
-  /** When true, add cross-service columns (title, tier · cohort, locations, first slot) before status. */
+  /** When true, add cross-service columns (title, tier · cohort, locations, first slot) before capacity. */
   showServiceColumn?: boolean;
   /** Resolve location ids for the locations column (optional; ids shown when unknown). */
   locationOptions?: LocationSummary[];
@@ -153,7 +153,7 @@ export function InstanceListPanel({
                     id='instances-filter-search'
                     value={searchFilter.value}
                     onChange={(event) => searchFilter.onChange(event.target.value)}
-                    placeholder='Cohort, service, status'
+                    placeholder='Title, cohort, service, locations'
                   />
                 </div>
               ) : null}
@@ -218,17 +218,8 @@ export function InstanceListPanel({
                 <th
                   className={
                     showServiceColumn
-                      ? 'w-[10%] px-4 py-3 font-semibold'
-                      : 'w-[35%] px-4 py-3 font-semibold'
-                  }
-                >
-                  Status
-                </th>
-                <th
-                  className={
-                    showServiceColumn
-                      ? 'w-[10%] whitespace-nowrap px-4 py-3 font-semibold'
-                      : 'w-[35%] whitespace-nowrap px-4 py-3 font-semibold'
+                      ? 'w-[18%] whitespace-nowrap px-4 py-3 font-semibold'
+                      : 'min-w-0 whitespace-nowrap px-4 py-3 font-semibold'
                   }
                 >
                   Capacity
@@ -279,7 +270,6 @@ export function InstanceListPanel({
                         {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
                       </td>
                     ) : null}
-                    <td className='break-words px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                     <td className='whitespace-nowrap px-4 py-3'>
                       {formatInstanceTableCapacity(instance)}
                     </td>
