@@ -571,21 +571,23 @@ export function EnrollmentListPanel({
                       : '-'}
                   </AdminDataTableCell>
                   <AdminDataTableCell>{formatDate(enrollment.enrolledAt)}</AdminDataTableCell>
-                  <AdminDataTableCell>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='danger'
-                      disabled={isMutating}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleDeleteEnrollment(enrollment);
-                      }}
-                      aria-label='Delete enrollment'
-                      title='Delete enrollment'
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
+                  <AdminDataTableCell className='whitespace-nowrap text-right'>
+                    <div className='flex justify-end gap-2'>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='danger'
+                        disabled={isMutating}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleDeleteEnrollment(enrollment);
+                        }}
+                        aria-label='Delete enrollment'
+                        title='Delete enrollment'
+                      >
+                        <DeleteIcon className='h-4 w-4' />
+                      </Button>
+                    </div>
                   </AdminDataTableCell>
                 </tr>
               );
