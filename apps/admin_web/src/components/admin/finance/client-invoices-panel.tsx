@@ -129,6 +129,10 @@ function parseAmountInput(raw: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
+  return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
+}
+
 function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): boolean {
   const trimmed = input.trim();
   const baseline = defaultLineAmount(row);
