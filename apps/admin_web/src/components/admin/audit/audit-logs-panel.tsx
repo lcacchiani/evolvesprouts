@@ -168,13 +168,6 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
 
   const timestampHeader = useMemo(() => `Timestamp (${formatGmtOffset()})`, []);
 
-  const getUserEmail = useCallback((row: AuditLog) => {
-    if (row.user_email) {
-      return row.user_email;
-    }
-    return '—';
-  }, []);
-
   return (
     <div className='space-y-6'>
       <PaginatedTableCard
@@ -298,9 +291,6 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                 <th className='px-4 py-3' scope='col'>
                   Action
                 </th>
-                <th className='px-4 py-3' scope='col'>
-                  User email
-                </th>
                 <th className='hidden px-4 py-3 md:table-cell' scope='col'>
                   Changed fields
                 </th>
@@ -314,9 +304,6 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                   <td className='px-4 py-3 font-medium text-slate-900'>{item.table_name}</td>
                   <td className='px-4 py-3'>
                     <ActionBadge action={item.action} />
-                  </td>
-                  <td className='px-4 py-3 font-mono text-xs text-slate-600'>
-                    {getUserEmail(item)}
                   </td>
                   <td className='hidden px-4 py-3 text-slate-500 md:table-cell'>
                     {item.changed_fields?.length ? item.changed_fields.join(', ') : '—'}
