@@ -362,8 +362,8 @@ def render_invoice_pdf(
         "InvTitle",
         parent=styles["Heading1"],
         fontName="Helvetica-Bold",
-        fontSize=18,
-        leading=22,
+        fontSize=16,
+        leading=20,
         textColor=_INV_TITLE,
         alignment=TA_RIGHT,
         spaceAfter=0,
@@ -372,32 +372,32 @@ def render_invoice_pdf(
         "InvLabelHeading",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=18,
+        fontSize=10,
+        leading=16,
         textColor=_INV_LABEL_TEXT,
     )
     body_text_style = ParagraphStyle(
         "InvBodyText",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=12,
-        leading=18,
+        fontSize=10,
+        leading=16,
         textColor=_INV_BODY_TEXT,
     )
     header_label_style = ParagraphStyle(
         "InvHeaderLabel",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=14,
+        fontSize=10,
+        leading=12,
         textColor=_INV_HEADER_TEXT,
     )
     totals_label_style = ParagraphStyle(
         "InvTotalsLabel",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=14,
+        fontSize=10,
+        leading=12,
         textColor=_INV_LABEL_TEXT,
         alignment=TA_RIGHT,
     )
@@ -405,8 +405,8 @@ def render_invoice_pdf(
         "InvTotalsValue",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=12,
-        leading=14,
+        fontSize=10,
+        leading=12,
         textColor=_INV_BODY_TEXT,
         alignment=TA_RIGHT,
     )
@@ -414,8 +414,8 @@ def render_invoice_pdf(
         "InvTotalsTotal",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=13.5,
-        leading=16,
+        fontSize=11.5,
+        leading=14,
         textColor=_INV_BODY_TEXT,
         alignment=TA_RIGHT,
     )
@@ -505,9 +505,9 @@ def render_invoice_pdf(
 
     body_lines_count = (1 if business_name else 0) + len(address_lines)
     from_lines = min(6, max(2, body_lines_count))
-    header_row_pt = max(150, 22 + (from_lines * 18) + 22)
+    header_row_pt = max(150, 22 + (from_lines * 16) + 22)
     if not show_due_date:
-        header_row_pt = max(132, header_row_pt - 18)
+        header_row_pt = max(132, header_row_pt - 16)
 
     from_cell = Table(
         [
@@ -925,7 +925,7 @@ def render_invoice_pdf(
         if not footer_text:
             return
         canvas_obj.saveState()
-        canvas_obj.setFont("Helvetica", 9)
+        canvas_obj.setFont("Helvetica", 7)
         canvas_obj.setFillColor(_INV_FOOTER_TEXT)
         y_footer = 14 * mm
         canvas_obj.drawCentredString(A4[0] / 2, y_footer, footer_text)
