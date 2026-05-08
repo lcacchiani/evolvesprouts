@@ -183,11 +183,6 @@ export function EnrollmentListPanel({
     [discountOptions, selectedEnrollment?.discountCodeId]
   );
 
-  const showScheduledStartColumn = useMemo(
-    () => enrollments.some((row) => Boolean(row.scheduledStartAt?.trim())),
-    [enrollments]
-  );
-
   const formatEnrollmentParentCell = useCallback(
     (enrollment: Enrollment) => {
       const fromApi = enrollment.partyDisplayName?.trim();
@@ -537,116 +532,66 @@ export function EnrollmentListPanel({
         loadingLabel='Loading enrollments...'
         onLoadMore={onLoadMore}
       >
-        <div className='min-w-0'>
-          <AdminDataTable tableClassName='w-full table-fixed'>
-            <AdminDataTableHead>
-              <tr>
-                <AdminDataTableHeadCell
-                  className={
-                    showScheduledStartColumn ? 'w-[22%] min-w-0' : 'w-[28%] min-w-0'
-                  }
+        <AdminDataTable tableClassName='w-full table-fixed'>
+          <AdminDataTableHead>
+            <tr>
+              <AdminDataTableHeadCell>Party</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Discount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Enrolled at</AdminDataTableHeadCell>
+              <AdminDataTableOperationsHeadCell />
+            </tr>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {enrollments.map((enrollment) => {
+              const amountRaw = enrollment.amountPaid?.trim() ?? '';
+              const parsedAmount = Number.parseFloat(amountRaw);
+              const currencyCode =
+                (enrollment.currency ?? defaultCurrencyCode).trim().toUpperCase() || defaultCurrencyCode;
+              const amountDisplay =
+                amountRaw !== '' && Number.isFinite(parsedAmount)
+                  ? formatAmountInCurrency(parsedAmount, currencyCode)
+                  : '—';
+              return (
+                <tr
+                  key={enrollment.id}
+                  className={`cursor-pointer transition ${
+                    selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                  onClick={() => applyEnrollmentSelection(enrollment)}
                 >
-                  Party
-                </AdminDataTableHeadCell>
-                {showScheduledStartColumn ? (
-                  <AdminDataTableHeadCell className='w-[10%] whitespace-nowrap'>
-                    Scheduled start
-                  </AdminDataTableHeadCell>
-                ) : null}
-                <AdminDataTableHeadCell
-                  className={
-                    showScheduledStartColumn ? 'w-[9%] min-w-0' : 'w-[10%] min-w-0'
-                  }
-                >
-                  Status
-                </AdminDataTableHeadCell>
-                <AdminDataTableHeadCell
-                  className={
-                    showScheduledStartColumn ? 'w-[10%] whitespace-nowrap' : 'w-[11%] whitespace-nowrap'
-                  }
-                >
-                  Amount
-                </AdminDataTableHeadCell>
-                <AdminDataTableHeadCell
-                  className={
-                    showScheduledStartColumn ? 'w-[17%] min-w-0' : 'w-[20%] min-w-0'
-                  }
-                >
-                  Discount
-                </AdminDataTableHeadCell>
-                <AdminDataTableHeadCell
-                  className={
-                    showScheduledStartColumn ? 'w-[12%] whitespace-nowrap' : 'w-[14%] whitespace-nowrap'
-                  }
-                >
-                  Enrolled at
-                </AdminDataTableHeadCell>
-                <AdminDataTableOperationsHeadCell className='w-[4.5rem] whitespace-nowrap' />
-              </tr>
-            </AdminDataTableHead>
-            <AdminDataTableBody>
-              {enrollments.map((enrollment) => {
-                const amountRaw = enrollment.amountPaid?.trim() ?? '';
-                const parsedAmount = Number.parseFloat(amountRaw);
-                const currencyCode =
-                  (enrollment.currency ?? defaultCurrencyCode).trim().toUpperCase() || defaultCurrencyCode;
-                const amountDisplay =
-                  amountRaw !== '' && Number.isFinite(parsedAmount)
-                    ? formatAmountInCurrency(parsedAmount, currencyCode)
-                    : '—';
-                return (
-                  <tr
-                    key={enrollment.id}
-                    className={`cursor-pointer transition ${
-                      selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                    }`}
-                    onClick={() => applyEnrollmentSelection(enrollment)}
-                  >
-                    <AdminDataTableCell className='min-w-0 break-words'>
-                      {formatEnrollmentParentCell(enrollment)}
-                    </AdminDataTableCell>
-                    {showScheduledStartColumn ? (
-                      <AdminDataTableCell className='whitespace-nowrap'>
-                        {enrollment.scheduledStartAt?.trim()
-                          ? formatDate(enrollment.scheduledStartAt)
-                          : '—'}
-                      </AdminDataTableCell>
-                    ) : null}
-                    <AdminDataTableCell className='min-w-0 break-words'>
-                      {formatEnumLabel(enrollment.status)}
-                    </AdminDataTableCell>
-                    <AdminDataTableCell className='whitespace-nowrap'>{amountDisplay}</AdminDataTableCell>
-                    <AdminDataTableCell className='min-w-0 break-words'>
-                      {enrollment.discountCodeId
-                        ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
-                            enrollment.discountCodeId)
-                        : '-'}
-                    </AdminDataTableCell>
-                    <AdminDataTableCell className='whitespace-nowrap'>
-                      {formatDate(enrollment.enrolledAt)}
-                    </AdminDataTableCell>
-                    <AdminDataTableCell className='text-right'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='danger'
-                        disabled={isMutating}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          void handleDeleteEnrollment(enrollment);
-                        }}
-                        aria-label='Delete enrollment'
-                        title='Delete enrollment'
-                      >
-                        <DeleteIcon className='h-4 w-4' />
-                      </Button>
-                    </AdminDataTableCell>
-                  </tr>
-                );
-              })}
-            </AdminDataTableBody>
-          </AdminDataTable>
-        </div>
+                  <AdminDataTableCell>{formatEnrollmentParentCell(enrollment)}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatEnumLabel(enrollment.status)}</AdminDataTableCell>
+                  <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell>
+                    {enrollment.discountCodeId
+                      ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
+                          enrollment.discountCodeId)
+                      : '-'}
+                  </AdminDataTableCell>
+                  <AdminDataTableCell>{formatDate(enrollment.enrolledAt)}</AdminDataTableCell>
+                  <AdminDataTableCell>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      disabled={isMutating}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleDeleteEnrollment(enrollment);
+                      }}
+                      aria-label='Delete enrollment'
+                      title='Delete enrollment'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </AdminDataTableCell>
+                </tr>
+              );
+            })}
+          </AdminDataTableBody>
+        </AdminDataTable>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>

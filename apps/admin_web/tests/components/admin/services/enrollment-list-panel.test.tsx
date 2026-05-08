@@ -172,33 +172,6 @@ describe('EnrollmentListPanel', () => {
     );
   });
 
-  it('shows scheduled start column when enrollment rows include scheduled start', () => {
-    const enrollmentWithScheduledStart: Enrollment = {
-      ...ENROLLMENT_FIXTURE,
-      scheduledStartAt: '2026-06-15T01:00:00Z',
-    };
-    render(
-      <EnrollmentListPanel
-        enrollments={[enrollmentWithScheduledStart]}
-        serviceId='service-1'
-        instanceId='instance-1'
-        canCreate={true}
-        isLoading={false}
-        isLoadingMore={false}
-        hasMore={false}
-        error=''
-        isMutating={false}
-        onLoadMore={vi.fn()}
-        onCreate={vi.fn()}
-        onUpdate={vi.fn()}
-        onDelete={vi.fn()}
-      />
-    );
-
-    expect(screen.getByRole('columnheader', { name: 'Scheduled start' })).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Booking slug' })).not.toBeInTheDocument();
-  });
-
   it('uses selectable currency options in the enrollment editor', () => {
     render(
       <EnrollmentListPanel
