@@ -41,6 +41,62 @@ def _enrollment_merge_key(en: Enrollment) -> tuple[Any, ...]:
     return effective_enrollment_bill_to_fks(en)
 
 
+def _trimmed_str_or_none(value: object | None) -> str | None:
+    """Return stripped non-empty string, or None (non-strings ignored)."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    t = value.strip()
+    return t or None
+
+
+def _capitalize_first_letter(value: str) -> str:
+    s = value.strip()
+    if not s:
+        return s
+    return s[0].upper() + s[1:]
+
+
+def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
+    """Line text for enrollment-merge invoices: title — tier — cohort (hyphen-separated).
+
+    Title prefers instance title, then parent service title. Tier prefers enrollment ticket
+    tier name, then catalog ``service_tier``. Tier and cohort segments use a leading
+    capital letter only (rest unchanged). Falls back to ``Enrollment`` when no title path exists.
+    """
+    inst = enrollment.instance
+    title_part: str | None = None
+    svc = getattr(inst, "service", None) if inst is not None else None
+    if inst is not None:
+        title_part = _trimmed_str_or_none(inst.title)
+    if title_part is None and svc is not None:
+        title_part = _trimmed_str_or_none(getattr(svc, "title", None))
+
+    tier_raw: str | None = None
+    if enrollment.ticket_tier_id and enrollment.ticket_tier is not None:
+        tier_raw = _trimmed_str_or_none(enrollment.ticket_tier.name)
+    if tier_raw is None and svc is not None:
+        tier_raw = _trimmed_str_or_none(getattr(svc, "service_tier", None))
+
+    cohort_raw: str | None = None
+    if inst is not None:
+        cohort_raw = _trimmed_str_or_none(inst.cohort)
+
+    parts: list[str] = []
+    if title_part:
+        parts.append(title_part)
+    if tier_raw:
+        parts.append(_capitalize_first_letter(tier_raw))
+    if cohort_raw:
+        parts.append(_capitalize_first_letter(cohort_raw))
+
+    if not parts:
+        return "Enrollment"
+    out = " - ".join(parts)
+    return out[:500]
+
+
 def _resolve_bill_to_party_from_invoice_fks(
     session: Session, *, inv: CustomerInvoice
 ) -> None:
@@ -69,12 +125,13 @@ def _resolve_bill_to_party_from_invoice_fks(
             .limit(1)
         )
         primary = session.execute(stmt).scalar_one_or_none()
-        label = family_or_organization_bill_to_display_label(
-            entity_name=fam.family_name,
-            primary_display_name=contact_display_name(primary),
-        )
-        if label:
-            inv.bill_to_display_name = label
+        primary_nm = (contact_display_name(primary) or "").strip()
+        if primary_nm:
+            inv.bill_to_display_name = primary_nm
+        else:
+            fam_nm = (fam.family_name or "").strip()
+            if fam_nm:
+                inv.bill_to_display_name = fam_nm
         if primary and primary.email:
             inv.bill_to_email = primary.email
         return

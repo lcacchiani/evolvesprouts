@@ -16,6 +16,7 @@ from app.api.admin_billing_common import (
     effective_enrollment_bill_to_fks,
 )
 from app.api.admin_billing_invoice_draft_helpers import (
+    _build_enrollment_merge_line_description,
     _decimal_field,
     _enrollment_merge_key,
     _first_present,
@@ -30,6 +31,7 @@ from app.db.audit import AuditService
 from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
+from app.db.models.service_instance import ServiceInstance
 from app.exceptions import ValidationError
 from app.services.customer_invoice_pdf import today_in_invoice_display_tz_or_utc
 from app.utils import json_response
@@ -325,8 +327,9 @@ def _create_invoice_draft(
                 select(Enrollment)
                 .where(Enrollment.id.in_(eids))
                 .options(
-                    joinedload(Enrollment.instance),
+                    joinedload(Enrollment.instance).joinedload(ServiceInstance.service),
                     joinedload(Enrollment.contact),
+                    joinedload(Enrollment.ticket_tier),
                 )
             )
             .unique()
@@ -390,15 +393,11 @@ def _create_invoice_draft(
         subtotal = Decimal("0")
         tax_total = Decimal("0")
         for order, en in enumerate(enrollments):
-            title = ""
-            if en.instance:
-                title = (en.instance.title or "").strip()
             if en.id in line_overrides:
                 line_total = line_overrides[en.id]
             else:
                 line_total = en.amount_paid or Decimal("0")
-            desc = title or "Enrollment"
-            line_desc = desc[:500]
+            line_desc = _build_enrollment_merge_line_description(en)
             line = CustomerInvoiceLine(
                 invoice_id=inv.id,
                 enrollment_id=en.id,
