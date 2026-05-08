@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
@@ -2049,6 +2049,82 @@ def test_create_invoice_draft_accepts_invoice_date(
     r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
     assert r["statusCode"] == 201
     assert saved["inv"].invoice_date == date(2024, 12, 31)
+
+
+def test_create_invoice_draft_accepts_invoice_date_at_upper_bound_in_display_tz(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    fixed_today = date(2026, 6, 15)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod,
+        "today_in_invoice_display_tz_or_utc",
+        lambda: fixed_today,
+    )
+    eid = uuid4()
+    saved: dict[str, Any] = {}
+
+    fake_en = MagicMock()
+    fake_en.id = eid
+    fake_en.currency = "USD"
+    fake_en.amount_paid = Decimal("10")
+    fake_en.instance = MagicMock(title="Inst")
+    fake_en.contact = MagicMock(
+        email="u@example.com", first_name="U", last_name="Ser"
+    )
+    fake_en.bill_to_kind = BillingBillToKind.CONTACT
+    fake_en.bill_to_contact_id = None
+    fake_en.bill_to_family_id = None
+    fake_en.bill_to_organization_id = None
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(_stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            out = MagicMock()
+            out.unique.return_value.scalars.return_value.all.return_value = [fake_en]
+            return out
+
+        def _add(obj: Any) -> None:
+            if isinstance(obj, CustomerInvoice):
+                saved["inv"] = obj
+
+        s.execute.side_effect = _exec
+        s.add.side_effect = _add
+        s.get.return_value = None
+        s.flush = MagicMock()
+        yield s
+
+    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod,
+        "_resolve_bill_to_party_for_draft",
+        lambda *_a, **_k: None,
+    )
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod,
+        "AuditService",
+        lambda *_a, **_k: MagicMock(log_custom=lambda **_kw: None),
+    )
+
+    upper = (fixed_today + timedelta(days=365)).isoformat()
+    body = {
+        "draftKind": "enrollment_merge",
+        "enrollmentIds": [str(eid)],
+        "invoiceDate": upper,
+    }
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/invoices",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    assert r["statusCode"] == 201
+    assert saved["inv"].invoice_date == fixed_today + timedelta(days=365)
 
 
 def test_create_invoice_draft_defaults_invoice_date_to_today(

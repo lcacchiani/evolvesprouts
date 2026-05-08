@@ -28,6 +28,7 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
 import { CustomizedDraftInvoiceCard } from '@/components/admin/finance/customized-draft-invoice-card';
 
 describe('CustomizedDraftInvoiceCard', () => {
+  // localTodayYmd() uses getFullYear/getMonth/getDate (browser-local TZ); jsdom matches Vitest host TZ.
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date('2025-06-01T12:00:00Z'));

@@ -45,7 +45,7 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
 }));
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
-import { formatDate } from '@/lib/format';
+import { formatDateOnly, formatYmdAsLocalDate } from '@/lib/format';
 
 function firstCustomerInvoiceDataRow(invoiceTable: HTMLElement): HTMLElement {
   const rows = within(invoiceTable).getAllByRole('row');
@@ -160,8 +160,8 @@ describe('ClientInvoicesPanel', () => {
     const dataRows = within(invoiceTable).getAllByRole('row').slice(1);
     const row1cells = within(dataRows[0]).getAllByRole('cell');
     const row2cells = within(dataRows[1]).getAllByRole('cell');
-    expect(row1cells[5]).toHaveTextContent(formatDate('2025-05-15'));
-    expect(row2cells[5]).toHaveTextContent(formatDate('2024-06-01T12:00:00+00:00'));
+    expect(row1cells[5]).toHaveTextContent(formatYmdAsLocalDate('2025-05-15'));
+    expect(row2cells[5]).toHaveTextContent(formatDateOnly('2024-06-01T12:00:00+00:00'));
   });
 
   it('passes status filter to listCustomerInvoices', async () => {

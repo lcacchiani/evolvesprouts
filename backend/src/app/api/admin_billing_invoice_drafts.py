@@ -49,10 +49,11 @@ def _resolve_draft_invoice_date(body: Mapping[str, Any]) -> date:
             raise ValidationError(str(exc), field="invoiceDate") from exc
     else:
         parsed = None
-    chosen = parsed if parsed is not None else today_in_invoice_display_tz_or_utc()
+    today = today_in_invoice_display_tz_or_utc()
+    chosen = parsed if parsed is not None else today
     if chosen < _INVOICE_DATE_MIN:
         raise ValidationError("invoiceDate is too far in the past", field="invoiceDate")
-    if chosen > date.today() + timedelta(days=365):
+    if chosen > today + timedelta(days=365):
         raise ValidationError(
             "invoiceDate is too far in the future", field="invoiceDate"
         )
@@ -89,6 +90,8 @@ def _create_customized_invoice_draft(
             field="lines",
         )
 
+    inv_date = _resolve_draft_invoice_date(body)
+
     with _session_with_audit(user_sub, request_id) as session:
         if bill_kind == BillingBillToKind.CONTACT:
             if bill_cid is None:
@@ -108,7 +111,6 @@ def _create_customized_invoice_draft(
             if session.get(Organization, bill_oid) is None:
                 raise ValidationError("Organization not found", field="billTo")
 
-        inv_date = _resolve_draft_invoice_date(body)
         inv = CustomerInvoice(
             status=BillingInvoiceStatus.DRAFT,
             currency=currency,
