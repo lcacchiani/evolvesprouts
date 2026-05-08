@@ -98,7 +98,7 @@ drops the old polymorphic tables, renames `crm_notes` → `notes`, and adds null
 
 ## AR invoice PDFs (FPS QR)
 
-**Decision:** Customer AR invoice PDFs (`billing-invoice-v9`) embed an FPS QR code server-side when the invoice total is positive, the invoice currency is HKD, and `PUBLIC_WWW_FPS_MERCHANT_NAME` plus `PUBLIC_WWW_FPS_MOBILE_NUMBER` are set on the admin Lambda (same semantics as the public booking modal / confirmation email, using the EMVCo payload rules from `apps/public_www/public/scripts/fps-generator.js`). Non-HKD invoices, missing FPS env configuration, or non-positive totals skip the QR and use bank-only or FPS-only copy as appropriate. Zero or negative totals omit the due date and the entire payment-instructions block.
+**Decision:** Customer AR invoice PDFs (`billing-invoice-v10`) embed an FPS QR code server-side when the invoice total is positive, the invoice currency is HKD, and `PUBLIC_WWW_FPS_MERCHANT_NAME` plus `PUBLIC_WWW_FPS_MOBILE_NUMBER` are set on the admin Lambda (same semantics as the public booking modal / confirmation email, using the EMVCo payload rules from `apps/public_www/public/scripts/fps-generator.js`). Non-HKD invoices, missing FPS env configuration, or non-positive totals skip the QR and use bank-only or FPS-only copy as appropriate. Zero or negative totals omit the due date and the entire payment-instructions block.
 
 **Why:** Keeps payment instructions consistent with the FPS path customers already see while avoiding misleading due dates or bank/FPS prompts on zero-amount documents.
 
