@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatContactNameEmailLabel,
+  formatAdminContactFullName,
+  formatAdminContactPickerLabel,
+  formatFamilyOrOrganizationPartyLabel,
+  formatBillingEnrollmentPartyCell,
+  resolveEnrollmentListPartyLabel,
   compareInstancesByFirstSlotStartsDesc,
   formatAssetContentLanguageLabel,
   formatDate,
@@ -957,5 +963,98 @@ describe('format helpers', () => {
       },
     ]);
     expect(partial.ok).toBe(false);
+  });
+});
+
+describe('CRM party display labels', () => {
+  it('formats contact name and email with interpunct when both are set', () => {
+    expect(formatContactNameEmailLabel('Sam Sample', 'sam@example.com', 'id-1')).toBe(
+      'Sam Sample · sam@example.com',
+    );
+    expect(formatContactNameEmailLabel('Sam', '', 'id-1')).toBe('Sam');
+    expect(formatContactNameEmailLabel('', 'sam@example.com', 'id-1')).toBe('sam@example.com');
+    expect(formatContactNameEmailLabel('', '', 'id-1')).toBe('id-1');
+  });
+
+  it('formats admin contact pickers', () => {
+    expect(
+      formatAdminContactPickerLabel({
+        first_name: 'Sam',
+        last_name: 'Sample',
+        email: 'sam@example.com',
+        id: 'c-1',
+      }),
+    ).toBe('Sam Sample · sam@example.com');
+    expect(
+      formatAdminContactPickerLabel({
+        first_name: null,
+        last_name: null,
+        email: 'sole@example.com',
+        id: 'c-2',
+      }),
+    ).toBe('sole@example.com');
+  });
+
+  it('joins first and last for formatAdminContactFullName', () => {
+    expect(formatAdminContactFullName({ first_name: 'A', last_name: 'B' })).toBe('A B');
+    expect(formatAdminContactFullName({ first_name: '', last_name: '' })).toBe('');
+  });
+
+  it('formats family or organisation entity · primary lines', () => {
+    expect(formatFamilyOrOrganizationPartyLabel('Smith Family', 'Jane Primary')).toBe(
+      'Smith Family · Jane Primary',
+    );
+    expect(formatFamilyOrOrganizationPartyLabel('Acme', '')).toBe('Acme');
+    expect(formatFamilyOrOrganizationPartyLabel('', 'Pat')).toBe('Pat');
+    expect(formatFamilyOrOrganizationPartyLabel('', '')).toBe('');
+  });
+
+  it('matches billing enrollment picker party column rules', () => {
+    expect(
+      formatBillingEnrollmentPartyCell({
+        billToKind: 'contact',
+        partyDisplayName: 'Sam Sample',
+        partyEmail: 'sam@example.com',
+      }),
+    ).toBe('Sam Sample · sam@example.com');
+    expect(
+      formatBillingEnrollmentPartyCell({
+        billToKind: 'family',
+        partyDisplayName: 'Smith Family · Jane',
+        partyEmail: 'jane@example.com',
+      }),
+    ).toBe('Smith Family · Jane');
+  });
+
+  it('resolves enrollment list party from API or picker maps', () => {
+    const maps = {
+      labelByContactId: new Map([['c1', 'A · a@x.com']]),
+      labelByFamilyId: new Map([['f1', 'Fam · Primary']]),
+      labelByOrganizationId: new Map([['o1', 'Org · Primary']]),
+    };
+    expect(
+      resolveEnrollmentListPartyLabel(
+        { partyDisplayName: 'From API', contactId: 'c1' },
+        maps.labelByContactId,
+        maps.labelByFamilyId,
+        maps.labelByOrganizationId,
+      ),
+    ).toBe('From API');
+    expect(
+      resolveEnrollmentListPartyLabel(
+        { contactId: 'c1' },
+        maps.labelByContactId,
+        maps.labelByFamilyId,
+        maps.labelByOrganizationId,
+      ),
+    ).toBe('A · a@x.com');
+    expect(
+      resolveEnrollmentListPartyLabel(
+        {},
+        maps.labelByContactId,
+        maps.labelByFamilyId,
+        maps.labelByOrganizationId,
+      ),
+    ).toBe('—');
   });
 });

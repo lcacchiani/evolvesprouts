@@ -44,12 +44,21 @@ def picker_session(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     return session
 
 
+def _make_org_list_result(rows: list[tuple[Any, ...]]) -> MagicMock:
+    m = MagicMock()
+    m.all.return_value = rows
+    return m
+
+
 def test_picker_default_excludes_vendors_and_partners(
     api_gateway_event: Any,
     picker_session: MagicMock,
 ) -> None:
     org_id = uuid4()
-    picker_session.execute.return_value.all.return_value = [(org_id, "Alpha Org")]
+    picker_session.execute.side_effect = [
+        _make_org_list_result([(org_id, "Alpha Org")]),
+        _make_org_list_result([]),
+    ]
 
     path = "/v1/admin/organizations/picker"
     response = admin_organizations_picker.handle_admin_organizations_picker_request(
@@ -69,7 +78,10 @@ def test_picker_relationship_type_partner_calls_parser(
     picker_session: MagicMock,
 ) -> None:
     org_id = uuid4()
-    picker_session.execute.return_value.all.return_value = [(org_id, "Partner Org")]
+    picker_session.execute.side_effect = [
+        _make_org_list_result([(org_id, "Partner Org")]),
+        _make_org_list_result([]),
+    ]
     captured: list[Any] = []
 
     def _capture(value: Any, *, field: str, allowed: Any = None) -> RelationshipType:

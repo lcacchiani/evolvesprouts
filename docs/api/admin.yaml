@@ -5261,10 +5261,12 @@ components:
         party_display_name:
           type: string
           description: >
-            Display label for the enrollment party. For contact bill-to this is the contact name.
-            For family or organization this is `entity name · primary contact name` (middle dot) when
-            both the entity and primary contact names are known; otherwise the best available single
-            label. Matches the billing enrollment picker `partyDisplayName` convention.
+            Display label for the enrollment party. For contact enrollment this is
+            `contact name · email` (middle dot) when both name and email are known; otherwise the best
+            available single label. For family or organization enrollment this is
+            `entity name · primary contact name` (middle dot) when both the entity and primary contact
+            names are known; otherwise the best available single label. Matches the billing enrollment
+            picker `partyDisplayName` convention.
         created_by:
           type: string
         created_at:
@@ -6399,10 +6401,10 @@ components:
         partyDisplayName:
           type: string
           description: >
-            Display label for the bill-to / enrollment party. For `contact` this is the contact
-            name. For `family` or `organization` this is `entity name · primary contact name` (middle
-            dot) when both the entity and primary contact names are known; otherwise the best
-            available single label.
+            Display label for the bill-to / enrollment party. For `contact` the admin UI combines
+            this with `partyEmail` as `name · email` when both are known. For `family` or `organization`
+            this is `entity name · primary contact name` (middle dot) when both the entity and primary
+            contact names are known; otherwise the best available single label.
         partyEmail:
           type: string
           format: email
@@ -6992,6 +6994,10 @@ components:
           format: uuid
         label:
           type: string
+          description: >
+            Single-line display label. For CRM contact picker items this matches admin contact pickers
+            (`name · email` when both known). For family and organisation picker items this is
+            `entity name · primary contact name` when both are known; otherwise the best available label.
     EntityPickerListResponse:
       type: object
       required:

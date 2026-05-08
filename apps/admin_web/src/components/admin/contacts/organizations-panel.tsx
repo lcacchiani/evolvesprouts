@@ -29,7 +29,7 @@ import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
 import type { EntityTagRef } from '@/lib/entity-api';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatFamilyOrOrganizationPartyLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   ORGANIZATION_RELATIONSHIP_TYPES,
@@ -626,13 +626,7 @@ export function OrganizationsPanel({
                 onClick={() => selectRow(row.id)}
               >
                 <AdminDataTableCell>
-                  {row.name}
-                  {primaryLabel ? (
-                    <>
-                      <span aria-hidden> · </span>
-                      {primaryLabel}
-                    </>
-                  ) : null}
+                  {formatFamilyOrOrganizationPartyLabel(row.name, primaryLabel) || '—'}
                 </AdminDataTableCell>
                 <AdminDataTableCell>{formatEnumLabel(row.organization_type)}</AdminDataTableCell>
                 <AdminDataTableCell>{row.members.length}</AdminDataTableCell>

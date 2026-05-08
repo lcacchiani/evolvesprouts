@@ -5676,7 +5676,7 @@ export interface components {
             /** Format: date-time */
             cancelled_at?: string | null;
             notes?: string | null;
-            /** @description Display label for the enrollment party. For contact bill-to this is the contact name. For family or organization this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. Matches the billing enrollment picker `partyDisplayName` convention. */
+            /** @description Display label for the enrollment party. For contact enrollment this is `contact name · email` (middle dot) when both name and email are known; otherwise the best available single label. For family or organization enrollment this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. Matches the billing enrollment picker `partyDisplayName` convention. */
             party_display_name?: string;
             created_by?: string;
             /** Format: date-time */
@@ -6182,7 +6182,7 @@ export interface components {
         BillingEnrollmentPickerRow: {
             /** Format: uuid */
             enrollmentId: string;
-            /** @description Display label for the bill-to / enrollment party. For `contact` this is the contact name. For `family` or `organization` this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. */
+            /** @description Display label for the bill-to / enrollment party. For `contact` the admin UI combines this with `partyEmail` as `name · email` when both are known. For `family` or `organization` this is `entity name · primary contact name` (middle dot) when both the entity and primary contact names are known; otherwise the best available single label. */
             partyDisplayName: string;
             /** Format: email */
             partyEmail?: string | null;
@@ -6442,6 +6442,7 @@ export interface components {
         EntityPickerListItem: {
             /** Format: uuid */
             id: string;
+            /** @description Single-line display label. For CRM contact picker items this matches admin contact pickers (`name · email` when both known). For family and organisation picker items this is `entity name · primary contact name` when both are known; otherwise the best available label. */
             label: string;
         };
         EntityPickerListResponse: {
