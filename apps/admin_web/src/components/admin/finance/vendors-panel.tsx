@@ -4,11 +4,17 @@ import { useMemo, useState } from 'react';
 
 import { VendorInactiveIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { formatAmountInDefaultCurrency } from '@/lib/vendor-spend';
 
@@ -163,7 +169,7 @@ export function VendorsPanel({
                 {vendorSpendError}
               </p>
             ) : null}
-            <div className='flex flex-wrap items-end gap-3'>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='vendors-search'>Search</Label>
                 <Input
@@ -185,7 +191,7 @@ export function VendorsPanel({
                   <option value='false'>Inactive</option>
                 </Select>
               </div>
-            </div>
+            </AdminTableToolbar>
           </div>
         }
       >
@@ -195,7 +201,7 @@ export function VendorsPanel({
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold text-right'>Total Spend</th>
-              <th className='px-4 py-3 font-semibold text-right'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

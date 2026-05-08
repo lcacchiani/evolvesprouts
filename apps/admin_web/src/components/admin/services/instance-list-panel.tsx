@@ -3,7 +3,12 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useMemo } from 'react';
 
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DeleteIcon, DuplicateIcon } from '@/components/icons/action-icons';
@@ -224,9 +229,7 @@ export function InstanceListPanel({
                 >
                   Capacity
                 </th>
-                <th className='w-[7rem] whitespace-nowrap px-4 py-3 text-right font-semibold'>
-                  Operations
-                </th>
+                <AdminDataTableOperationsHeadCell className='w-[7rem] whitespace-nowrap' />
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>

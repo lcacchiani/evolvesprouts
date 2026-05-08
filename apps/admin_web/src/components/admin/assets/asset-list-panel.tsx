@@ -14,13 +14,19 @@ import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-adm
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import {
   formatAssetContentLanguageLabel,
@@ -119,7 +125,7 @@ export function AssetListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 space-y-2'>
-            <div className='flex flex-wrap items-end gap-3'>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='assets-search'>Search</Label>
                 <Input
@@ -161,7 +167,7 @@ export function AssetListPanel({
                   ))}
                 </Select>
               </div>
-            </div>
+            </AdminTableToolbar>
             {viewAssetError ? <AdminInlineError>{viewAssetError}</AdminInlineError> : null}
           </div>
         }
@@ -175,7 +181,7 @@ export function AssetListPanel({
               <th className='px-4 py-3 font-semibold'>Visibility</th>
               <th className='px-4 py-3 font-semibold'>File</th>
               <th className='px-4 py-3 font-semibold'>Updated</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

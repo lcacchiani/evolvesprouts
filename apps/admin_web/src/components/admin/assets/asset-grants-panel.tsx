@@ -9,7 +9,12 @@ import { ACCESS_GRANT_TYPES } from '@/types/assets';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { StatusBanner } from '@/components/status-banner';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -182,7 +187,7 @@ export function AssetGrantsPanel({
                   <th className='px-4 py-3 font-semibold'>Grantee</th>
                   <th className='px-4 py-3 font-semibold'>Granted by</th>
                   <th className='px-4 py-3 font-semibold'>Created</th>
-                  <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+                  <AdminDataTableOperationsHeadCell />
                 </tr>
               </AdminDataTableHead>
               <AdminDataTableBody>

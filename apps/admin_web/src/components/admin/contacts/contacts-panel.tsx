@@ -14,12 +14,18 @@ import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/ico
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneField } from '@/components/ui/phone-field';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -881,7 +887,7 @@ export function ContactsPanel({
         loadingLabel='Loading contacts...'
         onLoadMore={loadMore}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='crm-contacts-search'>Search</Label>
               <Input
@@ -927,7 +933,7 @@ export function ContactsPanel({
                 <option value='false'>Archived</option>
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[960px]'>
@@ -936,7 +942,7 @@ export function ContactsPanel({
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Email</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

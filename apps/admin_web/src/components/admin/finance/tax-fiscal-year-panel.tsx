@@ -5,10 +5,12 @@ import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { toErrorMessage } from '@/hooks/hook-errors';
+import { useFxMultipliersForCurrencies } from '@/hooks/use-fx-multipliers-for-currencies';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { listAllCustomerInvoices, type CustomerInvoiceSummary } from '@/lib/billing-api';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
@@ -20,7 +22,7 @@ import {
   taxFiscalYearRowsToCsv,
   type TaxFiscalYearRow,
 } from '@/lib/tax-fiscal-year-report';
-import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
+import { formatMoneyLineWithFxToDefault } from '@/lib/vendor-spend';
 import { EXPENSE_STATUSES, type Expense, type ExpenseStatus } from '@/types/expenses';
 
 /** Earliest Hong Kong FY start year offered in the selector (April Y → March Y+1). */
@@ -46,8 +48,6 @@ export function TaxFiscalYearPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [expensesPayload, setExpensesPayload] = useState<Expense[] | null>(null);
   const [issuedInvoicesPayload, setIssuedInvoicesPayload] = useState<CustomerInvoiceSummary[] | null>(null);
-  const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
-  const [fxError, setFxError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -92,40 +92,12 @@ export function TaxFiscalYearPanel() {
     return rows.some((row) => (row.currency?.trim().toUpperCase() || defaultCurrency) !== defaultCurrency);
   }, [rows]);
 
-  useEffect(() => {
-    if (!expensesPayload || !issuedInvoicesPayload) {
-      return;
-    }
-    let cancelled = false;
-    const defaultCurrency = getAdminDefaultCurrencyCode();
-    const needsFx = rows.some(
-      (row) => (row.currency?.trim().toUpperCase() || defaultCurrency) !== defaultCurrency,
-    );
-    if (!needsFx) {
-      setFxMultipliers(new Map());
-      setFxError('');
-      return;
-    }
-    setFxMultipliers(null);
-    void (async () => {
-      try {
-        const codes = rows.map((row) => row.currency?.trim().toUpperCase()).filter(Boolean);
-        const map = await loadFxMultipliersToAdminDefault(codes);
-        if (!cancelled) {
-          setFxMultipliers(map);
-          setFxError('');
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setFxError(toErrorMessage(error, 'Could not load FX rates for currency conversion.'));
-          setFxMultipliers(new Map());
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [rows, expensesPayload, issuedInvoicesPayload]);
+  const taxFxCurrencyCodes = useMemo(
+    () => rows.map((row) => row.currency?.trim().toUpperCase()).filter((c): c is string => Boolean(c)),
+    [rows]
+  );
+  const taxFxEnabled = rowsNeedForeignFx && Boolean(expensesPayload && issuedInvoicesPayload);
+  const { fxMultipliers, fxError } = useFxMultipliersForCurrencies(taxFxCurrencyCodes, taxFxEnabled);
 
   const fyMeta = useMemo(() => getFiscalYearRangeInclusive(fyStartYear), [fyStartYear]);
 
@@ -147,7 +119,7 @@ export function TaxFiscalYearPanel() {
     URL.revokeObjectURL(url);
   }, [rows, fyStartYear, expenseStatusFilter]);
 
-  const tableError = [loadError, fxError].filter(Boolean).join(' ');
+  const tableError = [loadError, fxError].filter(Boolean).join(' • ');
 
   return (
     <PaginatedTableCard
@@ -160,7 +132,7 @@ export function TaxFiscalYearPanel() {
       loadingLabel='Loading expenses and invoices…'
       onLoadMore={() => {}}
       toolbar={
-        <div className='mb-3 flex flex-wrap items-end gap-3'>
+        <AdminTableToolbar>
           <div className='min-w-[220px]'>
             <Label htmlFor={fySelectId}>Fiscal year</Label>
             <Select
@@ -199,7 +171,7 @@ export function TaxFiscalYearPanel() {
           >
             Download CSV
           </Button>
-        </div>
+        </AdminTableToolbar>
       }
     >
       <AdminDataTable tableClassName='min-w-[920px]'>

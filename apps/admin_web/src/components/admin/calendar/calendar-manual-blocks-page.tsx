@@ -4,16 +4,23 @@ import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import {
   CONSULTATION_BOOKING_BLOCK_PURPOSE,
   createCalendarManualBlock,
@@ -79,7 +86,7 @@ export function CalendarManualBlocksPage() {
       });
       setRows(items);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Failed to load blocks.';
+      const message = toErrorMessage(caught, 'Failed to load blocks.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setIsLoading(false);
@@ -153,7 +160,7 @@ export function CalendarManualBlocksPage() {
       );
       await loadRows();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Save failed.';
+      const message = toErrorMessage(caught, 'Save failed.', { honorBackendMessage: true });
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -179,7 +186,7 @@ export function CalendarManualBlocksPage() {
       }
       await loadRows();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Delete failed.';
+      const message = toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setDeleteBusyId(null);
@@ -260,7 +267,7 @@ export function CalendarManualBlocksPage() {
         loadingLabel='Loading blocks…'
         onLoadMore={() => {}}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div>
               <Label htmlFor='calendar-list-from'>From</Label>
               <Input
@@ -282,7 +289,7 @@ export function CalendarManualBlocksPage() {
             <Button type='button' variant='secondary' onClick={() => void loadRows()}>
               Refresh
             </Button>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[640px]'>
@@ -291,7 +298,7 @@ export function CalendarManualBlocksPage() {
               <th className='px-4 py-3 font-semibold'>Date</th>
               <th className='px-4 py-3 font-semibold'>AM/PM</th>
               <th className='px-4 py-3 font-semibold'>Note</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

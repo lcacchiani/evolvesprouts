@@ -1,25 +1,32 @@
 'use client';
 
 import type { KeyboardEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
 import { DeleteIcon, MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toErrorMessage } from '@/hooks/hook-errors';
+import { useFxMultipliersForCurrencies } from '@/hooks/use-fx-multipliers-for-currencies';
 import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { primaryExpenseAttachmentAssetId } from '@/lib/expense-attachments';
 import { formatDateOnly, formatEnumLabel } from '@/lib/format';
-import { formatMoneyLineWithFxToDefault, loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
+import { formatMoneyLineWithFxToDefault } from '@/lib/vendor-spend';
 import {
   EXPENSE_PARSE_STATUSES,
   EXPENSE_STATUSES,
@@ -101,8 +108,6 @@ export function ExpensesListPanel({
   const [voidExpenseId, setVoidExpenseId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
-  const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
-  const [fxError, setFxError] = useState('');
 
   const expensesNeedForeignFx = useMemo(() => {
     const defaultCurrency = getAdminDefaultCurrencyCode();
@@ -111,35 +116,19 @@ export function ExpensesListPanel({
     );
   }, [expenses]);
 
-  useEffect(() => {
-    if (!expensesNeedForeignFx) {
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      setFxMultipliers(null);
-      try {
-        const codes = expenses
-          .map((expense) => expense.currency?.trim().toUpperCase())
-          .filter((code): code is string => Boolean(code));
-        const map = await loadFxMultipliersToAdminDefault(codes);
-        if (!cancelled) {
-          setFxMultipliers(map);
-          setFxError('');
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setFxError(toErrorMessage(err, 'Could not load FX rates for currency conversion.'));
-          setFxMultipliers(new Map());
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [expenses, expensesNeedForeignFx]);
+  const expenseFxCurrencyCodes = useMemo(
+    () =>
+      expenses
+        .map((expense) => expense.currency?.trim().toUpperCase())
+        .filter((code): code is string => Boolean(code)),
+    [expenses],
+  );
+  const { fxMultipliers, fxError } = useFxMultipliersForCurrencies(
+    expenseFxCurrencyCodes,
+    expensesNeedForeignFx,
+  );
 
-  const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' ');
+  const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' • ');
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, expenseId: string) => {
     if (event.target !== event.currentTarget) {
@@ -178,7 +167,7 @@ export function ExpensesListPanel({
       await onVoidExpense(voidExpenseId, voidReason.trim());
       closeVoidDialog();
     } catch (caught) {
-      setVoidError(caught instanceof Error ? caught.message : 'Could not void this expense.');
+      setVoidError(toErrorMessage(caught, 'Could not void this expense.', { honorBackendMessage: true }));
     }
   };
 
@@ -203,7 +192,7 @@ export function ExpensesListPanel({
       await onDeleteDraft(deleteDraftExpenseId);
       closeDeleteDraftDialog();
     } catch (caught) {
-      setDeleteDraftError(caught instanceof Error ? caught.message : 'Could not delete this expense.');
+      setDeleteDraftError(toErrorMessage(caught, 'Could not delete this expense.', { honorBackendMessage: true }));
     }
   };
 
@@ -219,7 +208,7 @@ export function ExpensesListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 space-y-2'>
-            <div className='flex flex-wrap items-end gap-3'>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='expenses-query'>Search</Label>
                 <Input
@@ -259,7 +248,7 @@ export function ExpensesListPanel({
                   ))}
                 </Select>
               </div>
-            </div>
+            </AdminTableToolbar>
             {documentOpenError ? <AdminInlineError>{documentOpenError}</AdminInlineError> : null}
           </div>
         }
@@ -271,7 +260,7 @@ export function ExpensesListPanel({
               <th className='px-4 py-3 font-semibold'>Total</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Issued</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

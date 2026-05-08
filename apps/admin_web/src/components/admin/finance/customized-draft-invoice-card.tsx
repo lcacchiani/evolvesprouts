@@ -9,12 +9,14 @@ import {
   AdminDataTable,
   AdminDataTableBody,
   AdminDataTableHead,
+  AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { createDraftInvoice } from '@/lib/billing-api';
 
 export const CUSTOMIZED_DRAFT_INVOICE_FORM_ID = 'client-billing-customized-draft-form';
@@ -267,7 +269,7 @@ export function CustomizedDraftInvoiceCard({
       setCustomizedLines([makeCustomizedLineRow(customizedLineIdSeq.current)]);
     } catch (caught) {
       onDraftError?.(
-        caught instanceof Error ? caught.message : 'Create draft failed.',
+        toErrorMessage(caught, 'Create draft failed.', { honorBackendMessage: true }),
       );
     } finally {
       onRequestBusy?.(false);
@@ -359,7 +361,7 @@ export function CustomizedDraftInvoiceCard({
                     <th className='w-[6rem] px-3 py-2 text-right'>Discount</th>
                     <th className='w-[5.5rem] px-3 py-2 text-right'>Tax rate</th>
                     <th className='w-[6.5rem] px-3 py-2 text-right'>Tax amount</th>
-                    <th className='px-3 py-2 text-right'>Operations</th>
+                    <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
                   </tr>
                 </AdminDataTableHead>
                 <AdminDataTableBody>

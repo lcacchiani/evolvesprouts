@@ -3,18 +3,20 @@
 import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead, AdminDataTableOperationsHeadCell } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { AdminApiError, readAdminApiErrorField } from '@/lib/api-admin-client';
+import { toErrorMessage } from '@/hooks/hook-errors';
+import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
 import {
   createAdminTag,
   deleteOrArchiveAdminTag,
@@ -68,7 +70,7 @@ export function TagsPage() {
       const rows = await listAdminTags({ filter: listFilter });
       setTags(rows);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Failed to load tags.';
+      const message = toErrorMessage(caught, 'Failed to load tags.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setIsLoading(false);
@@ -112,7 +114,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Restore failed.';
+      const message = toErrorMessage(caught, 'Restore failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setRestoreBusyId(null);
@@ -141,7 +143,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Archive failed.';
+      const message = toErrorMessage(caught, 'Archive failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setArchiveBusyId(null);
@@ -177,11 +179,12 @@ export function TagsPage() {
       await updateAdminTag(selectedTagId, body);
       await loadTags();
     } catch (caught) {
-      if (caught instanceof AdminApiError && readAdminApiErrorField(caught) === 'name') {
-        setSaveError('A tag with this name already exists.');
+      const conflict = conflictFieldUserMessage(caught, { name: 'A tag with this name already exists.' });
+      if (conflict) {
+        setSaveError(conflict);
         return;
       }
-      const message = caught instanceof Error ? caught.message : 'Save failed.';
+      const message = toErrorMessage(caught, 'Save failed.', { honorBackendMessage: true });
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -213,7 +216,7 @@ export function TagsPage() {
       }
       await loadTags();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Delete failed.';
+      const message = toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setDeleteBusyId(null);
@@ -315,7 +318,7 @@ export function TagsPage() {
         loadingLabel='Loading tags…'
         onLoadMore={() => {}}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
+          <AdminTableToolbar>
             <div className='min-w-[200px] flex-1'>
               <Label htmlFor='tags-list-search'>Search</Label>
               <Input
@@ -338,7 +341,7 @@ export function TagsPage() {
                 <option value='archived'>Archived</option>
               </Select>
             </div>
-          </div>
+          </AdminTableToolbar>
         }
       >
         <AdminDataTable tableClassName='min-w-[720px]'>
@@ -348,7 +351,7 @@ export function TagsPage() {
               <th className='px-4 py-3 font-semibold'>Color</th>
               <th className='px-4 py-3 font-semibold'>Uses</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>

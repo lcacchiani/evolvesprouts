@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export interface AdminDataTableProps {
   children: ReactNode;
@@ -40,4 +41,23 @@ export function AdminDataTableHead({ children, sticky }: AdminDataTableHeadProps
 
 export function AdminDataTableBody({ children }: { children: ReactNode }) {
   return <tbody className='divide-y divide-slate-200 bg-white text-sm'>{children}</tbody>;
+}
+
+export interface AdminDataTableOperationsHeadCellProps {
+  children?: ReactNode;
+  className?: string;
+  scope?: 'col' | 'row';
+}
+
+/** Standard right-aligned operations column header for admin listing tables. */
+export function AdminDataTableOperationsHeadCell({
+  children = 'Operations',
+  className,
+  scope = 'col',
+}: AdminDataTableOperationsHeadCellProps) {
+  return (
+    <th scope={scope} className={twMerge('px-4 py-3 text-right font-semibold', className)}>
+      {children}
+    </th>
+  );
 }
