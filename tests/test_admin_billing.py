@@ -2541,6 +2541,152 @@ def test_compose_enrollment_party_display_name_contact_includes_email_when_known
     )
 
 
+def test_resolve_bill_to_party_from_invoice_fks_family_uses_primary_contact_only() -> None:
+    """Family invoices show primary contact as bill-to display name (no family · name line)."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Family
+
+    fid = uuid4()
+    fam = SimpleNamespace(family_name="The Ng Household")
+    primary = SimpleNamespace(
+        first_name="Pat",
+        last_name="Ng",
+        email="pat@example.com",
+    )
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Family and pk == fid:
+            return fam
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_family_id=fid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_display_name == "Pat Ng"
+    assert inv.bill_to_email == "pat@example.com"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_family_falls_back_to_family_name() -> None:
+    """When no primary contact name exists, family bill-to still gets a non-empty label."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Family
+
+    fid = uuid4()
+    fam = SimpleNamespace(family_name="Orphan Household")
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Family and pk == fid:
+            return fam
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = None
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_family_id=fid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_display_name == "Orphan Household"
+
+
+def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(title="Parent Service", service_tier="premium")
+    inst = SimpleNamespace(title=None, cohort="spring 2026", service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Parent Service Premium Spring 2026"
+    )
+
+
+def test_build_enrollment_merge_line_description_prefers_instance_title_and_ticket_tier() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    tier = SimpleNamespace(name="early bird")
+    svc = SimpleNamespace(title="Event Parent", service_tier="ignored_when_ticket")
+    inst = SimpleNamespace(title="June Weekend", cohort=None, service=svc)
+    tt_id = uuid4()
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=tt_id,
+        ticket_tier=tier,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "June Weekend Early bird"
+    )
+
+
+def test_resolve_bill_to_party_from_invoice_fks_organization_two_lines() -> None:
+    """Organization invoices store entity and primary contact on separate lines (PDF breaks)."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Organization
+
+    oid = uuid4()
+    org = SimpleNamespace(name="Acme Learning Ltd")
+    primary = SimpleNamespace(
+        first_name="Jordan",
+        last_name="Lee",
+        email="jordan@example.com",
+    )
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Organization and pk == oid:
+            return org
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.ORGANIZATION,
+        bill_to_organization_id=oid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_display_name == "Acme Learning Ltd\nJordan Lee"
+    assert inv.bill_to_email == "jordan@example.com"
+
+
 def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_display_name() -> None:
     """Contact bill-to must populate display name even when email is absent (list + PDF)."""
     from types import SimpleNamespace
