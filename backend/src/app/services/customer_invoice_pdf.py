@@ -384,6 +384,12 @@ def render_invoice_pdf(
         leading=16,
         textColor=_INV_BODY_TEXT,
     )
+    # Tighter than ``body_text_style`` for the Bank / Account Number / Account Name block only.
+    bank_detail_line_style = ParagraphStyle(
+        "InvBankDetailLine",
+        parent=body_text_style,
+        leading=13,
+    )
     header_label_style = ParagraphStyle(
         "InvHeaderLabel",
         parent=styles["Normal"],
@@ -894,10 +900,10 @@ def render_invoice_pdf(
                     if not bl:
                         continue
                     if not first_bank:
-                        pay_rows.append([Spacer(1, 2), ""])
+                        pay_rows.append([Spacer(1, 1), ""])
                         pay_style_cmds.append(("SPAN", (0, r), (1, r)))
                         r += 1
-                    pay_rows.append([Paragraph(bl, body_text_style), ""])
+                    pay_rows.append([Paragraph(bl, bank_detail_line_style), ""])
                     pay_style_cmds.append(("SPAN", (0, r), (1, r)))
                     r += 1
                     first_bank = False
