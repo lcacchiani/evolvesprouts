@@ -1095,24 +1095,47 @@ export function ClientInvoicesPanel() {
         }
       >
         <div className='space-y-4'>
-          <div className='max-w-md'>
-            <Label htmlFor={draftModeId}>Draft type</Label>
-            <Select
-              id={draftModeId}
-              className='mt-1 w-full'
-              value={draftCreationMode}
-              onChange={(e) => {
-                const v = e.target.value === 'customized' ? 'customized' : 'enrollment';
-                setDraftCreationMode(v);
-                if (v === 'enrollment') {
-                  setCustomizedFormSubmitEnabled(false);
+          <div className='flex flex-wrap items-end gap-4'>
+            <div className='min-w-[200px] max-w-md flex-1'>
+              <Label htmlFor={draftModeId}>Draft type</Label>
+              <Select
+                id={draftModeId}
+                className='mt-1 w-full'
+                value={draftCreationMode}
+                onChange={(e) => {
+                  const v = e.target.value === 'customized' ? 'customized' : 'enrollment';
+                  setDraftCreationMode(v);
+                  if (v === 'enrollment') {
+                    setCustomizedFormSubmitEnabled(false);
+                  }
+                }}
+                disabled={editorBusy}
+              >
+                <option value='enrollment'>Enrollment-based</option>
+                <option value='customized'>Customized (manual lines)</option>
+              </Select>
+            </div>
+            <div className='min-w-[180px]'>
+              <Label htmlFor={draftInvoiceDateId}>Invoice date</Label>
+              <Input
+                id={draftInvoiceDateId}
+                form={
+                  draftCreationMode === 'enrollment' ? DRAFT_FORM_ID : CUSTOMIZED_DRAFT_INVOICE_FORM_ID
                 }
-              }}
-              disabled={editorBusy}
-            >
-              <option value='enrollment'>Enrollment-based</option>
-              <option value='customized'>Customized (manual lines)</option>
-            </Select>
+                type='date'
+                className='mt-1 w-full'
+                value={draftInvoiceDate}
+                onChange={(e) => setDraftInvoiceDate(e.target.value)}
+                onBlur={(e) => {
+                  if (e.target.value === '') {
+                    setDraftInvoiceDate(localTodayYmd());
+                  }
+                }}
+                min={draftInvoiceDateMin}
+                max={draftInvoiceDateMax}
+                disabled={editorBusy}
+              />
+            </div>
           </div>
           {draftCreationMode === 'enrollment' ? (
             <form
@@ -1125,29 +1148,6 @@ export function ClientInvoicesPanel() {
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
-              <div className='flex flex-wrap gap-4'>
-                <div className='min-w-[180px]'>
-                  <Label htmlFor={draftInvoiceDateId}>Invoice date</Label>
-                  <Input
-                    id={draftInvoiceDateId}
-                    type='date'
-                    className='mt-1 w-full'
-                    value={draftInvoiceDate}
-                    onChange={(e) => setDraftInvoiceDate(e.target.value)}
-                    onBlur={(e) => {
-                      if (e.target.value === '') {
-                        setDraftInvoiceDate(localTodayYmd());
-                      }
-                    }}
-                    min={draftInvoiceDateMin}
-                    max={draftInvoiceDateMax}
-                    disabled={editorBusy}
-                  />
-                  <p className='mt-1 text-xs text-slate-600'>
-                    Shown on the issued PDF and in the Invoice date column. Defaults to today.
-                  </p>
-                </div>
-              </div>
               <AdminTableToolbar marginBottom='none'>
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor={draftFilterId}>Filter enrollments</Label>
@@ -1380,6 +1380,7 @@ export function ClientInvoicesPanel() {
               currencyOptions={currencyOptions}
               editorBusy={editorBusy}
               loadParents={draftCreationMode === 'customized'}
+              draftInvoiceDate={draftInvoiceDate}
               onRequestBusy={(busy) => setBusy(busy ? 'customized' : null)}
               onDraftError={(msg) => setActionError(msg)}
               onValidityChange={setCustomizedFormSubmitEnabled}
@@ -1389,6 +1390,7 @@ export function ClientInvoicesPanel() {
                 setAllocateInvoiceId('');
                 setAllocateLineId('');
                 setActionMessage(`Draft invoice created: ${invoiceId}`);
+                setDraftInvoiceDate(localTodayYmd());
                 await loadPayments();
                 await loadInvoicesFirstPage();
               }}

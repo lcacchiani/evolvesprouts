@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -1182,6 +1182,51 @@ describe('ClientInvoicesPanel', () => {
       lines: [{ description: 'Consulting hours', quantity: '1', unitAmount: '150' }],
       invoiceDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     });
+  });
+
+  it('create customized draft sends chosen top-level invoice date', async () => {
+    billingMocks.createDraftInvoice.mockResolvedValue({ invoiceId: 'inv-d', status: 'draft' });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2025-06-01T12:00:00Z'));
+    try {
+      render(<ClientInvoicesPanel />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
+      });
+
+      await userEvent.selectOptions(screen.getByLabelText(/^Draft type$/i), 'customized');
+
+      const dateInput = screen.getByLabelText(/^Invoice date$/i) as HTMLInputElement;
+      fireEvent.change(dateInput, { target: { value: '2025-07-04' } });
+
+      const customizedForm = document.getElementById('client-billing-customized-draft-form');
+      expect(customizedForm).toBeTruthy();
+      const desc = within(customizedForm as HTMLElement).getByLabelText(/^Description/i);
+      await userEvent.clear(desc);
+      await userEvent.type(desc, 'Line A');
+
+      const unit = within(customizedForm as HTMLElement).getByLabelText(/^Unit price/i);
+      await userEvent.clear(unit);
+      await userEvent.type(unit, '25');
+
+      await userEvent.selectOptions(
+        screen.getByLabelText(/^Contact$/i),
+        'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Create draft invoice from custom lines' }));
+
+      await waitFor(() => {
+        expect(billingMocks.createDraftInvoice).toHaveBeenCalled();
+      });
+      expect(billingMocks.createDraftInvoice.mock.calls[0][0]).toMatchObject({
+        draftKind: 'customized_manual',
+        invoiceDate: '2025-07-04',
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('blocks checkbox when invoiceLinked', async () => {
