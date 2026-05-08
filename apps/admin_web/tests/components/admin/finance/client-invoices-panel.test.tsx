@@ -45,6 +45,7 @@ vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
 }));
 
 import { ClientInvoicesPanel } from '@/components/admin/finance/client-invoices-panel';
+import { formatDate } from '@/lib/format';
 
 function firstCustomerInvoiceDataRow(invoiceTable: HTMLElement): HTMLElement {
   const rows = within(invoiceTable).getAllByRole('row');
@@ -116,6 +117,51 @@ describe('ClientInvoicesPanel', () => {
       const sel = document.getElementById('billing-allocate-invoice') as HTMLSelectElement;
       expect(sel.value).toBe(invId);
     });
+  });
+
+  it('invoice list shows Invoice date column and prefers invoiceDate over createdAt', async () => {
+    billingMocks.listCustomerInvoices.mockResolvedValue({
+      items: [
+        {
+          id: 'inv-a',
+          status: 'draft',
+          invoiceNumber: null,
+          currency: 'HKD',
+          total: '10',
+          lineCount: 1,
+          billToDisplayName: 'Pat',
+          createdAt: '2020-01-01T00:00:00+00:00',
+          invoiceDate: '2025-05-15',
+        },
+        {
+          id: 'inv-b',
+          status: 'draft',
+          invoiceNumber: null,
+          currency: 'HKD',
+          total: '5',
+          lineCount: 1,
+          billToDisplayName: 'Sam',
+          createdAt: '2024-06-01T12:00:00+00:00',
+          invoiceDate: null,
+        },
+      ],
+      next_cursor: null,
+    });
+
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => {
+      expect(billingMocks.listCustomerInvoices).toHaveBeenCalled();
+    });
+
+    const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
+    const invoiceTable = within(invoiceRegion).getByRole('table');
+    expect(within(invoiceTable).getByRole('columnheader', { name: 'Invoice date' })).toBeInTheDocument();
+    const dataRows = within(invoiceTable).getAllByRole('row').slice(1);
+    const row1cells = within(dataRows[0]).getAllByRole('cell');
+    const row2cells = within(dataRows[1]).getAllByRole('cell');
+    expect(row1cells[5]).toHaveTextContent(formatDate('2025-05-15'));
+    expect(row2cells[5]).toHaveTextContent(formatDate('2024-06-01T12:00:00+00:00'));
   });
 
   it('passes status filter to listCustomerInvoices', async () => {
@@ -965,6 +1011,7 @@ describe('ClientInvoicesPanel', () => {
     expect(arg.currency).toBeUndefined();
     expect(arg.enrollmentIds).toEqual([id1, id2]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
+    expect(arg.invoiceDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('create draft allows zero-dollar enrollments with recorded amount 0', async () => {
@@ -1000,6 +1047,7 @@ describe('ClientInvoicesPanel', () => {
     expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.enrollmentIds).toEqual([id1]);
     expect(arg.lineTotalsByEnrollmentId).toBeUndefined();
+    expect(arg.invoiceDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('create draft is disabled when line total override is not a valid number', async () => {
@@ -1065,6 +1113,7 @@ describe('ClientInvoicesPanel', () => {
     expect(arg.draftKind).toBe('enrollment_merge');
     expect(arg.currency).toBeUndefined();
     expect(arg.lineTotalsByEnrollmentId).toEqual({ [id1]: '99' });
+    expect(arg.invoiceDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     cleanup();
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
@@ -1131,6 +1180,7 @@ describe('ClientInvoicesPanel', () => {
       billTo: { kind: 'contact', contactId: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
       currency: 'HKD',
       lines: [{ description: 'Consulting hours', quantity: '1', unitAmount: '150' }],
+      invoiceDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     });
   });
 

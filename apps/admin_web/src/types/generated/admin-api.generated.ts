@@ -6151,6 +6151,10 @@ export interface components {
             billToEmail?: string | null;
             /** Format: date-time */
             issuedAt?: string | null;
+            /** Format: date */
+            invoiceDate?: string | null;
+            /** Format: date */
+            dueDate?: string | null;
             /** Format: date-time */
             voidedAt?: string | null;
             issuedPdfSha256?: string | null;
@@ -6221,6 +6225,11 @@ export interface components {
             lineTotalsByEnrollmentId?: {
                 [key: string]: string;
             };
+            /**
+             * Format: date
+             * @description Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
+             */
+            invoiceDate?: string | null;
         };
         /** @description Bill-to party for a customized draft. Supply exactly one of contactId, familyId, or organizationId matching `kind`. */
         InvoiceBillToInput: {
@@ -6266,6 +6275,11 @@ export interface components {
             billTo: components["schemas"]["InvoiceBillToInput"];
             currency: string;
             lines: components["schemas"]["CustomizedInvoiceLineInput"][];
+            /**
+             * Format: date
+             * @description Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
+             */
+            invoiceDate?: string | null;
         };
         CreatePaymentAllocationRequest: {
             /** Format: uuid */

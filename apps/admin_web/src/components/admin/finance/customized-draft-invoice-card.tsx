@@ -92,6 +92,7 @@ export function CustomizedDraftInvoiceCard({
   const customizedBillKindId = useId();
   const customizedBillEntitySelectId = useId();
   const customizedCurrencyId = useId();
+  const customizedInvoiceDateId = useId();
 
   const {
     contactOptions,
@@ -112,6 +113,9 @@ export function CustomizedDraftInvoiceCard({
   const [customizedLines, setCustomizedLines] = useState<CustomizedLineDraftRow[]>(() => [
     makeCustomizedLineRow(1),
   ]);
+  const [customizedInvoiceDate, setCustomizedInvoiceDate] = useState<string>(
+    () => new Date().toLocaleDateString('en-CA'),
+  );
 
   useEffect(() => {
     setCustomizedBillEntityId('');
@@ -265,10 +269,12 @@ export function CustomizedDraftInvoiceCard({
         billTo,
         currency: customizedCurrency.trim().toUpperCase(),
         lines,
+        invoiceDate: customizedInvoiceDate.trim() || undefined,
       });
       await onCreated(result.invoiceId);
       customizedLineIdSeq.current += 1;
       setCustomizedLines([makeCustomizedLineRow(customizedLineIdSeq.current)]);
+      setCustomizedInvoiceDate(new Date().toLocaleDateString('en-CA'));
     } catch (caught) {
       onDraftError?.(
         toErrorMessage(caught, 'Create draft failed.', { honorBackendMessage: true }),
@@ -345,6 +351,17 @@ export function CustomizedDraftInvoiceCard({
                 </option>
               ))}
             </Select>
+          </div>
+          <div className='min-w-[180px]'>
+            <Label htmlFor={customizedInvoiceDateId}>Invoice date</Label>
+            <Input
+              id={customizedInvoiceDateId}
+              type='date'
+              className='mt-1 w-full'
+              value={customizedInvoiceDate}
+              onChange={(e) => setCustomizedInvoiceDate(e.target.value)}
+              disabled={editorBusy}
+            />
           </div>
         </div>
         <AdminCollapsibleSection

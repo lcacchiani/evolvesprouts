@@ -6325,6 +6325,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        invoiceDate:
+          type: string
+          format: date
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
         voidedAt:
           type: string
           format: date-time
@@ -6483,6 +6491,11 @@ components:
           additionalProperties:
             type: string
             description: Decimal amount as string
+        invoiceDate:
+          type: string
+          format: date
+          nullable: true
+          description: Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
     InvoiceBillToInput:
       type: object
       required:
@@ -6566,6 +6579,11 @@ components:
             $ref: "#/components/schemas/CustomizedInvoiceLineInput"
           minItems: 1
           maxItems: 50
+        invoiceDate:
+          type: string
+          format: date
+          nullable: true
+          description: Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
     CreatePaymentAllocationRequest:
       type: object
       required:

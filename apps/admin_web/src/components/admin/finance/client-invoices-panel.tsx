@@ -205,6 +205,10 @@ export function ClientInvoicesPanel() {
   const [enrollmentFilter, setEnrollmentFilter] = useState('');
   const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<Set<string>>(() => new Set());
   const [lineOverrideByEnrollmentId, setLineOverrideByEnrollmentId] = useState<Record<string, string>>({});
+  const draftInvoiceDateId = useId();
+  const [draftInvoiceDate, setDraftInvoiceDate] = useState<string>(
+    () => new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD in browser local TZ
+  );
 
   const [allocateInvoiceId, setAllocateInvoiceId] = useState('');
   const [allocateLineId, setAllocateLineId] = useState('');
@@ -925,11 +929,15 @@ export function ClientInvoicesPanel() {
       if (Object.keys(overrides).length > 0) {
         body.lineTotalsByEnrollmentId = overrides;
       }
+      if (draftInvoiceDate.trim() !== '') {
+        body.invoiceDate = draftInvoiceDate.trim();
+      }
       const result = await createDraftInvoice(body);
       setSelectedInvoiceId(result.invoiceId);
       setAllocateInvoiceId('');
       setAllocateLineId('');
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
+      setDraftInvoiceDate(new Date().toLocaleDateString('en-CA'));
       await loadPayments();
       await loadInvoicesFirstPage();
       await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
@@ -1109,6 +1117,19 @@ export function ClientInvoicesPanel() {
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
+              <div className='flex flex-wrap gap-4'>
+                <div className='min-w-[180px]'>
+                  <Label htmlFor={draftInvoiceDateId}>Invoice date</Label>
+                  <Input
+                    id={draftInvoiceDateId}
+                    type='date'
+                    className='mt-1 w-full'
+                    value={draftInvoiceDate}
+                    onChange={(e) => setDraftInvoiceDate(e.target.value)}
+                    disabled={editorBusy}
+                  />
+                </div>
+              </div>
               <AdminTableToolbar marginBottom='none'>
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor={draftFilterId}>Filter enrollments</Label>
@@ -1446,7 +1467,7 @@ export function ClientInvoicesPanel() {
               <AdminDataTableHeadCell>Bill to</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Lines</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Invoice date</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -1481,7 +1502,7 @@ export function ClientInvoicesPanel() {
                   </AdminDataTableCell>
                   <AdminDataTableCell>{totalDisplay}</AdminDataTableCell>
                   <AdminDataTableCell>{inv.lineCount ?? 0}</AdminDataTableCell>
-                  <AdminDataTableCell>{formatDate(inv.createdAt ?? null)}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatDate(inv.invoiceDate ?? inv.createdAt ?? null)}</AdminDataTableCell>
                   <AdminDataTableCell
                     className='text-right'
                     onClick={(event) => {
