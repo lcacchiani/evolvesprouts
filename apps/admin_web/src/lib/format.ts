@@ -88,6 +88,13 @@ export function formatBillingEnrollmentPartyCell(row: {
   if (kind === 'family' || kind === 'organization') {
     return party;
   }
+  // Contact (or unknown): list API already returns `name · email` in partyDisplayName when both exist.
+  if (party && email) {
+    const suffix = `${DISPLAY_PART_SEP}${email}`;
+    if (party === email || party.endsWith(suffix)) {
+      return party;
+    }
+  }
   return formatContactNameEmailLabel(party, email, party || email || '');
 }
 

@@ -2027,3 +2027,33 @@ def test_compose_enrollment_party_display_name_contact_includes_email_when_known
         )
         == "Sam Sample \u00b7 sam@example.com"
     )
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_display_name() -> None:
+    """Contact bill-to must populate display name even when email is absent (list + PDF)."""
+    from types import SimpleNamespace
+
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact
+
+    cid = uuid4()
+    contact = SimpleNamespace(email=None, first_name="Pat", last_name="Ng")
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        return None
+
+    session.get.side_effect = _get
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_display_name == "Pat Ng"
+    assert inv.bill_to_email is None

@@ -1019,6 +1019,13 @@ describe('CRM party display labels', () => {
     ).toBe('Sam Sample · sam@example.com');
     expect(
       formatBillingEnrollmentPartyCell({
+        billToKind: 'contact',
+        partyDisplayName: 'Sam Sample · sam@example.com',
+        partyEmail: 'sam@example.com',
+      }),
+    ).toBe('Sam Sample · sam@example.com');
+    expect(
+      formatBillingEnrollmentPartyCell({
         billToKind: 'family',
         partyDisplayName: 'Smith Family · Jane',
         partyEmail: 'jane@example.com',
