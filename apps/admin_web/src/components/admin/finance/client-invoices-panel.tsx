@@ -1452,13 +1452,13 @@ export function ClientInvoicesPanel() {
         <AdminDataTable tableClassName='min-w-[900px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Status</th>
-              <th className='px-3 py-2'>Number</th>
-              <th className='px-3 py-2'>Bill to</th>
-              <th className='px-3 py-2'>Total</th>
-              <th className='px-3 py-2'>Lines</th>
-              <th className='px-3 py-2'>Created</th>
-              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
+              <th className='px-3 py-2 font-semibold'>Status</th>
+              <th className='px-3 py-2 font-semibold'>Number</th>
+              <th className='px-3 py-2 font-semibold'>Bill to</th>
+              <th className='px-3 py-2 font-semibold'>Total</th>
+              <th className='px-3 py-2 font-semibold'>Lines</th>
+              <th className='px-3 py-2 font-semibold'>Created</th>
+              <AdminDataTableOperationsHeadCell className='px-3 py-2' />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -1861,12 +1861,12 @@ export function ClientInvoicesPanel() {
         <AdminDataTable tableClassName='min-w-[640px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Direction</th>
-              <th className='px-3 py-2'>Status</th>
-              <th className='px-3 py-2'>Method</th>
-              <th className='px-3 py-2'>Amount</th>
-              <th className='px-3 py-2'>Created</th>
-              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
+              <th className='px-3 py-2 font-semibold'>Direction</th>
+              <th className='px-3 py-2 font-semibold'>Status</th>
+              <th className='px-3 py-2 font-semibold'>Method</th>
+              <th className='px-3 py-2 font-semibold'>Amount</th>
+              <th className='px-3 py-2 font-semibold'>Created</th>
+              <AdminDataTableOperationsHeadCell className='px-3 py-2' />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
