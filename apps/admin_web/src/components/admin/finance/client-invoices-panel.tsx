@@ -68,9 +68,12 @@ import {
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatBillingEnrollmentPartyCell,
   formatDate,
+  formatDateOnly,
   formatEnumLabel,
   formatEnrollmentPickerInstanceServiceDisplay,
   formatTierCohortDisplay,
+  formatYmdAsLocalDate,
+  localTodayYmd,
 } from '@/lib/format';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
 
@@ -205,6 +208,15 @@ export function ClientInvoicesPanel() {
   const [enrollmentFilter, setEnrollmentFilter] = useState('');
   const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<Set<string>>(() => new Set());
   const [lineOverrideByEnrollmentId, setLineOverrideByEnrollmentId] = useState<Record<string, string>>({});
+  const draftInvoiceDateMin = '2000-01-01';
+  const draftInvoiceDateMax = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 365);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }, []);
+  const draftInvoiceDateId = useId();
+  const [draftInvoiceDate, setDraftInvoiceDate] = useState<string>(() => localTodayYmd());
 
   const [allocateInvoiceId, setAllocateInvoiceId] = useState('');
   const [allocateLineId, setAllocateLineId] = useState('');
@@ -925,11 +937,15 @@ export function ClientInvoicesPanel() {
       if (Object.keys(overrides).length > 0) {
         body.lineTotalsByEnrollmentId = overrides;
       }
+      if (draftInvoiceDate.trim() !== '') {
+        body.invoiceDate = draftInvoiceDate.trim();
+      }
       const result = await createDraftInvoice(body);
       setSelectedInvoiceId(result.invoiceId);
       setAllocateInvoiceId('');
       setAllocateLineId('');
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
+      setDraftInvoiceDate(localTodayYmd());
       await loadPayments();
       await loadInvoicesFirstPage();
       await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
@@ -1109,6 +1125,29 @@ export function ClientInvoicesPanel() {
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
+              <div className='flex flex-wrap gap-4'>
+                <div className='min-w-[180px]'>
+                  <Label htmlFor={draftInvoiceDateId}>Invoice date</Label>
+                  <Input
+                    id={draftInvoiceDateId}
+                    type='date'
+                    className='mt-1 w-full'
+                    value={draftInvoiceDate}
+                    onChange={(e) => setDraftInvoiceDate(e.target.value)}
+                    onBlur={(e) => {
+                      if (e.target.value === '') {
+                        setDraftInvoiceDate(localTodayYmd());
+                      }
+                    }}
+                    min={draftInvoiceDateMin}
+                    max={draftInvoiceDateMax}
+                    disabled={editorBusy}
+                  />
+                  <p className='mt-1 text-xs text-slate-600'>
+                    Shown on the issued PDF and in the Invoice date column. Defaults to today.
+                  </p>
+                </div>
+              </div>
               <AdminTableToolbar marginBottom='none'>
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor={draftFilterId}>Filter enrollments</Label>
@@ -1360,7 +1399,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title='Customer invoices'
-        description='Cursor-paginated invoices (newest first). Use Operations to preview, issue, void, or permanently delete **draft** rows. Select an issued row to pre-fill allocation; when the selection is issued, use Email recipients and Send email below.'
+        description='Cursor-paginated invoices, ordered by record creation time (most recent first); the displayed Invoice date may differ from creation order when drafts are backdated. Use Operations to preview, issue, void, or permanently delete **draft** rows. Select an issued row to pre-fill allocation; when the selection is issued, use Email recipients and Send email below.'
         isLoading={invoiceListLoading}
         isLoadingMore={invoiceListLoadingMore}
         hasMore={Boolean(invoiceListCursor)}
@@ -1446,7 +1485,7 @@ export function ClientInvoicesPanel() {
               <AdminDataTableHeadCell>Bill to</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Lines</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Invoice date</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -1481,7 +1520,11 @@ export function ClientInvoicesPanel() {
                   </AdminDataTableCell>
                   <AdminDataTableCell>{totalDisplay}</AdminDataTableCell>
                   <AdminDataTableCell>{inv.lineCount ?? 0}</AdminDataTableCell>
-                  <AdminDataTableCell>{formatDate(inv.createdAt ?? null)}</AdminDataTableCell>
+                  <AdminDataTableCell>
+                    {inv.invoiceDate
+                      ? formatYmdAsLocalDate(inv.invoiceDate)
+                      : formatDateOnly(inv.createdAt ?? null)}
+                  </AdminDataTableCell>
                   <AdminDataTableCell
                     className='text-right'
                     onClick={(event) => {

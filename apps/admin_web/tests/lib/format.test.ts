@@ -17,6 +17,7 @@ import {
   formatInstanceTableTierCohort,
   formatInstanceTableTitle,
   formatTierCohortDisplay,
+  formatYmdAsLocalDate,
   ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   formatEnrollmentPickerInstanceServiceDisplay,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
@@ -31,6 +32,7 @@ import {
   getFirstSessionSlotStartTimeMs,
   getContentLanguageOptions,
   getCurrencyOptions,
+  localTodayYmd,
   matchAdminSelectableContentLanguage,
   buildSessionSlotsUtcPayload,
   mapSessionSlotsFromApiToForm,
@@ -849,6 +851,22 @@ describe('format helpers', () => {
     }).format(parsed);
     expect(formatDateOnly(iso)).toBe(expected);
     expect(formatDateOnly(null)).toBe('—');
+  });
+
+  it('formats YMD API dates without shifting the calendar day', () => {
+    const expected = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(2025, 4, 15));
+    expect(formatYmdAsLocalDate('2025-05-15')).toBe(expected);
+    expect(formatYmdAsLocalDate(null)).toBe('—');
+    expect(formatYmdAsLocalDate('not-ymd')).toBe('not-ymd');
+  });
+
+  it('localTodayYmd returns a YYYY-MM-DD string for the local calendar day', () => {
+    const ymd = localTodayYmd();
+    expect(ymd).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('maps API ISO instants to datetime-local strings and back for the API', () => {

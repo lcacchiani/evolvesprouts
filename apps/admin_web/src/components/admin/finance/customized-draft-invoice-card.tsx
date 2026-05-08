@@ -20,6 +20,7 @@ import { Select } from '@/components/ui/select';
 import { useEnrollmentParentPickers } from '@/hooks/use-enrollment-parent-pickers';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { createDraftInvoice } from '@/lib/billing-api';
+import { localTodayYmd } from '@/lib/format';
 
 export const CUSTOMIZED_DRAFT_INVOICE_FORM_ID = 'client-billing-customized-draft-form';
 const CUSTOMIZED_FORM_ID = CUSTOMIZED_DRAFT_INVOICE_FORM_ID;
@@ -92,6 +93,7 @@ export function CustomizedDraftInvoiceCard({
   const customizedBillKindId = useId();
   const customizedBillEntitySelectId = useId();
   const customizedCurrencyId = useId();
+  const customizedInvoiceDateId = useId();
 
   const {
     contactOptions,
@@ -104,6 +106,14 @@ export function CustomizedDraftInvoiceCard({
 
   const customizedLineIdSeq = useRef(1);
 
+  const draftInvoiceDateMin = '2000-01-01';
+  const draftInvoiceDateMax = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 365);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }, []);
+
   const [customizedBillKind, setCustomizedBillKind] = useState<CustomizedBillKind>('contact');
   const [customizedBillEntityId, setCustomizedBillEntityId] = useState('');
   const [customizedCurrency, setCustomizedCurrency] = useState(() =>
@@ -112,6 +122,7 @@ export function CustomizedDraftInvoiceCard({
   const [customizedLines, setCustomizedLines] = useState<CustomizedLineDraftRow[]>(() => [
     makeCustomizedLineRow(1),
   ]);
+  const [customizedInvoiceDate, setCustomizedInvoiceDate] = useState<string>(() => localTodayYmd());
 
   useEffect(() => {
     setCustomizedBillEntityId('');
@@ -265,10 +276,12 @@ export function CustomizedDraftInvoiceCard({
         billTo,
         currency: customizedCurrency.trim().toUpperCase(),
         lines,
+        invoiceDate: customizedInvoiceDate.trim() || undefined,
       });
       await onCreated(result.invoiceId);
       customizedLineIdSeq.current += 1;
       setCustomizedLines([makeCustomizedLineRow(customizedLineIdSeq.current)]);
+      setCustomizedInvoiceDate(localTodayYmd());
     } catch (caught) {
       onDraftError?.(
         toErrorMessage(caught, 'Create draft failed.', { honorBackendMessage: true }),
@@ -345,6 +358,27 @@ export function CustomizedDraftInvoiceCard({
                 </option>
               ))}
             </Select>
+          </div>
+          <div className='min-w-[180px]'>
+            <Label htmlFor={customizedInvoiceDateId}>Invoice date</Label>
+            <Input
+              id={customizedInvoiceDateId}
+              type='date'
+              className='mt-1 w-full'
+              value={customizedInvoiceDate}
+              onChange={(e) => setCustomizedInvoiceDate(e.target.value)}
+              onBlur={(e) => {
+                if (e.target.value === '') {
+                  setCustomizedInvoiceDate(localTodayYmd());
+                }
+              }}
+              min={draftInvoiceDateMin}
+              max={draftInvoiceDateMax}
+              disabled={editorBusy}
+            />
+            <p className='mt-1 text-xs text-slate-600'>
+              Shown on the issued PDF and in the Invoice date column. Defaults to today.
+            </p>
           </div>
         </div>
         <AdminCollapsibleSection

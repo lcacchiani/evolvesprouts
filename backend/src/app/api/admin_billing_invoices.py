@@ -23,7 +23,10 @@ from app.services.customer_billing import (
     refresh_invoice_pdf,
     send_invoice_email,
 )
-from app.services.customer_invoice_pdf import compute_invoice_snapshot_dates
+from app.services.customer_invoice_pdf import (
+    add_payment_terms,
+    compute_invoice_snapshot_dates,
+)
 from app.utils import json_response
 
 
@@ -120,7 +123,12 @@ def _issue_invoice(
         inv.invoice_sequence = seq
         inv.status = BillingInvoiceStatus.ISSUED
         inv.issued_at = datetime.now(UTC)
-        inv.invoice_date, inv.due_date = compute_invoice_snapshot_dates(inv.issued_at)
+        if inv.invoice_date is None:
+            inv.invoice_date, inv.due_date = compute_invoice_snapshot_dates(
+                inv.issued_at
+            )
+        else:
+            inv.due_date = add_payment_terms(inv.invoice_date)
         session.flush()
         refresh_invoice_pdf(session, inv)
 

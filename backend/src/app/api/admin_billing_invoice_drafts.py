@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 from collections.abc import Mapping
@@ -24,15 +25,39 @@ from app.api.admin_billing_invoice_draft_helpers import (
 )
 from app.config import get_default_currency_code
 from app.api.admin_request import parse_body
+from app.api.admin_expenses_common import parse_optional_date
 from app.db.audit import AuditService
 from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
 from app.exceptions import ValidationError
+from app.services.customer_invoice_pdf import today_in_invoice_display_tz_or_utc
 from app.utils import json_response
 
 _CUSTOMIZED_DRAFT_MAX_LINES = 50
 _DESC_MAX_LEN = 500
+
+_INVOICE_DATE_MIN = date(2000, 1, 1)
+
+
+def _resolve_draft_invoice_date(body: Mapping[str, Any]) -> date:
+    raw = _first_present(body, "invoiceDate", "invoice_date")
+    if raw is not None:
+        try:
+            parsed = parse_optional_date(raw)
+        except ValidationError as exc:
+            raise ValidationError(str(exc), field="invoiceDate") from exc
+    else:
+        parsed = None
+    today = today_in_invoice_display_tz_or_utc()
+    chosen = parsed if parsed is not None else today
+    if chosen < _INVOICE_DATE_MIN:
+        raise ValidationError("invoiceDate is too far in the past", field="invoiceDate")
+    if chosen > today + timedelta(days=365):
+        raise ValidationError(
+            "invoiceDate is too far in the future", field="invoiceDate"
+        )
+    return chosen
 
 
 def _create_customized_invoice_draft(
@@ -65,6 +90,8 @@ def _create_customized_invoice_draft(
             field="lines",
         )
 
+    inv_date = _resolve_draft_invoice_date(body)
+
     with _session_with_audit(user_sub, request_id) as session:
         if bill_kind == BillingBillToKind.CONTACT:
             if bill_cid is None:
@@ -94,6 +121,7 @@ def _create_customized_invoice_draft(
             bill_to_contact_id=bill_cid,
             bill_to_family_id=bill_fid,
             bill_to_organization_id=bill_oid,
+            invoice_date=inv_date,
         )
         _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
 
@@ -209,6 +237,7 @@ def _create_customized_invoice_draft(
                 "bill_to_family_id": str(bill_fid) if bill_fid else None,
                 "bill_to_organization_id": str(bill_oid) if bill_oid else None,
                 "total": str(inv.total),
+                "invoice_date": inv_date.isoformat(),
             },
         )
 
@@ -288,6 +317,8 @@ def _create_invoice_draft(
                     field="lineTotalsByEnrollmentId",
                 ) from None
 
+    inv_date = _resolve_draft_invoice_date(body)
+
     with _session_with_audit(user_sub, request_id) as session:
         rows = list(
             session.execute(
@@ -349,6 +380,7 @@ def _create_invoice_draft(
             bill_to_contact_id=bill_cid,
             bill_to_family_id=bill_fid,
             bill_to_organization_id=bill_oid,
+            invoice_date=inv_date,
         )
         _resolve_bill_to_party_for_draft(session, inv=inv, first=first)
 
@@ -390,7 +422,10 @@ def _create_invoice_draft(
             table_name="customer_invoices",
             record_id=inv.id,
             action="DRAFT_CREATED",
-            new_values={"enrollment_ids": [str(x) for x in eids]},
+            new_values={
+                "enrollment_ids": [str(x) for x in eids],
+                "invoice_date": inv_date.isoformat(),
+            },
         )
 
         return json_response(

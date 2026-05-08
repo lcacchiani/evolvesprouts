@@ -54,6 +54,8 @@ def serialize_invoice_summary(
         "billToDisplayName": inv.bill_to_display_name,
         "billToEmail": inv.bill_to_email,
         "issuedAt": inv.issued_at.isoformat() if inv.issued_at else None,
+        "invoiceDate": inv.invoice_date.isoformat() if inv.invoice_date else None,
+        "dueDate": inv.due_date.isoformat() if inv.due_date else None,
         "voidedAt": inv.voided_at.isoformat() if inv.voided_at else None,
         "issuedPdfSha256": inv.issued_pdf_sha256,
         "lineCount": line_count,

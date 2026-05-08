@@ -33,7 +33,7 @@ import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT
@@ -198,6 +198,11 @@ def payment_terms_days_or_raise() -> int:
     return val
 
 
+def add_payment_terms(inv_date: date) -> date:
+    """Return ``inv_date + INVOICE_PAYMENT_TERMS_DAYS`` using the same env helper."""
+    return inv_date + timedelta(days=payment_terms_days_or_raise())
+
+
 def invoice_display_timezone_or_raise() -> ZoneInfo:
     """Timezone for issued invoice date math; required for issuance (non-preview)."""
     tz_name = os.getenv("INVOICE_DISPLAY_TIMEZONE", "").strip()
@@ -219,10 +224,20 @@ def invoice_display_timezone_preview() -> ZoneInfo:
 def compute_invoice_snapshot_dates(issued_at: datetime) -> tuple[date, date]:
     """Compute persisted invoice_date and due_date at issue time from ``issued_at``."""
     tz = invoice_display_timezone_or_raise()
-    terms_days = payment_terms_days_or_raise()
     inv_date = calendar_date_in_tz(issued_at, tz)
-    due_date = inv_date + timedelta(days=terms_days)
+    due_date = add_payment_terms(inv_date)
     return inv_date, due_date
+
+
+def today_in_invoice_display_tz_or_utc() -> date:
+    """Calendar-today in INVOICE_DISPLAY_TIMEZONE; fall back to UTC if env var unset/invalid."""
+    tz_name = os.getenv("INVOICE_DISPLAY_TIMEZONE", "").strip()
+    if not tz_name:
+        return datetime.now(UTC).date()
+    try:
+        return datetime.now(UTC).astimezone(ZoneInfo(tz_name)).date()
+    except (ZoneInfoNotFoundError, OSError, ValueError, TypeError):
+        return datetime.now(UTC).date()
 
 
 def calendar_date_in_tz(dt: datetime | None, tz: ZoneInfo) -> date:

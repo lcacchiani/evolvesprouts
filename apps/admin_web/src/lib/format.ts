@@ -764,6 +764,27 @@ export function formatDateOnly(value: string | null): string {
   return LOCAL_DATE_FORMATTER.format(parsedDate);
 }
 
+export function localTodayYmd(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Format a `YYYY-MM-DD` calendar date without TZ shifting. */
+export function formatYmdAsLocalDate(value: string | null): string {
+  if (!value) {
+    return '—';
+  }
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!m) {
+    return value;
+  }
+  const year = Number.parseInt(m[1], 10);
+  const month = Number.parseInt(m[2], 10) - 1;
+  const day = Number.parseInt(m[3], 10);
+  return LOCAL_DATE_FORMATTER.format(new Date(year, month, day));
+}
+
 export function formatDateForInput(value: Date): string {
   return value.toISOString().slice(0, 10);
 }

@@ -621,9 +621,11 @@ Migration `0055_customer_billing_ar` introduces:
 - `document_counters`: serialized invoice/receipt numbering per scope and year.
 - Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.
 - Migration `0057_invoice_dates_snapshot` adds nullable `invoice_date` and `due_date`
-  on `customer_invoices` (calendar snapshots computed at issuance in
-  `INVOICE_DISPLAY_TIMEZONE`; drafts leave both null). PDF rendering prefers these
-  columns when set.
+  on `customer_invoices`. Drafts persist `invoice_date` at creation (defaulting to today in
+  `INVOICE_DISPLAY_TIMEZONE` when that env var is set, else UTC); `due_date` remains unset until
+  issuance and is then derived as `invoice_date` + `INVOICE_PAYMENT_TERMS_DAYS`. At issue time,
+  if `invoice_date` was not set on the draft (legacy rows), both dates are computed from `issued_at`
+  in `INVOICE_DISPLAY_TIMEZONE` as before. PDF rendering prefers these columns when set.
 
 **Migration `0058_inv_line_null_enrollment`:** `customer_invoice_lines.enrollment_id` is nullable so customized (non-enrollment) invoice lines can omit the enrollment foreign key.
 

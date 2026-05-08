@@ -229,6 +229,8 @@ def _export_csv(
                     inv.invoice_number or "",
                     "",
                     "",
+                    # TODO: CSV invoice rows still emit record `created_at`; aligning this column
+                    # with admin UI `invoice_date` is a product/export-schema decision (separate change).
                     inv.created_at.isoformat(),
                 ]
             )

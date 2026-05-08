@@ -866,6 +866,27 @@ def test_preview_uses_utc_without_display_tz(monkeypatch: pytest.MonkeyPatch) ->
     assert pdf.startswith(b"%PDF")
 
 
+def test_rendered_pdf_includes_explicit_invoice_date(monkeypatch: pytest.MonkeyPatch) -> None:
+    _base_invoice_env(monkeypatch)
+    inv = SimpleNamespace(
+        invoice_number="N-2025",
+        currency="HKD",
+        subtotal=Decimal("1"),
+        tax_total=Decimal("0"),
+        total=Decimal("1"),
+        bill_to_display_name="Client",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 10, tzinfo=UTC),
+        invoice_date=date(2025, 5, 15),
+        due_date=date(2025, 5, 22),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False)
+    text = _pdf_text(pdf)
+    assert "2025-05-15" in text
+    assert "2025-05-22" in text
+
+
 def test_issued_requires_display_timezone(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("INVOICE_DISPLAY_TIMEZONE", raising=False)
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
