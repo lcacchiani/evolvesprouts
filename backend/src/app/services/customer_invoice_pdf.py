@@ -33,7 +33,7 @@ import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT
@@ -232,12 +232,12 @@ def compute_invoice_snapshot_dates(issued_at: datetime) -> tuple[date, date]:
 def today_in_invoice_display_tz_or_utc() -> date:
     """Calendar-today in INVOICE_DISPLAY_TIMEZONE; fall back to UTC if env var unset/invalid."""
     tz_name = os.getenv("INVOICE_DISPLAY_TIMEZONE", "").strip()
-    if tz_name:
-        try:
-            return datetime.now(UTC).astimezone(ZoneInfo(tz_name)).date()
-        except Exception:
-            pass
-    return datetime.now(UTC).date()
+    if not tz_name:
+        return datetime.now(UTC).date()
+    try:
+        return datetime.now(UTC).astimezone(ZoneInfo(tz_name)).date()
+    except (ZoneInfoNotFoundError, OSError, ValueError, TypeError):
+        return datetime.now(UTC).date()
 
 
 def calendar_date_in_tz(dt: datetime | None, tz: ZoneInfo) -> date:
