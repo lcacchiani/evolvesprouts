@@ -20,6 +20,10 @@ from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
 from app.api import admin_billing_payments as admin_billing_payments_mod
+from app.api.admin_billing_common import (
+    effective_enrollment_bill_to_fks,
+    enrollment_bill_to_merge_key,
+)
 from app.db.models import Enrollment
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import (
@@ -607,6 +611,40 @@ def test_list_recent_enrollments_infers_family_when_bill_to_kind_null(
     body = json.loads(r["body"])
     assert body["items"][0]["billToKind"] == "family"
     assert body["items"][0]["partyDisplayName"] == "Ng Household · Pat Ng"
+
+
+def test_effective_enrollment_bill_to_fks_family_falls_back_to_family_id() -> None:
+    """Family-scoped enrollments may set ``family_id`` without ``bill_to_family_id``."""
+    iid = uuid4()
+    fam_id = uuid4()
+    contact_id = uuid4()
+    en = Enrollment(
+        instance_id=iid,
+        contact_id=contact_id,
+        family_id=fam_id,
+        organization_id=None,
+        ticket_tier_id=None,
+        discount_code_id=None,
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        status=EnrollmentStatus.CONFIRMED,
+        amount_paid=Decimal("10"),
+        currency="HKD",
+        enrolled_at=datetime(2026, 3, 1, tzinfo=UTC),
+        cancelled_at=None,
+        notes=None,
+        created_by="test",
+    )
+    bk, cid, fid, oid = effective_enrollment_bill_to_fks(en)
+    assert bk == BillingBillToKind.FAMILY
+    assert cid is None
+    assert fid == fam_id
+    assert oid is None
+    key = enrollment_bill_to_merge_key(en)
+    assert key.startswith("family||")
+    assert str(fam_id) in key
 
 
 def test_create_invoice_draft_currency_empty_string_derives(

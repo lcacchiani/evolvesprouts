@@ -10,7 +10,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from app.api.admin_billing_common import _session_with_audit
+from app.api.admin_billing_common import (
+    _session_with_audit,
+    effective_enrollment_bill_to_fks,
+)
 from app.api.admin_billing_invoice_draft_helpers import (
     _decimal_field,
     _enrollment_merge_key,
@@ -333,7 +336,9 @@ def _create_invoice_draft(
             )
 
         first = enrollments[0]
-        bill_kind = first.bill_to_kind or BillingBillToKind.CONTACT
+        bill_kind, bill_cid, bill_fid, bill_oid = effective_enrollment_bill_to_fks(
+            first
+        )
         inv = CustomerInvoice(
             status=BillingInvoiceStatus.DRAFT,
             currency=currency,
@@ -341,9 +346,9 @@ def _create_invoice_draft(
             tax_total=Decimal("0"),
             total=Decimal("0"),
             bill_to_kind=bill_kind,
-            bill_to_contact_id=first.bill_to_contact_id or first.contact_id,
-            bill_to_family_id=first.bill_to_family_id,
-            bill_to_organization_id=first.bill_to_organization_id,
+            bill_to_contact_id=bill_cid,
+            bill_to_family_id=bill_fid,
+            bill_to_organization_id=bill_oid,
         )
         _resolve_bill_to_party_for_draft(session, inv=inv, first=first)
 
