@@ -12,7 +12,9 @@ import { StatusBanner } from '@/components/status-banner';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -183,28 +185,30 @@ export function AssetGrantsPanel({
             <AdminDataTable tableClassName='min-w-[680px]'>
               <AdminDataTableHead>
                 <tr>
-                  <th className='px-4 py-3 font-semibold'>Type</th>
-                  <th className='px-4 py-3 font-semibold'>Grantee</th>
-                  <th className='px-4 py-3 font-semibold'>Granted by</th>
-                  <th className='px-4 py-3 font-semibold'>Created</th>
+                  <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
+                  <AdminDataTableHeadCell>Grantee</AdminDataTableHeadCell>
+                  <AdminDataTableHeadCell>Granted by</AdminDataTableHeadCell>
+                  <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
                   <AdminDataTableOperationsHeadCell />
                 </tr>
               </AdminDataTableHead>
               <AdminDataTableBody>
                 {isLoadingGrants ? null : grants.length === 0 ? (
                   <tr>
-                    <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                    <AdminDataTableCell colSpan={5} className='py-8 text-slate-600'>
                       No grants configured for this asset.
-                    </td>
+                    </AdminDataTableCell>
                   </tr>
                 ) : (
                   grants.map((grant) => (
                     <tr key={grant.id}>
-                      <td className='px-4 py-3 text-slate-700'>{formatEnumLabel(grant.grantType)}</td>
-                      <td className='px-4 py-3 text-slate-700'>{grant.granteeId || '—'}</td>
-                      <td className='px-4 py-3 text-slate-700'>{grant.grantedBy || '—'}</td>
-                      <td className='px-4 py-3 text-slate-700'>{formatDate(grant.createdAt)}</td>
-                      <td className='px-4 py-3 text-right'>
+                      <AdminDataTableCell className='text-slate-700'>
+                        {formatEnumLabel(grant.grantType)}
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='text-slate-700'>{grant.granteeId || '—'}</AdminDataTableCell>
+                      <AdminDataTableCell className='text-slate-700'>{grant.grantedBy || '—'}</AdminDataTableCell>
+                      <AdminDataTableCell className='text-slate-700'>{formatDate(grant.createdAt)}</AdminDataTableCell>
+                      <AdminDataTableCell className='text-right'>
                         <Button
                           type='button'
                           size='sm'
@@ -224,7 +228,7 @@ export function AssetGrantsPanel({
                             <DeleteIcon className='h-4 w-4' />
                           )}
                         </Button>
-                      </td>
+                      </AdminDataTableCell>
                     </tr>
                   ))
                 )}

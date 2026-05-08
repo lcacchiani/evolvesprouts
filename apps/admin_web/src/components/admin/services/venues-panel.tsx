@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -398,9 +400,9 @@ export function VenuesPanel({
         <AdminDataTable tableClassName='min-w-[520px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Address</th>
-              <th className='px-4 py-3 font-semibold'>Area</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Address</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Area</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -415,10 +417,10 @@ export function VenuesPanel({
                   }`}
                   onClick={() => applyVenueSelection(row)}
                 >
-                  <td className='px-4 py-3'>{row.name?.trim() || '—'}</td>
-                  <td className='px-4 py-3'>{row.address?.trim() || '—'}</td>
-                  <td className='px-4 py-3'>{area?.name ?? row.areaId}</td>
-                  <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                  <AdminDataTableCell>{row.name?.trim() || '—'}</AdminDataTableCell>
+                  <AdminDataTableCell>{row.address?.trim() || '—'}</AdminDataTableCell>
+                  <AdminDataTableCell>{area?.name ?? row.areaId}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                     <Button
                       type='button'
                       size='sm'
@@ -430,7 +432,7 @@ export function VenuesPanel({
                     >
                       <DeleteIcon className='h-4 w-4' />
                     </Button>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               );
             })}

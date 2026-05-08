@@ -8,7 +8,9 @@ import { ViewIcon } from '@/components/icons/action-icons';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
@@ -282,33 +284,27 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
           <AdminDataTable>
             <AdminDataTableHead>
               <tr>
-                <th className='px-4 py-3' scope='col'>
-                  {timestampHeader}
-                </th>
-                <th className='px-4 py-3' scope='col'>
-                  Table
-                </th>
-                <th className='px-4 py-3' scope='col'>
-                  Action
-                </th>
-                <th className='hidden px-4 py-3 md:table-cell' scope='col'>
+                <AdminDataTableHeadCell scope='col'>{timestampHeader}</AdminDataTableHeadCell>
+                <AdminDataTableHeadCell scope='col'>Table</AdminDataTableHeadCell>
+                <AdminDataTableHeadCell scope='col'>Action</AdminDataTableHeadCell>
+                <AdminDataTableHeadCell scope='col' className='hidden md:table-cell'>
                   Changed fields
-                </th>
+                </AdminDataTableHeadCell>
                 <AdminDataTableOperationsHeadCell scope='col' />
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>
               {items.map((item) => (
                 <tr key={item.id} className='hover:bg-slate-50'>
-                  <td className='px-4 py-3 text-slate-600'>{formatDate(item.timestamp)}</td>
-                  <td className='px-4 py-3 font-medium text-slate-900'>{item.table_name}</td>
-                  <td className='px-4 py-3'>
+                  <AdminDataTableCell className='text-slate-600'>{formatDate(item.timestamp)}</AdminDataTableCell>
+                  <AdminDataTableCell className='font-medium text-slate-900'>{item.table_name}</AdminDataTableCell>
+                  <AdminDataTableCell>
                     <ActionBadge action={item.action} />
-                  </td>
-                  <td className='hidden px-4 py-3 text-slate-500 md:table-cell'>
+                  </AdminDataTableCell>
+                  <AdminDataTableCell className='hidden text-slate-500 md:table-cell'>
                     {item.changed_fields?.length ? item.changed_fields.join(', ') : '—'}
-                  </td>
-                  <td className='px-4 py-3 text-right'>
+                  </AdminDataTableCell>
+                  <AdminDataTableCell className='text-right'>
                     <Button
                       type='button'
                       size='sm'
@@ -318,7 +314,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                     >
                       <ViewIcon className='h-4 w-4' />
                     </Button>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               ))}
             </AdminDataTableBody>

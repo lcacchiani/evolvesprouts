@@ -17,7 +17,9 @@ import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-secti
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -939,9 +941,9 @@ export function ContactsPanel({
         <AdminDataTable tableClassName='min-w-[960px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Email</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Email</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -957,7 +959,7 @@ export function ContactsPanel({
                   }`}
                   onClick={() => selectRow(row)}
                 >
-                  <td className='px-4 py-3'>
+                  <AdminDataTableCell>
                     {name}
                     {membershipSuffix ? (
                       <>
@@ -970,10 +972,10 @@ export function ContactsPanel({
                         ) : null}
                       </>
                     ) : null}
-                  </td>
-                  <td className='px-4 py-3'>{row.email ?? '—'}</td>
-                  <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
-                  <td className='px-4 py-3 text-right'>
+                  </AdminDataTableCell>
+                  <AdminDataTableCell>{row.email ?? '—'}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatEnumLabel(row.contact_type)}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-right'>
                     <div className='flex flex-wrap justify-end gap-2'>
                       <Button
                         type='button'
@@ -1029,7 +1031,7 @@ export function ContactsPanel({
                         <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                       </Button>
                     </div>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               );
             })}

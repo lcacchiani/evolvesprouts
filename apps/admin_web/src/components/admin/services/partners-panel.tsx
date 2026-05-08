@@ -16,7 +16,9 @@ import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-secti
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -466,9 +468,9 @@ export function PartnersPanel({
         <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -481,10 +483,10 @@ export function PartnersPanel({
                 }`}
                 onClick={() => selectRow(row.id)}
               >
-                <td className='px-4 py-3'>{row.name}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
-                <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
-                <td className='px-4 py-3 text-right'>
+                <AdminDataTableCell>{row.name}</AdminDataTableCell>
+                <AdminDataTableCell>{formatEnumLabel(row.organization_type)}</AdminDataTableCell>
+                <AdminDataTableCell>{row.active ? 'Active' : 'Archived'}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right'>
                   <div className='flex flex-wrap justify-end gap-2'>
                     <Button
                       type='button'
@@ -501,7 +503,7 @@ export function PartnersPanel({
                       <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                     </Button>
                   </div>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>

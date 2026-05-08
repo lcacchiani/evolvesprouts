@@ -15,7 +15,9 @@ import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-secti
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -509,18 +511,18 @@ export function OrganizationsPanel({
                   <AdminDataTable tableClassName='min-w-[520px]'>
                     <AdminDataTableHead>
                       <tr>
-                        <th className='px-3 py-2 font-semibold'>Contact</th>
-                        <th className='px-3 py-2 font-semibold'>Role</th>
-                        <th className='px-3 py-2 font-semibold'>Primary contact</th>
-                        <AdminDataTableOperationsHeadCell className='px-3 py-2' />
+                        <AdminDataTableHeadCell>Contact</AdminDataTableHeadCell>
+                        <AdminDataTableHeadCell>Role</AdminDataTableHeadCell>
+                        <AdminDataTableHeadCell>Primary contact</AdminDataTableHeadCell>
+                        <AdminDataTableOperationsHeadCell />
                       </tr>
                     </AdminDataTableHead>
                     <AdminDataTableBody>
                       {selected.members.map((m) => (
                         <tr key={m.id}>
-                          <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
-                          <td className='px-3 py-2'>{formatEnumLabel(m.role)}</td>
-                          <td className='px-3 py-2'>
+                          <AdminDataTableCell>{m.contact_label || m.contact_id}</AdminDataTableCell>
+                          <AdminDataTableCell>{formatEnumLabel(m.role)}</AdminDataTableCell>
+                          <AdminDataTableCell>
                             <input
                               type='checkbox'
                               className='h-4 w-4 rounded border-slate-300'
@@ -531,8 +533,8 @@ export function OrganizationsPanel({
                               }}
                               aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
                             />
-                          </td>
-                          <td className='px-3 py-2 text-right'>
+                          </AdminDataTableCell>
+                          <AdminDataTableCell className='text-right'>
                             <Button
                               type='button'
                               size='sm'
@@ -550,7 +552,7 @@ export function OrganizationsPanel({
                             >
                               <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                             </Button>
-                          </td>
+                          </AdminDataTableCell>
                         </tr>
                       ))}
                     </AdminDataTableBody>
@@ -605,10 +607,10 @@ export function OrganizationsPanel({
         <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Members</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Members</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -623,7 +625,7 @@ export function OrganizationsPanel({
                 }`}
                 onClick={() => selectRow(row.id)}
               >
-                <td className='px-4 py-3'>
+                <AdminDataTableCell>
                   {row.name}
                   {primaryLabel ? (
                     <>
@@ -631,11 +633,11 @@ export function OrganizationsPanel({
                       {primaryLabel}
                     </>
                   ) : null}
-                </td>
-                <td className='px-4 py-3'>{formatEnumLabel(row.organization_type)}</td>
-                <td className='px-4 py-3'>{row.members.length}</td>
-                <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
-                <td className='px-4 py-3 text-right'>
+                </AdminDataTableCell>
+                <AdminDataTableCell>{formatEnumLabel(row.organization_type)}</AdminDataTableCell>
+                <AdminDataTableCell>{row.members.length}</AdminDataTableCell>
+                <AdminDataTableCell>{row.active ? 'Active' : 'Archived'}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right'>
                   <div className='flex flex-wrap justify-end gap-2'>
                     <Button
                       type='button'
@@ -652,7 +654,7 @@ export function OrganizationsPanel({
                       <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                     </Button>
                   </div>
-                </td>
+                </AdminDataTableCell>
               </tr>
               );
             })}

@@ -8,7 +8,9 @@ import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-secti
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
@@ -355,19 +357,19 @@ export function CustomizedDraftInvoiceCard({
               <AdminDataTable tableClassName='min-w-[52rem]'>
                 <AdminDataTableHead sticky>
                   <tr>
-                    <th className='min-w-[12rem] px-3 py-2'>Description</th>
-                    <th className='w-[5.5rem] px-3 py-2 text-right'>Quantity</th>
-                    <th className='w-[6.5rem] px-3 py-2 text-right'>Unit price</th>
-                    <th className='w-[6rem] px-3 py-2 text-right'>Discount</th>
-                    <th className='w-[5.5rem] px-3 py-2 text-right'>Tax rate</th>
-                    <th className='w-[6.5rem] px-3 py-2 text-right'>Tax amount</th>
-                    <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
+                    <AdminDataTableHeadCell className='min-w-[12rem]'>Description</AdminDataTableHeadCell>
+                    <AdminDataTableHeadCell className='w-[5.5rem] text-right'>Quantity</AdminDataTableHeadCell>
+                    <AdminDataTableHeadCell className='w-[6.5rem] text-right'>Unit price</AdminDataTableHeadCell>
+                    <AdminDataTableHeadCell className='w-[6rem] text-right'>Discount</AdminDataTableHeadCell>
+                    <AdminDataTableHeadCell className='w-[5.5rem] text-right'>Tax rate</AdminDataTableHeadCell>
+                    <AdminDataTableHeadCell className='w-[6.5rem] text-right'>Tax amount</AdminDataTableHeadCell>
+                    <AdminDataTableOperationsHeadCell />
                   </tr>
                 </AdminDataTableHead>
                 <AdminDataTableBody>
                   {customizedLines.map((ln) => (
                     <tr key={ln.id}>
-                      <td className='align-top px-3 py-2'>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-desc-${ln.id}`}
                           className='w-full min-w-0'
@@ -382,8 +384,8 @@ export function CustomizedDraftInvoiceCard({
                             )
                           }
                         />
-                      </td>
-                      <td className='align-top px-3 py-2'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-qty-${ln.id}`}
                           className='w-full min-w-0 font-mono tabular-nums'
@@ -399,8 +401,8 @@ export function CustomizedDraftInvoiceCard({
                             )
                           }
                         />
-                      </td>
-                      <td className='align-top px-3 py-2'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-unit-${ln.id}`}
                           className='w-full min-w-0 font-mono tabular-nums'
@@ -416,8 +418,8 @@ export function CustomizedDraftInvoiceCard({
                             )
                           }
                         />
-                      </td>
-                      <td className='align-top px-3 py-2'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-disc-${ln.id}`}
                           className='w-full min-w-0 font-mono tabular-nums'
@@ -434,8 +436,8 @@ export function CustomizedDraftInvoiceCard({
                           }
                           placeholder='0'
                         />
-                      </td>
-                      <td className='align-top px-3 py-2'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-tr-${ln.id}`}
                           className='w-full min-w-0 font-mono tabular-nums'
@@ -452,8 +454,8 @@ export function CustomizedDraftInvoiceCard({
                           }
                           placeholder='—'
                         />
-                      </td>
-                      <td className='align-top px-3 py-2'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top'>
                         <Input
                           id={`${CUSTOMIZED_FORM_ID}-ta-${ln.id}`}
                           className='w-full min-w-0 font-mono tabular-nums'
@@ -470,8 +472,8 @@ export function CustomizedDraftInvoiceCard({
                           }
                           placeholder='—'
                         />
-                      </td>
-                      <td className='align-top px-3 py-2 text-right'>
+                      </AdminDataTableCell>
+                      <AdminDataTableCell className='align-top text-right'>
                         <div className='flex flex-wrap justify-end gap-1'>
                           <Button
                             type='button'
@@ -488,7 +490,7 @@ export function CustomizedDraftInvoiceCard({
                             <DeleteIcon className='h-4 w-4' />
                           </Button>
                         </div>
-                      </td>
+                      </AdminDataTableCell>
                     </tr>
                   ))}
                 </AdminDataTableBody>

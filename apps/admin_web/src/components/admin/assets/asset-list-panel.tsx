@@ -17,7 +17,9 @@ import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-t
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
@@ -175,21 +177,21 @@ export function AssetListPanel({
         <AdminDataTable tableClassName='min-w-[920px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Title</th>
-              <th className='px-4 py-3 font-semibold'>Tags</th>
-              <th className='px-4 py-3 font-semibold'>Language</th>
-              <th className='px-4 py-3 font-semibold'>Visibility</th>
-              <th className='px-4 py-3 font-semibold'>File</th>
-              <th className='px-4 py-3 font-semibold'>Updated</th>
+              <AdminDataTableHeadCell>Title</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Tags</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Language</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Visibility</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>File</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Updated</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
             {isLoadingAssets ? null : assets.length === 0 ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={7}>
+                <AdminDataTableCell colSpan={7} className='py-8 text-slate-600'>
                   No assets found for the current filters.
-                </td>
+                </AdminDataTableCell>
               </tr>
             ) : (
               assets.map((asset) => {
@@ -212,11 +214,11 @@ export function AssetListPanel({
                     role='row'
                     aria-selected={isSelected}
                   >
-                    <td className='px-4 py-3'>
+                    <AdminDataTableCell>
                       <p className='font-medium text-slate-900'>{asset.title}</p>
                       <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
-                    </td>
-                    <td className='px-4 py-3 text-slate-700'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='text-slate-700'>
                       {sortedTags.length === 0 ? (
                         '—'
                       ) : (
@@ -238,14 +240,16 @@ export function AssetListPanel({
                           })}
                         </div>
                       )}
-                    </td>
-                    <td className='px-4 py-3 text-slate-700'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='text-slate-700'>
                       {formatAssetContentLanguageLabel(asset.contentLanguage)}
-                    </td>
-                    <td className='px-4 py-3 text-slate-700'>{formatEnumLabel(asset.visibility)}</td>
-                    <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
-                    <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
-                    <td className='px-4 py-3 text-right'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='text-slate-700'>
+                      {formatEnumLabel(asset.visibility)}
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='text-slate-700'>{asset.fileName || '—'}</AdminDataTableCell>
+                    <AdminDataTableCell className='text-slate-700'>{formatDate(asset.updatedAt)}</AdminDataTableCell>
+                    <AdminDataTableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
                         <OpenAdminAssetInNewTabButton
                           assetId={asset.id}
@@ -275,7 +279,7 @@ export function AssetListPanel({
                           <DeleteIcon className='h-4 w-4' />
                         </Button>
                       </div>
-                    </td>
+                    </AdminDataTableCell>
                   </tr>
                 );
               })

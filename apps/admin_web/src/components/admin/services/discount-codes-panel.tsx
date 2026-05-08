@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -569,12 +571,12 @@ export function DiscountCodesPanel({
         <AdminDataTable tableClassName='min-w-[880px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Code</th>
-              <th className='px-4 py-3 font-semibold'>Valid from</th>
-              <th className='px-4 py-3 font-semibold'>Valid until</th>
-              <th className='px-4 py-3 font-semibold'>Value</th>
-              <th className='px-4 py-3 font-semibold'>Uses</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
+              <AdminDataTableHeadCell>Code</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Valid from</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Valid until</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Value</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Uses</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -587,15 +589,15 @@ export function DiscountCodesPanel({
                 }`}
                 onClick={() => applyCodeSelection(row)}
               >
-                <td className='px-4 py-3'>{row.code}</td>
-                <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
-                <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
-                <td className='px-4 py-3'>{formatDiscountRowValue(row)}</td>
-                <td className='px-4 py-3'>
+                <AdminDataTableCell>{row.code}</AdminDataTableCell>
+                <AdminDataTableCell>{formatDate(row.validFrom)}</AdminDataTableCell>
+                <AdminDataTableCell>{formatDate(row.validUntil)}</AdminDataTableCell>
+                <AdminDataTableCell>{formatDiscountRowValue(row)}</AdminDataTableCell>
+                <AdminDataTableCell>
                   {row.currentUses}/{row.maxUses ?? '∞'}
-                </td>
-                <td className='px-4 py-3'>{row.active ? 'Enabled' : 'Disabled'}</td>
-                <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                </AdminDataTableCell>
+                <AdminDataTableCell>{row.active ? 'Enabled' : 'Disabled'}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                   <div className='flex justify-end gap-1'>
                     <Button
                       type='button'
@@ -636,7 +638,7 @@ export function DiscountCodesPanel({
                       <DeleteIcon className='h-4 w-4' />
                     </Button>
                   </div>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>

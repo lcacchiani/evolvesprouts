@@ -1,9 +1,16 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+/**
+ * Admin listing tables use a single cell padding and header weight everywhere.
+ * Prefer `AdminDataTableHeadCell` / `AdminDataTableCell` over ad-hoc `px-*` / `py-*` on `th`/`td`.
+ */
+const adminDataTableHeadCellBase = 'px-4 py-3 text-left font-semibold';
+const adminDataTableBodyCellBase = 'px-4 py-3';
 
 export interface AdminDataTableProps {
   children: ReactNode;
@@ -24,14 +31,16 @@ export function AdminDataTable({ children, tableClassName }: AdminDataTableProps
 export interface AdminDataTableHeadProps {
   children: ReactNode;
   sticky?: boolean;
+  className?: string;
 }
 
-export function AdminDataTableHead({ children, sticky }: AdminDataTableHeadProps) {
+export function AdminDataTableHead({ children, sticky, className }: AdminDataTableHeadProps) {
   return (
     <thead
       className={clsx(
         'bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700',
-        sticky && 'sticky top-0 z-10'
+        sticky && 'sticky top-0 z-10',
+        className
       )}
     >
       {children}
@@ -41,6 +50,30 @@ export function AdminDataTableHead({ children, sticky }: AdminDataTableHeadProps
 
 export function AdminDataTableBody({ children }: { children: ReactNode }) {
   return <tbody className='divide-y divide-slate-200 bg-white text-sm'>{children}</tbody>;
+}
+
+export type AdminDataTableHeadCellProps = Omit<ComponentPropsWithoutRef<'th'>, 'className'> & {
+  className?: string;
+};
+
+export function AdminDataTableHeadCell({ children, className, ...rest }: AdminDataTableHeadCellProps) {
+  return (
+    <th {...rest} className={twMerge(adminDataTableHeadCellBase, className)}>
+      {children}
+    </th>
+  );
+}
+
+export type AdminDataTableCellProps = Omit<ComponentPropsWithoutRef<'td'>, 'className'> & {
+  className?: string;
+};
+
+export function AdminDataTableCell({ children, className, ...rest }: AdminDataTableCellProps) {
+  return (
+    <td {...rest} className={twMerge(adminDataTableBodyCellBase, className)}>
+      {children}
+    </td>
+  );
 }
 
 export interface AdminDataTableOperationsHeadCellProps {
@@ -56,7 +89,7 @@ export function AdminDataTableOperationsHeadCell({
   scope = 'col',
 }: AdminDataTableOperationsHeadCellProps) {
   return (
-    <th scope={scope} className={twMerge('px-4 py-3 text-right font-semibold', className)}>
+    <th scope={scope} className={twMerge(adminDataTableHeadCellBase, 'text-right', className)}>
       {children}
     </th>
   );

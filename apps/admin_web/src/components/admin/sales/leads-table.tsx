@@ -7,7 +7,9 @@ import type { AdminUser, FunnelStage, LeadListFilters, LeadSummary } from '@/typ
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -96,7 +98,7 @@ export function LeadsTable({
       <AdminDataTable tableClassName='min-w-[1080px]'>
         <AdminDataTableHead sticky>
           <tr>
-            <th className='px-3 py-3'>
+            <AdminDataTableHeadCell>
               <input
                 type='checkbox'
                 checked={leads.length > 0 && selectedIds.length === leads.length}
@@ -104,29 +106,29 @@ export function LeadsTable({
                   setSelectedIds(event.target.checked ? leads.map((lead) => lead.id) : [])
                 }
               />
-            </th>
-            <th className='px-3 py-3 font-semibold'>Name</th>
-            <th className='px-3 py-3 font-semibold'>Email</th>
-            <th className='px-3 py-3 font-semibold'>Source</th>
-            <th className='px-3 py-3 font-semibold'>Stage</th>
-            <th className='px-3 py-3 font-semibold'>Assigned</th>
-            <th className='px-3 py-3 font-semibold'>Created</th>
-            <th className='px-3 py-3 font-semibold'>Days in stage</th>
-            <AdminDataTableOperationsHeadCell className='px-3 py-3' />
+            </AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Email</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Source</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Stage</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Assigned</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Days in stage</AdminDataTableHeadCell>
+            <AdminDataTableOperationsHeadCell />
           </tr>
         </AdminDataTableHead>
         <AdminDataTableBody>
           {isLoading ? (
             <tr>
-              <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
+              <AdminDataTableCell colSpan={9} className='py-8 text-sm text-slate-600'>
                 Loading leads...
-              </td>
+              </AdminDataTableCell>
             </tr>
           ) : leads.length === 0 ? (
             <tr>
-              <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
+              <AdminDataTableCell colSpan={9} className='py-8 text-sm text-slate-600'>
                 No leads found for these filters.
-              </td>
+              </AdminDataTableCell>
             </tr>
           ) : (
             leads.map((lead) => (
