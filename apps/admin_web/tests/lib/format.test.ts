@@ -1012,24 +1012,20 @@ describe('CRM party display labels', () => {
   it('matches billing enrollment picker party column rules', () => {
     expect(
       formatBillingEnrollmentPartyCell({
-        billToKind: 'contact',
         partyDisplayName: 'Sam Sample',
-        partyEmail: 'sam@example.com',
+      }),
+    ).toBe('Sam Sample');
+    expect(
+      formatBillingEnrollmentPartyCell({
+        partyDisplayName: 'Sam Sample · sam@example.com',
       }),
     ).toBe('Sam Sample · sam@example.com');
     expect(
       formatBillingEnrollmentPartyCell({
-        billToKind: 'family',
         partyDisplayName: 'Smith Family · Jane',
-        partyEmail: 'jane@example.com',
       }),
     ).toBe('Smith Family · Jane');
-    expect(
-      formatBillingEnrollmentPartyCell({
-        partyDisplayName: 'Sam Sample',
-        partyEmail: 'sam@example.com',
-      }),
-    ).toBe('Sam Sample · sam@example.com');
+    expect(formatBillingEnrollmentPartyCell({ partyDisplayName: '' })).toBe('');
   });
 
   it('resolves enrollment list party from API or picker maps', () => {

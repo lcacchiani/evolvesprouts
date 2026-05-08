@@ -54,9 +54,13 @@ def _resolve_bill_to_party_from_invoice_fks(
         cid = inv.bill_to_contact_id
         if cid:
             c = session.get(Contact, cid)
-            if c and c.email:
-                inv.bill_to_email = c.email
-                inv.bill_to_display_name = contact_display_name(c)
+            if c:
+                name = (contact_display_name(c) or "").strip()
+                if name:
+                    inv.bill_to_display_name = name
+                em = (c.email or "").strip()
+                if em:
+                    inv.bill_to_email = em
         return
     if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
         fam = session.get(Family, inv.bill_to_family_id)

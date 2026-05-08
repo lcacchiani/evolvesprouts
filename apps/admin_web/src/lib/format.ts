@@ -76,19 +76,11 @@ export function formatFamilyOrOrganizationPartyLabel(
   return '';
 }
 
-/** Billing draft invoice enrollment picker — Party column (contact uses name · email; family/org use API label). */
+/** Billing draft invoice enrollment picker — Party column: server `partyDisplayName` only. */
 export function formatBillingEnrollmentPartyCell(row: {
-  billToKind?: string | null;
   partyDisplayName?: string | null;
-  partyEmail?: string | null;
 }): string {
-  const party = row.partyDisplayName?.trim() ?? '';
-  const email = row.partyEmail?.trim() ?? '';
-  const kind = (row.billToKind ?? '').trim();
-  if (kind === 'family' || kind === 'organization') {
-    return party;
-  }
-  return formatContactNameEmailLabel(party, email, party || email || '');
+  return row.partyDisplayName?.trim() ?? '';
 }
 
 /** Service enrollment list — Party cell: API label, else picker-derived labels by structural parent id. */

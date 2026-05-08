@@ -1162,12 +1162,12 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
-  it('draft enrollment picker Party column merges name and email with middle dot', async () => {
+  it('draft enrollment picker Party column shows server partyDisplayName', async () => {
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
         pickerRow({
           enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111',
-          partyDisplayName: 'Sam Sample',
+          partyDisplayName: 'Sam Sample \u00b7 sam@example.com',
           partyEmail: 'sam@example.com',
         }),
         pickerRow({
