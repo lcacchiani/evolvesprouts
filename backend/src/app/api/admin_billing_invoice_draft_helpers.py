@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_billing_common import (
     contact_display_name,
+    effective_enrollment_bill_to_fks,
     family_or_organization_bill_to_display_label,
 )
 from app.db.models import Contact, Enrollment, Family, Organization
@@ -37,13 +38,7 @@ def _decimal_field(raw: Any, *, field: str) -> Decimal:
 
 
 def _enrollment_merge_key(en: Enrollment) -> tuple[Any, ...]:
-    bk = en.bill_to_kind or BillingBillToKind.CONTACT
-    return (
-        bk,
-        en.bill_to_contact_id,
-        en.bill_to_family_id,
-        en.bill_to_organization_id,
-    )
+    return effective_enrollment_bill_to_fks(en)
 
 
 def _resolve_bill_to_party_from_invoice_fks(

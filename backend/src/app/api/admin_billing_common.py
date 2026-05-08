@@ -34,6 +34,40 @@ def contact_display_name(c: Contact | None) -> str | None:
     return " ".join(x for x in [c.first_name, c.last_name] if x).strip() or None
 
 
+def _uuid_fk_or_none(value: object | None) -> UUID | None:
+    """Return ``value`` only when it is a concrete UUID (avoids MagicMock truthiness in tests)."""
+    if value is None:
+        return None
+    if isinstance(value, UUID):
+        return value
+    return None
+
+
+def effective_enrollment_bill_to_fks(
+    enrollment: Enrollment,
+) -> tuple[BillingBillToKind, UUID | None, UUID | None, UUID | None]:
+    """Resolved bill-to kind and mutually exclusive FK ids for invoicing (picker merge + draft rows).
+
+    Uses ``effective_enrollment_bill_to_kind`` so legacy family/org enrollments that only set
+    ``family_id`` / ``organization_id`` align with customer invoice bill-to constraints.
+    """
+    bk = effective_enrollment_bill_to_kind(enrollment)
+    if bk == BillingBillToKind.CONTACT:
+        cid = _uuid_fk_or_none(enrollment.bill_to_contact_id)
+        if cid is None:
+            cid = _uuid_fk_or_none(enrollment.contact_id)
+        return (bk, cid, None, None)
+    if bk == BillingBillToKind.FAMILY:
+        fid = _uuid_fk_or_none(enrollment.bill_to_family_id)
+        if fid is None:
+            fid = _uuid_fk_or_none(enrollment.family_id)
+        return (bk, None, fid, None)
+    oid = _uuid_fk_or_none(enrollment.bill_to_organization_id)
+    if oid is None:
+        oid = _uuid_fk_or_none(enrollment.organization_id)
+    return (bk, None, None, oid)
+
+
 def family_or_organization_bill_to_display_label(
     *,
     entity_name: str | None,
@@ -57,14 +91,12 @@ def family_or_organization_bill_to_display_label(
 
 def enrollment_bill_to_merge_key(enrollment: Enrollment) -> str:
     """Stable string key for comparing bill-to identity across enrollments."""
-    bk = enrollment.bill_to_kind or BillingBillToKind.CONTACT
+    bk, cid, fid, oid = effective_enrollment_bill_to_fks(enrollment)
     parts = (
         bk.value,
-        str(enrollment.bill_to_contact_id) if enrollment.bill_to_contact_id else "",
-        str(enrollment.bill_to_family_id) if enrollment.bill_to_family_id else "",
-        str(enrollment.bill_to_organization_id)
-        if enrollment.bill_to_organization_id
-        else "",
+        str(cid) if cid else "",
+        str(fid) if fid else "",
+        str(oid) if oid else "",
     )
     return "|".join(parts)
 

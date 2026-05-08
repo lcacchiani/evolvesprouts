@@ -741,6 +741,7 @@ export function ClientInvoicesPanel() {
       }
       await loadPayments();
       await loadInvoicesFirstPage();
+      await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
     } catch (caught) {
       setDeleteDraftError(toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true }));
     } finally {

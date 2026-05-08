@@ -516,6 +516,9 @@ describe('ClientInvoicesPanel', () => {
       within(invoiceTable).getByRole('button', { name: /delete draft invoice/i }),
     );
 
+    const enrollmentFetchCountBefore =
+      billingMocks.listRecentEnrollmentsForInvoicing.mock.calls.length;
+
     await userEvent.click(within(invoiceTable).getByRole('button', { name: /delete draft invoice/i }));
 
     await waitFor(() => {
@@ -526,6 +529,12 @@ describe('ClientInvoicesPanel', () => {
 
     await waitFor(() => {
       expect(billingMocks.deleteDraftCustomerInvoice).toHaveBeenCalledWith(invId);
+    });
+
+    await waitFor(() => {
+      expect(billingMocks.listRecentEnrollmentsForInvoicing.mock.calls.length).toBeGreaterThan(
+        enrollmentFetchCountBefore,
+      );
     });
   });
 
