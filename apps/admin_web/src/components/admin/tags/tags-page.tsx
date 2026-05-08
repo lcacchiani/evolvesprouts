@@ -70,7 +70,7 @@ export function TagsPage() {
       const rows = await listAdminTags({ filter: listFilter });
       setTags(rows);
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Failed to load tags.');
+      const message = toErrorMessage(caught, 'Failed to load tags.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setIsLoading(false);
@@ -114,7 +114,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Restore failed.');
+      const message = toErrorMessage(caught, 'Restore failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setRestoreBusyId(null);
@@ -143,7 +143,7 @@ export function TagsPage() {
         applyRowSelection(updated);
       }
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Archive failed.');
+      const message = toErrorMessage(caught, 'Archive failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setArchiveBusyId(null);
@@ -184,7 +184,7 @@ export function TagsPage() {
         setSaveError(conflict);
         return;
       }
-      const message = toErrorMessage(caught, 'Save failed.');
+      const message = toErrorMessage(caught, 'Save failed.', { honorBackendMessage: true });
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -216,7 +216,7 @@ export function TagsPage() {
       }
       await loadTags();
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Delete failed.');
+      const message = toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setDeleteBusyId(null);

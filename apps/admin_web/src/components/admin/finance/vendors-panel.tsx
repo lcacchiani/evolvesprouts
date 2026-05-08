@@ -169,7 +169,7 @@ export function VendorsPanel({
                 {vendorSpendError}
               </p>
             ) : null}
-            <AdminTableToolbar noMargin>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='vendors-search'>Search</Label>
                 <Input

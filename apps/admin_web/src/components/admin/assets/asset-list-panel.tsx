@@ -125,7 +125,7 @@ export function AssetListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 space-y-2'>
-            <AdminTableToolbar noMargin>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='assets-search'>Search</Label>
                 <Input

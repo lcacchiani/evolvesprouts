@@ -269,7 +269,7 @@ export function CustomizedDraftInvoiceCard({
       setCustomizedLines([makeCustomizedLineRow(customizedLineIdSeq.current)]);
     } catch (caught) {
       onDraftError?.(
-        toErrorMessage(caught, 'Create draft failed.'),
+        toErrorMessage(caught, 'Create draft failed.', { honorBackendMessage: true }),
       );
     } finally {
       onRequestBusy?.(false);

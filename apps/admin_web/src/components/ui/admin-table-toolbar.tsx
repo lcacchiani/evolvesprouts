@@ -2,17 +2,25 @@
 
 import type { ReactNode } from 'react';
 
-import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export interface AdminTableToolbarProps {
   children: ReactNode;
-  /** Omit default bottom margin (for example nested editor toolbars). */
-  noMargin?: boolean;
+  /** Bottom margin under the toolbar row; `none` for nested editor toolbars. */
+  marginBottom?: 'default' | 'none';
   className?: string;
 }
 
-export function AdminTableToolbar({ children, noMargin, className }: AdminTableToolbarProps) {
+export function AdminTableToolbar({
+  children,
+  marginBottom = 'default',
+  className,
+}: AdminTableToolbarProps) {
   return (
-    <div className={clsx('flex flex-wrap items-end gap-3', !noMargin && 'mb-3', className)}>{children}</div>
+    <div
+      className={twMerge('flex flex-wrap items-end gap-3', marginBottom === 'default' && 'mb-3', className)}
+    >
+      {children}
+    </div>
   );
 }

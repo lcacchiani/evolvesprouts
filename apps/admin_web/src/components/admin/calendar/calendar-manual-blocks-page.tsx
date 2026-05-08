@@ -86,7 +86,7 @@ export function CalendarManualBlocksPage() {
       });
       setRows(items);
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Failed to load blocks.');
+      const message = toErrorMessage(caught, 'Failed to load blocks.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setIsLoading(false);
@@ -160,7 +160,7 @@ export function CalendarManualBlocksPage() {
       );
       await loadRows();
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Save failed.');
+      const message = toErrorMessage(caught, 'Save failed.', { honorBackendMessage: true });
       setSaveError(message);
     } finally {
       setIsSaving(false);
@@ -186,7 +186,7 @@ export function CalendarManualBlocksPage() {
       }
       await loadRows();
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Delete failed.');
+      const message = toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true });
       setError(message);
     } finally {
       setDeleteBusyId(null);

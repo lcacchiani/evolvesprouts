@@ -479,7 +479,7 @@ export function OrganizationsPanel({
             <div className='lg:col-span-4'>
               <AdminCollapsibleSection id='crm-org-members' title='Members'>
                 <div className='space-y-3 pt-1'>
-                  <AdminTableToolbar noMargin>
+                  <AdminTableToolbar marginBottom='none'>
                     <div className='min-w-[200px] flex-1'>
                       <Label htmlFor='crm-org-member-contact'>Contact</Label>
                       <Select

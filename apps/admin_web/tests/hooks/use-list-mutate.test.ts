@@ -54,4 +54,35 @@ describe('useListMutate', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
     expect(onAfterSuccess).toHaveBeenCalledTimes(1);
   });
+
+  it('does not refetch or run onAfterSuccess when work rejects, clears isSaving, and propagates rejection', async () => {
+    const refetch = vi.fn().mockResolvedValue(undefined);
+    const onAfterSuccess = vi.fn().mockResolvedValue(undefined);
+    const boom = new Error('mutate failed');
+    const work = vi.fn().mockRejectedValue(boom);
+
+    const { result } = renderHook(() => useListMutate(refetch, { onAfterSuccess }));
+
+    await act(async () => {
+      await expect(result.current.mutate(work)).rejects.toThrow('mutate failed');
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+    expect(onAfterSuccess).not.toHaveBeenCalled();
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it('keeps isSaving false on rejection when suppressSaving is true', async () => {
+    const refetch = vi.fn().mockResolvedValue(undefined);
+    const work = vi.fn().mockRejectedValue(new Error('no'));
+
+    const { result } = renderHook(() => useListMutate(refetch));
+
+    await act(async () => {
+      await expect(result.current.mutate(work, { suppressSaving: true })).rejects.toThrow('no');
+    });
+
+    expect(result.current.isSaving).toBe(false);
+    expect(refetch).not.toHaveBeenCalled();
+  });
 });

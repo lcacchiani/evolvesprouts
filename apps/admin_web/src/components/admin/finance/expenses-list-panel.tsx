@@ -128,7 +128,7 @@ export function ExpensesListPanel({
     expensesNeedForeignFx,
   );
 
-  const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' ');
+  const tableError = [error, expensesNeedForeignFx ? fxError : ''].filter(Boolean).join(' • ');
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, expenseId: string) => {
     if (event.target !== event.currentTarget) {
@@ -167,7 +167,7 @@ export function ExpensesListPanel({
       await onVoidExpense(voidExpenseId, voidReason.trim());
       closeVoidDialog();
     } catch (caught) {
-      setVoidError(toErrorMessage(caught, 'Could not void this expense.'));
+      setVoidError(toErrorMessage(caught, 'Could not void this expense.', { honorBackendMessage: true }));
     }
   };
 
@@ -192,7 +192,7 @@ export function ExpensesListPanel({
       await onDeleteDraft(deleteDraftExpenseId);
       closeDeleteDraftDialog();
     } catch (caught) {
-      setDeleteDraftError(toErrorMessage(caught, 'Could not delete this expense.'));
+      setDeleteDraftError(toErrorMessage(caught, 'Could not delete this expense.', { honorBackendMessage: true }));
     }
   };
 
@@ -208,7 +208,7 @@ export function ExpensesListPanel({
         onLoadMore={onLoadMore}
         toolbar={
           <div className='mb-3 space-y-2'>
-            <AdminTableToolbar noMargin>
+            <AdminTableToolbar marginBottom='none'>
               <div className='min-w-[200px] flex-1'>
                 <Label htmlFor='expenses-query'>Search</Label>
                 <Input

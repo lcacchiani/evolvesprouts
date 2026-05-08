@@ -119,7 +119,7 @@ export function TaxFiscalYearPanel() {
     URL.revokeObjectURL(url);
   }, [rows, fyStartYear, expenseStatusFilter]);
 
-  const tableError = [loadError, fxError].filter(Boolean).join(' ');
+  const tableError = [loadError, fxError].filter(Boolean).join(' • ');
 
   return (
     <PaginatedTableCard

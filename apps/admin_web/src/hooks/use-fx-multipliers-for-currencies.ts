@@ -7,6 +7,11 @@ import { loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
 import { toErrorMessage } from './hook-errors';
 
 export interface UseFxMultipliersForCurrenciesResult {
+  /**
+   * FX multipliers map, or `null` while loading (only when `enabled` is true and codes are non-empty).
+   * When `enabled` is false, this is always `null`. When enabled with an empty deduped code list,
+   * this is an empty `Map` (nothing to convert).
+   */
   fxMultipliers: Map<string, number> | null;
   fxError: string;
 }
@@ -29,20 +34,20 @@ export function useFxMultipliersForCurrencies(
   }, [currencyCodes]);
 
   useEffect(() => {
+    /* Sync reset paths must run in the effect body (not microtasks) so cleanup cancellation
+     * applies consistently when `enabled` or codes change — see PR 1585 remediation P2. */
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional synchronous reset */
     if (!enabled) {
-      queueMicrotask(() => {
-        setFxMultipliers(null);
-        setFxError('');
-      });
+      setFxMultipliers(null);
+      setFxError('');
       return;
     }
     if (codesKey.length === 0) {
-      queueMicrotask(() => {
-        setFxMultipliers(new Map());
-        setFxError('');
-      });
+      setFxMultipliers(new Map());
+      setFxError('');
       return;
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     const codes = codesKey.split(',').filter(Boolean);
     let cancelled = false;
     void (async () => {

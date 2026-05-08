@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export interface AdminDataTableProps {
   children: ReactNode;
@@ -55,7 +56,7 @@ export function AdminDataTableOperationsHeadCell({
   scope = 'col',
 }: AdminDataTableOperationsHeadCellProps) {
   return (
-    <th scope={scope} className={clsx('px-4 py-3 text-right font-semibold', className)}>
+    <th scope={scope} className={twMerge('px-4 py-3 text-right font-semibold', className)}>
       {children}
     </th>
   );

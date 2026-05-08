@@ -52,8 +52,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
-import { isAdminApiConflictOnField } from '@/lib/admin-api-conflict-messages';
-import { AdminApiError } from '@/lib/api-admin-client';
+import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { buildSessionSlotsUtcPayload, mapSessionSlotsFromApiToForm } from '@/lib/format';
 import { filterLocationsForInstance } from '@/lib/instance-location-options';
@@ -646,8 +645,9 @@ export function InstanceDetailPanel({
       await onCreate(selectedServiceId, payload);
       setSlugConflictError('');
     } catch (err) {
-      if (isAdminApiConflictOnField(err, 'slug')) {
-        setSlugConflictError(err instanceof AdminApiError ? err.message || 'This slug is already in use.' : 'This slug is already in use.');
+      const slugMsg = conflictFieldUserMessage(err, { slug: 'This slug is already in use.' });
+      if (slugMsg) {
+        setSlugConflictError(slugMsg);
         return;
       }
       throw err;
@@ -666,8 +666,9 @@ export function InstanceDetailPanel({
       await onUpdate(selectedServiceId, instance.id, payload);
       setSlugConflictError('');
     } catch (err) {
-      if (isAdminApiConflictOnField(err, 'slug')) {
-        setSlugConflictError(err instanceof AdminApiError ? err.message || 'This slug is already in use.' : 'This slug is already in use.');
+      const slugMsg = conflictFieldUserMessage(err, { slug: 'This slug is already in use.' });
+      if (slugMsg) {
+        setSlugConflictError(slugMsg);
         return;
       }
       throw err;

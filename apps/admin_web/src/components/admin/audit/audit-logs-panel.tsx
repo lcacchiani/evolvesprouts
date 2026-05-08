@@ -304,7 +304,7 @@ export function AuditLogsPanel({ auditableTables }: AuditLogsPanelProps) {
                 <th className='hidden px-4 py-3 md:table-cell' scope='col'>
                   Changed fields
                 </th>
-                <AdminDataTableOperationsHeadCell scope='col' className='px-4 py-3 font-normal' />
+                <AdminDataTableOperationsHeadCell scope='col' />
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>

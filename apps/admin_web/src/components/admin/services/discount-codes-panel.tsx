@@ -24,7 +24,7 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
-import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
+import { isAdminApiConflictOnField } from '@/lib/admin-api-conflict-messages';
 import { tryCopyTextToClipboard } from '@/lib/clipboard';
 import { listInstances } from '@/lib/services-api';
 import {
@@ -280,8 +280,7 @@ export function DiscountCodesPanel({
       service_id: serviceUuid,
       instance_id: instanceUuid,
     };
-    const isDuplicateCodeError = (err: unknown) =>
-      conflictFieldUserMessage(err, { code: 'duplicate' }) !== null;
+    const isDuplicateCodeError = (err: unknown) => isAdminApiConflictOnField(err, 'code');
 
     try {
       if (editorMode === 'create') {

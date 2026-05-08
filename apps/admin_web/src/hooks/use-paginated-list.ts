@@ -10,7 +10,7 @@ import { useDebouncedCallback } from './use-debounced-callback';
 export interface PaginatedResponse<TItem> {
   items: TItem[];
   nextCursor: string | null;
-  /** When omitted, list hooks treat totals as unknown and surface `0`. */
+  /** When omitted, {@link usePaginatedList} exposes `totalCount: null` (unknown total). */
   totalCount?: number;
 }
 
@@ -36,7 +36,8 @@ export interface UsePaginatedListReturn<TItem, TFilters extends object> {
   refetch: (nextFilters?: Partial<TFilters>) => Promise<void>;
   loadMore: () => Promise<void>;
   hasMore: boolean;
-  totalCount: number;
+  /** `null` when the list API omitted `totalCount` (unknown). */
+  totalCount: number | null;
 }
 
 export function usePaginatedList<TItem, TFilters extends object>({
@@ -55,7 +56,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
 
   const [items, setItems] = useState<TItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(fetchOnMount);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState('');
@@ -83,7 +84,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
         }
         setItems(response.items);
         setNextCursor(response.nextCursor);
-        setTotalCount(response.totalCount ?? 0);
+        setTotalCount(response.totalCount === undefined ? null : response.totalCount);
       } catch (err) {
         if (latestRequestIdRef.current !== requestId) {
           return;
@@ -112,7 +113,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
       });
       setItems((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);
-      setTotalCount(response.totalCount ?? 0);
+      setTotalCount(response.totalCount === undefined ? null : response.totalCount);
     } catch (err) {
       setError(toErrorMessage(err, `${errorPrefix} more.`));
     } finally {

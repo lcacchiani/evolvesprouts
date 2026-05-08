@@ -260,7 +260,7 @@ export function ClientInvoicesPanel() {
       if (caught instanceof Error && caught.name === 'AbortError') {
         return;
       }
-      const message = toErrorMessage(caught, 'Failed to load payments.');
+      const message = toErrorMessage(caught, 'Failed to load payments.', { honorBackendMessage: true });
       setListError(message);
     } finally {
       setListLoading(false);
@@ -310,7 +310,7 @@ export function ClientInvoicesPanel() {
           return;
         }
         const message =
-          toErrorMessage(caught, 'Failed to load enrollments for invoicing.');
+          toErrorMessage(caught, 'Failed to load enrollments for invoicing.', { honorBackendMessage: true });
         setEnrollmentPickerError(message);
         setEnrollmentPickerRows([]);
         setEnrollmentPickerTruncated(false);
@@ -389,7 +389,7 @@ export function ClientInvoicesPanel() {
       if (caught instanceof Error && caught.name === 'AbortError') {
         return;
       }
-      const message = toErrorMessage(caught, 'Failed to load invoices.');
+      const message = toErrorMessage(caught, 'Failed to load invoices.', { honorBackendMessage: true });
       setInvoiceListError(message);
       setInvoices([]);
     } finally {
@@ -419,7 +419,7 @@ export function ClientInvoicesPanel() {
       setInvoices((prev) => [...prev, ...items]);
       setInvoiceListCursor(next_cursor);
     } catch (caught) {
-      const message = toErrorMessage(caught, 'Failed to load more invoices.');
+      const message = toErrorMessage(caught, 'Failed to load more invoices.', { honorBackendMessage: true });
       setInvoiceListError(message);
     } finally {
       setInvoiceListLoadingMore(false);
@@ -515,7 +515,7 @@ export function ClientInvoicesPanel() {
           setAllocateInvoiceLines([]);
           setAllocateLineId('');
           setAllocateInvoiceLinesError(
-            toErrorMessage(caught, 'Failed to load invoice lines.'),
+            toErrorMessage(caught, 'Failed to load invoice lines.', { honorBackendMessage: true }),
           );
         }
       } finally {
@@ -574,7 +574,7 @@ export function ClientInvoicesPanel() {
         if (caught instanceof Error && caught.name === 'AbortError') {
           return;
         }
-        const message = toErrorMessage(caught, 'Failed to load payment.');
+        const message = toErrorMessage(caught, 'Failed to load payment.', { honorBackendMessage: true });
         setDetailError(message);
         setDetail(null);
       } finally {
@@ -669,7 +669,7 @@ export function ClientInvoicesPanel() {
           setRefundPaymentsForInvoice([]);
           setRefundPaymentSelectId('');
           setRefundPaymentsError(
-            toErrorMessage(caught, 'Failed to load payments for invoice.'),
+            toErrorMessage(caught, 'Failed to load payments for invoice.', { honorBackendMessage: true }),
           );
         }
       } finally {
@@ -717,7 +717,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setVoidError(toErrorMessage(caught, 'Void failed.'));
+      setVoidError(toErrorMessage(caught, 'Void failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -756,7 +756,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setDeleteDraftError(toErrorMessage(caught, 'Delete failed.'));
+      setDeleteDraftError(toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -779,7 +779,7 @@ export function ClientInvoicesPanel() {
       setActionMessage(out.sent ? 'Email send accepted.' : 'Email was not confirmed sent.');
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setIssuedInvoiceEmailError(toErrorMessage(caught, 'Email failed.'));
+      setIssuedInvoiceEmailError(toErrorMessage(caught, 'Email failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -797,7 +797,7 @@ export function ClientInvoicesPanel() {
       );
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Issue failed.'));
+      setActionError(toErrorMessage(caught, 'Issue failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -810,7 +810,7 @@ export function ClientInvoicesPanel() {
       const { downloadUrl } = await getCustomerInvoicePdfDownload(invoiceId);
       window.open(downloadUrl, '_blank', 'noopener,noreferrer');
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Could not open invoice preview.'));
+      setActionError(toErrorMessage(caught, 'Could not open invoice preview.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -850,7 +850,7 @@ export function ClientInvoicesPanel() {
         await loadDetail(confirmPaymentId, ac.signal);
       }
     } catch (caught) {
-      setConfirmPaymentError(toErrorMessage(caught, 'Confirm failed.'));
+      setConfirmPaymentError(toErrorMessage(caught, 'Confirm failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -885,7 +885,7 @@ export function ClientInvoicesPanel() {
         setDetail(null);
       }
     } catch (caught) {
-      setDeletePaymentError(toErrorMessage(caught, 'Delete failed.'));
+      setDeletePaymentError(toErrorMessage(caught, 'Delete failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -947,7 +947,7 @@ export function ClientInvoicesPanel() {
       await loadInvoicesFirstPage();
       await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Create draft failed.'));
+      setActionError(toErrorMessage(caught, 'Create draft failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -991,7 +991,7 @@ export function ClientInvoicesPanel() {
       await loadDetail(selectedId, ac.signal);
       await loadInvoicesFirstPage();
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Allocation failed.'));
+      setActionError(toErrorMessage(caught, 'Allocation failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -1025,7 +1025,7 @@ export function ClientInvoicesPanel() {
       await loadPayments();
       setRefundInvoicePaymentsRefresh((n) => n + 1);
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Refund failed.'));
+      setActionError(toErrorMessage(caught, 'Refund failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -1045,7 +1045,7 @@ export function ClientInvoicesPanel() {
       URL.revokeObjectURL(url);
       setActionMessage('Export downloaded (v2 CSV).');
     } catch (caught) {
-      setActionError(toErrorMessage(caught, 'Export failed.'));
+      setActionError(toErrorMessage(caught, 'Export failed.', { honorBackendMessage: true }));
     } finally {
       setExportBusy(false);
     }
@@ -1122,7 +1122,7 @@ export function ClientInvoicesPanel() {
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
-              <AdminTableToolbar noMargin>
+              <AdminTableToolbar marginBottom='none'>
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor={draftFilterId}>Filter enrollments</Label>
                   <Input

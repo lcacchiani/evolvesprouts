@@ -37,12 +37,10 @@ export function useDiscountCodes() {
   const { refetch } = list;
   const { isSaving, mutate } = useListMutate(refetch);
 
-  type MutateOptions = ListMutateOptions;
-
   const createCode = useCallback(
     async (
       payload: ApiSchemas['CreateDiscountCodeRequest'],
-      options: MutateOptions = {},
+      options: ListMutateOptions = {},
     ) => mutate(async () => createDiscountCode(payload), options),
     [mutate],
   );
