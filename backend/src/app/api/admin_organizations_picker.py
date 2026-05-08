@@ -8,6 +8,10 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.admin_billing_common import (
+    family_or_organization_bill_to_display_label,
+    primary_org_contact_names,
+)
 from app.api.admin_entities_helpers import parse_limit, parse_relationship_type
 from app.api.admin_request import query_param
 from app.api.assets.assets_common import extract_identity, split_route_parts
@@ -72,5 +76,16 @@ def _list_organization_picker(event: Mapping[str, Any]) -> dict[str, Any]:
             Organization.name.asc(), Organization.id.asc()
         ).limit(limit)
         rows = session.execute(statement).all()
-        items = [{"id": str(r[0]), "label": r[1]} for r in rows]
+        org_ids = {r[0] for r in rows}
+        primary_by_id = primary_org_contact_names(session, org_ids)
+        items: list[dict[str, str]] = []
+        for org_id, org_name in rows:
+            entity = (org_name or "").strip()
+            pc = (primary_by_id.get(org_id) or "").strip()
+            label = family_or_organization_bill_to_display_label(
+                entity_name=entity or None,
+                primary_display_name=pc or None,
+            )
+            display = label if label else entity or str(org_id)
+            items.append({"id": str(org_id), "label": display})
         return json_response(200, {"items": items}, event=event)

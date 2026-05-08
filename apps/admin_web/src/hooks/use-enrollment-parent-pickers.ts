@@ -9,6 +9,7 @@ import {
   listEntityOrganizationPicker,
   listEntityPartnerOrganizationPicker,
 } from '@/lib/entity-api';
+import { formatAdminContactFullName, formatAdminContactPickerLabel } from '@/lib/format';
 import { DEFAULT_CONTACT_LIST_FILTERS } from '@/types/entity-list';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -21,13 +22,8 @@ export interface EnrollmentParentPickerOption {
 }
 
 function formatContactSortKey(contact: AdminContact): string {
-  const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ').trim();
+  const name = formatAdminContactFullName(contact);
   return (name || contact.email || contact.id).toLowerCase();
-}
-
-function formatContactOptionLabel(contact: AdminContact): string {
-  const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ').trim();
-  return name ? `${name}${contact.email ? ` · ${contact.email}` : ''}` : contact.email || contact.id;
 }
 
 export function useEnrollmentParentPickers(canCreate: boolean) {
@@ -118,7 +114,7 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
   }, [canCreate]);
 
   const contactOptions = useMemo<EnrollmentParentPickerOption[]>(
-    () => contacts.map((c) => ({ id: c.id, label: formatContactOptionLabel(c) })),
+    () => contacts.map((c) => ({ id: c.id, label: formatAdminContactPickerLabel(c) })),
     [contacts]
   );
 

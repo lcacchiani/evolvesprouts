@@ -8,6 +8,7 @@ import { OrganizationsPanel } from '@/components/admin/contacts/organizations-pa
 import { AdminPageErrorBanner } from '@/components/admin/admin-page-error-banner';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
 import { listEntityTags, type EntityTagRef } from '@/lib/entity-api';
+import { formatAdminContactPickerLabel } from '@/lib/format';
 import { listAllLocations, listGeographicAreas } from '@/lib/services-api';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useAdminEntityContacts } from '@/hooks/use-admin-entity-contacts';
@@ -91,11 +92,10 @@ export function ContactsPage() {
   }, []);
 
   const contactOptions = useMemo(() => {
-    return contacts.contacts.map((c) => {
-      const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
-      const label = name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
-      return { id: c.id, label };
-    });
+    return contacts.contacts.map((c) => ({
+      id: c.id,
+      label: formatAdminContactPickerLabel(c),
+    }));
   }, [contacts.contacts]);
 
   const contactsForMembership = useMemo(

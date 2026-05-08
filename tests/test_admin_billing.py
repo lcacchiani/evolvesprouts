@@ -1997,3 +1997,33 @@ def test_family_or_organization_bill_to_display_label() -> None:
         entity_name="  ",
         primary_display_name="  ",
     ) is None
+
+
+def test_compose_enrollment_party_display_name_contact_includes_email_when_known() -> None:
+    from types import SimpleNamespace
+
+    from app.api.admin_billing_common import compose_enrollment_party_display_name
+    from app.db.models.enums import BillingBillToKind
+
+    contact = SimpleNamespace(first_name="Sam", last_name="Sample", email="sam@example.com")
+    enrollment = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact=None,
+        contact=contact,
+        bill_to_family_id=None,
+        family_id=None,
+        bill_to_organization_id=None,
+        organization_id=None,
+        bill_to_family=None,
+        family=None,
+        bill_to_organization=None,
+        organization=None,
+    )
+    assert (
+        compose_enrollment_party_display_name(
+            enrollment,
+            family_primary_contact_name=None,
+            org_primary_contact_name=None,
+        )
+        == "Sam Sample \u00b7 sam@example.com"
+    )

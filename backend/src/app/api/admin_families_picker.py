@@ -8,6 +8,10 @@ from collections.abc import Mapping
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.admin_billing_common import (
+    family_or_organization_bill_to_display_label,
+    primary_family_contact_names,
+)
 from app.api.admin_entities_helpers import parse_limit
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.engine import get_engine
@@ -58,5 +62,16 @@ def _list_family_picker(event: Mapping[str, Any]) -> dict[str, Any]:
             .limit(limit)
         )
         rows = session.execute(statement).all()
-        items = [{"id": str(r[0]), "label": r[1]} for r in rows]
+        fam_ids = {r[0] for r in rows}
+        primary_by_id = primary_family_contact_names(session, fam_ids)
+        items: list[dict[str, str]] = []
+        for fam_id, family_name in rows:
+            entity = (family_name or "").strip()
+            pc = (primary_by_id.get(fam_id) or "").strip()
+            label = family_or_organization_bill_to_display_label(
+                entity_name=entity or None,
+                primary_display_name=pc or None,
+            )
+            display = label if label else entity or str(fam_id)
+            items.append({"id": str(fam_id), "label": display})
         return json_response(200, {"items": items}, event=event)

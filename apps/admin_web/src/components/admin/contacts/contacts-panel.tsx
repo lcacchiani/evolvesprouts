@@ -38,7 +38,11 @@ import {
   searchEntityContactsForPicker,
   type EntityTagRef,
 } from '@/lib/entity-api';
-import { formatEntityVenueLocationLabel, formatEnumLabel } from '@/lib/format';
+import {
+  formatAdminContactPickerLabel,
+  formatEntityVenueLocationLabel,
+  formatEnumLabel,
+} from '@/lib/format';
 import { contactPhoneRequestFields } from '@/lib/phone-request';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
@@ -63,11 +67,6 @@ const CONTACT_TYPES: ApiSchemas['EntityContactType'][] = [
   'professional',
   'other',
 ];
-
-function formatContactPickerLabel(c: ApiSchemas['AdminContact']): string {
-  const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
-  return name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
-}
 
 const SOURCES: ApiSchemas['EntityContactSource'][] = [
   'free_guide',
@@ -372,7 +371,7 @@ export function ContactsPanel({
         if (cancelled || !c) {
           return;
         }
-        setReferralPinnedLabel(formatContactPickerLabel(c));
+        setReferralPinnedLabel(formatAdminContactPickerLabel(c));
       } catch {
         if (!cancelled) {
           setReferralPinnedLabel('');

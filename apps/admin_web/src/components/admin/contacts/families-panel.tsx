@@ -29,7 +29,7 @@ import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import type { EntityTagRef } from '@/lib/entity-api';
 import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatFamilyOrOrganizationPartyLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   FAMILY_RELATIONSHIP_TYPES,
@@ -572,13 +572,7 @@ export function FamiliesPanel({
                 onClick={() => selectRow(row.id)}
               >
                 <AdminDataTableCell>
-                  {row.family_name}
-                  {primaryLabel ? (
-                    <>
-                      <span aria-hidden> · </span>
-                      {primaryLabel}
-                    </>
-                  ) : null}
+                  {formatFamilyOrOrganizationPartyLabel(row.family_name, primaryLabel) || '—'}
                 </AdminDataTableCell>
                 <AdminDataTableCell>{row.members.length}</AdminDataTableCell>
                 <AdminDataTableCell>{row.active ? 'Active' : 'Archived'}</AdminDataTableCell>

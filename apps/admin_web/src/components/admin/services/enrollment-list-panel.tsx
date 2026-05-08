@@ -28,6 +28,7 @@ import {
   formatIsoForDatetimeLocalInput,
   getCurrencyOptions,
   parseDatetimeLocalToIsoUtc,
+  resolveEnrollmentListPartyLabel,
 } from '@/lib/format';
 import { isAbortRequestError, listEnrollmentDiscountOptions } from '@/lib/services-api';
 import { formatAmountInCurrency } from '@/lib/vendor-spend';
@@ -184,22 +185,13 @@ export function EnrollmentListPanel({
   );
 
   const formatEnrollmentParentCell = useCallback(
-    (enrollment: Enrollment) => {
-      const fromApi = enrollment.partyDisplayName?.trim();
-      if (fromApi) {
-        return fromApi;
-      }
-      if (enrollment.contactId) {
-        return labelByContactId.get(enrollment.contactId) ?? enrollment.contactId;
-      }
-      if (enrollment.familyId) {
-        return labelByFamilyId.get(enrollment.familyId) ?? enrollment.familyId;
-      }
-      if (enrollment.organizationId) {
-        return labelByOrganizationId.get(enrollment.organizationId) ?? enrollment.organizationId;
-      }
-      return '-';
-    },
+    (enrollment: Enrollment) =>
+      resolveEnrollmentListPartyLabel(
+        enrollment,
+        labelByContactId,
+        labelByFamilyId,
+        labelByOrganizationId
+      ),
     [labelByContactId, labelByFamilyId, labelByOrganizationId]
   );
 

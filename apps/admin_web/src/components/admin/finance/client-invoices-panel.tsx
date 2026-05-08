@@ -66,6 +66,7 @@ import {
   getCurrencyOptions,
   ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
+  formatBillingEnrollmentPartyCell,
   formatDate,
   formatEnumLabel,
   formatEnrollmentPickerInstanceServiceDisplay,
@@ -130,23 +131,6 @@ function parseAmountInput(raw: string): number | null {
 
 function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
   return row.amountPaid != null && row.amountPaid.trim() !== '' ? row.amountPaid.trim() : '0';
-}
-
-/** Party column: contact rows use `name · email`. Family/org rows use `partyDisplayName` only (entity · primary). */
-function formatEnrollmentPartyCellDisplay(row: BillingEnrollmentPickerRow): string {
-  const party = row.partyDisplayName?.trim() ?? '';
-  const email = row.partyEmail?.trim() ?? '';
-  const kind = row.billToKind;
-  if (kind === 'family' || kind === 'organization') {
-    return party;
-  }
-  if (email === '') {
-    return party;
-  }
-  if (party === '') {
-    return email;
-  }
-  return `${party} \u00b7 ${email}`;
 }
 
 function lineAmountsDiffer(input: string, row: BillingEnrollmentPickerRow): boolean {
@@ -1227,7 +1211,7 @@ export function ClientInvoicesPanel() {
                         );
                         const instanceServiceDisplay =
                           formatEnrollmentPickerInstanceServiceDisplay(row);
-                        const partyCellDisplay = formatEnrollmentPartyCellDisplay(row);
+                        const partyCellDisplay = formatBillingEnrollmentPartyCell(row);
                         return (
                           <tr
                             key={row.enrollmentId}

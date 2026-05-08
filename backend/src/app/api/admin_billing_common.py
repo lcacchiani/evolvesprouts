@@ -111,14 +111,19 @@ def compose_enrollment_party_display_name(
     family_primary_contact_name: str | None,
     org_primary_contact_name: str | None,
 ) -> str:
-    """Party label: contact name; family/org use ``entity · primary contact`` when both known."""
+    """Party label: contact ``name · email`` when both known; family/org use ``entity · primary contact``."""
     bk = effective_enrollment_bill_to_kind(enrollment)
     enrolled_nm = contact_display_name(enrollment.contact)
     if bk == BillingBillToKind.CONTACT:
         c = enrollment.bill_to_contact or enrollment.contact
-        name = contact_display_name(c)
+        name = (contact_display_name(c) or "").strip()
+        email = (c.email or "").strip() if c else ""
+        if name and email:
+            return f"{name} \u00b7 {email}"
         if name:
             return name
+        if email:
+            return email
         fid = enrollment.bill_to_family_id or enrollment.family_id
         if fid is not None:
             fam = enrollment.bill_to_family or enrollment.family
