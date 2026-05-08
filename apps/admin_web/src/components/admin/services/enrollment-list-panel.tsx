@@ -535,12 +535,12 @@ export function EnrollmentListPanel({
         <AdminDataTable tableClassName='w-full table-fixed'>
           <AdminDataTableHead>
             <tr>
-              <AdminDataTableHeadCell className='w-[28%] min-w-0'>Party</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell className='w-[10%] min-w-0'>Status</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell className='w-[11%] whitespace-nowrap'>Amount</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell className='w-[20%] min-w-0'>Discount</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell className='w-[14%] whitespace-nowrap'>Enrolled at</AdminDataTableHeadCell>
-              <AdminDataTableOperationsHeadCell className='w-[4.5rem] whitespace-nowrap' />
+              <AdminDataTableHeadCell>Party</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Discount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Enrolled at</AdminDataTableHeadCell>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -561,23 +561,17 @@ export function EnrollmentListPanel({
                   }`}
                   onClick={() => applyEnrollmentSelection(enrollment)}
                 >
-                  <AdminDataTableCell className='min-w-0 break-words'>
-                    {formatEnrollmentParentCell(enrollment)}
-                  </AdminDataTableCell>
-                  <AdminDataTableCell className='min-w-0 break-words'>
-                    {formatEnumLabel(enrollment.status)}
-                  </AdminDataTableCell>
-                  <AdminDataTableCell className='whitespace-nowrap'>{amountDisplay}</AdminDataTableCell>
-                  <AdminDataTableCell className='min-w-0 break-words'>
+                  <AdminDataTableCell>{formatEnrollmentParentCell(enrollment)}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatEnumLabel(enrollment.status)}</AdminDataTableCell>
+                  <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell>
                     {enrollment.discountCodeId
                       ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
                           enrollment.discountCodeId)
                       : '-'}
                   </AdminDataTableCell>
-                  <AdminDataTableCell className='whitespace-nowrap'>
-                    {formatDate(enrollment.enrolledAt)}
-                  </AdminDataTableCell>
-                  <AdminDataTableCell className='text-right'>
+                  <AdminDataTableCell>{formatDate(enrollment.enrolledAt)}</AdminDataTableCell>
+                  <AdminDataTableCell>
                     <Button
                       type='button'
                       size='sm'
