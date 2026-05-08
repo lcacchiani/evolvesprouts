@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -295,18 +297,18 @@ export function CalendarManualBlocksPage() {
         <AdminDataTable tableClassName='min-w-[640px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Date</th>
-              <th className='px-4 py-3 font-semibold'>AM/PM</th>
-              <th className='px-4 py-3 font-semibold'>Note</th>
+              <AdminDataTableHeadCell>Date</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>AM/PM</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Note</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
             {rows.length === 0 && !isLoading ? (
               <tr>
-                <td className='px-4 py-6 text-slate-600' colSpan={4}>
+                <AdminDataTableCell colSpan={4} className='py-6 text-slate-600'>
                   No manual blocks in this range.
-                </td>
+                </AdminDataTableCell>
               </tr>
             ) : null}
             {rows.map((row) => (
@@ -324,10 +326,10 @@ export function CalendarManualBlocksPage() {
                   }
                 }}
               >
-                <td className='px-4 py-3 font-medium text-slate-900'>{row.block_date}</td>
-                <td className='px-4 py-3 uppercase'>{row.period}</td>
-                <td className='px-4 py-3 text-slate-700'>{row.note?.trim() || '—'}</td>
-                <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                <AdminDataTableCell className='font-medium text-slate-900'>{row.block_date}</AdminDataTableCell>
+                <AdminDataTableCell className='uppercase'>{row.period}</AdminDataTableCell>
+                <AdminDataTableCell className='text-slate-700'>{row.note?.trim() || '—'}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                   <Button
                     type='button'
                     size='sm'
@@ -340,7 +342,7 @@ export function CalendarManualBlocksPage() {
                   >
                     <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                   </Button>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>

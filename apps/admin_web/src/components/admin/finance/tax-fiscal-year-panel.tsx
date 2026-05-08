@@ -4,7 +4,13 @@ import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 
 import { WarningTriangleIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableCell,
+  AdminDataTableHead,
+  AdminDataTableHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -177,26 +183,26 @@ export function TaxFiscalYearPanel() {
       <AdminDataTable tableClassName='min-w-[920px]'>
         <AdminDataTableHead>
           <tr>
-            <th className='px-4 py-3 font-semibold'>Type</th>
-            <th className='px-4 py-3 font-semibold'>Date</th>
-            <th className='px-4 py-3 font-semibold'>Description</th>
-            <th className='px-4 py-3 font-semibold'>Amount</th>
-            <th className='px-4 py-3 font-semibold'>Tax</th>
-            <th className='px-4 py-3 font-semibold'>Expense status</th>
+            <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Date</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Description</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Tax</AdminDataTableHeadCell>
+            <AdminDataTableHeadCell>Expense status</AdminDataTableHeadCell>
           </tr>
         </AdminDataTableHead>
         <AdminDataTableBody>
           {!isLoading && !tableError && rows.length === 0 ? (
             <tr>
-              <td className='px-4 py-6 text-slate-600' colSpan={6}>
+              <AdminDataTableCell colSpan={6} className='py-6 text-slate-600'>
                 No expense or revenue rows in this fiscal year.
-              </td>
+              </AdminDataTableCell>
             </tr>
           ) : null}
           {rows.map((row) => (
             <tr key={`${row.kind}:${row.referenceId}`}>
-              <td className='px-4 py-3'>{row.kind === 'revenue' ? 'Revenue' : 'Expense'}</td>
-              <td className='px-4 py-3'>
+              <AdminDataTableCell>{row.kind === 'revenue' ? 'Revenue' : 'Expense'}</AdminDataTableCell>
+              <AdminDataTableCell>
                 <div className='flex flex-wrap items-center gap-2'>
                   <span>{formatDateOnly(row.classificationDate)}</span>
                   {row.needsInvoiceDateWarning ? (
@@ -209,18 +215,18 @@ export function TaxFiscalYearPanel() {
                     </span>
                   ) : null}
                 </div>
-              </td>
-              <td className='px-4 py-3'>
+              </AdminDataTableCell>
+              <AdminDataTableCell>
                 <p className='font-medium text-slate-900'>{row.description}</p>
-              </td>
-              <td className='px-4 py-3'>
+              </AdminDataTableCell>
+              <AdminDataTableCell>
                 <span className='tabular-nums'>
                   {fxMultipliers === null && rowsNeedForeignFx
                     ? '…'
                     : formatMoneyLineWithFxToDefault(row.amount, row.currency, fxMultipliers ?? new Map())}
                 </span>
-              </td>
-              <td className='px-4 py-3'>
+              </AdminDataTableCell>
+              <AdminDataTableCell>
                 <span className='tabular-nums'>
                   {isTaxDisplayedAsDash(row.tax)
                     ? '—'
@@ -228,10 +234,10 @@ export function TaxFiscalYearPanel() {
                       ? '…'
                       : formatMoneyLineWithFxToDefault(row.tax, row.currency, fxMultipliers ?? new Map())}
                 </span>
-              </td>
-              <td className='px-4 py-3'>
+              </AdminDataTableCell>
+              <AdminDataTableCell>
                 {row.kind === 'expense' && row.expenseStatus ? formatEnumLabel(row.expenseStatus) : '—'}
-              </td>
+              </AdminDataTableCell>
             </tr>
           ))}
         </AdminDataTableBody>

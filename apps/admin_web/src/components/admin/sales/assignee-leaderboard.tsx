@@ -1,6 +1,13 @@
 import type { AdminUser } from '@/types/leads';
 
 import { Card } from '@/components/ui/card';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableCell,
+  AdminDataTableHead,
+  AdminDataTableHeadCell,
+} from '@/components/ui/admin-data-table';
 
 export interface AssigneeLeaderboardProps {
   users: AdminUser[];
@@ -23,35 +30,39 @@ function resolveUserLabel(sub: string | null, users: AdminUser[]): string {
 export function AssigneeLeaderboard({ users, values }: AssigneeLeaderboardProps) {
   return (
     <Card title='Team Performance'>
-      <div className='overflow-x-auto rounded-md border border-slate-200'>
-        <table className='w-full min-w-[520px] divide-y divide-slate-200 text-left'>
-          <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
+      <div className='overflow-x-auto'>
+        <AdminDataTable tableClassName='min-w-[520px]'>
+          <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2 font-semibold'>Assignee</th>
-              <th className='px-3 py-2 font-semibold'>Total</th>
-              <th className='px-3 py-2 font-semibold'>Converted</th>
-              <th className='px-3 py-2 font-semibold'>Conversion rate</th>
+              <AdminDataTableHeadCell>Assignee</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Converted</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Conversion rate</AdminDataTableHeadCell>
             </tr>
-          </thead>
-          <tbody className='divide-y divide-slate-200 bg-white text-sm'>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
             {values.length === 0 ? (
               <tr>
-                <td className='px-3 py-6 text-slate-600' colSpan={4}>
+                <AdminDataTableCell colSpan={4} className='py-6 text-slate-600'>
                   No assignee performance data.
-                </td>
+                </AdminDataTableCell>
               </tr>
             ) : (
               values.map((entry) => (
                 <tr key={entry.assignedTo ?? 'unassigned'}>
-                  <td className='px-3 py-2 text-slate-900'>{resolveUserLabel(entry.assignedTo, users)}</td>
-                  <td className='px-3 py-2 text-slate-700'>{entry.total}</td>
-                  <td className='px-3 py-2 text-slate-700'>{entry.converted}</td>
-                  <td className='px-3 py-2 text-slate-700'>{(entry.conversionRate * 100).toFixed(1)}%</td>
+                  <AdminDataTableCell className='text-slate-900'>
+                    {resolveUserLabel(entry.assignedTo, users)}
+                  </AdminDataTableCell>
+                  <AdminDataTableCell className='text-slate-700'>{entry.total}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-slate-700'>{entry.converted}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-slate-700'>
+                    {(entry.conversionRate * 100).toFixed(1)}%
+                  </AdminDataTableCell>
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+          </AdminDataTableBody>
+        </AdminDataTable>
       </div>
     </Card>
   );

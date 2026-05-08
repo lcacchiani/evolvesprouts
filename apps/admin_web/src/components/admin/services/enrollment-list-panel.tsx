@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -539,54 +541,46 @@ export function EnrollmentListPanel({
           <AdminDataTable tableClassName='w-full table-fixed'>
             <AdminDataTableHead>
               <tr>
-                <th
+                <AdminDataTableHeadCell
                   className={
-                    showScheduledStartColumn
-                      ? 'w-[22%] min-w-0 px-4 py-3 font-semibold'
-                      : 'w-[28%] min-w-0 px-4 py-3 font-semibold'
+                    showScheduledStartColumn ? 'w-[22%] min-w-0' : 'w-[28%] min-w-0'
                   }
                 >
                   Party
-                </th>
+                </AdminDataTableHeadCell>
                 {showScheduledStartColumn ? (
-                  <th className='w-[10%] whitespace-nowrap px-4 py-3 font-semibold'>Scheduled start</th>
+                  <AdminDataTableHeadCell className='w-[10%] whitespace-nowrap'>
+                    Scheduled start
+                  </AdminDataTableHeadCell>
                 ) : null}
-                <th
+                <AdminDataTableHeadCell
                   className={
-                    showScheduledStartColumn
-                      ? 'w-[9%] min-w-0 px-4 py-3 font-semibold'
-                      : 'w-[10%] min-w-0 px-4 py-3 font-semibold'
+                    showScheduledStartColumn ? 'w-[9%] min-w-0' : 'w-[10%] min-w-0'
                   }
                 >
                   Status
-                </th>
-                <th
+                </AdminDataTableHeadCell>
+                <AdminDataTableHeadCell
                   className={
-                    showScheduledStartColumn
-                      ? 'w-[10%] whitespace-nowrap px-4 py-3 font-semibold'
-                      : 'w-[11%] whitespace-nowrap px-4 py-3 font-semibold'
+                    showScheduledStartColumn ? 'w-[10%] whitespace-nowrap' : 'w-[11%] whitespace-nowrap'
                   }
                 >
                   Amount
-                </th>
-                <th
+                </AdminDataTableHeadCell>
+                <AdminDataTableHeadCell
                   className={
-                    showScheduledStartColumn
-                      ? 'w-[17%] min-w-0 px-4 py-3 font-semibold'
-                      : 'w-[20%] min-w-0 px-4 py-3 font-semibold'
+                    showScheduledStartColumn ? 'w-[17%] min-w-0' : 'w-[20%] min-w-0'
                   }
                 >
                   Discount
-                </th>
-                <th
+                </AdminDataTableHeadCell>
+                <AdminDataTableHeadCell
                   className={
-                    showScheduledStartColumn
-                      ? 'w-[12%] whitespace-nowrap px-4 py-3 font-semibold'
-                      : 'w-[14%] whitespace-nowrap px-4 py-3 font-semibold'
+                    showScheduledStartColumn ? 'w-[12%] whitespace-nowrap' : 'w-[14%] whitespace-nowrap'
                   }
                 >
                   Enrolled at
-                </th>
+                </AdminDataTableHeadCell>
                 <AdminDataTableOperationsHeadCell className='w-[4.5rem] whitespace-nowrap' />
               </tr>
             </AdminDataTableHead>
@@ -608,28 +602,30 @@ export function EnrollmentListPanel({
                     }`}
                     onClick={() => applyEnrollmentSelection(enrollment)}
                   >
-                    <td className='min-w-0 break-words px-4 py-3'>
+                    <AdminDataTableCell className='min-w-0 break-words'>
                       {formatEnrollmentParentCell(enrollment)}
-                    </td>
+                    </AdminDataTableCell>
                     {showScheduledStartColumn ? (
-                      <td className='whitespace-nowrap px-4 py-3'>
+                      <AdminDataTableCell className='whitespace-nowrap'>
                         {enrollment.scheduledStartAt?.trim()
                           ? formatDate(enrollment.scheduledStartAt)
                           : '—'}
-                      </td>
+                      </AdminDataTableCell>
                     ) : null}
-                    <td className='min-w-0 break-words px-4 py-3'>
+                    <AdminDataTableCell className='min-w-0 break-words'>
                       {formatEnumLabel(enrollment.status)}
-                    </td>
-                    <td className='whitespace-nowrap px-4 py-3'>{amountDisplay}</td>
-                    <td className='min-w-0 break-words px-4 py-3'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='whitespace-nowrap'>{amountDisplay}</AdminDataTableCell>
+                    <AdminDataTableCell className='min-w-0 break-words'>
                       {enrollment.discountCodeId
                         ? (discountOptions.find((c) => c.id === enrollment.discountCodeId)?.code ??
                             enrollment.discountCodeId)
                         : '-'}
-                    </td>
-                    <td className='whitespace-nowrap px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
-                    <td className='px-4 py-3 text-right'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='whitespace-nowrap'>
+                      {formatDate(enrollment.enrolledAt)}
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='text-right'>
                       <Button
                         type='button'
                         size='sm'
@@ -644,7 +640,7 @@ export function EnrollmentListPanel({
                       >
                         <DeleteIcon className='h-4 w-4' />
                       </Button>
-                    </td>
+                    </AdminDataTableCell>
                   </tr>
                 );
               })}

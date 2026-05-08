@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -1150,7 +1152,7 @@ export function ClientInvoicesPanel() {
                 <AdminDataTable>
                   <AdminDataTableHead>
                     <tr>
-                      <th className='px-3 py-2'>
+                      <AdminDataTableHeadCell>
                         <input
                           type='checkbox'
                           aria-label='Select all visible enrollments'
@@ -1182,27 +1184,29 @@ export function ClientInvoicesPanel() {
                             selectableFilteredRows.length === 0
                           }
                         />
-                      </th>
-                      <th className='px-3 py-2'>Party</th>
-                      <th className='px-3 py-2'>{ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER}</th>
-                      <th className='max-w-[14rem] px-3 py-2'>{INSTANCE_TABLE_TIER_COHORT_HEADER}</th>
-                      <th className='px-3 py-2 text-right'>Price</th>
-                      <th className='px-3 py-2'>Enrolled</th>
-                      <th className='px-3 py-2'>Invoice</th>
+                      </AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell>Party</AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell>{ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER}</AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell className='max-w-[14rem]'>
+                        {INSTANCE_TABLE_TIER_COHORT_HEADER}
+                      </AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell className='text-right'>Price</AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell>Enrolled</AdminDataTableHeadCell>
+                      <AdminDataTableHeadCell>Invoice</AdminDataTableHeadCell>
                     </tr>
                   </AdminDataTableHead>
                   <AdminDataTableBody>
                     {enrollmentPickerLoading ? (
                       <tr>
-                        <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
+                        <AdminDataTableCell colSpan={7} className='py-6 text-sm text-slate-600'>
                           Loading enrollments…
-                        </td>
+                        </AdminDataTableCell>
                       </tr>
                     ) : enrollmentPickerRows.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className='px-3 py-6 text-sm text-slate-600'>
+                        <AdminDataTableCell colSpan={7} className='py-6 text-sm text-slate-600'>
                           No enrollments match this filter.
-                        </td>
+                        </AdminDataTableCell>
                       </tr>
                     ) : (
                       enrollmentPickerRows.map((row) => {
@@ -1229,7 +1233,7 @@ export function ClientInvoicesPanel() {
                             key={row.enrollmentId}
                             className={blocked ? 'bg-slate-50 text-slate-500' : undefined}
                           >
-                            <td className='px-3 py-2 align-top'>
+                            <AdminDataTableCell className='align-top'>
                               <input
                                 type='checkbox'
                                 aria-label={`Select enrollment ${row.enrollmentId}`}
@@ -1254,25 +1258,25 @@ export function ClientInvoicesPanel() {
                                   Already on a draft or issued invoice.
                                 </span>
                               ) : null}
-                            </td>
-                            <td className='min-w-0 max-w-[22rem] break-words px-3 py-2 align-top text-sm'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='min-w-0 max-w-[22rem] break-words align-top text-sm'>
                               {partyCellDisplay !== '' ? partyCellDisplay : '—'}
-                            </td>
-                            <td className='px-3 py-2 align-top text-sm'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='align-top text-sm'>
                               {instanceServiceDisplay !== '' ? instanceServiceDisplay : '—'}
-                            </td>
-                            <td className='max-w-[14rem] min-w-0 break-words px-3 py-2 align-top text-sm'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='max-w-[14rem] min-w-0 break-words align-top text-sm'>
                               {tierCohortDisplay !== '' ? tierCohortDisplay : '—'}
-                            </td>
-                            <td className='px-3 py-2 align-top text-right text-sm tabular-nums'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='align-top text-right text-sm tabular-nums'>
                               {priceLabel}
-                            </td>
-                            <td className='px-3 py-2 align-top whitespace-nowrap text-sm'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='align-top whitespace-nowrap text-sm'>
                               {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
-                            </td>
-                            <td className='px-3 py-2 align-top text-sm'>
+                            </AdminDataTableCell>
+                            <AdminDataTableCell className='align-top text-sm'>
                               {blocked ? 'On draft/issued invoice' : '—'}
-                            </td>
+                            </AdminDataTableCell>
                           </tr>
                         );
                       })
@@ -1452,13 +1456,13 @@ export function ClientInvoicesPanel() {
         <AdminDataTable tableClassName='min-w-[900px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Status</th>
-              <th className='px-3 py-2'>Number</th>
-              <th className='px-3 py-2'>Bill to</th>
-              <th className='px-3 py-2'>Total</th>
-              <th className='px-3 py-2'>Lines</th>
-              <th className='px-3 py-2'>Created</th>
-              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Number</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Bill to</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Lines</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -1485,18 +1489,16 @@ export function ClientInvoicesPanel() {
                     }
                   }}
                 >
-                  <td className='px-3 py-2'>
-                    {formatEnumLabel(inv.status ?? '') || '—'}
-                  </td>
-                  <td className='px-3 py-2'>{inv.invoiceNumber ?? '—'}</td>
-                  <td className='px-3 py-2 text-slate-700'>
+                  <AdminDataTableCell>{formatEnumLabel(inv.status ?? '') || '—'}</AdminDataTableCell>
+                  <AdminDataTableCell>{inv.invoiceNumber ?? '—'}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-slate-700'>
                     {inv.billToDisplayName ?? inv.billToEmail ?? '—'}
-                  </td>
-                  <td className='px-3 py-2'>{totalDisplay}</td>
-                  <td className='px-3 py-2'>{inv.lineCount ?? 0}</td>
-                  <td className='px-3 py-2'>{formatDate(inv.createdAt ?? null)}</td>
-                  <td
-                    className='px-3 py-2 text-right'
+                  </AdminDataTableCell>
+                  <AdminDataTableCell>{totalDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell>{inv.lineCount ?? 0}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatDate(inv.createdAt ?? null)}</AdminDataTableCell>
+                  <AdminDataTableCell
+                    className='text-right'
                     onClick={(event) => {
                       event.stopPropagation();
                     }}
@@ -1577,7 +1579,7 @@ export function ClientInvoicesPanel() {
                         </Button>
                       ) : null}
                     </div>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               );
             })}
@@ -1861,12 +1863,12 @@ export function ClientInvoicesPanel() {
         <AdminDataTable tableClassName='min-w-[640px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-3 py-2'>Direction</th>
-              <th className='px-3 py-2'>Status</th>
-              <th className='px-3 py-2'>Method</th>
-              <th className='px-3 py-2'>Amount</th>
-              <th className='px-3 py-2'>Created</th>
-              <AdminDataTableOperationsHeadCell className='px-3 py-2 font-normal' />
+              <AdminDataTableHeadCell>Direction</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Method</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
+              <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -1893,13 +1895,13 @@ export function ClientInvoicesPanel() {
                     }
                   }}
                 >
-                  <td className='px-3 py-2'>{formatEnumLabel(p.direction ?? '')}</td>
-                  <td className='px-3 py-2'>{formatEnumLabel(p.status ?? '')}</td>
-                  <td className='px-3 py-2'>{formatPaymentMethodLabel(p.method)}</td>
-                  <td className='px-3 py-2'>{amountDisplay}</td>
-                  <td className='px-3 py-2'>{formatDate(p.createdAt ?? null)}</td>
-                  <td
-                    className='px-3 py-2 text-right'
+                  <AdminDataTableCell>{formatEnumLabel(p.direction ?? '')}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatEnumLabel(p.status ?? '')}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatPaymentMethodLabel(p.method)}</AdminDataTableCell>
+                  <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatDate(p.createdAt ?? null)}</AdminDataTableCell>
+                  <AdminDataTableCell
+                    className='text-right'
                     onClick={(event) => {
                       event.stopPropagation();
                     }}
@@ -1940,7 +1942,7 @@ export function ClientInvoicesPanel() {
                         </Button>
                       ) : null}
                     </div>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               );
             })}

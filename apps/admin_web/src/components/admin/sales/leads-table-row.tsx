@@ -3,6 +3,7 @@
 import type { AdminUser, LeadSummary } from '@/types/leads';
 
 import { ArrowRightIcon } from '@/components/icons/action-icons';
+import { AdminDataTableCell } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatEnumLabel } from '@/lib/format';
 
@@ -39,37 +40,37 @@ export function LeadsTableRow({
       className={`cursor-pointer ${isSelected ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
       onClick={() => onSelect(lead.id)}
     >
-      <td className='px-3 py-2' onClick={(event) => event.stopPropagation()}>
+      <AdminDataTableCell onClick={(event) => event.stopPropagation()}>
         <input
           type='checkbox'
           checked={isChecked}
           onChange={(event) => onCheck(lead.id, event.target.checked)}
         />
-      </td>
-      <td className='px-3 py-2 text-sm font-medium text-slate-900'>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm font-medium text-slate-900'>
         {[lead.contact.firstName, lead.contact.lastName].filter(Boolean).join(' ') || 'Unnamed lead'}
-      </td>
-      <td className='px-3 py-2 text-sm text-slate-700'>{lead.contact.email ?? '—'}</td>
-      <td className='px-3 py-2 text-sm text-slate-700'>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>{lead.contact.email ?? '—'}</AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>
         {lead.contact.source ? formatEnumLabel(lead.contact.source) : '—'}
-      </td>
-      <td className='px-3 py-2 text-sm'>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm'>
         <span
           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${getStageBadgeClass(lead.funnelStage)}`}
         >
           {formatEnumLabel(lead.funnelStage)}
         </span>
-      </td>
-      <td className='px-3 py-2 text-sm text-slate-700'>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>
         {resolveAssigneeLabel(lead.assignedTo, users)}
-      </td>
-      <td className='px-3 py-2 text-sm text-slate-700'>{formatDate(lead.createdAt)}</td>
-      <td className='px-3 py-2 text-sm text-slate-700'>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>{formatDate(lead.createdAt)}</AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>
         <span className={lead.daysInStage > 7 ? 'font-semibold text-amber-700' : ''}>
           {lead.daysInStage}
         </span>
-      </td>
-      <td className='px-3 py-2 text-right' onClick={(event) => event.stopPropagation()}>
+      </AdminDataTableCell>
+      <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
         <Button
           type='button'
           size='sm'
@@ -80,7 +81,7 @@ export function LeadsTableRow({
         >
           <ArrowRightIcon className='h-4 w-4' />
         </Button>
-      </td>
+      </AdminDataTableCell>
     </tr>
   );
 }

@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -198,9 +200,9 @@ export function VendorsPanel({
         <AdminDataTable tableClassName='min-w-[760px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold text-right'>Total Spend</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell className='text-right'>Total Spend</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -219,16 +221,16 @@ export function VendorsPanel({
                   setActive(vendor.active);
                 }}
               >
-                <td className='px-4 py-3'>{vendor.name}</td>
-                <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
-                <td className='px-4 py-3 text-right tabular-nums'>
+                <AdminDataTableCell>{vendor.name}</AdminDataTableCell>
+                <AdminDataTableCell>{vendor.active ? 'Active' : 'Inactive'}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right tabular-nums'>
                   {isVendorSpendLoading ? (
                     '…'
                   ) : (
                     formatAmountInDefaultCurrency(vendorSpendByVendorId.get(vendor.id) ?? 0)
                   )}
-                </td>
-                <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                </AdminDataTableCell>
+                <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                   <Button
                     type='button'
                     size='sm'
@@ -249,7 +251,7 @@ export function VendorsPanel({
                       <VendorInactiveIcon className='h-4 w-4 shrink-0' aria-hidden />
                     )}
                   </Button>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>

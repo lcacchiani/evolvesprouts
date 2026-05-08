@@ -5,7 +5,9 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Input } from '@/components/ui/input';
@@ -154,12 +156,12 @@ export function ServiceListPanel({
         <AdminDataTable tableClassName='min-w-[800px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Title</th>
-              <th className='px-4 py-3 font-semibold'>Tier</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
-              <th className='px-4 py-3 font-semibold'>Price</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Delivery</th>
+              <AdminDataTableHeadCell>Title</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Tier</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Type</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Price</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Delivery</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -176,13 +178,13 @@ export function ServiceListPanel({
                 role='row'
                 aria-selected={selectedServiceId === service.id}
               >
-                <td className='px-4 py-3'>{service.title}</td>
-                <td className='px-4 py-3'>{service.serviceTier?.trim() ? service.serviceTier : '—'}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
-                <td className='px-4 py-3'>{formatServiceListPriceLabel(service)}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
-                <td className='px-4 py-3 text-right'>
+                <AdminDataTableCell>{service.title}</AdminDataTableCell>
+                <AdminDataTableCell>{service.serviceTier?.trim() ? service.serviceTier : '—'}</AdminDataTableCell>
+                <AdminDataTableCell>{formatEnumLabel(service.serviceType)}</AdminDataTableCell>
+                <AdminDataTableCell>{formatServiceListPriceLabel(service)}</AdminDataTableCell>
+                <AdminDataTableCell>{formatEnumLabel(service.status)}</AdminDataTableCell>
+                <AdminDataTableCell>{formatEnumLabel(service.deliveryMode)}</AdminDataTableCell>
+                <AdminDataTableCell className='text-right'>
                   <div className='flex justify-end gap-2'>
                     <CopyFeedbackIconButton
                       copied={duplicateDraftFeedbackId === service.id}
@@ -215,7 +217,7 @@ export function ServiceListPanel({
                       <DeleteIcon className='h-4 w-4' />
                     </Button>
                   </div>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>

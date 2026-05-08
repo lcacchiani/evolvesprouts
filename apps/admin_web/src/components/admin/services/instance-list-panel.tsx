@@ -6,7 +6,9 @@ import { useMemo } from 'react';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
@@ -205,30 +207,30 @@ export function InstanceListPanel({
             <AdminDataTableHead>
               <tr>
                 {showServiceColumn ? (
-                  <th className='w-[22%] min-w-0 px-4 py-3 font-semibold'>Title</th>
+                  <AdminDataTableHeadCell className='w-[22%] min-w-0'>Title</AdminDataTableHeadCell>
                 ) : null}
                 {showServiceColumn ? (
-                  <th className='w-[17%] min-w-0 px-4 py-3 font-semibold'>
+                  <AdminDataTableHeadCell className='w-[17%] min-w-0'>
                     {INSTANCE_TABLE_TIER_COHORT_HEADER}
-                  </th>
+                  </AdminDataTableHeadCell>
                 ) : null}
                 {showServiceColumn ? (
-                  <th className='w-[17%] min-w-0 px-4 py-3 font-semibold'>Locations</th>
+                  <AdminDataTableHeadCell className='w-[17%] min-w-0'>Locations</AdminDataTableHeadCell>
                 ) : null}
                 {showServiceColumn ? (
-                  <th className='w-[13%] whitespace-nowrap px-4 py-3 align-middle font-semibold'>
+                  <AdminDataTableHeadCell className='w-[13%] whitespace-nowrap align-middle'>
                     First slot
-                  </th>
+                  </AdminDataTableHeadCell>
                 ) : null}
-                <th
+                <AdminDataTableHeadCell
                   className={
                     showServiceColumn
-                      ? 'w-[18%] whitespace-nowrap px-4 py-3 font-semibold'
-                      : 'min-w-0 whitespace-nowrap px-4 py-3 font-semibold'
+                      ? 'w-[18%] whitespace-nowrap'
+                      : 'min-w-0 whitespace-nowrap'
                   }
                 >
                   Capacity
-                </th>
+                </AdminDataTableHeadCell>
                 <AdminDataTableOperationsHeadCell className='w-[7rem] whitespace-nowrap' />
               </tr>
             </AdminDataTableHead>
@@ -250,33 +252,33 @@ export function InstanceListPanel({
                     aria-selected={selectedInstanceId === instance.id}
                   >
                     {showServiceColumn ? (
-                      <td className='min-w-0 break-words px-4 py-3'>
+                      <AdminDataTableCell className='min-w-0 break-words'>
                         <span className='inline-flex flex-wrap items-center gap-2'>
                           <span>
                             {instanceTableTitle.trim() !== '' ? instanceTableTitle : '\u00a0'}
                           </span>
                         </span>
-                      </td>
+                      </AdminDataTableCell>
                     ) : null}
                     {showServiceColumn ? (
-                      <td className='min-w-0 break-words px-4 py-3 text-sm'>
+                      <AdminDataTableCell className='min-w-0 break-words text-sm'>
                         {tierCohortDisplay !== '' ? tierCohortDisplay : '-'}
-                      </td>
+                      </AdminDataTableCell>
                     ) : null}
                     {showServiceColumn ? (
-                      <td className='min-w-0 break-words px-4 py-3 text-sm'>
+                      <AdminDataTableCell className='min-w-0 break-words text-sm'>
                         {formatInstanceSlotLocationSummary(instance, locationById)}
-                      </td>
+                      </AdminDataTableCell>
                     ) : null}
                     {showServiceColumn ? (
-                      <td className='whitespace-nowrap px-4 py-3 align-middle text-sm'>
+                      <AdminDataTableCell className='whitespace-nowrap align-middle text-sm'>
                         {firstSlot ? formatSessionSlotStartsAtDisplay(firstSlot.startsAt) : '-'}
-                      </td>
+                      </AdminDataTableCell>
                     ) : null}
-                    <td className='whitespace-nowrap px-4 py-3'>
+                    <AdminDataTableCell className='whitespace-nowrap'>
                       {formatInstanceTableCapacity(instance)}
-                    </td>
-                    <td className='whitespace-nowrap px-4 py-3 text-right'>
+                    </AdminDataTableCell>
+                    <AdminDataTableCell className='whitespace-nowrap text-right'>
                       <div className='flex justify-end gap-2'>
                         <CopyFeedbackIconButton
                           copied={duplicateDraftFeedbackId === instance.id}
@@ -301,7 +303,7 @@ export function InstanceListPanel({
                           <DeleteIcon className='h-4 w-4' />
                         </Button>
                       </div>
-                    </td>
+                    </AdminDataTableCell>
                   </tr>
                 );
               })}

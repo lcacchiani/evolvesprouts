@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
   AdminDataTableBody,
+  AdminDataTableCell,
   AdminDataTableHead,
+  AdminDataTableHeadCell,
   AdminDataTableOperationsHeadCell,
 } from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -256,10 +258,10 @@ export function ExpensesListPanel({
         <AdminDataTable tableClassName='min-w-[780px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Vendor</th>
-              <th className='px-4 py-3 font-semibold'>Total</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Issued</th>
+              <AdminDataTableHeadCell>Vendor</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Issued</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -279,13 +281,13 @@ export function ExpensesListPanel({
                   role='row'
                   aria-selected={isSelected}
                 >
-                  <td className='px-4 py-3'>
+                  <AdminDataTableCell>
                     <p className='font-medium text-slate-900'>{expense.vendorName ?? '—'}</p>
                     <p className='mt-0.5 text-xs text-slate-500'>
                       {expense.invoiceNumber ?? expense.id.slice(0, 8)}
                     </p>
-                  </td>
-                  <td className='px-4 py-3'>
+                  </AdminDataTableCell>
+                  <AdminDataTableCell>
                     <span className='tabular-nums'>
                       {fxMultipliers === null && expensesNeedForeignFx
                         ? '…'
@@ -295,10 +297,10 @@ export function ExpensesListPanel({
                             expensesNeedForeignFx ? (fxMultipliers ?? new Map()) : new Map(),
                           )}
                     </span>
-                  </td>
-                  <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
-                  <td className='px-4 py-3'>{formatDateOnly(expense.invoiceDate)}</td>
-                  <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                  </AdminDataTableCell>
+                  <AdminDataTableCell>{formatEnumLabel(expense.status)}</AdminDataTableCell>
+                  <AdminDataTableCell>{formatDateOnly(expense.invoiceDate)}</AdminDataTableCell>
+                  <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                     <div className='flex flex-wrap justify-end gap-1'>
                       <OpenAdminAssetInNewTabButton
                         assetId={documentAssetId ?? ''}
@@ -411,7 +413,7 @@ export function ExpensesListPanel({
                         </Button>
                       ) : null}
                     </div>
-                  </td>
+                  </AdminDataTableCell>
                 </tr>
               );
             })}

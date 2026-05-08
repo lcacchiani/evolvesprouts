@@ -5,7 +5,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ArchiveIcon, DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminDataTable, AdminDataTableBody, AdminDataTableHead, AdminDataTableOperationsHeadCell } from '@/components/ui/admin-data-table';
+import {
+  AdminDataTable,
+  AdminDataTableBody,
+  AdminDataTableCell,
+  AdminDataTableHead,
+  AdminDataTableHeadCell,
+  AdminDataTableOperationsHeadCell,
+} from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
@@ -347,10 +354,10 @@ export function TagsPage() {
         <AdminDataTable tableClassName='min-w-[720px]'>
           <AdminDataTableHead>
             <tr>
-              <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Color</th>
-              <th className='px-4 py-3 font-semibold'>Uses</th>
-              <th className='px-4 py-3 font-semibold'>Status</th>
+              <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Color</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Uses</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -370,18 +377,18 @@ export function TagsPage() {
                   }
                 }}
               >
-                <td className='px-4 py-3 font-medium text-slate-900'>
+                <AdminDataTableCell className='font-medium text-slate-900'>
                   {row.name}
                   {row.is_system ? (
                     <span className='ml-2 text-xs font-normal text-slate-500'>(system)</span>
                   ) : null}
-                </td>
-                <td className='px-4 py-3 font-mono text-sm text-slate-700'>{row.color ?? '—'}</td>
-                <td className='px-4 py-3'>{row.usage_count}</td>
-                <td className='px-4 py-3 text-sm text-slate-700'>
+                </AdminDataTableCell>
+                <AdminDataTableCell className='font-mono text-sm text-slate-700'>{row.color ?? '—'}</AdminDataTableCell>
+                <AdminDataTableCell>{row.usage_count}</AdminDataTableCell>
+                <AdminDataTableCell className='text-sm text-slate-700'>
                   {row.archived_at ? 'Archived' : 'Active'}
-                </td>
-                <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                </AdminDataTableCell>
+                <AdminDataTableCell className='text-right' onClick={(event) => event.stopPropagation()}>
                   <div className='flex justify-end gap-1'>
                     {row.archived_at && !row.is_system ? (
                       <Button
@@ -438,7 +445,7 @@ export function TagsPage() {
                       <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
                     </Button>
                   </div>
-                </td>
+                </AdminDataTableCell>
               </tr>
             ))}
           </AdminDataTableBody>
