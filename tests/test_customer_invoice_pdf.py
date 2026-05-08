@@ -177,8 +177,8 @@ def test_v6_items_header_navy_fill(monkeypatch: pytest.MonkeyPatch) -> None:
 
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
-    # Items header navy band sits around y_pt 400-437 in v6.
-    rgb = pix.pixel(int(200 * s), int(420 * s))
+    # Items header navy band (y shifts with header→lines spacing and row padding).
+    rgb = pix.pixel(int(200 * s), int(385 * s))
     assert _rgb_close(rgb, (51, 73, 93))
 
 
@@ -192,8 +192,8 @@ def test_v6_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
     page = fitz.open(stream=pdf, filetype="pdf")[0]
     pix, s = _pixmap_pt_coords(page)
     W = pix.width
-    # Totals card spans y_pt ~493-580 in v6; sample mid-card.
-    y_pt = 530
+    # Totals card (y shifts with lines→totals spacing and totals panel padding).
+    y_pt = 510
     y = int(y_pt * s)
 
     def matches_panel(rgb: tuple[int, int, int]) -> bool:
@@ -226,7 +226,7 @@ def test_v6_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _totals_card_bounds_on_page(
-    page, *, y_sample_pt: float = 530.0
+    page, *, y_sample_pt: float = 510.0
 ) -> tuple[float, float, float] | None:
     """Return (left_pt, width_pt, bottom_y_pt) if a totals-sized panel is found."""
     from reportlab.lib.units import mm
@@ -523,7 +523,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v8"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v9"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
