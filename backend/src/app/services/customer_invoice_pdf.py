@@ -531,7 +531,11 @@ def render_invoice_pdf(
 
     bill_body_parts: list[str] = []
     if invoice.bill_to_display_name:
-        bill_body_parts.append(_esc(invoice.bill_to_display_name))
+        name_lines = [
+            ln.strip() for ln in invoice.bill_to_display_name.split("\n") if ln.strip()
+        ]
+        if name_lines:
+            bill_body_parts.append("<br/>".join(_esc(ln) for ln in name_lines))
     if invoice.bill_to_email:
         bill_body_parts.append(_esc(invoice.bill_to_email))
     bill_body_html = "<br/>".join(bill_body_parts) if bill_body_parts else ""

@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.api.admin_billing_common import (
     contact_display_name,
     effective_enrollment_bill_to_fks,
-    family_or_organization_bill_to_display_label,
 )
 from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
@@ -59,7 +58,7 @@ def _capitalize_first_letter(value: str) -> str:
 
 
 def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
-    """Line text for enrollment-merge invoices: title — tier — cohort (hyphen-separated).
+    """Line text for enrollment-merge invoices: title, tier, and cohort space-separated.
 
     Title prefers instance title, then parent service title. Tier prefers enrollment ticket
     tier name, then catalog ``service_tier``. Tier and cohort segments use a leading
@@ -93,7 +92,7 @@ def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
 
     if not parts:
         return "Enrollment"
-    out = " - ".join(parts)
+    out = " ".join(parts)
     return out[:500]
 
 
@@ -153,12 +152,14 @@ def _resolve_bill_to_party_from_invoice_fks(
             .limit(1)
         )
         primary = session.execute(stmt).scalar_one_or_none()
-        label = family_or_organization_bill_to_display_label(
-            entity_name=org.name,
-            primary_display_name=contact_display_name(primary),
-        )
-        if label:
-            inv.bill_to_display_name = label
+        entity_nm = (org.name or "").strip()
+        primary_nm = (contact_display_name(primary) or "").strip()
+        if entity_nm and primary_nm:
+            inv.bill_to_display_name = f"{entity_nm}\n{primary_nm}"
+        elif entity_nm:
+            inv.bill_to_display_name = entity_nm
+        elif primary_nm:
+            inv.bill_to_display_name = primary_nm
         if primary and primary.email:
             inv.bill_to_email = primary.email
 

@@ -2625,7 +2625,7 @@ def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "Parent Service - Premium - Spring 2026"
+        == "Parent Service Premium Spring 2026"
     )
 
 
@@ -2645,8 +2645,46 @@ def test_build_enrollment_merge_line_description_prefers_instance_title_and_tick
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "June Weekend - Early bird"
+        == "June Weekend Early bird"
     )
+
+
+def test_resolve_bill_to_party_from_invoice_fks_organization_two_lines() -> None:
+    """Organization invoices store entity and primary contact on separate lines (PDF breaks)."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Organization
+
+    oid = uuid4()
+    org = SimpleNamespace(name="Acme Learning Ltd")
+    primary = SimpleNamespace(
+        first_name="Jordan",
+        last_name="Lee",
+        email="jordan@example.com",
+    )
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Organization and pk == oid:
+            return org
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.ORGANIZATION,
+        bill_to_organization_id=oid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_display_name == "Acme Learning Ltd\nJordan Lee"
+    assert inv.bill_to_email == "jordan@example.com"
 
 
 def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_display_name() -> None:
