@@ -142,7 +142,8 @@ describe('DiscountCodesPanel', () => {
     expect(screen.getByRole('button', { name: 'Link and QR' })).toBeInTheDocument();
   });
 
-  it('shows archived service title in Scope (editor-aligned, no suffix) while picker omits archived services', () => {
+  it('shows archived service title in editor when row selected while picker omits archived services until then', async () => {
+    const user = userEvent.setup();
     const archived = {
       ...baseService,
       id: 'svc-archived',
@@ -187,11 +188,17 @@ describe('DiscountCodesPanel', () => {
       />,
     );
 
-    expect(screen.getByText('MBA Archived')).toBeInTheDocument();
     const serviceSelect = screen.getByLabelText('Applies to service') as HTMLSelectElement;
     expect(
       [...serviceSelect.options].some((opt) => opt.textContent?.includes('MBA Archived')),
     ).toBe(false);
+
+    await user.click(screen.getByText('ARCH'));
+
+    expect(screen.getByText('MBA Archived')).toBeInTheDocument();
+    expect(
+      [...serviceSelect.options].some((opt) => opt.textContent?.includes('MBA Archived')),
+    ).toBe(true);
   });
 
   it('prompts before scope change when the code has current uses', async () => {

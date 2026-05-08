@@ -26,7 +26,6 @@ import { toErrorMessage } from '@/hooks/hook-errors';
 import { useServiceInstanceOptions } from '@/hooks/use-service-instance-options';
 import { isAdminApiConflictOnField } from '@/lib/admin-api-conflict-messages';
 import { tryCopyTextToClipboard } from '@/lib/clipboard';
-import { listInstances } from '@/lib/services-api';
 import {
   bumpDuplicateDiscountCode,
   DISCOUNT_CODE_ALLOCATION_FAILED_MESSAGE,
@@ -40,7 +39,6 @@ import { formatDiscountRowValue } from '@/lib/discount-row-format';
 import {
   formatDate,
   formatDiscountCodeInstanceOptionLabel,
-  formatDiscountCodeScopeSummary,
   formatEnumLabel,
   formatIsoForDatetimeLocalInput,
   formatServiceTitleWithTier,
@@ -55,7 +53,7 @@ import {
   REFERRAL_DEFAULT_CURRENCY,
   REFERRAL_DEFAULT_DISCOUNT_VALUE,
 } from '@/types/services';
-import type { DiscountCode, DiscountCodeFilters, DiscountType, ServiceInstance, ServiceSummary } from '@/types/services';
+import type { DiscountCode, DiscountCodeFilters, DiscountType, ServiceSummary } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
 
@@ -69,7 +67,7 @@ export interface DiscountCodesPanelProps {
   error: string;
   /** Services for scope pickers; defaults to [] when omitted (e.g. tests). */
   serviceOptions?: ServiceSummary[];
-  /** Full service list for scope column labels (e.g. includes archived). Defaults to serviceOptions. */
+  /** Full service list for editor/referral labels (e.g. includes archived). Defaults to serviceOptions. */
   serviceDirectoryForDisplay?: ServiceSummary[];
   /** Bumps to clear cached instance options after mutations. */
   instanceOptionsRefreshKey?: unknown;
@@ -146,73 +144,6 @@ export function DiscountCodesPanel({
     }
     return map;
   }, [directoryList]);
-
-  const scopeInstanceFetchKey = useMemo(() => {
-    const keys: string[] = [];
-    for (const row of codes) {
-      const sid = row.serviceId?.trim();
-      const iid = row.instanceId?.trim();
-      if (sid && iid) {
-        keys.push(`${sid}:${iid}`);
-      }
-    }
-    keys.sort();
-    return keys.join('|');
-  }, [codes]);
-
-  const [scopeInstanceById, setScopeInstanceById] = useState<Map<string, ServiceInstance>>(() => new Map());
-
-  useEffect(() => {
-    if (!scopeInstanceFetchKey) {
-      setScopeInstanceById(new Map());
-      return;
-    }
-    let cancelled = false;
-    const byService = new Map<string, Set<string>>();
-    for (const pair of scopeInstanceFetchKey.split('|')) {
-      const colon = pair.indexOf(':');
-      if (colon <= 0) {
-        continue;
-      }
-      const sid = pair.slice(0, colon).trim();
-      const iid = pair.slice(colon + 1).trim();
-      if (!sid || !iid) {
-        continue;
-      }
-      let set = byService.get(sid);
-      if (!set) {
-        set = new Set();
-        byService.set(sid, set);
-      }
-      set.add(iid);
-    }
-    void (async () => {
-      const out = new Map<string, ServiceInstance>();
-      await Promise.all(
-        [...byService.entries()].map(async ([serviceId, instanceIds]) => {
-          try {
-            const { items } = await listInstances(serviceId, { limit: 100 });
-            if (cancelled) {
-              return;
-            }
-            for (const inst of items) {
-              if (instanceIds.has(inst.id)) {
-                out.set(inst.id, inst);
-              }
-            }
-          } catch {
-            /* scope column falls back to id-only label when fetch fails */
-          }
-        })
-      );
-      if (!cancelled) {
-        setScopeInstanceById(out);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [scopeInstanceFetchKey]);
 
   /** “Applies to service” picker: published only, plus current selection if not published (edit legacy rows). */
   const serviceSelectOptions = useMemo(() => {
@@ -635,11 +566,10 @@ export function DiscountCodesPanel({
           </AdminTableToolbar>
         }
       >
-        <AdminDataTable tableClassName='min-w-[1040px]'>
+        <AdminDataTable tableClassName='min-w-[880px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Code</th>
-              <th className='px-4 py-3 font-semibold'>Scope</th>
               <th className='px-4 py-3 font-semibold'>Valid from</th>
               <th className='px-4 py-3 font-semibold'>Valid until</th>
               <th className='px-4 py-3 font-semibold'>Value</th>
@@ -658,9 +588,6 @@ export function DiscountCodesPanel({
                 onClick={() => applyCodeSelection(row)}
               >
                 <td className='px-4 py-3'>{row.code}</td>
-                <td className='px-4 py-3 text-sm text-slate-700'>
-                  {formatDiscountCodeScopeSummary(row, serviceById, scopeInstanceById)}
-                </td>
                 <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
                 <td className='px-4 py-3'>{formatDiscountRowValue(row)}</td>
