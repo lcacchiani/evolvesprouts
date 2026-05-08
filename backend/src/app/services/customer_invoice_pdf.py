@@ -625,7 +625,7 @@ def render_invoice_pdf(
         )
     )
     story.append(header_band)
-    story.append(Spacer(1, 32))
+    story.append(Spacer(1, 16))
 
     header_row = [
         Paragraph("<b>Description</b>", header_label_style),
@@ -671,8 +671,8 @@ def render_invoice_pdf(
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ]
             if has_header:
                 hdr = 0
@@ -681,8 +681,8 @@ def render_invoice_pdf(
                         ("BACKGROUND", (0, hdr), (-1, hdr), _INV_HEADER_FILL),
                         ("TEXTCOLOR", (0, hdr), (-1, hdr), _INV_HEADER_TEXT),
                         ("ALIGN", (0, hdr), (-1, hdr), "LEFT"),
-                        ("TOPPADDING", (0, hdr), (-1, hdr), 12),
-                        ("BOTTOMPADDING", (0, hdr), (-1, hdr), 12),
+                        ("TOPPADDING", (0, hdr), (-1, hdr), 6),
+                        ("BOTTOMPADDING", (0, hdr), (-1, hdr), 6),
                         (
                             "LINEBELOW",
                             (0, hdr),
@@ -758,7 +758,7 @@ def render_invoice_pdf(
     )
     last_row = len(inner_totals_rows) - 1
     totals_card_w = 88 * mm
-    totals_card_h = 30 * (last_row + 1) + 28
+    totals_card_h = 30 * (last_row + 1) + 20
     inner_totals = Table(
         inner_totals_rows,
         colWidths=[48 * mm, 40 * mm],
@@ -767,8 +767,8 @@ def render_invoice_pdf(
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING", (0, 0), (-1, -1), 8),
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("LINEABOVE", (1, last_row), (1, last_row), 0.6, _INV_TOTAL_RULE),
     ]
     inner_totals.setStyle(TableStyle(totals_style_cmds))
@@ -803,7 +803,7 @@ def render_invoice_pdf(
             ]
         )
     )
-    story.append(Spacer(1, 18))
+    story.append(Spacer(1, 9))
     story.append(totals_outer)
     story.append(Spacer(1, 36))
 
@@ -831,38 +831,6 @@ def render_invoice_pdf(
             pay_left_w = 102 * mm
             pay_right_w = 88 * mm
 
-            bank_rows: list[list] = [
-                [Paragraph(_esc(pay_intro), body_text_style)],
-            ]
-            if has_bank_block:
-                bank_rows.append([Spacer(1, 12)])
-                bank_lines = [
-                    f"Bank: {_esc(bank_name)}" if bank_name else "",
-                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
-                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
-                ]
-                first_bank = True
-                for bl in bank_lines:
-                    if not bl:
-                        continue
-                    if not first_bank:
-                        bank_rows.append([Spacer(1, 2)])
-                    bank_rows.append([Paragraph(bl, body_text_style)])
-                    first_bank = False
-
-            bank_cell = Table(bank_rows, colWidths=[pay_left_w])
-            bank_cell.setStyle(
-                TableStyle(
-                    [
-                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                        ("TOPPADDING", (0, 0), (-1, -1), 0),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                    ]
-                )
-            )
-
             fps_stack_rows: list[list] = []
             if fps_payload is not None:
                 logo_flow = _fps_logo_image()
@@ -879,6 +847,7 @@ def render_invoice_pdf(
                 qr_img.hAlign = "RIGHT"
                 fps_stack_rows.append([qr_img])
 
+            fps_cell_flow: Paragraph | Table = Paragraph("", body_text_style)
             if fps_stack_rows:
                 fps_cell_inner = Table(
                     fps_stack_rows,
@@ -896,25 +865,52 @@ def render_invoice_pdf(
                         ]
                     )
                 )
-                fps_cell = fps_cell_inner
-            else:
-                fps_cell = Paragraph("", body_text_style)
+                fps_cell_flow = fps_cell_inner
+
+            pay_rows: list[list] = []
+            pay_style_cmds: list[tuple] = [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+            r = 0
+            pay_rows.append([Paragraph(_esc(pay_intro), body_text_style), ""])
+            pay_style_cmds.append(("SPAN", (0, r), (1, r)))
+            r += 1
+
+            if has_bank_block:
+                pay_rows.append([Spacer(1, 12), ""])
+                pay_style_cmds.append(("SPAN", (0, r), (1, r)))
+                r += 1
+                bank_lines = [
+                    f"Bank: {_esc(bank_name)}" if bank_name else "",
+                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
+                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
+                ]
+                first_bank = True
+                for bl in bank_lines:
+                    if not bl:
+                        continue
+                    if not first_bank:
+                        pay_rows.append([Spacer(1, 2), ""])
+                        pay_style_cmds.append(("SPAN", (0, r), (1, r)))
+                        r += 1
+                    pay_rows.append([Paragraph(bl, body_text_style), ""])
+                    pay_style_cmds.append(("SPAN", (0, r), (1, r)))
+                    r += 1
+                    first_bank = False
+
+            if fps_stack_rows:
+                pay_rows.append([Paragraph("", body_text_style), fps_cell_flow])
+                pay_style_cmds.append(("ALIGN", (1, r), (1, r), "RIGHT"))
 
             pay_table = Table(
-                [[bank_cell, fps_cell]],
+                pay_rows,
                 colWidths=[pay_left_w, pay_right_w],
             )
-            pay_table.setStyle(
-                TableStyle(
-                    [
-                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                        ("TOPPADDING", (0, 0), (-1, -1), 0),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                    ]
-                )
-            )
+            pay_table.setStyle(TableStyle(pay_style_cmds))
             story.append(pay_table)
     else:
         story.append(Spacer(1, 36))
