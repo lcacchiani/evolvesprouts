@@ -1024,6 +1024,12 @@ describe('CRM party display labels', () => {
         partyEmail: 'jane@example.com',
       }),
     ).toBe('Smith Family · Jane');
+    expect(
+      formatBillingEnrollmentPartyCell({
+        partyDisplayName: 'Sam Sample',
+        partyEmail: 'sam@example.com',
+      }),
+    ).toBe('Sam Sample · sam@example.com');
   });
 
   it('resolves enrollment list party from API or picker maps', () => {

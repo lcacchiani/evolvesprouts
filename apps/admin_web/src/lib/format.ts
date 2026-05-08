@@ -78,13 +78,14 @@ export function formatFamilyOrOrganizationPartyLabel(
 
 /** Billing draft invoice enrollment picker — Party column (contact uses name · email; family/org use API label). */
 export function formatBillingEnrollmentPartyCell(row: {
-  billToKind: string;
+  billToKind?: string | null;
   partyDisplayName?: string | null;
   partyEmail?: string | null;
 }): string {
   const party = row.partyDisplayName?.trim() ?? '';
   const email = row.partyEmail?.trim() ?? '';
-  if (row.billToKind === 'family' || row.billToKind === 'organization') {
+  const kind = (row.billToKind ?? '').trim();
+  if (kind === 'family' || kind === 'organization') {
     return party;
   }
   return formatContactNameEmailLabel(party, email, party || email || '');
