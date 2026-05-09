@@ -4598,7 +4598,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List expenses */
+        /**
+         * List expenses
+         * @description Returns expenses ordered by invoice issue date (`invoice_date`) descending; rows without an invoice date appear after dated rows. Pagination uses stable key order (`invoice_date`, `id`).
+         */
         get: {
             parameters: {
                 query?: {
