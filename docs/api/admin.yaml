@@ -3399,6 +3399,10 @@ paths:
   /v1/admin/expenses:
     get:
       summary: List expenses
+      description: >-
+        Returns expenses ordered by invoice issue date (`invoice_date`) descending;
+        rows without an invoice date appear after dated rows. Pagination uses stable
+        key order (`invoice_date`, `id`).
       security:
         - AdminBearerAuth: []
       parameters:

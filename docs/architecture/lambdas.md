@@ -223,7 +223,7 @@ their primary responsibilities.
   CRM contact/family/organization management with soft-archive, locations, tags,
   and family/organization membership rows,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
-  vendor management, expense invoice ingestion/listing/amendment/void/pay/draft-delete flows
+  vendor management, expense invoice ingestion and listing (newest `invoice_date` first, undated last), amendment/void/pay/draft-delete flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
   listing for lead assignment and instructor-group listing for service instances
   (service list items may include nullable `training_details` for training courses

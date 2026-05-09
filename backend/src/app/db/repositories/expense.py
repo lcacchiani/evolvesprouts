@@ -7,7 +7,7 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.orm import Session, aliased, selectinload
 
 from app.db.models import Expense, ExpenseAttachment, ExpenseParseStatus, ExpenseStatus
@@ -20,6 +20,10 @@ from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_
 def _escape_like_pattern(pattern: str) -> str:
     """Escape LIKE pattern special characters."""
     return pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+# Keyset pagination for newest invoice date first; NULL dates sort after all real dates.
+_INVOICE_DATE_SORT_SENTINEL = date(1, 1, 1)
 
 
 class ExpenseRepository(BaseRepository[Expense]):
@@ -37,8 +41,15 @@ class ExpenseRepository(BaseRepository[Expense]):
         status: ExpenseStatus | None = None,
         parse_status: ExpenseParseStatus | None = None,
     ) -> Sequence[Expense]:
-        """List expenses with optional filters and cursor pagination."""
+        """List expenses with optional filters and cursor pagination.
+
+        Results are ordered by invoice issue date (``invoice_date``) descending,
+        with undated rows last, then by id descending for a stable keyset.
+        """
         vendor_org = aliased(Organization)
+        invoice_sort_key = func.coalesce(
+            Expense.invoice_date, literal(_INVOICE_DATE_SORT_SENTINEL)
+        )
         statement = (
             select(Expense)
             .outerjoin(vendor_org, Expense.vendor_id == vendor_org.id)
@@ -46,16 +57,25 @@ class ExpenseRepository(BaseRepository[Expense]):
                 selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
                 selectinload(Expense.vendor),
             )
-            .order_by(Expense.created_at.desc(), Expense.id.desc())
+            .order_by(invoice_sort_key.desc(), Expense.id.desc())
         )
         if cursor is not None:
-            cursor_created_at = (
-                select(Expense.created_at).where(Expense.id == cursor).scalar_subquery()
+            cursor_invoice_sort_key = (
+                select(
+                    func.coalesce(
+                        Expense.invoice_date, literal(_INVOICE_DATE_SORT_SENTINEL)
+                    )
+                )
+                .where(Expense.id == cursor)
+                .scalar_subquery()
             )
             statement = statement.where(
                 or_(
-                    Expense.created_at < cursor_created_at,
-                    and_(Expense.created_at == cursor_created_at, Expense.id < cursor),
+                    invoice_sort_key < cursor_invoice_sort_key,
+                    and_(
+                        invoice_sort_key == cursor_invoice_sort_key,
+                        Expense.id < cursor,
+                    ),
                 )
             )
         if status is not None:
