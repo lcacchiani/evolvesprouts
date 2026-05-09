@@ -12,7 +12,9 @@ Environment:
 - ``PUBLIC_WWW_BUSINESS_LEGAL_NAME``: optional legal entity name for footer.
 - ``PUBLIC_WWW_BUSINESS_REGISTRATION``: BR / registration number for footer.
 - ``PUBLIC_WWW_FPS_MERCHANT_NAME`` / ``PUBLIC_WWW_FPS_MOBILE_NUMBER``: optional FPS QR on
-  invoices when ``total > 0`` and currency is HKD (align with public-site FPS config).
+  invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
+  flow). When bank details are present, the QR sits to the right of those lines in the payment
+  section.
 
 The Evolve Sprouts wordmark is embedded from ``app/assets/invoice/evolvesprouts-invoice-logo.png``
 (raster export of the public-site SVG) so Lambda bundles match brand artwork without SVG
@@ -157,7 +159,7 @@ def _invoice_logo_flowable() -> Image | Paragraph:
 
 
 def _fps_logo_image() -> Image | None:
-    """FPS brand mark for payment band (~25 mm × 12 mm max, right-aligned under totals)."""
+    """FPS brand mark (~25 mm × 12 mm max) beside the FPS QR in the payment section."""
     if not _INV_FPS_LOGO_PATH.is_file():
         return None
     img = Image(
@@ -873,6 +875,16 @@ def render_invoice_pdf(
                 )
                 fps_cell_flow = fps_cell_inner
 
+            bank_line_htmls: list[str] = []
+            if has_bank_block:
+                for bl in (
+                    f"Bank: {_esc(bank_name)}" if bank_name else "",
+                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
+                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
+                ):
+                    if bl:
+                        bank_line_htmls.append(bl)
+
             pay_rows: list[list] = []
             pay_style_cmds: list[tuple] = [
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -886,19 +898,39 @@ def render_invoice_pdf(
             pay_style_cmds.append(("SPAN", (0, r), (1, r)))
             r += 1
 
-            if has_bank_block:
+            if has_bank_block and fps_stack_rows:
+                bank_inner_rows: list[list] = [[Spacer(1, 12)]]
+                for i, bl in enumerate(bank_line_htmls):
+                    if i > 0:
+                        bank_inner_rows.append([Spacer(1, 1)])
+                    bank_inner_rows.append([Paragraph(bl, bank_detail_line_style)])
+                bank_left = Table(bank_inner_rows, colWidths=[pay_left_w])
+                bank_left.setStyle(
+                    TableStyle(
+                        [
+                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                            ("TOPPADDING", (0, 0), (-1, -1), 0),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ]
+                    )
+                )
+                pay_rows.append([bank_left, fps_cell_flow])
+                pay_style_cmds.extend(
+                    [
+                        ("VALIGN", (0, r), (1, r), "TOP"),
+                        ("ALIGN", (1, r), (1, r), "RIGHT"),
+                    ]
+                )
+                r += 1
+            elif has_bank_block:
                 pay_rows.append([Spacer(1, 12), ""])
                 pay_style_cmds.append(("SPAN", (0, r), (1, r)))
                 r += 1
-                bank_lines = [
-                    f"Bank: {_esc(bank_name)}" if bank_name else "",
-                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
-                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
-                ]
                 first_bank = True
-                for bl in bank_lines:
-                    if not bl:
-                        continue
+                for bl in bank_line_htmls:
                     if not first_bank:
                         pay_rows.append([Spacer(1, 1), ""])
                         pay_style_cmds.append(("SPAN", (0, r), (1, r)))
@@ -907,10 +939,10 @@ def render_invoice_pdf(
                     pay_style_cmds.append(("SPAN", (0, r), (1, r)))
                     r += 1
                     first_bank = False
-
-            if fps_stack_rows:
+            elif fps_stack_rows:
                 pay_rows.append([Paragraph("", body_text_style), fps_cell_flow])
                 pay_style_cmds.append(("ALIGN", (1, r), (1, r), "RIGHT"))
+                r += 1
 
             pay_table = Table(
                 pay_rows,
