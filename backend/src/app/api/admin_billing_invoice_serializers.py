@@ -53,6 +53,7 @@ def serialize_invoice_summary(
         else None,
         "billToDisplayName": inv.bill_to_display_name,
         "billToEmail": inv.bill_to_email,
+        "billToLocationText": getattr(inv, "bill_to_location_text", None),
         "issuedAt": inv.issued_at.isoformat() if inv.issued_at else None,
         "invoiceDate": inv.invoice_date.isoformat() if inv.invoice_date else None,
         "dueDate": inv.due_date.isoformat() if inv.due_date else None,

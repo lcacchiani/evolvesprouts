@@ -6152,6 +6152,7 @@ export interface components {
             billToOrganizationId?: string | null;
             billToDisplayName?: string | null;
             billToEmail?: string | null;
+            billToLocationText?: string | null;
             /** Format: date-time */
             issuedAt?: string | null;
             /** Format: date */

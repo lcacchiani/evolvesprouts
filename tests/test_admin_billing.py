@@ -2715,3 +2715,132 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_displ
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_display_name == "Pat Ng"
     assert inv.bill_to_email is None
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Location
+
+    cid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        email="p@example.com",
+        first_name="Pat",
+        last_name="Ng",
+        location_id=lid,
+    )
+    loc = SimpleNamespace(name="Harbour Studio", address="1 Pier\nCentral")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "Harbour Studio\n1 Pier\nCentral"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback() -> None:
+    """When family has no location, use primary contact's linked location."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Family, Location
+
+    fid = uuid4()
+    lid = uuid4()
+    fam = SimpleNamespace(family_name="Ng Family", location_id=None)
+    primary = SimpleNamespace(
+        first_name="Pat",
+        last_name="Ng",
+        email="pat@example.com",
+        location_id=lid,
+    )
+    loc = SimpleNamespace(name="Home Base", address="99 Road")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Family and pk == fid:
+            return fam
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_family_id=fid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "Home Base\n99 Road"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location() -> None:
+    """Family-level location wins over primary contact location."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Family, Location
+
+    fid = uuid4()
+    fam_lid = uuid4()
+    primary_lid = uuid4()
+    fam = SimpleNamespace(family_name="Ng Family", location_id=fam_lid)
+    primary = SimpleNamespace(
+        first_name="Pat",
+        last_name="Ng",
+        email="pat@example.com",
+        location_id=primary_lid,
+    )
+    fam_loc = SimpleNamespace(name="Family Venue", address=None)
+    primary_loc = SimpleNamespace(name="Wrong", address="X")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Family and pk == fid:
+            return fam
+        if model is Location and pk == fam_lid:
+            return fam_loc
+        if model is Location and pk == primary_lid:
+            return primary_loc
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_family_id=fid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "Family Venue"

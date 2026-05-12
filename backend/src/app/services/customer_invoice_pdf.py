@@ -16,6 +16,9 @@ Environment:
   flow). When bank details are present, the QR sits to the right of those lines in the payment
   section.
 
+When ``CustomerInvoice.bill_to_location_text`` is set (CRM snapshot), the Bill To block
+includes those lines under the display name and email.
+
 The Evolve Sprouts wordmark is embedded from ``app/assets/invoice/evolvesprouts-invoice-logo.png``
 (raster export of the public-site SVG) so Lambda bundles match brand artwork without SVG
 dependencies at runtime.
@@ -546,6 +549,11 @@ def render_invoice_pdf(
             bill_body_parts.append("<br/>".join(_esc(ln) for ln in name_lines))
     if invoice.bill_to_email:
         bill_body_parts.append(_esc(invoice.bill_to_email))
+    loc_raw = (getattr(invoice, "bill_to_location_text", None) or "").strip()
+    if loc_raw:
+        loc_lines = [ln.strip() for ln in loc_raw.splitlines() if ln.strip()]
+        if loc_lines:
+            bill_body_parts.append("<br/>".join(_esc(ln) for ln in loc_lines))
     bill_body_html = "<br/>".join(bill_body_parts) if bill_body_parts else ""
 
     bill_cell = Table(

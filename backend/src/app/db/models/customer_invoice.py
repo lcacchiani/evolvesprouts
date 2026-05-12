@@ -80,6 +80,11 @@ class CustomerInvoice(Base):
     )
     bill_to_display_name: Mapped[str | None] = mapped_column(Text(), nullable=True)
     bill_to_email: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    bill_to_location_text: Mapped[str | None] = mapped_column(
+        Text(),
+        nullable=True,
+        comment="Snapshot: venue name + address lines for bill-to party PDF block",
+    )
     bill_to_snapshot: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB(astext_type=sa.Text()),
         nullable=True,
