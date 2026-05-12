@@ -61,8 +61,10 @@ from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
 from app.services.fps_qr_payload import build_fps_payload
 from app.services.fps_qr_pdf_image import render_fps_qr_png
+from app.utils.logging import get_logger
 
 _SAMPLE_STYLES = getSampleStyleSheet()
+logger = get_logger(__name__)
 
 
 def _esc(text: str) -> str:
@@ -262,6 +264,64 @@ def split_address_lines(raw: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
+def _log_fps_qr_skipped(
+    *,
+    invoice: CustomerInvoice,
+    preview: bool,
+    inv_currency: str,
+    is_non_positive_total: bool,
+    fps_merchant: str,
+    fps_mobile: str,
+    attempted_fps_build: bool,
+    fps_payload: str | None,
+) -> None:
+    """Emit a single structured warning when an FPS QR would not appear but ops might expect it."""
+    if fps_payload is not None:
+        return
+    if is_non_positive_total:
+        return
+    extra: dict[str, object] = {
+        "event": "fps_qr_skipped",
+        "preview": preview,
+        "currency": inv_currency,
+        "total": str(invoice.total),
+    }
+    inv_id = getattr(invoice, "id", None)
+    if inv_id is not None:
+        extra["invoice_id"] = str(inv_id)
+    inv_num = (invoice.invoice_number or "").strip()
+    if inv_num:
+        extra["invoice_number"] = inv_num
+
+    if attempted_fps_build:
+        extra["reason"] = "fps_payload_build_failed"
+        extra["has_fps_merchant"] = True
+        extra["has_fps_mobile"] = True
+        logger.warning("FPS QR skipped", extra=extra)
+        return
+
+    if inv_currency != "HKD":
+        if fps_merchant and fps_mobile:
+            extra["reason"] = "non_hkd_currency"
+            extra["has_fps_merchant"] = True
+            extra["has_fps_mobile"] = True
+            logger.warning("FPS QR skipped", extra=extra)
+        return
+
+    if not fps_merchant and not fps_mobile:
+        extra["reason"] = "missing_fps_env"
+        extra["detail"] = "missing_merchant_and_mobile"
+    elif not fps_merchant:
+        extra["reason"] = "missing_fps_env"
+        extra["detail"] = "missing_merchant"
+    else:
+        extra["reason"] = "missing_fps_env"
+        extra["detail"] = "missing_mobile"
+    extra["has_fps_merchant"] = bool(fps_merchant)
+    extra["has_fps_mobile"] = bool(fps_mobile)
+    logger.warning("FPS QR skipped", extra=extra)
+
+
 def format_money(amount: Decimal, currency: str) -> str:
     code = currency.upper()[:3]
     q = amount.quantize(Decimal("0.01"))
@@ -447,18 +507,29 @@ def render_invoice_pdf(
     fps_merchant = os.getenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "").strip()
     fps_mobile = os.getenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "").strip()
     fps_payload: str | None = None
-    if (
+    attempted_fps_build = (
         not is_non_positive_total
         and inv_currency == "HKD"
-        and fps_merchant
-        and fps_mobile
-    ):
+        and bool(fps_merchant)
+        and bool(fps_mobile)
+    )
+    if attempted_fps_build:
         fps_payload = build_fps_payload(
             fps_merchant,
             fps_mobile,
             invoice.total,
             currency=inv_currency,
         )
+    _log_fps_qr_skipped(
+        invoice=invoice,
+        preview=preview,
+        inv_currency=inv_currency,
+        is_non_positive_total=is_non_positive_total,
+        fps_merchant=fps_merchant,
+        fps_mobile=fps_mobile,
+        attempted_fps_build=attempted_fps_build,
+        fps_payload=fps_payload,
+    )
 
     inv_label = (invoice.invoice_number or "").strip()
     title_line = f"INVOICE {inv_label}" if inv_label else "INVOICE"
