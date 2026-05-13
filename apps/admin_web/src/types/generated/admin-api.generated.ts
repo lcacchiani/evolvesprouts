@@ -6598,6 +6598,10 @@ export interface components {
              */
             referral_contact_id?: string | null;
         };
+        /**
+         * @description Persisted membership fields. `role` matches the contact's `contact_type` when the
+         *     membership is created and is refreshed when `contact_type` is updated on the contact.
+         */
         AdminFamilyMember: {
             /** Format: uuid */
             id: string;

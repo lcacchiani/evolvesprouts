@@ -34,7 +34,8 @@ from app.api.admin_validators import validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, ContactType, Family, FamilyMember, FamilyRole
+from app.db.models import Contact, Family, FamilyMember
+from app.db.models.family import family_membership_role_from_contact_type
 from app.db.repositories import FamilyRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -109,17 +110,6 @@ def handle_admin_families_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
-
-
-def _family_role_from_contact_type(contact_type: ContactType) -> FamilyRole:
-    """Map contact category to stored family membership role."""
-    if contact_type is ContactType.PARENT:
-        return FamilyRole.PARENT
-    if contact_type is ContactType.CHILD:
-        return FamilyRole.CHILD
-    if contact_type is ContactType.HELPER:
-        return FamilyRole.HELPER
-    return FamilyRole.OTHER
 
 
 def _list_families(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -302,7 +292,7 @@ def _add_family_member(
             session, contact_id=contact_id, family_id=family_id
         )
 
-        role = _family_role_from_contact_type(contact.contact_type)
+        role = family_membership_role_from_contact_type(contact.contact_type)
         member = FamilyMember(
             family_id=family_id,
             contact_id=contact_id,
