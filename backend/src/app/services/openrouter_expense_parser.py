@@ -27,30 +27,89 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
         raise ValueError("At least one asset is required for parsing")
 
     logger.info("Starting invoice parse", extra={"asset_count": len(assets)})
+    content: list[dict[str, Any]] = [{"type": "text", "text": _schema_prompt()}]
+    for asset in assets:
+        content.append(_build_attachment_content(asset))
+
+    has_pdf = any(
+        _normalize_content_type(asset) == "application/pdf" for asset in assets
+    )
+    body = _openrouter_chat_completion(
+        system_prompt="You extract invoice data and return strict JSON only.",
+        user_content_blocks=content,
+        has_pdf_attachment=has_pdf,
+        timeout=30,
+    )
+    parsed = _parse_completion_body(body)
+    logger.info("Invoice parse completed successfully")
+    return _normalize_result(parsed)
+
+
+_MAX_BULK_INVOICES = 100
+
+
+def parse_bulk_expense_invoices_from_assets(
+    assets: Sequence[Mapping[str, Any]],
+    *,
+    timeout: int = 25,
+) -> list[dict[str, Any]]:
+    """Parse many invoice rows from one combined PDF (or images) via OpenRouter.
+
+    Returns a list of normalized invoice dicts (same shape as ``parse_invoice_from_assets``).
+    """
+    if not assets:
+        raise ValueError("At least one asset is required for parsing")
+
+    logger.info("Starting bulk invoice parse", extra={"asset_count": len(assets)})
+    content: list[dict[str, Any]] = [{"type": "text", "text": _bulk_schema_prompt()}]
+    for asset in assets:
+        content.append(_build_attachment_content(asset))
+
+    has_pdf = any(
+        _normalize_content_type(asset) == "application/pdf" for asset in assets
+    )
+    body = _openrouter_chat_completion(
+        system_prompt=(
+            "You extract structured invoice rows from financial documents and "
+            "return strict JSON only."
+        ),
+        user_content_blocks=content,
+        has_pdf_attachment=has_pdf,
+        timeout=timeout,
+    )
+    raw_invoices = _parse_bulk_invoices_payload(body)
+    if not raw_invoices:
+        raise RuntimeError("Parser returned no invoice rows")
+    if len(raw_invoices) > _MAX_BULK_INVOICES:
+        raise RuntimeError(
+            f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
+        )
+    normalized = [_normalize_result(entry) for entry in raw_invoices]
+    logger.info(
+        "Bulk invoice parse completed successfully",
+        extra={"invoice_count": len(normalized)},
+    )
+    return normalized
+
+
+def _openrouter_chat_completion(
+    *,
+    system_prompt: str,
+    user_content_blocks: list[dict[str, Any]],
+    has_pdf_attachment: bool,
+    timeout: int,
+) -> str:
+    """POST to OpenRouter and return the raw HTTP response body string."""
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
     api_key = _get_api_key()
-
-    content: list[dict[str, Any]] = [{"type": "text", "text": _schema_prompt()}]
-    has_pdf_attachment = False
-    for asset in assets:
-        attachment_content = _build_attachment_content(asset)
-        content.append(attachment_content)
-        if (
-            attachment_content.get("type") == "file"
-            and _normalize_content_type(asset) == "application/pdf"
-        ):
-            has_pdf_attachment = True
 
     payload: dict[str, Any] = {
         "model": model,
         "temperature": 0,
         "messages": [
-            {
-                "role": "system",
-                "content": "You extract invoice data and return strict JSON only.",
-            },
-            {"role": "user", "content": content},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content_blocks},
         ],
     }
     if has_pdf_attachment:
@@ -69,7 +128,7 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
             "Content-Type": "application/json",
         },
         body=json.dumps(payload),
-        timeout=30,
+        timeout=timeout,
     )
 
     status_code = int(response.get("status", 0) or 0)
@@ -86,9 +145,7 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
         raise RuntimeError(
             f"OpenRouter request failed with status {status_code}{detail}"
         )
-    parsed = _parse_completion_body(body)
-    logger.info("Invoice parse completed successfully")
-    return _normalize_result(parsed)
+    return body
 
 
 def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
@@ -183,6 +240,61 @@ def _parse_completion_body(body: str) -> dict[str, Any]:
     if not isinstance(parsed, dict):
         raise RuntimeError("Parser response payload is not an object")
     return parsed
+
+
+def _parse_bulk_invoices_payload(body: str) -> list[dict[str, Any]]:
+    """Parse OpenRouter envelope and return raw invoice objects for bulk import."""
+    payload = json.loads(body)
+    if not isinstance(payload, dict):
+        raise RuntimeError("OpenRouter response must be a JSON object")
+    choices = payload.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise RuntimeError("OpenRouter response choices are missing")
+    first_choice = choices[0]
+    if not isinstance(first_choice, dict):
+        raise RuntimeError("OpenRouter response choice has invalid shape")
+    message = first_choice.get("message")
+    if not isinstance(message, dict):
+        raise RuntimeError("OpenRouter response message is missing")
+    content = message.get("content")
+    if isinstance(content, list):
+        text_parts = [
+            str(item.get("text"))
+            for item in content
+            if isinstance(item, dict) and item.get("type") == "text"
+        ]
+        raw_text = "\n".join(part for part in text_parts if part)
+    else:
+        raw_text = str(content or "")
+    cleaned = (
+        raw_text.strip()
+        .removeprefix("```json")
+        .removeprefix("```")
+        .removesuffix("```")
+        .strip()
+    )
+    parsed = json.loads(cleaned)
+    raw_list: list[Any]
+    if isinstance(parsed, list):
+        raw_list = parsed
+    elif isinstance(parsed, dict):
+        inner = parsed.get("invoices")
+        if inner is None:
+            inner = parsed.get("records")
+        if not isinstance(inner, list):
+            raise RuntimeError(
+                "Bulk parser response must be an array or an object with "
+                '"invoices" or "records" array'
+            )
+        raw_list = inner
+    else:
+        raise RuntimeError("Bulk parser response payload has invalid shape")
+
+    invoices: list[dict[str, Any]] = []
+    for entry in raw_list:
+        if isinstance(entry, dict):
+            invoices.append(entry)
+    return invoices
 
 
 def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
@@ -572,4 +684,24 @@ def _schema_prompt() -> str:
         "If the invoice shows only the $ symbol for money (not HK$, S$, etc.), set "
         "currency to USD. "
         "Input may be plain text pasted in an email body rather than a PDF or image."
+    )
+
+
+def _bulk_schema_prompt() -> str:
+    return (
+        "This document may contain many separate charges or invoices in one file "
+        "(for example a consolidated PDF, card statement, or vendor statement). "
+        "Extract each distinct expense or invoice as its own row. "
+        'Return strict JSON only with shape: {"invoices":[{"vendor_name":"string|null",'
+        '"invoice_number":"string|null","invoice_date":"YYYY-MM-DD|null",'
+        '"due_date":"YYYY-MM-DD|null","currency":"string|null",'
+        '"subtotal":"number|null","tax":"number|null","total":"number|null",'
+        '"line_items":[{"description":"string|null","quantity":"number|null",'
+        '"unit_price":"number|null","amount":"number|null"}],'
+        '"confidence":"number|null"}]}. '
+        "Use null for unknown values. No markdown. No prose. "
+        "For subtotal, tax, and total prefer JSON numbers; if you use strings, use "
+        "plain digits only (no currency symbols or thousands separators) when possible. "
+        "If a row shows only the $ symbol for money (not HK$, S$, etc.), set currency to USD. "
+        "Include every billable row you can identify; skip blank pages and headers only."
     )

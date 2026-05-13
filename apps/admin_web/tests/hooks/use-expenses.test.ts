@@ -8,6 +8,7 @@ const {
   mockCancelAdminExpense,
   mockMarkAdminExpensePaid,
   mockReparseAdminExpense,
+  mockImportAdminExpensesFromBulkPdf,
   mockCreateAdminAsset,
   mockDeleteAdminAsset,
   mockUploadFileToPresignedUrl,
@@ -36,6 +37,7 @@ const {
     mockCancelAdminExpense: vi.fn(),
     mockMarkAdminExpensePaid: vi.fn(),
     mockReparseAdminExpense: vi.fn(),
+    mockImportAdminExpensesFromBulkPdf: vi.fn(),
     mockCreateAdminAsset: vi.fn(),
     mockDeleteAdminAsset: vi.fn(),
     mockUploadFileToPresignedUrl: vi.fn(),
@@ -56,6 +58,7 @@ vi.mock('@/lib/expenses-api', () => ({
   cancelAdminExpense: mockCancelAdminExpense,
   markAdminExpensePaid: mockMarkAdminExpensePaid,
   reparseAdminExpense: mockReparseAdminExpense,
+  importAdminExpensesFromBulkPdf: mockImportAdminExpensesFromBulkPdf,
 }));
 
 vi.mock('@/lib/assets-api', () => ({
@@ -590,5 +593,38 @@ describe('useExpenses', () => {
     });
 
     expect(result.current.mutationError).toBe('');
+  });
+
+  it('bulk imports from a PDF asset and refetches expenses', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-bulk-1' },
+      upload: {
+        uploadUrl: 'https://example.com/up',
+        uploadMethod: 'PUT',
+        uploadHeaders: {} as Record<string, string>,
+      },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockImportAdminExpensesFromBulkPdf.mockResolvedValue({
+      expenses: [],
+      createdCount: 2,
+    });
+
+    const file = new File([new Uint8Array([1])], 'combined.pdf', { type: 'application/pdf' });
+    const { result } = renderHook(() => useExpenses());
+
+    await act(async () => {
+      await result.current.bulkImportFromPdf({
+        file,
+        defaultVendorId: 'vendor-1',
+      });
+    });
+
+    expect(mockImportAdminExpensesFromBulkPdf).toHaveBeenCalledWith({
+      attachmentAssetId: 'asset-bulk-1',
+      defaultVendorId: 'vendor-1',
+    });
+    expect(mockRefetch).toHaveBeenCalled();
+    expect(result.current.bulkImportError).toBe('');
   });
 });

@@ -4666,6 +4666,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/expenses/import-from-bulk-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import multiple expenses from one combined PDF
+         * @description Upload a PDF as an admin asset, then call this endpoint with its asset id. OpenRouter extracts one JSON object per distinct invoice or charge row; each row becomes a separate expense that references the same attachment asset. Parsed vendor names are matched to active vendors when possible; otherwise `default_vendor_id` is used. Synchronous parse is subject to API Gateway time limits; very large PDFs may fail with a validation error.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BulkImportExpensesFromPdfRequest"];
+                };
+            };
+            responses: {
+                /** @description Expenses created from parsed rows. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BulkImportExpensesFromPdfResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/expenses/{id}": {
         parameters: {
             query?: never;
@@ -6319,6 +6365,24 @@ export interface components {
             notes?: string | null;
             attachment_asset_ids: string[];
             parse_requested?: boolean;
+        };
+        BulkImportExpensesFromPdfRequest: {
+            /**
+             * Format: uuid
+             * @description Uploaded PDF asset id (same presign flow as single expense attachments).
+             */
+            attachment_asset_id: string;
+            /**
+             * Format: uuid
+             * @description Vendor applied when a parsed row has no resolvable vendor_name match.
+             */
+            default_vendor_id: string;
+            /** @description Defaults to `submitted`. Draft may be used when operators want to review rows before submission. */
+            status?: components["schemas"]["ExpenseStatus"];
+        };
+        BulkImportExpensesFromPdfResponse: {
+            expenses: components["schemas"]["Expense"][];
+            created_count: number;
         };
         UpdateExpenseRequest: {
             status?: components["schemas"]["ExpenseStatus"];

@@ -8,6 +8,7 @@ import {
   cancelAdminExpense,
   createAdminExpense,
   deleteAdminDraftExpense,
+  importAdminExpensesFromBulkPdf,
   listAdminExpenses,
   markAdminExpensePaid,
   reparseAdminExpense,
@@ -41,6 +42,8 @@ export function useExpenses() {
   const [isDeletingDraftId, setIsDeletingDraftId] = useState<string | null>(null);
   const [isMarkingPaidId, setIsMarkingPaidId] = useState<string | null>(null);
   const [isReparsingId, setIsReparsingId] = useState<string | null>(null);
+  const [isBulkImporting, setIsBulkImporting] = useState(false);
+  const [bulkImportError, setBulkImportError] = useState('');
   const [mutationError, setMutationError] = useState('');
 
   const fetchExpenses = useCallback(
@@ -311,6 +314,34 @@ export function useExpenses() {
     [list]
   );
 
+  const bulkImportFromPdf = useCallback(
+    async ({ file, defaultVendorId }: { file: File; defaultVendorId: string }) => {
+      setIsBulkImporting(true);
+      setBulkImportError('');
+      let uploadedAssetIds: string[] = [];
+      try {
+        uploadedAssetIds = await uploadExpenseFiles([file]);
+        const attachmentAssetId = uploadedAssetIds[0];
+        if (!attachmentAssetId) {
+          throw new Error('Upload did not return an asset id.');
+        }
+        await importAdminExpensesFromBulkPdf({
+          attachmentAssetId,
+          defaultVendorId,
+        });
+        await list.refetch();
+        setSelectedExpenseId(null);
+      } catch (error) {
+        await cleanupUploadedAssets(uploadedAssetIds);
+        setBulkImportError(toErrorMessage(error, 'Failed to import expenses from PDF.'));
+        throw error;
+      } finally {
+        setIsBulkImporting(false);
+      }
+    },
+    [cleanupUploadedAssets, list, uploadExpenseFiles]
+  );
+
   return {
     ...list,
     selectedExpenseId,
@@ -321,6 +352,8 @@ export function useExpenses() {
     isDeletingDraftId,
     isMarkingPaidId,
     isReparsingId,
+    isBulkImporting,
+    bulkImportError,
     mutationError,
     selectExpense,
     clearSelectedExpense,
@@ -332,5 +365,6 @@ export function useExpenses() {
     deleteDraftExpenseEntry,
     markPaidExpenseEntry,
     reparseExpenseEntry,
+    bulkImportFromPdf,
   };
 }
