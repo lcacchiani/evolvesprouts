@@ -77,6 +77,7 @@ def test_bill_to_location_text_renders_in_pdf(monkeypatch: pytest.MonkeyPatch) -
     assert "Studio North" in text
     assert "88 Example Road" in text
     assert "Hong Kong" in text
+    assert "jane@example.com" not in text
 
 
 def _pdf_layout(pdf: bytes):
@@ -552,7 +553,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v12"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v13"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -841,7 +842,14 @@ def test_bill_to_email_shown_or_omitted(monkeypatch: pytest.MonkeyPatch) -> None
     t1 = _pdf_text(render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False))
     assert "pay@example.com" in t1
 
-    inv2 = SimpleNamespace(**{**inv.__dict__, "bill_to_email": None})
+    inv_loc = SimpleNamespace(
+        **{**vars(inv), "bill_to_location_text": "Studio\n1 Road\nHK"}
+    )
+    t1b = _pdf_text(render_invoice_pdf(invoice=inv_loc, lines=[_inv_line()], preview=False))
+    assert "pay@example.com" not in t1b
+    assert "Studio" in t1b
+
+    inv2 = SimpleNamespace(**{**vars(inv), "bill_to_email": None})
     t2 = _pdf_text(render_invoice_pdf(invoice=inv2, lines=[_inv_line()], preview=False))
     assert "pay@example.com" not in t2
 

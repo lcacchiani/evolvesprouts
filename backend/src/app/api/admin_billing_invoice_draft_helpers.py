@@ -18,6 +18,7 @@ from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import BillingBillToKind
 from app.db.models.family import FamilyMember
+from app.db.models.geographic_area import GeographicArea
 from app.db.models.location import Location
 from app.db.models.organization import OrganizationMember
 from app.exceptions import ValidationError
@@ -98,10 +99,78 @@ def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
     return out[:500]
 
 
+_MAX_GEO_AREA_WALK = 32
+
+
+def _geographic_area_chain_root_first(
+    session: Session, area_id: object
+) -> list[GeographicArea]:
+    """Return geographic_areas from root (country) to leaf, or [] if missing or cyclic."""
+    from uuid import UUID as Uuid
+
+    try:
+        aid = Uuid(str(area_id))
+    except (TypeError, ValueError):
+        return []
+    rev: list[GeographicArea] = []
+    seen: set[str] = set()
+    current: GeographicArea | None = session.get(GeographicArea, aid)
+    n = 0
+    while current is not None and n < _MAX_GEO_AREA_WALK:
+        sid = str(current.id)
+        if sid in seen:
+            break
+        seen.add(sid)
+        rev.append(current)
+        pid = current.parent_id
+        if pid is None:
+            break
+        try:
+            next_id = Uuid(str(pid))
+        except (TypeError, ValueError):
+            break
+        current = session.get(GeographicArea, next_id)
+        n += 1
+    rev.reverse()
+    return rev
+
+
+def _district_and_country_labels_from_chain(
+    chain: list[GeographicArea],
+) -> tuple[str | None, str | None]:
+    """Pick display labels for ``district`` and ``country`` levels from a root-first chain."""
+    country: str | None = None
+    for node in chain:
+        if node.level == "country":
+            t = (node.name or "").strip()
+            if t:
+                country = t
+    district: str | None = None
+    for node in reversed(chain):
+        if node.level == "district":
+            t = (node.name or "").strip()
+            if t:
+                district = t
+            break
+    return district, country
+
+
+def _append_unique_invoice_location_line(parts: list[str], line: str | None) -> None:
+    if not line:
+        return
+    t = line.strip()
+    if not t:
+        return
+    lower = {p.strip().lower() for p in parts}
+    if t.lower() in lower:
+        return
+    parts.append(t)
+
+
 def _bill_to_location_snapshot_text(
     session: Session, location_id: UUID | None
 ) -> str | None:
-    """Return newline-separated venue label + address lines for invoice PDF, or None."""
+    """Return newline-separated venue, address, district, and country for invoice PDF."""
     if location_id is None:
         return None
     loc = session.get(Location, location_id)
@@ -112,6 +181,12 @@ def _bill_to_location_snapshot_text(
     if name:
         parts.append(name)
     parts.extend(split_address_lines(loc.address or ""))
+    area_id = getattr(loc, "area_id", None)
+    if area_id is not None:
+        chain = _geographic_area_chain_root_first(session, area_id)
+        dlab, clab = _district_and_country_labels_from_chain(chain)
+        _append_unique_invoice_location_line(parts, dlab)
+        _append_unique_invoice_location_line(parts, clab)
     if not parts:
         return None
     return "\n".join(parts)

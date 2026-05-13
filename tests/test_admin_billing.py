@@ -2844,3 +2844,41 @@ def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location()
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text == "Family Venue"
+
+
+def test_bill_to_location_snapshot_text_includes_geo_district_and_country() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _bill_to_location_snapshot_text,
+    )
+    from app.db.models import GeographicArea, Location
+
+    lid = uuid4()
+    area_leaf = uuid4()
+    area_root = uuid4()
+    loc = SimpleNamespace(name="Venue", address="99 Road", area_id=area_leaf)
+    district = SimpleNamespace(
+        id=area_leaf,
+        name="Central",
+        level="district",
+        parent_id=area_root,
+    )
+    country = SimpleNamespace(
+        id=area_root,
+        name="Hong Kong",
+        level="country",
+        parent_id=None,
+    )
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Location and pk == lid:
+            return loc
+        if model is GeographicArea and pk == area_leaf:
+            return district
+        if model is GeographicArea and pk == area_root:
+            return country
+        return None
+
+    session = MagicMock()
+    session.get.side_effect = _get
+    out = _bill_to_location_snapshot_text(session, lid)  # type: ignore[arg-type]
+    assert out == "Venue\n99 Road\nCentral\nHong Kong"

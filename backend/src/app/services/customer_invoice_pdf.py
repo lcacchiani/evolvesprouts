@@ -17,7 +17,8 @@ Environment:
   section.
 
 When ``CustomerInvoice.bill_to_location_text`` is set (CRM snapshot), the Bill To block
-includes those lines under the display name and email.
+includes those lines after the display name. The email line is omitted when a location
+snapshot is present so postal-style blocks stay uncluttered.
 
 The Evolve Sprouts wordmark is embedded from ``app/assets/invoice/evolvesprouts-invoice-logo.png``
 (raster export of the public-site SVG) so Lambda bundles match brand artwork without SVG
@@ -618,9 +619,10 @@ def render_invoice_pdf(
         ]
         if name_lines:
             bill_body_parts.append("<br/>".join(_esc(ln) for ln in name_lines))
-    if invoice.bill_to_email:
-        bill_body_parts.append(_esc(invoice.bill_to_email))
     loc_raw = (getattr(invoice, "bill_to_location_text", None) or "").strip()
+    has_bill_to_address = bool(loc_raw)
+    if invoice.bill_to_email and not has_bill_to_address:
+        bill_body_parts.append(_esc(invoice.bill_to_email))
     if loc_raw:
         loc_lines = [ln.strip() for ln in loc_raw.splitlines() if ln.strip()]
         if loc_lines:

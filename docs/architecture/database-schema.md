@@ -627,8 +627,9 @@ Migration `0055_customer_billing_ar` introduces:
   if `invoice_date` was not set on the draft (legacy rows), both dates are computed from `issued_at`
   in `INVOICE_DISPLAY_TIMEZONE` as before. PDF rendering prefers these columns when set.
 - Migration `0064_invoice_bill_to_location` adds nullable `bill_to_location_text` on
-  `customer_invoices` (CRM snapshot of linked `locations` name + address for the bill-to party,
-  refreshed when drafts are resolved and again immediately before issuance).
+  `customer_invoices` (CRM snapshot of linked `locations` venue/address plus geographic
+  district and country labels when resolvable, refreshed when drafts are resolved and again
+  immediately before issuance).
 
 **Migration `0058_inv_line_null_enrollment`:** `customer_invoice_lines.enrollment_id` is nullable so customized (non-enrollment) invoice lines can omit the enrollment foreign key.
 
