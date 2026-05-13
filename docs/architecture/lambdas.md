@@ -110,7 +110,10 @@ their primary responsibilities.
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
-  `/v1/admin/expenses/*`,
+  `/v1/admin/expenses/*` (including `POST /v1/admin/expenses/import-from-bulk-pdf`, which
+  reads a single uploaded PDF asset from S3, calls OpenRouter via `AwsApiProxyFunction`
+  with the same PDF plugin stack as `ExpenseParserFunction`, and creates one submitted
+  expense per parsed row sharing that attachment),
   `/v1/admin/billing/*` (customer AR: `GET /v1/admin/billing/payments` optional `invoice_id` filters to payments with an allocation to that invoice; `GET /v1/admin/billing/payments/{id}` includes `allocationInvoices` and `orphanPaymentDeletable`; `DELETE /v1/admin/billing/payments/{id}` removes eligible orphan inbound payments (pending or free/zero, enrollment unlinked or cancelled, no allocations/receipt/refund children); payments, invoices list/detail, draft invoices via
   `POST /v1/admin/billing/invoices` with `draftKind` `enrollment_merge` or `customized_manual`,
   `GET /v1/admin/billing/enrollments/recent-for-invoicing` (draft invoice enrollment picker: non-cancelled rows with `enrolled_at` within the last 730 rolling days), `DELETE /v1/admin/billing/invoices/{id}` (draft-only permanent delete; blocked when allocations exist), `GET /v1/admin/billing/invoices/{id}/pdf`

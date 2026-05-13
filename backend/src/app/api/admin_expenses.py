@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, date
+from decimal import Decimal
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -13,10 +14,12 @@ from app.api.admin_expenses_common import (
     _STATUS_TERMINAL,
     apply_common_fields,
     ensure_expense_ready_to_mark_paid,
+    optional_field,
     parse_create_payload,
     parse_optional_parse_status,
     parse_optional_status,
     parse_optional_string,
+    parse_optional_uuid,
     parse_update_payload,
     required_string,
     resolve_vendor,
@@ -35,11 +38,18 @@ from app.api.admin_request import (
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import ExpenseParseStatus, ExpenseStatus
-from app.db.repositories import ExpenseRepository
+from app.db.models import Expense, ExpenseParseStatus, ExpenseStatus
+from app.db.repositories import (
+    AssetRepository,
+    ExpenseRepository,
+    OrganizationRepository,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
 from app.services.expense_events import enqueue_expense_parse
+from app.services.openrouter_expense_parser import (
+    parse_bulk_expense_invoices_from_assets,
+)
 from app.utils import json_response
 from app.utils.logging import get_logger
 
@@ -69,6 +79,11 @@ def handle_admin_expenses_request(
         if method == "POST":
             return _create_expense(event, actor_sub=identity.user_sub)
         return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "import-from-bulk-pdf":
+        if method != "POST":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _import_expenses_from_bulk_pdf(event, actor_sub=identity.user_sub)
 
     expense_id = parse_uuid(parts[2])
     if len(parts) == 3:
@@ -461,11 +476,195 @@ def _amend_expense(
         expense_repo.update(amendment)
         session.commit()
 
-        if payload["parse_requested"]:
-            enqueue_expense_parse(amendment.id)
         refreshed = expense_repo.get_with_attachments(amendment.id)
         if refreshed is None:
             raise NotFoundError("Expense", str(amendment.id))
         return json_response(
             201, {"expense": serialize_expense(refreshed)}, event=event
         )
+
+
+def _import_expenses_from_bulk_pdf(
+    event: Mapping[str, Any], *, actor_sub: str
+) -> dict[str, Any]:
+    """Parse a combined PDF with OpenRouter and create one expense per extracted row."""
+    logger.info("Bulk importing expenses from PDF", extra={"actor": actor_sub})
+    body = parse_body(event)
+    attachment_id = parse_optional_uuid(
+        optional_field(body, "attachment_asset_id", "attachmentAssetId"),
+        field="attachment_asset_id",
+    )
+    if attachment_id is None:
+        raise ValidationError(
+            "attachment_asset_id is required", field="attachment_asset_id"
+        )
+    default_vendor_id = parse_optional_uuid(
+        optional_field(body, "default_vendor_id", "defaultVendorId"),
+        field="default_vendor_id",
+    )
+    if default_vendor_id is None:
+        raise ValidationError(
+            "default_vendor_id is required", field="default_vendor_id"
+        )
+    status = (
+        parse_optional_status(optional_field(body, "status")) or ExpenseStatus.SUBMITTED
+    )
+
+    req_id = request_id(event)
+    now = datetime.now(UTC)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        resolve_vendor(session, default_vendor_id)
+        assets = AssetRepository(session).list_by_ids([attachment_id])
+        if not assets:
+            raise NotFoundError("Asset", str(attachment_id))
+        asset_ent = assets[0]
+        content_type = (asset_ent.content_type or "").strip().lower()
+        file_name = (asset_ent.file_name or "").strip().lower()
+        if "pdf" not in content_type and not file_name.endswith(".pdf"):
+            raise ValidationError(
+                "attachment_asset_id must reference a PDF document",
+                field="attachment_asset_id",
+            )
+        parser_asset: dict[str, Any] = {
+            "id": str(asset_ent.id),
+            "s3_key": asset_ent.s3_key,
+            "file_name": asset_ent.file_name,
+            "content_type": asset_ent.content_type,
+        }
+
+    try:
+        normalized_rows = parse_bulk_expense_invoices_from_assets(
+            [parser_asset], timeout=25
+        )
+    except (RuntimeError, ValueError) as exc:
+        raise ValidationError(str(exc), field="attachment_asset_id") from exc
+
+    created_payload: list[dict[str, Any]] = []
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        expense_repo = ExpenseRepository(session)
+        org_repo = OrganizationRepository(session)
+        resolve_vendor(session, default_vendor_id)
+        asset_ids = resolve_asset_ids(session, [attachment_id])
+
+        for parsed in normalized_rows:
+            vendor_id = _resolve_bulk_row_vendor_id(
+                org_repo, parsed, default_vendor_id=default_vendor_id
+            )
+            expense = expense_repo.create_expense(
+                created_by=actor_sub,
+                status=status,
+                parse_status=ExpenseParseStatus.SUCCEEDED,
+                vendor_id=vendor_id,
+                invoice_number=None,
+                invoice_date=None,
+                due_date=None,
+                currency=None,
+                subtotal=None,
+                tax=None,
+                total=None,
+                line_items=None,
+                notes=None,
+            )
+            _apply_openrouter_normalized_to_expense(expense, parsed)
+            expense.updated_by = actor_sub
+            if status == ExpenseStatus.SUBMITTED:
+                expense.submitted_at = now
+            expense_repo.replace_attachments(expense, asset_ids)
+            expense_repo.update(expense)
+            refreshed = expense_repo.get_with_attachments(expense.id)
+            if refreshed is None:
+                raise NotFoundError("Expense", str(expense.id))
+            created_payload.append(serialize_expense(refreshed))
+
+        session.commit()
+
+    return json_response(
+        201,
+        {"expenses": created_payload, "created_count": len(created_payload)},
+        event=event,
+    )
+
+
+def _resolve_bulk_row_vendor_id(
+    org_repo: OrganizationRepository,
+    parsed: Mapping[str, Any],
+    *,
+    default_vendor_id: UUID,
+) -> UUID:
+    parsed_vendor_only = _bulk_pick_text(parsed.get("vendor_name"), fallback=None)
+    if parsed_vendor_only:
+        matched = org_repo.try_resolve_active_vendor_by_parsed_name(parsed_vendor_only)
+        if matched is not None:
+            return matched.id
+    return default_vendor_id
+
+
+def _apply_openrouter_normalized_to_expense(
+    expense: Expense, parsed: Mapping[str, Any]
+) -> None:
+    expense.invoice_number = _bulk_pick_text(
+        parsed.get("invoice_number"), fallback=expense.invoice_number
+    )
+    expense.invoice_date = _bulk_pick_date(
+        parsed.get("invoice_date"), fallback=expense.invoice_date
+    )
+    expense.due_date = _bulk_pick_date(
+        parsed.get("due_date"), fallback=expense.due_date
+    )
+    expense.currency = _bulk_pick_currency(
+        parsed.get("currency"), fallback=expense.currency
+    )
+    expense.subtotal = _bulk_pick_decimal(
+        parsed.get("subtotal"), fallback=expense.subtotal
+    )
+    expense.tax = _bulk_pick_decimal(parsed.get("tax"), fallback=expense.tax)
+    expense.total = _bulk_pick_decimal(parsed.get("total"), fallback=expense.total)
+    line_items = parsed.get("line_items")
+    if isinstance(line_items, list):
+        expense.line_items = line_items
+    expense.parse_confidence = _bulk_pick_decimal(
+        parsed.get("confidence"), fallback=expense.parse_confidence
+    )
+    expense.parser_raw = (
+        parsed.get("raw") if isinstance(parsed.get("raw"), dict) else {"raw": parsed}
+    )
+
+
+def _bulk_pick_text(value: Any, *, fallback: str | None) -> str | None:
+    if value is None:
+        return fallback
+    normalized = str(value).strip()
+    return normalized or fallback
+
+
+def _bulk_pick_date(value: Any, *, fallback: date | None) -> date | None:
+    if value is None:
+        return fallback
+    normalized = str(value).strip()
+    if not normalized:
+        return fallback
+    try:
+        return date.fromisoformat(normalized)
+    except ValueError:
+        return fallback
+
+
+def _bulk_pick_currency(value: Any, *, fallback: str | None) -> str | None:
+    if value is None:
+        return fallback
+    normalized = str(value).strip().upper()
+    if len(normalized) != 3:
+        return fallback
+    return normalized
+
+
+def _bulk_pick_decimal(value: Any, *, fallback: Decimal | None) -> Decimal | None:
+    if value is None:
+        return fallback
+    try:
+        return Decimal(str(value)).quantize(Decimal("0.01"))
+    except Exception:
+        return fallback
