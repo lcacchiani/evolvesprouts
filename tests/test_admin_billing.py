@@ -2579,8 +2579,8 @@ def test_resolve_bill_to_party_from_invoice_fks_family_uses_primary_contact_only
     assert inv.bill_to_email == "pat@example.com"
 
 
-def test_resolve_bill_to_party_from_invoice_fks_family_falls_back_to_family_name() -> None:
-    """When no primary contact name exists, family bill-to still gets a non-empty label."""
+def test_resolve_bill_to_party_from_invoice_fks_family_without_primary_name() -> None:
+    """When no primary contact name exists, family bill-to omits the family entity label."""
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
     )
@@ -2608,7 +2608,7 @@ def test_resolve_bill_to_party_from_invoice_fks_family_falls_back_to_family_name
         bill_to_email=None,
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
-    assert inv.bill_to_display_name == "Orphan Household"
+    assert inv.bill_to_display_name is None
 
 
 def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
