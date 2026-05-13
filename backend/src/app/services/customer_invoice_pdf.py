@@ -13,8 +13,10 @@ Environment:
 - ``PUBLIC_WWW_BUSINESS_REGISTRATION``: BR / registration number for footer.
 - ``PUBLIC_WWW_FPS_MERCHANT_NAME`` / ``PUBLIC_WWW_FPS_MOBILE_NUMBER``: optional FPS QR on
   invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
-  flow). When bank details are present, bank copy, the FPS mark, and the QR share one row with
-  vertical centering; the FPS logo sits to the left of the QR code.
+  flow). Bank transfer lines and the FPS QR render on a dedicated **Payment Options** page
+  after the main invoice page.
+- ``PUBLIC_WWW_BILLING_EMAIL``: optional billing email for payment confirmations (align GitHub
+  ``NEXT_PUBLIC_BILLING_EMAIL`` with CDK ``PublicWwwBillingEmail``); used on the Payment Options page.
 
 When ``CustomerInvoice.bill_to_location_text`` is set (CRM snapshot), the Bill To block
 includes those lines after the display name. The email line is omitted when a location
@@ -38,11 +40,13 @@ import os
 import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
+from functools import partial
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
@@ -51,6 +55,7 @@ from reportlab.platypus import (
     Flowable,
     Image,
     LongTable,
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -149,6 +154,47 @@ class RoundedPanel(Flowable):
         else:
             y_offset = max(0.0, (self.height - inner_h) / 2.0)
         self._inner.drawOn(c, 0, y_offset)
+
+
+class InvoicePdfCanvas(canvas.Canvas):
+    """Defer ``showPage`` so each page can be finished with footer + ``current/total``."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self._invoice_footer_text = str(kwargs.pop("footer_text", "") or "")
+        self._saved_page_states: list[dict[str, Any]] = []
+        super().__init__(*args, **kwargs)
+
+    def showPage(self) -> None:
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self) -> None:
+        num_pages = len(self._saved_page_states)
+        for idx, state in enumerate(self._saved_page_states, start=1):
+            self.__dict__.update(state)
+            self._draw_invoice_page_footer(idx, num_pages)
+            canvas.Canvas.showPage(self)
+        canvas.Canvas.save(self)
+
+    def _draw_invoice_page_footer(self, page_num: int, page_count: int) -> None:
+        self.saveState()
+        self.setFont("Helvetica", 7)
+        self.setFillColor(_INV_FOOTER_TEXT)
+        w, _h = self._pagesize
+        margin_x = 10 * mm
+        y_footer = 14 * mm
+        ft = self._invoice_footer_text
+        if ft:
+            self.drawCentredString(w / 2.0, y_footer, ft)
+        self.drawRightString(w - margin_x, y_footer, f"{page_num}/{page_count}")
+        self.restoreState()
+
+
+def _payment_confirmation_suffix_html(billing_email: str) -> str:
+    e = (billing_email or "").strip()
+    if e:
+        return " Please send the payment confirmation to us by email at " f"{_esc(e)}."
+    return " Please send the payment confirmation to us by email."
 
 
 def _invoice_logo_flowable() -> Image | Paragraph:
@@ -470,12 +516,6 @@ def render_invoice_pdf(
         leading=16,
         textColor=_INV_BODY_TEXT,
     )
-    # Tighter than ``body_text_style`` for the Bank / Account Number / Account Name block only.
-    bank_detail_line_style = ParagraphStyle(
-        "InvBankDetailLine",
-        parent=body_text_style,
-        leading=13,
-    )
     header_label_style = ParagraphStyle(
         "InvHeaderLabel",
         parent=styles["Normal"],
@@ -508,6 +548,24 @@ def render_invoice_pdf(
         fontName="Helvetica-Bold",
         fontSize=11.5,
         leading=14,
+        textColor=_INV_BODY_TEXT,
+        alignment=TA_RIGHT,
+    )
+    date_label_style = ParagraphStyle(
+        "InvDateLabel",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=16,
+        textColor=_INV_LABEL_TEXT,
+        alignment=TA_LEFT,
+    )
+    date_value_style = ParagraphStyle(
+        "InvDateValue",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=16,
         textColor=_INV_BODY_TEXT,
         alignment=TA_RIGHT,
     )
@@ -679,36 +737,34 @@ def render_invoice_pdf(
     due_date_s = _esc(due_date.isoformat())
     date_rows: list[list] = [
         [
-            Paragraph(
-                f'<font color="#555555"><b>Invoice Date:</b></font> {inv_date_s}',
-                body_text_style,
-            )
+            Paragraph("<b>Invoice Date:</b>", date_label_style),
+            Paragraph(inv_date_s, date_value_style),
         ],
     ]
     if show_due_date:
         date_rows.append(
             [
-                Paragraph(
-                    f'<font color="#555555"><b>Due Date:</b></font> {due_date_s}',
-                    body_text_style,
-                )
+                Paragraph("<b>Due Date:</b>", date_label_style),
+                Paragraph(due_date_s, date_value_style),
             ],
         )
-    dates_inner = Table(date_rows, colWidths=[58 * mm])
+    dates_inner = Table(date_rows, colWidths=[28 * mm, 30 * mm])
     dates_style_cmds: list[tuple] = [
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (0, -1), 10),
+        ("RIGHTPADDING", (0, 0), (0, -1), 4),
+        ("LEFTPADDING", (1, 0), (1, -1), 4),
+        ("RIGHTPADDING", (1, 0), (1, -1), 10),
         ("TOPPADDING", (0, 0), (-1, -1), 0),
     ]
     if len(date_rows) == 1:
-        dates_style_cmds.append(("BOTTOMPADDING", (0, 0), (0, 0), 14))
+        dates_style_cmds.append(("BOTTOMPADDING", (0, 0), (-1, 0), 14))
     else:
         dates_style_cmds.extend(
             [
-                ("BOTTOMPADDING", (0, 0), (0, 0), 14),
-                ("TOPPADDING", (0, 1), (0, 1), 0),
-                ("BOTTOMPADDING", (0, 1), (0, 1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 14),
+                ("TOPPADDING", (0, 1), (-1, 1), 0),
+                ("BOTTOMPADDING", (0, 1), (-1, 1), 0),
             ]
         )
     dates_inner.setStyle(TableStyle(dates_style_cmds))
@@ -931,23 +987,62 @@ def render_invoice_pdf(
         story.append(Paragraph(_esc(terms_intro), body_text_style))
 
         if has_bank_block or fps_payload is not None:
-            if has_bank_block and fps_payload is not None:
-                pay_intro = (
-                    "Please make payments using the FPS QR code or the bank "
-                    "details below:"
+            refer_next_page_style = ParagraphStyle(
+                "InvReferNextPage",
+                parent=body_text_style,
+                alignment=TA_CENTER,
+            )
+            payment_bullet_style = ParagraphStyle(
+                "InvPaymentBullet",
+                parent=body_text_style,
+                leftIndent=12,
+                firstLineIndent=-12,
+            )
+            billing_email = os.getenv("PUBLIC_WWW_BILLING_EMAIL", "").strip()
+            confirm_suffix = _payment_confirmation_suffix_html(billing_email)
+
+            story.append(Spacer(1, 22))
+            story.append(
+                Paragraph(
+                    _esc(
+                        "Please refer to next page for details of different "
+                        "payment methods."
+                    ),
+                    refer_next_page_style,
                 )
-            elif has_bank_block:
-                pay_intro = "Please make payments using the bank details below:"
-            else:
-                pay_intro = "Please make payments using the FPS QR code below:"
+            )
+            story.append(Spacer(1, 16))
+            story.append(PageBreak())
 
-            story.append(Spacer(1, 12))
+            story.append(Paragraph("Payment Options:", label_heading_style))
+            story.append(Spacer(1, 4))
 
-            pay_left_w = 102 * mm
-            pay_right_w = 88 * mm
+            bank_line_htmls: list[str] = []
+            if has_bank_block:
+                for bl in (
+                    f"Bank: {_esc(bank_name)}" if bank_name else "",
+                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
+                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
+                ):
+                    if bl:
+                        bank_line_htmls.append(bl)
 
-            fps_cell_flow: Paragraph | Table = Paragraph("", body_text_style)
+            if has_bank_block:
+                bank_bullet_html = (
+                    "&#8226; <b>By Bank Transfer to:</b><br/>"
+                    + "<br/>".join(bank_line_htmls)
+                    + confirm_suffix
+                )
+                story.append(Paragraph(bank_bullet_html, payment_bullet_style))
+                story.append(Spacer(1, 10))
+
             if fps_payload is not None:
+                fps_bullet_html = (
+                    "&#8226; <b>By FPS scanning the following QR code:</b>"
+                    + confirm_suffix
+                )
+                story.append(Paragraph(fps_bullet_html, payment_bullet_style))
+                story.append(Spacer(1, 4))
                 logo_flow = _fps_logo_image()
                 qr_png = render_fps_qr_png(fps_payload, size_px=256)
                 qr_img = Image(
@@ -976,12 +1071,14 @@ def render_invoice_pdf(
                         ]
                     )
                 )
-                fps_cell_flow = Table([[fps_inner]], colWidths=[pay_right_w])
-                fps_cell_flow.setStyle(
+                fps_indent = Table(
+                    [[Spacer(1, 1), fps_inner]],
+                    colWidths=[12 * mm, 64 * mm],
+                )
+                fps_indent.setStyle(
                     TableStyle(
                         [
-                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
                             ("LEFTPADDING", (0, 0), (-1, -1), 0),
                             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                             ("TOPPADDING", (0, 0), (-1, -1), 0),
@@ -989,101 +1086,13 @@ def render_invoice_pdf(
                         ]
                     )
                 )
-
-            bank_line_htmls: list[str] = []
-            if has_bank_block:
-                for bl in (
-                    f"Bank: {_esc(bank_name)}" if bank_name else "",
-                    f"Account Number: {_esc(bank_number)}" if bank_number else "",
-                    f"Account Name: {_esc(bank_holder)}" if bank_holder else "",
-                ):
-                    if bl:
-                        bank_line_htmls.append(bl)
-
-            pay_rows: list[list] = []
-            pay_style_cmds: list[tuple] = [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ]
-            r = 0
-            pay_rows.append([Paragraph(_esc(pay_intro), body_text_style), ""])
-            pay_style_cmds.append(("SPAN", (0, r), (1, r)))
-            r += 1
-
-            if has_bank_block and fps_payload is not None:
-                bank_inner_rows: list[list] = [[Spacer(1, 12)]]
-                for i, bl in enumerate(bank_line_htmls):
-                    if i > 0:
-                        bank_inner_rows.append([Spacer(1, 1)])
-                    bank_inner_rows.append([Paragraph(bl, bank_detail_line_style)])
-                bank_left = Table(bank_inner_rows, colWidths=[pay_left_w])
-                bank_left.setStyle(
-                    TableStyle(
-                        [
-                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                            ("TOPPADDING", (0, 0), (-1, -1), 0),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                        ]
-                    )
-                )
-                pay_rows.append([bank_left, fps_cell_flow])
-                pay_style_cmds.extend(
-                    [
-                        ("VALIGN", (0, r), (1, r), "MIDDLE"),
-                        ("ALIGN", (1, r), (1, r), "RIGHT"),
-                    ]
-                )
-                r += 1
-            elif has_bank_block:
-                pay_rows.append([Spacer(1, 12), ""])
-                pay_style_cmds.append(("SPAN", (0, r), (1, r)))
-                r += 1
-                first_bank = True
-                for bl in bank_line_htmls:
-                    if not first_bank:
-                        pay_rows.append([Spacer(1, 1), ""])
-                        pay_style_cmds.append(("SPAN", (0, r), (1, r)))
-                        r += 1
-                    pay_rows.append([Paragraph(bl, bank_detail_line_style), ""])
-                    pay_style_cmds.append(("SPAN", (0, r), (1, r)))
-                    r += 1
-                    first_bank = False
-            elif fps_payload is not None:
-                pay_rows.append([Paragraph("", body_text_style), fps_cell_flow])
-                pay_style_cmds.extend(
-                    [
-                        ("VALIGN", (0, r), (1, r), "MIDDLE"),
-                        ("ALIGN", (1, r), (1, r), "RIGHT"),
-                    ]
-                )
-                r += 1
-
-            pay_table = Table(
-                pay_rows,
-                colWidths=[pay_left_w, pay_right_w],
-            )
-            pay_table.setStyle(TableStyle(pay_style_cmds))
-            story.append(pay_table)
+                story.append(fps_indent)
     else:
         story.append(Spacer(1, 36))
 
     footer_text = invoice_pdf_footer_text()
-
-    def _draw_footer(canvas_obj: canvas.Canvas, _doc: SimpleDocTemplate) -> None:
-        if not footer_text:
-            return
-        canvas_obj.saveState()
-        canvas_obj.setFont("Helvetica", 7)
-        canvas_obj.setFillColor(_INV_FOOTER_TEXT)
-        y_footer = 14 * mm
-        canvas_obj.drawCentredString(A4[0] / 2, y_footer, footer_text)
-        canvas_obj.restoreState()
-
-    doc.build(story, onFirstPage=_draw_footer, onLaterPages=_draw_footer)
+    doc.build(
+        story,
+        canvasmaker=partial(InvoicePdfCanvas, footer_text=footer_text),
+    )
     return buf.getvalue()
