@@ -21,9 +21,13 @@ type ApiExpenseListResponse = ApiSchemas['ExpenseListResponse'];
 type ApiCreateExpenseRequest = ApiSchemas['CreateExpenseRequest'];
 type ApiUpdateExpenseRequest = ApiSchemas['UpdateExpenseRequest'];
 type ApiCancelExpenseRequest = ApiSchemas['CancelExpenseRequest'];
+type ApiBulkImportExpensesFromPdfResponse = ApiSchemas['BulkImportExpensesFromPdfResponse'];
 
 type ApiExpensePayload = ApiExpenseResponse | ApiExpense | ApiDataWrapper<ApiExpenseResponse | ApiExpense>;
 type ApiExpenseListPayload = ApiExpenseListResponse | ApiDataWrapper<ApiExpenseListResponse>;
+type ApiBulkImportPayload =
+  | ApiBulkImportExpensesFromPdfResponse
+  | ApiDataWrapper<ApiBulkImportExpensesFromPdfResponse>;
 
 function isApiExpenseLineItem(value: unknown): value is ApiExpenseLineItem {
   return isRecord(value);
@@ -272,6 +276,28 @@ export async function reparseAdminExpense(expenseId: string): Promise<void> {
     method: 'POST',
     expectedSuccessStatuses: [202],
   });
+}
+
+export async function importAdminExpensesFromBulkPdf(input: {
+  attachmentAssetId: string;
+  defaultVendorId: string;
+}): Promise<{ expenses: Expense[]; createdCount: number }> {
+  const payload = await adminApiRequest<ApiBulkImportPayload>({
+    endpointPath: '/v1/admin/expenses/import-from-bulk-pdf',
+    method: 'POST',
+    body: {
+      attachment_asset_id: input.attachmentAssetId.trim(),
+      default_vendor_id: input.defaultVendorId.trim(),
+    },
+    expectedSuccessStatuses: [201],
+  });
+  const root = unwrapPayload(payload);
+  const expenses = Array.isArray(root.expenses)
+    ? root.expenses.filter((entry): entry is ApiExpense => isApiExpense(entry)).map((entry) => parseExpense(entry))
+    : [];
+  const createdCount =
+    typeof root.created_count === 'number' ? root.created_count : expenses.length;
+  return { expenses, createdCount };
 }
 
 export async function deleteAdminDraftExpense(expenseId: string): Promise<void> {

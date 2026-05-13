@@ -452,3 +452,79 @@ def test_parse_invoice_surfaces_openrouter_error_body(monkeypatch: Any) -> None:
 
     assert "404" in str(exc_info.value)
     assert "No endpoints found" in str(exc_info.value)
+
+
+def test_parse_bulk_expense_invoices_normalizes_each_row(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        assert kwargs["timeout"] == 25
+        payload = json.loads(kwargs["body"])
+        assert payload["plugins"][0]["id"] == "file-parser"
+        return {
+            "status": 200,
+            "body": json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": json.dumps(
+                                    {
+                                        "invoices": [
+                                            {
+                                                "vendor_name": "Shop A",
+                                                "invoice_number": "1",
+                                                "invoice_date": "2026-01-02",
+                                                "due_date": None,
+                                                "currency": "HKD",
+                                                "subtotal": 10,
+                                                "tax": 0,
+                                                "total": 10,
+                                                "line_items": [],
+                                                "confidence": 0.9,
+                                            },
+                                            {
+                                                "vendor_name": "Shop B",
+                                                "invoice_number": "2",
+                                                "invoice_date": "2026-01-03",
+                                                "due_date": None,
+                                                "currency": "HKD",
+                                                "subtotal": 20,
+                                                "tax": 0,
+                                                "total": 20,
+                                                "line_items": [],
+                                                "confidence": 0.8,
+                                            },
+                                        ]
+                                    }
+                                )
+                            }
+                        }
+                    ]
+                }
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-b",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+    assert len(rows) == 2
+    assert rows[0]["invoice_number"] == "1"
+    assert rows[0]["total"] == 10.0
+    assert rows[1]["vendor_name"] == "Shop B"

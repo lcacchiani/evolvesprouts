@@ -11,6 +11,7 @@ import { listAllAdminExpenses } from '@/lib/expenses-api';
 import type { Expense } from '@/types/expenses';
 
 import { ExpensesEditorPanel } from './expenses-editor-panel';
+import { BulkExpensePdfImportPanel } from './bulk-expense-pdf-import-panel';
 import { ExpensesListPanel } from './expenses-list-panel';
 import {
   DEFAULT_FINANCE_VIEW,
@@ -127,6 +128,13 @@ export function FinancePage() {
         onUpdate={expenses.updateExpenseEntry}
         onAmend={expenses.amendExpenseEntry}
         onStartCreate={expenses.clearSelectedExpense}
+      />
+      <BulkExpensePdfImportPanel
+        vendorOptions={vendors.vendors}
+        isLoadingVendors={vendors.isLoading}
+        isBusy={expenses.isBulkImporting || expenses.isUploadingFiles}
+        error={expenses.bulkImportError}
+        onImport={expenses.bulkImportFromPdf}
       />
       <ExpensesListPanel
         expenses={expenses.items}

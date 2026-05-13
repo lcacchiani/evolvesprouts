@@ -49,6 +49,7 @@ info:
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
+    - `POST /v1/admin/expenses/import-from-bulk-pdf`
     - `GET|PATCH|DELETE /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
     - `POST /v1/admin/expenses/{id}/mark-paid`
@@ -3473,6 +3474,38 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /v1/admin/expenses/import-from-bulk-pdf:
+    post:
+      summary: Import multiple expenses from one combined PDF
+      description: >
+        Upload a PDF as an admin asset, then call this endpoint with its asset id.
+        OpenRouter extracts one JSON object per distinct invoice or charge row; each
+        row becomes a separate expense that references the same attachment asset.
+        Parsed vendor names are matched to active vendors when possible; otherwise
+        `default_vendor_id` is used. Synchronous parse is subject to API Gateway
+        time limits; very large PDFs may fail with a validation error.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkImportExpensesFromPdfRequest"
+      responses:
+        "201":
+          description: Expenses created from parsed rows.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkImportExpensesFromPdfResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/admin/expenses/{id}:
     parameters:
       - $ref: "#/components/parameters/ExpenseId"
@@ -6692,6 +6725,39 @@ components:
             format: uuid
         parse_requested:
           type: boolean
+    BulkImportExpensesFromPdfRequest:
+      type: object
+      required:
+        - attachment_asset_id
+        - default_vendor_id
+      properties:
+        attachment_asset_id:
+          type: string
+          format: uuid
+          description: Uploaded PDF asset id (same presign flow as single expense attachments).
+        default_vendor_id:
+          type: string
+          format: uuid
+          description: >
+            Vendor applied when a parsed row has no resolvable vendor_name match.
+        status:
+          $ref: "#/components/schemas/ExpenseStatus"
+          description: >
+            Defaults to `submitted`. Draft may be used when operators want to review
+            rows before submission.
+    BulkImportExpensesFromPdfResponse:
+      type: object
+      required:
+        - expenses
+        - created_count
+      properties:
+        expenses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expense"
+        created_count:
+          type: integer
+          minimum: 1
     UpdateExpenseRequest:
       type: object
       properties:

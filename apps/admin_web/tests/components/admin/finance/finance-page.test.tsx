@@ -28,6 +28,8 @@ const {
     isDeletingDraftId: null as string | null,
     isMarkingPaidId: null as string | null,
     isReparsingId: null as string | null,
+    isBulkImporting: false,
+    bulkImportError: '',
     mutationError: '',
     selectExpense: vi.fn(),
     clearSelectedExpense: vi.fn(),
@@ -39,6 +41,7 @@ const {
     deleteDraftExpenseEntry: vi.fn(),
     markPaidExpenseEntry: vi.fn(),
     reparseExpenseEntry: vi.fn(),
+    bulkImportFromPdf: vi.fn(),
   };
   const vendorsState = {
     vendors: [],
@@ -144,13 +147,15 @@ describe('FinancePage', () => {
     });
   });
 
-  it('renders expense editor before submitted expenses list', () => {
+  it('renders expense editor before bulk PDF import and submitted expenses list', () => {
     render(<FinancePage />);
 
     const editorHeading = screen.getByRole('heading', { name: 'Expense Details' });
+    const bulkHeading = screen.getByRole('heading', { name: 'Import from combined PDF' });
     const listHeading = screen.getByRole('heading', { name: 'Submitted Expenses' });
 
-    expect(editorHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(editorHeading.compareDocumentPosition(bulkHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bulkHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('uses expense hook state', () => {
