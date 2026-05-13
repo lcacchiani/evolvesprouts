@@ -46,7 +46,10 @@ from app.db.models import (
     RelationshipType,
 )
 from app.db.models.organization import organization_membership_role_from_contact_type
-from app.db.repositories import OrganizationRepository
+from app.db.repositories.organization import (
+    OrganizationListOrder,
+    OrganizationRepository,
+)
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
 from app.utils.logging import get_logger
@@ -157,6 +160,19 @@ def _apply_organization_partner_key_from_body(
     org.partner_key = partner_key
 
 
+def _parse_organization_list_order(raw: str | None) -> OrganizationListOrder:
+    """Parse optional ``sort`` query for ``GET /v1/admin/organizations``."""
+    if raw is None or str(raw).strip() == "":
+        return "created_desc"
+    normalized = str(raw).strip().lower()
+    if normalized == "name":
+        return "name_asc"
+    raise ValidationError(
+        "sort must be omitted or name",
+        field="sort",
+    )
+
+
 def _parse_relationship_type_filter(
     raw: str | None,
 ) -> Sequence[RelationshipType] | None:
@@ -201,6 +217,7 @@ def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
     relationship_types = _parse_relationship_type_filter(
         query_param(event, "relationship_type")
     )
+    list_order = _parse_organization_list_order(query_param(event, "sort"))
     include_relationships = not (
         relationship_types is not None
         and len(relationship_types) == 1
@@ -216,6 +233,7 @@ def _list_organizations(event: Mapping[str, Any]) -> dict[str, Any]:
             active=active,
             relationship_types=relationship_types,
             include_relationships=include_relationships,
+            list_order=list_order,
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
