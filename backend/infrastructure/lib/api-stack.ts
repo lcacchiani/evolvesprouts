@@ -930,6 +930,12 @@ export class ApiStack extends cdk.Stack {
           "Business phone number in international format used to build wa.me links in transactional emails. Align with NEXT_PUBLIC_BUSINESS_PHONE_NUMBER.",
       }
     );
+    const publicWwwEmail = new cdk.CfnParameter(this, "PublicWwwEmail", {
+      type: "String",
+      default: "",
+      description:
+        "Public billing/contact email for invoice payment confirmations; align with NEXT_PUBLIC_EMAIL.",
+    });
     const publicWwwBusinessName = new cdk.CfnParameter(
       this,
       "PublicWwwBusinessName",
@@ -2818,6 +2824,7 @@ export class ApiStack extends cdk.Stack {
       "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
       publicWwwBusinessPhoneNumber.valueAsString
     );
+    adminFunction.addEnvironment("PUBLIC_WWW_EMAIL", publicWwwEmail.valueAsString);
     adminFunction.addEnvironment(
       "PUBLIC_WWW_BUSINESS_NAME",
       publicWwwBusinessName.valueAsString

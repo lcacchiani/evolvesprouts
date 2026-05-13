@@ -288,68 +288,7 @@ def test_v6_totals_card_width(monkeypatch: pytest.MonkeyPatch) -> None:
     assert 105 * mm <= left_pt <= 125 * mm
 
 
-def _totals_card_bounds_on_page(
-    page, *, y_sample_pt: float = 510.0
-) -> tuple[float, float, float] | None:
-    """Return (left_pt, width_pt, bottom_y_pt) if a totals-sized panel is found."""
-    from reportlab.lib.units import mm
-
-    pix, s = _pixmap_pt_coords(page)
-    W = pix.width
-    y = int(y_sample_pt * s)
-
-    def matches_panel(rgb: tuple[int, int, int]) -> bool:
-        return _rgb_close(rgb, (247, 249, 250))
-
-    longest = 0.0
-    left_pt = 0.0
-    in_run = False
-    start = 0
-    for x in range(W):
-        if matches_panel(pix.pixel(x, y)):
-            if not in_run:
-                start = x
-                in_run = True
-        else:
-            if in_run:
-                w_pt = (x - 1 - start + 1) / s
-                if w_pt > longest:
-                    longest = w_pt
-                    left_pt = start / s
-                in_run = False
-    if in_run:
-        w_pt = (W - 1 - start + 1) / s
-        if w_pt > longest:
-            longest = w_pt
-            left_pt = start / s
-
-    if not (82 * mm <= longest <= 92 * mm and 105 * mm <= left_pt <= 125 * mm):
-        return None
-
-    xc = int((left_pt + longest / 2) * s)
-    y_max: float | None = None
-    for y_pt_i in range(int(400 * s), int(700 * s)):
-        if matches_panel(pix.pixel(xc, y_pt_i)):
-            py = y_pt_i / s
-            y_max = py if y_max is None else max(y_max, py)
-    if y_max is None:
-        return None
-    return left_pt, longest, y_max
-
-
-def _find_totals_card_in_pdf(pdf: bytes) -> tuple[int, float, float, float]:
-    import fitz
-
-    doc = fitz.open(stream=pdf, filetype="pdf")
-    for pi in range(len(doc)):
-        b = _totals_card_bounds_on_page(doc[pi])
-        if b is not None:
-            return pi, b[0], b[1], b[2]
-    msg = "totals card panel not found in PDF"
-    raise AssertionError(msg)
-
-
-def test_v7_fps_qr_below_totals_card(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v7_fps_qr_on_payment_options_page(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Evolve Sprouts")
@@ -396,49 +335,24 @@ def test_v7_fps_qr_below_totals_card(monkeypatch: pytest.MonkeyPatch) -> None:
         is not None
     )
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
-    totals_pi, left_pt, width_pt, totals_bottom = _find_totals_card_in_pdf(pdf)
-    x0, x1 = left_pt, left_pt + width_pt
+    text = _pdf_text(pdf)
+    assert "Please refer to next page" in text.replace("\n", " ")
+    assert "Payment Options:" in text
+    assert "1/2" in text and "2/2" in text
 
     import fitz
 
     doc = fitz.open(stream=pdf, filetype="pdf")
-    qr_below = False
-    for pi in range(len(doc)):
-        page = doc[pi]
-        for im in (
-            b for b in page.get_text("dict")["blocks"] if b["type"] == 1
-        ):
-            bbox = im["bbox"]
-            ix0, ix1 = bbox[0], bbox[2]
-            iw = ix1 - ix0
-            if iw > 120:
-                continue
-            if ix0 < x0 - 2 or ix1 > x1 + 2:
-                continue
-            if pi > totals_pi:
-                qr_below = True
-                break
-            if pi == totals_pi and bbox[1] > totals_bottom + 8:
-                qr_below = True
-                break
-        if qr_below:
-            break
-    assert qr_below, "expected FPS QR image under totals card column"
-
-    bank_spans: list = []
-    for pi in range(len(doc)):
-        page = doc[pi]
-        blocks = page.get_text("dict")["blocks"]
-        for b in blocks:
-            if b["type"] != 0:
-                continue
-            for ln in b["lines"]:
-                for sp in ln["spans"]:
-                    if sp["text"].lstrip().startswith("Bank:"):
-                        bank_spans.append(sp)
-    assert bank_spans
-    for s in bank_spans:
-        assert s["bbox"][0] < left_pt - 1
+    assert len(doc) >= 2
+    page1_images = [b for b in doc[1].get_text("dict")["blocks"] if b["type"] == 1]
+    assert page1_images, "expected raster assets on payment options page"
+    small_rasters = [
+        b
+        for b in page1_images
+        if (b["bbox"][2] - b["bbox"][0]) < 150 and (b["bbox"][3] - b["bbox"][1]) < 150
+    ]
+    assert small_rasters, "expected FPS QR image on payment options page"
+    assert "Bank:" in text
 
 
 def test_v6_no_rule_below_last_item_row(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -595,7 +509,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v14"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v15"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -680,7 +594,7 @@ def test_invoice_template_v6_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> No
     from pypdf import PdfReader
 
     r = PdfReader(io.BytesIO(pdf))
-    assert len(r.pages) == 1
+    assert len(r.pages) == 2
     text = _pdf_text(pdf)
     for fragment in (
         "INVOICE I-2603-027",
@@ -693,6 +607,8 @@ def test_invoice_template_v6_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> No
         "Unit Price",
         "Total",
         "Subtotal:",
+        "Please refer to next page for details of different payment methods.",
+        "Payment Options:",
         "Evolve Sprouts Ltd | Proudly registered in Hong Kong | BR: 41492636-000-02-25-0",
     ):
         assert fragment in text
@@ -847,6 +763,8 @@ def test_bank_block_omitted_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("PUBLIC_WWW_BANK_NAME", raising=False)
     monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", raising=False)
     monkeypatch.delenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_FPS_MERCHANT_NAME", raising=False)
+    monkeypatch.delenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", raising=False)
     inv = SimpleNamespace(
         invoice_number="N1",
         currency="HKD",
@@ -862,7 +780,7 @@ def test_bank_block_omitted_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     pdf = render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False)
     text = _pdf_text(pdf)
-    assert "Please make payments" not in text
+    assert "Please refer to next page" not in text
     assert "Bank:" not in text
 
 
@@ -1046,8 +964,8 @@ def test_zero_total_hides_due_date_and_terms(monkeypatch: pytest.MonkeyPatch) ->
     assert "Invoice Date:" in text
     assert "Total:" in text
     assert "Due Date:" not in text
+    assert "Please refer to next page" not in text
     assert "Terms & Conditions" not in text
-    assert "Please make payments" not in text
     assert "Bank:" not in text
 
 
@@ -1079,9 +997,47 @@ def test_nonzero_total_shows_fps_block(monkeypatch: pytest.MonkeyPatch) -> None:
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "FPS QR code or the bank" in text.replace("\n", " ")
+    assert "Please refer to next page" in text.replace("\n", " ")
+    assert "Payment Options:" in text
+    assert "By Bank Transfer to:" in text
+    assert "By FPS scanning the following QR code:" in text
+    assert "1/2" in text and "2/2" in text
     assert "Bank:" in text
     assert len(_pdf_all_image_blocks(pdf)) == 3
+
+
+def test_payment_options_includes_public_www_email_when_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "Bk")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "1")
+    monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "H")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPS")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    monkeypatch.setenv("PUBLIC_WWW_EMAIL", "billing-notify@example.com")
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("10"),
+        tax_total=Decimal("0"),
+        total=Decimal("10"),
+        bill_to_display_name="C",
+        bill_to_email=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[_inv_line(unit_amount=Decimal("10"), line_total=Decimal("10"))],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "billing-notify@example.com" in text
 
 
 def test_nonzero_total_without_fps_config_falls_back_to_bank_only_copy(
@@ -1114,8 +1070,11 @@ def test_nonzero_total_without_fps_config_falls_back_to_bank_only_copy(
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "Please make payments using the bank details below:" in text
-    assert "FPS QR code or the bank" not in text
+    assert "Please refer to next page" in text.replace("\n", " ")
+    assert "Payment Options:" in text
+    assert "By Bank Transfer to:" in text
+    assert "By FPS scanning" not in text
+    assert "1/2" in text and "2/2" in text
     assert len(_pdf_page_image_blocks(pdf)) == 1
 
 
@@ -1149,8 +1108,12 @@ def test_nonzero_total_with_fps_only_no_bank_omits_bank_lines(
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "FPS QR code below:" in text.replace("\n", " ")
+    assert "Please refer to next page" in text.replace("\n", " ")
+    assert "Payment Options:" in text
+    assert "By FPS scanning the following QR code:" in text
+    assert "By Bank Transfer to:" not in text
     assert "Bank:" not in text
+    assert "1/2" in text and "2/2" in text
     assert len(_pdf_all_image_blocks(pdf)) == 3
 
 
@@ -1188,8 +1151,11 @@ def test_nonzero_total_non_hkd_skips_fps_qr(monkeypatch: pytest.MonkeyPatch) -> 
         preview=False,
     )
     text = _pdf_text(pdf)
-    assert "Please make payments using the bank details below:" in text
-    assert "FPS QR code or the bank" not in text
+    assert "Please refer to next page" in text.replace("\n", " ")
+    assert "Payment Options:" in text
+    assert "By Bank Transfer to:" in text
+    assert "By FPS scanning" not in text
+    assert "1/2" in text and "2/2" in text
     assert len(_pdf_page_image_blocks(pdf)) == 1
 
 
@@ -1221,7 +1187,7 @@ def test_negative_total_suppresses_payment_block(monkeypatch: pytest.MonkeyPatch
     text = _pdf_text(pdf)
     assert "Due Date:" not in text
     assert "Terms & Conditions" not in text
-    assert "Please make payments" not in text
+    assert "Please refer to next page" not in text
 
 
 def test_refresh_invoice_sets_invoice_template_version(
