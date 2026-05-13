@@ -6325,6 +6325,9 @@ components:
         billToEmail:
           type: string
           nullable: true
+        billToLocationText:
+          type: string
+          nullable: true
         issuedAt:
           type: string
           format: date-time

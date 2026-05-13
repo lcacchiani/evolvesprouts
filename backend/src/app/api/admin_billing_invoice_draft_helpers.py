@@ -18,8 +18,10 @@ from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import BillingBillToKind
 from app.db.models.family import FamilyMember
+from app.db.models.location import Location
 from app.db.models.organization import OrganizationMember
 from app.exceptions import ValidationError
+from app.services.customer_invoice_pdf import split_address_lines
 
 
 def _first_present(d: Mapping[str, Any], *keys: str) -> Any:
@@ -96,10 +98,30 @@ def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
     return out[:500]
 
 
+def _bill_to_location_snapshot_text(
+    session: Session, location_id: UUID | None
+) -> str | None:
+    """Return newline-separated venue label + address lines for invoice PDF, or None."""
+    if location_id is None:
+        return None
+    loc = session.get(Location, location_id)
+    if loc is None:
+        return None
+    parts: list[str] = []
+    name = (loc.name or "").strip()
+    if name:
+        parts.append(name)
+    parts.extend(split_address_lines(loc.address or ""))
+    if not parts:
+        return None
+    return "\n".join(parts)
+
+
 def _resolve_bill_to_party_from_invoice_fks(
     session: Session, *, inv: CustomerInvoice
 ) -> None:
-    """Set bill_to_email and bill_to_display_name from invoice bill-to foreign keys."""
+    """Set bill-to display fields from invoice bill-to foreign keys (CRM snapshot)."""
+    inv.bill_to_location_text = None
     if inv.bill_to_kind == BillingBillToKind.CONTACT:
         cid = inv.bill_to_contact_id
         if cid:
@@ -111,6 +133,9 @@ def _resolve_bill_to_party_from_invoice_fks(
                 em = (c.email or "").strip()
                 if em:
                     inv.bill_to_email = em
+                inv.bill_to_location_text = _bill_to_location_snapshot_text(
+                    session, getattr(c, "location_id", None)
+                )
         return
     if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
         fam = session.get(Family, inv.bill_to_family_id)
@@ -133,6 +158,10 @@ def _resolve_bill_to_party_from_invoice_fks(
                 inv.bill_to_display_name = fam_nm
         if primary and primary.email:
             inv.bill_to_email = primary.email
+        loc_id = getattr(fam, "location_id", None)
+        if loc_id is None and primary is not None:
+            loc_id = getattr(primary, "location_id", None)
+        inv.bill_to_location_text = _bill_to_location_snapshot_text(session, loc_id)
         return
     if (
         inv.bill_to_kind == BillingBillToKind.ORGANIZATION
@@ -162,12 +191,15 @@ def _resolve_bill_to_party_from_invoice_fks(
             inv.bill_to_display_name = primary_nm
         if primary and primary.email:
             inv.bill_to_email = primary.email
+        inv.bill_to_location_text = _bill_to_location_snapshot_text(
+            session, getattr(org, "location_id", None)
+        )
 
 
 def _resolve_bill_to_party_for_draft(
     session: Session, *, inv: CustomerInvoice, first: Enrollment
 ) -> None:
-    """Set bill_to_email and bill_to_display_name from enrollment bill-to defaults."""
+    """Set bill-to display fields from enrollment bill-to defaults."""
     if inv.bill_to_kind == BillingBillToKind.CONTACT:
         cid = inv.bill_to_contact_id or first.contact_id
         inv.bill_to_contact_id = cid

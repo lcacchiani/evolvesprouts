@@ -50,6 +50,35 @@ def _inv_line(**kwargs: object) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
+def test_bill_to_location_text_renders_in_pdf(monkeypatch: pytest.MonkeyPatch) -> None:
+    _base_invoice_env(monkeypatch)
+    inv = SimpleNamespace(
+        invoice_number="X-1",
+        currency="HKD",
+        subtotal=Decimal("10"),
+        tax_total=Decimal("0"),
+        total=Decimal("10"),
+        bill_to_display_name="Jane Doe",
+        bill_to_email="jane@example.com",
+        bill_to_location_text="Studio North\n88 Example Road\nHong Kong",
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    line = _inv_line(
+        description="Session",
+        quantity=Decimal("1"),
+        unit_amount=Decimal("10"),
+        line_total=Decimal("10"),
+    )
+    pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
+    text = _pdf_text(pdf)
+    assert "Studio North" in text
+    assert "88 Example Road" in text
+    assert "Hong Kong" in text
+
+
 def _pdf_layout(pdf: bytes):
     import fitz
 
@@ -523,7 +552,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v11"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v12"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION

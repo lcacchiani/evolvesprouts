@@ -11,6 +11,9 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.admin_billing_common import _session_with_audit
+from app.api.admin_billing_invoice_draft_helpers import (
+    _resolve_bill_to_party_from_invoice_fks,
+)
 from app.api.admin_request import parse_body
 from app.db.audit import AuditService
 from app.db.models import Contact, Family, Organization
@@ -76,6 +79,7 @@ def _build_bill_to_snapshot(session: Session, inv: CustomerInvoice) -> dict[str,
         "kind": inv.bill_to_kind.value,
         "display_name": inv.bill_to_display_name,
         "email": inv.bill_to_email,
+        "location_text": inv.bill_to_location_text,
         "snapshot_at": datetime.now(UTC).isoformat(),
     }
     if inv.bill_to_kind == BillingBillToKind.CONTACT and inv.bill_to_contact_id:
@@ -116,6 +120,7 @@ def _issue_invoice(
             raise ValidationError("Invoice is not draft", field="invoiceId")
 
         _validate_bill_to_fk_for_issue(inv)
+        _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
         inv.bill_to_snapshot = _build_bill_to_snapshot(session, inv)
 
         num, seq = next_invoice_number(session, currency=inv.currency)
