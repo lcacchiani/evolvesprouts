@@ -54,6 +54,7 @@ import {
   listCustomerInvoices,
   listCustomerPayments,
   listRecentEnrollmentsForInvoicing,
+  compareBillingEnrollmentPickerRowsByEnrolledAtDesc,
   voidInvoice,
   type BillingEnrollmentPickerRow,
   type CustomerInvoiceDetail,
@@ -339,6 +340,7 @@ export function ClientInvoicesPanel() {
         out.push(row);
       }
     }
+    out.sort(compareBillingEnrollmentPickerRowsByEnrolledAtDesc);
     return out;
   }, [enrollmentPickerRows, selectedEnrollmentIds]);
 

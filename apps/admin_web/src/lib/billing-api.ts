@@ -184,6 +184,26 @@ export async function createCustomerRefund(
 
 export type BillingEnrollmentPickerRow = ApiSchemas['BillingEnrollmentPickerRow'];
 
+/** Newest `enrolledAt` first; rows without a date sort after dated rows. */
+export function compareBillingEnrollmentPickerRowsByEnrolledAtDesc(
+  a: BillingEnrollmentPickerRow,
+  b: BillingEnrollmentPickerRow,
+): number {
+  const ta = (a.enrolledAt ?? '').trim();
+  const tb = (b.enrolledAt ?? '').trim();
+  if (ta !== '' && tb !== '') {
+    const byTime = tb.localeCompare(ta);
+    if (byTime !== 0) {
+      return byTime;
+    }
+  } else if (ta !== '' && tb === '') {
+    return -1;
+  } else if (ta === '' && tb !== '') {
+    return 1;
+  }
+  return String(b.enrollmentId).localeCompare(String(a.enrollmentId));
+}
+
 export async function listRecentEnrollmentsForInvoicing(
   signal?: AbortSignal,
   params?: { q?: string },
@@ -243,6 +263,7 @@ export async function listRecentEnrollmentsForInvoicing(
     cursor = next;
   }
 
+  merged.sort(compareBillingEnrollmentPickerRowsByEnrolledAtDesc);
   return { items: merged, truncated: truncatedOverall };
 }
 
