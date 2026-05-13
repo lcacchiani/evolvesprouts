@@ -43,6 +43,29 @@ describe('tax-fiscal-year-report', () => {
     expect(defaultFiscalYearStartYear(new Date('2026-03-20T12:00:00.000Z'))).toBe(2025);
   });
 
+  it('sorts rows by classification date descending (newest first)', () => {
+    const rows = buildTaxFiscalYearRows(
+      [
+        expenseStub({
+          id: 'early',
+          status: 'paid',
+          invoiceDate: '2025-04-10',
+          total: '1',
+        }),
+        expenseStub({
+          id: 'late',
+          status: 'paid',
+          invoiceDate: '2025-06-20',
+          total: '2',
+        }),
+      ],
+      [],
+      2025,
+      'paid',
+    );
+    expect(rows.map((r) => r.referenceId)).toEqual(['late', 'early']);
+  });
+
   it('filters expenses by selected status', () => {
     const voided = expenseStub({
       id: 'v',
@@ -90,9 +113,9 @@ describe('tax-fiscal-year-report', () => {
       2025,
       'draft',
     );
-    expect(rows.map((r) => r.kind)).toEqual(['expense', 'revenue']);
-    expect(rows[0]?.kind).toBe('expense');
-    expect(rows[1]?.kind).toBe('revenue');
+    expect(rows.map((r) => r.kind)).toEqual(['revenue', 'expense']);
+    expect(rows[0]?.kind).toBe('revenue');
+    expect(rows[1]?.kind).toBe('expense');
   });
 
   it('flags missing invoice date when using paid date', () => {
