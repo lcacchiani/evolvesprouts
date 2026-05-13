@@ -141,6 +141,25 @@ class ExpenseRepository(BaseRepository[Expense]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
+    def get_many_with_attachments(self, expense_ids: list[UUID]) -> list[Expense]:
+        """Load expenses with the same eager loads as ``get_with_attachments``.
+
+        Returned rows follow the order of ``expense_ids`` (skips unknown ids).
+        """
+        if not expense_ids:
+            return []
+        statement = (
+            select(Expense)
+            .options(
+                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
+                selectinload(Expense.vendor),
+            )
+            .where(Expense.id.in_(expense_ids))
+        )
+        rows = list(self._session.execute(statement).scalars().all())
+        by_id = {row.id: row for row in rows}
+        return [by_id[eid] for eid in expense_ids if eid in by_id]
+
     def count_amendments_targeting(self, expense_id: UUID) -> int:
         """Count expense rows that reference this expense as their amendment parent."""
         stmt = (

@@ -424,7 +424,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
 
     this.bulkExpenseImportQueue = new sqs.Queue(this, "BulkExpenseImportQueue", {
       queueName: name("bulk-expense-import-queue"),
-      visibilityTimeout: cdk.Duration.seconds(360),
+      visibilityTimeout: cdk.Duration.seconds(720),
       deadLetterQueue: {
         queue: this.bulkExpenseImportDLQ,
         maxReceiveCount: 3,
@@ -435,9 +435,10 @@ export class MessagingNestedStack extends cdk.NestedStack {
 
     this.bulkExpenseImportFunction = createPythonFunction("BulkExpenseImportFunction", {
       handler: "lambda/bulk_expense_import/handler.lambda_handler",
-      timeout: cdk.Duration.seconds(300),
+      timeout: cdk.Duration.seconds(600),
       manageLogGroup: false,
       environment: {
+        BULK_IMPORT_LAMBDA_TIMEOUT_SECONDS: "600",
         DATABASE_SECRET_ARN: props.databaseSecretArn,
         DATABASE_NAME: "evolvesprouts",
         DATABASE_USERNAME: "evolvesprouts_admin",

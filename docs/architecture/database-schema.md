@@ -272,7 +272,7 @@ Columns:
 - `attachment_asset_id` (UUID, FK → `assets.id`, cascade delete)
 - `default_vendor_id` (UUID, FK → `organizations.id`, restrict delete)
 - `expense_status` (enum `expense_status`, required) — `draft` or `submitted` rows created from parsed data
-- `status` (varchar(32), required) — `pending | processing | succeeded | failed`
+- `status` (varchar(32), required) — `pending | processing | succeeded | succeeded_with_errors | failed`
 - `error_message` (text, optional)
 - `created_expense_ids` (jsonb, optional) — ordered UUID strings for created expenses
 - `created_count` (integer, optional)

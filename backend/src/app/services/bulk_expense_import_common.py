@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Expense
 from app.db.repositories import OrganizationRepository
+from app.exceptions import ValidationError
 
 
 def resolve_bulk_row_vendor_id(
@@ -94,18 +95,35 @@ def bulk_pick_decimal(value: Any, *, fallback: Decimal | None) -> Decimal | None
         return fallback
 
 
-def build_parser_asset_dict(session: Session, attachment_id: UUID) -> dict[str, Any]:
-    """Load asset fields required by OpenRouter bulk parser."""
+def _load_validated_bulk_pdf_asset(session: Session, attachment_id: UUID):
+    """Return the asset row after ensuring it exists and is a PDF."""
     from app.db.repositories import AssetRepository
 
     assets = AssetRepository(session).list_by_ids([attachment_id])
     if not assets:
-        raise ValueError("attachment_asset_id not found")
+        raise ValidationError(
+            "attachment_asset_id not found",
+            field="attachment_asset_id",
+        )
     asset_ent = assets[0]
     content_type = (asset_ent.content_type or "").strip().lower()
     file_name = (asset_ent.file_name or "").strip().lower()
     if "pdf" not in content_type and not file_name.endswith(".pdf"):
-        raise ValueError("attachment_asset_id must reference a PDF document")
+        raise ValidationError(
+            "attachment_asset_id must reference a PDF document",
+            field="attachment_asset_id",
+        )
+    return asset_ent
+
+
+def assert_pdf_asset(session: Session, attachment_id: UUID) -> None:
+    """Ensure ``attachment_id`` references an existing PDF asset (API + worker)."""
+    _load_validated_bulk_pdf_asset(session, attachment_id)
+
+
+def build_parser_asset_dict(session: Session, attachment_id: UUID) -> dict[str, Any]:
+    """Load asset fields required by OpenRouter bulk parser."""
+    asset_ent = _load_validated_bulk_pdf_asset(session, attachment_id)
     return {
         "id": str(asset_ent.id),
         "s3_key": asset_ent.s3_key,

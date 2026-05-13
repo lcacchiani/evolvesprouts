@@ -24,6 +24,7 @@ class BulkExpenseImportJobStatus(str, enum.Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     SUCCEEDED = "succeeded"
+    SUCCEEDED_WITH_ERRORS = "succeeded_with_errors"
     FAILED = "failed"
 
 
@@ -77,6 +78,8 @@ class BulkExpenseImportJob(Base):
         nullable=False,
     )
     error_message: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    #: UUID strings in **creation order** (worker insertion order). GET job returns
+    #: ``expenses`` in this same order when the job finished with successes.
     created_expense_ids: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
     created_count: Mapped[int | None] = mapped_column(Integer(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

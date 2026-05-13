@@ -42,11 +42,13 @@ from app.db.models.bulk_expense_import_job import (
     BulkExpenseImportJob,
     BulkExpenseImportJobStatus,
 )
-from app.db.repositories import AssetRepository, ExpenseRepository
+from app.db.repositories import ExpenseRepository
 from app.db.repositories.bulk_expense_import_job import BulkExpenseImportJobRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
+from app.services.bulk_expense_import_common import assert_pdf_asset
 from app.services.bulk_expense_import_events import enqueue_bulk_expense_import_job
+from app.services.bulk_expense_import_runner import sanitize_bulk_import_error_message
 from app.services.expense_events import enqueue_expense_parse
 from app.utils import json_response
 from app.utils.logging import get_logger
@@ -82,6 +84,11 @@ def handle_admin_expenses_request(
         if method != "POST":
             return json_response(405, {"error": "Method not allowed"}, event=event)
         return _import_expenses_from_bulk_pdf(event, actor_sub=identity.user_sub)
+
+    if len(parts) == 3 and parts[2] == "bulk-import-jobs":
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _list_bulk_expense_import_jobs(event, actor_sub=identity.user_sub)
 
     if len(parts) == 4 and parts[2] == "bulk-import-jobs":
         if method != "GET":
@@ -490,6 +497,54 @@ def _amend_expense(
         )
 
 
+def _serialize_bulk_import_job_summary(job: BulkExpenseImportJob) -> dict[str, Any]:
+    err = job.error_message
+    return {
+        "id": str(job.id),
+        "status": job.status.value,
+        "error_message": (
+            None if err is None else sanitize_bulk_import_error_message(err)
+        ),
+        "created_count": job.created_count,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+        "attachment_asset_id": str(job.attachment_asset_id),
+        "default_vendor_id": str(job.default_vendor_id),
+        "expense_status": job.expense_status.value,
+    }
+
+
+def _list_bulk_expense_import_jobs(
+    event: Mapping[str, Any], *, actor_sub: str
+) -> dict[str, Any]:
+    limit = parse_limit(event, default=_DEFAULT_LIMIT, max_limit=_MAX_LIMIT)
+    cursor = parse_cursor(query_param(event, "cursor"))
+    req_id = request_id(event)
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        job_repo = BulkExpenseImportJobRepository(session)
+        rows = job_repo.list_for_actor(
+            actor_sub=actor_sub, limit=limit + 1, cursor_job_id=cursor
+        )
+        has_more = len(rows) > limit
+        page_items = rows[:limit]
+        next_cursor = (
+            encode_cursor(page_items[-1].id) if has_more and page_items else None
+        )
+        total_count = job_repo.count_for_actor(actor_sub=actor_sub)
+        return json_response(
+            200,
+            {
+                "items": [
+                    _serialize_bulk_import_job_summary(row) for row in page_items
+                ],
+                "next_cursor": next_cursor,
+                "total_count": total_count,
+            },
+            event=event,
+        )
+
+
 def _import_expenses_from_bulk_pdf(
     event: Mapping[str, Any], *, actor_sub: str
 ) -> dict[str, Any]:
@@ -521,17 +576,7 @@ def _import_expenses_from_bulk_pdf(
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=req_id)
         resolve_vendor(session, default_vendor_id)
-        assets = AssetRepository(session).list_by_ids([attachment_id])
-        if not assets:
-            raise NotFoundError("Asset", str(attachment_id))
-        asset_ent = assets[0]
-        content_type = (asset_ent.content_type or "").strip().lower()
-        file_name = (asset_ent.file_name or "").strip().lower()
-        if "pdf" not in content_type and not file_name.endswith(".pdf"):
-            raise ValidationError(
-                "attachment_asset_id must reference a PDF document",
-                field="attachment_asset_id",
-            )
+        assert_pdf_asset(session, attachment_id)
 
         job = BulkExpenseImportJob(
             created_by=actor_sub,
@@ -597,28 +642,30 @@ def _get_bulk_expense_import_job(
             raise NotFoundError("BulkExpenseImportJob", str(job_id))
 
         expenses_payload: list[dict[str, Any]] | None = None
-        if (
-            job.status == BulkExpenseImportJobStatus.SUCCEEDED
-            and job.created_expense_ids
+        if job.created_expense_ids and job.status in (
+            BulkExpenseImportJobStatus.SUCCEEDED,
+            BulkExpenseImportJobStatus.SUCCEEDED_WITH_ERRORS,
         ):
             expense_repo = ExpenseRepository(session)
-            expenses_payload = []
+            ordered_ids: list[UUID] = []
             for raw_id in job.created_expense_ids:
                 try:
-                    eid = UUID(str(raw_id))
+                    ordered_ids.append(UUID(str(raw_id)))
                 except (TypeError, ValueError):
                     continue
-                loaded = expense_repo.get_with_attachments(eid)
-                if loaded is not None:
-                    expenses_payload.append(serialize_expense(loaded))
+            loaded = expense_repo.get_many_with_attachments(ordered_ids)
+            expenses_payload = [serialize_expense(row) for row in loaded]
 
+        err = job.error_message
         return json_response(
             200,
             {
                 "bulk_import_job": {
                     "id": str(job.id),
                     "status": job.status.value,
-                    "error_message": job.error_message,
+                    "error_message": (
+                        None if err is None else sanitize_bulk_import_error_message(err)
+                    ),
                     "created_count": job.created_count,
                     "expenses": expenses_payload,
                 }

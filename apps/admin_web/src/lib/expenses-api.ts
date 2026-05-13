@@ -6,6 +6,7 @@ import type {
   Expense,
   ExpenseAttachment,
   ExpenseLineItem,
+  ExpenseStatus,
   ListAdminExpensesInput,
   PaginatedExpenseList,
   UpsertExpenseInput,
@@ -23,6 +24,10 @@ type ApiUpdateExpenseRequest = ApiSchemas['UpdateExpenseRequest'];
 type ApiCancelExpenseRequest = ApiSchemas['CancelExpenseRequest'];
 type ApiBulkImportJobResponse = ApiSchemas['BulkImportJobResponse'];
 type ApiBulkImportJob = ApiSchemas['BulkImportJob'];
+type ApiBulkImportJobSummary = ApiSchemas['BulkImportJobSummary'];
+type ApiBulkImportJobListResponse = ApiSchemas['BulkImportJobListResponse'];
+
+const EXPENSE_LIST_PAGE_LIMIT = 100;
 
 type ApiExpensePayload = ApiExpenseResponse | ApiExpense | ApiDataWrapper<ApiExpenseResponse | ApiExpense>;
 type ApiExpenseListPayload = ApiExpenseListResponse | ApiDataWrapper<ApiExpenseListResponse>;
@@ -160,8 +165,16 @@ function isApiBulkImportJob(value: unknown): value is ApiBulkImportJob {
     value.status === 'pending' ||
     value.status === 'processing' ||
     value.status === 'succeeded' ||
+    value.status === 'succeeded_with_errors' ||
     value.status === 'failed'
   );
+}
+
+function isApiBulkImportJobSummary(value: unknown): value is ApiBulkImportJobSummary {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.status !== 'string') {
+    return false;
+  }
+  return isApiBulkImportJob(value);
 }
 
 function parseBulkImportJobEnvelope(payload: unknown): {
@@ -179,7 +192,7 @@ function parseBulkImportJobEnvelope(payload: unknown): {
     throw new Error('Invalid bulk import job response.');
   }
   const expenses =
-    raw.status === 'succeeded' && Array.isArray(raw.expenses)
+    (raw.status === 'succeeded' || raw.status === 'succeeded_with_errors') && Array.isArray(raw.expenses)
       ? raw.expenses.filter((entry): entry is ApiExpense => isApiExpense(entry)).map((entry) => parseExpense(entry))
       : null;
   return {
@@ -193,7 +206,70 @@ function parseBulkImportJobEnvelope(payload: unknown): {
   };
 }
 
-const EXPENSE_LIST_PAGE_LIMIT = 100;
+export type BulkImportJobSummary = {
+  id: string;
+  status: ApiBulkImportJobSummary['status'];
+  errorMessage: string | null;
+  createdCount: number | null;
+  createdAt: string;
+  updatedAt: string;
+  attachmentAssetId: string;
+  defaultVendorId: string;
+  expenseStatus: ExpenseStatus;
+};
+
+function parseBulkImportJobSummary(raw: ApiBulkImportJobSummary): BulkImportJobSummary {
+  return {
+    id: raw.id,
+    status: raw.status,
+    errorMessage: typeof raw.error_message === 'string' ? raw.error_message : null,
+    createdCount: typeof raw.created_count === 'number' ? raw.created_count : null,
+    createdAt: typeof raw.created_at === 'string' ? raw.created_at : '',
+    updatedAt: typeof raw.updated_at === 'string' ? raw.updated_at : '',
+    attachmentAssetId: typeof raw.attachment_asset_id === 'string' ? raw.attachment_asset_id : '',
+    defaultVendorId: typeof raw.default_vendor_id === 'string' ? raw.default_vendor_id : '',
+    expenseStatus: raw.expense_status as ExpenseStatus,
+  };
+}
+
+export type PaginatedBulkImportJobList = {
+  items: BulkImportJobSummary[];
+  nextCursor: string | null;
+  totalCount: number;
+};
+
+export async function listAdminBulkExpenseImportJobs(input: {
+  cursor?: string | null;
+  limit?: number;
+} = {}): Promise<PaginatedBulkImportJobList> {
+  const params = new URLSearchParams();
+  if (input.cursor?.trim()) {
+    params.set('cursor', input.cursor.trim());
+  }
+  if (typeof input.limit === 'number' && Number.isFinite(input.limit) && input.limit > 0) {
+    params.set('limit', `${Math.min(Math.floor(input.limit), EXPENSE_LIST_PAGE_LIMIT)}`);
+  }
+  const queryString = params.toString();
+  const endpointPath = queryString
+    ? `/v1/admin/expenses/bulk-import-jobs?${queryString}`
+    : '/v1/admin/expenses/bulk-import-jobs';
+  const payload = await adminApiRequest<ApiBulkImportJobListResponse | ApiDataWrapper<ApiBulkImportJobListResponse>>({
+    endpointPath,
+    method: 'GET',
+  });
+  const root = unwrapPayload(payload) as Record<string, unknown>;
+  const rawItems = root.items;
+  const items = Array.isArray(rawItems)
+    ? rawItems
+        .filter((entry): entry is ApiBulkImportJobSummary => isApiBulkImportJobSummary(entry))
+        .map((entry) => parseBulkImportJobSummary(entry))
+    : [];
+  return {
+    items,
+    nextCursor: asNullableString(root.next_cursor ?? null),
+    totalCount: typeof root.total_count === 'number' ? root.total_count : 0,
+  };
+}
 
 export async function listAdminExpenses(
   input: ListAdminExpensesInput = {}
@@ -319,14 +395,19 @@ export async function reparseAdminExpense(expenseId: string): Promise<void> {
 export async function queueAdminBulkExpenseImportJob(input: {
   attachmentAssetId: string;
   defaultVendorId: string;
+  status?: ExpenseStatus;
 }): Promise<{ jobId: string }> {
+  const body: Record<string, string> = {
+    attachment_asset_id: input.attachmentAssetId.trim(),
+    default_vendor_id: input.defaultVendorId.trim(),
+  };
+  if (input.status) {
+    body.status = input.status;
+  }
   const payload = await adminApiRequest<ApiBulkImportJobResponse | ApiDataWrapper<ApiBulkImportJobResponse>>({
     endpointPath: '/v1/admin/expenses/import-from-bulk-pdf',
     method: 'POST',
-    body: {
-      attachment_asset_id: input.attachmentAssetId.trim(),
-      default_vendor_id: input.defaultVendorId.trim(),
-    },
+    body,
     expectedSuccessStatuses: [202],
   });
   const parsed = parseBulkImportJobEnvelope(payload);
@@ -366,7 +447,7 @@ export async function pollAdminBulkExpenseImportJob(
       throw new DOMException('Aborted', 'AbortError');
     }
     const { bulkImportJob } = await getAdminBulkExpenseImportJob(jobId, signal);
-    if (bulkImportJob.status === 'succeeded') {
+    if (bulkImportJob.status === 'succeeded' || bulkImportJob.status === 'succeeded_with_errors') {
       const expenses = bulkImportJob.expenses ?? [];
       const createdCount = bulkImportJob.createdCount ?? expenses.length;
       return { expenses, createdCount };

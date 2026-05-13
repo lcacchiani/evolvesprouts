@@ -628,8 +628,38 @@ describe('useExpenses', () => {
       attachmentAssetId: 'asset-bulk-1',
       defaultVendorId: 'vendor-1',
     });
-    expect(mockPollAdminBulkExpenseImportJob).toHaveBeenCalledWith('job-1');
+    expect(mockPollAdminBulkExpenseImportJob).toHaveBeenCalledWith('job-1', expect.any(AbortSignal));
     expect(mockRefetch).toHaveBeenCalled();
     expect(result.current.bulkImportError).toBe('');
+  });
+
+  it('does not delete uploaded assets when polling fails after enqueue', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-bulk-2' },
+      upload: {
+        uploadUrl: 'https://example.com/up',
+        uploadMethod: 'PUT',
+        uploadHeaders: {} as Record<string, string>,
+      },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockQueueAdminBulkExpenseImportJob.mockResolvedValue({ jobId: 'job-2' });
+    mockPollAdminBulkExpenseImportJob.mockRejectedValue(new Error('poll failed'));
+
+    const file = new File([new Uint8Array([1])], 'combined.pdf', { type: 'application/pdf' });
+    const { result } = renderHook(() => useExpenses());
+
+    await act(async () => {
+      try {
+        await result.current.bulkImportFromPdf({
+          file,
+          defaultVendorId: 'vendor-1',
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockDeleteAdminAsset).not.toHaveBeenCalled();
   });
 });

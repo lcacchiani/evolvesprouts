@@ -83,6 +83,14 @@ class SqsBatchProcessor:
         )
         self._result.mark_failed(record)
 
+    def retry_record(self, record: Mapping[str, Any], *, reason: str) -> None:
+        """Request an SQS retry for this record without logging an exception."""
+        self._logger.info(
+            reason,
+            extra={"message_id": record_message_id(record) or None},
+        )
+        self._result.mark_failed(record)
+
     @contextmanager
     def record(
         self,

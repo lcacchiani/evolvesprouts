@@ -4677,7 +4677,7 @@ export interface paths {
         put?: never;
         /**
          * Queue import of multiple expenses from one combined PDF
-         * @description Upload a PDF as an admin asset, then call this endpoint with its asset id. The API enqueues an asynchronous OpenRouter bulk parse (SQS + dedicated Lambda) and returns **202** with a `bulk_import_job` id. Poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded` (response includes created `expenses`) or `failed` (`error_message` is set). Parsed vendor names are matched to active vendors when possible; otherwise `default_vendor_id` is used.
+         * @description Upload a PDF as an admin asset, then call this endpoint with its asset id. The API enqueues an asynchronous OpenRouter bulk parse (SQS + dedicated Lambda) and returns **202** with a `bulk_import_job` id. Poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded`, `succeeded_with_errors` (partial row failures; see `error_message`), or `failed` (`error_message` is set). You can also list recent jobs via `GET /v1/admin/expenses/bulk-import-jobs`. Parsed vendor names are matched to active vendors when possible; otherwise `default_vendor_id` is used.
          */
         post: {
             parameters: {
@@ -4712,6 +4712,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/expenses/bulk-import-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List bulk PDF import jobs for the signed-in admin
+         * @description Returns jobs created by the authenticated admin, newest first. Use this to recover visibility after refresh or when polling times out.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Paginated bulk import jobs for the current admin. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BulkImportJobListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/expenses/bulk-import-jobs/{job_id}": {
         parameters: {
             query?: never;
@@ -4724,7 +4768,7 @@ export interface paths {
         };
         /**
          * Get bulk PDF import job status
-         * @description Poll this endpoint until `bulk_import_job.status` is `succeeded` or `failed`. Only the admin user who created the job may read it.
+         * @description Poll this endpoint until `bulk_import_job.status` is `succeeded`, `succeeded_with_errors`, or `failed`. Only the admin user who created the job may read it.
          */
         get: {
             parameters: {
@@ -6418,17 +6462,38 @@ export interface components {
          * @description Asynchronous bulk PDF import lifecycle.
          * @enum {string}
          */
-        BulkImportJobStatus: "pending" | "processing" | "succeeded" | "failed";
+        BulkImportJobStatus: "pending" | "processing" | "succeeded" | "succeeded_with_errors" | "failed";
         BulkImportJob: {
             /** Format: uuid */
             id: string;
             status: components["schemas"]["BulkImportJobStatus"];
-            /** @description Populated when `status` is `failed`. */
+            /** @description Populated when `status` is `failed`, or carries a short operator-facing summary when `status` is `succeeded_with_errors`. */
             error_message?: string | null;
-            /** @description Number of expenses created when `status` is `succeeded`. */
+            /** @description Number of expenses created when the job finished with successes. */
             created_count?: number | null;
-            /** @description Full expense payloads when `status` is `succeeded`; otherwise null. */
+            /** @description Full expense payloads when `status` is `succeeded` or `succeeded_with_errors` (order matches `created_expense_ids` insertion order); otherwise null. */
             expenses?: components["schemas"]["Expense"][] | null;
+        };
+        BulkImportJobListResponse: {
+            items: components["schemas"]["BulkImportJobSummary"][];
+            next_cursor: string | null;
+            total_count: number;
+        };
+        BulkImportJobSummary: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["BulkImportJobStatus"];
+            error_message?: string | null;
+            created_count?: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            attachment_asset_id: string;
+            /** Format: uuid */
+            default_vendor_id: string;
+            expense_status: components["schemas"]["ExpenseStatus"];
         };
         BulkImportJobResponse: {
             bulk_import_job: components["schemas"]["BulkImportJob"];
@@ -6444,7 +6509,7 @@ export interface components {
              * @description Vendor applied when a parsed row has no resolvable vendor_name match.
              */
             default_vendor_id: string;
-            /** @description Defaults to `submitted`. Draft may be used when operators want to review rows before submission. */
+            /** @description Optional. Expense status applied to every row created from the PDF; defaults to `submitted` when omitted. */
             status?: components["schemas"]["ExpenseStatus"];
         };
         UpdateExpenseRequest: {

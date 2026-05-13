@@ -49,7 +49,8 @@ info:
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
-    - `POST /v1/admin/expenses/import-from-bulk-pdf` (returns **202** with a job id; poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `succeeded` or `failed`)
+    - `POST /v1/admin/expenses/import-from-bulk-pdf` (returns **202** with a job id; poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `succeeded`, `succeeded_with_errors`, or `failed`)
+    - `GET /v1/admin/expenses/bulk-import-jobs` (creator-scoped list of recent jobs)
     - `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`
     - `GET|PATCH|DELETE /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
@@ -3482,8 +3483,10 @@ paths:
         Upload a PDF as an admin asset, then call this endpoint with its asset id.
         The API enqueues an asynchronous OpenRouter bulk parse (SQS + dedicated Lambda)
         and returns **202** with a `bulk_import_job` id. Poll
-        `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded`
-        (response includes created `expenses`) or `failed` (`error_message` is set).
+        `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded`,
+        `succeeded_with_errors` (partial row failures; see `error_message`), or `failed`
+        (`error_message` is set). You can also list recent jobs via
+        `GET /v1/admin/expenses/bulk-import-jobs`.
         Parsed vendor names are matched to active vendors when possible; otherwise
         `default_vendor_id` is used.
       security:
@@ -3508,6 +3511,37 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/expenses/bulk-import-jobs:
+    get:
+      summary: List bulk PDF import jobs for the signed-in admin
+      description: >
+        Returns jobs created by the authenticated admin, newest first. Use this to
+        recover visibility after refresh or when polling times out.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated bulk import jobs for the current admin.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkImportJobListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /v1/admin/expenses/bulk-import-jobs/{job_id}:
     parameters:
       - name: job_id
@@ -3520,13 +3554,14 @@ paths:
     get:
       summary: Get bulk PDF import job status
       description: >
-        Poll this endpoint until `bulk_import_job.status` is `succeeded` or `failed`.
-        Only the admin user who created the job may read it.
+        Poll this endpoint until `bulk_import_job.status` is `succeeded`,
+        `succeeded_with_errors`, or `failed`. Only the admin user who created the job
+        may read it.
       security:
         - AdminBearerAuth: []
       responses:
         "200":
-          description: Current job state (and expenses when succeeded).
+          description: Current job state (and expenses when the job finished with successes).
           content:
             application/json:
               schema:
@@ -6763,6 +6798,7 @@ components:
         - pending
         - processing
         - succeeded
+        - succeeded_with_errors
         - failed
       description: Asynchronous bulk PDF import lifecycle.
     BulkImportJob:
@@ -6779,18 +6815,76 @@ components:
         error_message:
           type: string
           nullable: true
-          description: Populated when `status` is `failed`.
+          description: >
+            Populated when `status` is `failed`, or carries a short operator-facing
+            summary when `status` is `succeeded_with_errors`.
         created_count:
           type: integer
           nullable: true
           minimum: 0
-          description: Number of expenses created when `status` is `succeeded`.
+          description: Number of expenses created when the job finished with successes.
         expenses:
           type: array
           nullable: true
           items:
             $ref: "#/components/schemas/Expense"
-          description: Full expense payloads when `status` is `succeeded`; otherwise null.
+          description: >
+            Full expense payloads when `status` is `succeeded` or `succeeded_with_errors`
+            (order matches `created_expense_ids` insertion order); otherwise null.
+    BulkImportJobListResponse:
+      type: object
+      required:
+        - items
+        - next_cursor
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkImportJobSummary"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+    BulkImportJobSummary:
+      type: object
+      required:
+        - id
+        - status
+        - created_at
+        - updated_at
+        - attachment_asset_id
+        - default_vendor_id
+        - expense_status
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/BulkImportJobStatus"
+        error_message:
+          type: string
+          nullable: true
+        created_count:
+          type: integer
+          nullable: true
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attachment_asset_id:
+          type: string
+          format: uuid
+        default_vendor_id:
+          type: string
+          format: uuid
+        expense_status:
+          $ref: "#/components/schemas/ExpenseStatus"
     BulkImportJobResponse:
       type: object
       required:
@@ -6816,8 +6910,8 @@ components:
         status:
           $ref: "#/components/schemas/ExpenseStatus"
           description: >
-            Defaults to `submitted`. Draft may be used when operators want to review
-            rows before submission.
+            Optional. Expense status applied to every row created from the PDF; defaults
+            to `submitted` when omitted.
 
     UpdateExpenseRequest:
       type: object

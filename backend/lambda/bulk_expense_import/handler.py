@@ -35,7 +35,13 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             if not job_raw:
                 batch.skip()
                 continue
-            process_bulk_expense_import_job(UUID(str(job_raw)))
-            batch.process()
+            outcome = process_bulk_expense_import_job(UUID(str(job_raw)))
+            if outcome.ack_sqs_message:
+                batch.process()
+            else:
+                batch.retry_record(
+                    record,
+                    reason="Bulk import job still processing; deferring SQS retry",
+                )
 
     return batch.response()

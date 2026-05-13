@@ -219,12 +219,20 @@ admin API requests while files are parsed by OpenRouter.
 
 Admin `POST /v1/admin/expenses/import-from-bulk-pdf` enqueues work on a **direct**
 SQS queue (no SNS) so OpenRouter can run longer than API Gateway limits while the
-admin UI polls `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`.
+admin UI polls `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` or lists recent
+jobs via `GET /v1/admin/expenses/bulk-import-jobs`.
+
+**Deduplication:** the queue is a standard SQS queue (at-least-once delivery). Each
+message carries a unique `job_id`. The worker uses `bulk_expense_import_jobs.status`
+(and `updated_at` for abandoned `processing` rows) to stay idempotent across
+redeliveries. Retrying the **HTTP** enqueue creates a **new** `job_id` and therefore a
+new import run—clients should not assume SQS deduplicates duplicate POST retries.
 
 ### SQS Queue: `evolvesprouts-bulk-expense-import-queue`
 
 - Receives JSON messages `{ "job_id": "<uuid>" }` from `EvolvesproutsAdminFunction`.
-- 360 second visibility timeout (matches the worker Lambda timeout budget).
+- **720** second visibility timeout (above the **600** second worker Lambda timeout so
+  a single invocation can finish before redelivery).
 - 3 retry attempts before DLQ.
 - KMS encryption using the shared queue key.
 
@@ -240,7 +248,8 @@ admin UI polls `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`.
 - Loads `bulk_expense_import_jobs` rows, validates the PDF asset, calls OpenRouter
   bulk extraction via `AwsApiProxyFunction`, then creates one expense per parsed row.
 - Uses the same OpenRouter + S3 + Secrets wiring as `ExpenseParserFunction`, with a
-  longer Lambda timeout for large combined PDFs.
+  **600** second Lambda timeout (`BULK_IMPORT_LAMBDA_TIMEOUT_SECONDS`) and a shorter
+  OpenRouter client timeout so asset validation and DB writes retain headroom.
 
 ## Inbound invoice email flow
 
