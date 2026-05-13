@@ -1017,7 +1017,7 @@ def test_payment_options_includes_public_www_email_when_set(
     monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "H")
     monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPS")
     monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
-    monkeypatch.setenv("PUBLIC_WWW_EMAIL", "billing-notify@example.com")
+    monkeypatch.setenv("PUBLIC_WWW_BILLING_EMAIL", "billing-notify@example.com")
     inv = SimpleNamespace(
         invoice_number="N1",
         currency="HKD",

@@ -15,8 +15,8 @@ Environment:
   invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
   flow). Bank transfer lines and the FPS QR render on a dedicated **Payment Options** page
   after the main invoice page.
-- ``PUBLIC_WWW_EMAIL``: optional public billing email (align GitHub ``NEXT_PUBLIC_EMAIL`` with
-  CDK ``PublicWwwEmail``); used in payment confirmation copy on the Payment Options page.
+- ``PUBLIC_WWW_BILLING_EMAIL``: optional billing email for payment confirmations (align GitHub
+  ``NEXT_PUBLIC_BILLING_EMAIL`` with CDK ``PublicWwwBillingEmail``); used on the Payment Options page.
 
 When ``CustomerInvoice.bill_to_location_text`` is set (CRM snapshot), the Bill To block
 includes those lines after the display name. The email line is omitted when a location
@@ -998,7 +998,7 @@ def render_invoice_pdf(
                 leftIndent=12,
                 firstLineIndent=-12,
             )
-            billing_email = os.getenv("PUBLIC_WWW_EMAIL", "").strip()
+            billing_email = os.getenv("PUBLIC_WWW_BILLING_EMAIL", "").strip()
             confirm_suffix = _payment_confirmation_suffix_html(billing_email)
 
             story.append(Spacer(1, 22))

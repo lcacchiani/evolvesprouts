@@ -650,7 +650,7 @@ configured by stack custom resources (including retention and KMS association).
 | `PublicWwwBusinessLegalName` | String | No | No | Legal entity name for AR invoice PDF footer (GitHub var `NEXT_PUBLIC_BUSINESS_LEGAL_NAME`) |
 | `InvoiceDisplayTimezone` | String | No | No | IANA timezone for persisted AR invoice dates (`INVOICE_DISPLAY_TIMEZONE`; GitHub var `CDK_PARAM_INVOICE_DISPLAY_TIMEZONE`) |
 | `PublicWwwBusinessName` | String | No | No | Trading name on AR invoice **From** block (GitHub var `NEXT_PUBLIC_BUSINESS_NAME`) |
-| `PublicWwwEmail` | String | No | No | Billing email for AR invoice payment confirmation copy (GitHub var `NEXT_PUBLIC_EMAIL`; Lambda `PUBLIC_WWW_EMAIL`) |
+| `PublicWwwBillingEmail` | String | No | No | Billing email for AR invoice payment confirmation copy (GitHub var `NEXT_PUBLIC_BILLING_EMAIL`; Lambda `PUBLIC_WWW_BILLING_EMAIL`) |
 | `PublicWwwBusinessAddress` | String | No | No | Issuer address lines; newline or literal `\n` separated (GitHub var `NEXT_PUBLIC_BUSINESS_ADDRESS`) |
 | `PublicWwwBusinessRegistration` | String | No | No | BR / registration fragment for invoice PDF footer (GitHub var `NEXT_PUBLIC_BUSINESS_REGISTRATION`) |
 | `PublicWwwBankName` | String | No | No | Bank label on AR invoice PDFs (GitHub var `NEXT_PUBLIC_BANK_NAME`) |

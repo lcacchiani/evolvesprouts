@@ -197,8 +197,8 @@ their primary responsibilities.
   `PUBLIC_WWW_BANK_NAME`, `PUBLIC_WWW_BANK_ACCOUNT_HOLDER`,
   `PUBLIC_WWW_BANK_ACCOUNT_NUMBER` (AR invoice bank block when any is set; align with
   `NEXT_PUBLIC_BANK_*` / `NEXT_PUBLIC_BUSINESS_*`),
-  `PUBLIC_WWW_EMAIL` (optional; billing/contact email for payment confirmation copy on the
-  invoice **Payment Options** page; GitHub `NEXT_PUBLIC_EMAIL` via CDK `PublicWwwEmail`),
+  `PUBLIC_WWW_BILLING_EMAIL` (optional; billing email for payment confirmation copy on the
+  invoice **Payment Options** page; GitHub `NEXT_PUBLIC_BILLING_EMAIL` via CDK `PublicWwwBillingEmail`),
   `PUBLIC_WWW_FPS_MERCHANT_NAME`, `PUBLIC_WWW_FPS_MOBILE_NUMBER` (optional; when set with
   a positive HKD invoice total, the PDF includes an FPS QR payload aligned with the public-site
   booking flow; align with `NEXT_PUBLIC_FPS_MERCHANT_NAME` / `NEXT_PUBLIC_FPS_MOBILE_NUMBER`),
