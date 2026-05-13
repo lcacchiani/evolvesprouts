@@ -98,7 +98,7 @@ export function buildTaxFiscalYearRows(
 
   const merged = [...expenseRows, ...revenueRows];
   merged.sort((a, b) => {
-    const d = a.classificationDate.localeCompare(b.classificationDate);
+    const d = b.classificationDate.localeCompare(a.classificationDate);
     if (d !== 0) {
       return d;
     }
