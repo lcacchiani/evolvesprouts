@@ -4676,8 +4676,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Import multiple expenses from one combined PDF
-         * @description Upload a PDF as an admin asset, then call this endpoint with its asset id. OpenRouter extracts one JSON object per distinct invoice or charge row; each row becomes a separate expense that references the same attachment asset. Parsed vendor names are matched to active vendors when possible; otherwise `default_vendor_id` is used. Synchronous parse is subject to API Gateway time limits; very large PDFs may fail with a validation error.
+         * Queue import of multiple expenses from one combined PDF
+         * @description Upload a PDF as an admin asset, then call this endpoint with its asset id. The API enqueues an asynchronous OpenRouter bulk parse (SQS + dedicated Lambda) and returns **202** with a `bulk_import_job` id. Poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded` (response includes created `expenses`) or `failed` (`error_message` is set). Parsed vendor names are matched to active vendors when possible; otherwise `default_vendor_id` is used.
          */
         post: {
             parameters: {
@@ -4692,13 +4692,13 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Expenses created from parsed rows. */
-                201: {
+                /** @description Bulk import job accepted for asynchronous processing. */
+                202: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["BulkImportExpensesFromPdfResponse"];
+                        "application/json": components["schemas"]["BulkImportJobResponse"];
                     };
                 };
                 400: components["responses"]["BadRequest"];
@@ -4706,6 +4706,54 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses/bulk-import-jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identifier returned from `POST /v1/admin/expenses/import-from-bulk-pdf`. */
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Get bulk PDF import job status
+         * @description Poll this endpoint until `bulk_import_job.status` is `succeeded` or `failed`. Only the admin user who created the job may read it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Identifier returned from `POST /v1/admin/expenses/import-from-bulk-pdf`. */
+                    job_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Current job state (and expenses when succeeded). */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BulkImportJobResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6366,6 +6414,25 @@ export interface components {
             attachment_asset_ids: string[];
             parse_requested?: boolean;
         };
+        /**
+         * @description Asynchronous bulk PDF import lifecycle.
+         * @enum {string}
+         */
+        BulkImportJobStatus: "pending" | "processing" | "succeeded" | "failed";
+        BulkImportJob: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["BulkImportJobStatus"];
+            /** @description Populated when `status` is `failed`. */
+            error_message?: string | null;
+            /** @description Number of expenses created when `status` is `succeeded`. */
+            created_count?: number | null;
+            /** @description Full expense payloads when `status` is `succeeded`; otherwise null. */
+            expenses?: components["schemas"]["Expense"][] | null;
+        };
+        BulkImportJobResponse: {
+            bulk_import_job: components["schemas"]["BulkImportJob"];
+        };
         BulkImportExpensesFromPdfRequest: {
             /**
              * Format: uuid
@@ -6379,10 +6446,6 @@ export interface components {
             default_vendor_id: string;
             /** @description Defaults to `submitted`. Draft may be used when operators want to review rows before submission. */
             status?: components["schemas"]["ExpenseStatus"];
-        };
-        BulkImportExpensesFromPdfResponse: {
-            expenses: components["schemas"]["Expense"][];
-            created_count: number;
         };
         UpdateExpenseRequest: {
             status?: components["schemas"]["ExpenseStatus"];

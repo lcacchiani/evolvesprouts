@@ -49,7 +49,8 @@ info:
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
     - `GET|POST /v1/admin/expenses`
-    - `POST /v1/admin/expenses/import-from-bulk-pdf`
+    - `POST /v1/admin/expenses/import-from-bulk-pdf` (returns **202** with a job id; poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `succeeded` or `failed`)
+    - `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`
     - `GET|PATCH|DELETE /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
     - `POST /v1/admin/expenses/{id}/mark-paid`
@@ -3476,14 +3477,15 @@ paths:
 
   /v1/admin/expenses/import-from-bulk-pdf:
     post:
-      summary: Import multiple expenses from one combined PDF
+      summary: Queue import of multiple expenses from one combined PDF
       description: >
         Upload a PDF as an admin asset, then call this endpoint with its asset id.
-        OpenRouter extracts one JSON object per distinct invoice or charge row; each
-        row becomes a separate expense that references the same attachment asset.
+        The API enqueues an asynchronous OpenRouter bulk parse (SQS + dedicated Lambda)
+        and returns **202** with a `bulk_import_job` id. Poll
+        `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `status` is `succeeded`
+        (response includes created `expenses`) or `failed` (`error_message` is set).
         Parsed vendor names are matched to active vendors when possible; otherwise
-        `default_vendor_id` is used. Synchronous parse is subject to API Gateway
-        time limits; very large PDFs may fail with a validation error.
+        `default_vendor_id` is used.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -3493,12 +3495,42 @@ paths:
             schema:
               $ref: "#/components/schemas/BulkImportExpensesFromPdfRequest"
       responses:
-        "201":
-          description: Expenses created from parsed rows.
+        "202":
+          description: Bulk import job accepted for asynchronous processing.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BulkImportExpensesFromPdfResponse"
+                $ref: "#/components/schemas/BulkImportJobResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/expenses/bulk-import-jobs/{job_id}:
+    parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Identifier returned from `POST /v1/admin/expenses/import-from-bulk-pdf`.
+    get:
+      summary: Get bulk PDF import job status
+      description: >
+        Poll this endpoint until `bulk_import_job.status` is `succeeded` or `failed`.
+        Only the admin user who created the job may read it.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Current job state (and expenses when succeeded).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkImportJobResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -6725,6 +6757,47 @@ components:
             format: uuid
         parse_requested:
           type: boolean
+    BulkImportJobStatus:
+      type: string
+      enum:
+        - pending
+        - processing
+        - succeeded
+        - failed
+      description: Asynchronous bulk PDF import lifecycle.
+    BulkImportJob:
+      type: object
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/BulkImportJobStatus"
+        error_message:
+          type: string
+          nullable: true
+          description: Populated when `status` is `failed`.
+        created_count:
+          type: integer
+          nullable: true
+          minimum: 0
+          description: Number of expenses created when `status` is `succeeded`.
+        expenses:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/Expense"
+          description: Full expense payloads when `status` is `succeeded`; otherwise null.
+    BulkImportJobResponse:
+      type: object
+      required:
+        - bulk_import_job
+      properties:
+        bulk_import_job:
+          $ref: "#/components/schemas/BulkImportJob"
     BulkImportExpensesFromPdfRequest:
       type: object
       required:
@@ -6745,19 +6818,7 @@ components:
           description: >
             Defaults to `submitted`. Draft may be used when operators want to review
             rows before submission.
-    BulkImportExpensesFromPdfResponse:
-      type: object
-      required:
-        - expenses
-        - created_count
-      properties:
-        expenses:
-          type: array
-          items:
-            $ref: "#/components/schemas/Expense"
-        created_count:
-          type: integer
-          minimum: 1
+
     UpdateExpenseRequest:
       type: object
       properties:

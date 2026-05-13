@@ -111,9 +111,10 @@ their primary responsibilities.
   effective discount type after the update is `referral`, otherwise `discount_value`
   must be greater than `0`),
   `/v1/admin/expenses/*` (including `POST /v1/admin/expenses/import-from-bulk-pdf`, which
-  reads a single uploaded PDF asset from S3, calls OpenRouter via `AwsApiProxyFunction`
-  with the same PDF plugin stack as `ExpenseParserFunction`, and creates one submitted
-  expense per parsed row sharing that attachment),
+  validates a single uploaded PDF asset, writes a `bulk_expense_import_jobs` row,
+  enqueues `evolvesprouts-bulk-expense-import-queue`, and returns **202** with a job id;
+  `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` polls job status until `BulkExpenseImportFunction`
+  finishes OpenRouter bulk extraction and creates one expense per parsed row sharing that attachment),
   `/v1/admin/billing/*` (customer AR: `GET /v1/admin/billing/payments` optional `invoice_id` filters to payments with an allocation to that invoice; `GET /v1/admin/billing/payments/{id}` includes `allocationInvoices` and `orphanPaymentDeletable`; `DELETE /v1/admin/billing/payments/{id}` removes eligible orphan inbound payments (pending or free/zero, enrollment unlinked or cancelled, no allocations/receipt/refund children); payments, invoices list/detail, draft invoices via
   `POST /v1/admin/billing/invoices` with `draftKind` `enrollment_merge` or `customized_manual`,
   `GET /v1/admin/billing/enrollments/recent-for-invoicing` (draft invoice enrollment picker: non-cancelled rows with `enrolled_at` within the last 730 rolling days), `DELETE /v1/admin/billing/invoices/{id}` (draft-only permanent delete; blocked when allocations exist), `GET /v1/admin/billing/invoices/{id}/pdf`
@@ -481,6 +482,26 @@ their primary responsibilities.
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
   Lambda invoke permission for `AwsApiProxyFunction`
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `ASSETS_BUCKET_NAME`
+  - `OPENROUTER_API_KEY_SECRET_ARN`, `OPENROUTER_CHAT_COMPLETIONS_URL`,
+    `OPENROUTER_MODEL`, `OPENROUTER_MAX_FILE_BYTES`
+  - `AWS_PROXY_FUNCTION_ARN`
+
+### Bulk expense import processor
+- Function: BulkExpenseImportFunction
+- Handler: backend/lambda/bulk_expense_import/handler.py
+- Stack: nested stack `evolvesprouts-Messaging`
+- Trigger: SQS queue (`evolvesprouts-bulk-expense-import-queue`) with plain JSON bodies
+  `{ "job_id": "<uuid>" }` (not SNS-wrapped)
+- Purpose: run long-running OpenRouter **bulk** extraction for combined PDF imports
+  queued by `POST /v1/admin/expenses/import-from-bulk-pdf`, then create expenses and
+  mark the `bulk_expense_import_jobs` row `succeeded` or `failed`
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: same OpenRouter + S3 + proxy invoke pattern as `ExpenseParserFunction`
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`

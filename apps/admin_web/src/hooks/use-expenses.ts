@@ -8,9 +8,10 @@ import {
   cancelAdminExpense,
   createAdminExpense,
   deleteAdminDraftExpense,
-  importAdminExpensesFromBulkPdf,
   listAdminExpenses,
   markAdminExpensePaid,
+  pollAdminBulkExpenseImportJob,
+  queueAdminBulkExpenseImportJob,
   reparseAdminExpense,
   updateAdminExpense,
 } from '@/lib/expenses-api';
@@ -325,10 +326,11 @@ export function useExpenses() {
         if (!attachmentAssetId) {
           throw new Error('Upload did not return an asset id.');
         }
-        await importAdminExpensesFromBulkPdf({
+        const { jobId } = await queueAdminBulkExpenseImportJob({
           attachmentAssetId,
           defaultVendorId,
         });
+        await pollAdminBulkExpenseImportJob(jobId);
         await list.refetch();
         setSelectedExpenseId(null);
       } catch (error) {

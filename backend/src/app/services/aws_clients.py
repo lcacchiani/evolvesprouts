@@ -49,3 +49,7 @@ def get_cognito_idp_client(region_name: str | None = None) -> Any:
 
 def get_rds_client(region_name: str | None = None) -> Any:
     return get_client("rds", region_name=region_name)
+
+
+def get_sqs_client(region_name: str | None = None) -> Any:
+    return get_client("sqs", region_name=region_name)

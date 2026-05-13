@@ -8,7 +8,8 @@ const {
   mockCancelAdminExpense,
   mockMarkAdminExpensePaid,
   mockReparseAdminExpense,
-  mockImportAdminExpensesFromBulkPdf,
+  mockQueueAdminBulkExpenseImportJob,
+  mockPollAdminBulkExpenseImportJob,
   mockCreateAdminAsset,
   mockDeleteAdminAsset,
   mockUploadFileToPresignedUrl,
@@ -37,7 +38,8 @@ const {
     mockCancelAdminExpense: vi.fn(),
     mockMarkAdminExpensePaid: vi.fn(),
     mockReparseAdminExpense: vi.fn(),
-    mockImportAdminExpensesFromBulkPdf: vi.fn(),
+    mockQueueAdminBulkExpenseImportJob: vi.fn(),
+    mockPollAdminBulkExpenseImportJob: vi.fn(),
     mockCreateAdminAsset: vi.fn(),
     mockDeleteAdminAsset: vi.fn(),
     mockUploadFileToPresignedUrl: vi.fn(),
@@ -58,7 +60,8 @@ vi.mock('@/lib/expenses-api', () => ({
   cancelAdminExpense: mockCancelAdminExpense,
   markAdminExpensePaid: mockMarkAdminExpensePaid,
   reparseAdminExpense: mockReparseAdminExpense,
-  importAdminExpensesFromBulkPdf: mockImportAdminExpensesFromBulkPdf,
+  queueAdminBulkExpenseImportJob: mockQueueAdminBulkExpenseImportJob,
+  pollAdminBulkExpenseImportJob: mockPollAdminBulkExpenseImportJob,
 }));
 
 vi.mock('@/lib/assets-api', () => ({
@@ -605,7 +608,8 @@ describe('useExpenses', () => {
       },
     });
     mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
-    mockImportAdminExpensesFromBulkPdf.mockResolvedValue({
+    mockQueueAdminBulkExpenseImportJob.mockResolvedValue({ jobId: 'job-1' });
+    mockPollAdminBulkExpenseImportJob.mockResolvedValue({
       expenses: [],
       createdCount: 2,
     });
@@ -620,10 +624,11 @@ describe('useExpenses', () => {
       });
     });
 
-    expect(mockImportAdminExpensesFromBulkPdf).toHaveBeenCalledWith({
+    expect(mockQueueAdminBulkExpenseImportJob).toHaveBeenCalledWith({
       attachmentAssetId: 'asset-bulk-1',
       defaultVendorId: 'vendor-1',
     });
+    expect(mockPollAdminBulkExpenseImportJob).toHaveBeenCalledWith('job-1');
     expect(mockRefetch).toHaveBeenCalled();
     expect(result.current.bulkImportError).toBe('');
   });

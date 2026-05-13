@@ -695,6 +695,8 @@ These raster files ship with `EvolvesproutsAdminFunction` under `backend/src/app
 | `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic (from nested stack `evolvesprouts-Messaging`) |
 | `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue (from nested stack `evolvesprouts-Messaging`) |
 | `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages (from nested stack `evolvesprouts-Messaging`) |
+| `BulkExpenseImportQueueUrl` | SQS queue URL | Async bulk combined-PDF import jobs (from nested stack `evolvesprouts-Messaging`) |
+| `BulkExpenseImportDLQUrl` | SQS DLQ URL | Failed bulk expense import messages (from nested stack `evolvesprouts-Messaging`) |
 | `EventbriteSyncTopicArn` | SNS topic ARN | Eventbrite sync events topic (from nested stack `evolvesprouts-EventbriteSync`) |
 | `EventbriteSyncQueueUrl` | SQS queue URL | Eventbrite sync processing queue (from nested stack `evolvesprouts-EventbriteSync`) |
 | `EventbriteSyncDLQUrl` | SQS DLQ URL | Failed Eventbrite sync jobs (SQS redrive; from nested stack `evolvesprouts-EventbriteSync`) |

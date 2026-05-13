@@ -46,7 +46,7 @@ export function BulkExpensePdfImportPanel({
     <AdminEditorCard
       key={formKey}
       title='Import from combined PDF'
-      description='Upload one PDF that lists several expenses. OpenRouter extracts rows the same way as queued invoice parsing; each row becomes an expense that shares this PDF attachment. When a row has no matching vendor name, the default vendor below is used.'
+      description='Upload one PDF that lists several expenses. OpenRouter extracts rows the same way as queued invoice parsing; each row becomes an expense that shares this PDF attachment. When a row has no matching vendor name, the default vendor below is used. Processing runs in the background and may take a few minutes for large PDFs.'
       actions={
         <Button
           type='submit'

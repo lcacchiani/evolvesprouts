@@ -215,6 +215,33 @@ admin API requests while files are parsed by OpenRouter.
 - Fetches file bytes from S3 and calls OpenRouter via `AwsApiProxyFunction`.
 - Updates `expenses` parse status and extracted fields.
 
+## Bulk combined-PDF import flow
+
+Admin `POST /v1/admin/expenses/import-from-bulk-pdf` enqueues work on a **direct**
+SQS queue (no SNS) so OpenRouter can run longer than API Gateway limits while the
+admin UI polls `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`.
+
+### SQS Queue: `evolvesprouts-bulk-expense-import-queue`
+
+- Receives JSON messages `{ "job_id": "<uuid>" }` from `EvolvesproutsAdminFunction`.
+- 360 second visibility timeout (matches the worker Lambda timeout budget).
+- 3 retry attempts before DLQ.
+- KMS encryption using the shared queue key.
+
+### Dead Letter Queue: `evolvesprouts-bulk-expense-import-dlq`
+
+- Receives bulk import messages that fail processing 3 times.
+- 14 day retention for investigation.
+- CloudWatch alarm triggers when messages appear.
+
+### Processor Lambda: `BulkExpenseImportFunction`
+
+- Triggered by `evolvesprouts-bulk-expense-import-queue`.
+- Loads `bulk_expense_import_jobs` rows, validates the PDF asset, calls OpenRouter
+  bulk extraction via `AwsApiProxyFunction`, then creates one expense per parsed row.
+- Uses the same OpenRouter + S3 + Secrets wiring as `ExpenseParserFunction`, with a
+  longer Lambda timeout for large combined PDFs.
+
 ## Inbound invoice email flow
 
 Inbound invoice emails use SES receipt rules plus the existing expense parser
@@ -304,6 +331,7 @@ SQS retries or mailbox forwarding duplicates.
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish and public calendar feed routing |
 | `backend/lambda/media_processor/handler.py` | SQS media request processor |
+| `backend/lambda/bulk_expense_import/handler.py` | SQS bulk combined-PDF import processor |
 | `backend/lambda/ses_template_manager/handler.py` | CloudFormation custom resource — upsert SES email templates |
 | `backend/lambda/inbound_invoice_email/handler.py` | SQS inbound invoice email processor |
 | `backend/src/app/services/inbound_invoice_ingest.py` | Expense + asset creation from inbound email |
@@ -316,6 +344,7 @@ SQS retries or mailbox forwarding duplicates.
 |----------|-------------|
 | `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
+| `BULK_EXPENSE_IMPORT_QUEUE_URL` | SQS queue URL for async bulk combined-PDF imports (admin enqueue) |
 | `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
 | `CONFIRMATION_EMAIL_FROM_ADDRESS` | SES-verified from address for customer-facing templated emails on legacy public routes (`EvolvesproutsAdminFunction`) |
 | `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (Contact Us FAQ anchor in contact confirmation templates: `/{locale}/contact-us#contact-us-faq`) |
@@ -376,6 +405,8 @@ SQS retries or mailbox forwarding duplicates.
 | `ExpenseParserTopicArn` | SNS topic ARN for expense parser events |
 | `ExpenseParserQueueUrl` | SQS queue URL for expense parser processing |
 | `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
+| `BulkExpenseImportQueueUrl` | SQS queue URL for async bulk combined-PDF imports |
+| `BulkExpenseImportDLQUrl` | Dead letter queue URL for failed bulk import jobs |
 | `EventbriteSyncTopicArn` | SNS topic ARN for Eventbrite sync events |
 | `EventbriteSyncQueueUrl` | SQS queue URL for Eventbrite sync processing |
 | `EventbriteSyncDLQUrl` | Dead letter queue URL for failed Eventbrite sync jobs (SQS redrive) |

@@ -1890,6 +1890,15 @@ export class ApiStack extends cdk.Stack {
       deploymentStage,
     });
     awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
+    awsProxyFunction.grantInvoke(messaging.bulkExpenseImportFunction);
+    database.grantAdminUserSecretRead(messaging.bulkExpenseImportFunction);
+    database.grantConnect(messaging.bulkExpenseImportFunction, "evolvesprouts_admin");
+
+    messaging.bulkExpenseImportQueue.grantSendMessages(adminFunction);
+    adminFunction.addEnvironment(
+      "BULK_EXPENSE_IMPORT_QUEUE_URL",
+      messaging.bulkExpenseImportQueue.queueUrl
+    );
 
     adminFunction.addToRolePolicy(
       new iam.PolicyStatement({
@@ -3332,6 +3341,14 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
       value: messaging.expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
+    });
+    new cdk.CfnOutput(this, "BulkExpenseImportQueueUrl", {
+      value: messaging.bulkExpenseImportQueue.queueUrl,
+      description: "SQS queue URL for async bulk combined-PDF expense imports",
+    });
+    new cdk.CfnOutput(this, "BulkExpenseImportDLQUrl", {
+      value: messaging.bulkExpenseImportDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed bulk expense import jobs",
     });
     new cdk.CfnOutput(this, "EventbriteSyncTopicArn", {
       value: eventbriteSync.topic.topicArn,

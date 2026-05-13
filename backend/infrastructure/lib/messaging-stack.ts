@@ -78,6 +78,10 @@ export class MessagingNestedStack extends cdk.NestedStack {
   public readonly expenseParserDLQ: sqs.Queue;
   public readonly expenseParserFunction: lambda.Function;
 
+  public readonly bulkExpenseImportDLQ: sqs.Queue;
+  public readonly bulkExpenseImportQueue: sqs.Queue;
+  public readonly bulkExpenseImportFunction: lambda.Function;
+
   public constructor(scope: Construct, id: string, props: MessagingNestedStackProps) {
     super(scope, id, props);
 
@@ -400,6 +404,113 @@ export class MessagingNestedStack extends cdk.NestedStack {
       alarmDescription:
         "Expense parser messages failed processing and landed in DLQ",
       metric: this.expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // -------------------------------------------------------------------------
+    // Bulk expense import (direct SQS; long-running OpenRouter parse)
+    // -------------------------------------------------------------------------
+
+    this.bulkExpenseImportDLQ = new sqs.Queue(this, "BulkExpenseImportDLQ", {
+      queueName: name("bulk-expense-import-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: props.sqsEncryptionKey,
+    });
+
+    this.bulkExpenseImportQueue = new sqs.Queue(this, "BulkExpenseImportQueue", {
+      queueName: name("bulk-expense-import-queue"),
+      visibilityTimeout: cdk.Duration.seconds(360),
+      deadLetterQueue: {
+        queue: this.bulkExpenseImportDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: props.sqsEncryptionKey,
+    });
+
+    this.bulkExpenseImportFunction = createPythonFunction("BulkExpenseImportFunction", {
+      handler: "lambda/bulk_expense_import/handler.lambda_handler",
+      timeout: cdk.Duration.seconds(300),
+      manageLogGroup: false,
+      environment: {
+        DATABASE_SECRET_ARN: props.databaseSecretArn,
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_admin",
+        DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
+        DATABASE_IAM_AUTH: "true",
+        ASSETS_BUCKET_NAME: props.assetsBucketName,
+        OPENROUTER_API_KEY_SECRET_ARN: props.openrouterApiSecretArn,
+        OPENROUTER_CHAT_COMPLETIONS_URL: props.openrouterChatCompletionsUrl,
+        OPENROUTER_MODEL: props.openrouterModel,
+        OPENROUTER_MAX_FILE_BYTES: props.openrouterMaxFileBytes,
+        AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
+      },
+    });
+
+    this.bulkExpenseImportFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [props.databaseSecretArn, props.openrouterApiSecretArn],
+      })
+    );
+    if (props.databaseSecretKmsKeyArn) {
+      this.bulkExpenseImportFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    if (props.openrouterApiSecretKmsKeyArn) {
+      this.bulkExpenseImportFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.openrouterApiSecretKmsKeyArn],
+        })
+      );
+    }
+    this.bulkExpenseImportFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["rds-db:connect"],
+        resources: [
+          cdk.Fn.join("", [
+            "arn:", cdk.Aws.PARTITION, ":rds-db:", cdk.Aws.REGION, ":", cdk.Aws.ACCOUNT_ID,
+            ":dbuser:", cdk.Fn.select(6, cdk.Fn.split(":", props.databaseProxyArn)),
+            "/evolvesprouts_admin",
+          ]),
+        ],
+      })
+    );
+    this.bulkExpenseImportFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetObject", "s3:GetBucketLocation", "s3:ListBucket"],
+        resources: [props.assetsBucketArn, `${props.assetsBucketArn}/*`],
+      })
+    );
+    this.bulkExpenseImportFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [props.awsProxyFunctionArn],
+      })
+    );
+
+    this.bulkExpenseImportFunction.addEventSource(
+      new lambdaEventSources.SqsEventSource(this.bulkExpenseImportQueue, {
+        batchSize: 1,
+        reportBatchItemFailures: true,
+      })
+    );
+
+    new cdk.aws_cloudwatch.Alarm(this, "BulkExpenseImportDLQAlarm", {
+      alarmName: name("bulk-expense-import-dlq-alarm"),
+      alarmDescription:
+        "Bulk expense import messages failed processing and landed in DLQ",
+      metric: this.bulkExpenseImportDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
       }),
       threshold: 1,

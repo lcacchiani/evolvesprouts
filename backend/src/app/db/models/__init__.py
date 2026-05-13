@@ -3,6 +3,10 @@
 from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
 from app.db.models.calendar_manual_block import CalendarManualBlock
 from app.db.models.audit_log import AuditLog
+from app.db.models.bulk_expense_import_job import (
+    BulkExpenseImportJob,
+    BulkExpenseImportJobStatus,
+)
 from app.db.models.contact import Contact
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.customer_payment import CustomerPayment
@@ -84,6 +88,8 @@ __all__ = [
     "BillingInvoiceStatus",
     "BillingPaymentDirection",
     "BillingPaymentStatus",
+    "BulkExpenseImportJob",
+    "BulkExpenseImportJobStatus",
     "CalendarManualBlock",
     "ConsultationDetails",
     "ConsultationFormat",
