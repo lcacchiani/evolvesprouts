@@ -71,6 +71,8 @@ def _party_email(
 
 
 _PICKER_MAX_LIMIT = 500
+# Draft invoice picker: `enrolled_at` must be within this many rolling days (two 365-day windows).
+_DRAFT_INVOICE_ENROLLMENT_LOOKBACK_DAYS = 730
 
 
 def _trimmed_str_or_none(value: object | None) -> str | None:
@@ -116,12 +118,14 @@ def _encode_enrolled_at_cursor(enrolled_at: datetime, row_id: UUID) -> str:
 def list_recent_enrollments_for_invoicing(
     event: Mapping[str, Any], *, user_sub: str, request_id: str | None
 ) -> dict[str, Any]:
-    """Non-cancelled enrollments from the last 365 days (`enrolled_at`), capped and paginated.
+    """Non-cancelled enrollments from the last two years (`enrolled_at`), capped and paginated.
+
+    Uses a 730-day rolling window (two 365-day windows), consistent with the prior one-year window.
 
     Tenant note: this deployment is single-tenant Aurora; there is no tenant_id column on
     enrollments. Authorization is enforced at API Gateway (admin group).
     """
-    cutoff = datetime.now(UTC) - timedelta(days=365)
+    cutoff = datetime.now(UTC) - timedelta(days=_DRAFT_INVOICE_ENROLLMENT_LOOKBACK_DAYS)
     limit = parse_limit(event, default=_PICKER_MAX_LIMIT, max_limit=_PICKER_MAX_LIMIT)
     cursor_ts, cursor_id = _parse_enrolled_at_cursor(query_param(event, "cursor"))
     q_raw = (query_param(event, "q") or "").strip()
