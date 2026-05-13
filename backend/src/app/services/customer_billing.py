@@ -31,7 +31,7 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v17"
+INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v18"
 RECEIPT_PDF_TEMPLATE_VERSION = "billing-receipt-v1"
 _SCOPE_DEFAULT = "default"
 _DOC_INVOICE = "invoice"
