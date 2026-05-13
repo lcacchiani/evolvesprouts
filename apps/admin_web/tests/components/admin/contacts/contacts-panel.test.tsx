@@ -86,6 +86,7 @@ describe('ContactsPanel', () => {
     const user = userEvent.setup();
     const createContact = vi.fn().mockResolvedValue(null);
     const contacts = buildContactsHook({ createContact });
+    const refreshFamilyOrgLists = vi.fn().mockResolvedValue(undefined);
 
     render(
       <ContactsPanel
@@ -97,6 +98,7 @@ describe('ContactsPanel', () => {
         geographicAreas={[]}
         areasLoading={false}
         refreshLocations={noopRefresh}
+        refreshFamilyOrgLists={refreshFamilyOrgLists}
       />
     );
 
@@ -110,6 +112,9 @@ describe('ContactsPanel', () => {
         contact_type: 'parent',
       })
     );
+    await waitFor(() => {
+      expect(refreshFamilyOrgLists).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('loads the next page when Load more is available', async () => {
@@ -269,6 +274,7 @@ describe('ContactsPanel', () => {
   it('calls deleteContact when Delete is confirmed', async () => {
     const user = userEvent.setup();
     const deleteContact = vi.fn().mockResolvedValue(undefined);
+    const refreshFamilyOrgLists = vi.fn().mockResolvedValue(undefined);
     const row: components['schemas']['AdminContact'] = {
       id: '11111111-1111-1111-1111-111111111111',
       first_name: 'Ann',
@@ -306,12 +312,16 @@ describe('ContactsPanel', () => {
         geographicAreas={[]}
         areasLoading={false}
         refreshLocations={noopRefresh}
+        refreshFamilyOrgLists={refreshFamilyOrgLists}
       />
     );
 
     await user.click(screen.getByRole('button', { name: 'Delete contact' }));
 
     expect(deleteContact).toHaveBeenCalledWith(row.id);
+    await waitFor(() => {
+      expect(refreshFamilyOrgLists).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('shows list error from the hook in the table card', async () => {
@@ -471,6 +481,7 @@ describe('ContactsPanel', () => {
   it('sends location_id null on update after Clear', async () => {
     const user = userEvent.setup();
     const updateContact = vi.fn().mockResolvedValue(null);
+    const refreshFamilyOrgLists = vi.fn().mockResolvedValue(undefined);
     const row: components['schemas']['AdminContact'] = {
       id: '22222222-2222-2222-2222-222222222222',
       first_name: 'Bob',
@@ -524,6 +535,7 @@ describe('ContactsPanel', () => {
         geographicAreas={[hkArea]}
         areasLoading={false}
         refreshLocations={noopRefresh}
+        refreshFamilyOrgLists={refreshFamilyOrgLists}
       />
     );
 
@@ -539,5 +551,8 @@ describe('ContactsPanel', () => {
       })
     );
     expect(updateLocationPartial).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(refreshFamilyOrgLists).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -46,6 +46,8 @@ export function ContactsPage() {
   const adminUsers = useAdminUsers();
   const families = useAdminEntityFamilies();
   const organizations = useAdminEntityOrganizations();
+  const { refetch: refetchFamilies } = families;
+  const { refetch: refetchOrganizations } = organizations;
 
   const patchStandaloneNoteCountRef = useRef(contacts.patchContactStandaloneNoteCount);
   useLayoutEffect(() => {
@@ -54,6 +56,10 @@ export function ContactsPage() {
   const stablePatchStandaloneNoteCount = useCallback((contactId: string, count: number) => {
     patchStandaloneNoteCountRef.current(contactId, count);
   }, []);
+
+  const refreshFamilyOrgLists = useCallback(async () => {
+    await Promise.all([refetchFamilies(), refetchOrganizations()]);
+  }, [refetchFamilies, refetchOrganizations]);
 
   const refreshLocations = useCallback(async () => {
     const locList = await listAllLocations();
@@ -136,6 +142,7 @@ export function ContactsPage() {
           geographicAreas={geographicAreas}
           areasLoading={pickerLoading}
           refreshLocations={refreshLocations}
+          refreshFamilyOrgLists={refreshFamilyOrgLists}
         />
       ) : activeView === 'families' ? (
         <FamiliesPanel
