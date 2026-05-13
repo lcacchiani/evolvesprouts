@@ -60,7 +60,7 @@ from reportlab.platypus import (
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.enums import BillingInvoiceStatus
-from app.services.fps_qr_payload import build_fps_payload
+from app.services.fps_qr_payload import build_fps_payload_detailed
 from app.services.fps_qr_pdf_image import render_fps_qr_png
 from app.utils.logging import get_logger
 
@@ -275,6 +275,7 @@ def _log_fps_qr_skipped(
     fps_mobile: str,
     attempted_fps_build: bool,
     fps_payload: str | None,
+    fps_rejection_code: str | None = None,
 ) -> None:
     """Emit a single structured warning when an FPS QR would not appear but ops might expect it."""
     if fps_payload is not None:
@@ -298,6 +299,8 @@ def _log_fps_qr_skipped(
         extra["reason"] = "fps_payload_build_failed"
         extra["has_fps_merchant"] = True
         extra["has_fps_mobile"] = True
+        if fps_rejection_code:
+            extra["fps_rejection_code"] = fps_rejection_code
         logger.warning("FPS QR skipped", extra=extra)
         return
 
@@ -514,8 +517,9 @@ def render_invoice_pdf(
         and bool(fps_merchant)
         and bool(fps_mobile)
     )
+    fps_rejection_code: str | None = None
     if attempted_fps_build:
-        fps_payload = build_fps_payload(
+        fps_payload, fps_rejection_code = build_fps_payload_detailed(
             fps_merchant,
             fps_mobile,
             invoice.total,
@@ -530,6 +534,7 @@ def render_invoice_pdf(
         fps_mobile=fps_mobile,
         attempted_fps_build=attempted_fps_build,
         fps_payload=fps_payload,
+        fps_rejection_code=fps_rejection_code,
     )
 
     inv_label = (invoice.invoice_number or "").strip()
