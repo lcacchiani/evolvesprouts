@@ -994,16 +994,21 @@ def render_invoice_pdf(
                 fontName="Helvetica-Bold",
                 alignment=TA_CENTER,
             )
+            # Shared 4mm gutter from the left page-text margin used by the bank
+            # block, the FPS logo/QR row, and the FPS confirmation copy. This
+            # matches the 4mm gap between the FPS logo and the QR code so the
+            # left edge of every payment-options block lines up vertically.
+            section_indent = 4 * mm
+            payment_section_style = ParagraphStyle(
+                "InvPaymentSection",
+                parent=body_text_style,
+                leftIndent=section_indent,
+            )
             payment_bullet_style = ParagraphStyle(
                 "InvPaymentBullet",
                 parent=body_text_style,
                 leftIndent=12,
                 firstLineIndent=-12,
-            )
-            payment_block_continue_style = ParagraphStyle(
-                "InvPaymentContinue",
-                parent=body_text_style,
-                leftIndent=12,
             )
             thank_you_style = ParagraphStyle(
                 "InvThankYou",
@@ -1044,13 +1049,15 @@ def render_invoice_pdf(
                         bank_line_htmls.append(bl)
 
             if has_bank_block:
-                bank_bullet_html = (
-                    "&#8226; <b>Bank Transfer</b><br/>"
-                    + "<br/>".join(bank_line_htmls)
-                    + "<br/>"
-                    + confirm_line_html
+                story.append(
+                    Paragraph("By <b>Bank Transfer</b>:", payment_section_style)
                 )
-                story.append(Paragraph(bank_bullet_html, payment_bullet_style))
+                story.append(Spacer(1, 16))
+                story.append(
+                    Paragraph("<br/>".join(bank_line_htmls), payment_section_style)
+                )
+                story.append(Spacer(1, 16))
+                story.append(Paragraph(confirm_line_html, payment_section_style))
                 story.append(Spacer(1, 10))
 
             if fps_payload is not None:
@@ -1066,7 +1073,7 @@ def render_invoice_pdf(
                     kind="proportional",
                 )
                 qr_img.hAlign = "LEFT"
-                gap_w = 4 * mm
+                gap_w = section_indent
                 if logo_flow is not None:
                     fps_inner_row: list = [logo_flow, Spacer(gap_w, 1), qr_img]
                     fps_col_widths = [50 * mm, gap_w, 35 * mm]
@@ -1088,8 +1095,8 @@ def render_invoice_pdf(
                     )
                 )
                 fps_indent = Table(
-                    [[Spacer(12 * mm, 1), fps_inner]],
-                    colWidths=[12 * mm, 95 * mm],
+                    [[Spacer(section_indent, 1), fps_inner]],
+                    colWidths=[section_indent, 95 * mm],
                 )
                 fps_indent.setStyle(
                     TableStyle(
@@ -1105,9 +1112,9 @@ def render_invoice_pdf(
                 )
                 story.append(fps_indent)
                 story.append(Spacer(1, 6))
-                story.append(Paragraph(confirm_line_html, payment_block_continue_style))
+                story.append(Paragraph(confirm_line_html, payment_section_style))
 
-            story.append(Spacer(1, 24))
+            story.append(Spacer(1, 72))
             story.append(Paragraph("Thank you!", thank_you_style))
     else:
         story.append(Spacer(1, 36))
