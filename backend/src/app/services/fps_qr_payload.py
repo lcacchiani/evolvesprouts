@@ -3,8 +3,9 @@
 Mirrors the booking-modal / email path in ``apps/public_www/src/lib/fps-qr-code.ts``:
 dynamic initiation point (12), merchant account 26 with unique id ``hk.com.hkicl`` and
 mobile identifier ``03``, currency HKD, optional transaction amount, country HK,
-merchant name and city, then CRC-16/CCITT-FALSE over the assembled prefix including
-the ``6304`` tag (same algorithm as module 2 in ``public/scripts/fps-generator.js``).
+merchant name (tag 59: printable ASCII, 1–25 characters after trim) and city, then
+CRC-16/CCITT-FALSE over the assembled prefix including the ``6304`` tag (same algorithm
+as module 2 in ``public/scripts/fps-generator.js``).
 """
 
 from __future__ import annotations
@@ -346,35 +347,50 @@ def _payload(tag_id: str, content: str) -> str:
     return f"{tag_id}{_number_to_valid_id(len(content))}{content}"
 
 
-def build_fps_payload(
+_MERCHANT_NAME_PRINTABLE_ASCII = re.compile(r"[\x20-\x7E]{1,25}")
+
+
+def build_fps_payload_detailed(
     merchant_name: str,
     mobile_e164_local: str,
     amount: Decimal | None,
     currency: str = "HKD",
-) -> str | None:
-    """Build FPS EMVCo payload string, or ``None`` when inputs are invalid.
+) -> tuple[str | None, str | None]:
+    """Build FPS EMVCo payload, or return ``(None, rejection_code)``.
 
-    ``mobile_e164_local`` accepts ``85291234567``, ``91234567``, or ``+852-91234567``.
+    Tag 59 merchant name allows printable ASCII (``\\x20``–``\\x7E``), 1–25 chars after
+    strip, matching the public-site FPS generator (no tag-64 encoding declaration).
+
+    ``mobile_e164_local`` accepts ``85291234567``, ``91234567``, or ``+852-91234567``
+    (same alphanumeric/special rules as ``setMerchantAccount`` in JS).
+
     ``amount`` omitted or ``None`` skips tag 54 (matches optional amount in generator).
+
+    On success, ``rejection_code`` is ``None``. On failure, ``payload`` is ``None`` and
+    ``rejection_code`` names the first validation that failed (for structured logs).
     """
     code = currency.strip().upper()
     if code != "HKD":
-        return None
+        return None, "fps_currency_not_hkd"
 
     name = merchant_name.strip()
-    if not name or len(name) > 25 or not _is_alphanumeric_special(name):
-        return None
+    if not name:
+        return None, "fps_merchant_name_empty"
+    if len(name) > 25:
+        return None, "fps_merchant_name_too_long"
+    if not _MERCHANT_NAME_PRINTABLE_ASCII.fullmatch(name):
+        return None, "fps_merchant_name_not_printable_ascii"
 
     mobile_norm = _normalize_mobile_e164_local(mobile_e164_local)
     if not mobile_norm or not re.fullmatch(r"[0-9+-]+", mobile_norm):
-        return None
+        return None, "fps_mobile_invalid"
 
     inner = _payload(_MERCHANT_ACCOUNT_UNIQUE, _FPS_UNIQUE_ID) + _payload(
         _MERCHANT_ACCOUNT_IDENTIFIER_MOBILE,
         mobile_norm,
     )
     if len(inner) > 99:
-        return None
+        return None, "fps_merchant_account_tlv_too_long"
 
     fmt = "01"
     t = _payload(_FORMAT_INDICATOR, fmt)
@@ -387,7 +403,7 @@ def build_fps_payload(
     if amount is not None:
         amt_s = _format_amount_for_tag(amount)
         if amt_s is None:
-            return None
+            return None, "fps_transaction_amount_invalid"
         t += _payload(_TRANSACTION_AMOUNT, amt_s)
 
     t += _payload(_COUNTRY_CODE, "HK")
@@ -397,4 +413,23 @@ def build_fps_payload(
     crc_input = (t + _CYCLIC_REDUNDANCY_CHECK + "04").encode("ascii")
     crc_hex = _crc16_ccitt_false(crc_input)
     t += _payload(_CYCLIC_REDUNDANCY_CHECK, crc_hex)
-    return t
+    return t, None
+
+
+def build_fps_payload(
+    merchant_name: str,
+    mobile_e164_local: str,
+    amount: Decimal | None,
+    currency: str = "HKD",
+) -> str | None:
+    """Build FPS EMVCo payload string, or ``None`` when inputs are invalid.
+
+    See :func:`build_fps_payload_detailed` for validation rules and rejection codes.
+    """
+    payload, _rejection = build_fps_payload_detailed(
+        merchant_name,
+        mobile_e164_local,
+        amount,
+        currency=currency,
+    )
+    return payload

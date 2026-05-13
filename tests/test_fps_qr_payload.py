@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.services.fps_qr_payload import build_fps_payload
+from app.services.fps_qr_payload import build_fps_payload, build_fps_payload_detailed
 
 
 def test_mobile_normalization_variants() -> None:
@@ -63,7 +63,61 @@ def test_amount_non_positive_returns_none() -> None:
 
 def test_merchant_name_validation() -> None:
     assert build_fps_payload("", "91234567", Decimal("1"), currency="HKD") is None
-    assert build_fps_payload("Bad space", "91234567", Decimal("1"), currency="HKD") is None
+    assert (
+        build_fps_payload("Bad space", "91234567", Decimal("1"), currency="HKD")
+        is not None
+    )
+
+
+def test_evolve_sprouts_merchant_name_builds_payload() -> None:
+    payload = build_fps_payload(
+        "Evolve Sprouts",
+        "91234567",
+        Decimal("100"),
+        currency="HKD",
+    )
+    assert payload is not None
+    assert "5914Evolve Sprouts" in payload
+
+
+def test_merchant_name_non_ascii_rejected() -> None:
+    assert build_fps_payload("進化", "91234567", Decimal("1"), currency="HKD") is None
+    _p, code = build_fps_payload_detailed(
+        "進化",
+        "91234567",
+        Decimal("1"),
+        currency="HKD",
+    )
+    assert code == "fps_merchant_name_not_printable_ascii"
+
+
+def test_merchant_name_newline_rejected() -> None:
+    assert (
+        build_fps_payload("Evolve\nSprouts", "91234567", Decimal("1"), currency="HKD")
+        is None
+    )
+
+
+def test_merchant_name_over_25_chars_rejected() -> None:
+    name = "A" * 26
+    assert build_fps_payload(name, "91234567", Decimal("1"), currency="HKD") is None
+    _p, code = build_fps_payload_detailed(
+        name,
+        "91234567",
+        Decimal("1"),
+        currency="HKD",
+    )
+    assert code == "fps_merchant_name_too_long"
+
+
+def test_build_fps_payload_detailed_mobile_rejection_code() -> None:
+    _p, code = build_fps_payload_detailed(
+        "Acme",
+        "not-a-mobile",
+        Decimal("1"),
+        currency="HKD",
+    )
+    assert code == "fps_mobile_invalid"
 
 
 def test_fps_payload_crc_matches_js_reference() -> None:

@@ -19,6 +19,7 @@ from app.services.customer_invoice_pdf import (
     payment_terms_days_or_raise,
     render_invoice_pdf,
 )
+from app.services.fps_qr_payload import build_fps_payload
 
 
 def _pdf_text(pdf: bytes) -> str:
@@ -330,7 +331,7 @@ def test_v7_fps_qr_below_totals_card(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PUBLIC_WWW_BANK_NAME", "389 - Mox Bank Limited")
     monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "749 86477821")
     monkeypatch.setenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "IDA DE GREGORIO")
-    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSMerchant")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "Evolve Sprouts")
     monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
     inv = SimpleNamespace(
         invoice_number="I-2603-027",
@@ -352,6 +353,15 @@ def test_v7_fps_qr_below_totals_card(monkeypatch: pytest.MonkeyPatch) -> None:
         unit_amount=Decimal("583.33"),
         line_total=Decimal("583.33"),
         currency="HKD",
+    )
+    assert (
+        build_fps_payload(
+            "Evolve Sprouts",
+            "91234567",
+            inv.total,
+            currency="HKD",
+        )
+        is not None
     )
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     totals_pi, left_pt, width_pt, totals_bottom = _find_totals_card_in_pdf(pdf)
