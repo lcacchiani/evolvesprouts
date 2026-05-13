@@ -3557,6 +3557,8 @@ export interface paths {
                     active?: boolean;
                     /** @description When set, only organizations with this CRM relationship type are returned (e.g. `vendor` for Finance). When omitted, vendor and partner rows are both excluded from the list (Contacts default). */
                     relationship_type?: components["schemas"]["EntityRelationshipType"];
+                    /** @description Optional sort order. When `name`, results are ordered case-insensitively by trimmed `name` ascending, then by `id` ascending (stable pagination with the same `cursor` token as the default list). When omitted, rows are ordered by `created_at` descending (newest first), then `id` descending. */
+                    sort?: "name";
                     cursor?: string;
                     limit?: number;
                 };

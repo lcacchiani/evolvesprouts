@@ -2578,6 +2578,17 @@ paths:
             excluded from the list (Contacts default).
           schema:
             $ref: "#/components/schemas/EntityRelationshipType"
+        - name: sort
+          in: query
+          description: >
+            Optional sort order. When `name`, results are ordered case-insensitively by
+            trimmed `name` ascending, then by `id` ascending (stable pagination with the
+            same `cursor` token as the default list). When omitted, rows are ordered by
+            `created_at` descending (newest first), then `id` descending.
+          schema:
+            type: string
+            enum:
+              - name
         - name: cursor
           in: query
           schema:

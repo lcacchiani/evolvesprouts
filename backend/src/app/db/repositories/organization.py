@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import and_, func, literal, or_, select
@@ -96,6 +97,9 @@ def _is_substantial_vendor_name_for_reverse_match(normalized_vendor_name: str) -
     return True
 
 
+OrganizationListOrder = Literal["created_desc", "name_asc"]
+
+
 class OrganizationRepository(BaseRepository[Organization]):
     """Repository helpers for organization records."""
 
@@ -111,6 +115,7 @@ class OrganizationRepository(BaseRepository[Organization]):
         active: bool | None = None,
         relationship_types: Sequence[RelationshipType] | None = None,
         include_relationships: bool = True,
+        list_order: OrganizationListOrder = "created_desc",
     ) -> list[Organization]:
         """List organizations with optional relationship-type filter.
 
@@ -143,21 +148,37 @@ class OrganizationRepository(BaseRepository[Organization]):
                 noload(Organization.organization_members),
                 noload(Organization.location),
             )
+        name_sort_key = func.lower(func.trim(Organization.name))
         if cursor is not None:
-            cursor_created_at = (
-                select(Organization.created_at)
-                .where(Organization.id == cursor)
-                .scalar_subquery()
-            )
-            statement = statement.where(
-                or_(
-                    Organization.created_at < cursor_created_at,
-                    and_(
-                        Organization.created_at == cursor_created_at,
-                        Organization.id < cursor,
-                    ),
+            if list_order == "name_asc":
+                cursor_name_key = (
+                    select(name_sort_key)
+                    .where(Organization.id == cursor)
+                    .scalar_subquery()
                 )
-            )
+                statement = statement.where(
+                    or_(
+                        name_sort_key > cursor_name_key,
+                        and_(
+                            name_sort_key == cursor_name_key, Organization.id > cursor
+                        ),
+                    )
+                )
+            else:
+                cursor_created_at = (
+                    select(Organization.created_at)
+                    .where(Organization.id == cursor)
+                    .scalar_subquery()
+                )
+                statement = statement.where(
+                    or_(
+                        Organization.created_at < cursor_created_at,
+                        and_(
+                            Organization.created_at == cursor_created_at,
+                            Organization.id < cursor,
+                        ),
+                    )
+                )
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
@@ -166,10 +187,17 @@ class OrganizationRepository(BaseRepository[Organization]):
             statement = statement.where(Organization.archived_at.is_(None))
         if active is False:
             statement = statement.where(Organization.archived_at.is_not(None))
-        statement = statement.order_by(
-            Organization.created_at.desc(),
-            Organization.id.desc(),
-        ).limit(limit)
+        if list_order == "name_asc":
+            statement = statement.order_by(
+                name_sort_key.asc(),
+                Organization.id.asc(),
+            )
+        else:
+            statement = statement.order_by(
+                Organization.created_at.desc(),
+                Organization.id.desc(),
+            )
+        statement = statement.limit(limit)
         return list(self._session.execute(statement).scalars().unique().all())
 
     def count_organizations(

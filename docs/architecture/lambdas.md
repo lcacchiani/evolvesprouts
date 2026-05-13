@@ -80,7 +80,8 @@ their primary responsibilities.
   partner-only admin pickers), `/v1/admin/organizations/*` (CRM organisations and vendor
   rows share one resource; default list excludes vendors and partners; Services → Partners lists
   partners with `GET /v1/admin/organizations?relationship_type=partner`; Finance lists vendors with
-  `GET /v1/admin/organizations?relationship_type=vendor`; includes `DELETE /v1/admin/organizations/{id}`
+  `GET /v1/admin/organizations?relationship_type=vendor` (optional `sort=name` for case-insensitive
+  alphabetical order by trimmed name); includes `DELETE /v1/admin/organizations/{id}`
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
   membership fields such as primary contact),

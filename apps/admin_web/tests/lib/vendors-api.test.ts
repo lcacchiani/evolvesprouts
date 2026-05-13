@@ -61,6 +61,7 @@ describe('vendors-api', () => {
     expect(request.method).toBe('GET');
     expect(request.endpointPath).toContain('/v1/admin/organizations?');
     expect(request.endpointPath).toContain('relationship_type=vendor');
+    expect(request.endpointPath).toContain('sort=name');
     expect(request.endpointPath).toContain('query=acme');
     expect(request.endpointPath).toContain('active=true');
     expect(request.endpointPath).toContain('cursor=abc');

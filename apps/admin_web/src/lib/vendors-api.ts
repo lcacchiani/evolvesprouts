@@ -30,6 +30,7 @@ export async function listAdminVendors(
 ): Promise<{ items: Vendor[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   query.set('relationship_type', 'vendor');
+  query.set('sort', 'name');
   if (params.cursor) {
     query.set('cursor', params.cursor);
   }

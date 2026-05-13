@@ -53,6 +53,7 @@ def test_list_organizations_default_excludes_vendors_from_repository_filter(
 
     assert captured["list"].get("relationship_types") is None
     assert captured["list"].get("include_relationships") is True
+    assert captured["list"].get("list_order") == "created_desc"
     assert captured["count"].get("relationship_types") is None
 
 
@@ -104,7 +105,55 @@ def test_list_organizations_vendor_query_sets_vendor_filter_and_skips_relationsh
 
     assert captured["list"]["relationship_types"] == (RelationshipType.VENDOR,)
     assert captured["list"]["include_relationships"] is False
+    assert captured["list"].get("list_order") == "created_desc"
     assert captured["count"]["relationship_types"] == (RelationshipType.VENDOR,)
+
+
+def test_list_organizations_sort_name_sets_name_asc_list_order(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class _FakeRepo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def list_organizations(self, **kwargs: Any) -> list[object]:
+            captured["list"] = kwargs
+            return []
+
+        def count_organizations(self, **kwargs: Any) -> int:
+            captured["count"] = kwargs
+            return 0
+
+    class _FakeSessionCtx:
+        def __enter__(self) -> object:
+            return object()
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
+    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        admin_organizations,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    admin_organizations.handle_admin_organizations_request(
+        api_gateway_event(
+            method="GET",
+            path="/v1/admin/organizations",
+            query_params={"relationship_type": "vendor", "sort": "name"},
+        ),
+        "GET",
+        "/v1/admin/organizations",
+    )
+
+    assert captured["list"]["list_order"] == "name_asc"
 
 
 def test_get_organization_returns_partner_row_via_non_vendor_loader(
