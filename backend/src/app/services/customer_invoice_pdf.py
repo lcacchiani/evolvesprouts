@@ -1077,13 +1077,16 @@ def render_invoice_pdf(
                 fps_head_html = "&#8226; By <b>FPS</b> scanning the following QR code:"
                 story.append(Paragraph(fps_head_html, payment_bullet_style))
                 story.append(Spacer(1, 4))
-                # FPS logo width matches the FPS QR width so the logo+QR pair
-                # forms a tight, balanced cluster nested under the FPS bullet
-                # heading rather than spanning towards the right page margin.
-                fps_logo_box_mm = 35
+                # The FPS source PNG has an almost-square aspect ratio
+                # (~1.06), so we size the logo bounding box to match: this
+                # keeps `kind="proportional"` from leaving a wide gap of empty
+                # space inside an oversized column, which would otherwise
+                # push the QR towards the page centre.
+                fps_logo_width_mm = 30
+                fps_logo_height_mm = 28
                 fps_qr_size_mm = 35
                 logo_flow = _fps_logo_image(
-                    width_mm=fps_logo_box_mm, height_mm=fps_logo_box_mm / 2
+                    width_mm=fps_logo_width_mm, height_mm=fps_logo_height_mm
                 )
                 qr_png = render_fps_qr_png(fps_payload, size_px=256)
                 qr_img = Image(
@@ -1097,7 +1100,7 @@ def render_invoice_pdf(
                 if logo_flow is not None:
                     fps_inner_row: list = [logo_flow, Spacer(gap_w, 1), qr_img]
                     fps_col_widths = [
-                        fps_logo_box_mm * mm,
+                        fps_logo_width_mm * mm,
                         gap_w,
                         fps_qr_size_mm * mm,
                     ]
@@ -1121,6 +1124,7 @@ def render_invoice_pdf(
                 fps_indent = Table(
                     [[Spacer(section_inset, 1), fps_inner]],
                     colWidths=[section_inset, 95 * mm],
+                    hAlign="LEFT",
                 )
                 fps_indent.setStyle(
                     TableStyle(
