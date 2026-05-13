@@ -90,7 +90,10 @@ export function useEnrollmentParentPickers(canCreate: boolean) {
         } while (cursor);
 
         contactRows.sort((a, b) => collator.compare(formatContactSortKey(a), formatContactSortKey(b)));
-        setContacts(contactRows);
+        const enrollmentEligibleContacts = contactRows.filter(
+          (c) => (c.family_ids?.length ?? 0) === 0
+        );
+        setContacts(enrollmentEligibleContacts);
       } catch (err) {
         if (signal.aborted) {
           return;
