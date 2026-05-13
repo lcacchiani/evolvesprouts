@@ -228,9 +228,7 @@ def _resolve_bill_to_party_from_invoice_fks(
         if primary_nm:
             inv.bill_to_display_name = primary_nm
         else:
-            fam_nm = (fam.family_name or "").strip()
-            if fam_nm:
-                inv.bill_to_display_name = fam_nm
+            inv.bill_to_display_name = None
         if primary and primary.email:
             inv.bill_to_email = primary.email
         loc_id = getattr(fam, "location_id", None)

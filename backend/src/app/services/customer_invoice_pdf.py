@@ -13,8 +13,8 @@ Environment:
 - ``PUBLIC_WWW_BUSINESS_REGISTRATION``: BR / registration number for footer.
 - ``PUBLIC_WWW_FPS_MERCHANT_NAME`` / ``PUBLIC_WWW_FPS_MOBILE_NUMBER``: optional FPS QR on
   invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
-  flow). When bank details are present, the QR sits to the right of those lines in the payment
-  section.
+  flow). When bank details are present, bank copy, the FPS mark, and the QR share one row with
+  vertical centering; the FPS logo sits to the left of the QR code.
 
 When ``CustomerInvoice.bill_to_location_text`` is set (CRM snapshot), the Bill To block
 includes those lines after the display name. The email line is omitted when a location
@@ -59,7 +59,7 @@ from reportlab.platypus import (
 )
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
-from app.db.models.enums import BillingInvoiceStatus
+from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
 from app.services.fps_qr_payload import build_fps_payload_detailed
 from app.services.fps_qr_pdf_image import render_fps_qr_png
 from app.utils.logging import get_logger
@@ -165,7 +165,7 @@ def _invoice_logo_flowable() -> Image | Paragraph:
 
 
 def _fps_logo_image() -> Image | None:
-    """FPS brand mark (~25 mm × 12 mm max) beside the FPS QR in the payment section."""
+    """FPS brand mark (~25 mm × 12 mm max) to the left of the FPS QR in the payment section."""
     if not _INV_FPS_LOGO_PATH.is_file():
         return None
     img = Image(
@@ -174,7 +174,7 @@ def _fps_logo_image() -> Image | None:
         height=12 * mm,
         kind="proportional",
     )
-    img.hAlign = "RIGHT"
+    img.hAlign = "LEFT"
     return img
 
 
@@ -263,6 +263,23 @@ def split_address_lines(raw: str) -> list[str]:
     normalized = text.replace("\\n", "\n")
     parts = re.split(r"[\n\r]+", normalized)
     return [p.strip() for p in parts if p.strip()]
+
+
+# Same spacing as ``family_or_organization_bill_to_display_label`` (entity · primary).
+_FAMILY_BILL_TO_ENTITY_SEP = " \u00b7 "
+
+
+def _family_bill_to_display_name_for_pdf(raw: str | None) -> str | None:
+    """Family bill-to: prefer the primary-contact segment, not the family entity name."""
+    text = (raw or "").strip()
+    if not text:
+        return None
+    if _FAMILY_BILL_TO_ENTITY_SEP in text:
+        parts = [p.strip() for p in text.split(_FAMILY_BILL_TO_ENTITY_SEP) if p.strip()]
+        if len(parts) >= 2:
+            tail = parts[-1].strip()
+            return tail or None
+    return text
 
 
 def _log_fps_qr_skipped(
@@ -618,10 +635,14 @@ def render_invoice_pdf(
     )
 
     bill_body_parts: list[str] = []
-    if invoice.bill_to_display_name:
-        name_lines = [
-            ln.strip() for ln in invoice.bill_to_display_name.split("\n") if ln.strip()
-        ]
+    display_name_raw = invoice.bill_to_display_name
+    if display_name_raw:
+        name_text = display_name_raw
+        if getattr(invoice, "bill_to_kind", None) == BillingBillToKind.FAMILY:
+            adjusted = _family_bill_to_display_name_for_pdf(display_name_raw)
+            if adjusted is not None:
+                name_text = adjusted
+        name_lines = [ln.strip() for ln in name_text.split("\n") if ln.strip()]
         if name_lines:
             bill_body_parts.append("<br/>".join(_esc(ln) for ln in name_lines))
     loc_raw = (getattr(invoice, "bill_to_location_text", None) or "").strip()
@@ -925,12 +946,9 @@ def render_invoice_pdf(
             pay_left_w = 102 * mm
             pay_right_w = 88 * mm
 
-            fps_stack_rows: list[list] = []
+            fps_cell_flow: Paragraph | Table = Paragraph("", body_text_style)
             if fps_payload is not None:
                 logo_flow = _fps_logo_image()
-                if logo_flow is not None:
-                    fps_stack_rows.append([logo_flow])
-                    fps_stack_rows.append([Spacer(1, 6)])
                 qr_png = render_fps_qr_png(fps_payload, size_px=256)
                 qr_img = Image(
                     io.BytesIO(qr_png),
@@ -938,28 +956,39 @@ def render_invoice_pdf(
                     height=35 * mm,
                     kind="proportional",
                 )
-                qr_img.hAlign = "RIGHT"
-                fps_stack_rows.append([qr_img])
-
-            fps_cell_flow: Paragraph | Table = Paragraph("", body_text_style)
-            if fps_stack_rows:
-                fps_cell_inner = Table(
-                    fps_stack_rows,
-                    colWidths=[pay_right_w],
-                )
-                fps_cell_inner.setStyle(
+                qr_img.hAlign = "LEFT"
+                gap_w = 4 * mm
+                if logo_flow is not None:
+                    fps_inner_row: list = [logo_flow, Spacer(gap_w, 1), qr_img]
+                    fps_col_widths = [25 * mm, gap_w, 35 * mm]
+                else:
+                    fps_inner_row = [qr_img]
+                    fps_col_widths = [35 * mm]
+                fps_inner = Table([fps_inner_row], colWidths=fps_col_widths)
+                fps_inner.setStyle(
                     TableStyle(
                         [
-                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                             ("LEFTPADDING", (0, 0), (-1, -1), 0),
                             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                             ("TOPPADDING", (0, 0), (-1, -1), 0),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
                         ]
                     )
                 )
-                fps_cell_flow = fps_cell_inner
+                fps_cell_flow = Table([[fps_inner]], colWidths=[pay_right_w])
+                fps_cell_flow.setStyle(
+                    TableStyle(
+                        [
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                            ("TOPPADDING", (0, 0), (-1, -1), 0),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                        ]
+                    )
+                )
 
             bank_line_htmls: list[str] = []
             if has_bank_block:
@@ -984,7 +1013,7 @@ def render_invoice_pdf(
             pay_style_cmds.append(("SPAN", (0, r), (1, r)))
             r += 1
 
-            if has_bank_block and fps_stack_rows:
+            if has_bank_block and fps_payload is not None:
                 bank_inner_rows: list[list] = [[Spacer(1, 12)]]
                 for i, bl in enumerate(bank_line_htmls):
                     if i > 0:
@@ -994,7 +1023,7 @@ def render_invoice_pdf(
                 bank_left.setStyle(
                     TableStyle(
                         [
-                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                             ("LEFTPADDING", (0, 0), (-1, -1), 0),
                             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                             ("TOPPADDING", (0, 0), (-1, -1), 0),
@@ -1006,7 +1035,7 @@ def render_invoice_pdf(
                 pay_rows.append([bank_left, fps_cell_flow])
                 pay_style_cmds.extend(
                     [
-                        ("VALIGN", (0, r), (1, r), "TOP"),
+                        ("VALIGN", (0, r), (1, r), "MIDDLE"),
                         ("ALIGN", (1, r), (1, r), "RIGHT"),
                     ]
                 )
@@ -1025,9 +1054,14 @@ def render_invoice_pdf(
                     pay_style_cmds.append(("SPAN", (0, r), (1, r)))
                     r += 1
                     first_bank = False
-            elif fps_stack_rows:
+            elif fps_payload is not None:
                 pay_rows.append([Paragraph("", body_text_style), fps_cell_flow])
-                pay_style_cmds.append(("ALIGN", (1, r), (1, r), "RIGHT"))
+                pay_style_cmds.extend(
+                    [
+                        ("VALIGN", (0, r), (1, r), "MIDDLE"),
+                        ("ALIGN", (1, r), (1, r), "RIGHT"),
+                    ]
+                )
                 r += 1
 
             pay_table = Table(

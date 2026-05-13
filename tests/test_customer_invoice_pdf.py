@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.db.models.enums import BillingInvoiceStatus
+from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
 from app.services import customer_billing
 from app.services.customer_invoice_pdf import (
     compute_invoice_snapshot_dates,
@@ -79,6 +79,38 @@ def test_bill_to_location_text_renders_in_pdf(monkeypatch: pytest.MonkeyPatch) -
     assert "88 Example Road" in text
     assert "Hong Kong" in text
     assert "jane@example.com" not in text
+
+
+def test_family_bill_to_pdf_shows_primary_segment_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Family bill-to PDF uses the primary name, not a ``family · primary`` entity prefix."""
+    _base_invoice_env(monkeypatch)
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "FPSMerchant")
+    monkeypatch.setenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "91234567")
+    inv = SimpleNamespace(
+        invoice_number="FAM-1",
+        currency="HKD",
+        subtotal=Decimal("10"),
+        tax_total=Decimal("0"),
+        total=Decimal("10"),
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_display_name="ZyzzyxHouseholdLabel \u00b7 Alex Rivera",
+        bill_to_email="alex@example.com",
+        bill_to_location_text=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[_inv_line(unit_amount=Decimal("10"), line_total=Decimal("10"))],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "Alex Rivera" in text
+    assert "ZyzzyxHouseholdLabel" not in text
 
 
 def _pdf_layout(pdf: bytes):
@@ -563,7 +595,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v13"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v14"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
