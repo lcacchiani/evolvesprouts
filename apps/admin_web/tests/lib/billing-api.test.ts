@@ -6,7 +6,35 @@ vi.mock('@/lib/api-admin-client', () => ({
   adminApiRequest: (...args: unknown[]) => mockAdminApiRequest(...args),
 }));
 
-import { listRecentEnrollmentsForInvoicing } from '@/lib/billing-api';
+import {
+  compareBillingEnrollmentPickerRowsByEnrolledAtDesc,
+  listRecentEnrollmentsForInvoicing,
+} from '@/lib/billing-api';
+
+describe('compareBillingEnrollmentPickerRowsByEnrolledAtDesc', () => {
+  const minimalRow = {
+    enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    partyDisplayName: 'Party',
+    invoiceLinked: false,
+    currency: 'HKD',
+    billToMergeKey: 'contact|||',
+  };
+
+  it('orders newest enrolledAt first', () => {
+    const older = {
+      ...minimalRow,
+      enrollmentId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      enrolledAt: '2024-06-01T00:00:00Z',
+    };
+    const newer = {
+      ...minimalRow,
+      enrollmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      enrolledAt: '2025-06-01T00:00:00Z',
+    };
+    expect(compareBillingEnrollmentPickerRowsByEnrolledAtDesc(older, newer)).toBeGreaterThan(0);
+    expect(compareBillingEnrollmentPickerRowsByEnrolledAtDesc(newer, older)).toBeLessThan(0);
+  });
+});
 
 describe('listRecentEnrollmentsForInvoicing', () => {
   beforeEach(() => {
@@ -24,12 +52,24 @@ describe('listRecentEnrollmentsForInvoicing', () => {
   it('aggregates multiple pages when truncated', async () => {
     mockAdminApiRequest
       .mockResolvedValueOnce({
-        items: [{ ...minimalRow, enrollmentId: '11111111-1111-1111-1111-111111111111' }],
+        items: [
+          {
+            ...minimalRow,
+            enrollmentId: '11111111-1111-1111-1111-111111111111',
+            enrolledAt: '2025-01-15T00:00:00+00:00',
+          },
+        ],
         truncated: true,
         next_cursor: 'c1',
       })
       .mockResolvedValueOnce({
-        items: [{ ...minimalRow, enrollmentId: '22222222-2222-2222-2222-222222222222' }],
+        items: [
+          {
+            ...minimalRow,
+            enrollmentId: '22222222-2222-2222-2222-222222222222',
+            enrolledAt: '2026-02-01T00:00:00+00:00',
+          },
+        ],
         truncated: false,
         next_cursor: null,
       });
@@ -38,6 +78,10 @@ describe('listRecentEnrollmentsForInvoicing', () => {
     expect(mockAdminApiRequest).toHaveBeenCalledTimes(2);
     expect(out.items).toHaveLength(2);
     expect(out.truncated).toBe(true);
+    expect(out.items.map((r) => r.enrollmentId)).toEqual([
+      '22222222-2222-2222-2222-222222222222',
+      '11111111-1111-1111-1111-111111111111',
+    ]);
   });
 
   it('keeps first page when a later page fails', async () => {

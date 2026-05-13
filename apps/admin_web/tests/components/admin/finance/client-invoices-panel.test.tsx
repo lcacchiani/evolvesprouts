@@ -36,9 +36,28 @@ const enrollmentPickerMocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock('@/lib/billing-api', () => ({
-  ...billingMocks,
-}));
+vi.mock('@/lib/billing-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/billing-api')>();
+  return {
+    ...actual,
+    listCustomerInvoices: billingMocks.listCustomerInvoices,
+    getCustomerInvoice: billingMocks.getCustomerInvoice,
+    getCustomerInvoicePdfDownload: billingMocks.getCustomerInvoicePdfDownload,
+    listCustomerPayments: billingMocks.listCustomerPayments,
+    getCustomerPayment: billingMocks.getCustomerPayment,
+    issueInvoice: billingMocks.issueInvoice,
+    voidInvoice: billingMocks.voidInvoice,
+    deleteDraftCustomerInvoice: billingMocks.deleteDraftCustomerInvoice,
+    emailInvoice: billingMocks.emailInvoice,
+    confirmCustomerPayment: billingMocks.confirmCustomerPayment,
+    deleteCustomerPayment: billingMocks.deleteCustomerPayment,
+    createDraftInvoice: billingMocks.createDraftInvoice,
+    createPaymentAllocation: billingMocks.createPaymentAllocation,
+    createCustomerRefund: billingMocks.createCustomerRefund,
+    exportBillingCsv: billingMocks.exportBillingCsv,
+    listRecentEnrollmentsForInvoicing: billingMocks.listRecentEnrollmentsForInvoicing,
+  };
+});
 
 vi.mock('@/hooks/use-enrollment-parent-pickers', () => ({
   useEnrollmentParentPickers: enrollmentPickerMocks.mockUseEnrollmentParentPickers,

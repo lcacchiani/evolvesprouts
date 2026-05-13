@@ -54,6 +54,7 @@ import {
   listCustomerInvoices,
   listCustomerPayments,
   listRecentEnrollmentsForInvoicing,
+  compareBillingEnrollmentPickerRowsByEnrolledAtDesc,
   voidInvoice,
   type BillingEnrollmentPickerRow,
   type CustomerInvoiceDetail,
@@ -339,6 +340,7 @@ export function ClientInvoicesPanel() {
         out.push(row);
       }
     }
+    out.sort(compareBillingEnrollmentPickerRowsByEnrolledAtDesc);
     return out;
   }, [enrollmentPickerRows, selectedEnrollmentIds]);
 
@@ -1144,7 +1146,7 @@ export function ClientInvoicesPanel() {
               onSubmit={(e) => void handleCreateDraft(e)}
             >
               <p className='text-sm text-slate-600'>
-                Shown: enrollments from the last year (365 rolling days by enrolled date), excluding cancelled.
+                Shown: enrollments from the last two years (730 rolling days by enrolled date), excluding cancelled.
                 Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
                 and currency on the server.
               </p>
