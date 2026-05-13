@@ -145,6 +145,8 @@ export interface ContactsPanelProps {
   geographicAreas: GeographicAreaSummary[];
   areasLoading: boolean;
   refreshLocations: () => Promise<void> | void;
+  /** Refetch family and organisation lists (membership can change when a contact is saved). */
+  refreshFamilyOrgLists?: () => void | Promise<void>;
 }
 
 export function ContactsPanel({
@@ -156,6 +158,7 @@ export function ContactsPanel({
   geographicAreas,
   areasLoading,
   refreshLocations,
+  refreshFamilyOrgLists,
 }: ContactsPanelProps) {
   const {
     contacts: rows,
@@ -455,6 +458,7 @@ export function ContactsPanel({
           referral_contact_id:
             source === 'referral' ? referralContactId.trim() : null,
         });
+        await refreshFamilyOrgLists?.();
         await resetCreateForm();
         return;
       }
@@ -484,6 +488,7 @@ export function ContactsPanel({
         body.location_id = loc;
       }
       await updateContact(selected.id, body);
+      await refreshFamilyOrgLists?.();
     } catch {
       // Retry with form state preserved.
     }
@@ -518,6 +523,7 @@ export function ContactsPanel({
     setDeleteActionError('');
     try {
       await deleteContact(row.id);
+      await refreshFamilyOrgLists?.();
       if (selectedId === row.id) {
         await resetCreateForm();
       }
@@ -1003,7 +1009,9 @@ export function ContactsPanel({
                         className='h-8 min-w-8 px-0'
                         onClick={(e) => {
                           e.stopPropagation();
-                          void updateContact(row.id, { active: !row.active });
+                          void updateContact(row.id, { active: !row.active }).then(() =>
+                            refreshFamilyOrgLists?.()
+                          );
                         }}
                         disabled={isSaving}
                         aria-label={row.active ? 'Archive contact' : 'Restore contact'}
