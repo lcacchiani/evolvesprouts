@@ -509,7 +509,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v15"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v16"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -609,6 +609,8 @@ def test_invoice_template_v6_layout_smoke(monkeypatch: pytest.MonkeyPatch) -> No
         "Subtotal:",
         "Please refer to next page for details of different payment methods.",
         "Payment Options:",
+        "Bank Transfer",
+        "Thank you!",
         "Evolve Sprouts Ltd | Proudly registered in Hong Kong | BR: 41492636-000-02-25-0",
     ):
         assert fragment in text
@@ -999,8 +1001,8 @@ def test_nonzero_total_shows_fps_block(monkeypatch: pytest.MonkeyPatch) -> None:
     text = _pdf_text(pdf)
     assert "Please refer to next page" in text.replace("\n", " ")
     assert "Payment Options:" in text
-    assert "By Bank Transfer to:" in text
-    assert "By FPS scanning the following QR code:" in text
+    assert "Bank Transfer" in text
+    assert "By FPS scanning the following QR code:" in text.replace("\n", " ")
     assert "1/2" in text and "2/2" in text
     assert "Bank:" in text
     assert len(_pdf_all_image_blocks(pdf)) == 3
@@ -1072,7 +1074,7 @@ def test_nonzero_total_without_fps_config_falls_back_to_bank_only_copy(
     text = _pdf_text(pdf)
     assert "Please refer to next page" in text.replace("\n", " ")
     assert "Payment Options:" in text
-    assert "By Bank Transfer to:" in text
+    assert "Bank Transfer" in text
     assert "By FPS scanning" not in text
     assert "1/2" in text and "2/2" in text
     assert len(_pdf_page_image_blocks(pdf)) == 1
@@ -1110,8 +1112,8 @@ def test_nonzero_total_with_fps_only_no_bank_omits_bank_lines(
     text = _pdf_text(pdf)
     assert "Please refer to next page" in text.replace("\n", " ")
     assert "Payment Options:" in text
-    assert "By FPS scanning the following QR code:" in text
-    assert "By Bank Transfer to:" not in text
+    assert "By FPS scanning the following QR code:" in text.replace("\n", " ")
+    assert "Bank Transfer" not in text
     assert "Bank:" not in text
     assert "1/2" in text and "2/2" in text
     assert len(_pdf_all_image_blocks(pdf)) == 3
@@ -1153,7 +1155,7 @@ def test_nonzero_total_non_hkd_skips_fps_qr(monkeypatch: pytest.MonkeyPatch) -> 
     text = _pdf_text(pdf)
     assert "Please refer to next page" in text.replace("\n", " ")
     assert "Payment Options:" in text
-    assert "By Bank Transfer to:" in text
+    assert "Bank Transfer" in text
     assert "By FPS scanning" not in text
     assert "1/2" in text and "2/2" in text
     assert len(_pdf_page_image_blocks(pdf)) == 1

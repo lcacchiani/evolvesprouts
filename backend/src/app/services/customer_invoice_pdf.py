@@ -190,11 +190,12 @@ class InvoicePdfCanvas(canvas.Canvas):
         self.restoreState()
 
 
-def _payment_confirmation_suffix_html(billing_email: str) -> str:
+def _payment_confirmation_line_html(billing_email: str) -> str:
+    """Single line of payment-confirmation copy (no leading space; use after ``<br/>``)."""
     e = (billing_email or "").strip()
     if e:
-        return " Please send the payment confirmation to us by email at " f"{_esc(e)}."
-    return " Please send the payment confirmation to us by email."
+        return "Please send the payment confirmation to us by email at " + _esc(e) + "."
+    return "Please send the payment confirmation to us by email."
 
 
 def _invoice_logo_flowable() -> Image | Paragraph:
@@ -210,14 +211,14 @@ def _invoice_logo_flowable() -> Image | Paragraph:
     return img
 
 
-def _fps_logo_image() -> Image | None:
-    """FPS brand mark (~25 mm × 12 mm max) to the left of the FPS QR in the payment section."""
+def _fps_logo_image(*, width_mm: float = 25, height_mm: float = 12) -> Image | None:
+    """FPS brand mark to the left of the FPS QR in the payment section."""
     if not _INV_FPS_LOGO_PATH.is_file():
         return None
     img = Image(
         str(_INV_FPS_LOGO_PATH),
-        width=25 * mm,
-        height=12 * mm,
+        width=width_mm * mm,
+        height=height_mm * mm,
         kind="proportional",
     )
     img.hAlign = "LEFT"
@@ -990,6 +991,7 @@ def render_invoice_pdf(
             refer_next_page_style = ParagraphStyle(
                 "InvReferNextPage",
                 parent=body_text_style,
+                fontName="Helvetica-Bold",
                 alignment=TA_CENTER,
             )
             payment_bullet_style = ParagraphStyle(
@@ -998,10 +1000,24 @@ def render_invoice_pdf(
                 leftIndent=12,
                 firstLineIndent=-12,
             )
+            payment_block_continue_style = ParagraphStyle(
+                "InvPaymentContinue",
+                parent=body_text_style,
+                leftIndent=12,
+            )
+            thank_you_style = ParagraphStyle(
+                "InvThankYou",
+                parent=body_text_style,
+                fontName="Helvetica-Bold",
+                fontSize=11,
+                leading=16,
+                textColor=_INV_BODY_TEXT,
+                alignment=TA_CENTER,
+            )
             billing_email = os.getenv("PUBLIC_WWW_BILLING_EMAIL", "").strip()
-            confirm_suffix = _payment_confirmation_suffix_html(billing_email)
+            confirm_line_html = _payment_confirmation_line_html(billing_email)
 
-            story.append(Spacer(1, 22))
+            story.append(Spacer(1, 44))
             story.append(
                 Paragraph(
                     _esc(
@@ -1029,21 +1045,19 @@ def render_invoice_pdf(
 
             if has_bank_block:
                 bank_bullet_html = (
-                    "&#8226; <b>By Bank Transfer to:</b><br/>"
+                    "&#8226; <b>Bank Transfer</b><br/>"
                     + "<br/>".join(bank_line_htmls)
-                    + confirm_suffix
+                    + "<br/>"
+                    + confirm_line_html
                 )
                 story.append(Paragraph(bank_bullet_html, payment_bullet_style))
                 story.append(Spacer(1, 10))
 
             if fps_payload is not None:
-                fps_bullet_html = (
-                    "&#8226; <b>By FPS scanning the following QR code:</b>"
-                    + confirm_suffix
-                )
-                story.append(Paragraph(fps_bullet_html, payment_bullet_style))
+                fps_head_html = "&#8226; By <b>FPS</b> scanning the following QR code:"
+                story.append(Paragraph(fps_head_html, payment_bullet_style))
                 story.append(Spacer(1, 4))
-                logo_flow = _fps_logo_image()
+                logo_flow = _fps_logo_image(width_mm=50, height_mm=24)
                 qr_png = render_fps_qr_png(fps_payload, size_px=256)
                 qr_img = Image(
                     io.BytesIO(qr_png),
@@ -1055,11 +1069,13 @@ def render_invoice_pdf(
                 gap_w = 4 * mm
                 if logo_flow is not None:
                     fps_inner_row: list = [logo_flow, Spacer(gap_w, 1), qr_img]
-                    fps_col_widths = [25 * mm, gap_w, 35 * mm]
+                    fps_col_widths = [50 * mm, gap_w, 35 * mm]
                 else:
                     fps_inner_row = [qr_img]
                     fps_col_widths = [35 * mm]
-                fps_inner = Table([fps_inner_row], colWidths=fps_col_widths)
+                fps_inner = Table(
+                    [fps_inner_row], colWidths=fps_col_widths, hAlign="LEFT"
+                )
                 fps_inner.setStyle(
                     TableStyle(
                         [
@@ -1072,8 +1088,8 @@ def render_invoice_pdf(
                     )
                 )
                 fps_indent = Table(
-                    [[Spacer(1, 1), fps_inner]],
-                    colWidths=[12 * mm, 64 * mm],
+                    [[Spacer(12 * mm, 1), fps_inner]],
+                    colWidths=[12 * mm, 95 * mm],
                 )
                 fps_indent.setStyle(
                     TableStyle(
@@ -1083,10 +1099,16 @@ def render_invoice_pdf(
                             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                             ("TOPPADDING", (0, 0), (-1, -1), 0),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                            ("ALIGN", (1, 0), (1, 0), "LEFT"),
                         ]
                     )
                 )
                 story.append(fps_indent)
+                story.append(Spacer(1, 6))
+                story.append(Paragraph(confirm_line_html, payment_block_continue_style))
+
+            story.append(Spacer(1, 24))
+            story.append(Paragraph("Thank you!", thank_you_style))
     else:
         story.append(Spacer(1, 36))
 
