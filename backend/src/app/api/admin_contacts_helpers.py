@@ -24,7 +24,7 @@ from app.db.models import (
     OrganizationMember,
     RelationshipType,
 )
-from app.db.models.enums import FamilyRole
+from app.db.models.family import family_membership_role_from_contact_type
 from app.db.models.organization import organization_membership_role_from_contact_type
 from app.exceptions import ValidationError
 from app.utils.logging import get_logger
@@ -127,11 +127,14 @@ def sync_memberships_from_body(
             )
         ).scalar_one()
         if not has_row:
+            subject = session.get(Contact, contact_id)
+            if subject is None:
+                raise ValidationError("contact_id not found", field="family_ids")
             session.add(
                 FamilyMember(
                     family_id=want_fam,
                     contact_id=contact_id,
-                    role=FamilyRole.PARENT,
+                    role=family_membership_role_from_contact_type(subject.contact_type),
                     is_primary_contact=False,
                 )
             )
@@ -222,6 +225,25 @@ def parse_referral_contact_id_from_metadata(contact: Contact) -> UUID | None:
         if raw_meta is not None and str(raw_meta).strip() != ""
         else None
     )
+
+
+def refresh_family_member_roles_for_contact(
+    session: Session, *, contact_id: UUID
+) -> None:
+    """Recompute stored family membership roles when a contact's type changes."""
+    members = list(
+        session.execute(
+            select(FamilyMember).where(FamilyMember.contact_id == contact_id)
+        )
+        .scalars()
+        .all()
+    )
+    contact = session.get(Contact, contact_id)
+    if contact is None:
+        return
+    next_role = family_membership_role_from_contact_type(contact.contact_type)
+    for m in members:
+        m.role = next_role
 
 
 def refresh_organization_member_roles_for_contact(

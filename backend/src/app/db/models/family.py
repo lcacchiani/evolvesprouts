@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
-from app.db.models.enums import FamilyRole, RelationshipType
+from app.db.models.enums import ContactType, FamilyRole, RelationshipType
 
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
@@ -27,6 +27,19 @@ if TYPE_CHECKING:
 def _enum_values(enum_cls: Iterable[RelationshipType | FamilyRole]) -> list[str]:
     """Return enum labels stored in PostgreSQL."""
     return [member.value for member in enum_cls]
+
+
+def family_membership_role_from_contact_type(
+    contact_type: ContactType,
+) -> FamilyRole:
+    """Map contact category to stored family membership role."""
+    if contact_type is ContactType.PARENT:
+        return FamilyRole.PARENT
+    if contact_type is ContactType.CHILD:
+        return FamilyRole.CHILD
+    if contact_type is ContactType.HELPER:
+        return FamilyRole.HELPER
+    return FamilyRole.OTHER
 
 
 class Family(Base):

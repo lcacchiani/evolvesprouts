@@ -453,7 +453,8 @@ export function FamiliesPanel({
                     </Button>
                   </AdminTableToolbar>
                   <p className='text-xs text-slate-600'>
-                    Role for each member follows the contact type set on the contact record.
+                    Role is stored on each membership and matches the contact type when the member
+                    is added or when the contact type is changed on the contact record.
                   </p>
                   <AdminDataTable tableClassName='min-w-[520px]'>
                     <AdminDataTableHead>

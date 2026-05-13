@@ -7364,6 +7364,9 @@ components:
             (omit or null to clear only when source is not referral).
     AdminFamilyMember:
       type: object
+      description: |
+        Persisted membership fields. `role` matches the contact's `contact_type` when the
+        membership is created and is refreshed when `contact_type` is updated on the contact.
       required:
         - id
         - contact_id
