@@ -20,7 +20,9 @@ from app.services.bulk_expense_import_common import (
     build_parser_asset_dict,
     resolve_bulk_row_vendor_id,
 )
-from app.services.openrouter_expense_parser import parse_bulk_expense_invoices_from_assets
+from app.services.openrouter_expense_parser import (
+    parse_bulk_expense_invoices_from_assets,
+)
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -77,7 +79,9 @@ def process_bulk_expense_import_job(job_id: UUID) -> None:
         _fail_job(job_id, str(exc))
         return
     except Exception:
-        logger.exception("Bulk import job validation failed", extra={"job_id": str(job_id)})
+        logger.exception(
+            "Bulk import job validation failed", extra={"job_id": str(job_id)}
+        )
         _fail_job(job_id, "Failed to validate attachment for bulk import.")
         return
 
@@ -89,7 +93,9 @@ def process_bulk_expense_import_job(job_id: UUID) -> None:
         _fail_job(job_id, str(exc))
         return
     except Exception:
-        logger.exception("Bulk import OpenRouter parse failed", extra={"job_id": str(job_id)})
+        logger.exception(
+            "Bulk import OpenRouter parse failed", extra={"job_id": str(job_id)}
+        )
         _fail_job(job_id, "OpenRouter bulk parse failed.")
         return
 
@@ -133,7 +139,9 @@ def process_bulk_expense_import_job(job_id: UUID) -> None:
 
             session.commit()
     except Exception:
-        logger.exception("Bulk import expense creation failed", extra={"job_id": str(job_id)})
+        logger.exception(
+            "Bulk import expense creation failed", extra={"job_id": str(job_id)}
+        )
         _fail_job(job_id, "Failed to create expenses from parsed rows.")
         return
 

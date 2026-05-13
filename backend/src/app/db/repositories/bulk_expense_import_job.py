@@ -19,7 +19,9 @@ class BulkExpenseImportJobRepository(BaseRepository[BulkExpenseImportJob]):
     def __init__(self, session: Session):
         super().__init__(session, BulkExpenseImportJob)
 
-    def get_for_actor(self, job_id: UUID, *, actor_sub: str) -> BulkExpenseImportJob | None:
+    def get_for_actor(
+        self, job_id: UUID, *, actor_sub: str
+    ) -> BulkExpenseImportJob | None:
         stmt = select(BulkExpenseImportJob).where(
             BulkExpenseImportJob.id == job_id,
             BulkExpenseImportJob.created_by == actor_sub,
