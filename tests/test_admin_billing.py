@@ -1969,7 +1969,72 @@ def test_list_invoices_filters_by_currency_and_status(
     assert "customer_invoices.status" in stmt_text
 
 
-def test_list_invoices_filters_by_settlement_open(
+@pytest.mark.parametrize(
+    ("settlement", "needles"),
+    [
+        (
+            "open",
+            ("customer_invoices.balance_due", "customer_invoices.status"),
+        ),
+        (
+            "partially_paid",
+            (
+                "customer_invoices.amount_allocated",
+                "customer_invoices.balance_due",
+                "customer_invoices.status",
+            ),
+        ),
+        (
+            "paid",
+            (
+                "customer_invoices.balance_due",
+                "customer_invoices.amount_allocated",
+                "customer_invoices.total",
+                "customer_invoices.status",
+            ),
+        ),
+    ],
+)
+def test_list_invoices_filters_by_settlement_slice_sql(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    settlement: str,
+    needles: tuple[str, ...],
+) -> None:
+    captured: list[Any] = []
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            captured.append(stmt)
+            out = MagicMock()
+            out.scalars.return_value.all.return_value = []
+            out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/invoices",
+        query_params={"settlement": settlement},
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    assert r["statusCode"] == 200
+    assert captured
+    stmt_text = str(captured[0]).lower()
+    for needle in needles:
+        assert needle in stmt_text, (settlement, needle, stmt_text[:500])
+
+
+def test_list_invoices_combined_settlement_currency_and_q_sql(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -1995,7 +2060,7 @@ def test_list_invoices_filters_by_settlement_open(
     ev = api_gateway_event(
         method="GET",
         path="/v1/admin/billing/invoices",
-        query_params={"settlement": "open"},
+        query_params={"settlement": "open", "currency": "HKD", "q": "INV-9"},
         authorizer_context=admin_identity,
     )
     r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
@@ -2003,7 +2068,8 @@ def test_list_invoices_filters_by_settlement_open(
     assert captured
     stmt_text = str(captured[0]).lower()
     assert "customer_invoices.balance_due" in stmt_text
-    assert "customer_invoices.status" in stmt_text
+    assert "customer_invoices.currency" in stmt_text
+    assert "customer_invoices.invoice_number" in stmt_text
 
 
 def test_list_invoices_applies_free_text_query_param(
@@ -3953,4 +4019,144 @@ def test_create_allocation_calls_recompute_invoice_settlement(
     )
     r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/allocations")
     assert r["statusCode"] == 201
+    assert touched == [inv_id]
+
+
+def test_void_invoice_calls_recompute_invoice_settlement(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inv_id = uuid4()
+    touched: list[UUID] = []
+
+    inv = SimpleNamespace(
+        id=inv_id,
+        status=BillingInvoiceStatus.ISSUED,
+        voided_at=None,
+        void_reason=None,
+    )
+
+    def _spy_recompute(_session: Any, iv: Any) -> None:
+        touched.append(iv.id)
+
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "recompute_invoice_settlement",
+        _spy_recompute,
+    )
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "AuditService",
+        lambda *_a, **_k: MagicMock(log_custom=lambda **_kw: None),
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+
+    ev = api_gateway_event(
+        method="POST",
+        path=f"/v1/admin/billing/invoices/{inv_id}/void",
+        body=json.dumps({"reason": "customer request"}),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", f"/v1/admin/billing/invoices/{inv_id}/void"
+    )
+    assert r["statusCode"] == 200
+    assert touched == [inv_id]
+
+
+def test_issue_invoice_calls_recompute_invoice_settlement(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
+    inv_id = uuid4()
+    bill_cid = uuid4()
+    touched: list[UUID] = []
+
+    inv = SimpleNamespace(
+        id=inv_id,
+        status=BillingInvoiceStatus.DRAFT,
+        currency="HKD",
+        total=Decimal("100"),
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=bill_cid,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        bill_to_display_name="Pat",
+        bill_to_email="p@example.com",
+        bill_to_snapshot=None,
+        invoice_date=date(2024, 3, 10),
+        due_date=None,
+        invoice_number=None,
+        invoice_sequence=None,
+        issued_at=None,
+        issued_pdf_sha256="abc",
+    )
+
+    def _spy_recompute(_session: Any, iv: Any) -> None:
+        touched.append(iv.id)
+
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "recompute_invoice_settlement",
+        _spy_recompute,
+    )
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "next_invoice_number",
+        lambda _session: ("INV-SPY-1", 1),
+    )
+    monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod,
+        "maybe_confirm_enrollments_on_zero_total_invoice_issue",
+        lambda *_a, **_k: None,
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            if model is Contact and pk == bill_cid:
+                return SimpleNamespace(
+                    id=bill_cid,
+                    first_name="P",
+                    last_name="N",
+                    email="p@example.com",
+                )
+            return None
+
+        s.get.side_effect = _get
+        s.flush = MagicMock()
+        yield s
+
+    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+
+    ev = api_gateway_event(
+        method="POST",
+        path=f"/v1/admin/billing/invoices/{inv_id}/issue",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", f"/v1/admin/billing/invoices/{inv_id}/issue"
+    )
+    assert r["statusCode"] == 200
     assert touched == [inv_id]
