@@ -21,6 +21,9 @@ from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.enums import BillingBillToKind, BillingInvoiceStatus
 from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import NotFoundError, ValidationError
+from app.services.billing_enrollment_confirmation import (
+    maybe_confirm_enrollments_on_zero_total_invoice_issue,
+)
 from app.services.customer_billing import (
     next_invoice_number,
     refresh_invoice_pdf,
@@ -136,6 +139,7 @@ def _issue_invoice(
             inv.due_date = add_payment_terms(inv.invoice_date)
         session.flush()
         refresh_invoice_pdf(session, inv)
+        maybe_confirm_enrollments_on_zero_total_invoice_issue(session, inv)
 
         return json_response(
             200,

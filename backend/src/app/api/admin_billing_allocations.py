@@ -14,6 +14,9 @@ from app.api.admin_request import parse_body
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.payment_allocation import PaymentAllocation
+from app.services.billing_enrollment_confirmation import (
+    maybe_confirm_enrollments_on_positive_invoice_payment_allocation,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import payment_unapplied_amount
 from app.utils import json_response
@@ -76,6 +79,7 @@ def _create_allocation(
         )
         session.add(alloc)
         session.flush()
+        maybe_confirm_enrollments_on_positive_invoice_payment_allocation(session, inv)
         return json_response(
             201,
             {"allocationId": str(alloc.id)},
