@@ -1,5 +1,6 @@
 import { adminApiRequest } from '@/lib/api-admin-client';
 import { unwrapPayload } from '@/lib/api-payload';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -202,6 +203,50 @@ export async function createManualInboundCustomerPayment(
     throw new Error('Create payment response missing payment.');
   }
   return root.payment;
+}
+
+/**
+ * After Services creates an enrollment, record a matching inbound customer payment:
+ * pending `bank_transfer` when amount is positive, or succeeded `free` at zero when amount is empty/zero.
+ */
+export async function createInitialCustomerPaymentAfterEnrollmentCreate(enrollment: {
+  id?: string | null;
+  amountPaid?: string | null;
+  currency?: string | null;
+}): Promise<void> {
+  const enrollmentId = enrollment.id?.trim() ?? '';
+  if (enrollmentId === '') {
+    throw new Error('Enrollment id is required to record customer payment.');
+  }
+  const amountRaw = enrollment.amountPaid?.trim() ?? '';
+  const parsed = amountRaw === '' ? 0 : Number.parseFloat(amountRaw);
+  const isZero = amountRaw === '' || (Number.isFinite(parsed) && Math.abs(parsed) < 1e-12);
+  const cur = enrollment.currency?.trim().toUpperCase() ?? '';
+  const currency = cur !== '' ? cur : getAdminDefaultCurrencyCode();
+
+  if (isZero) {
+    await createManualInboundCustomerPayment({
+      direction: 'inbound',
+      enrollmentId,
+      amount: '0',
+      currency,
+      method: 'free',
+      status: 'succeeded',
+      externalReference: null,
+    });
+    return;
+  }
+
+  const amount = Number.isFinite(parsed) ? String(amountRaw) : amountRaw;
+  await createManualInboundCustomerPayment({
+    direction: 'inbound',
+    enrollmentId,
+    amount,
+    currency,
+    method: 'bank_transfer',
+    status: 'pending',
+    externalReference: null,
+  });
 }
 
 export type BillingEnrollmentPickerRow = ApiSchemas['BillingEnrollmentPickerRow'];
