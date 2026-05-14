@@ -800,7 +800,7 @@ export function ClientInvoicesPanel() {
       return;
     }
     const row = payments.find((p) => p.id === selectedId) ?? null;
-    if (!isManualInboundPaymentEditable(row)) {
+    if (row === null || !isManualInboundPaymentEditable(row)) {
       resetManualPaymentCreateFields();
       return;
     }
