@@ -2874,6 +2874,15 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: >
+            Duplicate manual inbound payment for the same enrollment and external reference
+            (partial unique index on non-null `external_reference`).
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   /v1/admin/billing/payments/{id}:
     get:
@@ -6346,6 +6355,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        externalReference:
+          type: string
+          nullable: true
+          description: Bank reference or external id when set on the payment row.
         orphanPaymentDeletable:
           type: boolean
           description: >
@@ -6549,8 +6562,8 @@ components:
         method:
           type: string
           description: >
-            Stored billing method after normalization (for example `bank_transfer`, `fps`,
-            `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`.
+            Must normalize to one of: `free`, `stripe_card`, `fps`, `bank_transfer`, `adjustment`,
+            `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted).
           minLength: 1
           maxLength: 64
         status:

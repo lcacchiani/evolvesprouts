@@ -651,6 +651,9 @@ Migration `0055_customer_billing_ar` introduces:
   `customer_invoices` (CRM snapshot of linked `locations` venue/address plus geographic
   district and country labels when resolvable, refreshed when drafts are resolved and again
   immediately before issuance).
+- Migration `0066_cp_enroll_extref_uq` adds a partial unique index on
+  `customer_payments (enrollment_id, external_reference)` when `external_reference` is not null,
+  so duplicate manual inbound references for the same enrollment return HTTP 409 from the admin API.
 
 **Migration `0058_inv_line_null_enrollment`:** `customer_invoice_lines.enrollment_id` is nullable so customized (non-enrollment) invoice lines can omit the enrollment foreign key.
 
