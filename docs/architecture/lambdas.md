@@ -125,6 +125,7 @@ their primary responsibilities.
   as an older file),
   allocations, `POST /v1/admin/billing/invoices/{id}/email` (comma- or semicolon-separated
   `toEmail` recipient list), export;
+  enrollment lines on issued invoices: **zero-total** issues immediately transition linked enrollments from `registered` to `confirmed` and promote the enrolled CRM party when it is still `prospect` to `client` (family or organization enrollments: every contact member of that family or organization); **positive-total** issues leave enrollment status unchanged until the first **payment allocation** is created against that issued invoice, which performs the same `registered`→`confirmed` and prospect→client promotions idempotently;
   handler code split across `admin_billing*.py` modules under `app.api`, same Lambda),
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
