@@ -382,9 +382,7 @@ def test_v6_footer_y_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
     inv, line = _v6_standard_invoice(monkeypatch)
     pdf = render_invoice_pdf(invoice=inv, lines=[line], preview=False)
     _doc, _page, spans, _images = _pdf_layout(pdf)
-    foot = [
-        s for s in spans if "Proudly registered" in s["text"] or "BR:" in s["text"]
-    ]
+    foot = [s for s in spans if "Proudly registered" in s["text"] or "BR:" in s["text"]]
     assert foot
     y0 = foot[0]["bbox"][1]
     assert 780 <= y0 <= 795
@@ -509,7 +507,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v18"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v19"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -736,7 +734,9 @@ def test_address_preserves_5f(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "5/F" in text
 
 
-def test_missing_trading_name_from_header_survives(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_trading_name_from_header_survives(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.delenv("PUBLIC_WWW_BUSINESS_NAME", raising=False)
@@ -807,7 +807,9 @@ def test_bill_to_email_shown_or_omitted(monkeypatch: pytest.MonkeyPatch) -> None
     inv_loc = SimpleNamespace(
         **{**vars(inv), "bill_to_location_text": "Studio\n1 Road\nHK"}
     )
-    t1b = _pdf_text(render_invoice_pdf(invoice=inv_loc, lines=[_inv_line()], preview=False))
+    t1b = _pdf_text(
+        render_invoice_pdf(invoice=inv_loc, lines=[_inv_line()], preview=False)
+    )
     assert "pay@example.com" not in t1b
     assert "Studio" in t1b
 
@@ -865,7 +867,9 @@ def test_preview_uses_utc_without_display_tz(monkeypatch: pytest.MonkeyPatch) ->
     assert pdf.startswith(b"%PDF")
 
 
-def test_rendered_pdf_includes_explicit_invoice_date(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_rendered_pdf_includes_explicit_invoice_date(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _base_invoice_env(monkeypatch)
     inv = SimpleNamespace(
         invoice_number="N-2025",
@@ -966,7 +970,10 @@ def test_zero_total_hides_due_date_and_terms(monkeypatch: pytest.MonkeyPatch) ->
     assert "Invoice Date:" in text
     assert "Total:" in text
     assert "Due Date:" not in text
-    assert "Please refer to next page" not in text
+    assert "Please refer to next page for details" not in text.replace("\n", " ")
+    assert "Please refer to the following page" in text.replace("\n", " ")
+    assert "Nothing to pay, thank you!" in text.replace("\n", " ")
+    assert "1/2" in text and "2/2" in text
     assert "Terms & Conditions" not in text
     assert "Bank:" not in text
 
@@ -1161,7 +1168,9 @@ def test_nonzero_total_non_hkd_skips_fps_qr(monkeypatch: pytest.MonkeyPatch) -> 
     assert len(_pdf_page_image_blocks(pdf)) == 1
 
 
-def test_negative_total_suppresses_payment_block(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_negative_total_suppresses_payment_block(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "Asia/Hong_Kong")
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "Co")
@@ -1239,7 +1248,9 @@ def test_refresh_invoice_sets_invoice_template_version(
     assert inv.pdf_template_version == customer_billing.INVOICE_PDF_TEMPLATE_VERSION
 
 
-def test_receipt_row_gets_receipt_template_version(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_receipt_row_gets_receipt_template_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("INVOICE_PAYMENT_TERMS_DAYS", "7")
     monkeypatch.setenv("INVOICE_DISPLAY_TIMEZONE", "UTC")
     from app.db.models.enums import BillingPaymentDirection, BillingPaymentStatus
@@ -1270,6 +1281,7 @@ def test_receipt_row_gets_receipt_template_version(monkeypatch: pytest.MonkeyPat
     )
 
     rec = customer_billing.create_receipt_for_succeeded_inbound_payment(
-        session, payment=pay  # type: ignore[arg-type]
+        session,
+        payment=pay,  # type: ignore[arg-type]
     )
     assert rec.pdf_template_version == customer_billing.RECEIPT_PDF_TEMPLATE_VERSION

@@ -15,6 +15,9 @@ Environment:
   invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
   flow). Bank transfer lines and the FPS QR render on a dedicated **Payment Options** page
   after the main invoice page.
+- When ``total == 0``, a second page shows **Nothing to pay, thank you!** (same heading band
+  as **Payment Options** on payable invoices), after the same centred refer-to-next-page cue
+  spacing used when payment methods follow (neutral wording, not payment-method copy).
 - ``PUBLIC_WWW_BILLING_EMAIL``: optional billing email for payment confirmations (align GitHub
   ``NEXT_PUBLIC_BILLING_EMAIL`` with CDK ``PublicWwwBillingEmail``); used on the Payment Options page.
 
@@ -582,6 +585,7 @@ def render_invoice_pdf(
     has_bank_block = bool(bank_name or bank_holder or bank_number)
 
     is_non_positive_total = invoice.total <= Decimal("0")
+    is_zero_total = invoice.total == Decimal("0")
     show_due_date = not is_non_positive_total
 
     fps_merchant = os.getenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "").strip()
@@ -982,18 +986,19 @@ def render_invoice_pdf(
     terms_intro = (
         f"Payment is due within {terms_days} days from the issue of the invoice."
     )
+    refer_next_page_style = ParagraphStyle(
+        "InvReferNextPage",
+        parent=body_text_style,
+        fontName="Helvetica-Bold",
+        alignment=TA_CENTER,
+    )
+
     if not is_non_positive_total:
         story.append(Paragraph("Terms &amp; Conditions:", label_heading_style))
         story.append(Spacer(1, 4))
         story.append(Paragraph(_esc(terms_intro), body_text_style))
 
         if has_bank_block or fps_payload is not None:
-            refer_next_page_style = ParagraphStyle(
-                "InvReferNextPage",
-                parent=body_text_style,
-                fontName="Helvetica-Bold",
-                alignment=TA_CENTER,
-            )
             # Bullet headings ("By Bank Transfer" / "By FPS scanning...") hang
             # the bullet glyph at column 0 while the heading text sits at the
             # same x as the payment-confirmation copy, mirroring a typical
@@ -1144,6 +1149,18 @@ def render_invoice_pdf(
 
             story.append(Spacer(1, 72))
             story.append(Paragraph("Thank you!", thank_you_style))
+    elif is_zero_total:
+        story.append(Spacer(1, 44))
+        story.append(
+            Paragraph(
+                _esc("Please refer to the following page."),
+                refer_next_page_style,
+            )
+        )
+        story.append(Spacer(1, 16))
+        story.append(PageBreak())
+        story.append(Paragraph(_esc("Nothing to pay, thank you!"), label_heading_style))
+        story.append(Spacer(1, 4))
     else:
         story.append(Spacer(1, 36))
 
