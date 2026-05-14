@@ -7,6 +7,7 @@ from typing import Any
 from collections.abc import Mapping
 from urllib.parse import urlparse
 
+from app.config.public_www import get_public_www
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -44,7 +45,7 @@ def resolve_public_www_stripe_secret_key(event: Mapping[str, Any]) -> str | None
     """Pick live vs staging Stripe secret key using the caller site origin."""
     live_key = os.getenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "").strip()
     staging_key = os.getenv("EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY", "").strip()
-    staging_origin = os.getenv("PUBLIC_WWW_STAGING_SITE_ORIGIN", "").strip().rstrip("/")
+    staging_origin = get_public_www("STAGING_SITE_ORIGIN").strip().rstrip("/")
 
     if staging_origin:
         browser_origin = extract_browser_site_origin(event)

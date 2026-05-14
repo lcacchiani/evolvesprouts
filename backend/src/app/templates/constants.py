@@ -13,16 +13,16 @@ from __future__ import annotations
 import os
 import re
 
+from app.config.public_www import get_public_www
+
 
 def resolve_business_phone_digits() -> str:
     """Return digits-only business phone from env, or empty string."""
-    for name in (
-        "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
-        "NEXT_PUBLIC_BUSINESS_PHONE_NUMBER",
-    ):
-        raw = os.getenv(name, "")
-        if isinstance(raw, str) and raw.strip():
-            return re.sub(r"\D", "", raw.strip())
+    raw = get_public_www("BUSINESS_PHONE_NUMBER")
+    if not raw:
+        raw = os.getenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", "")
+    if isinstance(raw, str) and raw.strip():
+        return re.sub(r"\D", "", raw.strip())
     return ""
 
 
@@ -36,7 +36,7 @@ def build_whatsapp_phone_url() -> str:
 
 def resolve_public_www_base_url() -> str:
     """Return configured public website origin (no trailing slash)."""
-    raw = os.getenv("PUBLIC_WWW_BASE_URL", "").strip().rstrip("/")
+    raw = get_public_www("BASE_URL").strip().rstrip("/")
     return raw
 
 

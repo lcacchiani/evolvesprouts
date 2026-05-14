@@ -132,7 +132,7 @@ def test_payment_unapplied_amount_subtracts_allocations() -> None:
     assert customer_billing.payment_unapplied_amount(session, pid) == Decimal("65")
 
 
-def test_next_invoice_number_increments_per_currency_year(
+def test_next_invoice_number_increments_per_year(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _CounterRow:
@@ -149,11 +149,11 @@ def test_next_invoice_number_increments_per_currency_year(
 
     session = MagicMock()
     session.execute.side_effect = _exec
-    num, seq = customer_billing.next_invoice_number(session, currency="hkd")
+    num, seq = customer_billing.next_invoice_number(session)
     assert seq == 1
     assert row.last_number == 1
     assert num.startswith("INV-")
-    assert num.endswith("-HKD")
+    assert num.count("-") == 2
     assert n_calls["n"] == 2
 
 
@@ -2346,7 +2346,7 @@ def test_issue_preserves_draft_invoice_date_and_derives_due_date(
     monkeypatch.setattr(
         admin_billing_invoices_mod,
         "next_invoice_number",
-        lambda _session, currency: ("INV-TEST-1", 1),
+        lambda _session: ("INV-TEST-1", 1),
     )
     monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
     monkeypatch.setattr(
@@ -2431,7 +2431,7 @@ def test_issue_legacy_draft_without_invoice_date_uses_snapshot(
     monkeypatch.setattr(
         admin_billing_invoices_mod,
         "next_invoice_number",
-        lambda _session, currency: ("INV-TEST-2", 2),
+        lambda _session: ("INV-TEST-2", 2),
     )
     monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
     monkeypatch.setattr(
@@ -2673,6 +2673,50 @@ def test_build_enrollment_merge_line_description_dedupes_when_tail_matches_kind(
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
         == "Event"
+    )
+
+
+def test_build_enrollment_merge_line_description_same_instance_and_service_title() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(
+        title="Holiday Workshop",
+        service_tier="standard",
+        service_type=ServiceType.TRAINING_COURSE,
+    )
+    inst = SimpleNamespace(title="Holiday Workshop", cohort="week 1", service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Training course: Holiday Workshop Standard Week 1"
+    )
+
+
+def test_build_enrollment_merge_line_description_instance_title_without_service_title() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(
+        title=None,
+        service_tier="solo",
+        service_type=ServiceType.CONSULTATION,
+    )
+    inst = SimpleNamespace(title="Drop-in Session", cohort=None, service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Consultation: Drop-in Session Solo"
     )
 
 

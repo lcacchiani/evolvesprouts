@@ -9,6 +9,7 @@ job status updates without racing the Lambda hard timeout.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
@@ -31,11 +32,14 @@ from app.services.bulk_expense_import_common import (
 from app.services.openrouter_expense_parser import (
     parse_bulk_expense_invoices_from_assets,
 )
-from app.utils.logging import get_logger, mask_pii
+from app.utils.logging import get_logger, mask_email
 
 logger = get_logger(__name__)
 
 _OPENROUTER_TIMEOUT_SECONDS = 240
+
+# Likely email addresses embedded in free-text error messages (admin API only).
+_EMAIL_IN_TEXT_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
 
 def _lambda_timeout_seconds() -> int:
@@ -52,14 +56,25 @@ def _processing_stale_threshold() -> timedelta:
     return timedelta(seconds=sec)
 
 
+def _redact_emails_in_bulk_import_message(text: str) -> str:
+    def _sub(match: re.Match[str]) -> str:
+        return mask_email(match.group(0))
+
+    return _EMAIL_IN_TEXT_RE.sub(_sub, text)
+
+
 def sanitize_bulk_import_error_message(message: str) -> str:
-    """Redact persisted/API-facing bulk-import error text."""
+    """Redact persisted/API-facing bulk-import error text.
+
+    Masks embedded email addresses while preserving technical detail (for example
+    ``RuntimeError`` messages) so operators can diagnose parser failures.
+    """
     trimmed = (message or "").strip()
     if not trimmed:
         return "An error occurred."
     if len(trimmed) > 8000:
         trimmed = trimmed[:8000]
-    return mask_pii(trimmed, visible_chars=4)
+    return _redact_emails_in_bulk_import_message(trimmed)
 
 
 @dataclass(frozen=True)

@@ -191,23 +191,25 @@ their primary responsibilities.
   (plus derived domain identity ARNs), Secrets Manager read for the Mailchimp API
   secret when marketing hooks run on public form routes
 - Environment (selected): `SES_SENDER_EMAIL`, `CONFIRMATION_EMAIL_FROM_ADDRESS`,
-  `PUBLIC_WWW_BASE_URL`, optional `PUBLIC_WWW_INSTAGRAM_URL`,
-  `PUBLIC_WWW_LINKEDIN_URL`, `PUBLIC_WWW_WHATSAPP_URL` (transactional email shell;
-  align with public site `NEXT_PUBLIC_*` URLs; `wa.me/message/...` values are
-  rewritten to `https://wa.me/<phone>` for reliable email clients),
-  `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
-  align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`),
-  `PUBLIC_WWW_BUSINESS_NAME` (trading; AR invoice **From**),
-  `PUBLIC_WWW_BUSINESS_LEGAL_NAME` (optional; legal name for AR invoice footer; align with `NEXT_PUBLIC_BUSINESS_LEGAL_NAME`),
-  `PUBLIC_WWW_BUSINESS_ADDRESS`, `PUBLIC_WWW_BUSINESS_REGISTRATION` (AR invoice),
-  `PUBLIC_WWW_BANK_NAME`, `PUBLIC_WWW_BANK_ACCOUNT_HOLDER`,
-  `PUBLIC_WWW_BANK_ACCOUNT_NUMBER` (AR invoice bank block when any is set; align with
-  `NEXT_PUBLIC_BANK_*` / `NEXT_PUBLIC_BUSINESS_*`),
-  `PUBLIC_WWW_BILLING_EMAIL` (optional; billing email for payment confirmation copy on the
-  invoice **Payment Options** page; GitHub `NEXT_PUBLIC_BILLING_EMAIL` via CDK `PublicWwwBillingEmail`),
-  `PUBLIC_WWW_FPS_MERCHANT_NAME`, `PUBLIC_WWW_FPS_MOBILE_NUMBER` (optional; when set with
-  a positive HKD invoice total, the PDF includes an FPS QR payload aligned with the public-site
-  booking flow; align with `NEXT_PUBLIC_FPS_MERCHANT_NAME` / `NEXT_PUBLIC_FPS_MOBILE_NUMBER`),
+  `PUBLIC_WWW_CONFIG_SECRET_ARN` (Secrets Manager JSON object that holds the
+  resolved `PUBLIC_WWW_*` deployment config: `BASE_URL`, optional `INSTAGRAM_URL` /
+  `LINKEDIN_URL` / `WHATSAPP_URL` for the transactional email shell — `wa.me/message/...`
+  values are rewritten to `https://wa.me/<phone>` for reliable email clients —
+  plus `BUSINESS_PHONE_NUMBER` for `wa.me/<digits>` links, `BUSINESS_NAME` /
+  `BUSINESS_LEGAL_NAME` / `BUSINESS_ADDRESS` / `BUSINESS_REGISTRATION` for AR
+  invoice header/footer, `BANK_NAME` / `BANK_ACCOUNT_HOLDER` / `BANK_ACCOUNT_NUMBER`
+  for the AR invoice bank block, optional `BILLING_EMAIL` for the **Payment Options**
+  page payment-confirmation copy, optional `FPS_MERCHANT_NAME` / `FPS_MOBILE_NUMBER`
+  used to render an FPS QR payload on positive-total HKD invoices, and
+  `STAGING_SITE_ORIGIN` for the staging-vs-live Stripe secret selection on the
+  public reservation Payment Element. The secret is populated by CDK from the
+  `PublicWww*` CFN parameters, which themselves come from GitHub
+  `vars.NEXT_PUBLIC_*` values; this packaging keeps the admin Lambda's
+  environment-variable string under AWS's 4 KB hard limit. Lambdas read the
+  payload via the existing Secrets Manager VPC interface endpoint with a
+  five-minute in-process cache (`app.config.public_www`); existing tests that
+  set `PUBLIC_WWW_*` env vars directly continue to work because the helper
+  prefers env vars when present),
   `INVOICE_DISPLAY_TIMEZONE` (IANA id; **required** to issue AR invoices; GitHub `CDK_PARAM_INVOICE_DISPLAY_TIMEZONE`; separate from sales recap),
   `INVOICE_PAYMENT_TERMS_DAYS` (1–3 digit days; default `7` when unset/empty; invalid or `> 999` fails issuance; GitHub `CDK_PARAM_INVOICE_PAYMENT_TERMS_DAYS`),
   `DEFAULT_PHONE_REGION` (ISO 3166-1 alpha-2; CDK `DefaultPhoneRegion`; parses
@@ -218,7 +220,7 @@ their primary responsibilities.
   `MAILCHIMP_*` welcome journey vars (see `aws-messaging.md`)
 - **AR PDF template versions (DB `pdf_template_version` column, shared by invoices and receipts):** issued customer invoices set `INVOICE_PDF_TEMPLATE_VERSION` = `billing-invoice-v20`; receipts set `RECEIPT_PDF_TEMPLATE_VERSION` = `billing-receipt-v1`.
 - **Invoice currency display:** `HKD` amounts render with the `HK$` prefix in AR invoice PDFs.
-- **AR invoice footer (Option B):** when both legal/trading and registration are set, the centered footer is `{legal_name} | Proudly registered in Hong Kong | BR: {reg}` with `legal_name` = `PUBLIC_WWW_BUSINESS_LEGAL_NAME` or `PUBLIC_WWW_BUSINESS_NAME`, and with fallbacks: legal only → legal; registration only → `BR: {reg}`; both empty → no footer. The **"Proudly registered in Hong Kong"** fragment is fixed product copy (see `.cursorrules` exception).
+- **AR invoice footer (Option B):** when both legal/trading and registration are set, the centered footer is `{legal_name} | Proudly registered in Hong Kong | BR: {reg}` with `legal_name` = `PUBLIC_WWW_BUSINESS_LEGAL_NAME` or `PUBLIC_WWW_BUSINESS_NAME` (resolved from `PUBLIC_WWW_CONFIG_SECRET_ARN`), and with fallbacks: legal only → legal; registration only → `BR: {reg}`; both empty → no footer. The **"Proudly registered in Hong Kong"** fragment is fixed product copy (see `.cursorrules` exception).
 - **Snapshot dates:** on issue, `customer_invoices.invoice_date` and `customer_invoices.due_date` are persisted (see `docs/architecture/database-schema.md`); the PDF uses these when present; draft previews compute dates in **UTC** when columns are null.
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
@@ -252,7 +254,7 @@ their primary responsibilities.
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (card-only `payment_method_types[]=card`; wallet buttons are disabled in the
   public Payment Element; `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is not used).
-  When `PUBLIC_WWW_STAGING_SITE_ORIGIN` and `EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY`
+  When the `STAGING_SITE_ORIGIN` field of `PUBLIC_WWW_CONFIG_SECRET_ARN` and `EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY`
   are set, requests whose `Origin` or `Referer` matches that staging site use
   the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
   is used (reservation submission uses the same selection for PaymentIntent retrieval).
@@ -451,12 +453,13 @@ their primary responsibilities.
     subscribe + free-resource journey on `marketing_opt_in`)
   - `MAILCHIMP_WELCOME_JOURNEY_ID`, `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` (optional;
     shared welcome journey for opted-in contacts; empty disables)
-  - `PUBLIC_WWW_BASE_URL` (logo and footer links in SES HTML shell)
-  - optional `PUBLIC_WWW_INSTAGRAM_URL`, `PUBLIC_WWW_LINKEDIN_URL`,
-    `PUBLIC_WWW_WHATSAPP_URL` (same semantics as public site env; empty falls back
-    in application code; `wa.me/message/...` is coerced to `wa.me/<digits>` for email)
-  - `PUBLIC_WWW_BUSINESS_PHONE_NUMBER` (used to build `wa.me/<digits>` links;
-    align with `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`)
+  - `PUBLIC_WWW_CONFIG_SECRET_ARN` (Secrets Manager JSON object shared with the
+    admin Lambda; provides `BASE_URL` for SES HTML shell logo/footer links and
+    optional `INSTAGRAM_URL` / `LINKEDIN_URL` / `WHATSAPP_URL` /
+    `BUSINESS_PHONE_NUMBER`. `wa.me/message/...` values are coerced to
+    `wa.me/<digits>` for reliable email-client rendering. Lambdas read it via
+    the existing Secrets Manager VPC interface endpoint with a five-minute
+    in-process cache; see `app.config.public_www`.)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction

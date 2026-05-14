@@ -123,7 +123,7 @@ def _issue_invoice(
         _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
         inv.bill_to_snapshot = _build_bill_to_snapshot(session, inv)
 
-        num, seq = next_invoice_number(session, currency=inv.currency)
+        num, seq = next_invoice_number(session)
         inv.invoice_number = num
         inv.invoice_sequence = seq
         inv.status = BillingInvoiceStatus.ISSUED

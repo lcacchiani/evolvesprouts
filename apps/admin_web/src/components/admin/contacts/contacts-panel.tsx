@@ -943,7 +943,7 @@ export function ContactsPanel({
           </AdminTableToolbar>
         }
       >
-        <AdminDataTable tableClassName='min-w-[960px]'>
+        <AdminDataTable tableClassName='min-w-[720px]'>
           <AdminDataTableHead>
             <tr>
               <AdminDataTableHeadCell>Name</AdminDataTableHeadCell>
