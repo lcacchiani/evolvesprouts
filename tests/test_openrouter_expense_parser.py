@@ -722,6 +722,10 @@ def test_coerce_bulk_invoice_list_wraps_single_top_level_invoice() -> None:
     assert out == [single]
 
 
+def test_coerce_bulk_invoice_list_treats_empty_object_as_no_rows() -> None:
+    assert parser._coerce_bulk_invoice_list({}) == []
+
+
 def test_coerce_bulk_invoice_list_raises_with_keys_preview_on_unknown_shape() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         parser._coerce_bulk_invoice_list({"alpha": "x", "beta": 2, "gamma": [1, 2, 3]})
@@ -781,6 +785,44 @@ def test_parse_bulk_expense_invoices_accepts_data_alias(monkeypatch: Any) -> Non
     assert len(rows) == 1
     assert rows[0]["vendor_name"] == "Shop X"
     assert rows[0]["total"] == 8.0
+
+
+def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns_empty_object(
+    monkeypatch: Any,
+) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body("{}"),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_bulk_expense_invoices_from_assets(
+            [
+                {
+                    "id": "asset-empty",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ],
+            timeout=25,
+        )
+
+    msg = str(exc_info.value)
+    assert "no invoice rows" in msg
+    assert "image-only" in msg
+    assert "<empty object>" not in msg
 
 
 def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(

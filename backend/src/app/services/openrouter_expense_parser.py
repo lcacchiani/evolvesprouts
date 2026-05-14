@@ -79,7 +79,12 @@ def parse_bulk_expense_invoices_from_assets(
     )
     raw_invoices = _parse_bulk_invoices_payload(body)
     if not raw_invoices:
-        raise RuntimeError("Parser returned no invoice rows")
+        raise RuntimeError(
+            "Parser found no invoice rows in this document. The PDF may be "
+            "image-only without readable text, contain no extractable invoice "
+            "data, or be in a layout the parser could not recognize as "
+            "invoices. Try a clearer scan or a single-invoice import."
+        )
     if len(raw_invoices) > _MAX_BULK_INVOICES:
         raise RuntimeError(
             f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
@@ -388,6 +393,13 @@ def _coerce_bulk_invoice_list(parsed: Any) -> list[Any]:
         return parsed
     if not isinstance(parsed, dict):
         raise RuntimeError("Bulk parser response payload has invalid shape")
+
+    # JSON mode forces an object, so ``{}`` is the model's only way of saying
+    # "I could not extract anything from this document". Treat it as zero rows
+    # rather than a malformed wrapper so the empty-result path produces an
+    # actionable message in ``parse_bulk_expense_invoices_from_assets``.
+    if not parsed:
+        return []
 
     for key in _BULK_LIST_KEY_ALIASES:
         candidate = parsed.get(key)
