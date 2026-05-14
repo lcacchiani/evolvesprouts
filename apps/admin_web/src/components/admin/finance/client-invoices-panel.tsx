@@ -1146,9 +1146,9 @@ export function ClientInvoicesPanel() {
               onSubmit={(e) => void handleCreateDraft(e)}
             >
               <p className='text-sm text-slate-600'>
-                Shown: enrollments from the last two years (730 rolling days by enrolled date), excluding cancelled.
-                Rows already on a draft or issued invoice cannot be selected. Selected rows must share bill-to
-                and currency on the server.
+                Shown: enrollments from the last two years (730 rolling days by enrolled date), excluding cancelled
+                and any row already on a draft or issued invoice. Selected rows must share bill-to and currency on
+                the server.
               </p>
               <AdminTableToolbar marginBottom='none'>
                 <div className='min-w-[220px] flex-1'>
@@ -1218,27 +1218,30 @@ export function ClientInvoicesPanel() {
                       </AdminDataTableHeadCell>
                       <AdminDataTableHeadCell className='text-right'>Price</AdminDataTableHeadCell>
                       <AdminDataTableHeadCell>Enrolled</AdminDataTableHeadCell>
-                      <AdminDataTableHeadCell>Invoice</AdminDataTableHeadCell>
                     </tr>
                   </AdminDataTableHead>
                   <AdminDataTableBody>
                     {enrollmentPickerLoading ? (
                       <tr>
-                        <AdminDataTableCell colSpan={7} className='py-6 text-sm text-slate-600'>
+                        <AdminDataTableCell colSpan={6} className='py-6 text-sm text-slate-600'>
                           Loading enrollments…
                         </AdminDataTableCell>
                       </tr>
                     ) : enrollmentPickerRows.length === 0 ? (
                       <tr>
-                        <AdminDataTableCell colSpan={7} className='py-6 text-sm text-slate-600'>
+                        <AdminDataTableCell colSpan={6} className='py-6 text-sm text-slate-600'>
                           No enrollments match this filter.
                         </AdminDataTableCell>
                       </tr>
+                    ) : selectableFilteredRows.length === 0 ? (
+                      <tr>
+                        <AdminDataTableCell colSpan={6} className='py-6 text-sm text-slate-600'>
+                          All matching enrollments are already on a draft or issued invoice.
+                        </AdminDataTableCell>
+                      </tr>
                     ) : (
-                      enrollmentPickerRows.map((row) => {
-                        const blocked = row.invoiceLinked;
+                      selectableFilteredRows.map((row) => {
                         const checked = selectedEnrollmentIds.has(row.enrollmentId);
-                        const blockedNoteId = `billing-enrollment-blocked-note-${row.enrollmentId}`;
                         const amountPaidTrimmed = row.amountPaid?.trim() ?? '';
                         const currencyCode =
                           (row.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
@@ -1255,17 +1258,13 @@ export function ClientInvoicesPanel() {
                           formatEnrollmentPickerInstanceServiceDisplay(row);
                         const partyCellDisplay = formatBillingEnrollmentPartyCell(row);
                         return (
-                          <tr
-                            key={row.enrollmentId}
-                            className={blocked ? 'bg-slate-50 text-slate-500' : undefined}
-                          >
+                          <tr key={row.enrollmentId}>
                             <AdminDataTableCell className='align-top'>
                               <input
                                 type='checkbox'
                                 aria-label={`Select enrollment ${row.enrollmentId}`}
-                                aria-describedby={blocked ? blockedNoteId : undefined}
                                 checked={checked}
-                                disabled={editorBusy || blocked}
+                                disabled={editorBusy}
                                 onChange={(event) => {
                                   const nextChecked = event.target.checked;
                                   setSelectedEnrollmentIds((prev) => {
@@ -1279,11 +1278,6 @@ export function ClientInvoicesPanel() {
                                   });
                                 }}
                               />
-                              {blocked ? (
-                                <span id={blockedNoteId} className='sr-only'>
-                                  Already on a draft or issued invoice.
-                                </span>
-                              ) : null}
                             </AdminDataTableCell>
                             <AdminDataTableCell className='min-w-0 max-w-[22rem] break-words align-top text-sm'>
                               {partyCellDisplay !== '' ? partyCellDisplay : '—'}
@@ -1299,9 +1293,6 @@ export function ClientInvoicesPanel() {
                             </AdminDataTableCell>
                             <AdminDataTableCell className='align-top whitespace-nowrap text-sm'>
                               {row.enrolledAt ? row.enrolledAt.slice(0, 10) : '—'}
-                            </AdminDataTableCell>
-                            <AdminDataTableCell className='align-top text-sm'>
-                              {blocked ? 'On draft/issued invoice' : '—'}
                             </AdminDataTableCell>
                           </tr>
                         );
