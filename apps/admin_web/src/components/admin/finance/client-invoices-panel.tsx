@@ -83,6 +83,7 @@ const DRAFT_FORM_ID = 'client-billing-draft-invoice-form';
 const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
 const REFUND_FORM_ID = 'client-billing-refund-form';
 const MANUAL_PAYMENT_FORM_ID = 'client-billing-manual-payment-form';
+const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
 
 function formatPaymentBankRefShort(value: string | null | undefined): string {
   const t = (value ?? '').trim();
@@ -170,6 +171,7 @@ function normalizeInvoiceRecipientList(raw: string): string {
 export function ClientInvoicesPanel() {
   const draftFilterId = useId();
   const draftModeId = useId();
+  const invoiceSearchFilterId = useId();
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const defaultCurrency = useMemo(() => getAdminDefaultCurrencyCode(), []);
 
@@ -186,6 +188,8 @@ export function ClientInvoicesPanel() {
   const [invoiceListCursor, setInvoiceListCursor] = useState<string | null>(null);
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<'draft' | 'issued' | 'void' | ''>('');
   const [invoiceCurrencyFilter, setInvoiceCurrencyFilter] = useState('');
+  const [invoiceSearchInput, setInvoiceSearchInput] = useState('');
+  const [invoiceSearchDebounced, setInvoiceSearchDebounced] = useState('');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [issuedInvoiceEmailCsv, setIssuedInvoiceEmailCsv] = useState('');
   const [issuedInvoiceEmailError, setIssuedInvoiceEmailError] = useState('');
@@ -277,6 +281,13 @@ export function ClientInvoicesPanel() {
   const lastPaymentSeedIdRef = useRef<string | null>(null);
   const prevIssuedInvoiceSelectionRef = useRef<string | null>(null);
   const issuedInvoiceEmailDirtyRef = useRef(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setInvoiceSearchDebounced(invoiceSearchInput.trim());
+    }, INVOICE_LIST_SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(id);
+  }, [invoiceSearchInput]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CustomerPaymentDetail | null>(null);
@@ -413,6 +424,7 @@ export function ClientInvoicesPanel() {
         {
           status: invoiceStatusFilter === '' ? undefined : invoiceStatusFilter,
           currency: invoiceCurrencyFilter === '' ? undefined : invoiceCurrencyFilter,
+          q: invoiceSearchDebounced === '' ? undefined : invoiceSearchDebounced,
           limit: 50,
         },
         signal,
@@ -429,7 +441,7 @@ export function ClientInvoicesPanel() {
     } finally {
       setInvoiceListLoading(false);
     }
-  }, [invoiceCurrencyFilter, invoiceStatusFilter]);
+  }, [invoiceCurrencyFilter, invoiceSearchDebounced, invoiceStatusFilter]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -447,6 +459,7 @@ export function ClientInvoicesPanel() {
       const { items, next_cursor } = await listCustomerInvoices({
         status: invoiceStatusFilter === '' ? undefined : invoiceStatusFilter,
         currency: invoiceCurrencyFilter === '' ? undefined : invoiceCurrencyFilter,
+        q: invoiceSearchDebounced === '' ? undefined : invoiceSearchDebounced,
         cursor: invoiceListCursor,
         limit: 50,
       });
@@ -458,7 +471,7 @@ export function ClientInvoicesPanel() {
     } finally {
       setInvoiceListLoadingMore(false);
     }
-  }, [invoiceListCursor, invoiceCurrencyFilter, invoiceStatusFilter]);
+  }, [invoiceListCursor, invoiceCurrencyFilter, invoiceSearchDebounced, invoiceStatusFilter]);
 
   const selectedIssuedInvoice = useMemo(() => {
     if (!selectedInvoiceId) {
@@ -1480,6 +1493,18 @@ export function ClientInvoicesPanel() {
         onLoadMore={() => void loadMoreInvoices()}
         toolbar={
           <div className='mb-3 flex flex-wrap items-end gap-4'>
+            <div className='min-w-[min(100%,16rem)] flex-1 basis-[14rem]'>
+              <Label htmlFor={invoiceSearchFilterId}>Filter invoices</Label>
+              <Input
+                id={invoiceSearchFilterId}
+                className='mt-1'
+                value={invoiceSearchInput}
+                onChange={(e) => setInvoiceSearchInput(e.target.value)}
+                placeholder='Search invoice number, bill to, invoice date…'
+                disabled={editorBusy}
+                autoComplete='off'
+              />
+            </div>
             <div>
               <Label htmlFor='billing-invoice-status-filter'>Status</Label>
               <Select

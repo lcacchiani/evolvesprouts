@@ -4209,7 +4209,7 @@ export interface paths {
         };
         /**
          * List customer invoices
-         * @description Cursor-paginated list ordered by `created_at` descending, then `id` descending. Pass `next_cursor` from the previous response as `cursor` for the next page. Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group). Filter by optional `currency` (three-letter ISO code) and `status`.
+         * @description Cursor-paginated list ordered by `created_at` descending, then `id` descending. Pass `next_cursor` from the previous response as `cursor` for the next page. Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group). Filter by optional `currency` (three-letter ISO code), `status`, and free-text `q` (case-insensitive substring match on `invoice_number`, bill-to display name, email, location snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
          */
         get: {
             parameters: {
@@ -4217,6 +4217,8 @@ export interface paths {
                     status?: "draft" | "issued" | "void";
                     /** @description Three-letter ISO currency code (for example HKD). */
                     currency?: string;
+                    /** @description Case-insensitive substring filter on invoice number, bill-to name/email/location text, and invoice issue date (ISO `YYYY-MM-DD` only). */
+                    q?: string;
                     /** @description Opaque cursor from a prior `next_cursor` value. */
                     cursor?: string;
                     limit?: number;

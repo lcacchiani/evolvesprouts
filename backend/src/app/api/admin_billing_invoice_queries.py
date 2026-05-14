@@ -31,6 +31,17 @@ from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import ensure_invoice_pdf_storage
 from app.utils import json_response
 
+_MAX_INVOICE_LIST_Q_LEN = 200
+
+
+def _invoice_list_ilike_pattern(q_raw: str) -> tuple[str, str]:
+    """Build a LIKE pattern and escape character so ``%`` / ``_`` in user input are literal."""
+    esc = "\\"
+    escaped = (
+        q_raw.replace(esc, esc + esc).replace("%", esc + "%").replace("_", esc + "_")
+    )
+    return f"%{escaped}%", esc
+
 
 def list_invoices(
     event: Mapping[str, Any], *, user_sub: str, request_id: str | None
@@ -47,6 +58,9 @@ def list_invoices(
     if currency is not None and len(currency) != 3:
         raise ValidationError("currency must be a 3-letter ISO code", field="currency")
 
+    q_param = query_param(event, "q")
+    q_raw = str(q_param).strip()[:_MAX_INVOICE_LIST_Q_LEN] if q_param else ""
+
     cursor_ts, cursor_id = parse_created_cursor(query_param(event, "cursor"))
 
     with _session_with_audit(user_sub, request_id) as session:
@@ -55,6 +69,18 @@ def list_invoices(
             stmt = stmt.where(CustomerInvoice.status == status_filter)
         if currency is not None:
             stmt = stmt.where(CustomerInvoice.currency == currency)
+        if q_raw:
+            q_pat, like_esc = _invoice_list_ilike_pattern(q_raw)
+            invoice_date_iso = func.to_char(CustomerInvoice.invoice_date, "YYYY-MM-DD")
+            stmt = stmt.where(
+                or_(
+                    CustomerInvoice.invoice_number.ilike(q_pat, escape=like_esc),
+                    CustomerInvoice.bill_to_display_name.ilike(q_pat, escape=like_esc),
+                    CustomerInvoice.bill_to_email.ilike(q_pat, escape=like_esc),
+                    CustomerInvoice.bill_to_location_text.ilike(q_pat, escape=like_esc),
+                    invoice_date_iso.ilike(q_pat, escape=like_esc),
+                )
+            )
         if cursor_ts is not None and cursor_id is not None:
             stmt = stmt.where(
                 or_(

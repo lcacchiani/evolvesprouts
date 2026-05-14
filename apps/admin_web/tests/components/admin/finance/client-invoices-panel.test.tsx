@@ -490,6 +490,25 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
+  it('passes debounced text filter q to listCustomerInvoices', async () => {
+    billingMocks.listCustomerInvoices.mockResolvedValue({ items: [], next_cursor: null });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => expect(billingMocks.listCustomerInvoices).toHaveBeenCalled());
+
+    fireEvent.change(screen.getByLabelText(/Filter invoices/i), { target: { value: 'INV-9' } });
+
+    await waitFor(
+      () => {
+        expect(billingMocks.listCustomerInvoices).toHaveBeenCalledWith(
+          expect.objectContaining({ q: 'INV-9' }),
+          expect.any(AbortSignal),
+        );
+      },
+      { timeout: 4000 },
+    );
+  });
+
   it('issued invoice toolbar send email calls emailInvoice with comma-separated recipients', async () => {
     const invId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listCustomerInvoices.mockResolvedValue({
