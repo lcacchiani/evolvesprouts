@@ -638,7 +638,8 @@ Migration `0055_customer_billing_ar` introduces:
   **`payment_unapplied_amount`** sums allocations **matching the parent payment's currency** only
   (one currency per payment; multi-currency allocation is not supported).
 - `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
-- `document_counters`: serialized invoice/receipt numbering per scope and year.
+- `document_counters`: serialized numbering per scope and year; **invoices** use one
+  global sequence per year (`INV-YYYY-NNNNNN`), while **receipts** keep a per-currency scope.
 - Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.
 - Migration `0057_invoice_dates_snapshot` adds nullable `invoice_date` and `due_date`
   on `customer_invoices`. Drafts persist `invoice_date` at creation (defaulting to today in
