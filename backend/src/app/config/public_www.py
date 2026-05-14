@@ -25,7 +25,9 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-_SECRET_ARN_ENV_VAR = "PUBLIC_WWW_CONFIG_SECRET_ARN"
+_SECRET_ARN_ENV_VAR = (  # nosec B105 - env var key, not a secret value
+    "PUBLIC_WWW_CONFIG_SECRET_ARN"
+)
 
 
 def get_public_www(suffix: str, default: str = "") -> str:
@@ -53,7 +55,10 @@ def get_public_www(suffix: str, default: str = "") -> str:
     except Exception:
         logger.exception(
             "Failed to load PUBLIC_WWW_CONFIG secret",
-            extra={"secret_arn_present": True},
+            extra={
+                # nosec B105 - bool log flag, not a credential value
+                "config_secret_arn_present": True,
+            },
         )
         return default
 
