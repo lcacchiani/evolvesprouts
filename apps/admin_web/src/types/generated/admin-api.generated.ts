@@ -4209,12 +4209,14 @@ export interface paths {
         };
         /**
          * List customer invoices
-         * @description Cursor-paginated list ordered by `created_at` descending, then `id` descending. Pass `next_cursor` from the previous response as `cursor` for the next page. Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group). Filter by optional `currency` (three-letter ISO code), `status`, and free-text `q` (case-insensitive substring match on `invoice_number`, bill-to display name, email, location snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
+         * @description Cursor-paginated list ordered by `created_at` descending, then `id` descending. Pass `next_cursor` from the previous response as `cursor` for the next page. Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group). Filter by optional `currency` (three-letter ISO code), `status`, optional `settlement` (issued invoices only: `open`, `partially_paid`, or `paid`; combined with `status` using AND), and free-text `q` (case-insensitive substring match on `invoice_number`, bill-to display name, email, location snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
          */
         get: {
             parameters: {
                 query?: {
                     status?: "draft" | "issued" | "void";
+                    /** @description Issued-invoice settlement slice for admin filtering: `open` (issued with balance_due > 0), `partially_paid` (issued with amount_allocated > 0 and balance_due > 0), or `paid` (issued, balance_due zero, amount_allocated > 0, total > 0). Combined with `status` using AND. */
+                    settlement?: "open" | "partially_paid" | "paid";
                     /** @description Three-letter ISO currency code (for example HKD). */
                     currency?: string;
                     /** @description Case-insensitive substring filter on invoice number, bill-to name/email/location text, and invoice issue date (ISO `YYYY-MM-DD` only). */
@@ -6300,6 +6302,17 @@ export interface components {
             subtotal?: string;
             taxTotal?: string;
             total?: string;
+            /** @description Sum of payment_allocations for this invoice in the invoice currency (cached). */
+            amountAllocated?: string;
+            /** @description max(total - amount_allocated, 0) in invoice currency (cached). */
+            balanceDue?: string;
+            /**
+             * Format: date-time
+             * @description Time the issued invoice became fully settled (best-effort on historical backfill).
+             */
+            paidAt?: string | null;
+            /** @description True when status is issued, total > 0, and balance_due is zero. */
+            isPaid?: boolean;
             /** @enum {string} */
             billToKind?: "contact" | "family" | "organization";
             /** Format: uuid */

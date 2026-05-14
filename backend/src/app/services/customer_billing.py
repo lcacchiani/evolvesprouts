@@ -465,3 +465,61 @@ def payment_unapplied_amount(session: Session, payment_id: UUID) -> Decimal:
         .where(PaymentAllocation.currency == pay.currency)
     ).scalar_one()
     return Decimal(str(pay.amount)) - Decimal(str(allocated))
+
+
+def recompute_invoice_settlement(session: Session, invoice: CustomerInvoice) -> None:
+    """Refresh ``amount_allocated``, ``balance_due``, and ``paid_at`` from ``payment_allocations``.
+
+    Source of truth is ``payment_allocations`` for this invoice where allocation currency
+    matches the invoice currency. Call inside the same transaction as allocation mutations.
+
+    This function row-locks the invoice (``SELECT … FOR UPDATE``) before recomputing.
+
+    When a DELETE allocation endpoint is added, its handler **must** call this helper after
+    removing rows. ``admin_billing_payments`` does not delete or update allocation rows
+    (payments with allocations cannot be deleted; refunds are separate payment rows).
+    """
+    inv = session.execute(
+        select(CustomerInvoice)
+        .where(CustomerInvoice.id == invoice.id)
+        .with_for_update()
+    ).scalar_one()
+
+    allocated_raw = session.execute(
+        select(func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0))
+        .where(PaymentAllocation.invoice_id == inv.id)
+        .where(PaymentAllocation.currency == inv.currency)
+    ).scalar_one()
+    allocated = Decimal(str(allocated_raw))
+    total = Decimal(str(inv.total))
+    balance_due = total - allocated
+    if balance_due < Decimal("0"):
+        balance_due = Decimal("0")
+
+    inv.amount_allocated = allocated
+    inv.balance_due = balance_due
+
+    if inv.status == BillingInvoiceStatus.VOID:
+        inv.paid_at = None
+    elif balance_due > Decimal("0"):
+        inv.paid_at = None
+    elif (
+        inv.status == BillingInvoiceStatus.ISSUED
+        and balance_due == Decimal("0")
+        and allocated >= total
+        and total > Decimal("0")
+    ):
+        if inv.paid_at is None:
+            inv.paid_at = datetime.now(UTC)
+    else:
+        inv.paid_at = None
+
+    logger.info(
+        "invoice_settlement_recomputed",
+        extra={
+            "invoice_id": str(inv.id),
+            "amount_allocated": str(inv.amount_allocated),
+            "balance_due": str(inv.balance_due),
+            "paid_at": inv.paid_at.isoformat() if inv.paid_at else None,
+        },
+    )

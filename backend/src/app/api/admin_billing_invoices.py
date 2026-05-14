@@ -27,6 +27,7 @@ from app.services.billing_enrollment_confirmation import (
 from app.services.customer_billing import (
     next_invoice_number,
     refresh_invoice_pdf,
+    recompute_invoice_settlement,
     send_invoice_email,
 )
 from app.services.customer_invoice_pdf import (
@@ -140,6 +141,7 @@ def _issue_invoice(
         session.flush()
         refresh_invoice_pdf(session, inv)
         maybe_confirm_enrollments_on_zero_total_invoice_issue(session, inv)
+        recompute_invoice_settlement(session, inv)
 
         return json_response(
             200,
@@ -184,6 +186,7 @@ def _void_invoice(
             ),
             new_values={"reason": inv.void_reason},
         )
+        recompute_invoice_settlement(session, inv)
         return json_response(
             200, {"invoiceId": str(inv.id), "status": "void"}, event=event
         )

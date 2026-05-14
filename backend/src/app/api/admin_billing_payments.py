@@ -1,4 +1,9 @@
-"""Admin billing: customer payments."""
+"""Admin billing: customer payments.
+
+Invoice settlement fields on ``customer_invoices`` are recomputed from
+``payment_allocations`` in allocation and invoice handlers; this module does not
+mutate allocation rows (orphan payment delete is blocked when allocations exist).
+"""
 
 from __future__ import annotations
 
