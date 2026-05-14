@@ -92,7 +92,9 @@ def create_manual_inbound_payment(
     user_sub: str,
     request_id: str | None,
     serialize_payment: Callable[..., dict[str, Any]],
-    batch_orphan_payment_deletable: Callable[[Session, list[CustomerPayment]], dict[UUID, bool]],
+    batch_orphan_payment_deletable: Callable[
+        [Session, list[CustomerPayment]], dict[UUID, bool]
+    ],
 ) -> dict[str, Any]:
     """Create an inbound customer payment linked to an enrollment (admin manual entry)."""
     raw_eid = body.get("enrollmentId") or body.get("enrollment_id")

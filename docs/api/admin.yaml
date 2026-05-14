@@ -6563,7 +6563,9 @@ components:
           type: string
           description: >
             Must normalize to one of: `free`, `stripe_card`, `fps`, `bank_transfer`, `adjustment`,
-            `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted).
+            `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted). Stored
+            values follow the same canonical set (for example `bank_transfer`, `fps`,
+            `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`.
           minLength: 1
           maxLength: 64
         status:

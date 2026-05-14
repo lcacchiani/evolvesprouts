@@ -6357,7 +6357,7 @@ export interface components {
             /** @description Decimal amount as string; must be non-negative. */
             amount: string;
             currency: string;
-            /** @description Must normalize to one of: `free`, `stripe_card`, `fps`, `bank_transfer`, `adjustment`, `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted). */
+            /** @description Must normalize to one of: `free`, `stripe_card`, `fps`, `bank_transfer`, `adjustment`, `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted). Stored values follow the same canonical set (for example `bank_transfer`, `fps`, `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`. */
             method: string;
             /**
              * @description `pending` for funds not yet cleared; `succeeded` when funds are received (receipt generation follows server rules). Zero amounts are always stored as succeeded `free`.
