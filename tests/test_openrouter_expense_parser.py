@@ -106,7 +106,9 @@ def test_parse_invoice_sends_images_as_image_url(monkeypatch: Any) -> None:
     assert payload["response_format"] == {"type": "json_object"}
 
 
-def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(monkeypatch: Any) -> None:
+def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(
+    monkeypatch: Any,
+) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
 
@@ -340,7 +342,12 @@ def test_normalize_result_total_from_line_items_when_total_missing() -> None:
             "tax": None,
             "total": None,
             "line_items": [
-                {"description": "A", "quantity": 1, "unit_price": 10, "amount": "10.00"},
+                {
+                    "description": "A",
+                    "quantity": 1,
+                    "unit_price": 10,
+                    "amount": "10.00",
+                },
                 {"description": "B", "quantity": 1, "unit_price": 5, "amount": "$5.00"},
             ],
             "confidence": None,
@@ -545,7 +552,9 @@ def _bulk_chat_completion_body(content_text: str) -> str:
     )
 
 
-def test_parse_bulk_expense_invoices_sets_json_response_format(monkeypatch: Any) -> None:
+def test_parse_bulk_expense_invoices_sets_json_response_format(
+    monkeypatch: Any,
+) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
 
@@ -681,6 +690,97 @@ def test_parse_bulk_expense_invoices_repairs_invalid_json(monkeypatch: Any) -> N
     assert len(rows) == 1
     assert rows[0]["invoice_number"] == "1"
     assert rows[0]["total"] == 5.0
+
+
+def test_coerce_bulk_invoice_list_passes_through_top_level_array() -> None:
+    rows = [{"vendor_name": "A"}, {"vendor_name": "B"}]
+    assert parser._coerce_bulk_invoice_list(rows) is rows
+
+
+def test_coerce_bulk_invoice_list_accepts_alias_keys() -> None:
+    rows = [{"vendor_name": "A"}]
+    for key in ("invoices", "records", "data", "results", "rows", "expenses"):
+        assert parser._coerce_bulk_invoice_list({key: rows}) == rows
+
+
+def test_coerce_bulk_invoice_list_uses_single_unknown_list_of_dicts() -> None:
+    rows = [{"vendor_name": "Acme", "total": 10}]
+    out = parser._coerce_bulk_invoice_list({"meta": {"page_count": 1}, "things": rows})
+    assert out == rows
+
+
+def test_coerce_bulk_invoice_list_picks_most_invoice_like_when_multiple() -> None:
+    invoice_like = [{"vendor_name": "Acme", "total": 1}]
+    decoy = [{"some_other": "value"}]
+    out = parser._coerce_bulk_invoice_list({"noise": decoy, "best_match": invoice_like})
+    assert out == invoice_like
+
+
+def test_coerce_bulk_invoice_list_wraps_single_top_level_invoice() -> None:
+    single = {"vendor_name": "Acme", "total": 10, "currency": "USD"}
+    out = parser._coerce_bulk_invoice_list(single)
+    assert out == [single]
+
+
+def test_coerce_bulk_invoice_list_raises_with_keys_preview_on_unknown_shape() -> None:
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._coerce_bulk_invoice_list({"alpha": "x", "beta": 2, "gamma": [1, 2, 3]})
+    msg = str(exc_info.value)
+    assert "alpha" in msg
+    assert "beta" in msg
+    assert "gamma" in msg
+
+
+def test_parse_bulk_expense_invoices_accepts_data_alias(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    payload_text = json.dumps(
+        {
+            "data": [
+                {
+                    "vendor_name": "Shop X",
+                    "invoice_number": "9",
+                    "invoice_date": "2026-03-04",
+                    "due_date": None,
+                    "currency": "USD",
+                    "subtotal": 8,
+                    "tax": 0,
+                    "total": 8,
+                    "line_items": [],
+                    "confidence": 0.9,
+                }
+            ]
+        }
+    )
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(payload_text),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-data",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Shop X"
+    assert rows[0]["total"] == 8.0
 
 
 def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(

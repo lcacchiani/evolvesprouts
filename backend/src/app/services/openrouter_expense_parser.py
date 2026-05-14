@@ -336,25 +336,98 @@ def _parse_completion_body(body: str) -> dict[str, Any]:
     return parsed
 
 
+# Top-level keys the bulk parser will accept as "the invoices array" without
+# any further inspection. Order does not matter for correctness, but ``invoices``
+# and ``records`` are checked first because the prompt asks for those two.
+_BULK_LIST_KEY_ALIASES = (
+    "invoices",
+    "records",
+    "data",
+    "results",
+    "rows",
+    "items",
+    "expenses",
+    "transactions",
+    "charges",
+    "entries",
+)
+
+# Keys that, if present on a dict, strongly suggest the dict is an invoice row.
+# Used to disambiguate when the model wraps the rows under an unexpected key,
+# and to wrap a single top-level invoice object as a one-row import.
+_INVOICE_ROW_HINT_KEYS = (
+    "vendor_name",
+    "invoice_number",
+    "invoice_date",
+    "due_date",
+    "currency",
+    "subtotal",
+    "tax",
+    "total",
+    "amount",
+    "line_items",
+)
+
+
+def _looks_like_invoice_dict(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    return any(key in value for key in _INVOICE_ROW_HINT_KEYS)
+
+
+def _coerce_bulk_invoice_list(parsed: Any) -> list[Any]:
+    """Best-effort coercion of a parsed JSON value into a list of invoice rows.
+
+    Handles common shape variations the model emits in practice: the requested
+    ``{"invoices":[...]}`` shape, alias keys (``data``, ``results``, ...), an
+    unknown key whose value is the only list-of-dicts in the object, multiple
+    candidate lists (the most invoice-like one wins), and a single invoice
+    object at the top level (wrapped as a one-row list).
+    """
+    if isinstance(parsed, list):
+        return parsed
+    if not isinstance(parsed, dict):
+        raise RuntimeError("Bulk parser response payload has invalid shape")
+
+    for key in _BULK_LIST_KEY_ALIASES:
+        candidate = parsed.get(key)
+        if isinstance(candidate, list):
+            return candidate
+
+    list_candidates: list[list[Any]] = [
+        value
+        for value in parsed.values()
+        if isinstance(value, list) and any(isinstance(item, dict) for item in value)
+    ]
+    if len(list_candidates) == 1:
+        return list_candidates[0]
+    if len(list_candidates) > 1:
+        scored = sorted(
+            (
+                (sum(1 for item in lst if _looks_like_invoice_dict(item)), idx, lst)
+                for idx, lst in enumerate(list_candidates)
+            ),
+            key=lambda triple: (-triple[0], triple[1]),
+        )
+        best_score, _idx, best_list = scored[0]
+        if best_score > 0:
+            return best_list
+
+    if _looks_like_invoice_dict(parsed):
+        return [parsed]
+
+    keys_preview = ", ".join(sorted(parsed.keys())[:10]) or "<empty object>"
+    raise RuntimeError(
+        "Bulk parser response must be an array or an object with an array of "
+        f"invoice rows; got top-level keys: {keys_preview}"
+    )
+
+
 def _parse_bulk_invoices_payload(body: str) -> list[dict[str, Any]]:
     """Parse OpenRouter envelope and return raw invoice objects for bulk import."""
     cleaned = _extract_message_text(body)
     parsed = _loads_with_repair(cleaned, expecting="bulk invoices")
-    raw_list: list[Any]
-    if isinstance(parsed, list):
-        raw_list = parsed
-    elif isinstance(parsed, dict):
-        inner = parsed.get("invoices")
-        if inner is None:
-            inner = parsed.get("records")
-        if not isinstance(inner, list):
-            raise RuntimeError(
-                "Bulk parser response must be an array or an object with "
-                '"invoices" or "records" array'
-            )
-        raw_list = inner
-    else:
-        raise RuntimeError("Bulk parser response payload has invalid shape")
+    raw_list = _coerce_bulk_invoice_list(parsed)
 
     invoices: list[dict[str, Any]] = []
     for entry in raw_list:
