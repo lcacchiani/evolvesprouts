@@ -84,6 +84,14 @@ const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
 const REFUND_FORM_ID = 'client-billing-refund-form';
 const MANUAL_PAYMENT_FORM_ID = 'client-billing-manual-payment-form';
 
+function formatPaymentBankRefShort(value: string | null | undefined): string {
+  const t = (value ?? '').trim();
+  if (t === '') {
+    return '—';
+  }
+  return t.length > 28 ? `${t.slice(0, 25)}…` : t;
+}
+
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
 
 function invoiceLineSortKey(line: CustomerInvoiceLineRow): number {
@@ -248,6 +256,23 @@ export function ClientInvoicesPanel() {
   const [createPaymentMethod, setCreatePaymentMethod] = useState('bank_transfer');
   const [createPaymentStatus, setCreatePaymentStatus] = useState<'pending' | 'succeeded'>('pending');
   const [createPaymentExternalRef, setCreatePaymentExternalRef] = useState('');
+
+  const createPaymentEnrollmentPickerValue = useMemo(() => {
+    const tid = createPaymentEnrollmentId.trim();
+    if (tid === '') {
+      return '';
+    }
+    return enrollmentPickerRows.some((r) => r.enrollmentId === tid) ? tid : '';
+  }, [createPaymentEnrollmentId, enrollmentPickerRows]);
+
+  const createPaymentEnrollmentSummary = useMemo(() => {
+    const tid = createPaymentEnrollmentId.trim();
+    if (tid === '') {
+      return '';
+    }
+    const row = enrollmentPickerRows.find((r) => r.enrollmentId === tid);
+    return row?.partyDisplayName?.trim() ?? '';
+  }, [createPaymentEnrollmentId, enrollmentPickerRows]);
 
   const lastPaymentSeedIdRef = useRef<string | null>(null);
   const prevIssuedInvoiceSelectionRef = useRef<string | null>(null);
@@ -1922,7 +1947,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title='Record customer payment'
-        description='Link an inbound payment to an enrollment you created in Services (paste the enrollment UUID). Use Pending until funds clear, then confirm or record as Succeeded when appropriate. Zero amounts are stored as succeeded free payments.'
+        description='Choose a recent enrollment from the picker (same list as draft invoices) or paste its UUID. Currency must match the enrollment billing currency. Use Pending until funds clear, then confirm or record as Succeeded when appropriate.'
         actions={
           <Button
             type='submit'
@@ -1941,17 +1966,49 @@ export function ClientInvoicesPanel() {
         >
           <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
             <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-enrollment'>Enrollment id</Label>
+              <Label htmlFor='billing-create-pay-enrollment-select'>Enrollment (recent)</Label>
+              <Select
+                id='billing-create-pay-enrollment-select'
+                className='mt-1 w-full min-w-0'
+                value={createPaymentEnrollmentPickerValue}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCreatePaymentEnrollmentId(v);
+                  const row = enrollmentPickerRows.find((r) => r.enrollmentId === v);
+                  if (row?.currency) {
+                    setCreatePaymentCurrency(row.currency);
+                  }
+                }}
+                disabled={editorBusy}
+              >
+                <option value=''>Choose from recent enrollments…</option>
+                {enrollmentPickerRows.map((row) => (
+                  <option key={row.enrollmentId} value={row.enrollmentId}>
+                    {formatBillingEnrollmentPartyCell(row)} — {formatTruncatedId(row.enrollmentId)} (
+                    {row.currency})
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-enrollment'>Or paste enrollment UUID</Label>
               <Input
                 id='billing-create-pay-enrollment'
                 value={createPaymentEnrollmentId}
-                onChange={(e) => setCreatePaymentEnrollmentId(e.target.value)}
+                onChange={(e) => {
+                  setCreatePaymentEnrollmentId(e.target.value);
+                }}
                 className='mt-1 w-full min-w-0 font-mono text-sm'
                 disabled={editorBusy}
                 autoComplete='off'
                 placeholder='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
               />
+              {createPaymentEnrollmentSummary ? (
+                <p className='mt-1 text-xs text-slate-600'>{createPaymentEnrollmentSummary}</p>
+              ) : null}
             </div>
+          </div>
+          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
             <div className='min-w-0'>
               <Label htmlFor='billing-create-pay-status'>Payment status</Label>
               <Select
@@ -1976,6 +2033,9 @@ export function ClientInvoicesPanel() {
                 className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
                 disabled={editorBusy}
               />
+              <p className='mt-1 text-xs text-slate-600'>
+                Zero amounts are stored as succeeded free payments (method is coerced to free).
+              </p>
             </div>
             <div className='min-w-0'>
               <Label htmlFor='billing-create-pay-currency'>Currency</Label>
@@ -2041,13 +2101,14 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[640px]'>
+        <AdminDataTable tableClassName='min-w-[860px]'>
           <AdminDataTableHead>
             <tr>
               <AdminDataTableHeadCell>Direction</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Method</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Bank ref</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
@@ -2080,6 +2141,9 @@ export function ClientInvoicesPanel() {
                   <AdminDataTableCell>{formatEnumLabel(p.status ?? '')}</AdminDataTableCell>
                   <AdminDataTableCell>{formatPaymentMethodLabel(p.method)}</AdminDataTableCell>
                   <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell className='max-w-[12rem] truncate font-mono text-xs'>
+                    {formatPaymentBankRefShort(p.externalReference ?? null)}
+                  </AdminDataTableCell>
                   <AdminDataTableCell>{formatDate(p.createdAt ?? null)}</AdminDataTableCell>
                   <AdminDataTableCell
                     className='text-right'
@@ -2129,6 +2193,26 @@ export function ClientInvoicesPanel() {
             })}
           </AdminDataTableBody>
         </AdminDataTable>
+        {selectedId ? (
+          <div className='mt-4 border-t border-slate-200 pt-4 text-sm text-slate-700'>
+            {detailLoading ? (
+              <p className='text-xs text-slate-600'>Loading payment details…</p>
+            ) : detail ? (
+              <dl className='grid max-w-xl gap-2'>
+                <div>
+                  <dt className='font-medium text-slate-800'>Unapplied amount</dt>
+                  <dd>{detail.unappliedAmount ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt className='font-medium text-slate-800'>Bank / external reference</dt>
+                  <dd className='font-mono text-xs'>
+                    {detail.externalReference?.trim() ? detail.externalReference : '—'}
+                  </dd>
+                </div>
+              </dl>
+            ) : null}
+          </div>
+        ) : null}
       </PaginatedTableCard>
 
       <ConfirmDialog

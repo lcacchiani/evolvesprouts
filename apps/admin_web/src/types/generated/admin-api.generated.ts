@@ -3965,6 +3965,17 @@ export interface paths {
                 };
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
+                /** @description Duplicate manual inbound payment for the same enrollment and external reference (partial unique index on non-null `external_reference`). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
             };
         };
         delete?: never;
@@ -6246,6 +6257,8 @@ export interface components {
             enrollmentId?: string | null;
             /** Format: uuid */
             contactId?: string | null;
+            /** @description Bank reference or external id when set on the payment row. */
+            externalReference?: string | null;
             /** @description True when DELETE /v1/admin/billing/payments/{id} is allowed for this row (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations, receipt, or refund children). */
             orphanPaymentDeletable: boolean;
             /** Format: date-time */
@@ -6344,7 +6357,7 @@ export interface components {
             /** @description Decimal amount as string; must be non-negative. */
             amount: string;
             currency: string;
-            /** @description Stored billing method after normalization (for example `bank_transfer`, `fps`, `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`. */
+            /** @description Must normalize to one of: `free`, `stripe_card`, `fps`, `bank_transfer`, `adjustment`, `cash`, `cheque` (aliases such as card, wire, transfer, check are accepted). Stored values follow the same canonical set (for example `bank_transfer`, `fps`, `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`. */
             method: string;
             /**
              * @description `pending` for funds not yet cleared; `succeeded` when funds are received (receipt generation follows server rules). Zero amounts are always stored as succeeded `free`.
