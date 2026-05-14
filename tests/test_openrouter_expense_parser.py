@@ -103,6 +103,7 @@ def test_parse_invoice_sends_images_as_image_url(monkeypatch: Any) -> None:
     assert image_input["type"] == "image_url"
     assert image_input["image_url"]["url"].startswith("data:image/png;base64,")
     assert "plugins" not in payload
+    assert payload["response_format"] == {"type": "json_object"}
 
 
 def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(monkeypatch: Any) -> None:
@@ -528,3 +529,197 @@ def test_parse_bulk_expense_invoices_normalizes_each_row(monkeypatch: Any) -> No
     assert rows[0]["invoice_number"] == "1"
     assert rows[0]["total"] == 10.0
     assert rows[1]["vendor_name"] == "Shop B"
+
+
+def _bulk_chat_completion_body(content_text: str) -> str:
+    return json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": content_text,
+                    }
+                }
+            ]
+        }
+    )
+
+
+def test_parse_bulk_expense_invoices_sets_json_response_format(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    captured_payloads: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured_payloads.append(json.loads(kwargs["body"]))
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(
+                json.dumps(
+                    {
+                        "invoices": [
+                            {
+                                "vendor_name": "Shop",
+                                "invoice_number": "1",
+                                "invoice_date": "2026-01-01",
+                                "due_date": None,
+                                "currency": "HKD",
+                                "subtotal": 1,
+                                "tax": 0,
+                                "total": 1,
+                                "line_items": [],
+                                "confidence": 0.9,
+                            }
+                        ]
+                    }
+                )
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-rf",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+
+    assert len(captured_payloads) == 1
+    assert captured_payloads[0]["response_format"] == {"type": "json_object"}
+
+
+def test_parse_bulk_expense_invoices_repairs_invalid_json(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    valid_payload = {
+        "invoices": [
+            {
+                "vendor_name": "Shop",
+                "invoice_number": "1",
+                "invoice_date": "2026-02-03",
+                "due_date": None,
+                "currency": "HKD",
+                "subtotal": 5,
+                "tax": 0,
+                "total": 5,
+                "line_items": [
+                    {
+                        "description": 'Apple iPhone 15 "Pro" case 6.1"',
+                        "quantity": 1,
+                        "unit_price": 5,
+                        "amount": 5,
+                    }
+                ],
+                "confidence": 0.9,
+            }
+        ]
+    }
+    # Hand-crafted broken JSON (unescaped inner quote in description) that mimics
+    # the production failure mode.
+    broken_text = (
+        '{"invoices": [{"vendor_name": "Shop", "invoice_number": "1",'
+        ' "invoice_date": "2026-02-03", "due_date": null, "currency": "HKD",'
+        ' "subtotal": 5, "tax": 0, "total": 5,'
+        ' "line_items": [{"description": "Apple iPhone 15 "Pro" case 6.1"",'
+        ' "quantity": 1, "unit_price": 5, "amount": 5}],'
+        ' "confidence": 0.9}]}'
+    )
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        payload = json.loads(kwargs["body"])
+        call_log.append(payload)
+        if len(call_log) == 1:
+            return {
+                "status": 200,
+                "body": _bulk_chat_completion_body(broken_text),
+            }
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(json.dumps(valid_payload)),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-repair",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+
+    assert len(call_log) == 2, "expected one initial call plus one repair call"
+    repair_call = call_log[1]
+    assert "plugins" not in repair_call, "repair call must not re-attach the PDF plugin"
+    repair_user_text = repair_call["messages"][1]["content"][0]["text"]
+    assert "BROKEN_JSON_BEGIN" in repair_user_text
+    assert "Apple iPhone 15" in repair_user_text
+    assert len(rows) == 1
+    assert rows[0]["invoice_number"] == "1"
+    assert rows[0]["total"] == 5.0
+
+
+def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(
+    monkeypatch: Any,
+) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    broken_text = (
+        '{"invoices": [{"vendor_name": "Shop A", "description":'
+        ' "MARKER_TOKEN "Pro" model"}]}'
+    )
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(broken_text),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_bulk_expense_invoices_from_assets(
+            [
+                {
+                    "id": "asset-fail",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ],
+            timeout=25,
+        )
+
+    msg = str(exc_info.value)
+    assert "even after repair" in msg
+    assert "MARKER_TOKEN" in msg
