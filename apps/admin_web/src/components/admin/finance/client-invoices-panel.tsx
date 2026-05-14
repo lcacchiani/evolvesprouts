@@ -69,7 +69,6 @@ import {
   ENROLLMENT_PICKER_INSTANCE_SERVICE_HEADER,
   INSTANCE_TABLE_TIER_COHORT_HEADER,
   formatBillingEnrollmentPartyCell,
-  formatDate,
   formatDateOnly,
   formatEnumLabel,
   formatEnrollmentPickerInstanceServiceDisplay,
@@ -1853,7 +1852,7 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[1080px]'>
+        <AdminDataTable tableClassName='min-w-[960px]'>
           <AdminDataTableHead>
             <tr>
               <AdminDataTableHeadCell>Direction</AdminDataTableHeadCell>
@@ -1863,7 +1862,6 @@ export function ClientInvoicesPanel() {
               <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Unapplied amount</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Bank ref</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -1910,7 +1908,6 @@ export function ClientInvoicesPanel() {
                   <AdminDataTableCell className='max-w-[12rem] truncate font-mono text-xs'>
                     {formatPaymentBankRefShort(p.externalReference ?? null)}
                   </AdminDataTableCell>
-                  <AdminDataTableCell>{formatDate(p.createdAt ?? null)}</AdminDataTableCell>
                   <AdminDataTableCell
                     className='text-right'
                     onClick={(event) => {
