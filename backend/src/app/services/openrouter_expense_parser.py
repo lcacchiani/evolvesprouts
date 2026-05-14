@@ -107,6 +107,10 @@ def _openrouter_chat_completion(
     payload: dict[str, Any] = {
         "model": model,
         "temperature": 0,
+        # Force JSON-mode so the model cannot emit prose, fences, or partial
+        # objects. Combined with the schema prompts this dramatically reduces
+        # the JSONDecodeError rate on bulk parses with quoted descriptions.
+        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content_blocks},
@@ -206,7 +210,8 @@ def _normalize_content_type(asset: Mapping[str, Any]) -> str:
     return "application/octet-stream"
 
 
-def _parse_completion_body(body: str) -> dict[str, Any]:
+def _extract_message_text(body: str) -> str:
+    """Pull the model-generated text out of an OpenRouter chat completion body."""
     payload = json.loads(body)
     if not isinstance(payload, dict):
         raise RuntimeError("OpenRouter response must be a JSON object")
@@ -229,14 +234,103 @@ def _parse_completion_body(body: str) -> dict[str, Any]:
         raw_text = "\n".join(part for part in text_parts if part)
     else:
         raw_text = str(content or "")
-    cleaned = (
+    return (
         raw_text.strip()
         .removeprefix("```json")
         .removeprefix("```")
         .removesuffix("```")
         .strip()
     )
-    parsed = json.loads(cleaned)
+
+
+_JSON_SNIPPET_RADIUS = 80
+_JSON_REPAIR_TIMEOUT_SECONDS = 60
+
+
+def _json_failure_snippet(text: str, error: json.JSONDecodeError) -> str:
+    """Return a short, redacted slice of ``text`` around the parser failure offset."""
+    offset = max(0, getattr(error, "pos", 0))
+    start = max(0, offset - _JSON_SNIPPET_RADIUS)
+    end = min(len(text), offset + _JSON_SNIPPET_RADIUS)
+    snippet = text[start:end].replace("\n", "\\n").replace("\r", "\\r")
+    return f"...{snippet}..."
+
+
+def _loads_with_repair(cleaned: str, *, expecting: str) -> Any:
+    """``json.loads`` with one OpenRouter-driven repair attempt on failure.
+
+    ``expecting`` is a short human description used in logs/errors (for example
+    ``"single invoice"`` or ``"bulk invoices"``).
+    """
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as initial:
+        snippet = _json_failure_snippet(cleaned, initial)
+        logger.warning(
+            "OpenRouter JSON parse failed; attempting repair",
+            extra={
+                "expecting": expecting,
+                "error": str(initial),
+                "snippet": snippet,
+                "length": len(cleaned),
+            },
+        )
+        try:
+            repaired = _request_json_repair(cleaned, str(initial))
+        except Exception as repair_exc:
+            logger.warning(
+                "OpenRouter JSON repair call failed",
+                extra={"expecting": expecting, "error": repr(repair_exc)},
+            )
+            raise RuntimeError(
+                f"Parser returned invalid JSON for {expecting}: {initial} "
+                f"near {snippet}"
+            ) from initial
+        try:
+            return json.loads(repaired)
+        except json.JSONDecodeError as after_repair:
+            repaired_snippet = _json_failure_snippet(repaired, after_repair)
+            logger.warning(
+                "OpenRouter JSON repair returned invalid JSON",
+                extra={
+                    "expecting": expecting,
+                    "error": str(after_repair),
+                    "snippet": repaired_snippet,
+                },
+            )
+            raise RuntimeError(
+                f"Parser returned invalid JSON for {expecting} even after "
+                f"repair: {after_repair} near {repaired_snippet}"
+            ) from after_repair
+
+
+def _request_json_repair(broken_text: str, parse_error: str) -> str:
+    """Ask OpenRouter to rewrite ``broken_text`` as valid JSON, return the cleaned text."""
+    repair_user = (
+        "The following text was supposed to be a single valid JSON document but "
+        f"failed to parse with this error: {parse_error}. "
+        "Return the same data as STRICT, valid JSON only. "
+        "Escape any embedded double quotes inside string values. "
+        "Do not add commentary, markdown, or code fences. "
+        "Preserve the original keys and structure exactly.\n\n"
+        "BROKEN_JSON_BEGIN\n"
+        f"{broken_text}\n"
+        "BROKEN_JSON_END"
+    )
+    body = _openrouter_chat_completion(
+        system_prompt=(
+            "You repair malformed JSON documents and return strict JSON only."
+        ),
+        user_content_blocks=[{"type": "text", "text": repair_user}],
+        has_pdf_attachment=False,
+        timeout=_JSON_REPAIR_TIMEOUT_SECONDS,
+    )
+    return _extract_message_text(body)
+
+
+def _parse_completion_body(body: str) -> dict[str, Any]:
+    cleaned = _extract_message_text(body)
+    parsed = _loads_with_repair(cleaned, expecting="single invoice")
     if not isinstance(parsed, dict):
         raise RuntimeError("Parser response payload is not an object")
     return parsed
@@ -244,36 +338,8 @@ def _parse_completion_body(body: str) -> dict[str, Any]:
 
 def _parse_bulk_invoices_payload(body: str) -> list[dict[str, Any]]:
     """Parse OpenRouter envelope and return raw invoice objects for bulk import."""
-    payload = json.loads(body)
-    if not isinstance(payload, dict):
-        raise RuntimeError("OpenRouter response must be a JSON object")
-    choices = payload.get("choices")
-    if not isinstance(choices, list) or not choices:
-        raise RuntimeError("OpenRouter response choices are missing")
-    first_choice = choices[0]
-    if not isinstance(first_choice, dict):
-        raise RuntimeError("OpenRouter response choice has invalid shape")
-    message = first_choice.get("message")
-    if not isinstance(message, dict):
-        raise RuntimeError("OpenRouter response message is missing")
-    content = message.get("content")
-    if isinstance(content, list):
-        text_parts = [
-            str(item.get("text"))
-            for item in content
-            if isinstance(item, dict) and item.get("type") == "text"
-        ]
-        raw_text = "\n".join(part for part in text_parts if part)
-    else:
-        raw_text = str(content or "")
-    cleaned = (
-        raw_text.strip()
-        .removeprefix("```json")
-        .removeprefix("```")
-        .removesuffix("```")
-        .strip()
-    )
-    parsed = json.loads(cleaned)
+    cleaned = _extract_message_text(body)
+    parsed = _loads_with_repair(cleaned, expecting="bulk invoices")
     raw_list: list[Any]
     if isinstance(parsed, list):
         raw_list = parsed

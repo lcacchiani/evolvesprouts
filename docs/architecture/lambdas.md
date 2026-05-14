@@ -507,8 +507,16 @@ their primary responsibilities.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: same OpenRouter + S3 + proxy invoke pattern as `ExpenseParserFunction`
+- JSON robustness: every OpenRouter chat completion call sets
+  `response_format={"type":"json_object"}`. When the model still returns text that
+  fails `json.loads` (most often unescaped quotes inside line-item descriptions),
+  the parser logs a redacted ±80-char snippet around the failure offset and
+  retries once with a JSON-repair chat completion (no PDF re-attached, capped at
+  60s). A second failure marks the job `failed` with a snippet-bearing message
+  instead of a bare `JSONDecodeError`.
 - Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility; OpenRouter bulk
-  calls cap at **240s** so DB writes stay inside the Lambda window
+  calls cap at **240s** plus an optional **60s** JSON-repair retry, so DB writes
+  stay inside the Lambda window
 - Concurrency: no per-function reserved concurrency in CDK (shared unreserved pool) so
   deploys remain valid when the account already reserves capacity on other Lambdas
 - Environment:
