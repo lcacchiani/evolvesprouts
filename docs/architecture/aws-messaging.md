@@ -358,7 +358,7 @@ SQS retries or mailbox forwarding duplicates.
 | `BULK_EXPENSE_IMPORT_QUEUE_URL` | SQS queue URL for async bulk combined-PDF imports (admin enqueue) |
 | `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
 | `CONFIRMATION_EMAIL_FROM_ADDRESS` | SES-verified from address for customer-facing templated emails on legacy public routes (`EvolvesproutsAdminFunction`) |
-| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (Contact Us FAQ anchor in contact confirmation templates: `/{locale}/contact-us#contact-us-faq`) |
+| `PUBLIC_WWW_CONFIG_SECRET_ARN` | Secrets Manager JSON object whose `BASE_URL` field is the HTTPS origin of the public website (Contact Us FAQ anchor in contact confirmation templates: `/{locale}/contact-us#contact-us-faq`); see `app.config.public_www`. Other fields supply social URLs / business info / AR-invoice content for the admin Lambda. |
 | `MAILCHIMP_API_SECRET_ARN` | Mailchimp API key secret (marketing subscribe after opt-in on legacy routes) |
 | `MAILCHIMP_LIST_ID` | Mailchimp audience ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp API host prefix |
@@ -394,7 +394,7 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_REQUIRE_MARKETING_CONSENT` | When `true`, gate legacy Mailchimp subscribe + free-resource journey on `marketing_opt_in` |
 | `MAILCHIMP_WELCOME_JOURNEY_ID` | Optional shared welcome journey ID for opted-in media leads (empty disables) |
 | `MAILCHIMP_WELCOME_JOURNEY_STEP_ID` | Optional welcome journey entry step ID (empty disables) |
-| `PUBLIC_WWW_BASE_URL` | HTTPS origin of the public website (reserved for template helpers) |
+| `PUBLIC_WWW_CONFIG_SECRET_ARN` | Secrets Manager JSON object shared with the admin Lambda; supplies `BASE_URL` (HTTPS origin of the public website) for SES HTML shell logo/footer links and optional `INSTAGRAM_URL` / `LINKEDIN_URL` / `WHATSAPP_URL` / `BUSINESS_PHONE_NUMBER` for the same shell. Loaded once per cold start and cached for five minutes (`app.config.public_www`). |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for AWS proxy (`ListUsersInGroup` for sales recap recipients) |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
