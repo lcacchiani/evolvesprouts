@@ -205,6 +205,22 @@ export async function createManualInboundCustomerPayment(
   return root.payment;
 }
 
+export async function updateManualInboundCustomerPayment(
+  id: string,
+  body: ApiSchemas['UpdateManualInboundCustomerPaymentRequest'],
+): Promise<CustomerPaymentSummary> {
+  const payload = await adminApiRequest<{ payment?: CustomerPaymentSummary }>({
+    endpointPath: `/v1/admin/billing/payments/${id}`,
+    method: 'PATCH',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  if (!root.payment) {
+    throw new Error('Update payment response missing payment.');
+  }
+  return root.payment;
+}
+
 /**
  * After Services creates an enrollment, record a matching inbound customer payment:
  * pending `bank_transfer` when amount is positive, or succeeded `free` at zero when amount is empty/zero.

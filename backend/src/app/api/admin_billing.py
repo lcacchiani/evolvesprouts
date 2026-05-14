@@ -31,6 +31,7 @@ from app.api.admin_billing_payments import (
     _get_payment,
     _list_payments,
     _unapplied,
+    _update_manual_inbound_payment,
 )
 from app.api.admin_request import parse_uuid, request_id
 from app.api.assets.assets_common import extract_identity, split_route_parts
@@ -78,6 +79,10 @@ def handle_admin_billing_request(
         pid = parse_uuid(parts[3])
         if method == "GET":
             return _get_payment(event, pid, user_sub=identity.user_sub, request_id=req)
+        if method == "PATCH":
+            return _update_manual_inbound_payment(
+                event, pid, user_sub=identity.user_sub, request_id=req
+            )
         if method == "DELETE":
             return _delete_payment(
                 event, pid, user_sub=identity.user_sub, request_id=req

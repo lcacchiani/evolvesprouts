@@ -21,6 +21,7 @@ from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
 from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
+from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
 from app.api import admin_billing_payments as admin_billing_payments_mod
 from app.api.admin_billing_common import (
     effective_enrollment_bill_to_fks,
@@ -45,6 +46,7 @@ def _patch_billing_sessions(monkeypatch: pytest.MonkeyPatch, fake_session: Any) 
     for mod in (
         admin_billing_payments_mod,
         admin_billing_payment_create_mod,
+        admin_billing_payment_update_mod,
         admin_billing_invoice_queries_mod,
         admin_billing_invoices_mod,
         admin_billing_invoice_drafts_mod,
@@ -2628,6 +2630,101 @@ def test_manual_inbound_payment_enrollment_not_found(
     )
     with pytest.raises(NotFoundError, match="Enrollment"):
         admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+
+
+def test_patch_manual_inbound_payment_not_found(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(_model: Any, _pk: Any) -> Any:
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+        "externalReference": None,
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(NotFoundError, match="CustomerPayment"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_stripe_linked(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = "pi_abc"
+    pay.enrollment_id = eid
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+        "externalReference": None,
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Stripe-linked"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
 
 
 def test_manual_inbound_payment_cancelled_enrollment_rejected(

@@ -502,3 +502,24 @@ def _confirm_payment(
                 extra={"receipt_id": str(receipt_id_for_upload)},
             )
     return json_response(200, {"payment": out}, event=event)
+
+
+def _update_manual_inbound_payment(
+    event: Mapping[str, Any],
+    payment_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    from app.api.admin_billing_payment_update import (
+        update_manual_inbound_customer_payment,
+    )
+
+    return update_manual_inbound_customer_payment(
+        event,
+        payment_id,
+        user_sub=user_sub,
+        request_id=request_id,
+        serialize_payment=_serialize_payment,
+        batch_orphan_payment_deletable=_batch_orphan_payment_deletable,
+    )

@@ -56,6 +56,7 @@ import {
   listCustomerPayments,
   listRecentEnrollmentsForInvoicing,
   compareBillingEnrollmentPickerRowsByEnrolledAtDesc,
+  updateManualInboundCustomerPayment,
   voidInvoice,
   type BillingEnrollmentPickerRow,
   type CustomerInvoiceDetail,
@@ -84,12 +85,20 @@ const REFUND_FORM_ID = 'client-billing-refund-form';
 const MANUAL_PAYMENT_FORM_ID = 'client-billing-manual-payment-form';
 const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
 
-function formatPaymentBankRefShort(value: string | null | undefined): string {
-  const t = (value ?? '').trim();
-  if (t === '') {
-    return '—';
+function isManualInboundPaymentEditable(
+  p: CustomerPaymentSummary | CustomerPaymentDetail | null | undefined,
+): boolean {
+  if (!p?.id) {
+    return false;
   }
-  return t.length > 28 ? `${t.slice(0, 25)}…` : t;
+  if (p.direction !== 'inbound') {
+    return false;
+  }
+  const stripe = p.stripePaymentIntentId?.trim() ?? '';
+  if (stripe !== '') {
+    return false;
+  }
+  return true;
 }
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
@@ -274,6 +283,15 @@ export function ClientInvoicesPanel() {
   const [createPaymentMethod, setCreatePaymentMethod] = useState('bank_transfer');
   const [createPaymentStatus, setCreatePaymentStatus] = useState<'pending' | 'succeeded'>('pending');
   const [createPaymentExternalRef, setCreatePaymentExternalRef] = useState('');
+
+  const resetManualPaymentCreateFields = useCallback(() => {
+    setCreatePaymentEnrollmentId('');
+    setCreatePaymentAmount('');
+    setCreatePaymentCurrency(defaultCurrency);
+    setCreatePaymentMethod('bank_transfer');
+    setCreatePaymentStatus('pending');
+    setCreatePaymentExternalRef('');
+  }, [defaultCurrency]);
 
   const createPaymentEnrollmentPickerValue = useMemo(() => {
     const tid = createPaymentEnrollmentId.trim();
@@ -654,6 +672,39 @@ export function ClientInvoicesPanel() {
     void loadDetail(selectedId, ac.signal);
     return () => ac.abort();
   }, [selectedId, loadDetail]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      resetManualPaymentCreateFields();
+      return;
+    }
+    const row = payments.find((p) => p.id === selectedId) ?? null;
+    if (!isManualInboundPaymentEditable(row)) {
+      resetManualPaymentCreateFields();
+      return;
+    }
+    const curRow = row;
+    const seedFromList = () => {
+      setCreatePaymentEnrollmentId(curRow.enrollmentId?.trim() ?? '');
+      setCreatePaymentAmount(curRow.amount?.trim() ?? '');
+      const cur = (curRow.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+      setCreatePaymentCurrency(currencySelectValue(cur, currencyOptions, defaultCurrency));
+      setCreatePaymentMethod(curRow.method?.trim() || 'bank_transfer');
+      setCreatePaymentStatus(curRow.status === 'succeeded' ? 'succeeded' : 'pending');
+      setCreatePaymentExternalRef(curRow.externalReference?.trim() ?? '');
+    };
+    if (!detail || detail.id !== selectedId) {
+      seedFromList();
+      return;
+    }
+    setCreatePaymentEnrollmentId(detail.enrollmentId?.trim() ?? '');
+    setCreatePaymentAmount(detail.amount?.trim() ?? '');
+    const cur = (detail.currency ?? defaultCurrency).trim().toUpperCase() || defaultCurrency;
+    setCreatePaymentCurrency(currencySelectValue(cur, currencyOptions, defaultCurrency));
+    setCreatePaymentMethod(detail.method?.trim() || 'bank_transfer');
+    setCreatePaymentStatus(detail.status === 'succeeded' ? 'succeeded' : 'pending');
+    setCreatePaymentExternalRef(detail.externalReference?.trim() ?? '');
+  }, [selectedId, detail, payments, defaultCurrency, currencyOptions, resetManualPaymentCreateFields]);
 
   useEffect(() => {
     if (!selectedId || !detail) {
@@ -1088,18 +1139,62 @@ export function ClientInvoicesPanel() {
     }
   };
 
-  const handleCreateManualPayment = async (event: FormEvent<HTMLFormElement>) => {
+  const manualPaymentIsUpdate = useMemo(() => {
+    if (!selectedId) {
+      return false;
+    }
+    const row = payments.find((p) => p.id === selectedId);
+    return isManualInboundPaymentEditable(row);
+  }, [payments, selectedId]);
+
+  const manualPaymentSucceededReadOnly = Boolean(
+    manualPaymentIsUpdate && detail?.id === selectedId && detail.status === 'succeeded',
+  );
+
+  const handleCancelManualPayment = () => {
+    setActionError('');
+    setSelectedId(null);
+    resetManualPaymentCreateFields();
+  };
+
+  const handleManualPaymentFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setActionError('');
     setActionMessage('');
-    const eid = createPaymentEnrollmentId.trim();
-    if (!eid) {
-      setActionError('Select a recent enrollment.');
-      return;
-    }
     const amt = createPaymentAmount.trim();
     if (!amt) {
       setActionError('Amount is required.');
+      return;
+    }
+    if (manualPaymentIsUpdate) {
+      const id = selectedId?.trim();
+      if (!id) {
+        return;
+      }
+      setBusy('update-payment');
+      try {
+        await updateManualInboundCustomerPayment(id, {
+          amount: amt,
+          currency: createPaymentCurrency.trim().toUpperCase() || defaultCurrency,
+          method: createPaymentMethod.trim(),
+          status: createPaymentStatus,
+          externalReference:
+            createPaymentExternalRef.trim() === '' ? null : createPaymentExternalRef.trim(),
+        });
+        setActionMessage('Customer payment updated.');
+        await loadPayments();
+        const ac = new AbortController();
+        await loadDetail(id, ac.signal);
+      } catch (caught) {
+        setActionError(toErrorMessage(caught, 'Update payment failed.', { honorBackendMessage: true }));
+      } finally {
+        setBusy(null);
+      }
+      return;
+    }
+    const eid = createPaymentEnrollmentId.trim();
+    if (!eid) {
+      setActionError('Select an enrollment.');
       return;
     }
     setBusy('create-payment');
@@ -1115,9 +1210,7 @@ export function ClientInvoicesPanel() {
           createPaymentExternalRef.trim() === '' ? null : createPaymentExternalRef.trim(),
       });
       setActionMessage('Customer payment recorded.');
-      setCreatePaymentEnrollmentId('');
-      setCreatePaymentAmount('');
-      setCreatePaymentExternalRef('');
+      resetManualPaymentCreateFields();
       await loadPayments();
       const pid = pay.id?.trim() ?? '';
       if (pid) {
@@ -1719,126 +1812,9 @@ export function ClientInvoicesPanel() {
         </section>
       </PaginatedTableCard>
 
-      <AdminEditorCard
-        title='Record customer payment'
-        description='Choose a recent enrollment from the picker (same list as draft invoices). Currency defaults from the enrollment. Use Pending until funds clear, then record as Succeeded when appropriate.'
-        actions={
-          <Button
-            type='submit'
-            form={MANUAL_PAYMENT_FORM_ID}
-            disabled={editorBusy}
-            aria-label='Create customer payment'
-          >
-            {busyAction === 'create-payment' ? 'Saving…' : 'Create payment'}
-          </Button>
-        }
-      >
-        <form
-          id={MANUAL_PAYMENT_FORM_ID}
-          className='flex max-w-full flex-col gap-3'
-          onSubmit={(e) => void handleCreateManualPayment(e)}
-        >
-          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-enrollment-select'>Enrollment</Label>
-              <Select
-                id='billing-create-pay-enrollment-select'
-                className='mt-1 w-full min-w-0'
-                value={createPaymentEnrollmentPickerValue}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setCreatePaymentEnrollmentId(v);
-                  const row = enrollmentPickerRows.find((r) => r.enrollmentId === v);
-                  if (row?.currency) {
-                    setCreatePaymentCurrency(row.currency);
-                  }
-                }}
-                disabled={editorBusy}
-              >
-                <option value=''>Choose from recent enrollments…</option>
-                {enrollmentPickerRows.map((row) => (
-                  <option key={row.enrollmentId} value={row.enrollmentId}>
-                    {formatRecentEnrollmentPaymentSelectLabel(row)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-status'>Payment status</Label>
-              <Select
-                id='billing-create-pay-status'
-                className='mt-1 w-full min-w-0'
-                value={createPaymentStatus}
-                onChange={(e) => setCreatePaymentStatus(e.target.value as 'pending' | 'succeeded')}
-                disabled={editorBusy}
-              >
-                <option value='pending'>Pending (awaiting clearance)</option>
-                <option value='succeeded'>Succeeded (funds received)</option>
-              </Select>
-            </div>
-          </div>
-          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-amount'>Amount</Label>
-              <Input
-                id='billing-create-pay-amount'
-                value={createPaymentAmount}
-                onChange={(e) => setCreatePaymentAmount(e.target.value)}
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                disabled={editorBusy}
-              />
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-currency'>Currency</Label>
-              <Select
-                id='billing-create-pay-currency'
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                value={createPaymentCurrency}
-                onChange={(e) => setCreatePaymentCurrency(e.target.value)}
-                disabled={editorBusy}
-              >
-                {currencyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-method'>Method</Label>
-              <Select
-                id='billing-create-pay-method'
-                className='mt-1 w-full min-w-0'
-                value={createPaymentMethod}
-                onChange={(e) => setCreatePaymentMethod(e.target.value)}
-                disabled={editorBusy}
-              >
-                <option value='bank_transfer'>Bank transfer</option>
-                <option value='fps'>FPS</option>
-                <option value='cash'>Cash</option>
-                <option value='cheque'>Cheque</option>
-                <option value='stripe_card'>Card / Stripe</option>
-                <option value='adjustment'>Adjustment</option>
-                <option value='free'>Free (zero amount)</option>
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-external-ref'>Bank / external reference</Label>
-              <Input
-                id='billing-create-pay-external-ref'
-                value={createPaymentExternalRef}
-                onChange={(e) => setCreatePaymentExternalRef(e.target.value)}
-                className='mt-1 w-full min-w-0'
-                disabled={editorBusy}
-              />
-            </div>
-          </div>
-        </form>
-      </AdminEditorCard>
-
       <PaginatedTableCard
         title='Customer payments'
-        description='Recent customer payments and refunds. Select a row for allocation and refund source. Pending inbound: confirm from Operations. Deletable orphan rows: delete from Operations (see server rules).'
+        description='Recent customer payments and refunds. Select a row for allocation and refund source; manual inbound payments without Stripe can be edited in the form above. Pending inbound: confirm from Operations. Deletable orphan rows: delete from Operations (see server rules).'
         isLoading={listLoading}
         isLoadingMore={false}
         hasMore={false}
@@ -1852,7 +1828,160 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[960px]'>
+        <div className='mb-4 min-w-0'>
+          <AdminEditorCard
+            title='Record or update customer payment'
+          description='When creating, pick an enrollment from the same list as draft invoices. After you select a manual inbound payment row below, you can update fields here; enrollment cannot be changed once the payment exists. Currency must match the enrollment. Use Pending until funds clear, then Succeeded when appropriate.'
+          actions={
+            <div className='flex flex-wrap justify-start gap-2'>
+              {manualPaymentIsUpdate ? (
+                <Button
+                  type='button'
+                  variant='secondary'
+                  onClick={handleCancelManualPayment}
+                  disabled={editorBusy}
+                >
+                  Cancel
+                </Button>
+              ) : null}
+              <Button
+                type='submit'
+                form={MANUAL_PAYMENT_FORM_ID}
+                disabled={editorBusy}
+                aria-label={manualPaymentIsUpdate ? 'Update customer payment' : 'Create customer payment'}
+              >
+                {busyAction === 'create-payment' || busyAction === 'update-payment'
+                  ? 'Saving…'
+                  : manualPaymentIsUpdate
+                    ? 'Update payment'
+                    : 'Create payment'}
+              </Button>
+            </div>
+          }
+        >
+          <form
+            id={MANUAL_PAYMENT_FORM_ID}
+            className='flex max-w-full flex-col gap-3'
+            onSubmit={(e) => void handleManualPaymentFormSubmit(e)}
+          >
+            <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
+              <div className='min-w-0'>
+                {manualPaymentIsUpdate ? (
+                  <span className='block text-sm font-medium text-slate-800'>Enrollment</span>
+                ) : (
+                  <Label htmlFor='billing-create-pay-enrollment-select'>Enrollment</Label>
+                )}
+                {manualPaymentIsUpdate ? (
+                  <div className='mt-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800'>
+                    <p className='font-medium text-slate-900'>
+                      {(detail?.party ?? payments.find((x) => x.id === selectedId)?.party ?? '').trim() !== ''
+                        ? (detail?.party ?? payments.find((x) => x.id === selectedId)?.party ?? '').trim()
+                        : '—'}
+                    </p>
+                    <p className='mt-0.5 font-mono text-xs text-slate-600'>
+                      {(detail?.enrollmentId ?? createPaymentEnrollmentId).trim() !== ''
+                        ? formatTruncatedId((detail?.enrollmentId ?? createPaymentEnrollmentId).trim())
+                        : '—'}
+                    </p>
+                  </div>
+                ) : (
+                  <Select
+                    id='billing-create-pay-enrollment-select'
+                    className='mt-1 w-full min-w-0'
+                    value={createPaymentEnrollmentPickerValue}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCreatePaymentEnrollmentId(v);
+                      const row = enrollmentPickerRows.find((r) => r.enrollmentId === v);
+                      if (row?.currency) {
+                        setCreatePaymentCurrency(row.currency);
+                      }
+                    }}
+                    disabled={editorBusy}
+                  >
+                    <option value=''>Choose from recent enrollments…</option>
+                    {enrollmentPickerRows.map((row) => (
+                      <option key={row.enrollmentId} value={row.enrollmentId}>
+                        {formatRecentEnrollmentPaymentSelectLabel(row)}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </div>
+              <div className='min-w-0'>
+                <Label htmlFor='billing-create-pay-status'>Payment status</Label>
+                <Select
+                  id='billing-create-pay-status'
+                  className='mt-1 w-full min-w-0'
+                  value={createPaymentStatus}
+                  onChange={(e) => setCreatePaymentStatus(e.target.value as 'pending' | 'succeeded')}
+                  disabled={editorBusy || manualPaymentSucceededReadOnly}
+                >
+                  <option value='pending'>Pending (awaiting clearance)</option>
+                  <option value='succeeded'>Succeeded (funds received)</option>
+                </Select>
+              </div>
+            </div>
+            <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
+              <div className='min-w-0'>
+                <Label htmlFor='billing-create-pay-amount'>Amount</Label>
+                <Input
+                  id='billing-create-pay-amount'
+                  value={createPaymentAmount}
+                  onChange={(e) => setCreatePaymentAmount(e.target.value)}
+                  className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                  disabled={editorBusy || manualPaymentSucceededReadOnly}
+                />
+              </div>
+              <div className='min-w-0'>
+                <Label htmlFor='billing-create-pay-currency'>Currency</Label>
+                <Select
+                  id='billing-create-pay-currency'
+                  className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                  value={createPaymentCurrency}
+                  onChange={(e) => setCreatePaymentCurrency(e.target.value)}
+                  disabled={editorBusy || manualPaymentSucceededReadOnly}
+                >
+                  {currencyOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className='min-w-0'>
+                <Label htmlFor='billing-create-pay-method'>Method</Label>
+                <Select
+                  id='billing-create-pay-method'
+                  className='mt-1 w-full min-w-0'
+                  value={createPaymentMethod}
+                  onChange={(e) => setCreatePaymentMethod(e.target.value)}
+                  disabled={editorBusy}
+                >
+                  <option value='bank_transfer'>Bank transfer</option>
+                  <option value='fps'>FPS</option>
+                  <option value='cash'>Cash</option>
+                  <option value='cheque'>Cheque</option>
+                  <option value='stripe_card'>Card / Stripe</option>
+                  <option value='adjustment'>Adjustment</option>
+                  <option value='free'>Free (zero amount)</option>
+                </Select>
+              </div>
+              <div className='min-w-0'>
+                <Label htmlFor='billing-create-pay-external-ref'>Bank / external reference</Label>
+                <Input
+                  id='billing-create-pay-external-ref'
+                  value={createPaymentExternalRef}
+                  onChange={(e) => setCreatePaymentExternalRef(e.target.value)}
+                  className='mt-1 w-full min-w-0'
+                  disabled={editorBusy}
+                />
+              </div>
+            </div>
+          </form>
+        </AdminEditorCard>
+        </div>
+        <AdminDataTable tableClassName='min-w-[860px]'>
           <AdminDataTableHead>
             <tr>
               <AdminDataTableHeadCell>Direction</AdminDataTableHeadCell>
@@ -1861,7 +1990,6 @@ export function ClientInvoicesPanel() {
               <AdminDataTableHeadCell>Method</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Unapplied amount</AdminDataTableHeadCell>
-              <AdminDataTableHeadCell>Bank ref</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
             </tr>
           </AdminDataTableHead>
@@ -1905,9 +2033,6 @@ export function ClientInvoicesPanel() {
                   <AdminDataTableCell>{formatPaymentMethodLabel(p.method)}</AdminDataTableCell>
                   <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
                   <AdminDataTableCell>{unappliedDisplay}</AdminDataTableCell>
-                  <AdminDataTableCell className='max-w-[12rem] truncate font-mono text-xs'>
-                    {formatPaymentBankRefShort(p.externalReference ?? null)}
-                  </AdminDataTableCell>
                   <AdminDataTableCell
                     className='text-right'
                     onClick={(event) => {
@@ -1960,7 +2085,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title='Allocate selected payment to invoice'
-        description='Select a payment in the Customer payments table above first. Choose an issued invoice and optionally a line; use Load more on the invoice list if the invoice is not shown.'
+        description='Select a payment row in the Customer payments table below first. Choose an issued invoice and optionally a line; use Load more on the invoice list if the invoice is not shown.'
         actions={
           <Button type='submit' form={ALLOCATE_FORM_ID} disabled={editorBusy}>
             {busyAction === 'allocate' ? 'Allocating…' : 'Create allocation'}

@@ -18,6 +18,7 @@ const billingMocks = vi.hoisted(() => ({
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
   createManualInboundCustomerPayment: vi.fn(),
+  updateManualInboundCustomerPayment: vi.fn(),
   exportBillingCsv: vi.fn(),
   listRecentEnrollmentsForInvoicing: vi.fn(),
 }));
@@ -56,6 +57,7 @@ vi.mock('@/lib/billing-api', async (importOriginal) => {
     createPaymentAllocation: billingMocks.createPaymentAllocation,
     createCustomerRefund: billingMocks.createCustomerRefund,
     createManualInboundCustomerPayment: billingMocks.createManualInboundCustomerPayment,
+    updateManualInboundCustomerPayment: billingMocks.updateManualInboundCustomerPayment,
     exportBillingCsv: billingMocks.exportBillingCsv,
     listRecentEnrollmentsForInvoicing: billingMocks.listRecentEnrollmentsForInvoicing,
   };
@@ -102,6 +104,20 @@ describe('ClientInvoicesPanel', () => {
       enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       contactId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
       externalReference: null,
+      succeededAt: null,
+      createdAt: '2026-01-01T00:00:00+00:00',
+      orphanPaymentDeletable: false,
+    });
+    billingMocks.updateManualInboundCustomerPayment.mockResolvedValue({
+      id: 'updated-payment-uuid',
+      direction: 'inbound',
+      status: 'pending',
+      method: 'fps',
+      amount: '20',
+      currency: 'HKD',
+      enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      contactId: null,
+      externalReference: 'REF',
       succeededAt: null,
       createdAt: '2026-01-01T00:00:00+00:00',
       orphanPaymentDeletable: false,
@@ -798,7 +814,11 @@ describe('ClientInvoicesPanel', () => {
         method: 'bank_transfer',
         amount: '100',
         currency: 'HKD',
+        enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        stripePaymentIntentId: null,
+        party: 'Pat · Service',
         externalReference: 'WIRE-999',
+        unappliedAmount: '100',
         createdAt: '2026-01-01T00:00:00+00:00',
         orphanPaymentDeletable: false,
       },
@@ -810,6 +830,9 @@ describe('ClientInvoicesPanel', () => {
       method: 'bank_transfer',
       amount: '100',
       currency: 'HKD',
+      enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      stripePaymentIntentId: null,
+      party: 'Pat · Service',
       externalReference: 'WIRE-999',
       unappliedAmount: '100',
       createdAt: '2026-01-01T00:00:00+00:00',
@@ -840,7 +863,8 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.getCustomerPayment).toHaveBeenCalledWith(payId, expect.any(AbortSignal));
     });
     await waitFor(() => {
-      expect(screen.getAllByText('WIRE-999').length).toBeGreaterThanOrEqual(1);
+      const refInput = document.getElementById('billing-create-pay-external-ref') as HTMLInputElement;
+      expect(refInput.value).toBe('WIRE-999');
     });
 
     const user = userEvent.setup();
