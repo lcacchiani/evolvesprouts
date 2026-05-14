@@ -63,17 +63,26 @@ def _capitalize_first_letter(value: str) -> str:
 def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
     """Line text for enrollment-merge invoices: title, tier, and cohort space-separated.
 
-    Title prefers instance title, then parent service title. Tier prefers enrollment ticket
-    tier name, then catalog ``service_tier``. Tier and cohort segments use a leading
-    capital letter only (rest unchanged). Falls back to ``Enrollment`` when no title path exists.
+    Title uses ``{service title}: {instance title}`` when both are present and differ;
+    otherwise a single title (instance, or service, whichever applies). Tier prefers
+    enrollment ticket tier name, then catalog ``service_tier``. Tier and cohort segments
+    use a leading capital letter only (rest unchanged). Falls back to ``Enrollment`` when
+    no title path exists.
     """
     inst = enrollment.instance
-    title_part: str | None = None
     svc = getattr(inst, "service", None) if inst is not None else None
-    if inst is not None:
-        title_part = _trimmed_str_or_none(inst.title)
-    if title_part is None and svc is not None:
-        title_part = _trimmed_str_or_none(getattr(svc, "title", None))
+    instance_title = _trimmed_str_or_none(inst.title) if inst is not None else None
+    service_title = (
+        _trimmed_str_or_none(getattr(svc, "title", None)) if svc is not None else None
+    )
+
+    title_part: str | None = None
+    if instance_title and service_title and instance_title != service_title:
+        title_part = f"{service_title}: {instance_title}"
+    elif instance_title:
+        title_part = instance_title
+    elif service_title:
+        title_part = service_title
 
     tier_raw: str | None = None
     if enrollment.ticket_tier_id and enrollment.ticket_tier is not None:

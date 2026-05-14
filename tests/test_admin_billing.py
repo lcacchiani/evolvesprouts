@@ -2645,7 +2645,43 @@ def test_build_enrollment_merge_line_description_prefers_instance_title_and_tick
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "June Weekend Early bird"
+        == "Event Parent: June Weekend Early bird"
+    )
+
+
+def test_build_enrollment_merge_line_description_same_instance_and_service_title() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(title="Holiday Workshop", service_tier="standard")
+    inst = SimpleNamespace(title="Holiday Workshop", cohort="week 1", service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Holiday Workshop Standard Week 1"
+    )
+
+
+def test_build_enrollment_merge_line_description_instance_title_without_service_title() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(title=None, service_tier="solo")
+    inst = SimpleNamespace(title="Drop-in Session", cohort=None, service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Drop-in Session Solo"
     )
 
 
