@@ -9,14 +9,20 @@ from collections.abc import Mapping
 from uuid import UUID
 
 from sqlalchemy import exists, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
+from app.api.admin_billing_common import (
+    DEFAULT_BILLING_LIST_LIMIT,
+    _session_with_audit,
+    batch_enrollment_party_display_names,
+    contact_display_name,
+)
 from app.api.admin_request import parse_body, query_param
 from app.db.audit import AuditService
 from app.db.engine import get_engine
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.customer_payment import CustomerPayment
+from app.db.models.contact import Contact
 from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.enrollment import Enrollment
 from app.db.models.enums import (
@@ -25,6 +31,7 @@ from app.db.models.enums import (
     EnrollmentStatus,
 )
 from app.db.models.payment_allocation import PaymentAllocation
+from app.db.models.service_instance import ServiceInstance
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
     create_receipt_for_succeeded_inbound_payment,
@@ -101,6 +108,61 @@ def _serialize_payment(
         "createdAt": p.created_at.isoformat(),
         "orphanPaymentDeletable": orphan_payment_deletable,
     }
+
+
+def _serialize_payment_for_response(
+    session: Session,
+    p: CustomerPayment,
+    *,
+    orphan_payment_deletable: bool,
+) -> dict[str, Any]:
+    """Serialize a payment for API responses including list/detail parity fields."""
+    out = _serialize_payment(p, orphan_payment_deletable=orphan_payment_deletable)
+    out["party"] = _batch_party_label_by_payment(session, [p]).get(p.id, "—")
+    out["unappliedAmount"] = str(payment_unapplied_amount(session, p.id))
+    return out
+
+
+def _batch_party_label_by_payment(
+    session: Session, payments: list[CustomerPayment]
+) -> dict[UUID, str]:
+    """Bill-to style party label for each payment (enrollment party, else contact name)."""
+    out: dict[UUID, str] = {p.id: "—" for p in payments}
+    unique_eids = {p.enrollment_id for p in payments if p.enrollment_id is not None}
+    party_by_eid: dict[UUID, str] = {}
+    if unique_eids:
+        stmt = (
+            select(Enrollment)
+            .where(Enrollment.id.in_(unique_eids))
+            .options(
+                joinedload(Enrollment.instance).joinedload(ServiceInstance.service),
+                joinedload(Enrollment.contact),
+                joinedload(Enrollment.family),
+                joinedload(Enrollment.organization),
+                joinedload(Enrollment.bill_to_contact),
+                joinedload(Enrollment.bill_to_family),
+                joinedload(Enrollment.bill_to_organization),
+                joinedload(Enrollment.ticket_tier),
+            )
+        )
+        ens = list(session.execute(stmt).unique().scalars().all())
+        labels = batch_enrollment_party_display_names(session, ens)
+        party_by_eid = {en.id: lab for en, lab in zip(ens, labels, strict=True)}
+
+    contact_by_id: dict[UUID, str] = {}
+    cids = {p.contact_id for p in payments if p.contact_id is not None}
+    if cids:
+        for c in session.execute(select(Contact).where(Contact.id.in_(cids))).scalars():
+            nm = contact_display_name(c)
+            contact_by_id[c.id] = (nm or "").strip() or "—"
+
+    for p in payments:
+        eid = p.enrollment_id
+        if eid is not None and eid in party_by_eid:
+            out[p.id] = party_by_eid[eid]
+        elif p.contact_id is not None and p.contact_id in contact_by_id:
+            out[p.id] = contact_by_id[p.contact_id]
+    return out
 
 
 def _pending_or_free_payment(p: CustomerPayment) -> bool:
@@ -289,8 +351,10 @@ def _list_payments(
             200,
             {
                 "items": [
-                    _serialize_payment(
-                        p, orphan_payment_deletable=deletable_by_id.get(p.id, False)
+                    _serialize_payment_for_response(
+                        session,
+                        p,
+                        orphan_payment_deletable=deletable_by_id.get(p.id, False),
                     )
                     for p in rows
                 ]
@@ -310,14 +374,14 @@ def _get_payment(
         p = session.get(CustomerPayment, payment_id)
         if p is None:
             raise NotFoundError("CustomerPayment", str(payment_id))
-        unapplied = str(payment_unapplied_amount(session, payment_id))
         allocation_invoices = _payment_allocation_invoice_refs(session, payment_id)
         deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
         return json_response(
             200,
             {
-                **_serialize_payment(p, orphan_payment_deletable=deletable),
-                "unappliedAmount": unapplied,
+                **_serialize_payment_for_response(
+                    session, p, orphan_payment_deletable=deletable
+                ),
                 "allocationInvoices": allocation_invoices,
             },
             event=event,
@@ -359,7 +423,6 @@ def _create_payment(
             body,
             user_sub=user_sub,
             request_id=request_id,
-            serialize_payment=_serialize_payment,
         )
     if direction == "inbound":
         return create_manual_inbound_payment(
@@ -367,7 +430,6 @@ def _create_payment(
             body,
             user_sub=user_sub,
             request_id=request_id,
-            serialize_payment=_serialize_payment,
             batch_orphan_payment_deletable=_batch_orphan_payment_deletable,
         )
     raise ValidationError(
@@ -408,7 +470,9 @@ def _confirm_payment(
             rcpt = create_receipt_for_succeeded_inbound_payment(session, payment=p)
             receipt_id_for_upload = rcpt.id
         deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
-        out = _serialize_payment(p, orphan_payment_deletable=deletable)
+        out = _serialize_payment_for_response(
+            session, p, orphan_payment_deletable=deletable
+        )
     if receipt_id_for_upload is not None:
         try:
             with Session(get_engine()) as upload_session:
@@ -422,3 +486,23 @@ def _confirm_payment(
                 extra={"receipt_id": str(receipt_id_for_upload)},
             )
     return json_response(200, {"payment": out}, event=event)
+
+
+def _update_manual_inbound_payment(
+    event: Mapping[str, Any],
+    payment_id: UUID,
+    *,
+    user_sub: str,
+    request_id: str | None,
+) -> dict[str, Any]:
+    from app.api.admin_billing_payment_update import (
+        update_manual_inbound_customer_payment,
+    )
+
+    return update_manual_inbound_customer_payment(
+        event,
+        payment_id,
+        user_sub=user_sub,
+        request_id=request_id,
+        batch_orphan_payment_deletable=_batch_orphan_payment_deletable,
+    )

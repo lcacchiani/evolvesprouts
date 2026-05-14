@@ -4010,7 +4010,6 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["CustomerPaymentSummary"] & {
-                            unappliedAmount?: string;
                             /** @description Distinct invoices this payment is allocated to (newest invoice first). */
                             allocationInvoices?: components["schemas"]["CustomerPaymentAllocationInvoice"][];
                         };
@@ -4051,7 +4050,52 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update manual inbound customer payment
+         * @description Updates a manual inbound payment (no Stripe PaymentIntent on the row). Enrollment cannot be changed. Pending rows may change amount, currency, method, status, and external reference (subject to allocation totals and enrollment billing currency). Succeeded rows allow `method` and `externalReference` only. Duplicate non-null `externalReference` per enrollment returns **409** (same partial unique index as create).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateManualInboundCustomerPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated payment. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            payment?: components["schemas"]["CustomerPaymentSummary"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Duplicate manual inbound payment for the same enrollment and external reference. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/v1/admin/billing/payments/{id}/unapplied": {
@@ -6261,6 +6305,10 @@ export interface components {
             contactId?: string | null;
             /** @description Bank reference or external id when set on the payment row. */
             externalReference?: string | null;
+            /** @description Bill-to party display label from the linked enrollment when present; otherwise the linked contact display name, or an em dash when unknown. */
+            party: string;
+            /** @description Remaining payment amount not allocated to invoices (payment currency). Included on all CustomerPaymentSummary responses (list, detail, create, confirm, patch). */
+            unappliedAmount: string;
             /** @description True when DELETE /v1/admin/billing/payments/{id} is allowed for this row (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations, receipt, or refund children). */
             orphanPaymentDeletable: boolean;
             /** Format: date-time */
@@ -6364,6 +6412,20 @@ export interface components {
             /**
              * @description `pending` for funds not yet cleared; `succeeded` when funds are received (receipt generation follows server rules). Zero amounts are always stored as succeeded `free`.
              * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "succeeded";
+            /** @description Optional bank reference or external id stored on the payment row. */
+            externalReference?: string | null;
+        };
+        UpdateManualInboundCustomerPaymentRequest: {
+            /** @description Decimal amount as string; must be non-negative. */
+            amount: string;
+            currency: string;
+            /** @description Same normalization rules as manual inbound create (for example `fps`, `bank_transfer`). */
+            method: string;
+            /**
+             * @description Pending rows may move to succeeded (receipt generation follows server rules). Succeeded rows must submit the same `status` value when updating method or reference.
              * @enum {string}
              */
             status: "pending" | "succeeded";
