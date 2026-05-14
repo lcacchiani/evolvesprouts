@@ -506,6 +506,8 @@ their primary responsibilities.
 - Permissions: same OpenRouter + S3 + proxy invoke pattern as `ExpenseParserFunction`
 - Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility; OpenRouter bulk
   calls cap at **240s** so DB writes stay inside the Lambda window
+- Concurrency: no per-function reserved concurrency in CDK (shared unreserved pool) so
+  deploys remain valid when the account already reserves capacity on other Lambdas
 - Environment:
   - `BULK_IMPORT_LAMBDA_TIMEOUT_SECONDS` (mirrors Lambda timeout for stale `processing` handling)
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
