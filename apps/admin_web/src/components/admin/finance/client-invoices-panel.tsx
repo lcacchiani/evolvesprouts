@@ -41,6 +41,7 @@ import {
 import {
   confirmCustomerPayment,
   createCustomerRefund,
+  createManualInboundCustomerPayment,
   createDraftInvoice,
   createPaymentAllocation,
   deleteCustomerPayment,
@@ -81,6 +82,7 @@ import { formatAmountInCurrency } from '@/lib/vendor-spend';
 const DRAFT_FORM_ID = 'client-billing-draft-invoice-form';
 const ALLOCATE_FORM_ID = 'client-billing-allocate-form';
 const REFUND_FORM_ID = 'client-billing-refund-form';
+const MANUAL_PAYMENT_FORM_ID = 'client-billing-manual-payment-form';
 
 type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
 
@@ -239,6 +241,13 @@ export function ClientInvoicesPanel() {
   const [refundCurrency, setRefundCurrency] = useState(defaultCurrency);
   const [refundMethod, setRefundMethod] = useState('');
   const [refundStripeId, setRefundStripeId] = useState('');
+
+  const [createPaymentEnrollmentId, setCreatePaymentEnrollmentId] = useState('');
+  const [createPaymentAmount, setCreatePaymentAmount] = useState('');
+  const [createPaymentCurrency, setCreatePaymentCurrency] = useState(defaultCurrency);
+  const [createPaymentMethod, setCreatePaymentMethod] = useState('bank_transfer');
+  const [createPaymentStatus, setCreatePaymentStatus] = useState<'pending' | 'succeeded'>('pending');
+  const [createPaymentExternalRef, setCreatePaymentExternalRef] = useState('');
 
   const lastPaymentSeedIdRef = useRef<string | null>(null);
   const prevIssuedInvoiceSelectionRef = useRef<string | null>(null);
@@ -1031,6 +1040,50 @@ export function ClientInvoicesPanel() {
       setRefundInvoicePaymentsRefresh((n) => n + 1);
     } catch (caught) {
       setActionError(toErrorMessage(caught, 'Refund failed.', { honorBackendMessage: true }));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleCreateManualPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setActionError('');
+    setActionMessage('');
+    const eid = createPaymentEnrollmentId.trim();
+    if (!eid) {
+      setActionError('Enrollment id is required.');
+      return;
+    }
+    const amt = createPaymentAmount.trim();
+    if (!amt) {
+      setActionError('Amount is required.');
+      return;
+    }
+    setBusy('create-payment');
+    try {
+      const pay = await createManualInboundCustomerPayment({
+        direction: 'inbound',
+        enrollmentId: eid,
+        amount: amt,
+        currency: createPaymentCurrency.trim().toUpperCase() || defaultCurrency,
+        method: createPaymentMethod.trim(),
+        status: createPaymentStatus,
+        externalReference:
+          createPaymentExternalRef.trim() === '' ? null : createPaymentExternalRef.trim(),
+      });
+      setActionMessage('Customer payment recorded.');
+      setCreatePaymentEnrollmentId('');
+      setCreatePaymentAmount('');
+      setCreatePaymentExternalRef('');
+      await loadPayments();
+      const pid = pay.id?.trim() ?? '';
+      if (pid) {
+        setSelectedId(pid);
+        const ac = new AbortController();
+        await loadDetail(pid, ac.signal);
+      }
+    } catch (caught) {
+      setActionError(toErrorMessage(caught, 'Create payment failed.', { honorBackendMessage: true }));
     } finally {
       setBusy(null);
     }
@@ -1860,6 +1913,111 @@ export function ClientInvoicesPanel() {
                 value={refundStripeId}
                 onChange={(e) => setRefundStripeId(e.target.value)}
                 className='mt-1 w-full min-w-0 font-mono text-sm'
+                disabled={editorBusy}
+              />
+            </div>
+          </div>
+        </form>
+      </AdminEditorCard>
+
+      <AdminEditorCard
+        title='Record customer payment'
+        description='Link an inbound payment to an enrollment you created in Services (paste the enrollment UUID). Use Pending until funds clear, then confirm or record as Succeeded when appropriate. Zero amounts are stored as succeeded free payments.'
+        actions={
+          <Button
+            type='submit'
+            form={MANUAL_PAYMENT_FORM_ID}
+            disabled={editorBusy}
+            aria-label='Create customer payment'
+          >
+            {busyAction === 'create-payment' ? 'Saving…' : 'Create payment'}
+          </Button>
+        }
+      >
+        <form
+          id={MANUAL_PAYMENT_FORM_ID}
+          className='flex max-w-full flex-col gap-3'
+          onSubmit={(e) => void handleCreateManualPayment(e)}
+        >
+          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-enrollment'>Enrollment id</Label>
+              <Input
+                id='billing-create-pay-enrollment'
+                value={createPaymentEnrollmentId}
+                onChange={(e) => setCreatePaymentEnrollmentId(e.target.value)}
+                className='mt-1 w-full min-w-0 font-mono text-sm'
+                disabled={editorBusy}
+                autoComplete='off'
+                placeholder='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+              />
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-status'>Payment status</Label>
+              <Select
+                id='billing-create-pay-status'
+                className='mt-1 w-full min-w-0'
+                value={createPaymentStatus}
+                onChange={(e) => setCreatePaymentStatus(e.target.value as 'pending' | 'succeeded')}
+                disabled={editorBusy}
+              >
+                <option value='pending'>Pending (awaiting clearance)</option>
+                <option value='succeeded'>Succeeded (funds received)</option>
+              </Select>
+            </div>
+          </div>
+          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-amount'>Amount</Label>
+              <Input
+                id='billing-create-pay-amount'
+                value={createPaymentAmount}
+                onChange={(e) => setCreatePaymentAmount(e.target.value)}
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                disabled={editorBusy}
+              />
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-currency'>Currency</Label>
+              <Select
+                id='billing-create-pay-currency'
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                value={createPaymentCurrency}
+                onChange={(e) => setCreatePaymentCurrency(e.target.value)}
+                disabled={editorBusy}
+              >
+                {currencyOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-method'>Method</Label>
+              <Select
+                id='billing-create-pay-method'
+                className='mt-1 w-full min-w-0'
+                value={createPaymentMethod}
+                onChange={(e) => setCreatePaymentMethod(e.target.value)}
+                disabled={editorBusy}
+              >
+                <option value='bank_transfer'>Bank transfer</option>
+                <option value='fps'>FPS</option>
+                <option value='cash'>Cash</option>
+                <option value='cheque'>Cheque</option>
+                <option value='stripe_card'>Card / Stripe</option>
+                <option value='adjustment'>Adjustment</option>
+                <option value='free'>Free (zero amount)</option>
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-create-pay-external-ref'>Bank / external reference (optional)</Label>
+              <Input
+                id='billing-create-pay-external-ref'
+                value={createPaymentExternalRef}
+                onChange={(e) => setCreatePaymentExternalRef(e.target.value)}
+                className='mt-1 w-full min-w-0'
                 disabled={editorBusy}
               />
             </div>

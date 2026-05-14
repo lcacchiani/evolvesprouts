@@ -190,7 +190,7 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => expect(billingMocks.listCustomerInvoices).toHaveBeenCalled());
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText(/status/i), 'issued');
+    await user.selectOptions(screen.getByLabelText(/^status$/i), 'issued');
 
     await waitFor(() => {
       expect(billingMocks.listCustomerInvoices).toHaveBeenCalledWith(
