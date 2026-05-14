@@ -59,7 +59,8 @@ info:
     - `POST /v1/admin/expenses/{id}/amend`
     - `GET /v1/admin/billing/export`
     - `GET|POST /v1/admin/billing/payments` (list supports optional `?invoice_id=` to return
-      payments with an allocation to that invoice)
+      payments with an allocation to that invoice; `POST` creates either a refund row
+      (`direction: refund`) or a manual inbound customer payment (`direction: inbound` + `enrollmentId`))
     - `GET /v1/admin/billing/payments/{id}` (includes `allocationInvoices` for linked issued invoices)
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
@@ -2839,7 +2840,11 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
     post:
-      summary: Record refund payment row
+      summary: Create customer payment row
+      description: >
+        Creates either an outbound refund (`direction: refund` + `originalPaymentId`) or a
+        manual inbound payment linked to an enrollment (`direction: inbound` + `enrollmentId`).
+        Succeeded inbound payments follow the same receipt generation path as payment confirm.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -2847,10 +2852,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCustomerRefundRequest"
+              oneOf:
+                - $ref: "#/components/schemas/CreateCustomerRefundRequest"
+                - $ref: "#/components/schemas/CreateManualInboundCustomerPaymentRequest"
+              discriminator:
+                propertyName: direction
+                mapping:
+                  refund: "#/components/schemas/CreateCustomerRefundRequest"
+                  inbound: "#/components/schemas/CreateManualInboundCustomerPaymentRequest"
       responses:
         "201":
-          description: Refund created.
+          description: Refund or inbound payment created.
           content:
             application/json:
               schema:
@@ -6512,6 +6524,46 @@ components:
         stripeRefundId:
           type: string
           nullable: true
+    CreateManualInboundCustomerPaymentRequest:
+      type: object
+      required:
+        - direction
+        - enrollmentId
+        - amount
+        - currency
+        - method
+      properties:
+        direction:
+          type: string
+          enum: [inbound]
+        enrollmentId:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          description: Decimal amount as string; must be non-negative.
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        method:
+          type: string
+          description: >
+            Stored billing method after normalization (for example `bank_transfer`, `fps`,
+            `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`.
+          minLength: 1
+          maxLength: 64
+        status:
+          type: string
+          enum: [pending, succeeded]
+          default: pending
+          description: >
+            `pending` for funds not yet cleared; `succeeded` when funds are received (receipt
+            generation follows server rules). Zero amounts are always stored as succeeded `free`.
+        externalReference:
+          type: string
+          nullable: true
+          description: Optional bank reference or external id stored on the payment row.
     BillingEnrollmentPickerRow:
       type: object
       additionalProperties: false

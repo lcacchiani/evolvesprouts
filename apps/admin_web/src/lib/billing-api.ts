@@ -182,6 +182,22 @@ export async function createCustomerRefund(
   return root.payment;
 }
 
+export async function createManualInboundCustomerPayment(
+  body: ApiSchemas['CreateManualInboundCustomerPaymentRequest'],
+): Promise<CustomerPaymentSummary> {
+  const payload = await adminApiRequest<{ payment?: CustomerPaymentSummary }>({
+    endpointPath: '/v1/admin/billing/payments',
+    method: 'POST',
+    body,
+    expectedSuccessStatuses: [201],
+  });
+  const root = unwrapPayload(payload);
+  if (!root.payment) {
+    throw new Error('Create payment response missing payment.');
+  }
+  return root.payment;
+}
+
 export type BillingEnrollmentPickerRow = ApiSchemas['BillingEnrollmentPickerRow'];
 
 /** Newest `enrolledAt` first; rows without a date sort after dated rows. */

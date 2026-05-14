@@ -3935,7 +3935,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Record refund payment row */
+        /**
+         * Create customer payment row
+         * @description Creates either an outbound refund (`direction: refund` + `originalPaymentId`) or a manual inbound payment linked to an enrollment (`direction: inbound` + `enrollmentId`). Succeeded inbound payments follow the same receipt generation path as payment confirm.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -3945,11 +3948,11 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateCustomerRefundRequest"];
+                    "application/json": components["schemas"]["CreateCustomerRefundRequest"] | components["schemas"]["CreateManualInboundCustomerPaymentRequest"];
                 };
             };
             responses: {
-                /** @description Refund created. */
+                /** @description Refund or inbound payment created. */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -6318,7 +6321,10 @@ export interface components {
             lines?: components["schemas"]["CustomerInvoiceLine"][];
         };
         CreateCustomerRefundRequest: {
-            /** @enum {string} */
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
             direction: "refund";
             /** Format: uuid */
             originalPaymentId: string;
@@ -6326,6 +6332,28 @@ export interface components {
             currency: string;
             method?: string;
             stripeRefundId?: string | null;
+        };
+        CreateManualInboundCustomerPaymentRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            direction: "inbound";
+            /** Format: uuid */
+            enrollmentId: string;
+            /** @description Decimal amount as string; must be non-negative. */
+            amount: string;
+            currency: string;
+            /** @description Stored billing method after normalization (for example `bank_transfer`, `fps`, `stripe_card`, `cash`, `free`). Zero amounts are coerced to `free` and `succeeded`. */
+            method: string;
+            /**
+             * @description `pending` for funds not yet cleared; `succeeded` when funds are received (receipt generation follows server rules). Zero amounts are always stored as succeeded `free`.
+             * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "succeeded";
+            /** @description Optional bank reference or external id stored on the payment row. */
+            externalReference?: string | null;
         };
         BillingEnrollmentPickerRow: {
             /** Format: uuid */
