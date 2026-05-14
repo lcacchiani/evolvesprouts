@@ -1690,262 +1690,6 @@ export function ClientInvoicesPanel() {
       </PaginatedTableCard>
 
       <AdminEditorCard
-        title='Allocate selected payment to invoice'
-        description='Select a payment in the table below first. Choose an issued invoice and optionally a line; use Load more on the invoice list if the invoice is not shown.'
-        actions={
-          <Button type='submit' form={ALLOCATE_FORM_ID} disabled={editorBusy}>
-            {busyAction === 'allocate' ? 'Allocating…' : 'Create allocation'}
-          </Button>
-        }
-      >
-        <form id={ALLOCATE_FORM_ID} className='flex max-w-full flex-col gap-3' onSubmit={(e) => void handleAllocate(e)}>
-          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-allocate-invoice'>Issued invoice</Label>
-              <Select
-                id='billing-allocate-invoice'
-                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
-                value={
-                  issuedInvoicesForAllocate.some((i) => i.id === allocateInvoiceId)
-                    ? allocateInvoiceId
-                    : ''
-                }
-                onChange={(e) => {
-                  setAllocateInvoiceId(e.target.value);
-                  setAllocateLineId('');
-                }}
-                disabled={editorBusy}
-              >
-                <option value=''>Select invoice…</option>
-                {issuedInvoicesForAllocate.map((invOpt) => {
-                  const oid = invOpt.id ?? '';
-                  const num = invOpt.invoiceNumber?.trim() ?? '';
-                  const label = num !== '' ? num : formatTruncatedId(oid);
-                  return (
-                    <option key={oid || 'invoice-option'} value={oid}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-allocate-line'>Invoice line (optional)</Label>
-              <Select
-                id='billing-allocate-line'
-                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
-                value={
-                  allocateLineId === ''
-                    ? ''
-                    : allocateLinesOrdered.some((l) => l.id === allocateLineId)
-                      ? allocateLineId
-                      : ''
-                }
-                onChange={(e) => setAllocateLineId(e.target.value)}
-                disabled={
-                  editorBusy ||
-                  allocateInvoiceId.trim() === '' ||
-                  (invoices.find((i) => i.id === allocateInvoiceId.trim())?.status !== 'issued') ||
-                  allocateInvoiceLinesLoading
-                }
-              >
-                <option value=''>Whole invoice (no specific line)</option>
-                {allocateLinesOrdered
-                  .map((line, idx) => ({ line, idx }))
-                  .filter(({ line }) => (line.id?.trim() ?? '') !== '')
-                  .map(({ line, idx }) => {
-                    const lid = line.id?.trim() ?? '';
-                    return (
-                      <option key={lid} value={lid}>
-                        {formatAllocateLineOptionLabel(line, idx, allocateLineDescriptionCounts)}
-                      </option>
-                    );
-                  })}
-              </Select>
-              {allocateInvoiceLinesLoading ? (
-                <p className='mt-1 text-xs text-slate-600'>Loading invoice lines…</p>
-              ) : null}
-              {allocateInvoiceLinesError ? (
-                <AdminInlineError className='mt-1'>{allocateInvoiceLinesError}</AdminInlineError>
-              ) : null}
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-allocate-amount'>Amount</Label>
-              <Input
-                id='billing-allocate-amount'
-                value={allocateAmount}
-                onChange={(e) => setAllocateAmount(e.target.value)}
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                disabled={editorBusy}
-              />
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-allocate-currency'>Currency</Label>
-              <Select
-                id='billing-allocate-currency'
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                value={allocateCurrency}
-                onChange={(e) => setAllocateCurrency(e.target.value)}
-                disabled={editorBusy}
-              >
-                {currencyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </form>
-      </AdminEditorCard>
-
-      <AdminEditorCard
-        title='Record refund payment row'
-        description='Choose an issued invoice, then the inbound payment allocated to it (from allocations). Creates a succeeded refund linked to that payment.'
-        actions={
-          <Button type='submit' form={REFUND_FORM_ID} disabled={editorBusy} variant='secondary'>
-            {busyAction === 'refund' ? 'Recording…' : 'Record refund'}
-          </Button>
-        }
-      >
-        <form id={REFUND_FORM_ID} className='flex max-w-full flex-col gap-3' onSubmit={(e) => void handleRefund(e)}>
-          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-invoice'>Issued invoice</Label>
-              <Select
-                id='billing-refund-invoice'
-                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
-                value={
-                  issuedInvoicesForAllocate.some((i) => i.id === refundInvoiceId)
-                    ? refundInvoiceId
-                    : ''
-                }
-                onChange={(e) => {
-                  setRefundInvoiceId(e.target.value);
-                  setRefundPaymentSelectId('');
-                }}
-                disabled={editorBusy}
-              >
-                <option value=''>Select invoice…</option>
-                {issuedInvoicesForAllocate.map((invOpt) => {
-                  const oid = invOpt.id ?? '';
-                  const num = invOpt.invoiceNumber?.trim() ?? '';
-                  const label = num !== '' ? num : formatTruncatedId(oid);
-                  return (
-                    <option key={oid || 'refund-invoice-option'} value={oid}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-payment'>Payment allocated to invoice</Label>
-              <Select
-                id='billing-refund-payment'
-                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
-                value={
-                  refundEligiblePayments.some((p) => p.id === refundPaymentSelectId)
-                    ? refundPaymentSelectId
-                    : ''
-                }
-                onChange={(e) => setRefundPaymentSelectId(e.target.value)}
-                disabled={
-                  editorBusy ||
-                  refundInvoiceId.trim() === '' ||
-                  refundPaymentsLoading ||
-                  refundEligiblePayments.length === 0
-                }
-              >
-                <option value=''>
-                  {refundPaymentsLoading
-                    ? 'Loading payments…'
-                    : refundEligiblePayments.length === 0
-                      ? 'No inbound succeeded payments with allocations'
-                      : 'Select payment…'}
-                </option>
-                {refundEligiblePayments.map((p) => {
-                  const pid = p.id ?? '';
-                  const amt = p.amount ?? '';
-                  const cur = p.currency ?? '';
-                  const method = p.method?.trim() ?? '';
-                  const methodSuffix = method !== '' ? ` · ${method}` : '';
-                  return (
-                    <option key={pid || 'refund-pay-opt'} value={pid}>
-                      {formatTruncatedId(pid)} · {amt} {cur}
-                      {methodSuffix}
-                    </option>
-                  );
-                })}
-              </Select>
-              {refundPaymentsLoading ? (
-                <p className='mt-1 text-xs text-slate-600'>Loading payments…</p>
-              ) : null}
-              {refundPaymentsError ? (
-                <AdminInlineError className='mt-1'>{refundPaymentsError}</AdminInlineError>
-              ) : null}
-              {!refundPaymentsLoading &&
-              refundInvoiceId.trim() !== '' &&
-              refundEligiblePayments.length === 0 &&
-              !refundPaymentsError ? (
-                <p className='mt-1 text-xs text-slate-600'>
-                  No succeeded inbound payments are allocated to this invoice yet.
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-amount'>Amount</Label>
-              <Input
-                id='billing-refund-amount'
-                value={refundAmount}
-                onChange={(e) => setRefundAmount(e.target.value)}
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                disabled={editorBusy}
-              />
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-currency'>Currency</Label>
-              <Select
-                id='billing-refund-currency'
-                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
-                value={refundCurrency}
-                onChange={(e) => setRefundCurrency(e.target.value)}
-                disabled={editorBusy}
-              >
-                {currencyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-method'>Method (optional)</Label>
-              <Input
-                id='billing-refund-method'
-                value={refundMethod}
-                onChange={(e) => setRefundMethod(e.target.value)}
-                className='mt-1 w-full min-w-0'
-                disabled={editorBusy}
-              />
-            </div>
-            <div className='min-w-0'>
-              <Label htmlFor='billing-refund-stripe'>Stripe refund id (optional)</Label>
-              <Input
-                id='billing-refund-stripe'
-                value={refundStripeId}
-                onChange={(e) => setRefundStripeId(e.target.value)}
-                className='mt-1 w-full min-w-0 font-mono text-sm'
-                disabled={editorBusy}
-              />
-            </div>
-          </div>
-        </form>
-      </AdminEditorCard>
-
-      <AdminEditorCard
         title='Record customer payment'
         description='Choose a recent enrollment from the picker (same list as draft invoices) or paste its UUID. Currency must match the enrollment billing currency. Use Pending until funds clear, then confirm or record as Succeeded when appropriate.'
         actions={
@@ -2214,6 +1958,262 @@ export function ClientInvoicesPanel() {
           </div>
         ) : null}
       </PaginatedTableCard>
+
+      <AdminEditorCard
+        title='Allocate selected payment to invoice'
+        description='Select a payment in the Customer payments table above first. Choose an issued invoice and optionally a line; use Load more on the invoice list if the invoice is not shown.'
+        actions={
+          <Button type='submit' form={ALLOCATE_FORM_ID} disabled={editorBusy}>
+            {busyAction === 'allocate' ? 'Allocating…' : 'Create allocation'}
+          </Button>
+        }
+      >
+        <form id={ALLOCATE_FORM_ID} className='flex max-w-full flex-col gap-3' onSubmit={(e) => void handleAllocate(e)}>
+          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-allocate-invoice'>Issued invoice</Label>
+              <Select
+                id='billing-allocate-invoice'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  issuedInvoicesForAllocate.some((i) => i.id === allocateInvoiceId)
+                    ? allocateInvoiceId
+                    : ''
+                }
+                onChange={(e) => {
+                  setAllocateInvoiceId(e.target.value);
+                  setAllocateLineId('');
+                }}
+                disabled={editorBusy}
+              >
+                <option value=''>Select invoice…</option>
+                {issuedInvoicesForAllocate.map((invOpt) => {
+                  const oid = invOpt.id ?? '';
+                  const num = invOpt.invoiceNumber?.trim() ?? '';
+                  const label = num !== '' ? num : formatTruncatedId(oid);
+                  return (
+                    <option key={oid || 'invoice-option'} value={oid}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-allocate-line'>Invoice line (optional)</Label>
+              <Select
+                id='billing-allocate-line'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  allocateLineId === ''
+                    ? ''
+                    : allocateLinesOrdered.some((l) => l.id === allocateLineId)
+                      ? allocateLineId
+                      : ''
+                }
+                onChange={(e) => setAllocateLineId(e.target.value)}
+                disabled={
+                  editorBusy ||
+                  allocateInvoiceId.trim() === '' ||
+                  (invoices.find((i) => i.id === allocateInvoiceId.trim())?.status !== 'issued') ||
+                  allocateInvoiceLinesLoading
+                }
+              >
+                <option value=''>Whole invoice (no specific line)</option>
+                {allocateLinesOrdered
+                  .map((line, idx) => ({ line, idx }))
+                  .filter(({ line }) => (line.id?.trim() ?? '') !== '')
+                  .map(({ line, idx }) => {
+                    const lid = line.id?.trim() ?? '';
+                    return (
+                      <option key={lid} value={lid}>
+                        {formatAllocateLineOptionLabel(line, idx, allocateLineDescriptionCounts)}
+                      </option>
+                    );
+                  })}
+              </Select>
+              {allocateInvoiceLinesLoading ? (
+                <p className='mt-1 text-xs text-slate-600'>Loading invoice lines…</p>
+              ) : null}
+              {allocateInvoiceLinesError ? (
+                <AdminInlineError className='mt-1'>{allocateInvoiceLinesError}</AdminInlineError>
+              ) : null}
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-allocate-amount'>Amount</Label>
+              <Input
+                id='billing-allocate-amount'
+                value={allocateAmount}
+                onChange={(e) => setAllocateAmount(e.target.value)}
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                disabled={editorBusy}
+              />
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-allocate-currency'>Currency</Label>
+              <Select
+                id='billing-allocate-currency'
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                value={allocateCurrency}
+                onChange={(e) => setAllocateCurrency(e.target.value)}
+                disabled={editorBusy}
+              >
+                {currencyOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        </form>
+      </AdminEditorCard>
+
+      <AdminEditorCard
+        title='Record refund payment row'
+        description='Choose an issued invoice, then the inbound payment allocated to it (from allocations). Creates a succeeded refund linked to that payment.'
+        actions={
+          <Button type='submit' form={REFUND_FORM_ID} disabled={editorBusy} variant='secondary'>
+            {busyAction === 'refund' ? 'Recording…' : 'Record refund'}
+          </Button>
+        }
+      >
+        <form id={REFUND_FORM_ID} className='flex max-w-full flex-col gap-3' onSubmit={(e) => void handleRefund(e)}>
+          <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-invoice'>Issued invoice</Label>
+              <Select
+                id='billing-refund-invoice'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  issuedInvoicesForAllocate.some((i) => i.id === refundInvoiceId)
+                    ? refundInvoiceId
+                    : ''
+                }
+                onChange={(e) => {
+                  setRefundInvoiceId(e.target.value);
+                  setRefundPaymentSelectId('');
+                }}
+                disabled={editorBusy}
+              >
+                <option value=''>Select invoice…</option>
+                {issuedInvoicesForAllocate.map((invOpt) => {
+                  const oid = invOpt.id ?? '';
+                  const num = invOpt.invoiceNumber?.trim() ?? '';
+                  const label = num !== '' ? num : formatTruncatedId(oid);
+                  return (
+                    <option key={oid || 'refund-invoice-option'} value={oid}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-payment'>Payment allocated to invoice</Label>
+              <Select
+                id='billing-refund-payment'
+                className='mt-1 w-full min-w-0 max-w-xl min-[780px]:max-w-none'
+                value={
+                  refundEligiblePayments.some((p) => p.id === refundPaymentSelectId)
+                    ? refundPaymentSelectId
+                    : ''
+                }
+                onChange={(e) => setRefundPaymentSelectId(e.target.value)}
+                disabled={
+                  editorBusy ||
+                  refundInvoiceId.trim() === '' ||
+                  refundPaymentsLoading ||
+                  refundEligiblePayments.length === 0
+                }
+              >
+                <option value=''>
+                  {refundPaymentsLoading
+                    ? 'Loading payments…'
+                    : refundEligiblePayments.length === 0
+                      ? 'No inbound succeeded payments with allocations'
+                      : 'Select payment…'}
+                </option>
+                {refundEligiblePayments.map((p) => {
+                  const pid = p.id ?? '';
+                  const amt = p.amount ?? '';
+                  const cur = p.currency ?? '';
+                  const method = p.method?.trim() ?? '';
+                  const methodSuffix = method !== '' ? ` · ${method}` : '';
+                  return (
+                    <option key={pid || 'refund-pay-opt'} value={pid}>
+                      {formatTruncatedId(pid)} · {amt} {cur}
+                      {methodSuffix}
+                    </option>
+                  );
+                })}
+              </Select>
+              {refundPaymentsLoading ? (
+                <p className='mt-1 text-xs text-slate-600'>Loading payments…</p>
+              ) : null}
+              {refundPaymentsError ? (
+                <AdminInlineError className='mt-1'>{refundPaymentsError}</AdminInlineError>
+              ) : null}
+              {!refundPaymentsLoading &&
+              refundInvoiceId.trim() !== '' &&
+              refundEligiblePayments.length === 0 &&
+              !refundPaymentsError ? (
+                <p className='mt-1 text-xs text-slate-600'>
+                  No succeeded inbound payments are allocated to this invoice yet.
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <div className='grid gap-3 min-[780px]:grid-cols-4 min-[780px]:items-end'>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-amount'>Amount</Label>
+              <Input
+                id='billing-refund-amount'
+                value={refundAmount}
+                onChange={(e) => setRefundAmount(e.target.value)}
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                disabled={editorBusy}
+              />
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-currency'>Currency</Label>
+              <Select
+                id='billing-refund-currency'
+                className='mt-1 w-full min-w-0 max-w-xs min-[780px]:max-w-none'
+                value={refundCurrency}
+                onChange={(e) => setRefundCurrency(e.target.value)}
+                disabled={editorBusy}
+              >
+                {currencyOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-method'>Method (optional)</Label>
+              <Input
+                id='billing-refund-method'
+                value={refundMethod}
+                onChange={(e) => setRefundMethod(e.target.value)}
+                className='mt-1 w-full min-w-0'
+                disabled={editorBusy}
+              />
+            </div>
+            <div className='min-w-0'>
+              <Label htmlFor='billing-refund-stripe'>Stripe refund id (optional)</Label>
+              <Input
+                id='billing-refund-stripe'
+                value={refundStripeId}
+                onChange={(e) => setRefundStripeId(e.target.value)}
+                className='mt-1 w-full min-w-0 font-mono text-sm'
+                disabled={editorBusy}
+              />
+            </div>
+          </div>
+        </form>
+      </AdminEditorCard>
 
       <ConfirmDialog
         open={voidDialogOpen}
