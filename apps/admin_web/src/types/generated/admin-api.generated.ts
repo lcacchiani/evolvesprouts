@@ -4782,7 +4782,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Current job state (and expenses when succeeded). */
+                /** @description Current job state (and expenses when the job finished with successes). */
                 200: {
                     headers: {
                         [name: string]: unknown;
