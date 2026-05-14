@@ -250,6 +250,8 @@ new import run—clients should not assume SQS deduplicates duplicate POST retri
 - Uses the same OpenRouter + S3 + Secrets wiring as `ExpenseParserFunction`, with a
   **600** second Lambda timeout (`BULK_IMPORT_LAMBDA_TIMEOUT_SECONDS`) and a shorter
   OpenRouter client timeout so asset validation and DB writes retain headroom.
+- Does **not** set per-function reserved concurrency (uses the account unreserved pool)
+  so stacks stay deployable when other Lambdas already reserve capacity.
 
 ## Inbound invoice email flow
 
