@@ -452,8 +452,11 @@ not include Stripe.
 
 The Admin Lambda selects live vs staging Stripe API credentials for public
 reservation payment flows by comparing the browser `Origin` or `Referer`
-(HTTPS only) to `PUBLIC_WWW_STAGING_SITE_ORIGIN`; requests without a matching
-staging origin use the live secret.
+(HTTPS only) to the `STAGING_SITE_ORIGIN` field of the JSON object pointed
+at by `PUBLIC_WWW_CONFIG_SECRET_ARN` (Secrets Manager); requests without a
+matching staging origin use the live secret. The legacy
+`PUBLIC_WWW_STAGING_SITE_ORIGIN` env var continues to work for tests
+because `app.config.public_www` prefers env vars when present.
 
 #### Permissions-Policy for Stripe Payment Request API
 

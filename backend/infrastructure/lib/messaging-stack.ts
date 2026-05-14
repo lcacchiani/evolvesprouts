@@ -34,6 +34,13 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetsBucketArn: string;
   openrouterApiSecretArn: string;
   openrouterApiSecretKmsKeyArn: string;
+  /** Secrets Manager ARN for the JSON-encoded PUBLIC_WWW_* deployment config
+   *  (see {@link PublicWwwConfigSecret} in api-stack). The MediaRequestProcessor
+   *  reads this on cold start to render transactional email shells. */
+  publicWwwConfigSecretArn: string;
+  /** KMS key ARN that encrypts {@link publicWwwConfigSecretArn}; required so
+   *  the Lambda role can decrypt the SecretString. */
+  publicWwwConfigSecretKmsKeyArn: string;
   databaseProxyArn: string;
   databaseSecretKmsKeyArn: string;
   sesSenderEmail: string;
@@ -44,10 +51,6 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   assetDownloadCustomDomainName: string;
   publicWwwDomainName: string;
   publicWwwStagingDomainName: string;
-  publicWwwInstagramUrl: string;
-  publicWwwLinkedinUrl: string;
-  publicWwwWhatsappUrl: string;
-  publicWwwBusinessPhoneNumber: string;
   mailchimpMediaDownloadMergeTag: string;
   mailchimpFreeResourceJourneyId: string;
   mailchimpFreeResourceJourneyStepId: string;
@@ -221,11 +224,11 @@ export class MessagingNestedStack extends cdk.NestedStack {
           MAILCHIMP_REQUIRE_MARKETING_CONSENT: props.mailchimpRequireMarketingConsent,
           MAILCHIMP_WELCOME_JOURNEY_ID: props.mailchimpWelcomeJourneyId,
           MAILCHIMP_WELCOME_JOURNEY_STEP_ID: props.mailchimpWelcomeJourneyStepId,
-          PUBLIC_WWW_BASE_URL: `https://${props.publicWwwDomainName}`,
-          PUBLIC_WWW_INSTAGRAM_URL: props.publicWwwInstagramUrl,
-          PUBLIC_WWW_LINKEDIN_URL: props.publicWwwLinkedinUrl,
-          PUBLIC_WWW_WHATSAPP_URL: props.publicWwwWhatsappUrl,
-          PUBLIC_WWW_BUSINESS_PHONE_NUMBER: props.publicWwwBusinessPhoneNumber,
+          // PUBLIC_WWW_* deployment config (BASE_URL, social URLs, business
+          // phone number, etc.) is loaded from this Secrets Manager JSON
+          // payload on cold start to keep this Lambda's env-var dict small
+          // and consistent with the admin Lambda. See app.config.public_www.
+          PUBLIC_WWW_CONFIG_SECRET_ARN: props.publicWwwConfigSecretArn,
         },
       });
 
@@ -253,7 +256,11 @@ export class MessagingNestedStack extends cdk.NestedStack {
     this.mediaRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
-        resources: [props.databaseSecretArn, props.mailchimpApiSecretArn],
+        resources: [
+          props.databaseSecretArn,
+          props.mailchimpApiSecretArn,
+          props.publicWwwConfigSecretArn,
+        ],
       })
     );
     if (props.databaseSecretKmsKeyArn) {
@@ -261,6 +268,14 @@ export class MessagingNestedStack extends cdk.NestedStack {
         new iam.PolicyStatement({
           actions: ["kms:Decrypt"],
           resources: [props.databaseSecretKmsKeyArn],
+        })
+      );
+    }
+    if (props.publicWwwConfigSecretKmsKeyArn) {
+      this.mediaRequestProcessor.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["kms:Decrypt"],
+          resources: [props.publicWwwConfigSecretKmsKeyArn],
         })
       );
     }

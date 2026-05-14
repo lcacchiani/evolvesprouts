@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import quote, urlparse, urlunparse
 
+from app.config.public_www import get_public_www
 from app.templates.constants import (
     build_faq_url,
     build_whatsapp_phone_url,
@@ -51,7 +52,10 @@ _SEP = '<span style="color:#EECAB0;"> · </span>'
 
 def _read_env_url(*names: str) -> str | None:
     for name in names:
-        raw = os.getenv(name, "")
+        if name.startswith("PUBLIC_WWW_"):
+            raw = get_public_www(name[len("PUBLIC_WWW_") :])
+        else:
+            raw = os.getenv(name, "")
         if isinstance(raw, str) and raw.strip():
             return raw.strip()
     return None

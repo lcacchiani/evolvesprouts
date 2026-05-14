@@ -48,6 +48,8 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from app.config.public_www import get_public_www
+
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
@@ -231,10 +233,10 @@ def _fps_logo_image(*, width_mm: float = 25, height_mm: float = 12) -> Image | N
 def invoice_pdf_footer_text() -> str:
     """Footer from legal/trading name + registration (Option B includes HK jurisdiction when both)."""
     legal = (
-        os.getenv("PUBLIC_WWW_BUSINESS_LEGAL_NAME", "").strip()
-        or os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip()
+        get_public_www("BUSINESS_LEGAL_NAME").strip()
+        or get_public_www("BUSINESS_NAME").strip()
     )
-    reg = os.getenv("PUBLIC_WWW_BUSINESS_REGISTRATION", "").strip()
+    reg = get_public_www("BUSINESS_REGISTRATION").strip()
     if not legal and not reg:
         return ""
     if legal and not reg:
@@ -574,22 +576,21 @@ def render_invoice_pdf(
         alignment=TA_RIGHT,
     )
 
-    business_name = _esc(os.getenv("PUBLIC_WWW_BUSINESS_NAME", "").strip())
+    business_name = _esc(get_public_www("BUSINESS_NAME").strip())
     address_lines = [
-        _esc(p)
-        for p in split_address_lines(os.getenv("PUBLIC_WWW_BUSINESS_ADDRESS", ""))
+        _esc(p) for p in split_address_lines(get_public_www("BUSINESS_ADDRESS"))
     ]
-    bank_name = os.getenv("PUBLIC_WWW_BANK_NAME", "").strip()
-    bank_holder = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_HOLDER", "").strip()
-    bank_number = os.getenv("PUBLIC_WWW_BANK_ACCOUNT_NUMBER", "").strip()
+    bank_name = get_public_www("BANK_NAME").strip()
+    bank_holder = get_public_www("BANK_ACCOUNT_HOLDER").strip()
+    bank_number = get_public_www("BANK_ACCOUNT_NUMBER").strip()
     has_bank_block = bool(bank_name or bank_holder or bank_number)
 
     is_non_positive_total = invoice.total <= Decimal("0")
     is_zero_total = invoice.total == Decimal("0")
     show_due_date = not is_non_positive_total
 
-    fps_merchant = os.getenv("PUBLIC_WWW_FPS_MERCHANT_NAME", "").strip()
-    fps_mobile = os.getenv("PUBLIC_WWW_FPS_MOBILE_NUMBER", "").strip()
+    fps_merchant = get_public_www("FPS_MERCHANT_NAME").strip()
+    fps_mobile = get_public_www("FPS_MOBILE_NUMBER").strip()
     fps_payload: str | None = None
     attempted_fps_build = (
         not is_non_positive_total
@@ -1037,7 +1038,7 @@ def render_invoice_pdf(
                 textColor=_INV_BODY_TEXT,
                 alignment=TA_CENTER,
             )
-            billing_email = os.getenv("PUBLIC_WWW_BILLING_EMAIL", "").strip()
+            billing_email = get_public_www("BILLING_EMAIL").strip()
             confirm_line_html = _payment_confirmation_line_html(billing_email)
 
             story.append(Spacer(1, 44))
