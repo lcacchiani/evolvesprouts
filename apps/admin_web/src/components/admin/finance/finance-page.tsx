@@ -138,7 +138,7 @@ export function FinancePage() {
         onImport={expenses.bulkImportFromPdf}
         onCancelBusy={expenses.cancelBulkImport}
       />
-      <BulkExpenseImportJobsPanel onAfterMutation={() => void expenses.list.refetch()} />
+      <BulkExpenseImportJobsPanel onAfterMutation={() => void expenses.refetch()} />
       <ExpensesListPanel
         expenses={expenses.items}
         selectedExpenseId={expenses.selectedExpenseId}
