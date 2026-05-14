@@ -216,6 +216,14 @@ export class ApiStack extends cdk.Stack {
     cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
     cdk.Tags.of(this).add("Project", "Backend");
 
+    // Required for `cdk.Fn.toJsonString(...)` used by PublicWwwConfigSecret.
+    // Without this transform, CFN would substitute parameter values verbatim
+    // into the SecretString via Fn::Join — multi-line values (for example
+    // PUBLIC_WWW_BUSINESS_ADDRESS containing "\r\n") would produce invalid
+    // JSON, the Lambda's json.loads() would fail, and PUBLIC_WWW_* lookups
+    // would silently fall back to defaults.
+    this.addTransform("AWS::LanguageExtensions");
+
     const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
     /** production | staging — gates SES/Mailchimp/SNS in app code; override via CDK_DEPLOYMENT_STAGE for non-prod stacks. */
@@ -1810,6 +1818,40 @@ export class ApiStack extends cdk.Stack {
     // 4 KB AWS limit. Lambdas read the secret via the existing Secrets
     // Manager VPC interface endpoint and a 5-minute in-process cache, so the
     // cold-start overhead is bounded and there is no new VPC infrastructure.
+    //
+    // The SecretString is built with `Fn::ToJsonString` (enabled by the
+    // AWS::LanguageExtensions transform on this stack). This is required:
+    // CDK's `secretObjectValue` and naked `cdk.Fn.toJsonString` on a plain
+    // object both fall back to `Fn::Join` and substitute CFN parameter
+    // values verbatim — multi-line values (for example
+    // `PUBLIC_WWW_BUSINESS_ADDRESS` containing literal CRLF) would then
+    // produce invalid JSON and break every consumer. Wrapping the payload
+    // in `cdk.Lazy.any({...})` keeps the whole object an unresolved token,
+    // which CDK then emits as a real `Fn::ToJsonString` intrinsic that
+    // properly escapes embedded newlines, quotes, and backslashes at
+    // deploy time.
+    const publicWwwConfigPayload = cdk.Fn.toJsonString(
+      cdk.Lazy.any({
+        produce: () => ({
+          BASE_URL: `https://${publicWwwDomainName.valueAsString}`,
+          STAGING_SITE_ORIGIN: `https://${publicWwwStagingDomainName.valueAsString}`,
+          INSTAGRAM_URL: publicWwwInstagramUrl.valueAsString,
+          LINKEDIN_URL: publicWwwLinkedinUrl.valueAsString,
+          WHATSAPP_URL: publicWwwWhatsappUrl.valueAsString,
+          BUSINESS_PHONE_NUMBER: publicWwwBusinessPhoneNumber.valueAsString,
+          BILLING_EMAIL: publicWwwBillingEmail.valueAsString,
+          BUSINESS_NAME: publicWwwBusinessName.valueAsString,
+          BUSINESS_LEGAL_NAME: publicWwwBusinessLegalName.valueAsString,
+          BUSINESS_ADDRESS: publicWwwBusinessAddress.valueAsString,
+          BUSINESS_REGISTRATION: publicWwwBusinessRegistration.valueAsString,
+          BANK_NAME: publicWwwBankName.valueAsString,
+          BANK_ACCOUNT_HOLDER: publicWwwBankAccountHolder.valueAsString,
+          BANK_ACCOUNT_NUMBER: publicWwwBankAccountNumber.valueAsString,
+          FPS_MERCHANT_NAME: publicWwwFpsMerchantName.valueAsString,
+          FPS_MOBILE_NUMBER: publicWwwFpsMobileNumber.valueAsString,
+        }),
+      })
+    );
     const publicWwwConfigSecret = new secretsmanager.Secret(
       this,
       "PublicWwwConfigSecret",
@@ -1822,56 +1864,9 @@ export class ApiStack extends cdk.Stack {
           "are packed here to keep the admin Lambda environment-variable " +
           "string under AWS's 4 KB limit.",
         encryptionKey: secretsEncryptionKey,
-        secretObjectValue: {
-          BASE_URL: cdk.SecretValue.unsafePlainText(
-            `https://${publicWwwDomainName.valueAsString}`
-          ),
-          STAGING_SITE_ORIGIN: cdk.SecretValue.unsafePlainText(
-            `https://${publicWwwStagingDomainName.valueAsString}`
-          ),
-          INSTAGRAM_URL: cdk.SecretValue.unsafePlainText(
-            publicWwwInstagramUrl.valueAsString
-          ),
-          LINKEDIN_URL: cdk.SecretValue.unsafePlainText(
-            publicWwwLinkedinUrl.valueAsString
-          ),
-          WHATSAPP_URL: cdk.SecretValue.unsafePlainText(
-            publicWwwWhatsappUrl.valueAsString
-          ),
-          BUSINESS_PHONE_NUMBER: cdk.SecretValue.unsafePlainText(
-            publicWwwBusinessPhoneNumber.valueAsString
-          ),
-          BILLING_EMAIL: cdk.SecretValue.unsafePlainText(
-            publicWwwBillingEmail.valueAsString
-          ),
-          BUSINESS_NAME: cdk.SecretValue.unsafePlainText(
-            publicWwwBusinessName.valueAsString
-          ),
-          BUSINESS_LEGAL_NAME: cdk.SecretValue.unsafePlainText(
-            publicWwwBusinessLegalName.valueAsString
-          ),
-          BUSINESS_ADDRESS: cdk.SecretValue.unsafePlainText(
-            publicWwwBusinessAddress.valueAsString
-          ),
-          BUSINESS_REGISTRATION: cdk.SecretValue.unsafePlainText(
-            publicWwwBusinessRegistration.valueAsString
-          ),
-          BANK_NAME: cdk.SecretValue.unsafePlainText(
-            publicWwwBankName.valueAsString
-          ),
-          BANK_ACCOUNT_HOLDER: cdk.SecretValue.unsafePlainText(
-            publicWwwBankAccountHolder.valueAsString
-          ),
-          BANK_ACCOUNT_NUMBER: cdk.SecretValue.unsafePlainText(
-            publicWwwBankAccountNumber.valueAsString
-          ),
-          FPS_MERCHANT_NAME: cdk.SecretValue.unsafePlainText(
-            publicWwwFpsMerchantName.valueAsString
-          ),
-          FPS_MOBILE_NUMBER: cdk.SecretValue.unsafePlainText(
-            publicWwwFpsMobileNumber.valueAsString
-          ),
-        },
+        secretStringValue: cdk.SecretValue.unsafePlainText(
+          publicWwwConfigPayload
+        ),
       }
     );
     publicWwwConfigSecret.grantRead(adminFunction);
