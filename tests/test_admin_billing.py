@@ -137,6 +137,31 @@ def test_payment_unapplied_amount_subtracts_allocations() -> None:
     assert customer_billing.payment_unapplied_amount(session, pid) == Decimal("65")
 
 
+@pytest.mark.parametrize("allocated", ("0", "0.00", "-1"))
+def test_create_payment_allocation_rejects_non_positive_allocated_amount(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    allocated: str,
+) -> None:
+    """Zero or negative allocations violate DB CHECK; reject before flush (no 500)."""
+    body = {
+        "paymentId": str(uuid4()),
+        "invoiceId": str(uuid4()),
+        "allocatedAmount": allocated,
+        "currency": "HKD",
+    }
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/allocations",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="greater than zero"):
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/allocations"
+        )
+
+
 def test_next_invoice_number_increments_per_year(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -6801,6 +6801,10 @@ components:
           nullable: true
         allocatedAmount:
           type: string
+          description: >-
+            Must be strictly positive. Zero is rejected (matches the database constraint on
+            `payment_allocations.allocated_amount`); use other billing flows for complimentary
+            or fully discounted invoices rather than a zero payment allocation row.
         currency:
           type: string
           minLength: 3

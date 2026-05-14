@@ -40,6 +40,11 @@ def _create_allocation(
         raise ValidationError(
             "allocatedAmount must be a decimal number", field="allocatedAmount"
         ) from exc
+    if amt <= 0:
+        raise ValidationError(
+            "allocatedAmount must be greater than zero",
+            field="allocatedAmount",
+        )
     currency = str(body.get("currency") or "").upper()[:3]
     line_id_raw = body.get("invoiceLineId") or body.get("invoice_line_id")
     line_id: UUID | None = None

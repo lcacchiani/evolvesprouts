@@ -6475,6 +6475,7 @@ export interface components {
             invoiceId: string;
             /** Format: uuid */
             invoiceLineId?: string | null;
+            /** @description Must be strictly positive. Zero is rejected (matches the database constraint on `payment_allocations.allocated_amount`); use other billing flows for complimentary or fully discounted invoices rather than a zero payment allocation row. */
             allocatedAmount: string;
             currency: string;
         };
