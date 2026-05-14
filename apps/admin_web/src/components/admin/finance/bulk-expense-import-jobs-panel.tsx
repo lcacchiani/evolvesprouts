@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { RotateIcon, ViewIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
@@ -192,7 +193,7 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
                 <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Message</AdminDataTableHeadCell>
-                <AdminDataTableOperationsHeadCell />
+                <AdminDataTableOperationsHeadCell>Icons</AdminDataTableOperationsHeadCell>
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>
@@ -219,15 +220,22 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
                         type='button'
                         size='sm'
                         variant='outline'
+                        aria-label='View result'
+                        title='View result'
                         onClick={() => void openView(row.id)}
                       >
-                        View result
+                        <ViewIcon className='h-4 w-4' aria-hidden />
                       </Button>
                       <Button
                         type='button'
                         size='sm'
                         variant='outline'
                         disabled={!canRetry(row)}
+                        aria-label={
+                          canRetry(row)
+                            ? 'Retry import with the same PDF and vendor defaults'
+                            : 'Retry unavailable for this job status'
+                        }
                         title={
                           canRetry(row)
                             ? 'Queue a new import using the same PDF and vendor defaults'
@@ -235,7 +243,7 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
                         }
                         onClick={() => startRetry(row)}
                       >
-                        Retry
+                        <RotateIcon className='h-4 w-4' aria-hidden />
                       </Button>
                     </div>
                   </AdminDataTableCell>
