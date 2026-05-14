@@ -1691,7 +1691,6 @@ export class ApiStack extends cdk.Stack {
         EVOLVESPROUTS_STRIPE_SECRET_KEY: evolveSproutsStripeSecretKey.valueAsString,
         EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY:
           evolveSproutsStripeStagingSecretKey.valueAsString,
-        PUBLIC_WWW_STAGING_SITE_ORIGIN: `https://${publicWwwStagingDomainName.valueAsString}`,
         STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
@@ -1805,6 +1804,81 @@ export class ApiStack extends cdk.Stack {
       }
     );
     openrouterApiSecret.grantRead(adminFunction);
+
+    // Pack non-secret PUBLIC_WWW_* deployment config into a single Secrets
+    // Manager JSON object so the admin Lambda's env-var dict stays under the
+    // 4 KB AWS limit. Lambdas read the secret via the existing Secrets
+    // Manager VPC interface endpoint and a 5-minute in-process cache, so the
+    // cold-start overhead is bounded and there is no new VPC infrastructure.
+    const publicWwwConfigSecret = new secretsmanager.Secret(
+      this,
+      "PublicWwwConfigSecret",
+      {
+        secretName: name("public-www-config"),
+        description:
+          "Non-secret PUBLIC_WWW_* deployment config (bank info, business " +
+          "address, social URLs, etc.) consumed by admin/messaging Lambdas. " +
+          "Source of truth is the GitHub vars.NEXT_PUBLIC_* set; the values " +
+          "are packed here to keep the admin Lambda environment-variable " +
+          "string under AWS's 4 KB limit.",
+        encryptionKey: secretsEncryptionKey,
+        secretObjectValue: {
+          BASE_URL: cdk.SecretValue.unsafePlainText(
+            `https://${publicWwwDomainName.valueAsString}`
+          ),
+          STAGING_SITE_ORIGIN: cdk.SecretValue.unsafePlainText(
+            `https://${publicWwwStagingDomainName.valueAsString}`
+          ),
+          INSTAGRAM_URL: cdk.SecretValue.unsafePlainText(
+            publicWwwInstagramUrl.valueAsString
+          ),
+          LINKEDIN_URL: cdk.SecretValue.unsafePlainText(
+            publicWwwLinkedinUrl.valueAsString
+          ),
+          WHATSAPP_URL: cdk.SecretValue.unsafePlainText(
+            publicWwwWhatsappUrl.valueAsString
+          ),
+          BUSINESS_PHONE_NUMBER: cdk.SecretValue.unsafePlainText(
+            publicWwwBusinessPhoneNumber.valueAsString
+          ),
+          BILLING_EMAIL: cdk.SecretValue.unsafePlainText(
+            publicWwwBillingEmail.valueAsString
+          ),
+          BUSINESS_NAME: cdk.SecretValue.unsafePlainText(
+            publicWwwBusinessName.valueAsString
+          ),
+          BUSINESS_LEGAL_NAME: cdk.SecretValue.unsafePlainText(
+            publicWwwBusinessLegalName.valueAsString
+          ),
+          BUSINESS_ADDRESS: cdk.SecretValue.unsafePlainText(
+            publicWwwBusinessAddress.valueAsString
+          ),
+          BUSINESS_REGISTRATION: cdk.SecretValue.unsafePlainText(
+            publicWwwBusinessRegistration.valueAsString
+          ),
+          BANK_NAME: cdk.SecretValue.unsafePlainText(
+            publicWwwBankName.valueAsString
+          ),
+          BANK_ACCOUNT_HOLDER: cdk.SecretValue.unsafePlainText(
+            publicWwwBankAccountHolder.valueAsString
+          ),
+          BANK_ACCOUNT_NUMBER: cdk.SecretValue.unsafePlainText(
+            publicWwwBankAccountNumber.valueAsString
+          ),
+          FPS_MERCHANT_NAME: cdk.SecretValue.unsafePlainText(
+            publicWwwFpsMerchantName.valueAsString
+          ),
+          FPS_MOBILE_NUMBER: cdk.SecretValue.unsafePlainText(
+            publicWwwFpsMobileNumber.valueAsString
+          ),
+        },
+      }
+    );
+    publicWwwConfigSecret.grantRead(adminFunction);
+    adminFunction.addEnvironment(
+      "PUBLIC_WWW_CONFIG_SECRET_ARN",
+      publicWwwConfigSecret.secretArn
+    );
     adminFunction.addEnvironment(
       "OPENROUTER_API_KEY_SECRET_ARN",
       openrouterApiSecret.secretArn
@@ -1860,6 +1934,8 @@ export class ApiStack extends cdk.Stack {
       assetsBucketArn: assetsBucket.bucketArn,
       openrouterApiSecretArn: openrouterApiSecret.secretArn,
       openrouterApiSecretKmsKeyArn: secretsEncryptionKey.keyArn,
+      publicWwwConfigSecretArn: publicWwwConfigSecret.secretArn,
+      publicWwwConfigSecretKmsKeyArn: secretsEncryptionKey.keyArn,
       databaseProxyArn: database.proxy.dbProxyArn,
       databaseSecretKmsKeyArn: database.adminUserSecretKmsKey?.keyArn ?? "",
       sesSenderEmail: sesSenderEmail.valueAsString,
@@ -1870,10 +1946,6 @@ export class ApiStack extends cdk.Stack {
       assetDownloadCustomDomainName: assetDownloadCustomDomainName.valueAsString,
       publicWwwDomainName: publicWwwDomainName.valueAsString,
       publicWwwStagingDomainName: publicWwwStagingDomainName.valueAsString,
-      publicWwwInstagramUrl: publicWwwInstagramUrl.valueAsString,
-      publicWwwLinkedinUrl: publicWwwLinkedinUrl.valueAsString,
-      publicWwwWhatsappUrl: publicWwwWhatsappUrl.valueAsString,
-      publicWwwBusinessPhoneNumber: publicWwwBusinessPhoneNumber.valueAsString,
       mailchimpMediaDownloadMergeTag: mailchimpMediaDownloadMergeTag.valueAsString,
       mailchimpFreeResourceJourneyId: mailchimpFreeResourceJourneyId.valueAsString,
       mailchimpFreeResourceJourneyStepId:
@@ -2828,66 +2900,10 @@ export class ApiStack extends cdk.Stack {
       "MAILCHIMP_WELCOME_JOURNEY_STEP_ID",
       mailchimpWelcomeJourneyStepId.valueAsString
     );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BASE_URL",
-      `https://${publicWwwDomainName.valueAsString}`
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_INSTAGRAM_URL",
-      publicWwwInstagramUrl.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_LINKEDIN_URL",
-      publicWwwLinkedinUrl.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_WHATSAPP_URL",
-      publicWwwWhatsappUrl.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BUSINESS_PHONE_NUMBER",
-      publicWwwBusinessPhoneNumber.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BILLING_EMAIL",
-      publicWwwBillingEmail.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BUSINESS_NAME",
-      publicWwwBusinessName.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BUSINESS_LEGAL_NAME",
-      publicWwwBusinessLegalName.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BUSINESS_ADDRESS",
-      publicWwwBusinessAddress.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BUSINESS_REGISTRATION",
-      publicWwwBusinessRegistration.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BANK_NAME",
-      publicWwwBankName.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BANK_ACCOUNT_HOLDER",
-      publicWwwBankAccountHolder.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_BANK_ACCOUNT_NUMBER",
-      publicWwwBankAccountNumber.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_FPS_MERCHANT_NAME",
-      publicWwwFpsMerchantName.valueAsString
-    );
-    adminFunction.addEnvironment(
-      "PUBLIC_WWW_FPS_MOBILE_NUMBER",
-      publicWwwFpsMobileNumber.valueAsString
-    );
+    // PUBLIC_WWW_* deployment config now lives in publicWwwConfigSecret
+    // (see PublicWwwConfigSecret above). The admin Lambda fetches the JSON
+    // payload at cold start via PUBLIC_WWW_CONFIG_SECRET_ARN to keep its
+    // environment-variable dict under the 4 KB AWS limit.
     adminFunction.addEnvironment(
       "INVOICE_PAYMENT_TERMS_DAYS",
       invoicePaymentTermsDays.valueAsString
