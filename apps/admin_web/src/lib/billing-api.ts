@@ -9,7 +9,6 @@ type ApiSchemas = components['schemas'];
 export type CustomerPaymentSummary = ApiSchemas['CustomerPaymentSummary'];
 
 export type CustomerPaymentDetail = CustomerPaymentSummary & {
-  unappliedAmount?: string;
   allocationInvoices?: { invoiceId: string; invoiceNumber: string | null }[];
 };
 
@@ -205,6 +204,22 @@ export async function createManualInboundCustomerPayment(
   const root = unwrapPayload(payload);
   if (!root.payment) {
     throw new Error('Create payment response missing payment.');
+  }
+  return root.payment;
+}
+
+export async function updateManualInboundCustomerPayment(
+  id: string,
+  body: ApiSchemas['UpdateManualInboundCustomerPaymentRequest'],
+): Promise<CustomerPaymentSummary> {
+  const payload = await adminApiRequest<{ payment?: CustomerPaymentSummary }>({
+    endpointPath: `/v1/admin/billing/payments/${id}`,
+    method: 'PATCH',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  if (!root.payment) {
+    throw new Error('Update payment response missing payment.');
   }
   return root.payment;
 }

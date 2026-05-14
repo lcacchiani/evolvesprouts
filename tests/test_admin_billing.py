@@ -21,6 +21,7 @@ from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
 from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
+from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
 from app.api import admin_billing_payments as admin_billing_payments_mod
 from app.api.admin_billing_common import (
     effective_enrollment_bill_to_fks,
@@ -46,6 +47,7 @@ def _patch_billing_sessions(monkeypatch: pytest.MonkeyPatch, fake_session: Any) 
     for mod in (
         admin_billing_payments_mod,
         admin_billing_payment_create_mod,
+        admin_billing_payment_update_mod,
         admin_billing_invoice_queries_mod,
         admin_billing_invoices_mod,
         admin_billing_invoice_drafts_mod,
@@ -1373,6 +1375,11 @@ def test_confirm_payment_creates_receipt_for_pending_inbound(
         return MagicMock()
 
     _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("50"),
+    )
     monkeypatch.setattr(
         admin_billing_payments_mod,
         "_batch_orphan_payment_deletable",
@@ -2759,6 +2766,913 @@ def test_manual_inbound_payment_enrollment_not_found(
     )
     with pytest.raises(NotFoundError, match="Enrollment"):
         admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+
+
+def test_patch_manual_inbound_payment_not_found(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(_model: Any, _pk: Any) -> Any:
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+        "externalReference": None,
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(NotFoundError, match="CustomerPayment"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_stripe_linked(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = "pi_abc"
+    pay.enrollment_id = eid
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+        "externalReference": None,
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Stripe-linked"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_refund_direction(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.REFUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = uuid4()
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.get.side_effect = lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Only inbound"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_missing_enrollment_link(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = None
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.get.side_effect = lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    body = {"amount": "10", "currency": "HKD", "method": "fps", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="no enrollment link"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_cancelled_enrollment(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CANCELLED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    body = {"amount": "10", "currency": "HKD", "method": "fps", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="cancelled enrollment"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_currency_mismatch(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.currency = "HKD"
+    pay.amount = Decimal("10")
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    body = {"amount": "10", "currency": "USD", "method": "fps", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="billing currency"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_amount_below_allocated(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("10")
+    pay.currency = "HKD"
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("3"),
+    )
+    body = {"amount": "5", "currency": "HKD", "method": "fps", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="allocated to invoices"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_pending_free_zero_coerces(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("10")
+    pay.currency = "HKD"
+    pay.method = "bank_transfer"
+    pay.contact_id = uuid4()
+    pay.external_reference = None
+    pay.succeeded_at = None
+    pay.confirmed_by = None
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        ex = MagicMock()
+        ex.scalar_one_or_none.return_value = None
+        s.execute.return_value = ex
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_orphan_payment_deletable",
+        lambda _session, rows: {rows[0].id: False},
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_party_label_by_payment",
+        lambda _session, rows: {rows[0].id: "Pat"},
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "create_receipt_for_succeeded_inbound_payment",
+        lambda _session, *, payment: MagicMock(id=uuid4()),
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "finalize_receipt_pdf_upload",
+        lambda *_a, **_k: None,
+    )
+    audit_actions: list[str] = []
+    mock_audit = MagicMock()
+
+    def _log_custom(**kw: Any) -> None:
+        audit_actions.append(str(kw.get("action")))
+
+    mock_audit.log_custom.side_effect = _log_custom
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "AuditService",
+        lambda *_a, **_k: mock_audit,
+    )
+
+    body = {"amount": "0", "currency": "HKD", "method": "free", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+    )
+    assert r["statusCode"] == 200
+    assert pay.status == BillingPaymentStatus.SUCCEEDED
+    assert pay.method == "free"
+    assert "MANUAL_INBOUND_PAYMENT_UPDATED" in audit_actions
+    out = json.loads(r["body"])
+    assert out["payment"]["status"] == "succeeded"
+    assert out["payment"]["party"] == "Pat"
+
+
+def test_patch_manual_inbound_payment_pending_to_succeeded_creates_receipt(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("10")
+    pay.currency = "HKD"
+    pay.method = "bank_transfer"
+    pay.contact_id = uuid4()
+    pay.external_reference = None
+    pay.succeeded_at = None
+    pay.confirmed_by = None
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        ex = MagicMock()
+        ex.scalar_one_or_none.return_value = None
+        s.execute.return_value = ex
+        yield s
+
+    created = {"n": 0}
+
+    def _create_rcpt(_session: Any, *, payment: Any) -> MagicMock:
+        created["n"] += 1
+        return MagicMock(id=uuid4())
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_orphan_payment_deletable",
+        lambda _session, rows: {rows[0].id: False},
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_party_label_by_payment",
+        lambda _session, rows: {rows[0].id: "Pat"},
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "create_receipt_for_succeeded_inbound_payment",
+        _create_rcpt,
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "finalize_receipt_pdf_upload",
+        lambda *_a, **_k: None,
+    )
+    mock_audit = MagicMock()
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "AuditService",
+        lambda *_a, **_k: mock_audit,
+    )
+
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "bank_transfer",
+        "status": "succeeded",
+        "externalReference": "REF-OK",
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+    )
+    assert r["statusCode"] == 200
+    assert pay.status == BillingPaymentStatus.SUCCEEDED
+    assert pay.confirmed_by == admin_identity["userSub"]
+    assert pay.succeeded_at is not None
+    assert created["n"] == 1
+    mock_audit.log_custom.assert_called()
+    call_kw = mock_audit.log_custom.call_args.kwargs
+    assert call_kw.get("action") == "MANUAL_INBOUND_PAYMENT_UPDATED"
+    out = json.loads(r["body"])
+    assert out["payment"]["unappliedAmount"] == "10"
+    assert out["payment"]["party"] == "Pat"
+
+
+def test_patch_manual_inbound_payment_succeeded_rejects_amount_change(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.SUCCEEDED
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("100")
+    pay.currency = "HKD"
+    pay.method = "bank_transfer"
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("100"),
+    )
+    body = {"amount": "99", "currency": "HKD", "method": "bank_transfer"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="Cannot change amount"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_succeeded_rejects_free_method_when_positive_amount(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.SUCCEEDED
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("100")
+    pay.currency = "HKD"
+    pay.method = "bank_transfer"
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("100"),
+    )
+    body = {"amount": "100", "currency": "HKD", "method": "free"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="free method"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_succeeded_allows_external_reference_update(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.SUCCEEDED
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("100")
+    pay.currency = "HKD"
+    pay.method = "bank_transfer"
+    pay.external_reference = "OLD"
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("100"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("100"),
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_orphan_payment_deletable",
+        lambda _session, rows: {rows[0].id: False},
+    )
+    monkeypatch.setattr(
+        admin_billing_payments_mod,
+        "_batch_party_label_by_payment",
+        lambda _session, rows: {rows[0].id: "Pat"},
+    )
+    mock_audit = MagicMock()
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "AuditService",
+        lambda *_a, **_k: mock_audit,
+    )
+
+    body = {"amount": "100", "currency": "HKD", "method": "bank_transfer", "externalReference": "NEW-REF"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+    )
+    assert r["statusCode"] == 200
+    assert pay.external_reference == "NEW-REF"
+    out = json.loads(r["body"])
+    assert out["payment"]["externalReference"] == "NEW-REF"
+
+
+def test_patch_manual_inbound_payment_duplicate_external_reference_conflict(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sqlalchemy.exc import IntegrityError
+
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.amount = Decimal("10")
+    pay.currency = "HKD"
+    pay.method = "fps"
+    pay.contact_id = uuid4()
+    pay.external_reference = None
+    pay.succeeded_at = None
+    pay.confirmed_by = None
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    en = SimpleNamespace(
+        id=eid,
+        status=EnrollmentStatus.CONFIRMED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        contact_id=uuid4(),
+        currency="HKD",
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            if model is Enrollment and pk == eid:
+                return en
+            return None
+
+        s.get.side_effect = _get
+        ex = MagicMock()
+        ex.scalar_one_or_none.return_value = None
+        s.execute.return_value = ex
+
+        def _flush() -> None:
+            raise IntegrityError("stmt", {}, Exception("uq_cp_enrollment_external_ref violated"))
+
+        s.flush.side_effect = _flush
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    body = {
+        "amount": "10",
+        "currency": "HKD",
+        "method": "fps",
+        "status": "pending",
+        "externalReference": "DUP",
+    }
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ConflictError, match="duplicate_enrollment_payment_reference"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
+
+
+def test_patch_manual_inbound_payment_rejects_enrollment_missing(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pay_id = uuid4()
+    eid = uuid4()
+    pay = MagicMock()
+    pay.id = pay_id
+    pay.direction = BillingPaymentDirection.INBOUND
+    pay.status = BillingPaymentStatus.PENDING
+    pay.stripe_payment_intent_id = None
+    pay.enrollment_id = eid
+    pay.to_audit_dict = MagicMock(return_value={"id": str(pay_id)})
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is CustomerPayment and pk == pay_id:
+                return pay
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_payment_update_mod,
+        "payment_unapplied_amount",
+        lambda _s, _pid: Decimal("10"),
+    )
+    body = {"amount": "10", "currency": "HKD", "method": "fps", "status": "pending"}
+    ev = api_gateway_event(
+        method="PATCH",
+        path=f"/v1/admin/billing/payments/{pay_id}",
+        body=json.dumps(body),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="no longer exists"):
+        admin_billing.handle_admin_billing_request(
+            ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
+        )
 
 
 def test_manual_inbound_payment_cancelled_enrollment_rejected(

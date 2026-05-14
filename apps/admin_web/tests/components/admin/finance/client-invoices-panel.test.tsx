@@ -18,6 +18,7 @@ const billingMocks = vi.hoisted(() => ({
   createPaymentAllocation: vi.fn(),
   createCustomerRefund: vi.fn(),
   createManualInboundCustomerPayment: vi.fn(),
+  updateManualInboundCustomerPayment: vi.fn(),
   exportBillingCsv: vi.fn(),
   listRecentEnrollmentsForInvoicing: vi.fn(),
 }));
@@ -56,6 +57,7 @@ vi.mock('@/lib/billing-api', async (importOriginal) => {
     createPaymentAllocation: billingMocks.createPaymentAllocation,
     createCustomerRefund: billingMocks.createCustomerRefund,
     createManualInboundCustomerPayment: billingMocks.createManualInboundCustomerPayment,
+    updateManualInboundCustomerPayment: billingMocks.updateManualInboundCustomerPayment,
     exportBillingCsv: billingMocks.exportBillingCsv,
     listRecentEnrollmentsForInvoicing: billingMocks.listRecentEnrollmentsForInvoicing,
   };
@@ -105,6 +107,24 @@ describe('ClientInvoicesPanel', () => {
       succeededAt: null,
       createdAt: '2026-01-01T00:00:00+00:00',
       orphanPaymentDeletable: false,
+      party: 'Pat',
+      unappliedAmount: '10',
+    });
+    billingMocks.updateManualInboundCustomerPayment.mockResolvedValue({
+      id: 'updated-payment-uuid',
+      direction: 'inbound',
+      status: 'pending',
+      method: 'fps',
+      amount: '20',
+      currency: 'HKD',
+      enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      contactId: null,
+      externalReference: 'REF',
+      succeededAt: null,
+      createdAt: '2026-01-01T00:00:00+00:00',
+      orphanPaymentDeletable: false,
+      party: 'Pat',
+      unappliedAmount: '20',
     });
   });
 
@@ -123,6 +143,10 @@ describe('ClientInvoicesPanel', () => {
           invoiceNumber: 'INV-42',
           currency: 'HKD',
           total: '100',
+          amountAllocated: '0',
+          balanceDue: '100',
+          paidAt: null,
+          isPaid: false,
           lineCount: 1,
           billToDisplayName: 'Pat',
           createdAt: '2026-01-01T00:00:00+00:00',
@@ -145,7 +169,8 @@ describe('ClientInvoicesPanel', () => {
     const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
     const invoiceTable = within(invoiceRegion).getByRole('table');
     expect(within(invoiceTable).queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
-    expect(within(invoiceTable).getByText('Issued')).toBeInTheDocument();
+    expect(within(invoiceTable).getByRole('columnheader', { name: 'Settlement' })).toBeInTheDocument();
+    expect(within(invoiceTable).getByText('Open')).toBeInTheDocument();
     await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {
@@ -246,7 +271,10 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalled());
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText(/Enrollment \(recent\)/i), eid);
+    const enrollmentSelect = document.getElementById(
+      'billing-create-pay-enrollment-select',
+    ) as HTMLSelectElement;
+    await user.selectOptions(enrollmentSelect, eid);
     const amountInput = document.getElementById('billing-create-pay-amount') as HTMLInputElement;
     await user.clear(amountInput);
     await user.type(amountInput, '10');
@@ -295,7 +323,10 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalled());
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText(/Enrollment \(recent\)/i), eid);
+    const enrollmentSelect = document.getElementById(
+      'billing-create-pay-enrollment-select',
+    ) as HTMLSelectElement;
+    await user.selectOptions(enrollmentSelect, eid);
     const amountInput = document.getElementById('billing-create-pay-amount') as HTMLInputElement;
     await user.clear(amountInput);
     await user.type(amountInput, '5');
@@ -305,6 +336,66 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => {
       expect(screen.getByText(/Duplicate reference/)).toBeInTheDocument();
     });
+  });
+
+  it('manual payment editor Cancel keeps payment row selected for allocation', async () => {
+    const payId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const eid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    billingMocks.listCustomerPayments.mockResolvedValue([
+      {
+        id: payId,
+        direction: 'inbound',
+        status: 'pending',
+        method: 'bank_transfer',
+        amount: '10',
+        currency: 'HKD',
+        enrollmentId: eid,
+        stripePaymentIntentId: null,
+        party: 'Pat',
+        unappliedAmount: '10',
+        createdAt: '2026-01-01T00:00:00+00:00',
+        orphanPaymentDeletable: false,
+      },
+    ]);
+    billingMocks.getCustomerPayment.mockResolvedValue({
+      id: payId,
+      direction: 'inbound',
+      status: 'pending',
+      method: 'bank_transfer',
+      amount: '10',
+      currency: 'HKD',
+      enrollmentId: eid,
+      stripePaymentIntentId: null,
+      party: 'Pat',
+      unappliedAmount: '10',
+      createdAt: '2026-01-01T00:00:00+00:00',
+      orphanPaymentDeletable: false,
+    });
+    billingMocks.listCustomerInvoices.mockResolvedValue({
+      items: [],
+      next_cursor: null,
+    });
+
+    render(<ClientInvoicesPanel />);
+
+    const paymentTable = screen.getAllByRole('table').at(-1) as HTMLElement;
+    await waitFor(() => expect(within(paymentTable).getAllByRole('row').length).toBeGreaterThan(1));
+
+    await userEvent.click(firstCustomerPaymentDataRow(paymentTable));
+    await waitFor(() => {
+      expect(billingMocks.getCustomerPayment).toHaveBeenCalledWith(payId, expect.any(AbortSignal));
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Update customer payment' })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Create customer payment' })).toBeInTheDocument();
+    });
+    const row = firstCustomerPaymentDataRow(paymentTable);
+    expect(row.className).toContain('bg-sky-50');
   });
 
   it('load more uses cursor from previous response', async () => {
@@ -619,6 +710,8 @@ describe('ClientInvoicesPanel', () => {
       currency: 'HKD',
       createdAt: '2026-01-01T00:00:00+00:00',
       orphanPaymentDeletable: false,
+      party: 'Pat',
+      unappliedAmount: '10',
     });
 
     render(<ClientInvoicesPanel />);
@@ -798,7 +891,11 @@ describe('ClientInvoicesPanel', () => {
         method: 'bank_transfer',
         amount: '100',
         currency: 'HKD',
+        enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        stripePaymentIntentId: null,
+        party: 'Pat · Service',
         externalReference: 'WIRE-999',
+        unappliedAmount: '100',
         createdAt: '2026-01-01T00:00:00+00:00',
         orphanPaymentDeletable: false,
       },
@@ -810,6 +907,9 @@ describe('ClientInvoicesPanel', () => {
       method: 'bank_transfer',
       amount: '100',
       currency: 'HKD',
+      enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      stripePaymentIntentId: null,
+      party: 'Pat · Service',
       externalReference: 'WIRE-999',
       unappliedAmount: '100',
       createdAt: '2026-01-01T00:00:00+00:00',
@@ -840,7 +940,8 @@ describe('ClientInvoicesPanel', () => {
       expect(billingMocks.getCustomerPayment).toHaveBeenCalledWith(payId, expect.any(AbortSignal));
     });
     await waitFor(() => {
-      expect(screen.getAllByText('WIRE-999').length).toBeGreaterThanOrEqual(1);
+      const refInput = document.getElementById('billing-create-pay-external-ref') as HTMLInputElement;
+      expect(refInput.value).toBe('WIRE-999');
     });
 
     const user = userEvent.setup();
