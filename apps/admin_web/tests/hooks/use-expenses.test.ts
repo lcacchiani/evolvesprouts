@@ -8,7 +8,8 @@ const {
   mockCancelAdminExpense,
   mockMarkAdminExpensePaid,
   mockReparseAdminExpense,
-  mockImportAdminExpensesFromBulkPdf,
+  mockQueueAdminBulkExpenseImportJob,
+  mockPollAdminBulkExpenseImportJob,
   mockCreateAdminAsset,
   mockDeleteAdminAsset,
   mockUploadFileToPresignedUrl,
@@ -37,7 +38,8 @@ const {
     mockCancelAdminExpense: vi.fn(),
     mockMarkAdminExpensePaid: vi.fn(),
     mockReparseAdminExpense: vi.fn(),
-    mockImportAdminExpensesFromBulkPdf: vi.fn(),
+    mockQueueAdminBulkExpenseImportJob: vi.fn(),
+    mockPollAdminBulkExpenseImportJob: vi.fn(),
     mockCreateAdminAsset: vi.fn(),
     mockDeleteAdminAsset: vi.fn(),
     mockUploadFileToPresignedUrl: vi.fn(),
@@ -58,7 +60,8 @@ vi.mock('@/lib/expenses-api', () => ({
   cancelAdminExpense: mockCancelAdminExpense,
   markAdminExpensePaid: mockMarkAdminExpensePaid,
   reparseAdminExpense: mockReparseAdminExpense,
-  importAdminExpensesFromBulkPdf: mockImportAdminExpensesFromBulkPdf,
+  queueAdminBulkExpenseImportJob: mockQueueAdminBulkExpenseImportJob,
+  pollAdminBulkExpenseImportJob: mockPollAdminBulkExpenseImportJob,
 }));
 
 vi.mock('@/lib/assets-api', () => ({
@@ -605,7 +608,8 @@ describe('useExpenses', () => {
       },
     });
     mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
-    mockImportAdminExpensesFromBulkPdf.mockResolvedValue({
+    mockQueueAdminBulkExpenseImportJob.mockResolvedValue({ jobId: 'job-1' });
+    mockPollAdminBulkExpenseImportJob.mockResolvedValue({
       expenses: [],
       createdCount: 2,
     });
@@ -620,11 +624,42 @@ describe('useExpenses', () => {
       });
     });
 
-    expect(mockImportAdminExpensesFromBulkPdf).toHaveBeenCalledWith({
+    expect(mockQueueAdminBulkExpenseImportJob).toHaveBeenCalledWith({
       attachmentAssetId: 'asset-bulk-1',
       defaultVendorId: 'vendor-1',
     });
+    expect(mockPollAdminBulkExpenseImportJob).toHaveBeenCalledWith('job-1', expect.any(AbortSignal));
     expect(mockRefetch).toHaveBeenCalled();
     expect(result.current.bulkImportError).toBe('');
+  });
+
+  it('does not delete uploaded assets when polling fails after enqueue', async () => {
+    mockCreateAdminAsset.mockResolvedValue({
+      asset: { id: 'asset-bulk-2' },
+      upload: {
+        uploadUrl: 'https://example.com/up',
+        uploadMethod: 'PUT',
+        uploadHeaders: {} as Record<string, string>,
+      },
+    });
+    mockUploadFileToPresignedUrl.mockResolvedValue(undefined);
+    mockQueueAdminBulkExpenseImportJob.mockResolvedValue({ jobId: 'job-2' });
+    mockPollAdminBulkExpenseImportJob.mockRejectedValue(new Error('poll failed'));
+
+    const file = new File([new Uint8Array([1])], 'combined.pdf', { type: 'application/pdf' });
+    const { result } = renderHook(() => useExpenses());
+
+    await act(async () => {
+      try {
+        await result.current.bulkImportFromPdf({
+          file,
+          defaultVendorId: 'vendor-1',
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockDeleteAdminAsset).not.toHaveBeenCalled();
   });
 });

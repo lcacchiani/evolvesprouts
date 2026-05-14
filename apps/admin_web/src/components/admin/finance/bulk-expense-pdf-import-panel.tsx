@@ -16,6 +16,7 @@ interface BulkExpensePdfImportPanelProps {
   isBusy: boolean;
   error: string;
   onImport: (payload: { file: File; defaultVendorId: string }) => Promise<void>;
+  onCancelBusy?: () => void;
 }
 
 export function BulkExpensePdfImportPanel({
@@ -24,6 +25,7 @@ export function BulkExpensePdfImportPanel({
   isBusy,
   error,
   onImport,
+  onCancelBusy,
 }: BulkExpensePdfImportPanelProps) {
   const [file, setFile] = useState<File | null>(null);
   const [defaultVendorId, setDefaultVendorId] = useState('');
@@ -46,15 +48,22 @@ export function BulkExpensePdfImportPanel({
     <AdminEditorCard
       key={formKey}
       title='Import from combined PDF'
-      description='Upload one PDF that lists several expenses. OpenRouter extracts rows the same way as queued invoice parsing; each row becomes an expense that shares this PDF attachment. When a row has no matching vendor name, the default vendor below is used.'
+      description='Upload one PDF that lists several expenses. OpenRouter extracts rows the same way as queued invoice parsing; each row becomes an expense that shares this PDF attachment. When a row has no matching vendor name, the default vendor below is used. Processing runs in the background and may take a few minutes for large PDFs.'
       actions={
-        <Button
-          type='submit'
-          form='bulk-expense-pdf-import'
-          disabled={submitDisabled}
-        >
-          {isBusy ? 'Working...' : 'Parse PDF and create expenses'}
-        </Button>
+        <div className='flex flex-wrap items-center gap-2'>
+          {isBusy && onCancelBusy ? (
+            <Button type='button' variant='outline' onClick={() => onCancelBusy()}>
+              Cancel
+            </Button>
+          ) : null}
+          <Button
+            type='submit'
+            form='bulk-expense-pdf-import'
+            disabled={submitDisabled}
+          >
+            {isBusy ? 'Working...' : 'Parse PDF and create expenses'}
+          </Button>
+        </div>
       }
     >
       {error ? (

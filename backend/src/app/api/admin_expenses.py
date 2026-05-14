@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, date
-from decimal import Decimal
+from datetime import UTC, datetime
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -38,18 +37,19 @@ from app.api.admin_request import (
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Expense, ExpenseParseStatus, ExpenseStatus
-from app.db.repositories import (
-    AssetRepository,
-    ExpenseRepository,
-    OrganizationRepository,
+from app.db.models import ExpenseParseStatus, ExpenseStatus
+from app.db.models.bulk_expense_import_job import (
+    BulkExpenseImportJob,
+    BulkExpenseImportJobStatus,
 )
+from app.db.repositories import ExpenseRepository
+from app.db.repositories.bulk_expense_import_job import BulkExpenseImportJobRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
+from app.services.bulk_expense_import_common import assert_pdf_asset
+from app.services.bulk_expense_import_events import enqueue_bulk_expense_import_job
+from app.services.bulk_expense_import_runner import sanitize_bulk_import_error_message
 from app.services.expense_events import enqueue_expense_parse
-from app.services.openrouter_expense_parser import (
-    parse_bulk_expense_invoices_from_assets,
-)
 from app.utils import json_response
 from app.utils.logging import get_logger
 
@@ -84,6 +84,19 @@ def handle_admin_expenses_request(
         if method != "POST":
             return json_response(405, {"error": "Method not allowed"}, event=event)
         return _import_expenses_from_bulk_pdf(event, actor_sub=identity.user_sub)
+
+    if len(parts) == 3 and parts[2] == "bulk-import-jobs":
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        return _list_bulk_expense_import_jobs(event, actor_sub=identity.user_sub)
+
+    if len(parts) == 4 and parts[2] == "bulk-import-jobs":
+        if method != "GET":
+            return json_response(405, {"error": "Method not allowed"}, event=event)
+        job_id = parse_uuid(parts[3])
+        return _get_bulk_expense_import_job(
+            event, job_id=job_id, actor_sub=identity.user_sub
+        )
 
     expense_id = parse_uuid(parts[2])
     if len(parts) == 3:
@@ -484,10 +497,58 @@ def _amend_expense(
         )
 
 
+def _serialize_bulk_import_job_summary(job: BulkExpenseImportJob) -> dict[str, Any]:
+    err = job.error_message
+    return {
+        "id": str(job.id),
+        "status": job.status.value,
+        "error_message": (
+            None if err is None else sanitize_bulk_import_error_message(err)
+        ),
+        "created_count": job.created_count,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+        "attachment_asset_id": str(job.attachment_asset_id),
+        "default_vendor_id": str(job.default_vendor_id),
+        "expense_status": job.expense_status.value,
+    }
+
+
+def _list_bulk_expense_import_jobs(
+    event: Mapping[str, Any], *, actor_sub: str
+) -> dict[str, Any]:
+    limit = parse_limit(event, default=_DEFAULT_LIMIT, max_limit=_MAX_LIMIT)
+    cursor = parse_cursor(query_param(event, "cursor"))
+    req_id = request_id(event)
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        job_repo = BulkExpenseImportJobRepository(session)
+        rows = job_repo.list_for_actor(
+            actor_sub=actor_sub, limit=limit + 1, cursor_job_id=cursor
+        )
+        has_more = len(rows) > limit
+        page_items = rows[:limit]
+        next_cursor = (
+            encode_cursor(page_items[-1].id) if has_more and page_items else None
+        )
+        total_count = job_repo.count_for_actor(actor_sub=actor_sub)
+        return json_response(
+            200,
+            {
+                "items": [
+                    _serialize_bulk_import_job_summary(row) for row in page_items
+                ],
+                "next_cursor": next_cursor,
+                "total_count": total_count,
+            },
+            event=event,
+        )
+
+
 def _import_expenses_from_bulk_pdf(
     event: Mapping[str, Any], *, actor_sub: str
 ) -> dict[str, Any]:
-    """Parse a combined PDF with OpenRouter and create one expense per extracted row."""
+    """Queue a combined PDF for async OpenRouter bulk parse (returns job id)."""
     logger.info("Bulk importing expenses from PDF", extra={"actor": actor_sub})
     body = parse_body(event)
     attachment_id = parse_optional_uuid(
@@ -511,160 +572,103 @@ def _import_expenses_from_bulk_pdf(
     )
 
     req_id = request_id(event)
-    now = datetime.now(UTC)
 
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=req_id)
         resolve_vendor(session, default_vendor_id)
-        assets = AssetRepository(session).list_by_ids([attachment_id])
-        if not assets:
-            raise NotFoundError("Asset", str(attachment_id))
-        asset_ent = assets[0]
-        content_type = (asset_ent.content_type or "").strip().lower()
-        file_name = (asset_ent.file_name or "").strip().lower()
-        if "pdf" not in content_type and not file_name.endswith(".pdf"):
-            raise ValidationError(
-                "attachment_asset_id must reference a PDF document",
-                field="attachment_asset_id",
-            )
-        parser_asset: dict[str, Any] = {
-            "id": str(asset_ent.id),
-            "s3_key": asset_ent.s3_key,
-            "file_name": asset_ent.file_name,
-            "content_type": asset_ent.content_type,
-        }
+        assert_pdf_asset(session, attachment_id)
 
-    try:
-        normalized_rows = parse_bulk_expense_invoices_from_assets(
-            [parser_asset], timeout=25
+        job = BulkExpenseImportJob(
+            created_by=actor_sub,
+            attachment_asset_id=attachment_id,
+            default_vendor_id=default_vendor_id,
+            expense_status=status,
+            status=BulkExpenseImportJobStatus.PENDING,
         )
-    except (RuntimeError, ValueError) as exc:
-        raise ValidationError(str(exc), field="attachment_asset_id") from exc
-
-    created_payload: list[dict[str, Any]] = []
-    with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=req_id)
-        expense_repo = ExpenseRepository(session)
-        org_repo = OrganizationRepository(session)
-        resolve_vendor(session, default_vendor_id)
-        asset_ids = resolve_asset_ids(session, [attachment_id])
-
-        for parsed in normalized_rows:
-            vendor_id = _resolve_bulk_row_vendor_id(
-                org_repo, parsed, default_vendor_id=default_vendor_id
-            )
-            expense = expense_repo.create_expense(
-                created_by=actor_sub,
-                status=status,
-                parse_status=ExpenseParseStatus.SUCCEEDED,
-                vendor_id=vendor_id,
-                invoice_number=None,
-                invoice_date=None,
-                due_date=None,
-                currency=None,
-                subtotal=None,
-                tax=None,
-                total=None,
-                line_items=None,
-                notes=None,
-            )
-            _apply_openrouter_normalized_to_expense(expense, parsed)
-            expense.updated_by = actor_sub
-            if status == ExpenseStatus.SUBMITTED:
-                expense.submitted_at = now
-            expense_repo.replace_attachments(expense, asset_ids)
-            expense_repo.update(expense)
-            refreshed = expense_repo.get_with_attachments(expense.id)
-            if refreshed is None:
-                raise NotFoundError("Expense", str(expense.id))
-            created_payload.append(serialize_expense(refreshed))
-
+        session.add(job)
+        session.flush()
+        job_id = job.id
         session.commit()
 
+    try:
+        enqueue_bulk_expense_import_job(job_id)
+    except ValidationError:
+        with Session(get_engine()) as session:
+            stale = session.get(BulkExpenseImportJob, job_id)
+            if stale is not None:
+                session.delete(stale)
+                session.commit()
+        raise
+    except Exception:
+        logger.exception(
+            "Failed to enqueue bulk expense import job",
+            extra={"job_id": str(job_id)},
+        )
+        with Session(get_engine()) as session:
+            job_repo = BulkExpenseImportJobRepository(session)
+            failed = job_repo.get_by_id(job_id)
+            if failed is not None:
+                job_repo.mark_failed(
+                    failed, "Could not queue bulk import; try again shortly."
+                )
+                session.commit()
+        raise ValidationError(
+            "Bulk import could not be queued; try again shortly.",
+            field="configuration",
+        ) from None
+
     return json_response(
-        201,
-        {"expenses": created_payload, "created_count": len(created_payload)},
+        202,
+        {
+            "bulk_import_job": {
+                "id": str(job_id),
+                "status": BulkExpenseImportJobStatus.PENDING.value,
+                "error_message": None,
+                "created_count": None,
+                "expenses": None,
+            }
+        },
         event=event,
     )
 
 
-def _resolve_bulk_row_vendor_id(
-    org_repo: OrganizationRepository,
-    parsed: Mapping[str, Any],
-    *,
-    default_vendor_id: UUID,
-) -> UUID:
-    parsed_vendor_only = _bulk_pick_text(parsed.get("vendor_name"), fallback=None)
-    if parsed_vendor_only:
-        matched = org_repo.try_resolve_active_vendor_by_parsed_name(parsed_vendor_only)
-        if matched is not None:
-            return matched.id
-    return default_vendor_id
+def _get_bulk_expense_import_job(
+    event: Mapping[str, Any], *, job_id: UUID, actor_sub: str
+) -> dict[str, Any]:
+    with Session(get_engine()) as session:
+        job_repo = BulkExpenseImportJobRepository(session)
+        job = job_repo.get_for_actor(job_id, actor_sub=actor_sub)
+        if job is None:
+            raise NotFoundError("BulkExpenseImportJob", str(job_id))
 
+        expenses_payload: list[dict[str, Any]] | None = None
+        if job.created_expense_ids and job.status in (
+            BulkExpenseImportJobStatus.SUCCEEDED,
+            BulkExpenseImportJobStatus.SUCCEEDED_WITH_ERRORS,
+        ):
+            expense_repo = ExpenseRepository(session)
+            ordered_ids: list[UUID] = []
+            for raw_id in job.created_expense_ids:
+                try:
+                    ordered_ids.append(UUID(str(raw_id)))
+                except (TypeError, ValueError):
+                    continue
+            loaded = expense_repo.get_many_with_attachments(ordered_ids)
+            expenses_payload = [serialize_expense(row) for row in loaded]
 
-def _apply_openrouter_normalized_to_expense(
-    expense: Expense, parsed: Mapping[str, Any]
-) -> None:
-    expense.invoice_number = _bulk_pick_text(
-        parsed.get("invoice_number"), fallback=expense.invoice_number
-    )
-    expense.invoice_date = _bulk_pick_date(
-        parsed.get("invoice_date"), fallback=expense.invoice_date
-    )
-    expense.due_date = _bulk_pick_date(
-        parsed.get("due_date"), fallback=expense.due_date
-    )
-    expense.currency = _bulk_pick_currency(
-        parsed.get("currency"), fallback=expense.currency
-    )
-    expense.subtotal = _bulk_pick_decimal(
-        parsed.get("subtotal"), fallback=expense.subtotal
-    )
-    expense.tax = _bulk_pick_decimal(parsed.get("tax"), fallback=expense.tax)
-    expense.total = _bulk_pick_decimal(parsed.get("total"), fallback=expense.total)
-    line_items = parsed.get("line_items")
-    if isinstance(line_items, list):
-        expense.line_items = line_items
-    expense.parse_confidence = _bulk_pick_decimal(
-        parsed.get("confidence"), fallback=expense.parse_confidence
-    )
-    expense.parser_raw = (
-        parsed.get("raw") if isinstance(parsed.get("raw"), dict) else {"raw": parsed}
-    )
-
-
-def _bulk_pick_text(value: Any, *, fallback: str | None) -> str | None:
-    if value is None:
-        return fallback
-    normalized = str(value).strip()
-    return normalized or fallback
-
-
-def _bulk_pick_date(value: Any, *, fallback: date | None) -> date | None:
-    if value is None:
-        return fallback
-    normalized = str(value).strip()
-    if not normalized:
-        return fallback
-    try:
-        return date.fromisoformat(normalized)
-    except ValueError:
-        return fallback
-
-
-def _bulk_pick_currency(value: Any, *, fallback: str | None) -> str | None:
-    if value is None:
-        return fallback
-    normalized = str(value).strip().upper()
-    if len(normalized) != 3:
-        return fallback
-    return normalized
-
-
-def _bulk_pick_decimal(value: Any, *, fallback: Decimal | None) -> Decimal | None:
-    if value is None:
-        return fallback
-    try:
-        return Decimal(str(value)).quantize(Decimal("0.01"))
-    except Exception:
-        return fallback
+        err = job.error_message
+        return json_response(
+            200,
+            {
+                "bulk_import_job": {
+                    "id": str(job.id),
+                    "status": job.status.value,
+                    "error_message": (
+                        None if err is None else sanitize_bulk_import_error_message(err)
+                    ),
+                    "created_count": job.created_count,
+                    "expenses": expenses_payload,
+                }
+            },
+            event=event,
+        )

@@ -11,6 +11,7 @@ import { listAllAdminExpenses } from '@/lib/expenses-api';
 import type { Expense } from '@/types/expenses';
 
 import { ExpensesEditorPanel } from './expenses-editor-panel';
+import { BulkExpenseImportJobsPanel } from './bulk-expense-import-jobs-panel';
 import { BulkExpensePdfImportPanel } from './bulk-expense-pdf-import-panel';
 import { ExpensesListPanel } from './expenses-list-panel';
 import {
@@ -135,7 +136,9 @@ export function FinancePage() {
         isBusy={expenses.isBulkImporting || expenses.isUploadingFiles}
         error={expenses.bulkImportError}
         onImport={expenses.bulkImportFromPdf}
+        onCancelBusy={expenses.cancelBulkImport}
       />
+      <BulkExpenseImportJobsPanel onAfterMutation={() => void expenses.list.refetch()} />
       <ExpensesListPanel
         expenses={expenses.items}
         selectedExpenseId={expenses.selectedExpenseId}

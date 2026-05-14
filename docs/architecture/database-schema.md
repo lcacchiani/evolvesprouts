@@ -262,6 +262,26 @@ Constraints and indexes:
   `expenses_vendor_idx`
 - `set_updated_at()` trigger updates `updated_at` on write
 
+## Table: bulk_expense_import_jobs
+
+Purpose: Tracks asynchronous combined-PDF bulk imports (OpenRouter extraction + expense creation).
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `created_by` (text, required) — Cognito `sub` of the admin who queued the job
+- `attachment_asset_id` (UUID, FK → `assets.id`, cascade delete)
+- `default_vendor_id` (UUID, FK → `organizations.id`, restrict delete)
+- `expense_status` (enum `expense_status`, required) — `draft` or `submitted` rows created from parsed data
+- `status` (varchar(32), required) — `pending | processing | succeeded | succeeded_with_errors | failed`
+- `error_message` (text, optional)
+- `created_expense_ids` (jsonb, optional) — ordered UUID strings for created expenses
+- `created_count` (integer, optional)
+- `created_at` / `updated_at` (timestamptz, default `timezone('utc', now())`)
+
+Indexes:
+- `ix_bulk_expense_import_jobs_created_by` on `created_by`
+- `ix_bulk_expense_import_jobs_status` on `status`
+
 ## Table: expense_attachments
 
 Purpose: Links each expense record to one or more uploaded assets.

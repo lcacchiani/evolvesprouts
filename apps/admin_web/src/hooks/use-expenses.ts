@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { createAdminAsset, deleteAdminAsset, uploadFileToPresignedUrl } from '@/lib/assets-api';
 import {
@@ -8,9 +8,10 @@ import {
   cancelAdminExpense,
   createAdminExpense,
   deleteAdminDraftExpense,
-  importAdminExpensesFromBulkPdf,
   listAdminExpenses,
   markAdminExpensePaid,
+  pollAdminBulkExpenseImportJob,
+  queueAdminBulkExpenseImportJob,
   reparseAdminExpense,
   updateAdminExpense,
 } from '@/lib/expenses-api';
@@ -45,6 +46,7 @@ export function useExpenses() {
   const [isBulkImporting, setIsBulkImporting] = useState(false);
   const [bulkImportError, setBulkImportError] = useState('');
   const [mutationError, setMutationError] = useState('');
+  const bulkImportAbortRef = useRef<AbortController | null>(null);
 
   const fetchExpenses = useCallback(
     async ({
@@ -314,28 +316,42 @@ export function useExpenses() {
     [list]
   );
 
+  const cancelBulkImport = useCallback(() => {
+    bulkImportAbortRef.current?.abort();
+  }, []);
+
   const bulkImportFromPdf = useCallback(
     async ({ file, defaultVendorId }: { file: File; defaultVendorId: string }) => {
       setIsBulkImporting(true);
       setBulkImportError('');
       let uploadedAssetIds: string[] = [];
+      let didEnqueue = false;
+      bulkImportAbortRef.current?.abort();
+      const controller = new AbortController();
+      bulkImportAbortRef.current = controller;
+      const signal = controller.signal;
       try {
         uploadedAssetIds = await uploadExpenseFiles([file]);
         const attachmentAssetId = uploadedAssetIds[0];
         if (!attachmentAssetId) {
           throw new Error('Upload did not return an asset id.');
         }
-        await importAdminExpensesFromBulkPdf({
+        const { jobId } = await queueAdminBulkExpenseImportJob({
           attachmentAssetId,
           defaultVendorId,
         });
+        didEnqueue = true;
+        await pollAdminBulkExpenseImportJob(jobId, signal);
         await list.refetch();
         setSelectedExpenseId(null);
       } catch (error) {
-        await cleanupUploadedAssets(uploadedAssetIds);
+        if (!didEnqueue && uploadedAssetIds.length > 0) {
+          await cleanupUploadedAssets(uploadedAssetIds);
+        }
         setBulkImportError(toErrorMessage(error, 'Failed to import expenses from PDF.'));
         throw error;
       } finally {
+        bulkImportAbortRef.current = null;
         setIsBulkImporting(false);
       }
     },
@@ -366,5 +382,6 @@ export function useExpenses() {
     markPaidExpenseEntry,
     reparseExpenseEntry,
     bulkImportFromPdf,
+    cancelBulkImport,
   };
 }
