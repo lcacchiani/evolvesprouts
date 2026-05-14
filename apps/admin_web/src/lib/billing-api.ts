@@ -9,7 +9,6 @@ type ApiSchemas = components['schemas'];
 export type CustomerPaymentSummary = ApiSchemas['CustomerPaymentSummary'];
 
 export type CustomerPaymentDetail = CustomerPaymentSummary & {
-  unappliedAmount?: string;
   allocationInvoices?: { invoiceId: string; invoiceNumber: string | null }[];
 };
 

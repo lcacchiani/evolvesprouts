@@ -20,6 +20,7 @@ from app.api.admin_billing_payment_create import (
     contact_id_for_enrollment_payment,
     normalize_manual_payment_method,
 )
+from app.api.admin_billing_payments import _serialize_payment_for_response
 from app.api.admin_request import parse_body
 from app.db.audit import AuditService
 from app.db.engine import get_engine
@@ -83,7 +84,13 @@ def _apply_succeeded_manual_patch(
         )
 
     method_raw = str(body.get("method") or "").strip() or p.method
-    p.method = normalize_manual_payment_method(method_raw)
+    new_method = normalize_manual_payment_method(method_raw)
+    if p.amount > 0 and new_method == "free":
+        raise ValidationError(
+            "free method is only allowed for zero-amount payments",
+            field="method",
+        )
+    p.method = new_method
     ext_ref = (
         str(
             body.get("externalReference") or body.get("external_reference") or ""
@@ -205,7 +212,6 @@ def update_manual_inbound_customer_payment(
     *,
     user_sub: str,
     request_id: str | None,
-    serialize_payment: Callable[..., dict[str, Any]],
     batch_orphan_payment_deletable: Callable[
         [Session, list[CustomerPayment]], dict[UUID, bool]
     ],
@@ -285,7 +291,9 @@ def update_manual_inbound_customer_payment(
             new_values=p.to_audit_dict(),
         )
         deletable = batch_orphan_payment_deletable(session, [p]).get(p.id, False)
-        payload = serialize_payment(p, orphan_payment_deletable=deletable)
+        payload = _serialize_payment_for_response(
+            session, p, orphan_payment_deletable=deletable
+        )
 
     if receipt_id_for_upload is not None:
         try:

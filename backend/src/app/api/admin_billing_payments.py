@@ -8,7 +8,7 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
-from sqlalchemy import exists, func, select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.admin_billing_common import (
@@ -110,24 +110,17 @@ def _serialize_payment(
     }
 
 
-def _batch_allocated_amounts_matching_currency(
-    session: Session, payments: list[CustomerPayment]
-) -> dict[UUID, Decimal]:
-    """Sum allocated amounts per payment, counting rows whose currency matches the payment."""
-    if not payments:
-        return {}
-    pay_ids = [p.id for p in payments]
-    rows = session.execute(
-        select(
-            PaymentAllocation.payment_id,
-            func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0),
-        )
-        .join(CustomerPayment, CustomerPayment.id == PaymentAllocation.payment_id)
-        .where(PaymentAllocation.payment_id.in_(pay_ids))
-        .where(PaymentAllocation.currency == CustomerPayment.currency)
-        .group_by(PaymentAllocation.payment_id)
-    ).all()
-    return {pid: Decimal(str(total)) for pid, total in rows}
+def _serialize_payment_for_response(
+    session: Session,
+    p: CustomerPayment,
+    *,
+    orphan_payment_deletable: bool,
+) -> dict[str, Any]:
+    """Serialize a payment for API responses including list/detail parity fields."""
+    out = _serialize_payment(p, orphan_payment_deletable=orphan_payment_deletable)
+    out["party"] = _batch_party_label_by_payment(session, [p]).get(p.id, "—")
+    out["unappliedAmount"] = str(payment_unapplied_amount(session, p.id))
+    return out
 
 
 def _batch_party_label_by_payment(
@@ -354,22 +347,15 @@ def _list_payments(
         stmt = stmt.limit(DEFAULT_BILLING_LIST_LIMIT)
         rows = list(session.execute(stmt).scalars().all())
         deletable_by_id = _batch_orphan_payment_deletable(session, rows)
-        allocated_by_id = _batch_allocated_amounts_matching_currency(session, rows)
-        party_by_payment_id = _batch_party_label_by_payment(session, rows)
         return json_response(
             200,
             {
                 "items": [
-                    {
-                        **_serialize_payment(
-                            p, orphan_payment_deletable=deletable_by_id.get(p.id, False)
-                        ),
-                        "unappliedAmount": str(
-                            Decimal(str(p.amount))
-                            - allocated_by_id.get(p.id, Decimal("0"))
-                        ),
-                        "party": party_by_payment_id.get(p.id, "—"),
-                    }
+                    _serialize_payment_for_response(
+                        session,
+                        p,
+                        orphan_payment_deletable=deletable_by_id.get(p.id, False),
+                    )
                     for p in rows
                 ]
             },
@@ -388,16 +374,14 @@ def _get_payment(
         p = session.get(CustomerPayment, payment_id)
         if p is None:
             raise NotFoundError("CustomerPayment", str(payment_id))
-        unapplied = str(payment_unapplied_amount(session, payment_id))
         allocation_invoices = _payment_allocation_invoice_refs(session, payment_id)
         deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
-        party_by_id = _batch_party_label_by_payment(session, [p])
         return json_response(
             200,
             {
-                **_serialize_payment(p, orphan_payment_deletable=deletable),
-                "unappliedAmount": unapplied,
-                "party": party_by_id.get(p.id, "—"),
+                **_serialize_payment_for_response(
+                    session, p, orphan_payment_deletable=deletable
+                ),
                 "allocationInvoices": allocation_invoices,
             },
             event=event,
@@ -439,7 +423,6 @@ def _create_payment(
             body,
             user_sub=user_sub,
             request_id=request_id,
-            serialize_payment=_serialize_payment,
         )
     if direction == "inbound":
         return create_manual_inbound_payment(
@@ -447,7 +430,6 @@ def _create_payment(
             body,
             user_sub=user_sub,
             request_id=request_id,
-            serialize_payment=_serialize_payment,
             batch_orphan_payment_deletable=_batch_orphan_payment_deletable,
         )
     raise ValidationError(
@@ -488,7 +470,9 @@ def _confirm_payment(
             rcpt = create_receipt_for_succeeded_inbound_payment(session, payment=p)
             receipt_id_for_upload = rcpt.id
         deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
-        out = _serialize_payment(p, orphan_payment_deletable=deletable)
+        out = _serialize_payment_for_response(
+            session, p, orphan_payment_deletable=deletable
+        )
     if receipt_id_for_upload is not None:
         try:
             with Session(get_engine()) as upload_session:
@@ -520,6 +504,5 @@ def _update_manual_inbound_payment(
         payment_id,
         user_sub=user_sub,
         request_id=request_id,
-        serialize_payment=_serialize_payment,
         batch_orphan_payment_deletable=_batch_orphan_payment_deletable,
     )

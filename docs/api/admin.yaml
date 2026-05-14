@@ -6374,6 +6374,8 @@ components:
       type: object
       required:
         - orphanPaymentDeletable
+        - party
+        - unappliedAmount
       properties:
         id:
           type: string
@@ -6423,7 +6425,7 @@ components:
           type: string
           description: >
             Remaining payment amount not allocated to invoices (payment currency).
-            Included on list responses; also on GET payment detail alongside allocation metadata.
+            Included on all CustomerPaymentSummary responses (list, detail, create, confirm, patch).
         orphanPaymentDeletable:
           type: boolean
           description: >

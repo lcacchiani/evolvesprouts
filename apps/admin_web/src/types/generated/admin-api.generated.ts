@@ -6306,9 +6306,9 @@ export interface components {
             /** @description Bank reference or external id when set on the payment row. */
             externalReference?: string | null;
             /** @description Bill-to party display label from the linked enrollment when present; otherwise the linked contact display name, or an em dash when unknown. */
-            party?: string;
-            /** @description Remaining payment amount not allocated to invoices (payment currency). Included on list responses; also on GET payment detail alongside allocation metadata. */
-            unappliedAmount?: string;
+            party: string;
+            /** @description Remaining payment amount not allocated to invoices (payment currency). Included on all CustomerPaymentSummary responses (list, detail, create, confirm, patch). */
+            unappliedAmount: string;
             /** @description True when DELETE /v1/admin/billing/payments/{id} is allowed for this row (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations, receipt, or refund children). */
             orphanPaymentDeletable: boolean;
             /** Format: date-time */
