@@ -198,18 +198,27 @@ def _append_unique_invoice_location_line(parts: list[str], line: str | None) -> 
 
 
 def _bill_to_location_snapshot_text(
-    session: Session, location_id: UUID | None
+    session: Session,
+    location_id: UUID | None,
+    *,
+    include_venue_name: bool = True,
 ) -> str | None:
-    """Return newline-separated venue, address, district, and country for invoice PDF."""
+    """Return newline-separated venue, address, district, and country for invoice PDF.
+
+    ``include_venue_name=False`` drops ``Location.name`` from the snapshot. Used by the
+    family bill-to branch because family-affiliated locations are typically labelled with
+    the household/family name, which duplicates and clutters the postal block.
+    """
     if location_id is None:
         return None
     loc = session.get(Location, location_id)
     if loc is None:
         return None
     parts: list[str] = []
-    name = (loc.name or "").strip()
-    if name:
-        parts.append(name)
+    if include_venue_name:
+        name = (loc.name or "").strip()
+        if name:
+            parts.append(name)
     parts.extend(split_address_lines(loc.address or ""))
     area_id = getattr(loc, "area_id", None)
     if area_id is not None:
@@ -264,7 +273,9 @@ def _resolve_bill_to_party_from_invoice_fks(
         loc_id = getattr(fam, "location_id", None)
         if loc_id is None and primary is not None:
             loc_id = getattr(primary, "location_id", None)
-        inv.bill_to_location_text = _bill_to_location_snapshot_text(session, loc_id)
+        inv.bill_to_location_text = _bill_to_location_snapshot_text(
+            session, loc_id, include_venue_name=False
+        )
         return
     if (
         inv.bill_to_kind == BillingBillToKind.ORGANIZATION

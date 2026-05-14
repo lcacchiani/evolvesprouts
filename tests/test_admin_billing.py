@@ -2826,7 +2826,11 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text()
 
 
 def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback() -> None:
-    """When family has no location, use primary contact's linked location."""
+    """When family has no location, use primary contact's linked location.
+
+    The family bill-to snapshot intentionally drops ``Location.name`` (venue label) so
+    family-affiliated locations don't duplicate the household name in the Bill To block.
+    """
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
     )
@@ -2866,11 +2870,15 @@ def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback
         bill_to_location_text=None,
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
-    assert inv.bill_to_location_text == "Home Base\n99 Road"
+    assert inv.bill_to_location_text == "99 Road"
 
 
 def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location() -> None:
-    """Family-level location wins over primary contact location."""
+    """Family-level location wins over primary contact location.
+
+    The family branch drops ``Location.name`` from the snapshot so the assertion uses a
+    distinctive ``address`` to verify which Location was chosen.
+    """
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
     )
@@ -2886,8 +2894,8 @@ def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location()
         email="pat@example.com",
         location_id=primary_lid,
     )
-    fam_loc = SimpleNamespace(name="Family Venue", address=None)
-    primary_loc = SimpleNamespace(name="Wrong", address="X")
+    fam_loc = SimpleNamespace(name="Family Venue", address="2 Family Road")
+    primary_loc = SimpleNamespace(name="Wrong", address="99 Other Road")
 
     session = MagicMock()
 
@@ -2914,7 +2922,51 @@ def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location()
         bill_to_location_text=None,
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
-    assert inv.bill_to_location_text == "Family Venue"
+    assert inv.bill_to_location_text == "2 Family Road"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_family_excludes_venue_name() -> None:
+    """Family bill-to drops the venue label even when address is empty."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Family, Location
+
+    fid = uuid4()
+    lid = uuid4()
+    fam = SimpleNamespace(family_name="Ng Family", location_id=lid)
+    primary = SimpleNamespace(
+        first_name="Pat",
+        last_name="Ng",
+        email="pat@example.com",
+        location_id=None,
+    )
+    loc = SimpleNamespace(name="Ng Family Home", address=None)
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Family and pk == fid:
+            return fam
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+
+    exec_result = MagicMock()
+    exec_result.scalar_one_or_none.return_value = primary
+    session.execute.return_value = exec_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.FAMILY,
+        bill_to_family_id=fid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text is None
 
 
 def test_bill_to_location_snapshot_text_includes_geo_district_and_country() -> None:
