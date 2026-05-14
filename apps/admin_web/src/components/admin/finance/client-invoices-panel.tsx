@@ -1853,13 +1853,15 @@ export function ClientInvoicesPanel() {
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[860px]'>
+        <AdminDataTable tableClassName='min-w-[1080px]'>
           <AdminDataTableHead>
             <tr>
               <AdminDataTableHeadCell>Direction</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Party</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Method</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Amount</AdminDataTableHeadCell>
+              <AdminDataTableHeadCell>Unapplied amount</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Bank ref</AdminDataTableHeadCell>
               <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
               <AdminDataTableOperationsHeadCell />
@@ -1877,6 +1879,14 @@ export function ClientInvoicesPanel() {
                 amountRaw !== '' && Number.isFinite(parsedPayAmount)
                   ? formatAmountInCurrency(parsedPayAmount, payCurrencyCode)
                   : '—';
+              const unappliedRaw = p.unappliedAmount?.trim() ?? '';
+              const parsedUnapplied = Number.parseFloat(unappliedRaw);
+              const unappliedDisplay =
+                unappliedRaw !== '' && Number.isFinite(parsedUnapplied)
+                  ? formatAmountInCurrency(parsedUnapplied, payCurrencyCode)
+                  : '—';
+              const partyRaw = (p.party ?? '').trim();
+              const partyDisplay = partyRaw !== '' ? partyRaw : '—';
               return (
                 <tr
                   key={id || `payment-row-${String(index)}`}
@@ -1890,9 +1900,13 @@ export function ClientInvoicesPanel() {
                   }}
                 >
                   <AdminDataTableCell>{formatEnumLabel(p.direction ?? '')}</AdminDataTableCell>
+                  <AdminDataTableCell className='max-w-[14rem] truncate' title={partyDisplay}>
+                    {partyDisplay}
+                  </AdminDataTableCell>
                   <AdminDataTableCell>{formatEnumLabel(p.status ?? '')}</AdminDataTableCell>
                   <AdminDataTableCell>{formatPaymentMethodLabel(p.method)}</AdminDataTableCell>
                   <AdminDataTableCell>{amountDisplay}</AdminDataTableCell>
+                  <AdminDataTableCell>{unappliedDisplay}</AdminDataTableCell>
                   <AdminDataTableCell className='max-w-[12rem] truncate font-mono text-xs'>
                     {formatPaymentBankRefShort(p.externalReference ?? null)}
                   </AdminDataTableCell>
@@ -1945,26 +1959,6 @@ export function ClientInvoicesPanel() {
             })}
           </AdminDataTableBody>
         </AdminDataTable>
-        {selectedId ? (
-          <div className='mt-4 border-t border-slate-200 pt-4 text-sm text-slate-700'>
-            {detailLoading ? (
-              <p className='text-xs text-slate-600'>Loading payment details…</p>
-            ) : detail ? (
-              <dl className='grid max-w-xl gap-2'>
-                <div>
-                  <dt className='font-medium text-slate-800'>Unapplied amount</dt>
-                  <dd>{detail.unappliedAmount ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt className='font-medium text-slate-800'>Bank / external reference</dt>
-                  <dd className='font-mono text-xs'>
-                    {detail.externalReference?.trim() ? detail.externalReference : '—'}
-                  </dd>
-                </div>
-              </dl>
-            ) : null}
-          </div>
-        ) : null}
       </PaginatedTableCard>
 
       <AdminEditorCard

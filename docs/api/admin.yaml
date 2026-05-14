@@ -2906,8 +2906,6 @@ paths:
                   - $ref: "#/components/schemas/CustomerPaymentSummary"
                   - type: object
                     properties:
-                      unappliedAmount:
-                        type: string
                       allocationInvoices:
                         type: array
                         description: Distinct invoices this payment is allocated to (newest invoice first).
@@ -6370,6 +6368,16 @@ components:
           type: string
           nullable: true
           description: Bank reference or external id when set on the payment row.
+        party:
+          type: string
+          description: >
+            Bill-to party display label from the linked enrollment when present;
+            otherwise the linked contact display name, or an em dash when unknown.
+        unappliedAmount:
+          type: string
+          description: >
+            Remaining payment amount not allocated to invoices (payment currency).
+            Included on list responses; also on GET payment detail alongside allocation metadata.
         orphanPaymentDeletable:
           type: boolean
           description: >

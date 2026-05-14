@@ -4010,7 +4010,6 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["CustomerPaymentSummary"] & {
-                            unappliedAmount?: string;
                             /** @description Distinct invoices this payment is allocated to (newest invoice first). */
                             allocationInvoices?: components["schemas"]["CustomerPaymentAllocationInvoice"][];
                         };
@@ -6261,6 +6260,10 @@ export interface components {
             contactId?: string | null;
             /** @description Bank reference or external id when set on the payment row. */
             externalReference?: string | null;
+            /** @description Bill-to party display label from the linked enrollment when present; otherwise the linked contact display name, or an em dash when unknown. */
+            party?: string;
+            /** @description Remaining payment amount not allocated to invoices (payment currency). Included on list responses; also on GET payment detail alongside allocation metadata. */
+            unappliedAmount?: string;
             /** @description True when DELETE /v1/admin/billing/payments/{id} is allowed for this row (pending or free/zero inbound; enrollment unlinked or cancelled; no allocations, receipt, or refund children). */
             orphanPaymentDeletable: boolean;
             /** Format: date-time */

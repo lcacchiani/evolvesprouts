@@ -8,15 +8,21 @@ from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
 
-from sqlalchemy import exists, select
-from sqlalchemy.orm import Session
+from sqlalchemy import exists, func, select
+from sqlalchemy.orm import Session, joinedload
 
-from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
+from app.api.admin_billing_common import (
+    DEFAULT_BILLING_LIST_LIMIT,
+    _session_with_audit,
+    batch_enrollment_party_display_names,
+    contact_display_name,
+)
 from app.api.admin_request import parse_body, query_param
 from app.db.audit import AuditService
 from app.db.engine import get_engine
 from app.db.models.customer_invoice import CustomerInvoice
 from app.db.models.customer_payment import CustomerPayment
+from app.db.models.contact import Contact
 from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.enrollment import Enrollment
 from app.db.models.enums import (
@@ -25,6 +31,7 @@ from app.db.models.enums import (
     EnrollmentStatus,
 )
 from app.db.models.payment_allocation import PaymentAllocation
+from app.db.models.service_instance import ServiceInstance
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import (
     create_receipt_for_succeeded_inbound_payment,
@@ -101,6 +108,68 @@ def _serialize_payment(
         "createdAt": p.created_at.isoformat(),
         "orphanPaymentDeletable": orphan_payment_deletable,
     }
+
+
+def _batch_allocated_amounts_matching_currency(
+    session: Session, payments: list[CustomerPayment]
+) -> dict[UUID, Decimal]:
+    """Sum allocated amounts per payment, counting rows whose currency matches the payment."""
+    if not payments:
+        return {}
+    pay_ids = [p.id for p in payments]
+    rows = session.execute(
+        select(
+            PaymentAllocation.payment_id,
+            func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0),
+        )
+        .join(CustomerPayment, CustomerPayment.id == PaymentAllocation.payment_id)
+        .where(PaymentAllocation.payment_id.in_(pay_ids))
+        .where(PaymentAllocation.currency == CustomerPayment.currency)
+        .group_by(PaymentAllocation.payment_id)
+    ).all()
+    return {pid: Decimal(str(total)) for pid, total in rows}
+
+
+def _batch_party_label_by_payment(
+    session: Session, payments: list[CustomerPayment]
+) -> dict[UUID, str]:
+    """Bill-to style party label for each payment (enrollment party, else contact name)."""
+    out: dict[UUID, str] = {p.id: "—" for p in payments}
+    unique_eids = {p.enrollment_id for p in payments if p.enrollment_id is not None}
+    party_by_eid: dict[UUID, str] = {}
+    if unique_eids:
+        stmt = (
+            select(Enrollment)
+            .where(Enrollment.id.in_(unique_eids))
+            .options(
+                joinedload(Enrollment.instance).joinedload(ServiceInstance.service),
+                joinedload(Enrollment.contact),
+                joinedload(Enrollment.family),
+                joinedload(Enrollment.organization),
+                joinedload(Enrollment.bill_to_contact),
+                joinedload(Enrollment.bill_to_family),
+                joinedload(Enrollment.bill_to_organization),
+                joinedload(Enrollment.ticket_tier),
+            )
+        )
+        ens = list(session.execute(stmt).unique().scalars().all())
+        labels = batch_enrollment_party_display_names(session, ens)
+        party_by_eid = {en.id: lab for en, lab in zip(ens, labels, strict=True)}
+
+    contact_by_id: dict[UUID, str] = {}
+    cids = {p.contact_id for p in payments if p.contact_id is not None}
+    if cids:
+        for c in session.execute(select(Contact).where(Contact.id.in_(cids))).scalars():
+            nm = contact_display_name(c)
+            contact_by_id[c.id] = (nm or "").strip() or "—"
+
+    for p in payments:
+        eid = p.enrollment_id
+        if eid is not None and eid in party_by_eid:
+            out[p.id] = party_by_eid[eid]
+        elif p.contact_id is not None and p.contact_id in contact_by_id:
+            out[p.id] = contact_by_id[p.contact_id]
+    return out
 
 
 def _pending_or_free_payment(p: CustomerPayment) -> bool:
@@ -285,13 +354,22 @@ def _list_payments(
         stmt = stmt.limit(DEFAULT_BILLING_LIST_LIMIT)
         rows = list(session.execute(stmt).scalars().all())
         deletable_by_id = _batch_orphan_payment_deletable(session, rows)
+        allocated_by_id = _batch_allocated_amounts_matching_currency(session, rows)
+        party_by_payment_id = _batch_party_label_by_payment(session, rows)
         return json_response(
             200,
             {
                 "items": [
-                    _serialize_payment(
-                        p, orphan_payment_deletable=deletable_by_id.get(p.id, False)
-                    )
+                    {
+                        **_serialize_payment(
+                            p, orphan_payment_deletable=deletable_by_id.get(p.id, False)
+                        ),
+                        "unappliedAmount": str(
+                            Decimal(str(p.amount))
+                            - allocated_by_id.get(p.id, Decimal("0"))
+                        ),
+                        "party": party_by_payment_id.get(p.id, "—"),
+                    }
                     for p in rows
                 ]
             },
@@ -313,11 +391,13 @@ def _get_payment(
         unapplied = str(payment_unapplied_amount(session, payment_id))
         allocation_invoices = _payment_allocation_invoice_refs(session, payment_id)
         deletable = _batch_orphan_payment_deletable(session, [p]).get(p.id, False)
+        party_by_id = _batch_party_label_by_payment(session, [p])
         return json_response(
             200,
             {
                 **_serialize_payment(p, orphan_payment_deletable=deletable),
                 "unappliedAmount": unapplied,
+                "party": party_by_id.get(p.id, "—"),
                 "allocationInvoices": allocation_invoices,
             },
             event=event,
