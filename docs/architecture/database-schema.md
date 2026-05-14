@@ -633,6 +633,11 @@ Migration `0055_customer_billing_ar` introduces:
 - `customer_payments`: inbound payments and refunds (`direction`, `original_payment_id`,
   `stripe_payment_intent_id`, `stripe_refund_id`), linked optionally to `enrollments` and `contacts`.
 - `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
+  Migration `0067_inv_settlement_fields` adds cached settlement projection columns on
+  `customer_invoices`: `amount_allocated` (sum of matching-currency `payment_allocations`),
+  `balance_due` (`max(total - amount_allocated, 0)`), and `paid_at` (timestamp when an issued
+  invoice with positive total becomes fully covered). A partial index `customer_invoices_open_idx`
+  on `due_date` speeds “open issued” listing (`status = issued` and `balance_due > 0`).
 - `payment_allocations`: links payments to invoices with **positive-only** `allocated_amount`
   (partial allocation); refunds are modeled as separate `customer_payments` rows, not negative allocations.
   **`payment_unapplied_amount`** sums allocations **matching the parent payment's currency** only
@@ -663,8 +668,10 @@ Migration `0055_customer_billing_ar` introduces:
 `exportVersion=1` retains the legacy payments+allocations-only columns.
 
 **Invoice reads (admin):** `GET /v1/admin/billing/invoices` lists invoice summaries with optional
-`status`, `currency`, and cursor pagination (`cursor`, `limit`). `GET /v1/admin/billing/invoices/{id}`
-returns the invoice with line items (for example allocation line UUIDs).
+`status`, optional `settlement` (`open` / `partially_paid` / `paid`, issued rows only; AND-combined with `status`),
+`currency`, and cursor pagination (`cursor`, `limit`). Summary and detail payloads include
+`amountAllocated`, `balanceDue`, `paidAt`, and `isPaid` (derived; lifecycle `status` stays draft/issued/void).
+`GET /v1/admin/billing/invoices/{id}` returns the invoice with line items (for example allocation line UUIDs).
 
 For offline inbound payments, the `customer_payments` row may be **pending** until staff
 confirm the payment via `POST /v1/admin/billing/payments/{id}/confirm` or an equivalent succeeded path;

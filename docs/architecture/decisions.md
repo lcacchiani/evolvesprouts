@@ -692,6 +692,21 @@ start times versus a 15-minute grid. Reservations resolve the intro-call catalog
 the light watermark treatment by registering the same class name in two CSS selector lists
 (watermark variables vs solid background). Prefer a single utility class when refactoring.
 
+## Invoice settlement projection (not a lifecycle status)
+
+**Decision:** “Paid” for customer AR is modeled as a **derived settlement state** from
+`payment_allocations`, cached on `customer_invoices` as `amount_allocated`, `balance_due`, and
+`paid_at`. The `billing_invoice_status` enum on invoices remains **draft | issued | void** only;
+we do **not** add a `paid` lifecycle label. `isPaid` in admin API responses means issued, positive
+total, and zero `balance_due`. Historical `paid_at` backfill uses `updated_at` as a best-effort
+timestamp where full coverage can be inferred from allocations.
+
+**Why:** Keeps authoring lifecycle separate from payment coverage, avoids conflating void/issued
+with settlement, and makes open-balance queries index-friendly without scanning allocations each time.
+
+**Exclusions:** Multi-currency per invoice, credit notes, and allocation-delete APIs are out of scope;
+any future allocation delete endpoint must call `recompute_invoice_settlement` in the same transaction.
+
 ## Keeping Documentation Up to Date
 
 **Decision:** Architecture documentation in `docs/architecture/` describes

@@ -3124,9 +3124,10 @@ paths:
         Cursor-paginated list ordered by `created_at` descending, then `id` descending.
         Pass `next_cursor` from the previous response as `cursor` for the next page.
         Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group).
-        Filter by optional `currency` (three-letter ISO code), `status`, and free-text `q`
-        (case-insensitive substring match on `invoice_number`, bill-to display name, email, location
-        snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
+        Filter by optional `currency` (three-letter ISO code), `status`, optional `settlement`
+        (issued invoices only: `open`, `partially_paid`, or `paid`; combined with `status` using AND),
+        and free-text `q` (case-insensitive substring match on `invoice_number`, bill-to display name,
+        email, location snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
       security:
         - AdminBearerAuth: []
       parameters:
@@ -3136,6 +3137,16 @@ paths:
           schema:
             type: string
             enum: [draft, issued, void]
+        - name: settlement
+          in: query
+          required: false
+          description: >
+            Issued-invoice settlement slice for admin filtering: `open` (issued with balance_due > 0),
+            `partially_paid` (issued with amount_allocated > 0 and balance_due > 0), or `paid`
+            (issued, balance_due zero, amount_allocated > 0, total > 0). Combined with `status` using AND.
+          schema:
+            type: string
+            enum: [open, partially_paid, paid]
         - name: currency
           in: query
           required: false
@@ -6508,6 +6519,20 @@ components:
           type: string
         total:
           type: string
+        amountAllocated:
+          type: string
+          description: Sum of payment_allocations for this invoice in the invoice currency (cached).
+        balanceDue:
+          type: string
+          description: max(total - amount_allocated, 0) in invoice currency (cached).
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time the issued invoice became fully settled (best-effort on historical backfill).
+        isPaid:
+          type: boolean
+          description: True when status is issued, total > 0, and balance_due is zero.
         billToKind:
           type: string
           enum: [contact, family, organization]

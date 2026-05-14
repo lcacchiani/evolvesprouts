@@ -40,6 +40,7 @@ import {
   formatPaymentMethodLabel,
   formatTruncatedId,
 } from "@/components/admin/finance/client-invoices-format-helpers";
+import { getInvoiceSettlementBadgeLabel } from "@/lib/invoice-settlement-display";
 import { toErrorMessage } from "@/hooks/hook-errors";
 import {
   CUSTOMIZED_DRAFT_INVOICE_FORM_ID,
@@ -213,6 +214,7 @@ export function ClientInvoicesPanel() {
   const draftFilterId = useId();
   const draftModeId = useId();
   const invoiceSearchFilterId = useId();
+  const invoiceSettlementFilterId = useId();
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const defaultCurrency = useMemo(() => getAdminDefaultCurrencyCode(), []);
 
@@ -234,6 +236,9 @@ export function ClientInvoicesPanel() {
   );
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<
     "draft" | "issued" | "void" | ""
+  >("");
+  const [invoiceSettlementFilter, setInvoiceSettlementFilter] = useState<
+    "open" | "partially_paid" | "paid" | ""
   >("");
   const [invoiceCurrencyFilter, setInvoiceCurrencyFilter] = useState("");
   const [invoiceSearchInput, setInvoiceSearchInput] = useState("");
@@ -516,6 +521,10 @@ export function ClientInvoicesPanel() {
           {
             status:
               invoiceStatusFilter === "" ? undefined : invoiceStatusFilter,
+            settlement:
+              invoiceSettlementFilter === ""
+                ? undefined
+                : invoiceSettlementFilter,
             currency:
               invoiceCurrencyFilter === "" ? undefined : invoiceCurrencyFilter,
             q:
@@ -541,7 +550,12 @@ export function ClientInvoicesPanel() {
         setInvoiceListLoading(false);
       }
     },
-    [invoiceCurrencyFilter, invoiceSearchDebounced, invoiceStatusFilter],
+    [
+      invoiceCurrencyFilter,
+      invoiceSearchDebounced,
+      invoiceStatusFilter,
+      invoiceSettlementFilter,
+    ],
   );
 
   useEffect(() => {
@@ -559,6 +573,8 @@ export function ClientInvoicesPanel() {
     try {
       const { items, next_cursor } = await listCustomerInvoices({
         status: invoiceStatusFilter === "" ? undefined : invoiceStatusFilter,
+        settlement:
+          invoiceSettlementFilter === "" ? undefined : invoiceSettlementFilter,
         currency:
           invoiceCurrencyFilter === "" ? undefined : invoiceCurrencyFilter,
         q: invoiceSearchDebounced === "" ? undefined : invoiceSearchDebounced,
@@ -580,6 +596,7 @@ export function ClientInvoicesPanel() {
     invoiceCurrencyFilter,
     invoiceSearchDebounced,
     invoiceStatusFilter,
+    invoiceSettlementFilter,
   ]);
 
   const selectedIssuedInvoice = useMemo(() => {
@@ -1893,6 +1910,26 @@ export function ClientInvoicesPanel() {
               </Select>
             </div>
             <div>
+              <Label htmlFor={invoiceSettlementFilterId}>Settlement</Label>
+              <Select
+                id={invoiceSettlementFilterId}
+                className="mt-1 w-44"
+                value={invoiceSettlementFilter}
+                onChange={(e) =>
+                  setInvoiceSettlementFilter(
+                    e.target.value === ""
+                      ? ""
+                      : (e.target.value as "open" | "partially_paid" | "paid"),
+                  )
+                }
+              >
+                <option value="">All</option>
+                <option value="open">Open</option>
+                <option value="partially_paid">Partially paid</option>
+                <option value="paid">Paid</option>
+              </Select>
+            </div>
+            <div>
               <Label htmlFor="billing-invoice-currency-filter">Currency</Label>
               <Select
                 id="billing-invoice-currency-filter"
@@ -1949,7 +1986,7 @@ export function ClientInvoicesPanel() {
           <AdminDataTable tableClassName="min-w-[900px]">
             <AdminDataTableHead>
               <tr>
-                <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
+                <AdminDataTableHeadCell>Settlement</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Number</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Bill to</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Total</AdminDataTableHeadCell>
@@ -1964,6 +2001,8 @@ export function ClientInvoicesPanel() {
                 const selected = id && selectedInvoiceId === id;
                 const totalRaw = inv.total?.trim() ?? "";
                 const parsedTotal = Number.parseFloat(totalRaw);
+                const balanceDueRaw = inv.balanceDue?.trim() ?? "";
+                const parsedBalanceDue = Number.parseFloat(balanceDueRaw);
                 const currencyCode =
                   (inv.currency ?? defaultCurrency).trim().toUpperCase() ||
                   defaultCurrency;
@@ -1971,6 +2010,14 @@ export function ClientInvoicesPanel() {
                   totalRaw !== "" && Number.isFinite(parsedTotal)
                     ? formatAmountInCurrency(parsedTotal, currencyCode)
                     : "—";
+                const balanceDueLine =
+                  balanceDueRaw !== "" &&
+                  Number.isFinite(parsedBalanceDue) &&
+                  parsedBalanceDue > 0 ? (
+                    <span className="text-xs text-slate-600">
+                      Due {formatAmountInCurrency(parsedBalanceDue, currencyCode)}
+                    </span>
+                  ) : null;
                 return (
                   <tr
                     key={id || `invoice-row-${String(index)}`}
@@ -1990,7 +2037,7 @@ export function ClientInvoicesPanel() {
                     }}
                   >
                     <AdminDataTableCell>
-                      {formatEnumLabel(inv.status ?? "") || "—"}
+                      {getInvoiceSettlementBadgeLabel(inv)}
                     </AdminDataTableCell>
                     <AdminDataTableCell>
                       {inv.invoiceNumber ?? "—"}
@@ -1998,10 +2045,13 @@ export function ClientInvoicesPanel() {
                     <AdminDataTableCell className="text-slate-700">
                       {inv.billToDisplayName ?? inv.billToEmail ?? "—"}
                     </AdminDataTableCell>
-                    <AdminDataTableCell>{totalDisplay}</AdminDataTableCell>
                     <AdminDataTableCell>
-                      {inv.lineCount ?? 0}
+                      <div className="flex flex-col gap-0.5">
+                        <span>{totalDisplay}</span>
+                        {balanceDueLine}
+                      </div>
                     </AdminDataTableCell>
+                    <AdminDataTableCell>{inv.lineCount ?? 0}</AdminDataTableCell>
                     <AdminDataTableCell>
                       {inv.invoiceDate
                         ? formatYmdAsLocalDate(inv.invoiceDate)

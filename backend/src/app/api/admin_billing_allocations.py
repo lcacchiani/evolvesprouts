@@ -18,7 +18,10 @@ from app.services.billing_enrollment_confirmation import (
     maybe_confirm_enrollments_on_positive_invoice_payment_allocation,
 )
 from app.exceptions import NotFoundError, ValidationError
-from app.services.customer_billing import payment_unapplied_amount
+from app.services.customer_billing import (
+    payment_unapplied_amount,
+    recompute_invoice_settlement,
+)
 from app.utils import json_response
 
 
@@ -84,6 +87,7 @@ def _create_allocation(
         )
         session.add(alloc)
         session.flush()
+        recompute_invoice_settlement(session, inv)
         maybe_confirm_enrollments_on_positive_invoice_payment_allocation(session, inv)
         return json_response(
             201,

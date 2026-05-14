@@ -143,6 +143,10 @@ describe('ClientInvoicesPanel', () => {
           invoiceNumber: 'INV-42',
           currency: 'HKD',
           total: '100',
+          amountAllocated: '0',
+          balanceDue: '100',
+          paidAt: null,
+          isPaid: false,
           lineCount: 1,
           billToDisplayName: 'Pat',
           createdAt: '2026-01-01T00:00:00+00:00',
@@ -165,7 +169,8 @@ describe('ClientInvoicesPanel', () => {
     const invoiceRegion = screen.getByRole('region', { name: /customer invoices list/i });
     const invoiceTable = within(invoiceRegion).getByRole('table');
     expect(within(invoiceTable).queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
-    expect(within(invoiceTable).getByText('Issued')).toBeInTheDocument();
+    expect(within(invoiceTable).getByRole('columnheader', { name: 'Settlement' })).toBeInTheDocument();
+    expect(within(invoiceTable).getByText('Open')).toBeInTheDocument();
     await userEvent.click(firstCustomerInvoiceDataRow(invoiceTable));
 
     await waitFor(() => {

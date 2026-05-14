@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
 from app.api.admin_billing_invoice_serializers import (
+    parse_optional_invoice_settlement,
     parse_optional_invoice_status,
     serialize_invoice_detail,
     serialize_invoice_summary,
@@ -27,6 +28,7 @@ from app.api.assets.assets_common import (
     signed_link_no_cache_headers,
 )
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
+from app.db.models.enums import BillingInvoiceStatus
 from app.exceptions import NotFoundError, ValidationError
 from app.services.customer_billing import ensure_invoice_pdf_storage
 from app.utils import json_response
@@ -49,6 +51,9 @@ def list_invoices(
     """All invoices for the tenant; admin authorization is enforced at API Gateway."""
     limit = parse_limit(event, default=DEFAULT_BILLING_LIST_LIMIT, max_limit=100)
     status_filter = parse_optional_invoice_status(query_param(event, "status"))
+    settlement_filter = parse_optional_invoice_settlement(
+        query_param(event, "settlement")
+    )
     currency_raw = query_param(event, "currency")
     currency = (
         str(currency_raw).strip().upper()[:3]
@@ -67,6 +72,24 @@ def list_invoices(
         stmt = select(CustomerInvoice)
         if status_filter is not None:
             stmt = stmt.where(CustomerInvoice.status == status_filter)
+        if settlement_filter == "open":
+            stmt = stmt.where(
+                CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
+                CustomerInvoice.balance_due > 0,
+            )
+        elif settlement_filter == "partially_paid":
+            stmt = stmt.where(
+                CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
+                CustomerInvoice.amount_allocated > 0,
+                CustomerInvoice.balance_due > 0,
+            )
+        elif settlement_filter == "paid":
+            stmt = stmt.where(
+                CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
+                CustomerInvoice.balance_due == 0,
+                CustomerInvoice.amount_allocated > 0,
+                CustomerInvoice.total > 0,
+            )
         if currency is not None:
             stmt = stmt.where(CustomerInvoice.currency == currency)
         if q_raw:

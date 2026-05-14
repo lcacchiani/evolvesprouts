@@ -21,6 +21,7 @@ const CUSTOMER_INVOICE_LIST_PAGE_LIMIT = 100;
 export async function listCustomerInvoices(
   params: {
     status?: 'draft' | 'issued' | 'void';
+    settlement?: 'open' | 'partially_paid' | 'paid';
     currency?: string;
     /** Case-insensitive substring on invoice number, bill-to fields, and ISO invoice date. */
     q?: string;
@@ -32,6 +33,9 @@ export async function listCustomerInvoices(
   const query = new URLSearchParams();
   if (params.status) {
     query.set('status', params.status);
+  }
+  if (params.settlement) {
+    query.set('settlement', params.settlement);
   }
   if (params.currency && params.currency.trim() !== '') {
     query.set('currency', params.currency.trim().toUpperCase());

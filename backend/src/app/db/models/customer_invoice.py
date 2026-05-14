@@ -53,6 +53,12 @@ class CustomerInvoice(Base):
     subtotal: Mapped[Decimal] = mapped_column(Numeric(14, 4), nullable=False)
     tax_total: Mapped[Decimal] = mapped_column(Numeric(14, 4), nullable=False)
     total: Mapped[Decimal] = mapped_column(Numeric(14, 4), nullable=False)
+    amount_allocated: Mapped[Decimal] = mapped_column(
+        Numeric(14, 4), nullable=False, server_default=text("0")
+    )
+    balance_due: Mapped[Decimal] = mapped_column(
+        Numeric(14, 4), nullable=False, server_default=text("0")
+    )
     bill_to_kind: Mapped[BillingBillToKind] = mapped_column(
         sa.Enum(
             BillingBillToKind,
@@ -101,6 +107,9 @@ class CustomerInvoice(Base):
     issued_pdf_s3_key: Mapped[str | None] = mapped_column(Text(), nullable=True)
     issued_pdf_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     pdf_template_version: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
     email_sent_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )

@@ -9,6 +9,7 @@ vi.mock('@/lib/api-admin-client', () => ({
 import {
   compareBillingEnrollmentPickerRowsByEnrolledAtDesc,
   createInitialCustomerPaymentAfterEnrollmentCreate,
+  listCustomerInvoices,
   listRecentEnrollmentsForInvoicing,
 } from '@/lib/billing-api';
 
@@ -180,6 +181,25 @@ describe('createInitialCustomerPaymentAfterEnrollmentCreate', () => {
           status: 'succeeded',
           amount: '0',
         }),
+      }),
+    );
+  });
+});
+
+describe('listCustomerInvoices', () => {
+  beforeEach(() => {
+    mockAdminApiRequest.mockReset();
+  });
+
+  it('passes settlement query param through to the admin API', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({ items: [], next_cursor: null });
+
+    await listCustomerInvoices({ settlement: 'partially_paid' });
+
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpointPath: '/v1/admin/billing/invoices?settlement=partially_paid',
+        method: 'GET',
       }),
     );
   });

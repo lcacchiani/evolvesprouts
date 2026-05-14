@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
@@ -34,6 +35,13 @@ def serialize_invoice_summary(
     inv: CustomerInvoice, *, line_count: int
 ) -> dict[str, Any]:
     """Summary row; ``lineCount`` is an aggregate over ``customer_invoice_lines``."""
+    balance_due = Decimal(str(inv.balance_due))
+    total_amt = Decimal(str(inv.total))
+    is_paid = (
+        inv.status == BillingInvoiceStatus.ISSUED
+        and balance_due == Decimal("0")
+        and total_amt > Decimal("0")
+    )
     return {
         "id": str(inv.id),
         "status": inv.status.value,
@@ -43,6 +51,10 @@ def serialize_invoice_summary(
         "subtotal": str(inv.subtotal),
         "taxTotal": str(inv.tax_total),
         "total": str(inv.total),
+        "amountAllocated": str(inv.amount_allocated),
+        "balanceDue": str(inv.balance_due),
+        "paidAt": inv.paid_at.isoformat() if inv.paid_at else None,
+        "isPaid": is_paid,
         "billToKind": inv.bill_to_kind.value,
         "billToContactId": str(inv.bill_to_contact_id)
         if inv.bill_to_contact_id
@@ -87,3 +99,15 @@ def parse_optional_invoice_status(raw: str | None) -> BillingInvoiceStatus | Non
             "status must be one of: draft, issued, void",
             field="status",
         ) from exc
+
+
+def parse_optional_invoice_settlement(raw: str | None) -> str | None:
+    if raw is None or str(raw).strip() == "":
+        return None
+    key = str(raw).strip().lower()
+    if key in ("open", "partially_paid", "paid"):
+        return key
+    raise ValidationError(
+        "settlement must be one of: open, partially_paid, paid",
+        field="settlement",
+    )
