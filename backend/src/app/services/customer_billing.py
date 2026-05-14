@@ -60,11 +60,11 @@ def store_pdf_in_assets_bucket(*, s3_key: str, body: bytes, content_type: str) -
     )
 
 
-def next_invoice_number(session: Session, *, currency: str) -> tuple[str, int]:
-    """Atomically allocate next invoice number (counter per currency scope + year)."""
+def next_invoice_number(session: Session) -> tuple[str, int]:
+    """Atomically allocate next invoice number (one counter per calendar year, UTC)."""
     now = datetime.now(UTC)
     year = now.year
-    scope_key = f"inv-{currency.upper()}"
+    scope_key = _SCOPE_DEFAULT
     session.execute(
         text(
             """
@@ -84,7 +84,7 @@ def next_invoice_number(session: Session, *, currency: str) -> tuple[str, int]:
     ).scalar_one()
     row.last_number += 1
     seq = row.last_number
-    inv_num = f"INV-{year}-{seq:06d}-{currency.upper()}"
+    inv_num = f"INV-{year}-{seq:06d}"
     session.flush()
     return inv_num, seq
 
