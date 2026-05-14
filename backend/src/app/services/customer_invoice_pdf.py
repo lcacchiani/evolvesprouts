@@ -15,9 +15,9 @@ Environment:
   invoices when ``total > 0`` and currency is HKD (same EMVCo payload as the public booking
   flow). Bank transfer lines and the FPS QR render on a dedicated **Payment Options** page
   after the main invoice page.
-- When ``total == 0``, a second page shows **Nothing to pay, thank you!** (same heading band
-  as **Payment Options** on payable invoices), after the same centred refer-to-next-page cue
-  spacing used when payment methods follow (neutral wording, not payment-method copy).
+- When ``total == 0``, a centred **Nothing to pay, thank you!** line appears after the totals
+  block (same cue band spacing as the refer-to-next-page line on payable invoices), with no
+  second page.
 - ``PUBLIC_WWW_BILLING_EMAIL``: optional billing email for payment confirmations (align GitHub
   ``NEXT_PUBLIC_BILLING_EMAIL`` with CDK ``PublicWwwBillingEmail``); used on the Payment Options page.
 
@@ -1153,14 +1153,10 @@ def render_invoice_pdf(
         story.append(Spacer(1, 44))
         story.append(
             Paragraph(
-                _esc("Please refer to the following page."),
+                _esc("Nothing to pay, thank you!"),
                 refer_next_page_style,
             )
         )
-        story.append(Spacer(1, 16))
-        story.append(PageBreak())
-        story.append(Paragraph(_esc("Nothing to pay, thank you!"), label_heading_style))
-        story.append(Spacer(1, 4))
     else:
         story.append(Spacer(1, 36))
 
