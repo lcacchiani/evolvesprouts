@@ -513,7 +513,12 @@ their primary responsibilities.
   the parser logs a redacted ±80-char snippet around the failure offset and
   retries once with a JSON-repair chat completion (no PDF re-attached, capped at
   60s). A second failure marks the job `failed` with a snippet-bearing message
-  instead of a bare `JSONDecodeError`.
+  instead of a bare `JSONDecodeError`. Once the response parses, the bulk parser
+  tolerates several wrapper shapes — alias keys (`invoices`, `records`, `data`,
+  `results`, `rows`, `items`, `expenses`, `transactions`, `charges`, `entries`),
+  any single unknown list-of-dicts value, or a top-level dict that itself looks
+  like one invoice (wrapped to a one-row import). When none match, the job
+  `failed` message reports the actual top-level keys for diagnosis.
 - Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility; OpenRouter bulk
   calls cap at **240s** plus an optional **60s** JSON-repair retry, so DB writes
   stay inside the Lambda window
