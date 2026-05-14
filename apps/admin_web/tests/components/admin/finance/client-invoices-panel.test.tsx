@@ -1248,7 +1248,21 @@ describe('ClientInvoicesPanel', () => {
     }
   });
 
-  it('blocks checkbox when invoiceLinked', async () => {
+  it('shows message when every enrollment returned is invoice-linked', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [pickerRow({ enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111', invoiceLinked: true })],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/All matching enrollments are already on a draft or issued invoice/i),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it('hides invoice-linked enrollments from draft picker table', async () => {
     const blockedId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
@@ -1260,11 +1274,12 @@ describe('ClientInvoicesPanel', () => {
     render(<ClientInvoicesPanel />);
 
     await waitFor(() =>
-      expect(screen.getByRole('checkbox', { name: new RegExp(blockedId, 'i') })).toBeDisabled(),
+      expect(screen.getByRole('checkbox', { name: /Select enrollment cccccccc/i })).toBeInTheDocument(),
     );
+    expect(screen.queryByRole('checkbox', { name: new RegExp(blockedId, 'i') })).not.toBeInTheDocument();
   });
 
-  it('select all visible only affects selectable rows when one row is invoice-linked', async () => {
+  it('select all visible selects every shown row when server also returns invoice-linked enrollments', async () => {
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
       items: [
         pickerRow({ enrollmentId: 'aaaaaaaa-bbbb-cccc-dddd-111111111111', invoiceLinked: true }),
@@ -1281,7 +1296,8 @@ describe('ClientInvoicesPanel', () => {
 
     await waitFor(() => {
       const rowChecks = screen.getAllByRole('checkbox', { name: /^Select enrollment /i });
-      expect(rowChecks.filter((el) => (el as HTMLInputElement).checked)).toHaveLength(2);
+      expect(rowChecks).toHaveLength(2);
+      expect(rowChecks.every((el) => (el as HTMLInputElement).checked)).toBe(true);
     });
   });
 
@@ -1309,6 +1325,7 @@ describe('ClientInvoicesPanel', () => {
     expect(screen.getByText('No Email Party')).toBeInTheDocument();
     const enrollmentPicker = screen.getByRole('region', { name: 'Enrollment picker' });
     expect(within(enrollmentPicker).queryByRole('columnheader', { name: 'Email' })).not.toBeInTheDocument();
+    expect(within(enrollmentPicker).queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
   });
 
   it('draft enrollment picker Party column for family bill-to uses composed label without appending email', async () => {
