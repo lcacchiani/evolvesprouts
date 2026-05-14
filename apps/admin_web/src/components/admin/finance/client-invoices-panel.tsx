@@ -1576,6 +1576,19 @@ export function ClientInvoicesPanel() {
                           )}
                         </Button>
                       ) : null}
+                      {inv.status !== 'void' ? (
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
+                          onClick={() => openVoidInvoiceDialog(id)}
+                          aria-label='Void invoice'
+                          title='Void invoice'
+                        >
+                          <VoidExpenseIcon className='h-4 w-4' aria-hidden />
+                        </Button>
+                      ) : null}
                       {inv.status === 'draft' ? (
                         <Button
                           type='button'
@@ -1595,19 +1608,6 @@ export function ClientInvoicesPanel() {
                           ) : (
                             <DeleteIcon className='h-4 w-4' aria-hidden />
                           )}
-                        </Button>
-                      ) : null}
-                      {inv.status !== 'void' ? (
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='danger'
-                          disabled={editorBusy || deleteDraftDialogOpen || voidDialogOpen || !id}
-                          onClick={() => openVoidInvoiceDialog(id)}
-                          aria-label='Void invoice'
-                          title='Void invoice'
-                        >
-                          <VoidExpenseIcon className='h-4 w-4' aria-hidden />
                         </Button>
                       ) : null}
                     </div>
