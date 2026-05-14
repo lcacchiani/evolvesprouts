@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { toErrorMessage } from '@/hooks/hook-errors';
+import { createInitialCustomerPaymentAfterEnrollmentCreate } from '@/lib/billing-api';
 import { listEntityTags, type EntityTagRef } from '@/lib/entity-api';
 
 import { useDiscountCodes } from './use-discount-codes';
@@ -42,6 +43,7 @@ export function useServicesPage() {
   const [entityTags, setEntityTags] = useState<EntityTagRef[]>([]);
   const [entityTagsLoading, setEntityTagsLoading] = useState(false);
   const [entityTagsError, setEntityTagsError] = useState('');
+  const [enrollmentCustomerPaymentError, setEnrollmentCustomerPaymentError] = useState('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -78,6 +80,10 @@ export function useServicesPage() {
       cancelled = true;
     };
   }, [activeView]);
+
+  useEffect(() => {
+    setEnrollmentCustomerPaymentError('');
+  }, [activeView, selectedInstanceId]);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
   const instanceList = useInstanceList(
@@ -141,6 +147,20 @@ export function useServicesPage() {
       }
       await enrollmentList.refetch();
       await instanceList.refetch();
+      if (detail.operation === 'create' && detail.enrollment) {
+        try {
+          setEnrollmentCustomerPaymentError('');
+          await createInitialCustomerPaymentAfterEnrollmentCreate(detail.enrollment);
+        } catch (error) {
+          setEnrollmentCustomerPaymentError(
+            toErrorMessage(
+              error,
+              'Enrollment was saved, but automatic customer payment failed. Record it from Finance.',
+              { honorBackendMessage: true },
+            ),
+          );
+        }
+      }
     },
   });
 
@@ -180,5 +200,6 @@ export function useServicesPage() {
     locationError: locationList.error,
     discountCodes,
     venues,
+    enrollmentCustomerPaymentError,
   };
 }

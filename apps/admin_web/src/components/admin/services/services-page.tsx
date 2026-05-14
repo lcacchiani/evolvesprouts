@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { AdminPageErrorBanner } from '@/components/admin/admin-page-error-banner';
+import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage, type ServicesView } from '@/hooks/use-services-page';
 import {
@@ -162,6 +163,12 @@ export function ServicesPage() {
   return (
     <div className='space-y-4'>
       <AdminPageErrorBanner title='Services' message={hasAnyError} />
+
+      {state.activeView === 'instances' && state.enrollmentCustomerPaymentError ? (
+        <StatusBanner variant='error' title='Customer payment'>
+          {state.enrollmentCustomerPaymentError}
+        </StatusBanner>
+      ) : null}
 
       <ServicesHeader activeView={state.activeView} onSetView={handleSetActiveView} />
 
