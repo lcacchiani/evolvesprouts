@@ -1741,7 +1741,7 @@ export function ClientInvoicesPanel() {
         >
           <div className='grid gap-3 min-[780px]:grid-cols-2 min-[780px]:items-end'>
             <div className='min-w-0'>
-              <Label htmlFor='billing-create-pay-enrollment-select'>Enrollment (recent)</Label>
+              <Label htmlFor='billing-create-pay-enrollment-select'>Enrollment</Label>
               <Select
                 id='billing-create-pay-enrollment-select'
                 className='mt-1 w-full min-w-0'

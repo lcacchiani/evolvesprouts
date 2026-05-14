@@ -246,7 +246,7 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalled());
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText(/Enrollment \(recent\)/i), eid);
+    await user.selectOptions(screen.getByLabelText(/^Enrollment$/i), eid);
     const amountInput = document.getElementById('billing-create-pay-amount') as HTMLInputElement;
     await user.clear(amountInput);
     await user.type(amountInput, '10');
@@ -295,7 +295,7 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalled());
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText(/Enrollment \(recent\)/i), eid);
+    await user.selectOptions(screen.getByLabelText(/^Enrollment$/i), eid);
     const amountInput = document.getElementById('billing-create-pay-amount') as HTMLInputElement;
     await user.clear(amountInput);
     await user.type(amountInput, '5');
