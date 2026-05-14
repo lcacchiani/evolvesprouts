@@ -60,14 +60,28 @@ def _capitalize_first_letter(value: str) -> str:
     return s[0].upper() + s[1:]
 
 
-def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
-    """Line text for enrollment-merge invoices: title, tier, and cohort space-separated.
+def _service_kind_en_label(service_type: object | None) -> str:
+    """English invoice line label for ``Service.service_type`` (enum or string value)."""
+    raw = getattr(service_type, "value", service_type)
+    key = str(raw).strip().lower() if raw is not None else ""
+    return {
+        "training_course": "Training course",
+        "event": "Event",
+        "consultation": "Consultation",
+        "intro_call": "Intro call",
+    }.get(key, key.replace("_", " ").title() if key else "")
 
-    Title uses ``{service title}: {instance title}`` when both are present and differ;
-    otherwise a single title (instance, or service, whichever applies). Tier prefers
-    enrollment ticket tier name, then catalog ``service_tier``. Tier and cohort segments
-    use a leading capital letter only (rest unchanged). Falls back to ``Enrollment`` when
-    no title path exists.
+
+def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
+    """Line text for enrollment-merge invoices: service kind, title tail, tier, and cohort.
+
+    The lead segment is always the parent service **kind** (``Service.service_type``) in
+    English when a service row is loaded. It is joined with ``": "`` to a **tail** that
+    prefers the instance title, then the service title, when that tail is non-empty and
+    differs from the kind label (case-insensitive); otherwise only the kind is used when no
+    tail exists. Tier prefers enrollment ticket tier name, then catalog ``service_tier``.
+    Tier and cohort segments use a leading capital letter only (rest unchanged). Falls back
+    to ``Enrollment`` when no usable segments exist.
     """
     inst = enrollment.instance
     svc = getattr(inst, "service", None) if inst is not None else None
@@ -75,14 +89,21 @@ def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
     service_title = (
         _trimmed_str_or_none(getattr(svc, "title", None)) if svc is not None else None
     )
+    tail = instance_title or service_title
+    kind_label = (
+        _service_kind_en_label(getattr(svc, "service_type", None)) if svc else ""
+    )
 
     title_part: str | None = None
-    if instance_title and service_title and instance_title != service_title:
-        title_part = f"{service_title}: {instance_title}"
-    elif instance_title:
-        title_part = instance_title
-    elif service_title:
-        title_part = service_title
+    if kind_label and tail:
+        if tail.casefold() == kind_label.casefold():
+            title_part = kind_label
+        else:
+            title_part = f"{kind_label}: {tail}"
+    elif kind_label:
+        title_part = kind_label
+    elif tail:
+        title_part = tail
 
     tier_raw: str | None = None
     if enrollment.ticket_tier_id and enrollment.ticket_tier is not None:

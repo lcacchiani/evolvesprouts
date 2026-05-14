@@ -507,7 +507,7 @@ def test_v6_wide_hkd_amount_fits(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_invoice_pdf_versions_distinct() -> None:
-    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v19"
+    assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION == "billing-invoice-v20"
     assert customer_billing.RECEIPT_PDF_TEMPLATE_VERSION == "billing-receipt-v1"
     assert customer_billing.INVOICE_PDF_TEMPLATE_VERSION != (
         customer_billing.RECEIPT_PDF_TEMPLATE_VERSION
@@ -971,9 +971,9 @@ def test_zero_total_hides_due_date_and_terms(monkeypatch: pytest.MonkeyPatch) ->
     assert "Total:" in text
     assert "Due Date:" not in text
     assert "Please refer to next page for details" not in text.replace("\n", " ")
-    assert "Please refer to the following page" in text.replace("\n", " ")
     assert "Nothing to pay, thank you!" in text.replace("\n", " ")
-    assert "1/2" in text and "2/2" in text
+    assert text.replace("\n", " ").count("Nothing to pay, thank you!") == 1
+    assert "1/2" not in text
     assert "Terms & Conditions" not in text
     assert "Bank:" not in text
 

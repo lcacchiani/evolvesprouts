@@ -33,6 +33,7 @@ from app.db.models.enums import (
     BillingPaymentDirection,
     BillingPaymentStatus,
     EnrollmentStatus,
+    ServiceType,
 )
 from app.exceptions import NotFoundError, ValidationError
 from app.services import customer_billing
@@ -2616,7 +2617,11 @@ def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
         _build_enrollment_merge_line_description,
     )
 
-    svc = SimpleNamespace(title="Parent Service", service_tier="premium")
+    svc = SimpleNamespace(
+        title="Parent Service",
+        service_tier="premium",
+        service_type=ServiceType.EVENT,
+    )
     inst = SimpleNamespace(title=None, cohort="spring 2026", service=svc)
     en = SimpleNamespace(
         instance=inst,
@@ -2625,7 +2630,7 @@ def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "Parent Service Premium Spring 2026"
+        == "Event: Parent Service Premium Spring 2026"
     )
 
 
@@ -2635,7 +2640,11 @@ def test_build_enrollment_merge_line_description_prefers_instance_title_and_tick
     )
 
     tier = SimpleNamespace(name="early bird")
-    svc = SimpleNamespace(title="Event Parent", service_tier="ignored_when_ticket")
+    svc = SimpleNamespace(
+        title="Event Parent",
+        service_tier="ignored_when_ticket",
+        service_type=ServiceType.EVENT,
+    )
     inst = SimpleNamespace(title="June Weekend", cohort=None, service=svc)
     tt_id = uuid4()
     en = SimpleNamespace(
@@ -2645,7 +2654,25 @@ def test_build_enrollment_merge_line_description_prefers_instance_title_and_tick
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "Event Parent: June Weekend Early bird"
+        == "Event: June Weekend Early bird"
+    )
+
+
+def test_build_enrollment_merge_line_description_dedupes_when_tail_matches_kind() -> None:
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _build_enrollment_merge_line_description,
+    )
+
+    svc = SimpleNamespace(title="Event", service_tier=None, service_type=ServiceType.EVENT)
+    inst = SimpleNamespace(title="Event", cohort=None, service=svc)
+    en = SimpleNamespace(
+        instance=inst,
+        ticket_tier_id=None,
+        ticket_tier=None,
+    )
+    assert (
+        _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
+        == "Event"
     )
 
 
@@ -2654,7 +2681,11 @@ def test_build_enrollment_merge_line_description_same_instance_and_service_title
         _build_enrollment_merge_line_description,
     )
 
-    svc = SimpleNamespace(title="Holiday Workshop", service_tier="standard")
+    svc = SimpleNamespace(
+        title="Holiday Workshop",
+        service_tier="standard",
+        service_type=ServiceType.TRAINING_COURSE,
+    )
     inst = SimpleNamespace(title="Holiday Workshop", cohort="week 1", service=svc)
     en = SimpleNamespace(
         instance=inst,
@@ -2663,7 +2694,7 @@ def test_build_enrollment_merge_line_description_same_instance_and_service_title
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "Holiday Workshop Standard Week 1"
+        == "Training course: Holiday Workshop Standard Week 1"
     )
 
 
@@ -2672,7 +2703,11 @@ def test_build_enrollment_merge_line_description_instance_title_without_service_
         _build_enrollment_merge_line_description,
     )
 
-    svc = SimpleNamespace(title=None, service_tier="solo")
+    svc = SimpleNamespace(
+        title=None,
+        service_tier="solo",
+        service_type=ServiceType.CONSULTATION,
+    )
     inst = SimpleNamespace(title="Drop-in Session", cohort=None, service=svc)
     en = SimpleNamespace(
         instance=inst,
@@ -2681,7 +2716,7 @@ def test_build_enrollment_merge_line_description_instance_title_without_service_
     )
     assert (
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
-        == "Drop-in Session Solo"
+        == "Consultation: Drop-in Session Solo"
     )
 
 
