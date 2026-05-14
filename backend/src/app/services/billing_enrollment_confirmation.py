@@ -18,7 +18,9 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def _distinct_enrollment_ids_on_invoice(session: Session, invoice_id: UUID) -> list[UUID]:
+def _distinct_enrollment_ids_on_invoice(
+    session: Session, invoice_id: UUID
+) -> list[UUID]:
     stmt = (
         select(CustomerInvoiceLine.enrollment_id)
         .where(
@@ -31,7 +33,9 @@ def _distinct_enrollment_ids_on_invoice(session: Session, invoice_id: UUID) -> l
     return [eid for eid in rows if eid is not None]
 
 
-def _promote_prospect_party_for_enrollment(session: Session, enrollment: Enrollment) -> None:
+def _promote_prospect_party_for_enrollment(
+    session: Session, enrollment: Enrollment
+) -> None:
     """Set party relationship to client when it is still prospect (contact, family, or org)."""
     if enrollment.organization_id is not None:
         org = session.get(Organization, enrollment.organization_id)
@@ -43,7 +47,10 @@ def _promote_prospect_party_for_enrollment(session: Session, enrollment: Enrollm
             )
         ):
             contact = session.get(Contact, cid)
-            if contact is not None and contact.relationship_type == RelationshipType.PROSPECT:
+            if (
+                contact is not None
+                and contact.relationship_type == RelationshipType.PROSPECT
+            ):
                 contact.relationship_type = RelationshipType.CLIENT
         return
 
@@ -57,17 +64,25 @@ def _promote_prospect_party_for_enrollment(session: Session, enrollment: Enrollm
             )
         ):
             contact = session.get(Contact, cid)
-            if contact is not None and contact.relationship_type == RelationshipType.PROSPECT:
+            if (
+                contact is not None
+                and contact.relationship_type == RelationshipType.PROSPECT
+            ):
                 contact.relationship_type = RelationshipType.CLIENT
         return
 
     if enrollment.contact_id is not None:
         contact = session.get(Contact, enrollment.contact_id)
-        if contact is not None and contact.relationship_type == RelationshipType.PROSPECT:
+        if (
+            contact is not None
+            and contact.relationship_type == RelationshipType.PROSPECT
+        ):
             contact.relationship_type = RelationshipType.CLIENT
 
 
-def _confirm_registered_enrollments_for_invoice(session: Session, invoice_id: UUID) -> None:
+def _confirm_registered_enrollments_for_invoice(
+    session: Session, invoice_id: UUID
+) -> None:
     for eid in _distinct_enrollment_ids_on_invoice(session, invoice_id):
         enrollment = session.get(Enrollment, eid)
         if enrollment is None or enrollment.status != EnrollmentStatus.REGISTERED:
