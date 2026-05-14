@@ -22,6 +22,8 @@ export async function listCustomerInvoices(
   params: {
     status?: 'draft' | 'issued' | 'void';
     currency?: string;
+    /** Case-insensitive substring on invoice number, bill-to fields, and ISO invoice date. */
+    q?: string;
     cursor?: string | null;
     limit?: number;
   } = {},
@@ -33,6 +35,10 @@ export async function listCustomerInvoices(
   }
   if (params.currency && params.currency.trim() !== '') {
     query.set('currency', params.currency.trim().toUpperCase());
+  }
+  const qTrimmed = params.q?.trim() ?? '';
+  if (qTrimmed !== '') {
+    query.set('q', qTrimmed);
   }
   if (params.cursor) {
     query.set('cursor', params.cursor);

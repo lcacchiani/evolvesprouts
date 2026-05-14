@@ -3080,7 +3080,9 @@ paths:
         Cursor-paginated list ordered by `created_at` descending, then `id` descending.
         Pass `next_cursor` from the previous response as `cursor` for the next page.
         Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group).
-        Filter by optional `currency` (three-letter ISO code) and `status`.
+        Filter by optional `currency` (three-letter ISO code), `status`, and free-text `q`
+        (case-insensitive substring match on `invoice_number`, bill-to display name, email, location
+        snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
       security:
         - AdminBearerAuth: []
       parameters:
@@ -3098,6 +3100,15 @@ paths:
             type: string
             minLength: 3
             maxLength: 3
+        - name: q
+          in: query
+          required: false
+          description: >
+            Case-insensitive substring filter on invoice number, bill-to name/email/location text,
+            and invoice issue date (ISO `YYYY-MM-DD` only).
+          schema:
+            type: string
+            maxLength: 200
         - name: cursor
           in: query
           required: false

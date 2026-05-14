@@ -1926,6 +1926,43 @@ def test_list_invoices_filters_by_currency_and_status(
     assert "customer_invoices.status" in stmt_text
 
 
+def test_list_invoices_applies_free_text_query_param(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[Any] = []
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+
+        def _exec(stmt: Any, *a: Any, **k: Any) -> MagicMock:
+            captured.append(stmt)
+            out = MagicMock()
+            out.scalars.return_value.all.return_value = []
+            out.all.return_value = []
+            return out
+
+        s.execute.side_effect = _exec
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/invoices",
+        query_params={"q": "Acme"},
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    assert r["statusCode"] == 200
+    assert captured
+    stmt_text = str(captured[0]).lower()
+    assert "customer_invoices.invoice_number" in stmt_text
+    assert "to_char" in stmt_text
+
+
 def test_email_invoice_accepts_comma_separated_recipients(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
