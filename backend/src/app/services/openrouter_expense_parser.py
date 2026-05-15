@@ -48,6 +48,12 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
 _MAX_BULK_INVOICES = 100
 
 
+_BULK_SYSTEM_PROMPT = (
+    "You extract structured invoice rows from financial documents and "
+    "return strict JSON only."
+)
+
+
 def parse_bulk_expense_invoices_from_assets(
     assets: Sequence[Mapping[str, Any]],
     *,
@@ -55,7 +61,16 @@ def parse_bulk_expense_invoices_from_assets(
 ) -> list[dict[str, Any]]:
     """Parse many invoice rows from one combined PDF (or images) via OpenRouter.
 
-    Returns a list of normalized invoice dicts (same shape as ``parse_invoice_from_assets``).
+    Returns a list of normalized invoice dicts (same shape as
+    ``parse_invoice_from_assets``).
+
+    For PDFs, this loops over a small ordered list of OpenRouter PDF parser
+    engines (configured first, then one alternate). On every attempt, any
+    failure inside the parsing pipeline (HTTP error, empty/refused content,
+    unrepairable JSON, unknown wrapper shape, zero rows) advances to the next
+    engine. The S3 read for each attachment happens once and is reused across
+    attempts. The final raised ``RuntimeError`` includes the engines tried and
+    the last underlying error so the persisted job message stays diagnosable.
     """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
@@ -68,33 +83,115 @@ def parse_bulk_expense_invoices_from_assets(
     has_pdf = any(
         _normalize_content_type(asset) == "application/pdf" for asset in assets
     )
-    body = _openrouter_chat_completion(
-        system_prompt=(
-            "You extract structured invoice rows from financial documents and "
-            "return strict JSON only."
-        ),
-        user_content_blocks=content,
-        has_pdf_attachment=has_pdf,
-        timeout=timeout,
+    engine_attempts: tuple[str | None, ...] = (
+        _bulk_pdf_engine_attempt_order() if has_pdf else (None,)
     )
-    raw_invoices = _parse_bulk_invoices_payload(body)
-    if not raw_invoices:
-        raise RuntimeError(
+
+    attempted_labels: list[str] = []
+    last_exc: Exception | None = None
+
+    for engine in engine_attempts:
+        attempted_labels.append(engine or "n/a")
+        try:
+            normalized = _attempt_bulk_parse(
+                content=content,
+                has_pdf=has_pdf,
+                timeout=timeout,
+                pdf_engine=engine,
+            )
+        except Exception as exc:
+            last_exc = exc
+            logger.warning(
+                "Bulk parse attempt failed; will try next engine if available",
+                extra={
+                    "pdf_engine": engine,
+                    "error": repr(exc),
+                    "remaining_engines": [
+                        e for e in engine_attempts[engine_attempts.index(engine) + 1 :]
+                    ],
+                },
+            )
+            continue
+        if normalized:
+            logger.info(
+                "Bulk invoice parse completed successfully",
+                extra={
+                    "invoice_count": len(normalized),
+                    "pdf_engine": engine,
+                    "engine_attempts": attempted_labels,
+                },
+            )
+            return normalized
+        last_exc = RuntimeError(
             "Parser found no invoice rows in this document. The PDF may be "
             "image-only without readable text, contain no extractable invoice "
             "data, or be in a layout the parser could not recognize as "
             "invoices. Try a clearer scan or a single-invoice import."
         )
+        logger.info(
+            "Bulk parse returned no rows; will try next engine if available",
+            extra={"pdf_engine": engine, "engine_attempts": attempted_labels},
+        )
+
+    engines_label = ", ".join(attempted_labels)
+    if last_exc is None:
+        raise RuntimeError(
+            f"Parser failed for bulk invoices across {len(attempted_labels)} "
+            f"attempt(s) ({engines_label}); no underlying error captured."
+        )
+    raise RuntimeError(
+        f"Parser failed for bulk invoices across {len(attempted_labels)} "
+        f"attempt(s) ({engines_label}); last error: {last_exc}"
+    )
+
+
+def _attempt_bulk_parse(
+    *,
+    content: list[dict[str, Any]],
+    has_pdf: bool,
+    timeout: int,
+    pdf_engine: str | None,
+) -> list[dict[str, Any]]:
+    """Run one bulk parse attempt with a specific PDF engine.
+
+    Returns the normalized invoice rows on success. Returns an empty list when
+    the response was usable but contained zero rows. Raises ``RuntimeError``
+    on any unrecoverable parse-pipeline failure (HTTP, empty content, JSON
+    unrepairable, unknown shape, too-many-invoices guard).
+    """
+    body = _openrouter_chat_completion(
+        system_prompt=_BULK_SYSTEM_PROMPT,
+        user_content_blocks=content,
+        has_pdf_attachment=has_pdf,
+        timeout=timeout,
+        pdf_engine_override=pdf_engine,
+    )
+    raw_invoices = _parse_bulk_invoices_payload(body)
+    if not raw_invoices:
+        return []
     if len(raw_invoices) > _MAX_BULK_INVOICES:
         raise RuntimeError(
             f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
         )
-    normalized = [_normalize_result(entry) for entry in raw_invoices]
-    logger.info(
-        "Bulk invoice parse completed successfully",
-        extra={"invoice_count": len(normalized)},
-    )
-    return normalized
+    return [_normalize_result(entry) for entry in raw_invoices]
+
+
+_PDF_ENGINE_FALLBACKS: dict[str, tuple[str, ...]] = {
+    "mistral-ocr": ("pdf-text",),
+    "pdf-text": ("mistral-ocr",),
+    "native": ("mistral-ocr",),
+}
+
+
+def _bulk_pdf_engine_attempt_order() -> tuple[str, ...]:
+    """Configured PDF engine first, then one alternate engine.
+
+    Two attempts maximum to stay inside the bulk-import Lambda timeout
+    budget (~600s with a 240s per-call cap and a 60s repair retry).
+    """
+    configured = _pdf_parser_engine()
+    fallbacks = _PDF_ENGINE_FALLBACKS.get(configured, ())
+    return (configured, *fallbacks)
 
 
 def _openrouter_chat_completion(
@@ -103,8 +200,15 @@ def _openrouter_chat_completion(
     user_content_blocks: list[dict[str, Any]],
     has_pdf_attachment: bool,
     timeout: int,
+    pdf_engine_override: str | None = None,
 ) -> str:
-    """POST to OpenRouter and return the raw HTTP response body string."""
+    """POST to OpenRouter and return the raw HTTP response body string.
+
+    ``pdf_engine_override`` lets callers force a specific PDF parser engine
+    (``mistral-ocr``, ``pdf-text``, or ``native``). Used by the bulk-import
+    engine fallback loop when the configured engine yields an empty or
+    unusable response on a given document.
+    """
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
     api_key = _get_api_key()
@@ -122,10 +226,11 @@ def _openrouter_chat_completion(
         ],
     }
     if has_pdf_attachment:
+        engine = pdf_engine_override or _pdf_parser_engine()
         payload["plugins"] = [
             {
                 "id": _PDF_PLUGIN_ID,
-                "pdf": {"engine": _pdf_parser_engine()},
+                "pdf": {"engine": engine},
             }
         ]
 
@@ -216,19 +321,47 @@ def _normalize_content_type(asset: Mapping[str, Any]) -> str:
 
 
 def _extract_message_text(body: str) -> str:
-    """Pull the model-generated text out of an OpenRouter chat completion body."""
+    """Pull the model-generated text out of an OpenRouter chat completion body.
+
+    Raises ``RuntimeError`` with a diagnostic message when the response cannot
+    yield usable text (top-level/per-choice error, model refusal, truncation,
+    content-filter block, or empty ``content`` for any other reason). This
+    avoids the previous failure mode where an empty string was passed to
+    ``json.loads`` and produced ``Expecting value: line 1 column 1 (char 0)``.
+    """
     payload = json.loads(body)
     if not isinstance(payload, dict):
         raise RuntimeError("OpenRouter response must be a JSON object")
+
+    top_error = payload.get("error")
+    if isinstance(top_error, dict):
+        message_text = top_error.get("message") or json.dumps(top_error)[:300]
+        code = top_error.get("code")
+        suffix = f" (code={code})" if code is not None else ""
+        raise RuntimeError(f"OpenRouter returned error: {message_text}{suffix}")
+    if isinstance(top_error, str) and top_error.strip():
+        raise RuntimeError(f"OpenRouter returned error: {top_error.strip()[:300]}")
+
     choices = payload.get("choices")
     if not isinstance(choices, list) or not choices:
         raise RuntimeError("OpenRouter response choices are missing")
     first_choice = choices[0]
     if not isinstance(first_choice, dict):
         raise RuntimeError("OpenRouter response choice has invalid shape")
+
+    choice_error = first_choice.get("error")
+    if isinstance(choice_error, dict):
+        message_text = choice_error.get("message") or json.dumps(choice_error)[:300]
+        raise RuntimeError(f"OpenRouter choice returned error: {message_text}")
+
     message = first_choice.get("message")
     if not isinstance(message, dict):
         raise RuntimeError("OpenRouter response message is missing")
+
+    refusal = message.get("refusal")
+    if isinstance(refusal, str) and refusal.strip():
+        raise RuntimeError(f"Model refused to extract: {refusal.strip()[:500]}")
+
     content = message.get("content")
     if isinstance(content, list):
         text_parts = [
@@ -239,12 +372,48 @@ def _extract_message_text(body: str) -> str:
         raw_text = "\n".join(part for part in text_parts if part)
     else:
         raw_text = str(content or "")
-    return (
+    cleaned = (
         raw_text.strip()
         .removeprefix("```json")
         .removeprefix("```")
         .removesuffix("```")
         .strip()
+    )
+    if cleaned:
+        return cleaned
+
+    raise _empty_response_error(payload, first_choice)
+
+
+def _empty_response_error(
+    payload: Mapping[str, Any], first_choice: Mapping[str, Any]
+) -> RuntimeError:
+    """Build a diagnostic ``RuntimeError`` for an empty model response."""
+    finish_reason = first_choice.get("finish_reason") or first_choice.get(
+        "finishReason"
+    )
+    usage = payload.get("usage") if isinstance(payload, dict) else None
+    completion_tokens = (
+        usage.get("completion_tokens") if isinstance(usage, dict) else None
+    )
+    details: list[str] = []
+    if finish_reason:
+        details.append(f"finish_reason={finish_reason}")
+    if completion_tokens is not None:
+        details.append(f"completion_tokens={completion_tokens}")
+    suffix = f" ({'; '.join(details)})" if details else ""
+
+    if finish_reason == "length":
+        return RuntimeError(
+            f"Model output was truncated before any JSON was produced{suffix}. "
+            "The document may be too long for one parse; try a smaller PDF."
+        )
+    if finish_reason == "content_filter":
+        return RuntimeError(f"Model output was blocked by the content filter{suffix}.")
+    return RuntimeError(
+        f"Model returned an empty response{suffix}. The PDF may be unreadable "
+        "to this engine, the model may have failed to extract any text, or "
+        "the request may have been rejected upstream."
     )
 
 

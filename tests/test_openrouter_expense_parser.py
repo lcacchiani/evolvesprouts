@@ -787,6 +787,204 @@ def test_parse_bulk_expense_invoices_accepts_data_alias(monkeypatch: Any) -> Non
     assert rows[0]["total"] == 8.0
 
 
+def test_extract_message_text_raises_on_top_level_error_object() -> None:
+    body = json.dumps({"error": {"message": "Upstream model overloaded", "code": 503}})
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._extract_message_text(body)
+    msg = str(exc_info.value)
+    assert "Upstream model overloaded" in msg
+    assert "503" in msg
+
+
+def test_extract_message_text_raises_on_refusal() -> None:
+    body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": None,
+                        "refusal": "I cannot extract personal data from this document.",
+                    }
+                }
+            ]
+        }
+    )
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._extract_message_text(body)
+    assert "Model refused to extract" in str(exc_info.value)
+    assert "personal data" in str(exc_info.value)
+
+
+def test_extract_message_text_raises_on_empty_content_with_truncation_hint() -> None:
+    body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": ""},
+                    "finish_reason": "length",
+                }
+            ],
+            "usage": {"completion_tokens": 0},
+        }
+    )
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._extract_message_text(body)
+    msg = str(exc_info.value)
+    assert "truncated" in msg
+    assert "finish_reason=length" in msg
+
+
+def test_extract_message_text_raises_on_empty_content_with_stop_finish() -> None:
+    body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": None},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+    )
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._extract_message_text(body)
+    msg = str(exc_info.value)
+    assert "empty response" in msg
+    assert "finish_reason=stop" in msg
+
+
+def test_bulk_pdf_engine_attempt_order_pairs_each_engine_with_alternate(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
+    assert parser._bulk_pdf_engine_attempt_order() == ("mistral-ocr", "pdf-text")
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "pdf-text")
+    assert parser._bulk_pdf_engine_attempt_order() == ("pdf-text", "mistral-ocr")
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "native")
+    assert parser._bulk_pdf_engine_attempt_order() == ("native", "mistral-ocr")
+
+
+def test_parse_bulk_expense_invoices_falls_back_to_alternate_engine(
+    monkeypatch: Any,
+) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    valid_body = _bulk_chat_completion_body(
+        json.dumps(
+            {
+                "invoices": [
+                    {
+                        "vendor_name": "Shop Z",
+                        "invoice_number": "F1",
+                        "invoice_date": "2026-04-05",
+                        "due_date": None,
+                        "currency": "USD",
+                        "subtotal": 7,
+                        "tax": 0,
+                        "total": 7,
+                        "line_items": [],
+                        "confidence": 0.95,
+                    }
+                ]
+            }
+        )
+    )
+    empty_body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": ""},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+    )
+
+    captured_engines: list[str | None] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        payload = json.loads(kwargs["body"])
+        plugins = payload.get("plugins") or []
+        engine = plugins[0]["pdf"]["engine"] if plugins else None
+        captured_engines.append(engine)
+        if len(captured_engines) == 1:
+            return {"status": 200, "body": empty_body}
+        return {"status": 200, "body": valid_body}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-fb",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+    assert captured_engines == ["mistral-ocr", "pdf-text"], (
+        "expected one attempt with the configured engine and one with the alternate"
+    )
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Shop Z"
+
+
+def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
+    monkeypatch: Any,
+) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    empty_body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": ""},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+    )
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {"status": 200, "body": empty_body}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_bulk_expense_invoices_from_assets(
+            [
+                {
+                    "id": "asset-exhaust",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ],
+            timeout=25,
+        )
+
+    msg = str(exc_info.value)
+    assert "across 2 attempt(s)" in msg
+    assert "mistral-ocr" in msg
+    assert "pdf-text" in msg
+    assert "empty response" in msg
+
+
 def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns_empty_object(
     monkeypatch: Any,
 ) -> None:
