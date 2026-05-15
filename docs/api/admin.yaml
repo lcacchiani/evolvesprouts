@@ -1519,6 +1519,10 @@ paths:
           $ref: "#/components/responses/NotFound"
     put:
       summary: Update service instance
+      description: >
+        When `status` is set to `completed`, every enrollment on the instance that is
+        still `registered` or `confirmed` is updated to `completed` in the same request
+        (cancelled, waitlisted, and already-completed rows are left unchanged).
       security:
         - AdminBearerAuth: []
       requestBody:
