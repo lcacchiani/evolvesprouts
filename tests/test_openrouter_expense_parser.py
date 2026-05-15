@@ -937,15 +937,17 @@ def test_parse_bulk_expense_invoices_makes_one_request_like_single_parser(
 def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
     monkeypatch: Any,
 ) -> None:
-    """A 429 (or any RuntimeError) on the bulk call falls back to the single parser.
+    """A persistent 429 on the bulk call falls back to the single parser.
 
-    The fallback gives the single-invoice parser a shot at the document so
-    the user gets at least one row when the document contains one. When the
-    fallback also fails, a combined error message names both failures so
-    neither is hidden.
+    Each chat-completion call retries once on retryable upstream failures
+    (see ``_RETRYABLE_HTTP_STATUSES``), so a hard-failure scenario with two
+    parser attempts (bulk + single fallback) issues 2 retries each = 4
+    ``http_invoke`` calls in total before surfacing a combined error that
+    names both failures so neither is hidden.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
 
     class _FakeS3Client:
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
@@ -976,11 +978,211 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
             timeout=25,
         )
 
-    assert call_count["n"] == 2, "expected bulk + single-fallback = 2 calls"
+    assert call_count["n"] == 4, (
+        "expected (bulk + 1 retry) + (single fallback + 1 retry) = 4 calls"
+    )
     msg = str(exc_info.value)
     assert "Bulk parse failed" in msg
     assert "single-invoice fallback also failed" in msg
     assert "status 429" in msg
+
+
+def test_openrouter_chat_completion_retries_once_on_429_then_succeeds(
+    monkeypatch: Any,
+) -> None:
+    """A 429 on the first attempt is retried once and the second response is used."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        call_log.append(kwargs)
+        if len(call_log) == 1:
+            return {
+                "status": 429,
+                "body": '{"error":{"message":"Rate limited","code":429}}',
+            }
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body('{"ok": true}'),
+        }
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    body = parser._openrouter_chat_completion(
+        system_prompt="s",
+        user_content_blocks=[{"type": "text", "text": "t"}],
+        has_pdf_attachment=False,
+        timeout=5,
+    )
+
+    assert len(call_log) == 2, "expected one initial call + one retry"
+    assert '"ok": true' in parser._extract_message_text(body)
+
+
+def test_openrouter_chat_completion_retries_on_envelope_504_in_2xx(
+    monkeypatch: Any,
+) -> None:
+    """A 200 response carrying an envelope ``error.code=504`` is retried.
+
+    Mirrors the second leg of the user-reported failure:
+        ``OpenRouter returned error: The operation was aborted (code=504)``
+    """
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        call_log.append(kwargs)
+        if len(call_log) == 1:
+            return {
+                "status": 200,
+                "body": json.dumps(
+                    {
+                        "error": {
+                            "message": "The operation was aborted",
+                            "code": 504,
+                        }
+                    }
+                ),
+            }
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body('{"recovered": true}'),
+        }
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    body = parser._openrouter_chat_completion(
+        system_prompt="s",
+        user_content_blocks=[{"type": "text", "text": "t"}],
+        has_pdf_attachment=False,
+        timeout=5,
+    )
+
+    assert len(call_log) == 2
+    assert '"recovered": true' in parser._extract_message_text(body)
+
+
+def test_openrouter_chat_completion_does_not_retry_on_400(monkeypatch: Any) -> None:
+    """A 400 (non-retryable) is surfaced immediately without a second attempt."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        call_log.append(_kwargs)
+        return {
+            "status": 400,
+            "body": '{"error":{"message":"Bad request","code":400}}',
+        }
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._openrouter_chat_completion(
+            system_prompt="s",
+            user_content_blocks=[{"type": "text", "text": "t"}],
+            has_pdf_attachment=False,
+            timeout=5,
+        )
+
+    assert len(call_log) == 1, "non-retryable status must not be retried"
+    assert "status 400" in str(exc_info.value)
+
+
+def test_openrouter_chat_completion_persistent_429_raises_after_retry(
+    monkeypatch: Any,
+) -> None:
+    """When both attempts return 429 the final error still carries the status."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        call_log.append(_kwargs)
+        return {
+            "status": 429,
+            "body": '{"error":{"message":"Provider returned error","code":429}}',
+        }
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._openrouter_chat_completion(
+            system_prompt="s",
+            user_content_blocks=[{"type": "text", "text": "t"}],
+            has_pdf_attachment=False,
+            timeout=5,
+        )
+
+    assert len(call_log) == 2, "expected one initial call + one retry"
+    msg = str(exc_info.value)
+    assert "status 429" in msg
+    assert "Provider returned error" in msg
+
+
+def test_openrouter_chat_completion_honors_retry_after_header(
+    monkeypatch: Any,
+) -> None:
+    """``Retry-After`` (in seconds) is honored, capped to ``_MAX_RETRY_AFTER_SECONDS``."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    sleep_calls: list[float] = []
+    monkeypatch.setattr(parser.time, "sleep", lambda s: sleep_calls.append(s))
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        call_log.append(_kwargs)
+        if len(call_log) == 1:
+            return {
+                "status": 503,
+                "headers": {"Retry-After": "2"},
+                "body": '{"error":{"message":"Service unavailable","code":503}}',
+            }
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body('{"ok":true}'),
+        }
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    parser._openrouter_chat_completion(
+        system_prompt="s",
+        user_content_blocks=[{"type": "text", "text": "t"}],
+        has_pdf_attachment=False,
+        timeout=5,
+    )
+
+    assert len(call_log) == 2
+    assert sleep_calls == [2.0], (
+        "expected the Retry-After value (2s) to be used as the backoff"
+    )
+
+
+def test_retry_delay_seconds_caps_excessive_retry_after() -> None:
+    delay = parser._retry_delay_seconds({"Retry-After": "60"})
+    assert delay == parser._MAX_RETRY_AFTER_SECONDS
+
+
+def test_envelope_error_code_returns_none_for_non_json_or_no_error() -> None:
+    assert parser._envelope_error_code("") is None
+    assert parser._envelope_error_code("not json") is None
+    assert parser._envelope_error_code("{}") is None
+    assert parser._envelope_error_code('{"error":"plain string"}') is None
+    assert (
+        parser._envelope_error_code('{"error":{"message":"x","code":429}}') == 429
+    )
 
 
 def test_parse_bulk_expense_invoices_recovers_via_single_when_bulk_returns_empty(

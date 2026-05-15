@@ -7,6 +7,7 @@ import json
 import math
 import os
 import re
+import time
 from typing import Any
 from collections.abc import Mapping, Sequence
 
@@ -19,6 +20,18 @@ logger = get_logger(__name__)
 _api_key_cache: str | None = None
 _PDF_PLUGIN_ID = "file-parser"
 _DEFAULT_PDF_ENGINE = "mistral-ocr"
+
+# Transient upstream failures that are worth a single fast retry inside the
+# same Lambda invocation. These cover provider rate limits (429), gateway
+# timeouts (504), and other temporarily-unavailable responses both as HTTP
+# status codes and as the ``error.code`` field that OpenRouter sometimes
+# returns inside a 200 envelope (for example ``code=504`` when the upstream
+# model timed out but the OpenRouter edge replied 200).
+_RETRYABLE_HTTP_STATUSES = frozenset({408, 425, 429, 500, 502, 503, 504})
+_RETRYABLE_ENVELOPE_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
+_MAX_RETRY_ATTEMPTS = 2  # initial attempt + 1 retry
+_RETRY_BACKOFF_SECONDS = 1.5
+_MAX_RETRY_AFTER_SECONDS = 5.0
 
 
 def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -165,30 +178,146 @@ def _openrouter_chat_completion(
             }
         ]
 
-    response = http_invoke(
-        method="POST",
-        url=endpoint_url,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        body=json.dumps(payload),
-        timeout=timeout,
-    )
+    serialized_payload = json.dumps(payload)
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
 
-    status_code = int(response.get("status", 0) or 0)
-    body = str(response.get("body", "") or "")
-    if status_code < 200 or status_code >= 300:
-        preview = _format_openrouter_error_preview(body)
-        logger.warning(
-            "OpenRouter request failed",
-            extra={"status_code": status_code, "response_preview": preview or None},
+    last_status: int = 0
+    last_body: str = ""
+    last_envelope_code: int | None = None
+    for attempt in range(1, _MAX_RETRY_ATTEMPTS + 1):
+        response = http_invoke(
+            method="POST",
+            url=endpoint_url,
+            headers=headers,
+            body=serialized_payload,
+            timeout=timeout,
         )
-        detail = f": {preview}" if preview else ""
+
+        status_code = int(response.get("status", 0) or 0)
+        body = str(response.get("body", "") or "")
+        last_status = status_code
+        last_body = body
+
+        http_retryable = (
+            status_code < 200 or status_code >= 300
+        ) and status_code in _RETRYABLE_HTTP_STATUSES
+
+        envelope_code: int | None = None
+        if 200 <= status_code < 300:
+            envelope_code = _envelope_error_code(body)
+        envelope_retryable = (
+            envelope_code is not None and envelope_code in _RETRYABLE_ENVELOPE_CODES
+        )
+        last_envelope_code = envelope_code
+
+        if (http_retryable or envelope_retryable) and attempt < _MAX_RETRY_ATTEMPTS:
+            response_headers = response.get("headers")
+            delay = _retry_delay_seconds(response_headers)
+            preview = _format_openrouter_error_preview(body)
+            logger.warning(
+                "OpenRouter transient error; retrying",
+                extra={
+                    "attempt": attempt,
+                    "status_code": status_code,
+                    "envelope_error_code": envelope_code,
+                    "delay_seconds": delay,
+                    "response_preview": preview or None,
+                },
+            )
+            time.sleep(delay)
+            continue
+
+        if status_code < 200 or status_code >= 300:
+            preview = _format_openrouter_error_preview(body)
+            logger.warning(
+                "OpenRouter request failed",
+                extra={
+                    "status_code": status_code,
+                    "response_preview": preview or None,
+                    "attempts": attempt,
+                },
+            )
+            detail = f": {preview}" if preview else ""
+            raise RuntimeError(
+                f"OpenRouter request failed with status {status_code}{detail}"
+            )
+        return body
+
+    preview = _format_openrouter_error_preview(last_body)
+    detail = f": {preview}" if preview else ""
+    if last_status < 200 or last_status >= 300:
         raise RuntimeError(
-            f"OpenRouter request failed with status {status_code}{detail}"
+            f"OpenRouter request failed with status {last_status}{detail}"
         )
-    return body
+    if last_envelope_code is not None:
+        raise RuntimeError(
+            f"OpenRouter returned transient error (code={last_envelope_code}){detail}"
+        )
+    raise RuntimeError(f"OpenRouter request failed{detail}")
+
+
+def _envelope_error_code(body: str) -> int | None:
+    """Return the integer ``error.code`` from a 2xx OpenRouter body, or ``None``.
+
+    OpenRouter sometimes responds with HTTP 200 but a body of the form
+    ``{"error": {"message": "...", "code": 504}, ...}`` when the upstream
+    model call failed at the edge (gateway timeout, provider rate limit,
+    etc). Treat those identically to the matching HTTP status for retry
+    purposes.
+    """
+    if not body:
+        return None
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    err = payload.get("error")
+    if not isinstance(err, dict):
+        return None
+    code = err.get("code")
+    if isinstance(code, bool):
+        return None
+    if isinstance(code, int):
+        return code
+    if isinstance(code, str) and code.strip().lstrip("-").isdigit():
+        try:
+            return int(code.strip())
+        except ValueError:
+            return None
+    return None
+
+
+def _retry_delay_seconds(response_headers: Any) -> float:
+    """Return the backoff delay before the next attempt, honoring ``Retry-After``."""
+    if isinstance(response_headers, Mapping):
+        for key, value in response_headers.items():
+            if isinstance(key, str) and key.lower() == "retry-after":
+                parsed = _parse_retry_after_seconds(value)
+                if parsed is not None:
+                    return min(max(parsed, 0.0), _MAX_RETRY_AFTER_SECONDS)
+                break
+    return _RETRY_BACKOFF_SECONDS
+
+
+def _parse_retry_after_seconds(value: Any) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return float(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            return float(text)
+        except ValueError:
+            return None
+    return None
 
 
 def _format_openrouter_error_preview(body: str) -> str:
