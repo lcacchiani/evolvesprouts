@@ -48,12 +48,6 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
 _MAX_BULK_INVOICES = 100
 
 
-_BULK_SYSTEM_PROMPT = (
-    "You extract structured invoice rows from financial documents and "
-    "return strict JSON only."
-)
-
-
 def parse_bulk_expense_invoices_from_assets(
     assets: Sequence[Mapping[str, Any]],
     *,
@@ -62,15 +56,14 @@ def parse_bulk_expense_invoices_from_assets(
     """Parse many invoice rows from one combined PDF (or images) via OpenRouter.
 
     Returns a list of normalized invoice dicts (same shape as
-    ``parse_invoice_from_assets``).
-
-    For PDFs, this loops over a small ordered list of OpenRouter PDF parser
-    engines (configured first, then one alternate). On every attempt, any
-    failure inside the parsing pipeline (HTTP error, empty/refused content,
-    unrepairable JSON, unknown wrapper shape, zero rows) advances to the next
-    engine. The S3 read for each attachment happens once and is reused across
-    attempts. The final raised ``RuntimeError`` includes the engines tried and
-    the last underlying error so the persisted job message stays diagnosable.
+    ``parse_invoice_from_assets``). Mirrors the single-invoice parser's call
+    pattern exactly — one OpenRouter chat completion, the same system prompt,
+    the configured PDF engine — so the bulk path inherits the single path's
+    reliability and is not amplified to multiple requests in quick succession
+    (which previously turned a single provider rate-limit into a multi-engine
+    failure cascade). The only differences from ``parse_invoice_from_assets``
+    are the user-message schema prompt (asks for an array of rows) and the
+    array-aware response handling.
     """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
@@ -83,122 +76,30 @@ def parse_bulk_expense_invoices_from_assets(
     has_pdf = any(
         _normalize_content_type(asset) == "application/pdf" for asset in assets
     )
-    engine_attempts: tuple[str | None, ...] = (
-        _bulk_pdf_engine_attempt_order() if has_pdf else (None,)
+    body = _openrouter_chat_completion(
+        system_prompt="You extract invoice data and return strict JSON only.",
+        user_content_blocks=content,
+        has_pdf_attachment=has_pdf,
+        timeout=timeout,
     )
-
-    attempted_labels: list[str] = []
-    last_exc: Exception | None = None
-
-    for engine in engine_attempts:
-        attempted_labels.append(engine or "n/a")
-        try:
-            normalized = _attempt_bulk_parse(
-                content=content,
-                has_pdf=has_pdf,
-                timeout=timeout,
-                pdf_engine=engine,
-            )
-        except Exception as exc:
-            last_exc = exc
-            logger.warning(
-                "Bulk parse attempt failed; will try next engine if available",
-                extra={
-                    "pdf_engine": engine,
-                    "error": repr(exc),
-                    "remaining_engines": [
-                        e for e in engine_attempts[engine_attempts.index(engine) + 1 :]
-                    ],
-                },
-            )
-            continue
-        if normalized:
-            logger.info(
-                "Bulk invoice parse completed successfully",
-                extra={
-                    "invoice_count": len(normalized),
-                    "pdf_engine": engine,
-                    "engine_attempts": attempted_labels,
-                },
-            )
-            return normalized
-        last_exc = RuntimeError(
+    raw_invoices = _parse_bulk_invoices_payload(body)
+    if not raw_invoices:
+        raise RuntimeError(
             "Parser found no invoice rows in this document. The PDF may be "
             "image-only without readable text, contain no extractable invoice "
             "data, or be in a layout the parser could not recognize as "
             "invoices. Try a clearer scan or a single-invoice import."
         )
-        logger.info(
-            "Bulk parse returned no rows; will try next engine if available",
-            extra={"pdf_engine": engine, "engine_attempts": attempted_labels},
-        )
-
-    engines_label = ", ".join(attempted_labels)
-    if last_exc is None:
-        raise RuntimeError(
-            f"Parser failed for bulk invoices across {len(attempted_labels)} "
-            f"attempt(s) ({engines_label}); no underlying error captured."
-        )
-    raise RuntimeError(
-        f"Parser failed for bulk invoices across {len(attempted_labels)} "
-        f"attempt(s) ({engines_label}); last error: {last_exc}"
-    )
-
-
-def _attempt_bulk_parse(
-    *,
-    content: list[dict[str, Any]],
-    has_pdf: bool,
-    timeout: int,
-    pdf_engine: str | None,
-) -> list[dict[str, Any]]:
-    """Run one bulk parse attempt with a specific PDF engine.
-
-    Returns the normalized invoice rows on success. Returns an empty list when
-    the response was usable but contained zero rows. Raises ``RuntimeError``
-    on any unrecoverable parse-pipeline failure (HTTP, empty content, JSON
-    unrepairable, unknown shape, too-many-invoices guard).
-    """
-    body = _openrouter_chat_completion(
-        system_prompt=_BULK_SYSTEM_PROMPT,
-        user_content_blocks=content,
-        has_pdf_attachment=has_pdf,
-        timeout=timeout,
-        pdf_engine_override=pdf_engine,
-    )
-    raw_invoices = _parse_bulk_invoices_payload(body)
-    if not raw_invoices:
-        return []
     if len(raw_invoices) > _MAX_BULK_INVOICES:
         raise RuntimeError(
             f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
         )
-    return [_normalize_result(entry) for entry in raw_invoices]
-
-
-_PDF_ENGINE_FALLBACKS: dict[str, tuple[str, ...]] = {
-    # ``native`` bypasses the OpenRouter file-parser plugin entirely and lets
-    # the (multimodal) model handle the PDF directly, so it is ordered last
-    # for the two plugin-backed engines: when the plugin layer rejects a PDF
-    # with HTTP 4xx, ``native`` is the most likely engine to recover.
-    "mistral-ocr": ("pdf-text", "native"),
-    "pdf-text": ("mistral-ocr", "native"),
-    "native": ("mistral-ocr", "pdf-text"),
-}
-
-
-def _bulk_pdf_engine_attempt_order() -> tuple[str, ...]:
-    """Configured PDF engine first, then alternates.
-
-    Up to three attempts. Engine attempts that fail with an HTTP 4xx (such as
-    a file-parser plugin rejection) typically return in seconds, so the wall
-    time stays dominated by whichever attempt actually runs the model. The
-    configured 600s Lambda timeout absorbs the worst-case sequential 240s
-    timeouts only for the rare case where every engine stalls.
-    """
-    configured = _pdf_parser_engine()
-    fallbacks = _PDF_ENGINE_FALLBACKS.get(configured, ())
-    return (configured, *fallbacks)
+    normalized = [_normalize_result(entry) for entry in raw_invoices]
+    logger.info(
+        "Bulk invoice parse completed successfully",
+        extra={"invoice_count": len(normalized)},
+    )
+    return normalized
 
 
 def _openrouter_chat_completion(
@@ -207,15 +108,8 @@ def _openrouter_chat_completion(
     user_content_blocks: list[dict[str, Any]],
     has_pdf_attachment: bool,
     timeout: int,
-    pdf_engine_override: str | None = None,
 ) -> str:
-    """POST to OpenRouter and return the raw HTTP response body string.
-
-    ``pdf_engine_override`` lets callers force a specific PDF parser engine
-    (``mistral-ocr``, ``pdf-text``, or ``native``). Used by the bulk-import
-    engine fallback loop when the configured engine yields an empty or
-    unusable response on a given document.
-    """
+    """POST to OpenRouter and return the raw HTTP response body string."""
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
     api_key = _get_api_key()
@@ -233,11 +127,10 @@ def _openrouter_chat_completion(
         ],
     }
     if has_pdf_attachment:
-        engine = pdf_engine_override or _pdf_parser_engine()
         payload["plugins"] = [
             {
                 "id": _PDF_PLUGIN_ID,
-                "pdf": {"engine": engine},
+                "pdf": {"engine": _pdf_parser_engine()},
             }
         ]
 
