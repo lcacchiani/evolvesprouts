@@ -1787,33 +1787,58 @@ export function ClientInvoicesPanel() {
                   <div className="space-y-2">
                     {selectedEnrollmentRows.map((row) => {
                       const needsAmt = enrollmentNeedsAmountConfirmation(row);
+                      const partyCellDisplay =
+                        formatBillingEnrollmentPartyCell(row);
+                      const tierCohortDisplay = formatTierCohortDisplay(
+                        row.serviceTierName,
+                        row.instanceCohort,
+                      );
+                      const instanceServiceDisplay =
+                        formatEnrollmentPickerInstanceServiceDisplay(row);
+                      const partyLabelForA11y =
+                        partyCellDisplay !== ""
+                          ? partyCellDisplay
+                          : (row.partyDisplayName?.trim() ?? "enrollment");
                       return (
                         <div
                           key={row.enrollmentId}
-                          className={`flex flex-wrap items-center gap-3 border px-3 py-2 ${
+                          className={`flex flex-wrap items-start gap-x-4 gap-y-2 border px-3 py-2 ${
                             needsAmt
                               ? "border-amber-300 bg-amber-50"
                               : "border-slate-200"
                           }`}
                         >
-                          <span className="min-w-[180px] flex-1 text-sm">
-                            {row.partyDisplayName}
+                          <span className="min-w-0 max-w-[22rem] shrink-0 text-sm break-words">
+                            {partyCellDisplay !== "" ? partyCellDisplay : "—"}
                           </span>
-                          <span className="font-mono text-xs text-slate-600">
-                            {row.enrollmentId}
+                          <span className="min-w-0 shrink-0 text-sm">
+                            {instanceServiceDisplay !== ""
+                              ? instanceServiceDisplay
+                              : "—"}
+                          </span>
+                          <span className="max-w-[14rem] min-w-0 shrink-0 break-words text-sm">
+                            {tierCohortDisplay !== ""
+                              ? tierCohortDisplay
+                              : "—"}
                           </span>
                           {needsAmt ? (
-                            <p className="w-full text-xs text-amber-900">
+                            <p className="w-full basis-full text-xs text-amber-900">
                               This enrollment has no recorded amount; enter a
                               line total (use 0 for a zero-dollar line).
                             </p>
                           ) : null}
-                          <div className="flex items-center gap-2">
+                          <div className="ml-auto flex shrink-0 items-center gap-2">
                             <Label
                               className="sr-only"
                               htmlFor={`billing-line-override-${row.enrollmentId}`}
                             >
-                              Line total for {row.partyDisplayName}
+                              Line total for {partyLabelForA11y}
+                              {instanceServiceDisplay !== ""
+                                ? `, ${instanceServiceDisplay}`
+                                : ""}
+                              {tierCohortDisplay !== ""
+                                ? `, ${tierCohortDisplay}`
+                                : ""}
                             </Label>
                             <Input
                               id={`billing-line-override-${row.enrollmentId}`}
