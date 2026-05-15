@@ -231,6 +231,10 @@ def _update_family(
                 field="relationship_type",
                 allowed=FAMILY_RELATIONSHIP_TYPES,
             )
+            for membership in family.family_members:
+                contact = membership.contact
+                if contact is not None:
+                    contact.relationship_type = family.relationship_type
         if "location_id" in body:
             loc = parse_optional_uuid(body.get("location_id"), "location_id")
             ensure_location_exists(session, loc)
