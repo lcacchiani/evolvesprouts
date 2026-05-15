@@ -852,15 +852,27 @@ def test_extract_message_text_raises_on_empty_content_with_stop_finish() -> None
     assert "finish_reason=stop" in msg
 
 
-def test_bulk_pdf_engine_attempt_order_pairs_each_engine_with_alternate(
+def test_bulk_pdf_engine_attempt_order_pairs_each_engine_with_alternates(
     monkeypatch: Any,
 ) -> None:
     monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
-    assert parser._bulk_pdf_engine_attempt_order() == ("mistral-ocr", "pdf-text")
+    assert parser._bulk_pdf_engine_attempt_order() == (
+        "mistral-ocr",
+        "pdf-text",
+        "native",
+    )
     monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "pdf-text")
-    assert parser._bulk_pdf_engine_attempt_order() == ("pdf-text", "mistral-ocr")
+    assert parser._bulk_pdf_engine_attempt_order() == (
+        "pdf-text",
+        "mistral-ocr",
+        "native",
+    )
     monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "native")
-    assert parser._bulk_pdf_engine_attempt_order() == ("native", "mistral-ocr")
+    assert parser._bulk_pdf_engine_attempt_order() == (
+        "native",
+        "mistral-ocr",
+        "pdf-text",
+    )
 
 
 def test_parse_bulk_expense_invoices_falls_back_to_alternate_engine(
@@ -979,10 +991,135 @@ def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
         )
 
     msg = str(exc_info.value)
-    assert "across 2 attempt(s)" in msg
+    assert "across 3 attempt(s)" in msg
     assert "mistral-ocr" in msg
     assert "pdf-text" in msg
+    assert "native" in msg
     assert "empty response" in msg
+
+
+def test_format_openrouter_error_preview_extracts_message_and_code() -> None:
+    body = (
+        '{"error":{"message":"Failed to parse Evolve Sprouts Invoices.pdf",'
+        '"code":400,"metadata":{"provider_name":null}},'
+        '"user_id":"user_3B4yKT1KyjP6dHEWd77RJxoki98"}'
+    )
+    preview = parser._format_openrouter_error_preview(body)
+    assert preview == "Failed to parse Evolve Sprouts Invoices.pdf (code=400)"
+    assert "user_id" not in preview
+    assert "metadata" not in preview
+
+
+def test_format_openrouter_error_preview_handles_plain_string_error() -> None:
+    assert (
+        parser._format_openrouter_error_preview('{"error":"rate limited"}')
+        == "rate limited"
+    )
+
+
+def test_format_openrouter_error_preview_falls_back_for_non_json() -> None:
+    body = "Internal Server Error\nrequest-id: abc"
+    out = parser._format_openrouter_error_preview(body)
+    assert "Internal Server Error" in out
+    assert "request-id: abc" in out
+
+
+def test_openrouter_chat_completion_4xx_raises_clean_error(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    body = (
+        '{"error":{"message":"Failed to parse Evolve Sprouts Invoices.pdf",'
+        '"code":400,"metadata":{"provider_name":null}},'
+        '"user_id":"user_3B4yKT1KyjP6dHEWd77RJxoki98"}'
+    )
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {"status": 400, "body": body}
+
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser._openrouter_chat_completion(
+            system_prompt="s",
+            user_content_blocks=[{"type": "text", "text": "t"}],
+            has_pdf_attachment=False,
+            timeout=5,
+        )
+    msg = str(exc_info.value)
+    assert "status 400" in msg
+    assert "Failed to parse Evolve Sprouts Invoices.pdf" in msg
+    assert "code=400" in msg
+    assert "user_id" not in msg
+    assert "metadata" not in msg
+
+
+def test_parse_bulk_expense_invoices_falls_back_to_native_after_plugin_400(
+    monkeypatch: Any,
+) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    plugin_400_body = (
+        '{"error":{"message":"Failed to parse Evolve Sprouts Invoices.pdf",'
+        '"code":400,"metadata":{"provider_name":null}},'
+        '"user_id":"user_abc"}'
+    )
+    valid_body = _bulk_chat_completion_body(
+        json.dumps(
+            {
+                "invoices": [
+                    {
+                        "vendor_name": "Native Shop",
+                        "invoice_number": "N1",
+                        "invoice_date": "2026-05-06",
+                        "due_date": None,
+                        "currency": "USD",
+                        "subtotal": 12,
+                        "tax": 0,
+                        "total": 12,
+                        "line_items": [],
+                        "confidence": 0.9,
+                    }
+                ]
+            }
+        )
+    )
+
+    captured_engines: list[str | None] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        payload = json.loads(kwargs["body"])
+        plugins = payload.get("plugins") or []
+        engine = plugins[0]["pdf"]["engine"] if plugins else None
+        captured_engines.append(engine)
+        if engine in ("mistral-ocr", "pdf-text"):
+            return {"status": 400, "body": plugin_400_body}
+        return {"status": 200, "body": valid_body}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-native",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+
+    assert captured_engines == ["mistral-ocr", "pdf-text", "native"]
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Native Shop"
 
 
 def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns_empty_object(
