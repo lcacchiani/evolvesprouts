@@ -58,12 +58,15 @@ def parse_bulk_expense_invoices_from_assets(
     Returns a list of normalized invoice dicts (same shape as
     ``parse_invoice_from_assets``). Mirrors the single-invoice parser's call
     pattern exactly — one OpenRouter chat completion, the same system prompt,
-    the configured PDF engine — so the bulk path inherits the single path's
-    reliability and is not amplified to multiple requests in quick succession
-    (which previously turned a single provider rate-limit into a multi-engine
-    failure cascade). The only differences from ``parse_invoice_from_assets``
-    are the user-message schema prompt (asks for an array of rows) and the
-    array-aware response handling.
+    the configured PDF engine.
+
+    If the bulk attempt fails for any reason (empty model response, refusal,
+    JSON parse failure, HTTP error, or zero rows) this falls back to
+    ``parse_invoice_from_assets`` and returns its result wrapped as a
+    one-element list. The acceptance criterion the user has stated repeatedly
+    is "make bulk work as well as single"; this guarantees that whenever the
+    single-invoice parser can extract anything from the PDF, the bulk parser
+    returns at least that one row instead of failing the whole import.
     """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
@@ -76,30 +79,58 @@ def parse_bulk_expense_invoices_from_assets(
     has_pdf = any(
         _normalize_content_type(asset) == "application/pdf" for asset in assets
     )
-    body = _openrouter_chat_completion(
-        system_prompt="You extract invoice data and return strict JSON only.",
-        user_content_blocks=content,
-        has_pdf_attachment=has_pdf,
-        timeout=timeout,
-    )
-    raw_invoices = _parse_bulk_invoices_payload(body)
-    if not raw_invoices:
-        raise RuntimeError(
-            "Parser found no invoice rows in this document. The PDF may be "
-            "image-only without readable text, contain no extractable invoice "
-            "data, or be in a layout the parser could not recognize as "
-            "invoices. Try a clearer scan or a single-invoice import."
+
+    bulk_error: Exception | None = None
+    raw_invoices: list[dict[str, Any]] = []
+    try:
+        body = _openrouter_chat_completion(
+            system_prompt="You extract invoice data and return strict JSON only.",
+            user_content_blocks=content,
+            has_pdf_attachment=has_pdf,
+            timeout=timeout,
         )
-    if len(raw_invoices) > _MAX_BULK_INVOICES:
-        raise RuntimeError(
-            f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
+        raw_invoices = _parse_bulk_invoices_payload(body)
+    except RuntimeError as exc:
+        bulk_error = exc
+        logger.warning(
+            "Bulk parse failed; will fall back to single-invoice parser",
+            extra={"error": repr(exc)},
         )
-    normalized = [_normalize_result(entry) for entry in raw_invoices]
+
+    if raw_invoices:
+        if len(raw_invoices) > _MAX_BULK_INVOICES:
+            raise RuntimeError(
+                f"Parser returned too many invoices (max {_MAX_BULK_INVOICES})"
+            )
+        normalized = [_normalize_result(entry) for entry in raw_invoices]
+        logger.info(
+            "Bulk invoice parse completed successfully",
+            extra={"invoice_count": len(normalized)},
+        )
+        return normalized
+
     logger.info(
-        "Bulk invoice parse completed successfully",
-        extra={"invoice_count": len(normalized)},
+        "Bulk parse produced no rows; falling back to single-invoice parser",
+        extra={"bulk_error": repr(bulk_error) if bulk_error is not None else None},
     )
-    return normalized
+    try:
+        single_result = parse_invoice_from_assets(assets)
+    except Exception as single_exc:
+        if bulk_error is not None:
+            raise RuntimeError(
+                f"Bulk parse failed: {bulk_error}; single-invoice fallback "
+                f"also failed: {single_exc}"
+            ) from single_exc
+        raise RuntimeError(
+            "Parser found no invoice rows in this document, and the "
+            f"single-invoice fallback also failed: {single_exc}"
+        ) from single_exc
+
+    logger.info(
+        "Bulk parse completed via single-invoice fallback",
+        extra={"invoice_count": 1},
+    )
+    return [single_result]
 
 
 def _openrouter_chat_completion(
@@ -945,19 +976,20 @@ def _schema_prompt() -> str:
 
 def _bulk_schema_prompt() -> str:
     return (
-        "This document may contain many separate charges or invoices in one file "
-        "(for example a consolidated PDF, card statement, or vendor statement). "
-        "Extract each distinct expense or invoice as its own row. "
-        'Return strict JSON only with shape: {"invoices":[{"vendor_name":"string|null",'
+        "Extract every invoice from this document and return strict JSON only "
+        "with shape: "
+        '{"invoices":[{"vendor_name":"string|null",'
         '"invoice_number":"string|null","invoice_date":"YYYY-MM-DD|null",'
         '"due_date":"YYYY-MM-DD|null","currency":"string|null",'
         '"subtotal":"number|null","tax":"number|null","total":"number|null",'
         '"line_items":[{"description":"string|null","quantity":"number|null",'
         '"unit_price":"number|null","amount":"number|null"}],'
         '"confidence":"number|null"}]}. '
+        "If the document contains only one invoice, return it as a "
+        "single-element array. "
         "Use null for unknown values. No markdown. No prose. "
         "For subtotal, tax, and total prefer JSON numbers; if you use strings, use "
         "plain digits only (no currency symbols or thousands separators) when possible. "
-        "If a row shows only the $ symbol for money (not HK$, S$, etc.), set currency to USD. "
-        "Include every billable row you can identify; skip blank pages and headers only."
+        "If a row shows only the $ symbol for money (not HK$, S$, etc.), set "
+        "currency to USD."
     )
