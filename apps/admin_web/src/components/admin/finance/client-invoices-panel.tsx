@@ -1795,10 +1795,15 @@ export function ClientInvoicesPanel() {
                       );
                       const instanceServiceDisplay =
                         formatEnrollmentPickerInstanceServiceDisplay(row);
-                      const partyLabelForA11y =
-                        partyCellDisplay !== ""
-                          ? partyCellDisplay
-                          : (row.partyDisplayName?.trim() ?? "enrollment");
+                      const partyPart =
+                        partyCellDisplay !== "" ? partyCellDisplay : "—";
+                      const servicePart =
+                        instanceServiceDisplay !== ""
+                          ? instanceServiceDisplay
+                          : "—";
+                      const tierPart =
+                        tierCohortDisplay !== "" ? tierCohortDisplay : "—";
+                      const lineOverrideEnrollmentLabel = `${partyPart} · ${servicePart} · ${tierPart}`;
                       return (
                         <div
                           key={row.enrollmentId}
@@ -1808,18 +1813,8 @@ export function ClientInvoicesPanel() {
                               : "border-slate-200"
                           }`}
                         >
-                          <span className="min-w-0 max-w-[22rem] shrink-0 text-sm break-words">
-                            {partyCellDisplay !== "" ? partyCellDisplay : "—"}
-                          </span>
-                          <span className="min-w-0 shrink-0 text-sm">
-                            {instanceServiceDisplay !== ""
-                              ? instanceServiceDisplay
-                              : "—"}
-                          </span>
-                          <span className="max-w-[14rem] min-w-0 shrink-0 break-words text-sm">
-                            {tierCohortDisplay !== ""
-                              ? tierCohortDisplay
-                              : "—"}
+                          <span className="min-w-0 flex-1 text-sm break-words">
+                            {lineOverrideEnrollmentLabel}
                           </span>
                           {needsAmt ? (
                             <p className="w-full basis-full text-xs text-amber-900">
@@ -1832,13 +1827,7 @@ export function ClientInvoicesPanel() {
                               className="sr-only"
                               htmlFor={`billing-line-override-${row.enrollmentId}`}
                             >
-                              Line total for {partyLabelForA11y}
-                              {instanceServiceDisplay !== ""
-                                ? `, ${instanceServiceDisplay}`
-                                : ""}
-                              {tierCohortDisplay !== ""
-                                ? `, ${tierCohortDisplay}`
-                                : ""}
+                              Line total for {lineOverrideEnrollmentLabel}
                             </Label>
                             <Input
                               id={`billing-line-override-${row.enrollmentId}`}
