@@ -50,7 +50,7 @@ from app.utils.logging import (
     get_logger,
     set_request_context,
 )
-from app.utils.responses import validate_content_type
+from app.utils.responses import api_gateway_http_method, validate_content_type
 
 configure_logging()
 logger = get_logger(__name__)
@@ -252,7 +252,7 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
     request_id = event.get("requestContext", {}).get("requestId", "")
     set_request_context(req_id=request_id)
     try:
-        method = event.get("httpMethod", "")
+        method = api_gateway_http_method(event)
         path = event.get("path", "")
 
         try:
