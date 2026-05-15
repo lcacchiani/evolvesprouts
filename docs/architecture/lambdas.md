@@ -91,7 +91,10 @@ their primary responsibilities.
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
   filters; instance create/update accepts optional `cohort`, and
-  `tag_ids` with `tags` / `tag_ids` echoed on instance responses; `session_slots`
+  `tag_ids` with `tags` / `tag_ids` echoed on instance responses; completing an instance
+  (`status: completed`) bulk-updates `registered` / `confirmed` enrollments on that
+  instance to `completed` (cancelled, waitlisted, and already-completed rows unchanged);
+  `session_slots`
   `starts_at` / `ends_at` on create/update must be timezone-aware (RFC 3339 with
   `Z` or a numeric offset; naive strings are rejected); instance JSON
   includes `resolved_*` fields (title, slug, description, delivery mode, location,

@@ -33,13 +33,18 @@ from app.db.models import (
     EventCategory,
     EventTicketTier,
     InstanceSessionSlot,
+    InstanceStatus,
     Service,
     ServiceInstance,
     ServiceType,
     TrainingFormat,
     TrainingInstanceDetails,
 )
-from app.db.repositories import ServiceInstanceRepository, ServiceRepository
+from app.db.repositories import (
+    EnrollmentRepository,
+    ServiceInstanceRepository,
+    ServiceRepository,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.services.eventbrite_events import enqueue_eventbrite_instance_sync_by_id
 from app.utils import json_response
@@ -585,6 +590,10 @@ def _update_instance(
             instance.cover_image_s3_key = payload["cover_image_s3_key"]
         if "status" in payload:
             instance.status = payload["status"]
+            if payload["status"] == InstanceStatus.COMPLETED:
+                EnrollmentRepository(
+                    session
+                ).mark_registered_or_confirmed_enrollments_completed(instance.id)
         if "delivery_mode" in payload:
             instance.delivery_mode = payload["delivery_mode"]
         if "location_id" in payload:

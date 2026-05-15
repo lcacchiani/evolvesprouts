@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -182,3 +182,23 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
         self._session.flush()
         self._session.refresh(enrollment)
         return enrollment
+
+    def mark_registered_or_confirmed_enrollments_completed(
+        self, instance_id: UUID
+    ) -> None:
+        """Set registered/confirmed enrollments to completed for a finished instance.
+
+        Cancelled, waitlisted, and already-completed rows are unchanged so capacity
+        counts stay aligned with seated bookings.
+        """
+        stmt = (
+            update(Enrollment)
+            .where(Enrollment.instance_id == instance_id)
+            .where(
+                Enrollment.status.in_(
+                    (EnrollmentStatus.REGISTERED, EnrollmentStatus.CONFIRMED)
+                )
+            )
+            .values(status=EnrollmentStatus.COMPLETED)
+        )
+        self._session.execute(stmt)
