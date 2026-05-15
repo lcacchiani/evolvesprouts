@@ -29,6 +29,11 @@ export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
 ];
 export const DEFAULT_SERVICES_VIEW: ServicesView = 'catalog';
 
+/** Instances list toolbar status filter; empty string means all statuses. */
+export type InstancesListStatusFilter = '' | 'not_completed' | 'completed';
+
+export const DEFAULT_INSTANCES_LIST_STATUS_FILTER: InstancesListStatusFilter = 'not_completed';
+
 export function useServicesPage() {
   const [activeView, setActiveView] = useQueryTabState<ServicesView>(
     SERVICES_VIEW_KEYS,
@@ -39,6 +44,9 @@ export function useServicesPage() {
   const [instanceOptionsCacheVersion, setInstanceOptionsCacheVersion] = useState(0);
   const [instancesServiceFilter, setInstancesServiceFilter] = useState<string>('');
   const [instancesServiceTypeFilter, setInstancesServiceTypeFilter] = useState<string>('');
+  const [instancesStatusFilter, setInstancesStatusFilter] = useState<InstancesListStatusFilter>(
+    DEFAULT_INSTANCES_LIST_STATUS_FILTER
+  );
   const [instancesSearchQuery, setInstancesSearchQuery] = useState<string>('');
   const [entityTags, setEntityTags] = useState<EntityTagRef[]>([]);
   const [entityTagsLoading, setEntityTagsLoading] = useState(false);
@@ -183,6 +191,8 @@ export function useServicesPage() {
     setInstancesServiceFilter,
     instancesServiceTypeFilter,
     setInstancesServiceTypeFilter,
+    instancesStatusFilter,
+    setInstancesStatusFilter,
     instancesSearchQuery,
     setInstancesSearchQuery,
     entityTags,

@@ -19,6 +19,8 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     setInstancesServiceFilter: vi.fn(),
     instancesServiceTypeFilter: '',
     setInstancesServiceTypeFilter: vi.fn(),
+    instancesStatusFilter: 'not_completed' as const,
+    setInstancesStatusFilter: vi.fn(),
     instancesSearchQuery: '',
     setInstancesSearchQuery: vi.fn(),
     entityTags: [],
@@ -191,6 +193,7 @@ describe('ServicesPage', () => {
     state.activeView = 'catalog';
     state.instanceList.instances = [];
     state.instancesSearchQuery = '';
+    state.instancesStatusFilter = 'not_completed';
   });
 
   it('renders tabs-only header and switches views', async () => {
@@ -243,6 +246,40 @@ describe('ServicesPage', () => {
     await user.type(screen.getByLabelText('Search instances'), 'yoga');
 
     expect(state.setInstancesSearchQuery).toHaveBeenCalled();
+  });
+
+  it('wires instances status filter changes on Instances', async () => {
+    const user = userEvent.setup();
+    state.activeView = 'instances';
+    render(<ServicesPage />);
+
+    await user.selectOptions(screen.getByLabelText('Instance statuses'), 'completed');
+
+    expect(state.setInstancesStatusFilter).toHaveBeenCalledWith('completed');
+  });
+
+  it('filters instances to non-completed rows when status filter is Not Completed', () => {
+    state.activeView = 'instances';
+    state.instancesStatusFilter = 'not_completed';
+    state.instanceList.instances = [
+      {
+        ...INSTANCE_FOR_SEARCH,
+        id: 'inst-open',
+        status: 'open',
+        parentServiceTitle: 'Alpha Service',
+      },
+      {
+        ...INSTANCE_FOR_SEARCH,
+        id: 'inst-done',
+        status: 'completed',
+        parentServiceTitle: 'Beta Service',
+      },
+    ];
+
+    render(<ServicesPage />);
+
+    expect(screen.getByText('Alpha Service')).toBeInTheDocument();
+    expect(screen.queryByText('Beta Service')).not.toBeInTheDocument();
   });
 
   it('filters instances by cohort using the raw stored value only', () => {

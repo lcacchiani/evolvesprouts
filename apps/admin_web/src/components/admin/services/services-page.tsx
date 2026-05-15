@@ -80,10 +80,19 @@ export function ServicesPage() {
     [state.locationList.locations]
   );
   const filteredInstances = useMemo(() => {
-    if (state.activeView !== 'instances' || !normalizedInstanceSearch) {
+    if (state.activeView !== 'instances') {
       return state.instanceList.instances;
     }
-    return state.instanceList.instances.filter((instance) => {
+    let rows = state.instanceList.instances;
+    if (state.instancesStatusFilter === 'completed') {
+      rows = rows.filter((instance) => instance.status === 'completed');
+    } else if (state.instancesStatusFilter === 'not_completed') {
+      rows = rows.filter((instance) => instance.status !== 'completed');
+    }
+    if (!normalizedInstanceSearch) {
+      return rows;
+    }
+    return rows.filter((instance) => {
       const tableTitle = formatInstanceTableTitle(instance);
       const parts: string[] = [
         tableTitle.trim() !== '' ? tableTitle : null,
@@ -125,6 +134,7 @@ export function ServicesPage() {
   }, [
     normalizedInstanceSearch,
     state.activeView,
+    state.instancesStatusFilter,
     state.instanceList.instances,
     instanceSearchLocationById,
   ]);
@@ -299,6 +309,10 @@ export function ServicesPage() {
             serviceTypeFilter={{
               value: state.instancesServiceTypeFilter,
               onChange: state.setInstancesServiceTypeFilter,
+            }}
+            statusFilter={{
+              value: state.instancesStatusFilter,
+              onChange: state.setInstancesStatusFilter,
             }}
             serviceFilter={{
               value: state.instancesServiceFilter,
