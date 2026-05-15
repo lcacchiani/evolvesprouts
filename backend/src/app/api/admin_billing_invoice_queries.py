@@ -90,6 +90,11 @@ def list_invoices(
                 CustomerInvoice.amount_allocated > 0,
                 CustomerInvoice.total > 0,
             )
+        elif settlement_filter == "no_charge":
+            stmt = stmt.where(
+                CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
+                CustomerInvoice.total == 0,
+            )
         if currency is not None:
             stmt = stmt.where(CustomerInvoice.currency == currency)
         if q_raw:
