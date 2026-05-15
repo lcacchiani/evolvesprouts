@@ -203,4 +203,17 @@ describe('listCustomerInvoices', () => {
       }),
     );
   });
+
+  it('passes settlement=no_charge through to the admin API', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({ items: [], next_cursor: null });
+
+    await listCustomerInvoices({ settlement: 'no_charge' });
+
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpointPath: '/v1/admin/billing/invoices?settlement=no_charge',
+        method: 'GET',
+      }),
+    );
+  });
 });

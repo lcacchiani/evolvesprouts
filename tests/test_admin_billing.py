@@ -2000,6 +2000,13 @@ def test_list_invoices_filters_by_currency_and_status(
                 "customer_invoices.status",
             ),
         ),
+        (
+            "no_charge",
+            (
+                "customer_invoices.total",
+                "customer_invoices.status",
+            ),
+        ),
     ],
 )
 def test_list_invoices_filters_by_settlement_slice_sql(
@@ -4845,9 +4852,17 @@ def test_parse_optional_invoice_settlement_accepts_known_values() -> None:
     assert parse_optional_invoice_settlement("partially_paid") == "partially_paid"
 
 
+def test_parse_optional_invoice_settlement_accepts_no_charge() -> None:
+    assert parse_optional_invoice_settlement("no_charge") == "no_charge"
+    assert parse_optional_invoice_settlement("NO_CHARGE") == "no_charge"
+
+
 def test_parse_optional_invoice_settlement_rejects_unknown() -> None:
-    with pytest.raises(ValidationError, match="settlement"):
+    with pytest.raises(ValidationError) as exc_info:
         parse_optional_invoice_settlement("overdue")
+    msg = str(exc_info.value)
+    assert "settlement" in msg.lower()
+    assert "no_charge" in msg
 
 
 def test_list_invoices_rejects_invalid_settlement_query_param(
