@@ -635,8 +635,8 @@ Migration `0055_customer_billing_ar` introduces:
 - `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
   Migration `0067_inv_settlement_fields` adds cached settlement projection columns on
   `customer_invoices`: `amount_allocated` (sum of matching-currency `payment_allocations`),
-  `balance_due` (`max(total - amount_allocated, 0)`), and `paid_at` (timestamp when an issued
-  invoice with positive total becomes fully covered). A partial index `customer_invoices_open_idx`
+  `balance_due` (`max(total - amount_allocated, 0)`), and   `paid_at` (timestamp when an issued
+  invoice with positive total becomes fully covered). `pdf_template_version` for issued rows tracks the renderer (currently `billing-invoice-v21`, including the paid-state diagonal watermark when `paid_at` is set). A partial index `customer_invoices_open_idx`
   on `due_date` speeds “open issued” listing (`status = issued` and `balance_due > 0`).
 - `payment_allocations`: links payments to invoices with **positive-only** `allocated_amount`
   (partial allocation); refunds are modeled as separate `customer_payments` rows, not negative allocations.
