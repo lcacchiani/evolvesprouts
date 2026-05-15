@@ -22,6 +22,7 @@ export type AdminSectionKey =
 
 export const DEFAULT_ADMIN_SECTION_PATH = '/finance' as const;
 
+/** Default shell section when pathname is unknown; sign-in landing stays Finance (see `.cursorrules` admin shell). */
 export const DEFAULT_ADMIN_SECTION_KEY: AdminSectionKey = 'finance';
 
 function normalizePathname(pathname: string | null | undefined): string {
