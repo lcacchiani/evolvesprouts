@@ -2278,7 +2278,7 @@ export function ClientInvoicesPanel() {
               )}
               {manualPaymentIsUpdate ? (
                 <div className="mt-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
-                  <p className="font-medium text-slate-900">
+                  <p className="m-0">
                     {manualPaymentEnrollmentEditLabel !== ""
                       ? manualPaymentEnrollmentEditLabel
                       : "—"}
