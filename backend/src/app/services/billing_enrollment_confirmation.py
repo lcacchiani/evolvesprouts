@@ -33,7 +33,7 @@ def _distinct_enrollment_ids_on_invoice(
     return [eid for eid in rows if eid is not None]
 
 
-def _promote_prospect_party_for_enrollment(
+def promote_prospect_party_for_enrollment(
     session: Session, enrollment: Enrollment
 ) -> None:
     """Set party relationship to client when it is still prospect (contact, family, or org)."""
@@ -89,7 +89,7 @@ def _confirm_registered_enrollments_for_invoice(
             continue
         enrollment.status = EnrollmentStatus.CONFIRMED
         enrollment.cancelled_at = None
-        _promote_prospect_party_for_enrollment(session, enrollment)
+        promote_prospect_party_for_enrollment(session, enrollment)
         logger.info(
             "Enrollment status set to confirmed from billing milestone",
             extra={
