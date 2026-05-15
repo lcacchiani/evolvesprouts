@@ -668,7 +668,7 @@ Migration `0055_customer_billing_ar` introduces:
 `exportVersion=1` retains the legacy payments+allocations-only columns.
 
 **Invoice reads (admin):** `GET /v1/admin/billing/invoices` lists invoice summaries with optional
-`status`, optional `settlement` (`open` / `partially_paid` / `paid`, issued rows only; AND-combined with `status`),
+`status`, optional `settlement` (`open` / `partially_paid` / `paid` / `no_charge`, issued rows only; AND-combined with `status`),
 `currency`, and cursor pagination (`cursor`, `limit`). Summary and detail payloads include
 `amountAllocated`, `balanceDue`, `paidAt`, and `isPaid` (derived; lifecycle `status` stays draft/issued/void).
 `GET /v1/admin/billing/invoices/{id}` returns the invoice with line items (for example allocation line UUIDs).
