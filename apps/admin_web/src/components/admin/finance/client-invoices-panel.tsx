@@ -152,6 +152,47 @@ function formatRecentEnrollmentPaymentSelectLabel(
   return "Enrollment";
 }
 
+/** Manual payment editor (update mode): party · instance/service · tier/cohort when enrollment row is known. */
+function formatManualPaymentEnrollmentEditLabel(
+  row: BillingEnrollmentPickerRow | undefined,
+  partyFallback: string,
+): string {
+  const party = row ? formatBillingEnrollmentPartyCell(row).trim() : "";
+  const inst = row
+    ? formatEnrollmentPickerInstanceServiceDisplay(row).trim()
+    : "";
+  const tierCohort = row
+    ? formatTierCohortDisplay(row.serviceTierName, row.instanceCohort).trim()
+    : "";
+  const parts: string[] = [];
+  if (party !== "") {
+    parts.push(party);
+  }
+  if (inst !== "") {
+    parts.push(inst);
+  }
+  if (tierCohort !== "") {
+    parts.push(tierCohort);
+  }
+  if (parts.length > 0) {
+    return parts.join(" · ");
+  }
+  const fb = partyFallback.trim();
+  return fb !== "" ? fb : "—";
+}
+
+function formatAmountSeedTwoDecimals(raw: string): string {
+  const t = raw.trim();
+  if (t === "") {
+    return "";
+  }
+  const n = Number.parseFloat(t);
+  if (!Number.isFinite(n)) {
+    return t;
+  }
+  return n.toFixed(2);
+}
+
 function currencySelectValue(
   code: string,
   options: readonly { value: string }[],
@@ -807,7 +848,9 @@ export function ClientInvoicesPanel() {
     const curRow = row;
     const seedFromList = () => {
       setCreatePaymentEnrollmentId(curRow.enrollmentId?.trim() ?? "");
-      setCreatePaymentAmount(curRow.amount?.trim() ?? "");
+      setCreatePaymentAmount(
+        formatAmountSeedTwoDecimals(curRow.amount?.trim() ?? ""),
+      );
       const cur =
         (curRow.currency ?? defaultCurrency).trim().toUpperCase() ||
         defaultCurrency;
@@ -825,7 +868,7 @@ export function ClientInvoicesPanel() {
       return;
     }
     setCreatePaymentEnrollmentId(detail.enrollmentId?.trim() ?? "");
-    setCreatePaymentAmount(detail.amount?.trim() ?? "");
+    setCreatePaymentAmount(formatAmountSeedTwoDecimals(detail.amount?.trim() ?? ""));
     const cur =
       (detail.currency ?? defaultCurrency).trim().toUpperCase() ||
       defaultCurrency;
@@ -1347,30 +1390,32 @@ export function ClientInvoicesPanel() {
     detail.status === "succeeded",
   );
 
-  const manualPaymentEnrollmentPartyDisplay = useMemo(() => {
+  const manualPaymentEnrollmentEditLabel = useMemo(() => {
     if (!manualPaymentIsUpdate || !selectedId) {
       return "";
     }
-    const fromDetail = detail?.id === selectedId ? detail.party : undefined;
-    return (
-      fromDetail ??
+    const enrollmentId =
+      detail?.id === selectedId && (detail.enrollmentId?.trim() ?? "") !== ""
+        ? detail.enrollmentId!.trim()
+        : createPaymentEnrollmentId.trim();
+    const partyFallback = (
+      (detail?.id === selectedId ? detail.party : undefined) ??
       payments.find((x) => x.id === selectedId)?.party ??
       ""
     ).trim();
-  }, [manualPaymentIsUpdate, selectedId, detail, payments]);
-
-  const manualPaymentEnrollmentIdDisplay = useMemo(() => {
-    if (!manualPaymentIsUpdate || !selectedId) {
-      return "";
+    if (enrollmentId === "") {
+      return partyFallback !== "" ? partyFallback : "—";
     }
-    if (
-      detail?.id === selectedId &&
-      (detail.enrollmentId?.trim() ?? "") !== ""
-    ) {
-      return detail.enrollmentId!.trim();
-    }
-    return createPaymentEnrollmentId.trim();
-  }, [manualPaymentIsUpdate, selectedId, detail, createPaymentEnrollmentId]);
+    const row = enrollmentPickerRows.find((r) => r.enrollmentId === enrollmentId);
+    return formatManualPaymentEnrollmentEditLabel(row, partyFallback);
+  }, [
+    manualPaymentIsUpdate,
+    selectedId,
+    detail,
+    payments,
+    createPaymentEnrollmentId,
+    enrollmentPickerRows,
+  ]);
 
   const handleCancelManualPayment = () => {
     setActionError("");
@@ -2169,7 +2214,7 @@ export function ClientInvoicesPanel() {
       </PaginatedTableCard>
 
       <AdminEditorCard
-        title="Record or update customer payment"
+        title="Customer payment"
         description="When creating, pick an enrollment from the same list as draft invoices. After you select a manual inbound payment row in the Customer payments table below, you can update fields here; enrollment cannot be changed once the payment exists. Currency must match the enrollment. Use Pending until funds clear, then Succeeded when appropriate."
         actions={
           <>
@@ -2222,13 +2267,8 @@ export function ClientInvoicesPanel() {
               {manualPaymentIsUpdate ? (
                 <div className="mt-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
                   <p className="font-medium text-slate-900">
-                    {manualPaymentEnrollmentPartyDisplay !== ""
-                      ? manualPaymentEnrollmentPartyDisplay
-                      : "—"}
-                  </p>
-                  <p className="mt-0.5 font-mono text-xs text-slate-600">
-                    {manualPaymentEnrollmentIdDisplay !== ""
-                      ? formatTruncatedId(manualPaymentEnrollmentIdDisplay)
+                    {manualPaymentEnrollmentEditLabel !== ""
+                      ? manualPaymentEnrollmentEditLabel
                       : "—"}
                   </p>
                 </div>
@@ -2339,7 +2379,7 @@ export function ClientInvoicesPanel() {
 
       <PaginatedTableCard
         title="Customer payments"
-        description="Recent customer payments and refunds. Select a row for allocation and refund source; manual inbound payments without Stripe can be edited in the Record or update customer payment card above. Pending inbound: confirm from Operations. Deletable orphan rows: delete from Operations (see server rules)."
+        description="Recent customer payments and refunds. Select a row for allocation and refund source; manual inbound payments without Stripe can be edited in the Customer payment card above. Pending inbound: confirm from Operations. Deletable orphan rows: delete from Operations (see server rules)."
         isLoading={listLoading}
         isLoadingMore={false}
         hasMore={false}
