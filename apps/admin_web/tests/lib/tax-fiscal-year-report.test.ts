@@ -85,7 +85,7 @@ describe('tax-fiscal-year-report', () => {
     expect(buildTaxFiscalYearRows([voided, paid], [], 2025, 'voided')[0]?.referenceId).toBe('v');
   });
 
-  it('includes expenses matching the status filter in range and revenue by issued date', () => {
+  it('includes expenses matching the status filter in range and revenue by invoice date', () => {
     const rows = buildTaxFiscalYearRows(
       [
         expenseStub({
@@ -107,6 +107,7 @@ describe('tax-fiscal-year-report', () => {
           taxTotal: '50',
           total: '950',
           billToDisplayName: 'Family A',
+          invoiceDate: '2025-08-01',
           issuedAt: '2025-08-01T08:00:00.000Z',
         } satisfies CustomerInvoiceSummary,
       ],
@@ -115,7 +116,59 @@ describe('tax-fiscal-year-report', () => {
     );
     expect(rows.map((r) => r.kind)).toEqual(['revenue', 'expense']);
     expect(rows[0]?.kind).toBe('revenue');
+    expect(rows[0]?.classificationDate).toBe('2025-08-01');
     expect(rows[1]?.kind).toBe('expense');
+  });
+
+  it('classifies revenue by invoiceDate when it differs from issuedAt calendar day', () => {
+    const rows = buildTaxFiscalYearRows(
+      [],
+      [
+        {
+          id: 'i-cross',
+          status: 'issued',
+          invoiceNumber: 'INV-X',
+          currency: 'HKD',
+          subtotal: '100',
+          taxTotal: '0',
+          total: '100',
+          billToDisplayName: 'Client',
+          invoiceDate: '2025-07-31',
+          issuedAt: '2025-08-01T02:00:00.000Z',
+        } satisfies CustomerInvoiceSummary,
+      ],
+      2025,
+      'paid',
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.kind).toBe('revenue');
+    expect(rows[0]?.classificationDate).toBe('2025-07-31');
+    expect(rows[0]?.needsInvoiceDateWarning).toBe(false);
+  });
+
+  it('flags revenue missing invoice date when classified by issue timestamp', () => {
+    const rows = buildTaxFiscalYearRows(
+      [],
+      [
+        {
+          id: 'i-legacy',
+          status: 'issued',
+          invoiceNumber: 'INV-L',
+          currency: 'HKD',
+          subtotal: '50',
+          taxTotal: '0',
+          total: '50',
+          billToDisplayName: 'Client',
+          invoiceDate: null,
+          issuedAt: '2025-06-15T12:00:00.000Z',
+        } satisfies CustomerInvoiceSummary,
+      ],
+      2025,
+      'paid',
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.classificationDate).toBe('2025-06-15');
+    expect(rows[0]?.needsInvoiceDateWarning).toBe(true);
   });
 
   it('flags missing invoice date when using paid date', () => {

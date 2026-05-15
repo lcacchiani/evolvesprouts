@@ -130,7 +130,7 @@ export function TaxFiscalYearPanel() {
   return (
     <PaginatedTableCard
       title='Tax'
-      description={`Hong Kong fiscal year ${fyMeta.start} to ${fyMeta.end}. Expenses use invoice date when set; otherwise paid date. Revenue uses issued invoice totals by issue date.`}
+      description={`Hong Kong fiscal year ${fyMeta.start} to ${fyMeta.end}. Expenses use invoice date when set; otherwise paid date. Revenue uses issued invoice totals by the invoice date (issue timestamp if missing).`}
       isLoading={isLoading}
       isLoadingMore={false}
       hasMore={false}
@@ -208,7 +208,11 @@ export function TaxFiscalYearPanel() {
                   {row.needsInvoiceDateWarning ? (
                     <span
                       className='inline-flex items-center gap-1 text-xs font-medium text-amber-700'
-                      title='Vendor invoice date missing — classified using paid date'
+                      title={
+                        row.kind === 'revenue'
+                          ? 'Invoice date missing — classified using issue timestamp'
+                          : 'Vendor invoice date missing — classified using paid date'
+                      }
                     >
                       <WarningTriangleIcon className='h-4 w-4 shrink-0 text-amber-600' aria-hidden />
                       Needs date
