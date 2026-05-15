@@ -3185,6 +3185,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    /** @description Case-insensitive substring match on family name or on any linked member contact's first name, last name, email, or trimmed "first last" display label. */
                     query?: string;
                     active?: boolean;
                     cursor?: string;

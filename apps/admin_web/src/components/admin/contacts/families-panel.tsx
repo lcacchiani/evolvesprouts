@@ -531,7 +531,7 @@ export function FamiliesPanel({
                   setDeleteActionError('');
                   setFilter('query', e.target.value);
                 }}
-                placeholder='Family name'
+                placeholder='Family name or member name / email'
               />
             </div>
             <div className='min-w-[140px]'>
