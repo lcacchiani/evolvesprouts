@@ -14,6 +14,25 @@ from pydantic import BaseModel
 from app.exceptions import ValidationError
 
 
+def api_gateway_http_method(event: Mapping[str, Any]) -> str:
+    """Return the HTTP method from a Lambda proxy event, uppercased.
+
+    Supports API Gateway REST (``httpMethod``) and HTTP API v2
+    (``requestContext.http.method``). Returns an empty string when absent.
+    """
+    raw = event.get("httpMethod")
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip().upper()
+    request_context = event.get("requestContext")
+    if isinstance(request_context, Mapping):
+        http = request_context.get("http")
+        if isinstance(http, Mapping):
+            nested = http.get("method")
+            if isinstance(nested, str) and nested.strip():
+                return nested.strip().upper()
+    return ""
+
+
 def validate_content_type(
     event: Mapping[str, Any],
     required_methods: tuple[str, ...] = ("POST", "PUT", "PATCH"),
@@ -30,7 +49,7 @@ def validate_content_type(
     Raises:
         ValidationError: If Content-Type is missing or not application/json.
     """
-    method = event.get("httpMethod", "")
+    method = api_gateway_http_method(event)
     if method not in required_methods:
         return
 
