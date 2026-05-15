@@ -939,15 +939,21 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
 ) -> None:
     """A persistent 429 on the bulk call falls back to the single parser.
 
-    Each chat-completion call retries once on retryable upstream failures
-    (see ``_RETRYABLE_HTTP_STATUSES``), so a hard-failure scenario with two
-    parser attempts (bulk + single fallback) issues 2 retries each = 4
-    ``http_invoke`` calls in total before surfacing a combined error that
+    Each chat-completion call retries up to ``_MAX_RETRY_ATTEMPTS - 1`` times
+    on retryable upstream failures, so a hard-failure scenario where every
+    attempt returns 429 issues:
+
+    - 3 attempts on the bulk call (initial + 2 retries), then
+    - 3 attempts on the single-invoice fallback's first PDF engine
+      (the engine fallback only chains on ``_EmptyResponseError``, NOT on
+      a transient HTTP error that has already been retried internally).
+
+    = 6 ``http_invoke`` calls total before surfacing a combined error that
     names both failures so neither is hidden.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     class _FakeS3Client:
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
@@ -978,8 +984,9 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
             timeout=25,
         )
 
-    assert call_count["n"] == 4, (
-        "expected (bulk + 1 retry) + (single fallback + 1 retry) = 4 calls"
+    assert call_count["n"] == 6, (
+        "expected (bulk x 3 attempts) + (single fallback first engine x 3 "
+        "attempts) = 6 http_invoke calls"
     )
     msg = str(exc_info.value)
     assert "Bulk parse failed" in msg
@@ -993,7 +1000,7 @@ def test_openrouter_chat_completion_retries_once_on_429_then_succeeds(
     """A 429 on the first attempt is retried once and the second response is used."""
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1032,7 +1039,7 @@ def test_openrouter_chat_completion_retries_on_envelope_504_in_2xx(
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1072,7 +1079,7 @@ def test_openrouter_chat_completion_does_not_retry_on_400(monkeypatch: Any) -> N
     """A 400 (non-retryable) is surfaced immediately without a second attempt."""
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1097,13 +1104,17 @@ def test_openrouter_chat_completion_does_not_retry_on_400(monkeypatch: Any) -> N
     assert "status 400" in str(exc_info.value)
 
 
-def test_openrouter_chat_completion_persistent_429_raises_after_retry(
+def test_openrouter_chat_completion_persistent_429_raises_after_all_retries(
     monkeypatch: Any,
 ) -> None:
-    """When both attempts return 429 the final error still carries the status."""
+    """When every attempt returns 429 the final error still carries the status.
+
+    With ``_MAX_RETRY_ATTEMPTS = 3`` (initial + 2 retries) we expect exactly
+    3 ``http_invoke`` calls before the final ``RuntimeError`` propagates.
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1124,7 +1135,7 @@ def test_openrouter_chat_completion_persistent_429_raises_after_retry(
             timeout=5,
         )
 
-    assert len(call_log) == 2, "expected one initial call + one retry"
+    assert len(call_log) == parser._MAX_RETRY_ATTEMPTS == 3
     msg = str(exc_info.value)
     assert "status 429" in msg
     assert "Provider returned error" in msg
@@ -1171,8 +1182,17 @@ def test_openrouter_chat_completion_honors_retry_after_header(
 
 
 def test_retry_delay_seconds_caps_excessive_retry_after() -> None:
-    delay = parser._retry_delay_seconds({"Retry-After": "60"})
+    delay = parser._retry_delay_seconds({"Retry-After": "60"}, attempt=1)
     assert delay == parser._MAX_RETRY_AFTER_SECONDS
+
+
+def test_retry_delay_seconds_uses_exponential_schedule_when_no_retry_after() -> None:
+    """Without a ``Retry-After`` header the exponential schedule is used."""
+    schedule = parser._RETRY_BACKOFF_SCHEDULE_SECONDS
+    assert len(schedule) >= parser._MAX_RETRY_ATTEMPTS - 1
+    for attempt_index, expected in enumerate(schedule, start=1):
+        assert parser._retry_delay_seconds({}, attempt=attempt_index) == expected
+    assert parser._retry_delay_seconds({}, attempt=len(schedule) + 5) == schedule[-1]
 
 
 def test_envelope_error_code_returns_none_for_non_json_or_no_error() -> None:
@@ -1412,3 +1432,332 @@ def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(
     msg = str(exc_info.value)
     assert "even after repair" in msg
     assert "MARKER_TOKEN" in msg
+
+
+# ---------------------------------------------------------------------------
+# PDF engine fallback (single-invoice parser)
+# ---------------------------------------------------------------------------
+
+
+def _empty_response_completion_body() -> str:
+    """An OpenRouter 200 body that triggers ``_EmptyResponseError``."""
+    return json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": ""},
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"completion_tokens": 0},
+        }
+    )
+
+
+def _success_completion_body(payload: dict[str, Any]) -> str:
+    return _bulk_chat_completion_body(json.dumps(payload))
+
+
+def test_pdf_engines_to_try_starts_with_configured_engine(monkeypatch: Any) -> None:
+    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "native")
+    engines = parser._pdf_engines_to_try()
+    assert engines[0] == "native"
+    assert set(engines) == {"native", "mistral-ocr", "pdf-text"}
+    assert len(engines) == len(set(engines)), "engines must be unique"
+
+
+def test_pdf_engines_to_try_uses_default_when_unconfigured(monkeypatch: Any) -> None:
+    monkeypatch.delenv("OPENROUTER_PDF_ENGINE", raising=False)
+    engines = parser._pdf_engines_to_try()
+    assert engines[0] == "mistral-ocr"
+    assert set(engines) == {"native", "mistral-ocr", "pdf-text"}
+
+
+def test_parse_invoice_falls_back_to_next_pdf_engine_on_empty_response(
+    monkeypatch: Any,
+) -> None:
+    """``mistral-ocr`` empty -> ``native`` empty -> ``pdf-text`` succeeds.
+
+    Mirrors the user-reported single-fallback failure where the OCR engine
+    returned ``completion_tokens=0`` on a PDF the other engines can read.
+    """
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    engines_seen: list[str] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        sent = json.loads(kwargs["body"])
+        engine = sent["plugins"][0]["pdf"]["engine"]
+        engines_seen.append(engine)
+        if engine in ("mistral-ocr", "native"):
+            return {"status": 200, "body": _empty_response_completion_body()}
+        return {
+            "status": 200,
+            "body": _success_completion_body(
+                {
+                    "vendor_name": "Engine Recovered Shop",
+                    "invoice_number": "ENG1",
+                    "invoice_date": "2026-05-15",
+                    "due_date": None,
+                    "currency": "USD",
+                    "subtotal": 7,
+                    "tax": 0,
+                    "total": 7,
+                    "line_items": [],
+                    "confidence": 0.7,
+                }
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    result = parser.parse_invoice_from_assets(
+        [
+            {
+                "id": "asset-engfb",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ]
+    )
+
+    assert engines_seen == ["mistral-ocr", "native", "pdf-text"]
+    assert result["vendor_name"] == "Engine Recovered Shop"
+    assert result["total"] == 7.0
+
+
+def test_parse_invoice_does_not_engine_fallback_for_non_pdf_inputs(
+    monkeypatch: Any,
+) -> None:
+    """Image inputs hit a single chat-completion call (no engine fallback)."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"png-bytes")}
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        call_log.append(kwargs)
+        return {"status": 200, "body": _empty_response_completion_body()}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(parser._EmptyResponseError):
+        parser.parse_invoice_from_assets(
+            [
+                {
+                    "id": "asset-img",
+                    "s3_key": "k",
+                    "file_name": "invoice.png",
+                    "content_type": "image/png",
+                }
+            ]
+        )
+
+    assert len(call_log) == 1, "image inputs must not trigger engine fallback"
+
+
+def test_parse_invoice_raises_summary_when_all_pdf_engines_return_empty(
+    monkeypatch: Any,
+) -> None:
+    """When every PDF engine returns empty, the final error names all of them."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    engines_seen: list[str] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        sent = json.loads(kwargs["body"])
+        engines_seen.append(sent["plugins"][0]["pdf"]["engine"])
+        return {"status": 200, "body": _empty_response_completion_body()}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_invoice_from_assets(
+            [
+                {
+                    "id": "asset-allempty",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ]
+        )
+
+    assert engines_seen == ["mistral-ocr", "native", "pdf-text"]
+    msg = str(exc_info.value)
+    assert "All PDF engines returned empty responses" in msg
+    for engine in ("mistral-ocr", "native", "pdf-text"):
+        assert engine in msg
+
+
+def test_parse_invoice_does_not_engine_fallback_on_non_empty_runtime_error(
+    monkeypatch: Any,
+) -> None:
+    """A 4xx (non-empty) error stops the engine chain immediately."""
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        call_log.append(kwargs)
+        return {
+            "status": 400,
+            "body": '{"error":{"message":"Bad request","code":400}}',
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_invoice_from_assets(
+            [
+                {
+                    "id": "asset-bad",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ]
+        )
+
+    assert len(call_log) == 1, (
+        "a non-empty error must not trigger engine fallback (and is also not "
+        "retried because 400 is not in _RETRYABLE_HTTP_STATUSES)"
+    )
+    assert "status 400" in str(exc_info.value)
+
+
+def test_bulk_single_fallback_recovers_via_pdf_engine_chain(
+    monkeypatch: Any,
+) -> None:
+    """The user-reported scenario: bulk gets 429, single fallback engine chain wins.
+
+    Reproduction:
+
+    - Bulk calls (3 attempts, ``_MAX_RETRY_ATTEMPTS``): all 429.
+    - Single fallback first PDF engine (``mistral-ocr``): empty response.
+    - Single fallback second PDF engine (``native``): success.
+
+    Total 3 + 3 + 1 = 7 ``http_invoke`` calls, and the bulk parser returns
+    a one-row list built from the recovered single-invoice result. This is
+    the exact failure mode the user reported with the old code:
+    'OpenRouter request failed with status 429 ... Model returned an empty
+    response (completion_tokens=0)'.
+    """
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    call_log: list[tuple[str, str | None]] = []
+
+    success_body = _success_completion_body(
+        {
+            "vendor_name": "Recovered After 429",
+            "invoice_number": "REC429",
+            "invoice_date": "2026-05-15",
+            "due_date": None,
+            "currency": "USD",
+            "subtotal": 12,
+            "tax": 0,
+            "total": 12,
+            "line_items": [],
+            "confidence": 0.6,
+        }
+    )
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        sent = json.loads(kwargs["body"])
+        prompt_text = sent["messages"][1]["content"][0]["text"]
+        engine = (
+            sent["plugins"][0]["pdf"]["engine"] if "plugins" in sent else None
+        )
+        is_bulk_prompt = "Extract every invoice" in prompt_text
+        call_log.append(("bulk" if is_bulk_prompt else "single", engine))
+
+        if is_bulk_prompt:
+            return {
+                "status": 429,
+                "body": '{"error":{"message":"Provider returned error","code":429}}',
+            }
+        if engine == "mistral-ocr":
+            return {"status": 200, "body": _empty_response_completion_body()}
+        return {"status": 200, "body": success_body}
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-recover",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
+
+    bulk_calls = [c for c in call_log if c[0] == "bulk"]
+    single_calls = [c for c in call_log if c[0] == "single"]
+    assert len(bulk_calls) == parser._MAX_RETRY_ATTEMPTS == 3
+    assert [c[1] for c in single_calls] == ["mistral-ocr", "native"]
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Recovered After 429"
+    assert rows[0]["total"] == 12.0
+
+
+def test_empty_response_error_is_runtime_error_subclass() -> None:
+    err = parser._EmptyResponseError("boom")
+    assert isinstance(err, RuntimeError)
+    assert isinstance(err, parser._EmptyResponseError)
+    assert str(err) == "boom"
+
+
+def test_extract_message_text_raises_empty_response_error_subclass() -> None:
+    """``_EmptyResponseError`` is the concrete type raised on empty content."""
+    body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": ""},
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"completion_tokens": 0},
+        }
+    )
+    with pytest.raises(parser._EmptyResponseError) as exc_info:
+        parser._extract_message_text(body)
+    assert "empty response" in str(exc_info.value)

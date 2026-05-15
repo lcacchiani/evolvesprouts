@@ -535,22 +535,44 @@ their primary responsibilities.
 - Call pattern: the bulk parser issues exactly **one** OpenRouter chat
   completion per import (mirroring the single-invoice parser at
   `parse_invoice_from_assets`), with the same system prompt and the
-  configured PDF engine. Earlier iterations layered a multi-engine retry on
-  top of this call; that turned every transient provider rate limit into a
-  guaranteed multi-failure cascade against the same account, so the bulk
-  path now matches the single path's reliability profile by doing the same
-  amount of work. If a specific PDF only parses with a non-default engine,
-  set `OPENROUTER_PDF_ENGINE` accordingly.
+  configured PDF engine. The bulk path itself does NOT iterate engines;
+  engine fallback lives only in the single-invoice fallback below, so the
+  bulk path keeps the same call shape the user demanded.
+- Transient retry (every chat completion): each `_openrouter_chat_completion`
+  call retries up to **2 additional times** (3 attempts total) with
+  exponential backoff (2s, 4s) on transient upstream failures — HTTP
+  status `408`, `425`, `429`, `500`, `502`, `503`, `504`, AND on 2xx
+  responses whose envelope contains an `error.code` in the same set
+  (OpenRouter sometimes returns 200 with `code=504` when an upstream model
+  call timed out). `Retry-After` headers are honored, capped to 5s.
+  Non-retryable statuses (4xx other than 408/425/429) propagate
+  immediately. The same retry policy applies to the JSON-repair sub-call
+  and to every engine attempt below.
 - Single-invoice fallback: when the one bulk attempt produces no usable
   rows for any reason (empty model response, refusal, JSON parse failure,
-  HTTP error including 4xx/5xx, or zero rows after coercion), the bulk
-  parser falls back to `parse_invoice_from_assets` on the same attachment
-  and returns its result wrapped as a one-element list. The acceptance
-  criterion this satisfies is "bulk works at least as well as single": when
-  the proven single-invoice path can extract anything from the PDF, the
-  bulk parser returns at least that one row instead of failing the entire
-  import. If the fallback also fails, both errors are surfaced together in
-  one message so neither failure is hidden.
+  HTTP error including 4xx/5xx after retries, or zero rows after coercion),
+  the bulk parser falls back to `parse_invoice_from_assets` on the same
+  attachment and returns its result wrapped as a one-element list. If the
+  fallback also fails, both errors are surfaced together in one message so
+  neither failure is hidden.
+- PDF engine fallback (single-invoice path only): for PDF inputs,
+  `parse_invoice_from_assets` walks the supported PDF engines in order —
+  starting with the configured `OPENROUTER_PDF_ENGINE` (default
+  `mistral-ocr`) and continuing through the remaining engines from
+  `{mistral-ocr, native, pdf-text}` — and falls through to the next engine
+  ONLY when the current one returns an `_EmptyResponseError` (empty
+  content / `completion_tokens=0` / truncation / content-filter block).
+  Refusals, 4xx responses, JSON parse failures, and other non-empty errors
+  stop the chain immediately so the failure mode is preserved instead of
+  amplified. Image and text inputs make a single chat completion call with
+  no engine fallback. Non-PDF callers can pass `pdf_engine=None` (default)
+  on `_openrouter_chat_completion` to use the configured engine.
+- Acceptance: the bulk path now satisfies "bulk works at least as well as
+  single" by chaining (a) bulk attempt with retry, (b) single-invoice
+  fallback whose first engine attempt also retries, and (c) two more PDF
+  engines for the single-invoice fallback if the first engine produces
+  nothing. When any of those produces a parseable response, the user gets
+  at least one row instead of a failed import.
 - 4xx error formatting: OpenRouter error bodies are condensed to their
   `error.message` + `error.code` before being raised or logged so the
   persisted bulk-import job row stays readable and does not echo unrelated

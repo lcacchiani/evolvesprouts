@@ -21,21 +21,52 @@ _api_key_cache: str | None = None
 _PDF_PLUGIN_ID = "file-parser"
 _DEFAULT_PDF_ENGINE = "mistral-ocr"
 
-# Transient upstream failures that are worth a single fast retry inside the
-# same Lambda invocation. These cover provider rate limits (429), gateway
+# Transient upstream failures that are worth a fast retry inside the same
+# Lambda invocation. These cover provider rate limits (429), gateway
 # timeouts (504), and other temporarily-unavailable responses both as HTTP
 # status codes and as the ``error.code`` field that OpenRouter sometimes
 # returns inside a 200 envelope (for example ``code=504`` when the upstream
 # model timed out but the OpenRouter edge replied 200).
 _RETRYABLE_HTTP_STATUSES = frozenset({408, 425, 429, 500, 502, 503, 504})
 _RETRYABLE_ENVELOPE_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
-_MAX_RETRY_ATTEMPTS = 2  # initial attempt + 1 retry
-_RETRY_BACKOFF_SECONDS = 1.5
+_MAX_RETRY_ATTEMPTS = 3  # initial attempt + 2 retries
+# Exponential backoff between attempts (seconds): ``[i]`` is the wait BEFORE
+# attempt ``i + 2``. Length must be at least ``_MAX_RETRY_ATTEMPTS - 1``.
+_RETRY_BACKOFF_SCHEDULE_SECONDS: tuple[float, ...] = (2.0, 4.0)
 _MAX_RETRY_AFTER_SECONDS = 5.0
+
+# PDF parsing engines OpenRouter supports through the ``file-parser`` plugin.
+# Order matters: the configured engine (``OPENROUTER_PDF_ENGINE``, default
+# ``mistral-ocr``) is tried first, then the others in this canonical order.
+# Different engines fail in different ways on the same document — for example
+# ``mistral-ocr`` can return zero tokens on borderline scans that ``native``
+# (multi-modal vision) handles fine, and ``pdf-text`` works on text-based
+# PDFs that the OCR engines sometimes give up on. Chaining engines on
+# ``_EmptyResponseError`` recovers the document instead of failing the job.
+_SUPPORTED_PDF_ENGINES: tuple[str, ...] = ("mistral-ocr", "native", "pdf-text")
+
+
+class _EmptyResponseError(RuntimeError):
+    """Raised when OpenRouter responds 2xx but the model produced no usable text.
+
+    This is a different failure shape from refusals, top-level errors, or
+    invalid JSON — typically the PDF engine could not extract any text from
+    the document — so the single-invoice parser can recover by retrying
+    against another PDF engine. Subclassing ``RuntimeError`` keeps the
+    existing ``except RuntimeError`` paths working unchanged.
+    """
 
 
 def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    """Parse invoice details from expense attachment assets."""
+    """Parse invoice details from expense attachment assets.
+
+    For PDF inputs this iterates through ``_SUPPORTED_PDF_ENGINES`` (starting
+    with the configured engine) and falls through to the next engine only
+    when the current one returns an empty response (zero tokens / no
+    content). Transient HTTP / envelope errors are already retried inside
+    ``_openrouter_chat_completion``; refusals, 4xx errors, and other
+    non-empty failures propagate immediately.
+    """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
 
@@ -47,15 +78,52 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     has_pdf = any(
         _normalize_content_type(asset) == "application/pdf" for asset in assets
     )
-    body = _openrouter_chat_completion(
-        system_prompt="You extract invoice data and return strict JSON only.",
-        user_content_blocks=content,
-        has_pdf_attachment=has_pdf,
-        timeout=30,
+
+    if not has_pdf:
+        body = _openrouter_chat_completion(
+            system_prompt="You extract invoice data and return strict JSON only.",
+            user_content_blocks=content,
+            has_pdf_attachment=False,
+            timeout=30,
+        )
+        parsed = _parse_completion_body(body)
+        logger.info("Invoice parse completed successfully")
+        return _normalize_result(parsed)
+
+    engines = _pdf_engines_to_try()
+    last_empty: _EmptyResponseError | None = None
+    tried: list[str] = []
+    for engine in engines:
+        tried.append(engine)
+        try:
+            body = _openrouter_chat_completion(
+                system_prompt="You extract invoice data and return strict JSON only.",
+                user_content_blocks=content,
+                has_pdf_attachment=True,
+                timeout=30,
+                pdf_engine=engine,
+            )
+            parsed = _parse_completion_body(body)
+            logger.info(
+                "Invoice parse completed successfully",
+                extra={"pdf_engine": engine, "engines_tried": tried},
+            )
+            return _normalize_result(parsed)
+        except _EmptyResponseError as exc:
+            last_empty = exc
+            logger.warning(
+                "PDF engine returned empty response; trying next engine",
+                extra={
+                    "pdf_engine": engine,
+                    "engines_remaining": engines[engines.index(engine) + 1 :],
+                },
+            )
+            continue
+
+    raise RuntimeError(
+        "All PDF engines returned empty responses "
+        f"(tried: {', '.join(tried)}). Last detail: {last_empty}"
     )
-    parsed = _parse_completion_body(body)
-    logger.info("Invoice parse completed successfully")
-    return _normalize_result(parsed)
 
 
 _MAX_BULK_INVOICES = 100
@@ -152,8 +220,13 @@ def _openrouter_chat_completion(
     user_content_blocks: list[dict[str, Any]],
     has_pdf_attachment: bool,
     timeout: int,
+    pdf_engine: str | None = None,
 ) -> str:
-    """POST to OpenRouter and return the raw HTTP response body string."""
+    """POST to OpenRouter and return the raw HTTP response body string.
+
+    ``pdf_engine`` overrides the configured engine when ``has_pdf_attachment``
+    is true. ``None`` (default) uses ``_pdf_parser_engine()``.
+    """
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
     api_key = _get_api_key()
@@ -171,10 +244,11 @@ def _openrouter_chat_completion(
         ],
     }
     if has_pdf_attachment:
+        engine = pdf_engine if pdf_engine is not None else _pdf_parser_engine()
         payload["plugins"] = [
             {
                 "id": _PDF_PLUGIN_ID,
-                "pdf": {"engine": _pdf_parser_engine()},
+                "pdf": {"engine": engine},
             }
         ]
 
@@ -215,7 +289,7 @@ def _openrouter_chat_completion(
 
         if (http_retryable or envelope_retryable) and attempt < _MAX_RETRY_ATTEMPTS:
             response_headers = response.get("headers")
-            delay = _retry_delay_seconds(response_headers)
+            delay = _retry_delay_seconds(response_headers, attempt)
             preview = _format_openrouter_error_preview(body)
             logger.warning(
                 "OpenRouter transient error; retrying",
@@ -292,8 +366,16 @@ def _envelope_error_code(body: str) -> int | None:
     return None
 
 
-def _retry_delay_seconds(response_headers: Any) -> float:
-    """Return the backoff delay before the next attempt, honoring ``Retry-After``."""
+def _retry_delay_seconds(response_headers: Any, attempt: int) -> float:
+    """Return the backoff delay before the next attempt, honoring ``Retry-After``.
+
+    ``attempt`` is the 1-indexed attempt that just failed (so the next
+    attempt is ``attempt + 1``). Without an explicit ``Retry-After``, the
+    delay is taken from the exponential schedule
+    ``_RETRY_BACKOFF_SCHEDULE_SECONDS`` (e.g. 2s, 4s, ...). The schedule is
+    indexed by ``attempt - 1``; if the schedule is shorter than the number
+    of retries, the last value is reused.
+    """
     if isinstance(response_headers, Mapping):
         for key, value in response_headers.items():
             if isinstance(key, str) and key.lower() == "retry-after":
@@ -301,7 +383,12 @@ def _retry_delay_seconds(response_headers: Any) -> float:
                 if parsed is not None:
                     return min(max(parsed, 0.0), _MAX_RETRY_AFTER_SECONDS)
                 break
-    return _RETRY_BACKOFF_SECONDS
+    if not _RETRY_BACKOFF_SCHEDULE_SECONDS:
+        return 0.0
+    idx = max(0, attempt - 1)
+    if idx >= len(_RETRY_BACKOFF_SCHEDULE_SECONDS):
+        idx = len(_RETRY_BACKOFF_SCHEDULE_SECONDS) - 1
+    return float(_RETRY_BACKOFF_SCHEDULE_SECONDS[idx])
 
 
 def _parse_retry_after_seconds(value: Any) -> float | None:
@@ -483,8 +570,14 @@ def _extract_message_text(body: str) -> str:
 
 def _empty_response_error(
     payload: Mapping[str, Any], first_choice: Mapping[str, Any]
-) -> RuntimeError:
-    """Build a diagnostic ``RuntimeError`` for an empty model response."""
+) -> _EmptyResponseError:
+    """Build a diagnostic ``_EmptyResponseError`` for an empty model response.
+
+    Returning the ``_EmptyResponseError`` subclass lets the single-invoice
+    parser distinguish "engine produced nothing" (recoverable by trying
+    another PDF engine) from "model refused / 4xx / invalid JSON" (not
+    recoverable by switching engines).
+    """
     finish_reason = first_choice.get("finish_reason") or first_choice.get(
         "finishReason"
     )
@@ -500,13 +593,15 @@ def _empty_response_error(
     suffix = f" ({'; '.join(details)})" if details else ""
 
     if finish_reason == "length":
-        return RuntimeError(
+        return _EmptyResponseError(
             f"Model output was truncated before any JSON was produced{suffix}. "
             "The document may be too long for one parse; try a smaller PDF."
         )
     if finish_reason == "content_filter":
-        return RuntimeError(f"Model output was blocked by the content filter{suffix}.")
-    return RuntimeError(
+        return _EmptyResponseError(
+            f"Model output was blocked by the content filter{suffix}."
+        )
+    return _EmptyResponseError(
         f"Model returned an empty response{suffix}. The PDF may be unreadable "
         "to this engine, the model may have failed to extract any text, or "
         "the request may have been rejected upstream."
@@ -1077,6 +1172,18 @@ def _pdf_parser_engine() -> str:
     if configured in {"pdf-text", "mistral-ocr", "native"}:
         return configured
     return _DEFAULT_PDF_ENGINE
+
+
+def _pdf_engines_to_try() -> list[str]:
+    """Return the PDF engines to try in order for the engine-fallback chain.
+
+    Always starts with the configured engine (default ``mistral-ocr``) and
+    appends the remaining supported engines in canonical order. Iteration
+    stops as soon as one engine produces a non-empty parse result.
+    """
+    primary = _pdf_parser_engine()
+    rest = [engine for engine in _SUPPORTED_PDF_ENGINES if engine != primary]
+    return [primary, *rest]
 
 
 def _require_env(name: str) -> str:
