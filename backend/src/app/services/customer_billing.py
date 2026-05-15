@@ -31,7 +31,7 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v20"
+INVOICE_PDF_TEMPLATE_VERSION = "billing-invoice-v21"
 RECEIPT_PDF_TEMPLATE_VERSION = "billing-receipt-v1"
 _SCOPE_DEFAULT = "default"
 _DOC_INVOICE = "invoice"
@@ -485,6 +485,8 @@ def recompute_invoice_settlement(session: Session, invoice: CustomerInvoice) -> 
         .with_for_update()
     ).scalar_one()
 
+    prev_paid_at = inv.paid_at
+
     allocated_raw = session.execute(
         select(func.coalesce(func.sum(PaymentAllocation.allocated_amount), 0))
         .where(PaymentAllocation.invoice_id == inv.id)
@@ -513,6 +515,19 @@ def recompute_invoice_settlement(session: Session, invoice: CustomerInvoice) -> 
             inv.paid_at = datetime.now(UTC)
     else:
         inv.paid_at = None
+
+    transition_to_paid = prev_paid_at is None and inv.paid_at is not None
+    transition_to_unpaid = prev_paid_at is not None and inv.paid_at is None
+    pdf_key = (inv.issued_pdf_s3_key or "").strip()
+    if pdf_key and (transition_to_paid or transition_to_unpaid):
+        logger.info(
+            "invoice_pdf_refresh_due_to_settlement_transition",
+            extra={
+                "invoice_id": str(inv.id),
+                "transition": "to_paid" if transition_to_paid else "to_unpaid",
+            },
+        )
+        refresh_invoice_pdf(session, inv)
 
     logger.info(
         "invoice_settlement_recomputed",

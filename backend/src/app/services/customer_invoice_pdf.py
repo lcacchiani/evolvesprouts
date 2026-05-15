@@ -98,6 +98,9 @@ _INV_RULE = colors.HexColor("#cfd6da")
 _INV_DIVIDER = colors.HexColor("#1c2a36")
 _INV_TOTAL_RULE = colors.HexColor("#33495d")
 _INV_FOOTER_TEXT = colors.HexColor("#7f8c8d")
+_INV_PAID_WATERMARK = colors.HexColor(
+    "#c0392b"
+)  # muted red, AA against white at large sizes
 _INV_LOGO_PATH = (
     Path(__file__).resolve().parent.parent
     / "assets"
@@ -166,6 +169,7 @@ class InvoicePdfCanvas(canvas.Canvas):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._invoice_footer_text = str(kwargs.pop("footer_text", "") or "")
+        self._invoice_paid_watermark = bool(kwargs.pop("paid_watermark", False))
         self._saved_page_states: list[dict[str, Any]] = []
         super().__init__(*args, **kwargs)
 
@@ -177,9 +181,26 @@ class InvoicePdfCanvas(canvas.Canvas):
         num_pages = len(self._saved_page_states)
         for idx, state in enumerate(self._saved_page_states, start=1):
             self.__dict__.update(state)
+            self._draw_paid_watermark()
             self._draw_invoice_page_footer(idx, num_pages)
             canvas.Canvas.showPage(self)
         canvas.Canvas.save(self)
+
+    def _draw_paid_watermark(self) -> None:
+        if not self._invoice_paid_watermark:
+            return
+        w, h = self._pagesize
+        self.saveState()
+        self.translate(w / 2.0, h / 2.0)
+        self.rotate(30)
+        self.setFillColor(_INV_PAID_WATERMARK)
+        try:
+            self.setFillAlpha(0.18)
+        except AttributeError:
+            pass
+        self.setFont("Helvetica-Bold", 140)
+        self.drawCentredString(0, -50, "PAID")
+        self.restoreState()
 
     def _draw_invoice_page_footer(self, page_num: int, page_count: int) -> None:
         self.saveState()
@@ -1162,8 +1183,17 @@ def render_invoice_pdf(
         story.append(Spacer(1, 36))
 
     footer_text = invoice_pdf_footer_text()
+    paid_watermark = (
+        invoice.status == BillingInvoiceStatus.ISSUED
+        and getattr(invoice, "paid_at", None) is not None
+        and invoice.total > Decimal("0")
+    )
     doc.build(
         story,
-        canvasmaker=partial(InvoicePdfCanvas, footer_text=footer_text),
+        canvasmaker=partial(
+            InvoicePdfCanvas,
+            footer_text=footer_text,
+            paid_watermark=paid_watermark,
+        ),
     )
     return buf.getvalue()
