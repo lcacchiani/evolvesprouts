@@ -12,6 +12,7 @@ from app.api.admin_billing_invoice_queries import (
     get_invoice_pdf_download,
     list_invoices,
 )
+from app.api.admin_billing_dashboard import resolve_bill_to_primary_contacts
 from app.api.admin_billing_enrollment_queries import (
     list_recent_enrollments_for_invoicing,
 )
@@ -115,6 +116,16 @@ def handle_admin_billing_request(
         and method == "GET"
     ):
         return list_recent_enrollments_for_invoicing(
+            event, user_sub=identity.user_sub, request_id=req
+        )
+
+    if (
+        sub == "dashboard"
+        and len(parts) == 4
+        and parts[3] == "resolve-bill-to-primary-contacts"
+        and method == "POST"
+    ):
+        return resolve_bill_to_primary_contacts(
             event, user_sub=identity.user_sub, request_id=req
         )
 

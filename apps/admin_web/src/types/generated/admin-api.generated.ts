@@ -4618,6 +4618,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve primary CRM contacts for bill-to rollups
+         * @description Returns a map from each requested family id and organisation id to the CRM contact id chosen as the billing primary (same ordering as invoice bill-to resolution: primary flag first, then earliest membership). Omitted keys mean the entity has no members. Used by the admin dashboard to attribute family- and organisation-billed issued invoice totals to a single main contact for spend rankings.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResolveBillToPrimaryContactsRequest"];
+                };
+            };
+            responses: {
+                /** @description Primary contact id maps keyed by family or organisation id. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResolveBillToPrimaryContactsResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/billing/allocations": {
         parameters: {
             query?: never;
@@ -6578,6 +6623,22 @@ export interface components {
              * @description Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
              */
             invoiceDate?: string | null;
+        };
+        ResolveBillToPrimaryContactsRequest: {
+            /** @description CRM family ids to resolve (deduplicated; max 400). */
+            familyIds?: string[];
+            /** @description CRM organisation ids to resolve (deduplicated; max 400). */
+            organizationIds?: string[];
+        };
+        ResolveBillToPrimaryContactsResponse: {
+            /** @description Map from family id (UUID string) to primary contact id (UUID string). */
+            familyPrimaryContactById: {
+                [key: string]: string;
+            };
+            /** @description Map from organisation id (UUID string) to primary contact id (UUID string). */
+            organizationPrimaryContactById: {
+                [key: string]: string;
+            };
         };
         CreatePaymentAllocationRequest: {
             /** Format: uuid */

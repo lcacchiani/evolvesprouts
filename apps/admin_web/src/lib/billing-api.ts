@@ -449,6 +449,23 @@ export async function createPaymentAllocation(
   return { allocationId };
 }
 
+export async function resolveBillToPrimaryContacts(
+  body: ApiSchemas['ResolveBillToPrimaryContactsRequest'],
+  signal?: AbortSignal,
+): Promise<ApiSchemas['ResolveBillToPrimaryContactsResponse']> {
+  const payload = await adminApiRequest<ApiSchemas['ResolveBillToPrimaryContactsResponse']>({
+    endpointPath: '/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts',
+    method: 'POST',
+    body,
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  if (!root.familyPrimaryContactById || !root.organizationPrimaryContactById) {
+    throw new Error('Resolve bill-to primary contacts response missing maps.');
+  }
+  return root;
+}
+
 export async function exportBillingCsv(
   exportVersion: '1' | '2' = '2',
   signal?: AbortSignal,

@@ -71,6 +71,9 @@ info:
     - `POST /v1/admin/billing/invoices/{id}/issue`
     - `POST /v1/admin/billing/invoices/{id}/void`
     - `POST /v1/admin/billing/invoices/{id}/email`
+    - `POST /v1/admin/billing/dashboard/resolve-bill-to-primary-contacts` (bulk lookup of
+      primary CRM contact ids for family and organisation ids; used to roll up issued invoice
+      totals to main contacts in admin dashboard spend rankings)
     - `POST /v1/admin/billing/allocations`
     - `GET|POST /v1/admin/leads`
     - `GET|PATCH /v1/admin/leads/{id}`
@@ -3481,6 +3484,35 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /v1/admin/billing/dashboard/resolve-bill-to-primary-contacts:
+    post:
+      summary: Resolve primary CRM contacts for bill-to rollups
+      description: >
+        Returns a map from each requested family id and organisation id to the CRM contact id
+        chosen as the billing primary (same ordering as invoice bill-to resolution: primary flag
+        first, then earliest membership). Omitted keys mean the entity has no members. Used by
+        the admin dashboard to attribute family- and organisation-billed issued invoice totals
+        to a single main contact for spend rankings.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveBillToPrimaryContactsRequest"
+      responses:
+        "200":
+          description: Primary contact id maps keyed by family or organisation id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolveBillToPrimaryContactsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /v1/admin/billing/allocations:
     post:
@@ -6923,6 +6955,41 @@ components:
           format: date
           nullable: true
           description: Optional ISO date (YYYY-MM-DD). When omitted, defaults to today in INVOICE_DISPLAY_TIMEZONE (or UTC if unset).
+    ResolveBillToPrimaryContactsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        familyIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: CRM family ids to resolve (deduplicated; max 400).
+        organizationIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: CRM organisation ids to resolve (deduplicated; max 400).
+    ResolveBillToPrimaryContactsResponse:
+      type: object
+      required:
+        - familyPrimaryContactById
+        - organizationPrimaryContactById
+      additionalProperties: false
+      properties:
+        familyPrimaryContactById:
+          type: object
+          description: Map from family id (UUID string) to primary contact id (UUID string).
+          additionalProperties:
+            type: string
+            format: uuid
+        organizationPrimaryContactById:
+          type: object
+          description: Map from organisation id (UUID string) to primary contact id (UUID string).
+          additionalProperties:
+            type: string
+            format: uuid
     CreatePaymentAllocationRequest:
       type: object
       required:
