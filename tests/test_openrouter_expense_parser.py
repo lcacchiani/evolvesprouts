@@ -852,81 +852,49 @@ def test_extract_message_text_raises_on_empty_content_with_stop_finish() -> None
     assert "finish_reason=stop" in msg
 
 
-def test_bulk_pdf_engine_attempt_order_pairs_each_engine_with_alternates(
+def test_parse_bulk_expense_invoices_makes_one_request_like_single_parser(
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
-    assert parser._bulk_pdf_engine_attempt_order() == (
-        "mistral-ocr",
-        "pdf-text",
-        "native",
-    )
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "pdf-text")
-    assert parser._bulk_pdf_engine_attempt_order() == (
-        "pdf-text",
-        "mistral-ocr",
-        "native",
-    )
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "native")
-    assert parser._bulk_pdf_engine_attempt_order() == (
-        "native",
-        "mistral-ocr",
-        "pdf-text",
-    )
+    """Bulk parse must mirror the single-invoice parser: one OpenRouter call.
 
-
-def test_parse_bulk_expense_invoices_falls_back_to_alternate_engine(
-    monkeypatch: Any,
-) -> None:
+    Doing multiple back-to-back calls (the previous engine-fallback design)
+    amplifies a transient provider rate limit into a guaranteed failure
+    across every retry.
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
 
     class _FakeS3Client:
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
             return {"Body": _FakeBody(b"%PDF-1.4")}
 
-    valid_body = _bulk_chat_completion_body(
-        json.dumps(
-            {
-                "invoices": [
-                    {
-                        "vendor_name": "Shop Z",
-                        "invoice_number": "F1",
-                        "invoice_date": "2026-04-05",
-                        "due_date": None,
-                        "currency": "USD",
-                        "subtotal": 7,
-                        "tax": 0,
-                        "total": 7,
-                        "line_items": [],
-                        "confidence": 0.95,
-                    }
-                ]
-            }
-        )
-    )
-    empty_body = json.dumps(
-        {
-            "choices": [
-                {
-                    "message": {"content": ""},
-                    "finish_reason": "stop",
-                }
-            ]
-        }
-    )
-
-    captured_engines: list[str | None] = []
+    captured_calls: list[dict[str, Any]] = []
 
     def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        payload = json.loads(kwargs["body"])
-        plugins = payload.get("plugins") or []
-        engine = plugins[0]["pdf"]["engine"] if plugins else None
-        captured_engines.append(engine)
-        if len(captured_engines) == 1:
-            return {"status": 200, "body": empty_body}
-        return {"status": 200, "body": valid_body}
+        captured_calls.append(kwargs)
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(
+                json.dumps(
+                    {
+                        "invoices": [
+                            {
+                                "vendor_name": "Once Shop",
+                                "invoice_number": "1",
+                                "invoice_date": "2026-05-15",
+                                "due_date": None,
+                                "currency": "USD",
+                                "subtotal": 4,
+                                "tax": 0,
+                                "total": 4,
+                                "line_items": [],
+                                "confidence": 0.9,
+                            }
+                        ]
+                    }
+                )
+            ),
+        }
 
     monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
     monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
@@ -934,7 +902,7 @@ def test_parse_bulk_expense_invoices_falls_back_to_alternate_engine(
     rows = parser.parse_bulk_expense_invoices_from_assets(
         [
             {
-                "id": "asset-fb",
+                "id": "asset-once",
                 "s3_key": "k",
                 "file_name": "bulk.pdf",
                 "content_type": "application/pdf",
@@ -942,19 +910,76 @@ def test_parse_bulk_expense_invoices_falls_back_to_alternate_engine(
         ],
         timeout=25,
     )
-    assert captured_engines == ["mistral-ocr", "pdf-text"], (
-        "expected one attempt with the configured engine and one with the alternate"
-    )
+
+    assert len(captured_calls) == 1
+    sent_payload = json.loads(captured_calls[0]["body"])
+    assert sent_payload["messages"][0]["content"] == (
+        "You extract invoice data and return strict JSON only."
+    ), "bulk parser must use the same system prompt as the single-invoice parser"
     assert len(rows) == 1
-    assert rows[0]["vendor_name"] == "Shop Z"
+    assert rows[0]["vendor_name"] == "Once Shop"
 
 
-def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
+def test_parse_bulk_expense_invoices_surfaces_provider_rate_limit_directly(
     monkeypatch: Any,
 ) -> None:
+    """A 429 from the provider must surface immediately, not be retried.
+
+    Previously the bulk path retried across three PDF engines on every
+    failure, turning a transient single 429 into a guaranteed three-fold
+    failure (and consuming three requests against the rate-limited account).
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    call_count = {"n": 0}
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        call_count["n"] += 1
+        return {
+            "status": 429,
+            "body": '{"error":{"message":"Provider returned error","code":429}}',
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_bulk_expense_invoices_from_assets(
+            [
+                {
+                    "id": "asset-429",
+                    "s3_key": "k",
+                    "file_name": "bulk.pdf",
+                    "content_type": "application/pdf",
+                }
+            ],
+            timeout=25,
+        )
+
+    assert call_count["n"] == 1, "bulk parser must not retry across engines on 4xx"
+    msg = str(exc_info.value)
+    assert "status 429" in msg
+    assert "Provider returned error" in msg
+    assert "code=429" in msg
+    assert "across" not in msg, "no engine-fallback wrapping on the error"
+
+
+def test_parse_bulk_expense_invoices_surfaces_empty_content_directly(
+    monkeypatch: Any,
+) -> None:
+    """When the model returns empty content the diagnostic surfaces directly.
+
+    No engine-fallback wrapping (which would multiply requests against a
+    rate-limited account); just the empty-response diagnostic from
+    ``_extract_message_text``.
+    """
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
 
     class _FakeS3Client:
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
@@ -971,7 +996,10 @@ def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
         }
     )
 
+    call_count = {"n": 0}
+
     def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        call_count["n"] += 1
         return {"status": 200, "body": empty_body}
 
     monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
@@ -981,7 +1009,7 @@ def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
         parser.parse_bulk_expense_invoices_from_assets(
             [
                 {
-                    "id": "asset-exhaust",
+                    "id": "asset-empty-content",
                     "s3_key": "k",
                     "file_name": "bulk.pdf",
                     "content_type": "application/pdf",
@@ -990,12 +1018,11 @@ def test_parse_bulk_expense_invoices_exhausts_engines_and_names_them(
             timeout=25,
         )
 
+    assert call_count["n"] == 1
     msg = str(exc_info.value)
-    assert "across 3 attempt(s)" in msg
-    assert "mistral-ocr" in msg
-    assert "pdf-text" in msg
-    assert "native" in msg
     assert "empty response" in msg
+    assert "finish_reason=stop" in msg
+    assert "across" not in msg
 
 
 def test_format_openrouter_error_preview_extracts_message_and_code() -> None:
@@ -1052,74 +1079,6 @@ def test_openrouter_chat_completion_4xx_raises_clean_error(monkeypatch: Any) -> 
     assert "code=400" in msg
     assert "user_id" not in msg
     assert "metadata" not in msg
-
-
-def test_parse_bulk_expense_invoices_falls_back_to_native_after_plugin_400(
-    monkeypatch: Any,
-) -> None:
-    _set_common_env(monkeypatch)
-    _mock_secrets(monkeypatch)
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "mistral-ocr")
-
-    class _FakeS3Client:
-        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
-            return {"Body": _FakeBody(b"%PDF-1.4")}
-
-    plugin_400_body = (
-        '{"error":{"message":"Failed to parse Evolve Sprouts Invoices.pdf",'
-        '"code":400,"metadata":{"provider_name":null}},'
-        '"user_id":"user_abc"}'
-    )
-    valid_body = _bulk_chat_completion_body(
-        json.dumps(
-            {
-                "invoices": [
-                    {
-                        "vendor_name": "Native Shop",
-                        "invoice_number": "N1",
-                        "invoice_date": "2026-05-06",
-                        "due_date": None,
-                        "currency": "USD",
-                        "subtotal": 12,
-                        "tax": 0,
-                        "total": 12,
-                        "line_items": [],
-                        "confidence": 0.9,
-                    }
-                ]
-            }
-        )
-    )
-
-    captured_engines: list[str | None] = []
-
-    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        payload = json.loads(kwargs["body"])
-        plugins = payload.get("plugins") or []
-        engine = plugins[0]["pdf"]["engine"] if plugins else None
-        captured_engines.append(engine)
-        if engine in ("mistral-ocr", "pdf-text"):
-            return {"status": 400, "body": plugin_400_body}
-        return {"status": 200, "body": valid_body}
-
-    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
-    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
-
-    rows = parser.parse_bulk_expense_invoices_from_assets(
-        [
-            {
-                "id": "asset-native",
-                "s3_key": "k",
-                "file_name": "bulk.pdf",
-                "content_type": "application/pdf",
-            }
-        ],
-        timeout=25,
-    )
-
-    assert captured_engines == ["mistral-ocr", "pdf-text", "native"]
-    assert len(rows) == 1
-    assert rows[0]["vendor_name"] == "Native Shop"
 
 
 def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns_empty_object(
