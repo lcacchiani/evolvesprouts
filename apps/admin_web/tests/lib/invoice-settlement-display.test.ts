@@ -34,4 +34,101 @@ describe('getInvoiceSettlementBadgeLabel', () => {
       }),
     ).toBe('Open');
   });
+
+  it('labels zero-total issued invoices as No charge', () => {
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '0',
+        amountAllocated: '0',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('No charge');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '0.0000',
+        amountAllocated: '0',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('No charge');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '  0  ',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('No charge');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '-0',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('No charge');
+  });
+
+  it('does not treat missing or invalid total as zero for issued rows', () => {
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('Open');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('Open');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: 'NaN',
+        balanceDue: '0',
+        isPaid: false,
+      }),
+    ).toBe('Open');
+  });
+
+  it('keeps positive-total issued settlement semantics', () => {
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '100',
+        balanceDue: '100',
+        isPaid: false,
+      }),
+    ).toBe('Open');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '100',
+        amountAllocated: '40',
+        balanceDue: '60',
+        isPaid: false,
+      }),
+    ).toBe('Partially paid');
+    expect(
+      getInvoiceSettlementBadgeLabel({
+        status: 'issued',
+        total: '100',
+        amountAllocated: '100',
+        balanceDue: '0',
+        isPaid: true,
+      }),
+    ).toBe('Paid');
+  });
+
+  it('prefers lifecycle labels over zero total for draft and void', () => {
+    expect(getInvoiceSettlementBadgeLabel({ status: 'draft', total: '0' })).toBe('Draft');
+    expect(getInvoiceSettlementBadgeLabel({ status: 'void', total: '0' })).toBe('Void');
+  });
 });
