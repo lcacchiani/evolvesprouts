@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.db.models import Family, Location
-from app.db.models.family import FamilyMember
+from app.db.models import Contact, Family, FamilyMember, Location
 from app.db.models.tag import FamilyTag
 from app.db.repositories.base import BaseRepository
 from app.db.repositories.organization import _escape_like_pattern
@@ -19,6 +19,30 @@ class FamilyRepository(BaseRepository[Family]):
 
     def __init__(self, session: Session):
         super().__init__(session, Family)
+
+    @staticmethod
+    def _admin_list_query_filter(query: str) -> Any:
+        """Match family name or any linked member contact (name or email)."""
+        escaped = _escape_like_pattern(query.strip())
+        pattern = f"%{escaped}%"
+        full_name = func.trim(
+            func.concat(Contact.first_name, " ", func.coalesce(Contact.last_name, ""))
+        )
+        member_match = exists(
+            select(1)
+            .select_from(FamilyMember)
+            .join(Contact, FamilyMember.contact_id == Contact.id)
+            .where(
+                FamilyMember.family_id == Family.id,
+                or_(
+                    Contact.first_name.ilike(pattern, escape="\\"),
+                    Contact.last_name.ilike(pattern, escape="\\"),
+                    Contact.email.ilike(pattern, escape="\\"),
+                    full_name.ilike(pattern, escape="\\"),
+                ),
+            )
+        )
+        return or_(Family.family_name.ilike(pattern, escape="\\"), member_match)
 
     def list_for_admin(
         self,
@@ -47,9 +71,9 @@ class FamilyRepository(BaseRepository[Family]):
                 )
             )
         if query:
-            escaped = _escape_like_pattern(query.strip())
-            pattern = f"%{escaped}%"
-            statement = statement.where(Family.family_name.ilike(pattern, escape="\\"))
+            statement = statement.where(
+                FamilyRepository._admin_list_query_filter(query)
+            )
         if active is True:
             statement = statement.where(Family.archived_at.is_(None))
         if active is False:
@@ -68,9 +92,9 @@ class FamilyRepository(BaseRepository[Family]):
     ) -> int:
         statement = select(func.count(Family.id))
         if query:
-            escaped = _escape_like_pattern(query.strip())
-            pattern = f"%{escaped}%"
-            statement = statement.where(Family.family_name.ilike(pattern, escape="\\"))
+            statement = statement.where(
+                FamilyRepository._admin_list_query_filter(query)
+            )
         if active is True:
             statement = statement.where(Family.archived_at.is_(None))
         if active is False:
