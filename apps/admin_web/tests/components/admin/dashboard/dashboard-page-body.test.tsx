@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockListAllAdminExpenses = vi.fn();
 const mockListAllCustomerInvoices = vi.fn();
+const mockResolveBillToPrimaryContacts = vi.fn();
 
 vi.mock('@/lib/config', () => ({
   getAdminDefaultCurrencyCode: vi.fn(() => 'HKD'),
@@ -18,6 +19,7 @@ vi.mock('@/lib/expenses-api', () => ({
 
 vi.mock('@/lib/billing-api', () => ({
   listAllCustomerInvoices: (...args: unknown[]) => mockListAllCustomerInvoices(...args),
+  resolveBillToPrimaryContacts: (...args: unknown[]) => mockResolveBillToPrimaryContacts(...args),
 }));
 
 import { DashboardPageBody } from '@/components/admin/dashboard/dashboard-page-body';
@@ -28,6 +30,10 @@ describe('DashboardPageBody', () => {
     vi.clearAllMocks();
     mockListAllAdminExpenses.mockResolvedValue([]);
     mockListAllCustomerInvoices.mockResolvedValue([]);
+    mockResolveBillToPrimaryContacts.mockResolvedValue({
+      familyPrimaryContactById: {},
+      organizationPrimaryContactById: {},
+    });
   });
 
   it('loads finance payloads once and passes them to the Tax Position card', async () => {
@@ -41,5 +47,7 @@ describe('DashboardPageBody', () => {
     await waitFor(() => {
       expect(screen.getByText(ADMIN_TAX_FISCAL_YEAR_EMPTY_MESSAGE)).toBeInTheDocument();
     });
+
+    expect(mockResolveBillToPrimaryContacts).not.toHaveBeenCalled();
   });
 });

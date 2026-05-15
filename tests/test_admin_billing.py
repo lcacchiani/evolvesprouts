@@ -5180,3 +5180,70 @@ def test_issue_invoice_calls_recompute_invoice_settlement(
     )
     assert r["statusCode"] == 200
     assert touched == [inv_id]
+
+
+def test_resolve_bill_to_primary_contacts_rejects_too_many_family_ids(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    body = {"familyIds": [str(uuid4()) for _ in range(401)]}
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts",
+        authorizer_context=admin_identity,
+        headers={"Content-Type": "application/json"},
+        body=json.dumps(body),
+    )
+    with pytest.raises(ValidationError):
+        admin_billing.handle_admin_billing_request(
+            ev,
+            "POST",
+            "/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts",
+        )
+
+
+def test_resolve_bill_to_primary_contacts_returns_family_primary_map(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.api import admin_billing_dashboard as admin_billing_dashboard_mod
+
+    fam_id = uuid4()
+    contact_id = uuid4()
+    call_count = {"n": 0}
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        class _Sess:
+            def execute(self, _stmt: Any) -> Any:
+                class _Res:
+                    def all(self) -> list[tuple[UUID, UUID, bool, int]]:
+                        call_count["n"] += 1
+                        if call_count["n"] == 1:
+                            return [(fam_id, contact_id, True, 1)]
+                        return []
+
+                return _Res()
+
+        yield _Sess()
+
+    monkeypatch.setattr(admin_billing_dashboard_mod, "_session_with_audit", _fake_session)
+
+    body = {"familyIds": [str(fam_id)]}
+    ev = api_gateway_event(
+        method="POST",
+        path="/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts",
+        authorizer_context=admin_identity,
+        headers={"Content-Type": "application/json"},
+        body=json.dumps(body),
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev,
+        "POST",
+        "/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts",
+    )
+    assert r["statusCode"] == 200
+    payload = json.loads(r["body"])
+    assert payload["familyPrimaryContactById"][str(fam_id)] == str(contact_id)
+    assert payload["organizationPrimaryContactById"] == {}
