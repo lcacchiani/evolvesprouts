@@ -4860,7 +4860,34 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete bulk PDF import job record
+         * @description Permanently removes the `bulk_expense_import_jobs` row when it belongs to the authenticated admin. This does **not** delete expenses that were already created from the job. Pending SQS work for the removed id is acknowledged as a no-op when the worker runs.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Identifier returned from `POST /v1/admin/expenses/import-from-bulk-pdf`. */
+                    job_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Job record deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

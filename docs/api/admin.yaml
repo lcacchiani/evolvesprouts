@@ -51,7 +51,7 @@ info:
     - `GET|POST /v1/admin/expenses`
     - `POST /v1/admin/expenses/import-from-bulk-pdf` (returns **202** with a job id; poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `succeeded`, `succeeded_with_errors`, or `failed`)
     - `GET /v1/admin/expenses/bulk-import-jobs` (creator-scoped list of recent jobs)
-    - `GET /v1/admin/expenses/bulk-import-jobs/{job_id}`
+    - `GET|DELETE /v1/admin/expenses/bulk-import-jobs/{job_id}` (`DELETE` removes the job record for the creator; it does not delete expenses created by the job)
     - `GET|PATCH|DELETE /v1/admin/expenses/{id}`
     - `POST /v1/admin/expenses/{id}/cancel`
     - `POST /v1/admin/expenses/{id}/mark-paid`
@@ -3654,6 +3654,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkImportJobResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete bulk PDF import job record
+      description: >
+        Permanently removes the `bulk_expense_import_jobs` row when it belongs to the
+        authenticated admin. This does **not** delete expenses that were already created from
+        the job. Pending SQS work for the removed id is acknowledged as a no-op when the worker runs.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Job record deleted.
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
