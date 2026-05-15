@@ -1953,7 +1953,10 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
-        /** Update service instance */
+        /**
+         * Update service instance
+         * @description When `status` is set to `completed`, every enrollment on the instance that is still `registered` or `confirmed` is updated to `completed` in the same request (cancelled, waitlisted, and already-completed rows are left unchanged).
+         */
         put: {
             parameters: {
                 query?: never;
