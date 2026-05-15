@@ -72,7 +72,8 @@ their primary responsibilities.
   for standalone CRM notes on a contact (not tied to a sales lead), and `DELETE /v1/admin/contacts/{id}`
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*` (`GET /v1/admin/families` optional `query`
-  matches family name and linked member contacts' names or email; including `DELETE /v1/admin/families/{id}`
+  matches family name and linked member contacts' names or email; `PATCH /v1/admin/families/{id}` with
+  `relationship_type` updates that field on the family and on every member contact; including `DELETE /v1/admin/families/{id}`
   for hard-deleting a family after clearing blocking CRM rows; `POST /v1/admin/families/{id}/members`
   derives each member's role from the linked contact's `contact_type`; `PATCH /v1/admin/families/{id}/members/{memberId}`
   updates membership fields such as primary contact),

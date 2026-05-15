@@ -2402,6 +2402,10 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       summary: Update CRM family
+      description: |
+        When `relationship_type` is present, the server applies the same value to every linked
+        member contact's CRM `relationship_type` (contacts belong to at most one family), so
+        family and member records stay aligned.
       security:
         - AdminBearerAuth: []
       requestBody:
