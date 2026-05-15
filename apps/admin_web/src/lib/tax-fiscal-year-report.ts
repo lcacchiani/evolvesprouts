@@ -34,6 +34,18 @@ function expenseClassificationDate(expense: Expense): {
   return { date: paid, needsInvoiceDateWarning: true };
 }
 
+function revenueClassificationDate(inv: CustomerInvoiceSummary): {
+  date: string | null;
+  needsInvoiceDateWarning: boolean;
+} {
+  const invoiceOk = parseIsoDateOnly(inv.invoiceDate ?? null);
+  if (invoiceOk) {
+    return { date: invoiceOk, needsInvoiceDateWarning: false };
+  }
+  const issued = formatInstantAsHongKongDateString(inv.issuedAt ?? null);
+  return { date: issued, needsInvoiceDateWarning: true };
+}
+
 export function buildTaxFiscalYearRows(
   expenses: Expense[],
   issuedInvoices: CustomerInvoiceSummary[],
@@ -75,8 +87,8 @@ export function buildTaxFiscalYearRows(
     if (inv.status !== 'issued') {
       continue;
     }
-    const issued = formatInstantAsHongKongDateString(inv.issuedAt ?? null);
-    if (!issued || !isDateInInclusiveRange(issued, start, end)) {
+    const { date: revenueDate, needsInvoiceDateWarning } = revenueClassificationDate(inv);
+    if (!revenueDate || !isDateInInclusiveRange(revenueDate, start, end)) {
       continue;
     }
     const name = inv.billToDisplayName?.trim() ?? '';
@@ -85,13 +97,13 @@ export function buildTaxFiscalYearRows(
       name !== '' && num !== '' ? `${name} (${num})` : name !== '' ? name : num !== '' ? num : 'Invoice';
     revenueRows.push({
       kind: 'revenue',
-      classificationDate: issued,
+      classificationDate: revenueDate,
       description,
       currency: inv.currency?.trim().toUpperCase() ?? '',
       amount: inv.total?.trim() ?? '',
       tax: inv.taxTotal?.trim() ?? '',
       referenceId: invId,
-      needsInvoiceDateWarning: false,
+      needsInvoiceDateWarning,
       invoiceNumber: inv.invoiceNumber ?? null,
     });
   }
