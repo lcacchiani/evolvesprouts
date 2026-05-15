@@ -525,17 +525,25 @@ their primary responsibilities.
   the cause and including `finish_reason` / `completion_tokens` rather than
   feeding empty text to `json.loads`.
 - PDF engine fallback: bulk parses iterate over an ordered set of OpenRouter
-  PDF parser engines — the configured engine first, then one alternate
-  (`mistral-ocr` ↔ `pdf-text`; `native` → `mistral-ocr`). Any failure inside
-  the inner pipeline (HTTP error, empty/refused content, unrepairable JSON,
-  unknown wrapper shape, zero rows) advances to the next engine. The S3 read
-  for each attachment happens once and is reused across attempts. The final
-  `RuntimeError` names the engines tried and includes the last underlying
-  error so the persisted job message stays diagnosable.
+  PDF parser engines — the configured engine first, then up to two alternates.
+  For the file-parser-plugin engines the chain ends with `native`, which
+  bypasses the plugin and lets a multimodal model handle the PDF directly:
+  `mistral-ocr` → `pdf-text` → `native`; `pdf-text` → `mistral-ocr` →
+  `native`; `native` → `mistral-ocr` → `pdf-text`. Any failure inside the
+  inner pipeline (HTTP error including file-parser plugin 4xx, empty/refused
+  content, unrepairable JSON, unknown wrapper shape, zero rows) advances to
+  the next engine. The S3 read for each attachment happens once and is
+  reused across attempts. OpenRouter 4xx/5xx error bodies are condensed to
+  their `error.message` + `error.code` before being raised or logged so the
+  persisted bulk-import job row stays readable and does not echo unrelated
+  fields like `user_id` or the full response metadata.
 - Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility;
-  OpenRouter bulk calls cap at **240s** per engine attempt (max two attempts)
-  plus an optional **60s** JSON-repair retry, so DB writes stay inside the
-  Lambda window
+  OpenRouter bulk calls cap at **240s** per engine attempt (max three
+  attempts) plus an optional **60s** JSON-repair retry. Failed engine
+  attempts (e.g. file-parser plugin 4xx) typically return in seconds, so
+  total wall time is dominated by whichever attempt actually runs the model;
+  worst-case sequential 240s timeouts on every engine is the only path that
+  pressures the Lambda window.
 - Concurrency: no per-function reserved concurrency in CDK (shared unreserved pool) so
   deploys remain valid when the account already reserves capacity on other Lambdas
 - Environment:

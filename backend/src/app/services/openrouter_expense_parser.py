@@ -177,17 +177,24 @@ def _attempt_bulk_parse(
 
 
 _PDF_ENGINE_FALLBACKS: dict[str, tuple[str, ...]] = {
-    "mistral-ocr": ("pdf-text",),
-    "pdf-text": ("mistral-ocr",),
-    "native": ("mistral-ocr",),
+    # ``native`` bypasses the OpenRouter file-parser plugin entirely and lets
+    # the (multimodal) model handle the PDF directly, so it is ordered last
+    # for the two plugin-backed engines: when the plugin layer rejects a PDF
+    # with HTTP 4xx, ``native`` is the most likely engine to recover.
+    "mistral-ocr": ("pdf-text", "native"),
+    "pdf-text": ("mistral-ocr", "native"),
+    "native": ("mistral-ocr", "pdf-text"),
 }
 
 
 def _bulk_pdf_engine_attempt_order() -> tuple[str, ...]:
-    """Configured PDF engine first, then one alternate engine.
+    """Configured PDF engine first, then alternates.
 
-    Two attempts maximum to stay inside the bulk-import Lambda timeout
-    budget (~600s with a 240s per-call cap and a 60s repair retry).
+    Up to three attempts. Engine attempts that fail with an HTTP 4xx (such as
+    a file-parser plugin rejection) typically return in seconds, so the wall
+    time stays dominated by whichever attempt actually runs the model. The
+    configured 600s Lambda timeout absorbs the worst-case sequential 240s
+    timeouts only for the rare case where every engine stalls.
     """
     configured = _pdf_parser_engine()
     fallbacks = _PDF_ENGINE_FALLBACKS.get(configured, ())
@@ -248,9 +255,7 @@ def _openrouter_chat_completion(
     status_code = int(response.get("status", 0) or 0)
     body = str(response.get("body", "") or "")
     if status_code < 200 or status_code >= 300:
-        preview = body.replace("\n", " ").replace("\r", " ").strip()
-        if len(preview) > 500:
-            preview = f"{preview[:500]}..."
+        preview = _format_openrouter_error_preview(body)
         logger.warning(
             "OpenRouter request failed",
             extra={"status_code": status_code, "response_preview": preview or None},
@@ -260,6 +265,44 @@ def _openrouter_chat_completion(
             f"OpenRouter request failed with status {status_code}{detail}"
         )
     return body
+
+
+def _format_openrouter_error_preview(body: str) -> str:
+    """Return a short, human-readable summary of an OpenRouter error body.
+
+    OpenRouter typically returns ``{"error": {"message": "...", "code": N,
+    "metadata": {...}}, "user_id": "..."}`` on 4xx/5xx responses. Surface only
+    the actionable message + code so the persisted bulk-import job row stays
+    readable and does not leak unrelated fields like ``user_id`` or the full
+    metadata blob.
+    """
+    text = body.strip()
+    if not text:
+        return ""
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        flat = text.replace("\n", " ").replace("\r", " ")
+        return flat[:500] + ("..." if len(flat) > 500 else "")
+
+    if isinstance(payload, dict):
+        err = payload.get("error")
+        if isinstance(err, dict):
+            message = str(err.get("message") or "").strip()
+            code = err.get("code")
+            if message and code is not None:
+                return f"{message} (code={code})"
+            if message:
+                return message
+            return json.dumps(err)[:500]
+        if isinstance(err, str) and err.strip():
+            return err.strip()[:500]
+        msg = payload.get("message")
+        if isinstance(msg, str) and msg.strip():
+            return msg.strip()[:500]
+
+    flat = text.replace("\n", " ").replace("\r", " ")
+    return flat[:500] + ("..." if len(flat) > 500 else "")
 
 
 def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
