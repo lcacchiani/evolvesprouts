@@ -371,6 +371,26 @@ describe('ClientInvoicesPanel', () => {
       createdAt: '2026-01-01T00:00:00+00:00',
       orphanPaymentDeletable: false,
     });
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [
+        {
+          enrollmentId: eid,
+          partyDisplayName: 'Pat',
+          partyEmail: null,
+          billToKind: 'contact',
+          instanceTitle: 'Spring Workshop',
+          parentServiceTitle: 'Workshop Series',
+          serviceTierName: 'Standard',
+          instanceCohort: 'Group A',
+          amountPaid: '10',
+          currency: 'HKD',
+          enrolledAt: '2026-01-01T00:00:00+00:00',
+          invoiceLinked: true,
+          billToMergeKey: 'k1',
+        },
+      ],
+      truncated: false,
+    });
     billingMocks.listCustomerInvoices.mockResolvedValue({
       items: [],
       next_cursor: null,
@@ -388,6 +408,13 @@ describe('ClientInvoicesPanel', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Update customer payment' })).toBeInTheDocument();
     });
+
+    expect(
+      screen.getByText('Pat · Spring Workshop · Standard · Group A'),
+    ).toBeInTheDocument();
+    expect(
+      (document.getElementById('billing-create-pay-amount') as HTMLInputElement).value,
+    ).toBe('10.00');
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
