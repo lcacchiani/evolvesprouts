@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { RotateIcon, ViewIcon } from '@/components/icons/action-icons';
+import { DeleteIcon, RotateIcon, ViewIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import {
   AdminDataTable,
@@ -17,6 +17,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import {
+  deleteAdminBulkExpenseImportJob,
   getAdminBulkExpenseImportJob,
   listAdminBulkExpenseImportJobs,
   queueAdminBulkExpenseImportJob,
@@ -59,6 +60,9 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
   const [retryTarget, setRetryTarget] = useState<BulkImportJobSummary | null>(null);
   const [retryBusy, setRetryBusy] = useState(false);
   const [retryError, setRetryError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<BulkImportJobSummary | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const loadFirstPage = useCallback(async () => {
     setIsLoading(true);
@@ -148,6 +152,37 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
     setRetryError('');
   }, [retryBusy]);
 
+  const startDelete = useCallback((row: BulkImportJobSummary) => {
+    setDeleteError('');
+    setDeleteTarget(row);
+  }, []);
+
+  const closeDelete = useCallback(() => {
+    if (deleteBusy) {
+      return;
+    }
+    setDeleteTarget(null);
+    setDeleteError('');
+  }, [deleteBusy]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) {
+      return;
+    }
+    setDeleteBusy(true);
+    setDeleteError('');
+    try {
+      await deleteAdminBulkExpenseImportJob(deleteTarget.id);
+      setDeleteTarget(null);
+      await loadFirstPage();
+      onAfterMutation?.();
+    } catch (error) {
+      setDeleteError(toErrorMessage(error, 'Delete failed.'));
+    } finally {
+      setDeleteBusy(false);
+    }
+  }, [deleteTarget, loadFirstPage, onAfterMutation]);
+
   const confirmRetry = useCallback(async () => {
     if (!retryTarget) {
       return;
@@ -193,7 +228,7 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
                 <AdminDataTableHeadCell>Status</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Created</AdminDataTableHeadCell>
                 <AdminDataTableHeadCell>Message</AdminDataTableHeadCell>
-                <AdminDataTableOperationsHeadCell>Icons</AdminDataTableOperationsHeadCell>
+                <AdminDataTableOperationsHeadCell />
               </tr>
             </AdminDataTableHead>
             <AdminDataTableBody>
@@ -245,6 +280,16 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
                       >
                         <RotateIcon className='h-4 w-4' aria-hidden />
                       </Button>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='danger'
+                        aria-label='Delete bulk import job'
+                        title='Remove this job from your recent imports list'
+                        onClick={() => startDelete(row)}
+                      >
+                        <DeleteIcon className='h-4 w-4' aria-hidden />
+                      </Button>
                     </div>
                   </AdminDataTableCell>
                 </tr>
@@ -284,6 +329,21 @@ export function BulkExpenseImportJobsPanel({ onAfterMutation }: BulkExpenseImpor
         dialogRole='dialog'
       >
         {retryError ? <AdminInlineError className='mt-2'>{retryError}</AdminInlineError> : null}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title='Delete bulk import job?'
+        description='This removes the job from your recent imports list. Expenses already created from this import are not deleted.'
+        confirmLabel={deleteBusy ? 'Deleting…' : 'Delete job'}
+        confirmDisabled={deleteBusy}
+        cancelLabel='Cancel'
+        variant='danger'
+        onConfirm={() => void confirmDelete()}
+        onCancel={closeDelete}
+        dialogRole='alertdialog'
+      >
+        {deleteError ? <AdminInlineError className='mt-2'>{deleteError}</AdminInlineError> : null}
       </ConfirmDialog>
     </>
   );

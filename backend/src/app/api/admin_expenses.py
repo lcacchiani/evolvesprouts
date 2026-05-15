@@ -91,12 +91,16 @@ def handle_admin_expenses_request(
         return _list_bulk_expense_import_jobs(event, actor_sub=identity.user_sub)
 
     if len(parts) == 4 and parts[2] == "bulk-import-jobs":
-        if method != "GET":
-            return json_response(405, {"error": "Method not allowed"}, event=event)
         job_id = parse_uuid(parts[3])
-        return _get_bulk_expense_import_job(
-            event, job_id=job_id, actor_sub=identity.user_sub
-        )
+        if method == "GET":
+            return _get_bulk_expense_import_job(
+                event, job_id=job_id, actor_sub=identity.user_sub
+            )
+        if method == "DELETE":
+            return _delete_bulk_expense_import_job(
+                event, job_id=job_id, actor_sub=identity.user_sub
+            )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
     expense_id = parse_uuid(parts[2])
     if len(parts) == 3:
@@ -630,6 +634,25 @@ def _import_expenses_from_bulk_pdf(
         },
         event=event,
     )
+
+
+def _delete_bulk_expense_import_job(
+    event: Mapping[str, Any], *, job_id: UUID, actor_sub: str
+) -> dict[str, Any]:
+    logger.info(
+        "Deleting bulk expense import job",
+        extra={"job_id": str(job_id), "actor": actor_sub},
+    )
+    req_id = request_id(event)
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=req_id)
+        job_repo = BulkExpenseImportJobRepository(session)
+        job = job_repo.get_for_actor(job_id, actor_sub=actor_sub)
+        if job is None:
+            raise NotFoundError("BulkExpenseImportJob", str(job_id))
+        session.delete(job)
+        session.commit()
+    return json_response(204, {}, event=event)
 
 
 def _get_bulk_expense_import_job(

@@ -414,6 +414,14 @@ export async function queueAdminBulkExpenseImportJob(input: {
   return { jobId: parsed.bulkImportJob.id };
 }
 
+export async function deleteAdminBulkExpenseImportJob(jobId: string): Promise<void> {
+  await adminApiRequest({
+    endpointPath: `/v1/admin/expenses/bulk-import-jobs/${jobId.trim()}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [204],
+  });
+}
+
 export async function getAdminBulkExpenseImportJob(
   jobId: string,
   signal?: AbortSignal,
