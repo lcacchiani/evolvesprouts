@@ -183,11 +183,6 @@ export function TopContactSpendersCard({
                 {fxGapMessage}
               </p>
             ) : null}
-            <p className='text-xs text-slate-600'>
-              Totals combine invoices billed to a contact, and invoices billed to a family or organisation
-              (rolled up to each entity&apos;s primary CRM contact). Converted to HKD using the same daily
-              rates as elsewhere in Finance.
-            </p>
             <ol className='list-decimal space-y-2 pl-5 text-sm text-slate-900'>
               {ranked.map((row) => (
                 <li key={row.contactId} className='marker:font-medium'>
