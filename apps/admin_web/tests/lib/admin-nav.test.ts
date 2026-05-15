@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { adminSectionKeyFromPathname } from '@/lib/admin-nav';
 
 describe('adminSectionKeyFromPathname', () => {
+  it('maps dashboard paths to the dashboard section key', () => {
+    expect(adminSectionKeyFromPathname('/dashboard')).toBe('dashboard');
+    expect(adminSectionKeyFromPathname('/dashboard/')).toBe('dashboard');
+  });
+
   it('maps known dashboard paths to section keys', () => {
     expect(adminSectionKeyFromPathname('/sales')).toBe('sales');
     expect(adminSectionKeyFromPathname('/assets')).toBe('assets');
@@ -33,6 +38,7 @@ describe('adminSectionKeyFromPathname', () => {
       'services'
     );
     expect(adminSectionKeyFromPathname('/finance/expenses/')).toBe('finance');
+    expect(adminSectionKeyFromPathname('/dashboard/widgets')).toBe('dashboard');
   });
 
   it('defaults to finance for unknown paths', () => {

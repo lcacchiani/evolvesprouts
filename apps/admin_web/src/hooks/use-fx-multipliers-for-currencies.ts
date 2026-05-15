@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
+import { loadFxMultipliersToAdminDefault, loadFxMultipliersToCurrency } from '@/lib/vendor-spend';
 
 import { toErrorMessage } from './hook-errors';
 
@@ -17,12 +17,14 @@ export interface UseFxMultipliersForCurrenciesResult {
 }
 
 /**
- * Loads Frankfurter-based FX multipliers into the admin default currency for the given codes.
+ * Loads Frankfurter-based FX multipliers for the given codes into the admin default currency,
+ * or into `targetOverrideIso4217` when that three-letter code is provided.
  */
 export function useFxMultipliersForCurrencies(
   currencyCodes: string[],
   enabled: boolean,
-  errorMessage = 'Could not load FX rates for currency conversion.'
+  errorMessage = 'Could not load FX rates for currency conversion.',
+  targetOverrideIso4217?: string,
 ): UseFxMultipliersForCurrenciesResult {
   const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
   const [fxError, setFxError] = useState('');
@@ -50,12 +52,16 @@ export function useFxMultipliersForCurrencies(
     /* eslint-enable react-hooks/set-state-in-effect */
     const codes = codesKey.split(',').filter(Boolean);
     let cancelled = false;
+    const target = targetOverrideIso4217?.trim().toUpperCase();
     void (async () => {
       if (!cancelled) {
         setFxMultipliers(null);
       }
       try {
-        const map = await loadFxMultipliersToAdminDefault(codes);
+        const map =
+          target && /^[A-Z]{3}$/.test(target)
+            ? await loadFxMultipliersToCurrency(codes, target)
+            : await loadFxMultipliersToAdminDefault(codes);
         if (!cancelled) {
           setFxMultipliers(map);
           setFxError('');
@@ -70,7 +76,7 @@ export function useFxMultipliersForCurrencies(
     return () => {
       cancelled = true;
     };
-  }, [enabled, codesKey, errorMessage]);
+  }, [enabled, codesKey, errorMessage, targetOverrideIso4217]);
 
   return { fxMultipliers, fxError };
 }

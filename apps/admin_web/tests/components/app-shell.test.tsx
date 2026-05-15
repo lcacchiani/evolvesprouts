@@ -26,6 +26,26 @@ const navItems = [
 ];
 
 describe('AppShell', () => {
+  it('renders leading navigation above a divider before primary sections', () => {
+    const onLogout = vi.fn();
+    render(
+      <AppShell
+        leadingNavItems={[{ key: 'dash', label: 'Dashboard', href: '/dashboard' }]}
+        navItems={navItems}
+        activeKey='dash'
+        onLogout={onLogout}
+      >
+        <p>Main</p>
+      </AppShell>
+    );
+
+    const nav = document.getElementById('admin-primary-nav');
+    expect(nav).not.toBeNull();
+    expect(nav!.querySelector('.border-t.border-slate-200')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+  });
+
   it('renders navigation links for each section', () => {
     const onLogout = vi.fn();
 

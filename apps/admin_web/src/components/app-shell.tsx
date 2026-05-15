@@ -20,7 +20,34 @@ export interface AppShellNavItem {
   href: string;
 }
 
+function SidebarNavLink({
+  item,
+  activeKey,
+  onNavigate,
+}: {
+  item: AppShellNavItem;
+  activeKey: string;
+  onNavigate: () => void;
+}) {
+  const isActive = item.key === activeKey;
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={isActive ? 'page' : undefined}
+      className={`block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
+        isActive
+          ? 'bg-slate-900 text-white'
+          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+      }`}
+    >
+      {item.label}
+    </Link>
+  );
+}
+
 export interface AppShellProps {
+  leadingNavItems?: AppShellNavItem[];
   navItems: AppShellNavItem[];
   activeKey: string;
   onLogout: () => void;
@@ -56,6 +83,7 @@ function formatTimestamp(value?: string): string | null {
 }
 
 export function AppShell({
+  leadingNavItems,
   navItems,
   activeKey,
   onLogout,
@@ -65,10 +93,13 @@ export function AppShell({
 }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopNavCollapsed, setIsDesktopNavCollapsed] = useState(false);
-  const activeLabel = useMemo(
-    () => navItems.find((item) => item.key === activeKey)?.label ?? '',
-    [activeKey, navItems]
-  );
+  const activeLabel = useMemo(() => {
+    const fromLeading = leadingNavItems?.find((item) => item.key === activeKey)?.label;
+    if (fromLeading) {
+      return fromLeading;
+    }
+    return navItems.find((item) => item.key === activeKey)?.label ?? '';
+  }, [activeKey, navItems, leadingNavItems]);
   const formattedLastLoginTime = formatTimestamp(lastAuthTime);
 
   useEffect(() => {
@@ -195,28 +226,49 @@ export function AppShell({
 
           <nav
             id='admin-primary-nav'
-            className={clsx('space-y-1', isDesktopNavCollapsed && 'lg:hidden')}
+            className={clsx(isDesktopNavCollapsed && 'lg:hidden')}
           >
-            {navItems.map((item) => {
-              const isActive = item.key === activeKey;
-              return (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
-                    isActive
-                      ? 'bg-slate-900 text-white'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            {leadingNavItems && leadingNavItems.length > 0 ? (
+              <>
+                <div className='space-y-1'>
+                  {leadingNavItems.map((item) => (
+                    <SidebarNavLink
+                      key={item.key}
+                      item={item}
+                      activeKey={activeKey}
+                      onNavigate={() => {
+                        setIsMobileMenuOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className='mt-3 space-y-1 border-t border-slate-200 pt-3'>
+                  {navItems.map((item) => (
+                    <SidebarNavLink
+                      key={item.key}
+                      item={item}
+                      activeKey={activeKey}
+                      onNavigate={() => {
+                        setIsMobileMenuOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className='space-y-1'>
+                {navItems.map((item) => (
+                  <SidebarNavLink
+                    key={item.key}
+                    item={item}
+                    activeKey={activeKey}
+                    onNavigate={() => {
+                      setIsMobileMenuOpen(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </nav>
 
           <div

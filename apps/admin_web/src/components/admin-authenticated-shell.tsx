@@ -9,7 +9,11 @@ import { AppShell } from '@/components/app-shell';
 import { useAuth } from '@/components/auth-provider';
 import { LoginScreen } from '@/components/login-screen';
 import { StatusBanner } from '@/components/status-banner';
-import { ADMIN_NAV_ITEMS, adminSectionKeyFromPathname } from '@/lib/admin-nav';
+import {
+  ADMIN_NAV_DASHBOARD,
+  ADMIN_NAV_ITEMS,
+  adminSectionKeyFromPathname,
+} from '@/lib/admin-nav';
 
 export function AdminAuthenticatedShell({ children }: { children: ReactNode }) {
   const { status, user, logout } = useAuth();
@@ -33,6 +37,7 @@ export function AdminAuthenticatedShell({ children }: { children: ReactNode }) {
   if (status === 'authenticated') {
     return (
       <AppShell
+        leadingNavItems={[{ ...ADMIN_NAV_DASHBOARD }]}
         navItems={ADMIN_NAV_ITEMS.map((item) => ({ ...item }))}
         activeKey={activeSectionKey}
         onLogout={logout}
