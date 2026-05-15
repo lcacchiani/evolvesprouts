@@ -5,6 +5,7 @@ export type InvoiceSettlementBadgeInput = {
   isPaid?: boolean | null;
   amountAllocated?: string | null;
   balanceDue?: string | null;
+  total?: string | null;
 };
 
 function parseNonNegativeDecimal(raw: string | null | undefined): number {
@@ -14,6 +15,13 @@ function parseNonNegativeDecimal(raw: string | null | undefined): number {
   }
   const n = Number.parseFloat(t);
   return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function isExplicitZeroDecimal(raw: string | null | undefined): boolean {
+  const t = (raw ?? '').trim();
+  if (t === '') return false;
+  const n = Number.parseFloat(t);
+  return Number.isFinite(n) && n === 0;
 }
 
 /** Toolbar / table copy for issued-invoice settlement; draft and void stay lifecycle labels. */
@@ -26,6 +34,9 @@ export function getInvoiceSettlementBadgeLabel(inv: InvoiceSettlementBadgeInput)
     return 'Void';
   }
   if (st === 'issued') {
+    if (isExplicitZeroDecimal(inv.total)) {
+      return 'No charge';
+    }
     if (inv.isPaid === true) {
       return 'Paid';
     }

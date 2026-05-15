@@ -279,7 +279,7 @@ export function ClientInvoicesPanel() {
     "draft" | "issued" | "void" | ""
   >("");
   const [invoiceSettlementFilter, setInvoiceSettlementFilter] = useState<
-    "open" | "partially_paid" | "paid" | ""
+    "open" | "partially_paid" | "paid" | "no_charge" | ""
   >("");
   const [invoiceCurrencyFilter, setInvoiceCurrencyFilter] = useState("");
   const [invoiceSearchInput, setInvoiceSearchInput] = useState("");
@@ -1976,7 +1976,11 @@ export function ClientInvoicesPanel() {
                   setInvoiceSettlementFilter(
                     e.target.value === ""
                       ? ""
-                      : (e.target.value as "open" | "partially_paid" | "paid"),
+                      : (e.target.value as
+                          | "open"
+                          | "partially_paid"
+                          | "paid"
+                          | "no_charge"),
                   )
                 }
               >
@@ -1984,6 +1988,7 @@ export function ClientInvoicesPanel() {
                 <option value="open">Open</option>
                 <option value="partially_paid">Partially paid</option>
                 <option value="paid">Paid</option>
+                <option value="no_charge">No charge</option>
               </Select>
             </div>
             <div>
