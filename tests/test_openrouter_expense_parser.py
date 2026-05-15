@@ -852,6 +852,20 @@ def test_extract_message_text_raises_on_empty_content_with_stop_finish() -> None
     assert "finish_reason=stop" in msg
 
 
+def test_bulk_schema_prompt_is_simplified_and_handles_single_invoice() -> None:
+    """The bulk prompt must mirror the single parser's tone and explicitly
+    permit single-invoice documents (one-element array)."""
+    prompt = parser._bulk_schema_prompt()
+    assert "single-element array" in prompt
+    assert "card statement" not in prompt, (
+        "removed verbose example that nudged the model into empty responses"
+    )
+    assert "Include every billable row" not in prompt, (
+        "removed aggressive instruction that correlated with empty model output"
+    )
+    assert "skip blank pages" not in prompt
+
+
 def test_parse_bulk_expense_invoices_makes_one_request_like_single_parser(
     monkeypatch: Any,
 ) -> None:
@@ -920,14 +934,15 @@ def test_parse_bulk_expense_invoices_makes_one_request_like_single_parser(
     assert rows[0]["vendor_name"] == "Once Shop"
 
 
-def test_parse_bulk_expense_invoices_surfaces_provider_rate_limit_directly(
+def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
     monkeypatch: Any,
 ) -> None:
-    """A 429 from the provider must surface immediately, not be retried.
+    """A 429 (or any RuntimeError) on the bulk call falls back to the single parser.
 
-    Previously the bulk path retried across three PDF engines on every
-    failure, turning a transient single 429 into a guaranteed three-fold
-    failure (and consuming three requests against the rate-limited account).
+    The fallback gives the single-invoice parser a shot at the document so
+    the user gets at least one row when the document contains one. When the
+    fallback also fails, a combined error message names both failures so
+    neither is hidden.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
@@ -961,22 +976,21 @@ def test_parse_bulk_expense_invoices_surfaces_provider_rate_limit_directly(
             timeout=25,
         )
 
-    assert call_count["n"] == 1, "bulk parser must not retry across engines on 4xx"
+    assert call_count["n"] == 2, "expected bulk + single-fallback = 2 calls"
     msg = str(exc_info.value)
+    assert "Bulk parse failed" in msg
+    assert "single-invoice fallback also failed" in msg
     assert "status 429" in msg
-    assert "Provider returned error" in msg
-    assert "code=429" in msg
-    assert "across" not in msg, "no engine-fallback wrapping on the error"
 
 
-def test_parse_bulk_expense_invoices_surfaces_empty_content_directly(
+def test_parse_bulk_expense_invoices_recovers_via_single_when_bulk_returns_empty(
     monkeypatch: Any,
 ) -> None:
-    """When the model returns empty content the diagnostic surfaces directly.
+    """When the bulk call returns empty content, the single fallback recovers.
 
-    No engine-fallback wrapping (which would multiply requests against a
-    rate-limited account); just the empty-response diagnostic from
-    ``_extract_message_text``.
+    This is the scenario the user reported (model returned 0 tokens on the
+    bulk call). The single-invoice parser is given a shot at the same PDF
+    and any extracted invoice is returned wrapped as a one-element list.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
@@ -995,34 +1009,52 @@ def test_parse_bulk_expense_invoices_surfaces_empty_content_directly(
             ]
         }
     )
+    single_body = _bulk_chat_completion_body(
+        json.dumps(
+            {
+                "vendor_name": "Recovered Shop",
+                "invoice_number": "REC1",
+                "invoice_date": "2026-05-15",
+                "due_date": None,
+                "currency": "USD",
+                "subtotal": 9,
+                "tax": 0,
+                "total": 9,
+                "line_items": [],
+                "confidence": 0.85,
+            }
+        )
+    )
 
     call_count = {"n": 0}
 
     def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
         call_count["n"] += 1
-        return {"status": 200, "body": empty_body}
+        # Call 1 is the bulk attempt (returns empty).
+        # Call 2 is the single-invoice fallback (succeeds).
+        if call_count["n"] == 1:
+            return {"status": 200, "body": empty_body}
+        return {"status": 200, "body": single_body}
 
     monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
     monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
 
-    with pytest.raises(RuntimeError) as exc_info:
-        parser.parse_bulk_expense_invoices_from_assets(
-            [
-                {
-                    "id": "asset-empty-content",
-                    "s3_key": "k",
-                    "file_name": "bulk.pdf",
-                    "content_type": "application/pdf",
-                }
-            ],
-            timeout=25,
-        )
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-empty-content",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
 
-    assert call_count["n"] == 1
-    msg = str(exc_info.value)
-    assert "empty response" in msg
-    assert "finish_reason=stop" in msg
-    assert "across" not in msg
+    assert call_count["n"] == 2, "expected bulk + single-fallback = 2 calls"
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Recovered Shop"
+    assert rows[0]["total"] == 9.0
 
 
 def test_format_openrouter_error_preview_extracts_message_and_code() -> None:
@@ -1081,9 +1113,10 @@ def test_openrouter_chat_completion_4xx_raises_clean_error(monkeypatch: Any) -> 
     assert "metadata" not in msg
 
 
-def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns_empty_object(
+def test_parse_bulk_expense_invoices_falls_back_to_single_when_model_returns_empty_object(
     monkeypatch: Any,
 ) -> None:
+    """An empty {} (zero rows) triggers the single-invoice fallback."""
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
 
@@ -1091,32 +1124,50 @@ def test_parse_bulk_expense_invoices_raises_descriptive_error_when_model_returns
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
             return {"Body": _FakeBody(b"%PDF-1.4")}
 
+    bulk_body = _bulk_chat_completion_body("{}")
+    single_body = _bulk_chat_completion_body(
+        json.dumps(
+            {
+                "vendor_name": "Solo Shop",
+                "invoice_number": "S1",
+                "invoice_date": "2026-05-15",
+                "due_date": None,
+                "currency": "USD",
+                "subtotal": 3,
+                "tax": 0,
+                "total": 3,
+                "line_items": [],
+                "confidence": 0.7,
+            }
+        )
+    )
+
+    call_count = {"n": 0}
+
     def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
-        return {
-            "status": 200,
-            "body": _bulk_chat_completion_body("{}"),
-        }
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return {"status": 200, "body": bulk_body}
+        return {"status": 200, "body": single_body}
 
     monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
     monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
 
-    with pytest.raises(RuntimeError) as exc_info:
-        parser.parse_bulk_expense_invoices_from_assets(
-            [
-                {
-                    "id": "asset-empty",
-                    "s3_key": "k",
-                    "file_name": "bulk.pdf",
-                    "content_type": "application/pdf",
-                }
-            ],
-            timeout=25,
-        )
+    rows = parser.parse_bulk_expense_invoices_from_assets(
+        [
+            {
+                "id": "asset-empty",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ],
+        timeout=25,
+    )
 
-    msg = str(exc_info.value)
-    assert "no invoice rows" in msg
-    assert "image-only" in msg
-    assert "<empty object>" not in msg
+    assert call_count["n"] == 2
+    assert len(rows) == 1
+    assert rows[0]["vendor_name"] == "Solo Shop"
 
 
 def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(
