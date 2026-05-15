@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
+from types import SimpleNamespace
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -8,7 +10,8 @@ import pytest
 
 from app.api import admin_enrollments
 from app.api.admin_services_payloads import parse_update_enrollment_payload
-from app.db.models.enums import BillingBillToKind, EnrollmentStatus
+from app.db.models import Contact, Family
+from app.db.models.enums import BillingBillToKind, EnrollmentStatus, RelationshipType
 from app.exceptions import ValidationError
 
 
@@ -361,11 +364,25 @@ def test_parse_update_enrollment_payload_rejects_both_promote_fields() -> None:
         )
 
 
+class _FakeScalarResult:
+    def __init__(self, rows: list[Any]) -> None:
+        self._rows = rows
+
+    def __iter__(self) -> Iterator[Any]:
+        return iter(self._rows)
+
+    def all(self) -> list[Any]:
+        return self._rows
+
+
 def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_gateway_event: Any) -> None:
     target_instance_id = uuid4()
     enrollment_id = uuid4()
     contact_uuid = uuid4()
     family_id = uuid4()
+    member_id = uuid4()
+    family_row = SimpleNamespace(id=family_id, relationship_type=RelationshipType.PROSPECT)
+    member_contact = SimpleNamespace(id=member_id, relationship_type=RelationshipType.PROSPECT)
 
     class _MutableEnrollment:
         instance_id = target_instance_id
@@ -402,13 +419,22 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
             pass
 
     class _FakeSession:
+        def __init__(self) -> None:
+            self._scalar_queues: list[list[Any]] = [[member_id]]
+
         def commit(self) -> None:
             return None
 
+        def scalars(self, _stmt: object) -> _FakeScalarResult:
+            if not self._scalar_queues:
+                raise AssertionError("unexpected scalars() call")
+            return _FakeScalarResult(self._scalar_queues.pop(0))
+
         def get(self, model: Any, eid: Any) -> Any:
-            name = getattr(model, "__name__", "")
-            if name == "Family" and eid == family_id:
-                return object()
+            if model is Family and eid == family_id:
+                return family_row
+            if model is Contact and eid == member_id:
+                return member_contact
             return None
 
     class _SessionCtx:
@@ -475,6 +501,8 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
     assert row.bill_to_kind == BillingBillToKind.FAMILY
     assert row.bill_to_family_id == family_id
     assert row.bill_to_contact_id is None
+    assert family_row.relationship_type == RelationshipType.CLIENT
+    assert member_contact.relationship_type == RelationshipType.CLIENT
 
 
 def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gateway_event: Any) -> None:

@@ -139,6 +139,31 @@ def test_confirm_family_promotes_family_and_members() -> None:
     assert contact2.relationship_type == RelationshipType.CLIENT
 
 
+def test_promote_prospect_party_for_enrollment_family_and_members() -> None:
+    """Public helper promotes family + member contacts (used outside billing confirmation)."""
+    fid = uuid4()
+    c1, c2 = uuid4(), uuid4()
+    en = SimpleNamespace(
+        organization_id=None,
+        family_id=fid,
+        contact_id=None,
+    )
+    fam = SimpleNamespace(id=fid, relationship_type=RelationshipType.PROSPECT)
+    contact1 = SimpleNamespace(id=c1, relationship_type=RelationshipType.PROSPECT)
+    contact2 = SimpleNamespace(id=c2, relationship_type=RelationshipType.CLIENT)
+    session = _FakeSession()
+    session.scalar_queues.append([c1, c2])
+    session.families[fid] = fam
+    session.contacts[c1] = contact1
+    session.contacts[c2] = contact2
+
+    bec.promote_prospect_party_for_enrollment(session, en)  # type: ignore[arg-type]
+
+    assert fam.relationship_type == RelationshipType.CLIENT
+    assert contact1.relationship_type == RelationshipType.CLIENT
+    assert contact2.relationship_type == RelationshipType.CLIENT
+
+
 def test_confirm_org_promotes_org_and_prospect_members_only() -> None:
     eid = uuid4()
     oid = uuid4()
