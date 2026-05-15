@@ -516,20 +516,30 @@ their primary responsibilities.
   fails `json.loads` (most often unescaped quotes inside line-item descriptions),
   the parser logs a redacted ±80-char snippet around the failure offset and
   retries once with a JSON-repair chat completion (no PDF re-attached, capped at
-  60s). A second failure marks the job `failed` with a snippet-bearing message
-  instead of a bare `JSONDecodeError`.   Once the response parses, the bulk parser
-  tolerates several wrapper shapes — alias keys (`invoices`, `records`, `data`,
-  `results`, `rows`, `items`, `expenses`, `transactions`, `charges`, `entries`),
-  any single unknown list-of-dicts value, or a top-level dict that itself looks
-  like one invoice (wrapped to a one-row import). An empty top-level object
-  (`{}`, the model's only way of saying "nothing to extract" under JSON mode)
-  is treated as zero rows and produces an actionable "no invoice rows in this
-  document" message instead of a wrapper-shape error. When none of the shapes
-  match, the job `failed` message reports the actual top-level keys for
-  diagnosis.
-- Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility; OpenRouter bulk
-  calls cap at **240s** plus an optional **60s** JSON-repair retry, so DB writes
-  stay inside the Lambda window
+  60s). A second failure surfaces a snippet-bearing message instead of a bare
+  `JSONDecodeError`. Once the response parses, the bulk parser tolerates several
+  wrapper shapes — alias keys (`invoices`, `records`, `data`, `results`, `rows`,
+  `items`, `expenses`, `transactions`, `charges`, `entries`), any single unknown
+  list-of-dicts value, or a top-level dict that itself looks like one invoice
+  (wrapped to a one-row import). An empty top-level object (`{}`, the model's
+  only way of saying "nothing to extract" under JSON mode) is treated as zero
+  rows. When the model returns no usable text at all (empty `content`, refusal,
+  `finish_reason=length` truncation, content-filter block, or top-level error
+  in the OpenRouter envelope), the parser raises a diagnostic message naming
+  the cause and including `finish_reason` / `completion_tokens` rather than
+  feeding empty text to `json.loads`.
+- PDF engine fallback: bulk parses iterate over an ordered set of OpenRouter
+  PDF parser engines — the configured engine first, then one alternate
+  (`mistral-ocr` ↔ `pdf-text`; `native` → `mistral-ocr`). Any failure inside
+  the inner pipeline (HTTP error, empty/refused content, unrepairable JSON,
+  unknown wrapper shape, zero rows) advances to the next engine. The S3 read
+  for each attachment happens once and is reused across attempts. The final
+  `RuntimeError` names the engines tried and includes the last underlying
+  error so the persisted job message stays diagnosable.
+- Timeout / budget: **600s** Lambda timeout with **720s** SQS visibility;
+  OpenRouter bulk calls cap at **240s** per engine attempt (max two attempts)
+  plus an optional **60s** JSON-repair retry, so DB writes stay inside the
+  Lambda window
 - Concurrency: no per-function reserved concurrency in CDK (shared unreserved pool) so
   deploys remain valid when the account already reserves capacity on other Lambdas
 - Environment:
