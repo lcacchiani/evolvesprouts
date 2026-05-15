@@ -1,7 +1,7 @@
 import type { CustomerInvoiceSummary } from '@/lib/billing-api';
 import { parseMoneyAmountString } from '@/lib/vendor-spend';
 
-export const TOP_CONTACT_SPENDERS_TARGET_CURRENCY = 'HKD' as const;
+export const TOP_CONTACT_SPENDERS_HKD = 'HKD' as const;
 export const TOP_CONTACT_SPENDERS_LIMIT = 10;
 
 export function collectBillToFamilyAndOrganizationIds(
@@ -81,8 +81,8 @@ export function aggregateIssuedInvoiceSpendByRollupContact(
       continue;
     }
 
-    const currency = (inv.currency ?? TOP_CONTACT_SPENDERS_TARGET_CURRENCY).trim().toUpperCase();
-    const effectiveCurrency = currency || TOP_CONTACT_SPENDERS_TARGET_CURRENCY;
+    const currency = (inv.currency ?? TOP_CONTACT_SPENDERS_HKD).trim().toUpperCase();
+    const effectiveCurrency = currency || TOP_CONTACT_SPENDERS_HKD;
 
     let row = byContact.get(rollupId);
     if (!row) {
@@ -114,7 +114,7 @@ export function rankContactSpendersForHkd(
   fxToHkd: Map<string, number>,
   limit: number,
 ): RankedContactSpender[] {
-  const target = TOP_CONTACT_SPENDERS_TARGET_CURRENCY;
+  const target = TOP_CONTACT_SPENDERS_HKD;
   const rows: RankedContactSpender[] = [];
 
   for (const [contactId, row] of aggregates) {
