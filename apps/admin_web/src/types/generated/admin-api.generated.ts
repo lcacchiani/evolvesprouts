@@ -3315,7 +3315,12 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update CRM family */
+        /**
+         * Update CRM family
+         * @description When `relationship_type` is present, the server applies the same value to every linked
+         *     member contact's CRM `relationship_type` (contacts belong to at most one family), so
+         *     family and member records stay aligned.
+         */
         patch: {
             parameters: {
                 query?: never;
