@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { adminSectionKeyFromPathname } from '@/lib/admin-nav';
 
 describe('adminSectionKeyFromPathname', () => {
+  it('maps dashboard paths to the dashboard section key', () => {
+    expect(adminSectionKeyFromPathname('/dashboard')).toBe('dashboard');
+    expect(adminSectionKeyFromPathname('/dashboard/')).toBe('dashboard');
+  });
+
   it('maps known dashboard paths to section keys', () => {
     expect(adminSectionKeyFromPathname('/sales')).toBe('sales');
     expect(adminSectionKeyFromPathname('/assets')).toBe('assets');
@@ -25,6 +30,11 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/services/')).toBe('services');
     expect(adminSectionKeyFromPathname('/tags/')).toBe('tags');
     expect(adminSectionKeyFromPathname('/website/')).toBe('website');
+  });
+
+  it('treats paths under /dashboard as the dashboard section, including nested paths', () => {
+    expect(adminSectionKeyFromPathname('/dashboard/finance')).toBe('dashboard');
+    expect(adminSectionKeyFromPathname('/dashboard/widgets')).toBe('dashboard');
   });
 
   it('matches nested paths under a section as that section', () => {

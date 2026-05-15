@@ -1,3 +1,9 @@
+export const ADMIN_NAV_DASHBOARD = {
+  key: 'dashboard',
+  label: 'Dashboard',
+  href: '/dashboard',
+} as const;
+
 export const ADMIN_NAV_ITEMS = [
   { key: 'assets', label: 'Assets', href: '/assets' },
   { key: 'audit', label: 'Audit', href: '/audit' },
@@ -10,10 +16,13 @@ export const ADMIN_NAV_ITEMS = [
   { key: 'website', label: 'Website', href: '/website' },
 ] as const;
 
-export type AdminSectionKey = (typeof ADMIN_NAV_ITEMS)[number]['key'];
+export type AdminSectionKey =
+  | (typeof ADMIN_NAV_DASHBOARD)['key']
+  | (typeof ADMIN_NAV_ITEMS)[number]['key'];
 
 export const DEFAULT_ADMIN_SECTION_PATH = '/finance' as const;
 
+/** Default shell section when pathname is unknown; sign-in landing stays Finance (see `.cursorrules` admin shell). */
 export const DEFAULT_ADMIN_SECTION_KEY: AdminSectionKey = 'finance';
 
 function normalizePathname(pathname: string | null | undefined): string {
@@ -30,6 +39,12 @@ export function adminSectionKeyFromPathname(
   pathname: string | null | undefined
 ): AdminSectionKey {
   const normalized = normalizePathname(pathname);
+  if (
+    normalized === ADMIN_NAV_DASHBOARD.href ||
+    normalized.startsWith(`${ADMIN_NAV_DASHBOARD.href}/`)
+  ) {
+    return ADMIN_NAV_DASHBOARD.key;
+  }
   const exact = ADMIN_NAV_ITEMS.find((item) => item.href === normalized);
   if (exact) {
     return exact.key;

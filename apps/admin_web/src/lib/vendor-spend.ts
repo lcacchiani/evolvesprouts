@@ -110,25 +110,35 @@ export function parseMoneyAmountString(value: string | null | undefined): number
 }
 
 /**
- * Loads Frankfurter multipliers from each ISO code into the admin default currency (see
- * {@link getAdminDefaultCurrencyCode}). Same conversion basis as vendor spend totals.
+ * Loads Frankfurter multipliers from each ISO code into `targetCurrency` (for example HKD).
  */
-export async function loadFxMultipliersToAdminDefault(fromIsoCodes: Iterable<string>): Promise<Map<string, number>> {
-  const targetCurrency = getAdminDefaultCurrencyCode();
+export async function loadFxMultipliersToCurrency(
+  fromIsoCodes: Iterable<string>,
+  targetCurrency: string,
+): Promise<Map<string, number>> {
+  const target = targetCurrency.trim().toUpperCase();
   const unique = Array.from(
     new Set(
       Array.from(fromIsoCodes, (raw) => raw.trim().toUpperCase()).filter(
-        (code) => Boolean(code) && code !== targetCurrency,
+        (code) => Boolean(code) && code !== target,
       ),
     ),
   );
   const multipliers = new Map<string, number>();
   await Promise.all(
     unique.map(async (code) => {
-      multipliers.set(code, await getCurrencyConversionMultiplier(code, targetCurrency));
+      multipliers.set(code, await getCurrencyConversionMultiplier(code, target));
     }),
   );
   return multipliers;
+}
+
+/**
+ * Loads Frankfurter multipliers from each ISO code into the admin default currency (see
+ * {@link getAdminDefaultCurrencyCode}). Same conversion basis as vendor spend totals.
+ */
+export async function loadFxMultipliersToAdminDefault(fromIsoCodes: Iterable<string>): Promise<Map<string, number>> {
+  return loadFxMultipliersToCurrency(fromIsoCodes, getAdminDefaultCurrencyCode());
 }
 
 /**

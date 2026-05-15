@@ -17,10 +17,15 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useFxMultipliersForCurrencies } from '@/hooks/use-fx-multipliers-for-currencies';
-import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import {
+  ADMIN_TAX_FISCAL_YEAR_EMPTY_MESSAGE,
+  MIN_ADMIN_TAX_FISCAL_YEAR_START,
+  enumerateAdminTaxFiscalYearStartYears,
+} from '@/lib/admin-tax-fiscal-year';
 import { listAllCustomerInvoices, type CustomerInvoiceSummary } from '@/lib/billing-api';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
-import { enumerateFiscalYearStartYears, getFiscalYearRangeInclusive } from '@/lib/fiscal-year';
+import { getFiscalYearRangeInclusive } from '@/lib/fiscal-year';
 import { formatDateOnly, formatEnumLabel } from '@/lib/format';
 import {
   buildTaxFiscalYearRows,
@@ -30,9 +35,6 @@ import {
 } from '@/lib/tax-fiscal-year-report';
 import { formatMoneyLineWithFxToDefault } from '@/lib/vendor-spend';
 import { EXPENSE_STATUSES, type Expense, type ExpenseStatus } from '@/types/expenses';
-
-/** Earliest Hong Kong FY start year offered in the selector (April Y → March Y+1). */
-const MIN_FISCAL_YEAR_START = 2024;
 
 function isTaxDisplayedAsDash(tax: string | undefined): boolean {
   const t = tax?.trim() ?? '';
@@ -47,7 +49,7 @@ export function TaxFiscalYearPanel() {
   const fySelectId = useId();
   const expenseStatusSelectId = useId();
   const [fyStartYear, setFyStartYear] = useState(
-    () => Math.max(MIN_FISCAL_YEAR_START, defaultFiscalYearStartYear()),
+    () => Math.max(MIN_ADMIN_TAX_FISCAL_YEAR_START, defaultFiscalYearStartYear()),
   );
   const [expenseStatusFilter, setExpenseStatusFilter] = useState<ExpenseStatus>('paid');
   const [loadError, setLoadError] = useState('');
@@ -107,11 +109,7 @@ export function TaxFiscalYearPanel() {
 
   const fyMeta = useMemo(() => getFiscalYearRangeInclusive(fyStartYear), [fyStartYear]);
 
-  const fyYearOptions = useMemo(() => {
-    const cur = defaultFiscalYearStartYear();
-    const throughYear = Math.max(cur + 1, MIN_FISCAL_YEAR_START);
-    return enumerateFiscalYearStartYears(MIN_FISCAL_YEAR_START, throughYear);
-  }, []);
+  const fyYearOptions = useMemo(() => enumerateAdminTaxFiscalYearStartYears(), []);
 
   const downloadCsv = useCallback(() => {
     const csv = taxFiscalYearRowsToCsv(rows);
@@ -147,11 +145,15 @@ export function TaxFiscalYearPanel() {
               onChange={(event) => setFyStartYear(Number.parseInt(event.target.value, 10))}
               disabled={isLoading || Boolean(tableError)}
             >
-              {fyYearOptions.map((y) => (
-                <option key={y} value={y}>
-                  {y} - {y + 1}
-                </option>
-              ))}
+              {fyYearOptions.map((y) => {
+                const range = getFiscalYearRangeInclusive(y);
+                const label = `${range.start.slice(0, 4)} - ${range.end.slice(0, 4)}`;
+                return (
+                  <option key={y} value={y}>
+                    {label}
+                  </option>
+                );
+              })}
             </Select>
           </div>
           <div className='min-w-[180px]'>
@@ -195,7 +197,7 @@ export function TaxFiscalYearPanel() {
           {!isLoading && !tableError && rows.length === 0 ? (
             <tr>
               <AdminDataTableCell colSpan={6} className='py-6 text-slate-600'>
-                No expense or revenue rows in this fiscal year.
+                {ADMIN_TAX_FISCAL_YEAR_EMPTY_MESSAGE}
               </AdminDataTableCell>
             </tr>
           ) : null}

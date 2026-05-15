@@ -277,10 +277,9 @@ repo root
 These rules are the product standard for admin UI consistency. Future changes
 should extend the shared primitives rather than reintroducing one-off layouts.
 
-- **Top-level navigation** (`ADMIN_NAV_ITEMS` in `apps/admin_web/src/lib/admin-nav.ts`, rendered by
-  `apps/admin_web/src/components/admin-authenticated-shell.tsx`) must list areas
-  alphabetically: **Assets**, **Audit**, **Calendar**, **Contacts**, **Finance**, **Sales**, **Services**, **Tags**, **Website**. The default
-  section after sign-in is **Finance** unless product requirements change.
+- **Top-level navigation** (`ADMIN_NAV_ITEMS` and `ADMIN_NAV_DASHBOARD` in `apps/admin_web/src/lib/admin-nav.ts`, rendered by
+  `apps/admin_web/src/components/admin-authenticated-shell.tsx`): **Dashboard** is a fixed leading entry (above a divider), then the primary areas listed alphabetically: **Assets**, **Audit**, **Calendar**, **Contacts**, **Finance**, **Sales**, **Services**, **Tags**, **Website**. The default
+  section after sign-in remains **Finance** (including the root `/` redirect to `DEFAULT_ADMIN_SECTION_PATH`); Dashboard is available from the nav but is not the default landing route unless product requirements change.
 - **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
   must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`
   instead of ad-hoc button rows. It is implemented as a **button group** (`role="group"`,

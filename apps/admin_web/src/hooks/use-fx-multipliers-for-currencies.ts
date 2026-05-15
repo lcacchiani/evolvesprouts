@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { loadFxMultipliersToAdminDefault } from '@/lib/vendor-spend';
+import { loadFxMultipliersToAdminDefault, loadFxMultipliersToCurrency } from '@/lib/vendor-spend';
 
 import { toErrorMessage } from './hook-errors';
 
@@ -16,16 +16,29 @@ export interface UseFxMultipliersForCurrenciesResult {
   fxError: string;
 }
 
+const DEFAULT_ERROR_MESSAGE = 'Could not load FX rates for currency conversion.';
+
+export interface UseFxMultipliersForCurrenciesOptions {
+  errorMessage?: string;
+  /** When set to a valid ISO 4217 code, loads multipliers into that currency instead of the admin default. */
+  targetCurrency?: string;
+}
+
 /**
- * Loads Frankfurter-based FX multipliers into the admin default currency for the given codes.
+ * Loads Frankfurter-based FX multipliers into the admin default currency, or into
+ * {@link UseFxMultipliersForCurrenciesOptions.targetCurrency} when provided and valid.
  */
 export function useFxMultipliersForCurrencies(
   currencyCodes: string[],
   enabled: boolean,
-  errorMessage = 'Could not load FX rates for currency conversion.'
+  options?: UseFxMultipliersForCurrenciesOptions,
 ): UseFxMultipliersForCurrenciesResult {
   const [fxMultipliers, setFxMultipliers] = useState<Map<string, number> | null>(null);
   const [fxError, setFxError] = useState('');
+
+  const errorMessage = options?.errorMessage ?? DEFAULT_ERROR_MESSAGE;
+  const rawTargetCurrency = options?.targetCurrency?.trim() ?? '';
+  const normalizedTargetCurrency = rawTargetCurrency.toUpperCase();
 
   const codesKey = useMemo(() => {
     const unique = [...new Set(currencyCodes.map((c) => c.trim().toUpperCase()).filter(Boolean))];
@@ -50,12 +63,28 @@ export function useFxMultipliersForCurrencies(
     /* eslint-enable react-hooks/set-state-in-effect */
     const codes = codesKey.split(',').filter(Boolean);
     let cancelled = false;
+
+    let useTargetOverride = false;
+    let targetForLoad = '';
+    if (rawTargetCurrency) {
+      if (/^[A-Z]{3}$/.test(normalizedTargetCurrency)) {
+        useTargetOverride = true;
+        targetForLoad = normalizedTargetCurrency;
+      } else if (process.env.NODE_ENV !== 'production' && typeof console !== 'undefined' && console.warn) {
+        console.warn(
+          `useFxMultipliersForCurrencies: invalid targetCurrency "${rawTargetCurrency}"; using admin default currency.`,
+        );
+      }
+    }
+
     void (async () => {
       if (!cancelled) {
         setFxMultipliers(null);
       }
       try {
-        const map = await loadFxMultipliersToAdminDefault(codes);
+        const map = useTargetOverride
+          ? await loadFxMultipliersToCurrency(codes, targetForLoad)
+          : await loadFxMultipliersToAdminDefault(codes);
         if (!cancelled) {
           setFxMultipliers(map);
           setFxError('');
@@ -70,7 +99,7 @@ export function useFxMultipliersForCurrencies(
     return () => {
       cancelled = true;
     };
-  }, [enabled, codesKey, errorMessage]);
+  }, [enabled, codesKey, errorMessage, rawTargetCurrency, normalizedTargetCurrency]);
 
   return { fxMultipliers, fxError };
 }
