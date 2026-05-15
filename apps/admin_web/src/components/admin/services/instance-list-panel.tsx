@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import type { InstancesListStatusFilter } from '@/hooks/use-services-page';
 import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import {
   formatEnumLabel,
@@ -64,6 +65,11 @@ export interface InstanceListPanelProps {
     value: string;
     onChange: (serviceType: string) => void;
   };
+  /** When set, show an instance lifecycle status filter above the table. */
+  statusFilter?: {
+    value: InstancesListStatusFilter;
+    onChange: (value: InstancesListStatusFilter) => void;
+  };
   searchFilter?: {
     value: string;
     onChange: (value: string) => void;
@@ -88,6 +94,7 @@ export function InstanceListPanel({
   onDeleteInstance,
   serviceFilter,
   serviceTypeFilter,
+  statusFilter,
   searchFilter,
   showServiceColumn = false,
   locationOptions = [],
@@ -147,12 +154,12 @@ export function InstanceListPanel({
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
         toolbar={
-          serviceFilter || serviceTypeFilter || searchFilter ? (
+          serviceFilter || serviceTypeFilter || statusFilter || searchFilter ? (
             <div className='mb-3 flex w-full min-w-0 flex-nowrap items-end gap-3'>
               {searchFilter ? (
                 <div
                   className={
-                    serviceTypeFilter || serviceFilter ? 'min-w-0 flex-[2]' : 'min-w-[220px] flex-1'
+                    serviceTypeFilter || statusFilter || serviceFilter ? 'min-w-0 flex-[2]' : 'min-w-[220px] flex-1'
                   }
                 >
                   <Label htmlFor='instances-filter-search'>Search instances</Label>
@@ -178,6 +185,25 @@ export function InstanceListPanel({
                         {formatEnumLabel(serviceType)}
                       </option>
                     ))}
+                  </Select>
+                </div>
+              ) : null}
+              {statusFilter ? (
+                <div className='min-w-0 flex-1'>
+                  <Label htmlFor='instances-filter-status'>Instance statuses</Label>
+                  <Select
+                    id='instances-filter-status'
+                    value={statusFilter.value}
+                    onChange={(event) => {
+                      const raw = event.target.value;
+                      if (raw === '' || raw === 'not_completed' || raw === 'completed') {
+                        statusFilter.onChange(raw);
+                      }
+                    }}
+                  >
+                    <option value=''>All statuses</option>
+                    <option value='not_completed'>Not Completed</option>
+                    <option value='completed'>Completed</option>
                   </Select>
                 </div>
               ) : null}
