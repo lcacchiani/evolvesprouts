@@ -242,7 +242,13 @@ export function AppShell({
                     />
                   ))}
                 </div>
-                <div className='mt-3 space-y-1 border-t border-slate-200 pt-3'>
+                <div
+                  className='mt-3 border-t border-slate-200'
+                  data-testid='leading-nav-divider'
+                  role='separator'
+                  aria-orientation='horizontal'
+                />
+                <div className='space-y-1 pt-3'>
                   {navItems.map((item) => (
                     <SidebarNavLink
                       key={item.key}

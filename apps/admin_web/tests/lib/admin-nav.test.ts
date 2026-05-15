@@ -32,13 +32,17 @@ describe('adminSectionKeyFromPathname', () => {
     expect(adminSectionKeyFromPathname('/website/')).toBe('website');
   });
 
+  it('treats paths under /dashboard as the dashboard section, including nested paths', () => {
+    expect(adminSectionKeyFromPathname('/dashboard/finance')).toBe('dashboard');
+    expect(adminSectionKeyFromPathname('/dashboard/widgets')).toBe('dashboard');
+  });
+
   it('matches nested paths under a section as that section', () => {
     expect(adminSectionKeyFromPathname('/sales/leads/abc-123')).toBe('sales');
     expect(adminSectionKeyFromPathname('/services/instances/')).toBe(
       'services'
     );
     expect(adminSectionKeyFromPathname('/finance/expenses/')).toBe('finance');
-    expect(adminSectionKeyFromPathname('/dashboard/widgets')).toBe('dashboard');
   });
 
   it('defaults to finance for unknown paths', () => {

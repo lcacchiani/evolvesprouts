@@ -1,63 +1,49 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
-import { Select } from '@/components/ui/select';
 import { DashboardCard } from '@/components/admin/dashboard/dashboard-card';
-import { toErrorMessage } from '@/hooks/hook-errors';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { useFxMultipliersForCurrencies } from '@/hooks/use-fx-multipliers-for-currencies';
-import { listAllCustomerInvoices, type CustomerInvoiceSummary } from '@/lib/billing-api';
-import { sumTaxFiscalYearKindInHkd } from '@/lib/dashboard-tax-position-sums';
-import { listAllAdminExpenses } from '@/lib/expenses-api';
-import { buildTaxFiscalYearRows } from '@/lib/tax-fiscal-year-report';
-import { formatAmountInCurrency } from '@/lib/vendor-spend';
+import {
+  ADMIN_TAX_FISCAL_YEAR_EMPTY_MESSAGE,
+  MIN_ADMIN_TAX_FISCAL_YEAR_START,
+  enumerateAdminTaxFiscalYearStartYears,
+} from '@/lib/admin-tax-fiscal-year';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import type { CustomerInvoiceSummary } from '@/lib/billing-api';
+import { sumTaxFiscalYearKindWithFxCoverage } from '@/lib/dashboard-tax-position-sums';
+import { getFiscalYearRangeInclusive } from '@/lib/fiscal-year';
+import {
+  buildTaxFiscalYearRows,
+  defaultFiscalYearStartYear,
+} from '@/lib/tax-fiscal-year-report';
+import { formatAmountInDefaultCurrency } from '@/lib/vendor-spend';
 import type { Expense, ExpenseStatus } from '@/types/expenses';
 
 const TAX_POSITION_EXPENSE_STATUS: ExpenseStatus = 'paid';
 
-const FISCAL_YEAR_OPTIONS = [
-  { label: '2025 - 2026', startYear: 2025 },
-  { label: '2027 - 2027', startYear: 2027 },
-] as const;
+export interface TaxPositionCardProps {
+  expenses: Expense[] | null;
+  issuedInvoices: CustomerInvoiceSummary[] | null;
+  loadError: string;
+  isLoading: boolean;
+}
 
-export function TaxPositionCard() {
+export function TaxPositionCard({
+  expenses: expensesPayload,
+  issuedInvoices: issuedInvoicesPayload,
+  loadError,
+  isLoading,
+}: TaxPositionCardProps) {
   const selectId = useId();
-  const [fyStartYear, setFyStartYear] = useState<number>(FISCAL_YEAR_OPTIONS[0].startYear);
-  const [loadError, setLoadError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [expensesPayload, setExpensesPayload] = useState<Expense[] | null>(null);
-  const [issuedInvoicesPayload, setIssuedInvoicesPayload] = useState<CustomerInvoiceSummary[] | null>(null);
+  const defaultCurrency = useMemo(() => getAdminDefaultCurrencyCode(), []);
+  const [fyStartYear, setFyStartYear] = useState(
+    () => Math.max(MIN_ADMIN_TAX_FISCAL_YEAR_START, defaultFiscalYearStartYear()),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      setIsLoading(true);
-      setLoadError('');
-      try {
-        const [expenses, invoices] = await Promise.all([
-          listAllAdminExpenses(),
-          listAllCustomerInvoices({ status: 'issued' }),
-        ]);
-        if (!cancelled) {
-          setExpensesPayload(expenses);
-          setIssuedInvoicesPayload(invoices);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setLoadError(toErrorMessage(error, 'Could not load data.'));
-          setExpensesPayload([]);
-          setIssuedInvoicesPayload([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const fyYearOptions = useMemo(() => enumerateAdminTaxFiscalYearStartYears(), []);
 
   const rows = useMemo(() => {
     if (!expensesPayload || !issuedInvoicesPayload) {
@@ -74,67 +60,121 @@ export function TaxPositionCard() {
   const foreignFxCodes = useMemo(() => {
     const set = new Set<string>();
     for (const row of rows) {
-      const c = row.currency?.trim().toUpperCase() || 'HKD';
-      if (c !== 'HKD') {
+      const c = row.currency?.trim().toUpperCase() || defaultCurrency;
+      if (c !== defaultCurrency) {
         set.add(c);
       }
     }
     return Array.from(set);
-  }, [rows]);
+  }, [rows, defaultCurrency]);
 
   const taxFxEnabled =
     foreignFxCodes.length > 0 && Boolean(expensesPayload && issuedInvoicesPayload && !isLoading);
 
-  const { fxMultipliers, fxError } = useFxMultipliersForCurrencies(
-    foreignFxCodes,
-    taxFxEnabled,
-    'Could not load FX rates for currency conversion.',
-    'HKD',
-  );
+  const { fxMultipliers, fxError } = useFxMultipliersForCurrencies(foreignFxCodes, taxFxEnabled);
 
-  const multipliersForSum = fxMultipliers ?? new Map<string, number>();
+  const multipliersForSum = useMemo(
+    () => fxMultipliers ?? new Map<string, number>(),
+    [fxMultipliers],
+  );
   const sumsReady = !taxFxEnabled || fxMultipliers !== null;
 
-  const revenueHkd = sumsReady ? sumTaxFiscalYearKindInHkd(rows, 'revenue', multipliersForSum) : 0;
-  const expenseHkd = sumsReady ? sumTaxFiscalYearKindInHkd(rows, 'expense', multipliersForSum) : 0;
-  const netHkd = revenueHkd - expenseHkd;
+  const revenueResult = useMemo(
+    () => sumTaxFiscalYearKindWithFxCoverage(rows, 'revenue', multipliersForSum, defaultCurrency),
+    [rows, multipliersForSum, defaultCurrency],
+  );
+  const expenseResult = useMemo(
+    () => sumTaxFiscalYearKindWithFxCoverage(rows, 'expense', multipliersForSum, defaultCurrency),
+    [rows, multipliersForSum, defaultCurrency],
+  );
 
-  const tableError = [loadError, taxFxEnabled ? fxError : ''].filter(Boolean).join(' • ');
+  const revenueTotal = revenueResult.total;
+  const expenseTotal = expenseResult.total;
+  const netTotal = revenueTotal - expenseTotal;
+
+  const skippedFxCodes = useMemo(() => {
+    const merged = new Set<string>([
+      ...revenueResult.skippedForeignCurrencies,
+      ...expenseResult.skippedForeignCurrencies,
+    ]);
+    return Array.from(merged).sort();
+  }, [revenueResult.skippedForeignCurrencies, expenseResult.skippedForeignCurrencies]);
+
+  const fxGapMessage =
+    skippedFxCodes.length > 0
+      ? `FX unavailable for ${skippedFxCodes.join(', ')}. Amounts in those currencies are excluded from totals.`
+      : '';
+
+  const blockingError = [loadError, taxFxEnabled ? fxError : ''].filter(Boolean).join(' • ');
+
+  const disableControls = isLoading || Boolean(loadError) || Boolean(taxFxEnabled && fxError);
 
   return (
-    <DashboardCard width='half'>
+    <DashboardCard width='half' title='Tax Position'>
       <div className='space-y-4'>
-        <h2 className='text-sm font-semibold text-slate-900'>Tax Position</h2>
-        <Select
-          id={selectId}
-          aria-label='Fiscal year'
-          value={String(fyStartYear)}
-          onChange={(event) => {
-            setFyStartYear(Number.parseInt(event.target.value, 10));
-          }}
-        >
-          {FISCAL_YEAR_OPTIONS.map((opt) => (
-            <option key={opt.startYear} value={opt.startYear}>
-              {opt.label}
-            </option>
-          ))}
-        </Select>
+        <div className='min-w-0'>
+          <Label htmlFor={selectId}>Fiscal year</Label>
+          <Select
+            id={selectId}
+            value={String(fyStartYear)}
+            disabled={disableControls}
+            onChange={(event) => {
+              setFyStartYear(Number.parseInt(event.target.value, 10));
+            }}
+          >
+            {fyYearOptions.map((y) => {
+              const range = getFiscalYearRangeInclusive(y);
+              const label = `${range.start.slice(0, 4)} - ${range.end.slice(0, 4)}`;
+              return (
+                <option key={y} value={y}>
+                  {label}
+                </option>
+              );
+            })}
+          </Select>
+        </div>
+
         {isLoading || !sumsReady ? (
           <div className='h-14 animate-pulse rounded-md bg-slate-100' aria-hidden />
-        ) : tableError ? (
-          <p className='text-sm text-red-600'>{tableError}</p>
+        ) : blockingError ? (
+          <p className='text-sm text-red-600'>{blockingError}</p>
+        ) : rows.length === 0 ? (
+          <p className='text-sm text-slate-600'>{ADMIN_TAX_FISCAL_YEAR_EMPTY_MESSAGE}</p>
         ) : (
-          <div className='space-y-2 text-right text-sm tabular-nums'>
-            <p className='font-medium text-slate-900'>{formatAmountInCurrency(revenueHkd, 'HKD')}</p>
-            <p className='font-medium text-slate-900'>{formatAmountInCurrency(expenseHkd, 'HKD')}</p>
-            <p
-              className={
-                netHkd >= 0 ? 'font-semibold text-emerald-700' : 'font-semibold text-red-600'
-              }
-            >
-              {formatAmountInCurrency(netHkd, 'HKD')}
-            </p>
-          </div>
+          <>
+            {fxGapMessage ? (
+              <p className='text-sm font-medium text-amber-800' role='status'>
+                {fxGapMessage}
+              </p>
+            ) : null}
+            <dl className='grid grid-cols-[minmax(0,auto)_1fr] gap-x-4 gap-y-2 text-sm'>
+              <dt className='text-slate-600'>Revenue</dt>
+              <dd className='text-right font-medium tabular-nums text-slate-900'>
+                {formatAmountInDefaultCurrency(revenueTotal)}
+              </dd>
+              <dt className='text-slate-600'>Expense</dt>
+              <dd className='text-right font-medium tabular-nums text-slate-900'>
+                {formatAmountInDefaultCurrency(expenseTotal)}
+              </dd>
+              <dt className='text-slate-600'>Net</dt>
+              <dd
+                className={
+                  netTotal >= 0
+                    ? 'text-right font-semibold tabular-nums text-emerald-700'
+                    : 'text-right font-semibold tabular-nums text-red-600'
+                }
+              >
+                <span className='sr-only'>{netTotal >= 0 ? 'Surplus' : 'Loss'}</span>
+                <span aria-hidden className='mr-0.5'>
+                  {netTotal >= 0 ? '+' : '−'}
+                </span>
+                {formatAmountInDefaultCurrency(Math.abs(netTotal))}
+                {netTotal < 0 ? (
+                  <span className='font-medium text-slate-800'> (loss)</span>
+                ) : null}
+              </dd>
+            </dl>
+          </>
         )}
       </div>
     </DashboardCard>

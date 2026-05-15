@@ -51,7 +51,7 @@ describe('useFxMultipliersForCurrencies', () => {
     const map = new Map([['USD', 7.8]]);
     mockLoadCurrency.mockResolvedValue(map);
     const { result } = renderHook(() =>
-      useFxMultipliersForCurrencies(['usd'], true, 'Could not load FX rates for currency conversion.', 'HKD')
+      useFxMultipliersForCurrencies(['usd'], true, { targetCurrency: 'HKD' }),
     );
 
     await act(async () => {
@@ -63,5 +63,24 @@ describe('useFxMultipliersForCurrencies', () => {
     expect(mockLoadAdmin).not.toHaveBeenCalled();
     expect(result.current.fxMultipliers).toEqual(map);
     expect(result.current.fxError).toBe('');
+  });
+
+  it('warns and falls back to admin default when targetCurrency is invalid', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockLoadAdmin.mockResolvedValue(new Map([['USD', 1]]));
+    const { result } = renderHook(() =>
+      useFxMultipliersForCurrencies(['USD'], true, { targetCurrency: 'not-a-code' }),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(warnSpy).toHaveBeenCalled();
+    expect(mockLoadAdmin).toHaveBeenCalledWith(['USD']);
+    expect(mockLoadCurrency).not.toHaveBeenCalled();
+    expect(result.current.fxMultipliers).toEqual(new Map([['USD', 1]]));
+    warnSpy.mockRestore();
   });
 });

@@ -41,7 +41,7 @@ describe('AppShell', () => {
 
     const nav = document.getElementById('admin-primary-nav');
     expect(nav).not.toBeNull();
-    expect(nav!.querySelector('.border-t.border-slate-200')).not.toBeNull();
+    expect(document.querySelector('[data-testid="leading-nav-divider"]')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/dashboard');
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
   });

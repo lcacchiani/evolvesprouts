@@ -17,6 +17,10 @@ vi.mock('@/components/auth-provider', () => ({
 import { AdminAuthenticatedShell } from '@/components/admin-authenticated-shell';
 
 describe('AdminAuthenticatedShell', () => {
+  beforeEach(() => {
+    mockUsePathname.mockReturnValue('/finance');
+  });
+
   it('shows access denied with sign out when authenticated without staff groups', async () => {
     const user = userEvent.setup();
     const logout = vi.fn();
@@ -39,6 +43,7 @@ describe('AdminAuthenticatedShell', () => {
   });
 
   it('renders app shell when authenticated with staff group', () => {
+    mockUsePathname.mockReturnValue('/dashboard');
     mockUseAuth.mockReturnValue({
       status: 'authenticated',
       user: { email: 'a@example.com', groups: ['manager'] },
@@ -47,10 +52,11 @@ describe('AdminAuthenticatedShell', () => {
 
     render(
       <AdminAuthenticatedShell>
-        <p>Dashboard</p>
+        <p>Main work area</p>
       </AdminAuthenticatedShell>
     );
 
-    expect(within(screen.getByRole('main')).getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+    expect(within(screen.getByRole('main')).getByText('Main work area')).toBeInTheDocument();
   });
 });
