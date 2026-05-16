@@ -2064,6 +2064,15 @@ def test_list_invoices_filters_by_currency_and_status(
                 "customer_invoices.status",
             ),
         ),
+        (
+            "not_completed",
+            (
+                "customer_invoices.total",
+                "customer_invoices.balance_due",
+                "customer_invoices.amount_allocated",
+                "customer_invoices.status",
+            ),
+        ),
     ],
 )
 def test_list_invoices_filters_by_settlement_slice_sql(
@@ -5171,6 +5180,11 @@ def test_parse_optional_invoice_settlement_accepts_known_values() -> None:
 def test_parse_optional_invoice_settlement_accepts_no_charge() -> None:
     assert parse_optional_invoice_settlement("no_charge") == "no_charge"
     assert parse_optional_invoice_settlement("NO_CHARGE") == "no_charge"
+
+
+def test_parse_optional_invoice_settlement_accepts_not_completed() -> None:
+    assert parse_optional_invoice_settlement("not_completed") == "not_completed"
+    assert parse_optional_invoice_settlement("NOT_COMPLETED") == "not_completed"
 
 
 def test_parse_optional_invoice_settlement_rejects_unknown() -> None:

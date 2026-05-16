@@ -21,7 +21,7 @@ const CUSTOMER_INVOICE_LIST_PAGE_LIMIT = 100;
 export async function listCustomerInvoices(
   params: {
     status?: 'draft' | 'issued' | 'void';
-    settlement?: 'open' | 'partially_paid' | 'paid' | 'no_charge';
+    settlement?: 'open' | 'partially_paid' | 'paid' | 'no_charge' | 'not_completed';
     currency?: string;
     /** Case-insensitive substring on invoice number, bill-to fields, and ISO invoice date. */
     q?: string;

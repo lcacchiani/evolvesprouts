@@ -95,6 +95,16 @@ def list_invoices(
                 CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
                 CustomerInvoice.total == 0,
             )
+        elif settlement_filter == "not_completed":
+            # Issued with amount due (positive total), excluding paid and no-charge slices.
+            stmt = stmt.where(
+                CustomerInvoice.status == BillingInvoiceStatus.ISSUED,
+                CustomerInvoice.total > 0,
+                ~and_(
+                    CustomerInvoice.balance_due == 0,
+                    CustomerInvoice.amount_allocated > 0,
+                ),
+            )
         if currency is not None:
             stmt = stmt.where(CustomerInvoice.currency == currency)
         if q_raw:
