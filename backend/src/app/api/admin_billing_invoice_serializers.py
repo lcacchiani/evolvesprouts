@@ -105,9 +105,9 @@ def parse_optional_invoice_settlement(raw: str | None) -> str | None:
     if raw is None or str(raw).strip() == "":
         return None
     key = str(raw).strip().lower()
-    if key in ("open", "partially_paid", "paid", "no_charge"):
+    if key in ("open", "partially_paid", "paid", "no_charge", "not_completed"):
         return key
     raise ValidationError(
-        "settlement must be one of: open, partially_paid, paid, no_charge",
+        "settlement must be one of: open, partially_paid, paid, no_charge, not_completed",
         field="settlement",
     )

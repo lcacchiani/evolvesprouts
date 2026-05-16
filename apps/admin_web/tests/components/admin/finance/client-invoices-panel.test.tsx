@@ -247,6 +247,21 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
+  it('defaults settlement filter to Not completed and passes it to listCustomerInvoices', async () => {
+    billingMocks.listCustomerInvoices.mockResolvedValue({ items: [], next_cursor: null });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => {
+      expect(billingMocks.listCustomerInvoices).toHaveBeenCalledWith(
+        expect.objectContaining({ settlement: 'not_completed' }),
+        expect.any(AbortSignal),
+      );
+    });
+
+    const settlementSelect = screen.getByLabelText('Settlement') as HTMLSelectElement;
+    expect(settlementSelect.value).toBe('not_completed');
+  });
+
   it('record customer payment editor calls createManualInboundCustomerPayment', async () => {
     const eid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({

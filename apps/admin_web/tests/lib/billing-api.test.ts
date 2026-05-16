@@ -216,4 +216,17 @@ describe('listCustomerInvoices', () => {
       }),
     );
   });
+
+  it('passes settlement=not_completed through to the admin API', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({ items: [], next_cursor: null });
+
+    await listCustomerInvoices({ settlement: 'not_completed' });
+
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpointPath: '/v1/admin/billing/invoices?settlement=not_completed',
+        method: 'GET',
+      }),
+    );
+  });
 });
