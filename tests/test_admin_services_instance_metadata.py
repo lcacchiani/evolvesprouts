@@ -471,6 +471,184 @@ def test_serialize_instance_resolves_event_and_consultation_from_service() -> No
     }
 
 
+def _minimal_event_service_for_instance_payload() -> Service:
+    sid = uuid4()
+    return Service(
+        id=sid,
+        service_type=ServiceType.EVENT,
+        title="Evt",
+        service_key="evt-template",
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="t",
+    )
+
+
+def test_parse_create_instance_payload_accepts_capacity_left_override() -> None:
+    service = _minimal_event_service_for_instance_payload()
+    service.event_details = EventDetails(
+        service_id=service.id,
+        event_category=EventCategory.WORKSHOP,
+        default_price=Decimal("10.00"),
+        default_currency="HKD",
+    )
+    body = {
+        "slug": "evt-inst",
+        "capacity_left_override": 3,
+        "session_slots": [
+            {
+                "starts_at": "2026-06-01T10:00:00+00:00",
+                "ends_at": "2026-06-01T12:00:00+00:00",
+                "sort_order": 0,
+            }
+        ],
+        "event_ticket_tiers": [
+            {
+                "name": "workshop",
+                "price": "10.00",
+                "currency": "HKD",
+                "max_quantity": None,
+                "sort_order": 0,
+            }
+        ],
+    }
+    parsed = parse_create_instance_payload(body, service)
+    assert parsed["capacity_left_override"] == 3
+
+
+def test_parse_update_instance_payload_capacity_left_override_explicit_null() -> None:
+    service = _minimal_event_service_for_instance_payload()
+    service.event_details = EventDetails(
+        service_id=service.id,
+        event_category=EventCategory.WORKSHOP,
+        default_price=Decimal("10.00"),
+        default_currency="HKD",
+    )
+    body = {
+        "status": "open",
+        "capacity_left_override": None,
+        "event_ticket_tiers": [
+            {
+                "name": "workshop",
+                "price": "10.00",
+                "currency": "HKD",
+                "max_quantity": None,
+                "sort_order": 0,
+            }
+        ],
+    }
+    parsed = parse_update_instance_payload(body, service)
+    assert "capacity_left_override" in parsed
+    assert parsed["capacity_left_override"] is None
+
+
+def test_parse_update_instance_payload_omits_capacity_left_override_when_absent() -> None:
+    service = _minimal_event_service_for_instance_payload()
+    service.event_details = EventDetails(
+        service_id=service.id,
+        event_category=EventCategory.WORKSHOP,
+        default_price=Decimal("10.00"),
+        default_currency="HKD",
+    )
+    body = {
+        "status": "open",
+        "event_ticket_tiers": [
+            {
+                "name": "workshop",
+                "price": "10.00",
+                "currency": "HKD",
+                "max_quantity": None,
+                "sort_order": 0,
+            }
+        ],
+    }
+    parsed = parse_update_instance_payload(body, service)
+    assert "capacity_left_override" not in parsed
+
+
+def test_serialize_instance_capacity_left_override_and_effective() -> None:
+    from app.api.admin_services_serializers import serialize_instance
+
+    sid = uuid4()
+    inst_id = uuid4()
+    service = Service(
+        id=sid,
+        service_type=ServiceType.EVENT,
+        title="Evt",
+        service_key="evt-template",
+        booking_system=None,
+        description=None,
+        cover_image_s3_key=None,
+        delivery_mode=ServiceDeliveryMode.ONLINE,
+        status=ServiceStatus.PUBLISHED,
+        created_by="t",
+    )
+    service.event_details = EventDetails(
+        service_id=sid,
+        event_category=EventCategory.WORKSHOP,
+        default_price=Decimal("10.00"),
+        default_currency="HKD",
+    )
+    instance = ServiceInstance(
+        id=inst_id,
+        service_id=sid,
+        title=None,
+        slug="evt-row",
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.OPEN,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=10,
+        capacity_left_override=4,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="t",
+        external_url=None,
+    )
+    instance.service = service
+    instance.instance_tags = []
+    instance.session_slots = []
+    instance.ticket_tiers = []
+    instance.partner_organization_links = []
+    payload = serialize_instance(instance, capacity_enrolled_count=8)
+    assert payload["capacity_left_override"] == 4
+    assert payload["capacity_left_effective"] == 2
+
+    unlimited = ServiceInstance(
+        id=uuid4(),
+        service_id=sid,
+        title=None,
+        slug="evt-row-2",
+        description=None,
+        cover_image_s3_key=None,
+        status=InstanceStatus.OPEN,
+        delivery_mode=None,
+        location_id=None,
+        max_capacity=None,
+        capacity_left_override=9,
+        waitlist_enabled=False,
+        instructor_id=None,
+        cohort=None,
+        notes=None,
+        created_by="t",
+        external_url=None,
+    )
+    unlimited.service = service
+    unlimited.instance_tags = []
+    unlimited.session_slots = []
+    unlimited.ticket_tiers = []
+    unlimited.partner_organization_links = []
+    p2 = serialize_instance(unlimited, capacity_enrolled_count=0)
+    assert p2["capacity_left_override"] == 9
+    assert p2["capacity_left_effective"] is None
+
+
 def test_serialize_tier_consultation_service_emits_own_consultation_details() -> None:
     """Per-tier consultation services carry pricing on ``service.consultation_details``."""
     from app.api.admin_services_serializers import serialize_instance

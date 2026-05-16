@@ -65,6 +65,8 @@ const INSTANCE_FIXTURE: ServiceInstance = {
   deliveryMode: null,
   locationId: null,
   maxCapacity: null,
+  capacityLeftOverride: null,
+  capacityLeftEffective: null,
   waitlistEnabled: false,
   externalUrl: null,
   partnerOrganizations: [],

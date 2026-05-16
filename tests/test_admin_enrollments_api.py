@@ -564,3 +564,13 @@ def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gatew
     )
     assert resp["statusCode"] == 204
     assert decrement_calls == [dc_id]
+
+
+def test_enrollment_capacity_guard_does_not_reference_capacity_left_override() -> None:
+    """Booking capacity remains max_capacity vs enrollments; override is display-only."""
+    import inspect
+
+    from app.db.repositories import enrollment as enrollment_repository
+
+    source = inspect.getsource(enrollment_repository.EnrollmentRepository)
+    assert "capacity_left_override" not in source

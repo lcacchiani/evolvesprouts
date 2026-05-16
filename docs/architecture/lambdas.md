@@ -103,7 +103,9 @@ their primary responsibilities.
   service supplies the effective default; instance payloads also include
   `parent_service_title` / `parent_service_tier` / `parent_service_type` for
   cross-service lists; `capacity_enrolled_count` (enrollments in registered,
-  confirmed, completed) for admin capacity display; listing instances and
+  confirmed, completed) for admin capacity display; optional `capacity_left_override`
+  with read-only `capacity_left_effective` for a display-only soft cap on spots left;
+  listing instances and
   mutating enrollments reconcile `status` to `full` when `max_capacity` is set
   and no seats remain, and from `full` back to `open` when seats free (only
   among scheduled/open/full); `partner_organizations` entries include optional
@@ -174,7 +176,9 @@ their primary responsibilities.
   `slug` (matched case-insensitively against `service_instances.slug`), `service_type`,
   `service_key` (matched case-insensitively against `services.service_key`; invalid values
   ignored). `slug` echoes from `service_instances`; `spaces_total` / `spaces_left`
-  when `max_capacity` is set,
+  when `max_capacity` is set (`spaces_total` mirrors `max_capacity`; `spaces_left` uses
+  the same enrollment statuses as seat checks but may reflect an admin-only
+  `capacity_left_override` soft cap for display),
   using the same enrollment statuses as capacity checks: registered, confirmed,
   completed),
   `/www/v1/calendar/availability` (requires `purpose`; returns discrete slots + meta for consultation or intro-call booking;

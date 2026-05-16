@@ -5823,6 +5823,10 @@ export interface components {
             max_capacity?: number | null;
             /** @description Count of enrollments that consume instance capacity (registered, confirmed, completed). Included on admin instance payloads for display and capacity logic. */
             capacity_enrolled_count?: number;
+            /** @description Optional display-only soft cap for spots remaining. When set with a non-null `max_capacity`, admin and public consumers use the minimum of this value and the computed remaining seats. Does not change booking eligibility (capacity guards still use `max_capacity` vs enrollment counts). Ignored when `max_capacity` is null. */
+            capacity_left_override?: number | null;
+            /** @description Read-only effective spots remaining for display: `max(0, max_capacity - capacity_enrolled_count)` capped by `capacity_left_override` when both `max_capacity` and `capacity_left_override` are set; null when `max_capacity` is null. */
+            readonly capacity_left_effective?: number | null;
             waitlist_enabled?: boolean;
             /**
              * Format: uri
@@ -5911,6 +5915,8 @@ export interface components {
             /** Format: uuid */
             location_id?: string | null;
             max_capacity?: number | null;
+            /** @description Optional display-only soft cap for spots remaining. Omit to leave unset on create. Send JSON null to clear on update when `max_capacity` is set. When `max_capacity` is null, the server stores the value but public display ignores the override until `max_capacity` is set. */
+            capacity_left_override?: number | null;
             waitlist_enabled?: boolean;
             /** Format: uri */
             external_url?: string | null;

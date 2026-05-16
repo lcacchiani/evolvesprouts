@@ -318,6 +318,10 @@ export function parseInstance(value: unknown): ServiceInstance {
     deliveryMode: (asNullableString(item.delivery_mode) ?? null) as ServiceInstance['deliveryMode'],
     locationId: asNullableString(item.location_id),
     maxCapacity: typeof item.max_capacity === 'number' ? item.max_capacity : null,
+    capacityLeftOverride:
+      typeof item.capacity_left_override === 'number' ? item.capacity_left_override : null,
+    capacityLeftEffective:
+      typeof item.capacity_left_effective === 'number' ? item.capacity_left_effective : null,
     capacityEnrolledCount:
       typeof item.capacity_enrolled_count === 'number' ? item.capacity_enrolled_count : 0,
     waitlistEnabled: asBoolean(item.waitlist_enabled, false),

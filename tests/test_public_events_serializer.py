@@ -518,6 +518,51 @@ def test_max_capacity_none_omits_spaces() -> None:
     assert "spaces_left" not in out
 
 
+def test_spaces_left_override_null_matches_remaining() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=10, capacity_left_override=None)
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 3})
+    assert out["spaces_total"] == 10
+    assert out["spaces_left"] == 7
+
+
+def test_spaces_left_override_below_remaining_wins() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=10, capacity_left_override=2)
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 3})
+    assert out["spaces_left"] == 2
+
+
+def test_spaces_left_override_above_remaining_clamped() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=10, capacity_left_override=99)
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 3})
+    assert out["spaces_left"] == 7
+
+
+def test_spaces_left_override_ignored_when_max_capacity_none() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=None, capacity_left_override=3)
+    out = public_events._serialize_public_event(inst, enrollment_counts={})
+    assert "spaces_total" not in out
+    assert "spaces_left" not in out
+
+
+def test_spaces_left_override_zero_renders_zero() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=10, capacity_left_override=0)
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 1})
+    assert out["spaces_left"] == 0
+    assert out["is_fully_booked"] is False
+
+
+def test_spaces_left_enrollments_ge_max_still_zero() -> None:
+    service = _event_service()
+    inst = _minimal_instance(service, max_capacity=8, capacity_left_override=5)
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 10})
+    assert out["spaces_left"] == 0
+
+
 def test_max_capacity_with_enrollments() -> None:
     service = _event_service()
     inst = _minimal_instance(service, max_capacity=8)
@@ -618,6 +663,7 @@ def _minimal_instance(
     external_url: str | None = None,
     eventbrite_event_url: str | None = None,
     max_capacity: int | None = 10,
+    capacity_left_override: int | None = None,
     cohort: str | None = None,
     training_details: Any = None,
     delivery_mode: Any = None,
@@ -632,6 +678,7 @@ def _minimal_instance(
         description=None,
         status=status,
         max_capacity=max_capacity,
+        capacity_left_override=capacity_left_override,
         external_url=external_url,
         eventbrite_event_url=eventbrite_event_url,
         cohort=cohort,

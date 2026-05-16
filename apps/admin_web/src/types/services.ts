@@ -279,6 +279,10 @@ export interface ServiceInstance {
   deliveryMode: ServiceDeliveryMode | null;
   locationId: string | null;
   maxCapacity: number | null;
+  /** Raw DB column; display-only soft cap (nullable int ≥ 0). */
+  capacityLeftOverride: number | null;
+  /** Effective spots remaining for display when maxCapacity is set. */
+  capacityLeftEffective: number | null;
   /** Enrollments that count toward capacity (registered, confirmed, completed). From admin API. */
   capacityEnrolledCount?: number;
   waitlistEnabled: boolean;

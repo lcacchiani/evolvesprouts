@@ -222,6 +222,21 @@ def _capacity_enrollment_count_from_loaded(instance: ServiceInstance) -> int:
     return sum(1 for row in enrollments if row.status in CAPACITY_ENROLLMENT_STATUSES)
 
 
+def compute_capacity_left_effective(
+    *,
+    max_capacity: int | None,
+    capacity_enrolled_count: int,
+    capacity_left_override: int | None,
+) -> int | None:
+    """Display-only remaining seats; independent of booking guards."""
+    if max_capacity is None:
+        return None
+    remaining = max(0, max_capacity - capacity_enrolled_count)
+    if capacity_left_override is not None:
+        return min(capacity_left_override, remaining)
+    return remaining
+
+
 def serialize_instance(
     instance: ServiceInstance,
     *,
@@ -283,6 +298,12 @@ def serialize_instance(
         "location_id": str(instance.location_id) if instance.location_id else None,
         "max_capacity": instance.max_capacity,
         "capacity_enrolled_count": enrolled_for_capacity,
+        "capacity_left_override": instance.capacity_left_override,
+        "capacity_left_effective": compute_capacity_left_effective(
+            max_capacity=instance.max_capacity,
+            capacity_enrolled_count=enrolled_for_capacity,
+            capacity_left_override=instance.capacity_left_override,
+        ),
         "waitlist_enabled": instance.waitlist_enabled,
         "external_url": instance.external_url,
         "partner_organizations": [

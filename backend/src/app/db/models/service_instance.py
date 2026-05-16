@@ -74,6 +74,10 @@ class ServiceInstance(Base):
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
         ),
+        CheckConstraint(
+            "capacity_left_override IS NULL OR capacity_left_override >= 0",
+            name="service_instances_capacity_left_override_nonneg",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -115,6 +119,7 @@ class ServiceInstance(Base):
         nullable=True,
     )
     max_capacity: Mapped[int | None] = mapped_column(nullable=True)
+    capacity_left_override: Mapped[int | None] = mapped_column(nullable=True)
     waitlist_enabled: Mapped[bool] = mapped_column(
         nullable=False,
         server_default=text("false"),

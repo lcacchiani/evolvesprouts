@@ -1351,6 +1351,11 @@ components:
         spaces_left:
           type: integer
           nullable: true
+          description: >
+            Seats remaining when `spaces_total` is present: `max(0, spaces_total -
+            filled)` where `filled` counts capacity enrollments, optionally reduced by an
+            admin-only `capacity_left_override` soft cap on the instance (display-only;
+            does not change `booking_status` / `is_fully_booked`).
         dates:
           type: array
           items:
