@@ -59,7 +59,9 @@ their primary responsibilities.
   downloads keyed by changing `s3_key` generally avoid that.
   `/v1/admin/contacts/*` (including `GET /v1/admin/contacts` optional `contact_type` filter;
   list and single-contact responses include read-only `family_location_summary` and
-  `organization_location_summary` when the contact is linked to a family or organisation that has a venue location),
+  `organization_location_summary` when the contact is linked to a family or organisation that has a venue location;
+  `POST /v1/admin/contacts/mailchimp-sync-run`, `POST /v1/admin/contacts/mailchimp-sync-orphans`, and
+  `GET /v1/admin/contacts/mailchimp-sync-status` for production Mailchimp audience sync, orphan cleanup, and status counters),
   `/v1/admin/tags/*` for CRM tag catalog administration (list with optional `include_archived` or
   `archived_only`, create, update, `PATCH` `archived` to restore, delete returns `deleted` +
   `usage_count`; system tag names are protected),

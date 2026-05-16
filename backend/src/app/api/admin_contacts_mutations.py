@@ -41,12 +41,22 @@ from app.api.admin_validators import (
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource
+from app.db.models.enums import MailchimpSyncStatus
 from app.db.models.note import Note
 from app.db.models.sales_lead import SalesLead
 from app.db.repositories import ContactRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
+from app.services.mailchimp_sync import remove_contact_from_mailchimp
 from app.utils import json_response
-from app.utils.logging import get_logger
+from app.utils.logging import get_logger, mask_email
+
+_MAILCHIMP_PUSH_REMOVE_STATUSES = frozenset(
+    {
+        MailchimpSyncStatus.SYNCED,
+        MailchimpSyncStatus.FAILED,
+        MailchimpSyncStatus.PENDING,
+    }
+)
 
 logger = get_logger(__name__)
 
@@ -253,6 +263,8 @@ def update_contact(
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
 
+        mailchimp_email_for_archive: str | None = None
+
         if "first_name" in body:
             contact.first_name = (
                 validate_string_length(
@@ -372,6 +384,13 @@ def update_contact(
             active = parse_optional_bool_body(body.get("active"), field="active")
             if active is None:
                 raise ValidationError("active is required", field="active")
+            becoming_archived = (not active) and contact.archived_at is None
+            if (
+                becoming_archived
+                and contact.email
+                and contact.mailchimp_status in _MAILCHIMP_PUSH_REMOVE_STATUSES
+            ):
+                mailchimp_email_for_archive = contact.email
             contact.archived_at = None if active else now
         if "tag_ids" in body:
             tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
@@ -391,16 +410,29 @@ def update_contact(
         if loaded is None:
             raise DatabaseError("Failed to load contact after update")
         note_counts = repository.count_standalone_notes_for_contacts([loaded.id])
-        return json_response(
-            200,
-            {
-                "contact": serialize_contact_summary(
-                    loaded,
-                    standalone_note_count=note_counts.get(loaded.id, 0),
-                )
-            },
-            event=event,
+        payload = {
+            "contact": serialize_contact_summary(
+                loaded,
+                standalone_note_count=note_counts.get(loaded.id, 0),
+            )
+        }
+
+    # Avoid holding the DB session during Mailchimp retries (API Gateway ~30s limit).
+    if mailchimp_email_for_archive:
+        removal = remove_contact_from_mailchimp(
+            email=mailchimp_email_for_archive,
+            logger=logger,
+            max_attempts=2,
         )
+        if removal == "failed":
+            logger.warning(
+                "Mailchimp remove after contact archive failed (best effort)",
+                extra={
+                    "lead_email": mask_email(mailchimp_email_for_archive),
+                },
+            )
+
+    return json_response(200, payload, event=event)
 
 
 def delete_contact(
@@ -409,7 +441,11 @@ def delete_contact(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Permanently delete one CRM contact and dependent CRM rows."""
+    """Permanently delete one CRM contact and dependent CRM rows.
+
+    Orphan cleanup may race this handler and also call Mailchimp archive for the same email;
+    duplicate archive calls are idempotent on Mailchimp (404 is treated as success).
+    """
     logger.info(
         "Deleting admin CRM contact",
         extra={"contact_id": str(contact_id), "actor_sub": actor_sub},
@@ -421,6 +457,13 @@ def delete_contact(
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
+
+        mailchimp_email_for_delete: str | None = None
+        if (
+            contact.email
+            and contact.mailchimp_status in _MAILCHIMP_PUSH_REMOVE_STATUSES
+        ):
+            mailchimp_email_for_delete = contact.email
 
         lead_ids = list(
             session.scalars(
@@ -442,7 +485,20 @@ def delete_contact(
                 field="contact_id",
             ) from exc
 
-        return json_response(204, {}, event=event)
+    # Avoid holding the DB session during Mailchimp retries (API Gateway ~30s limit).
+    if mailchimp_email_for_delete:
+        removal = remove_contact_from_mailchimp(
+            email=mailchimp_email_for_delete,
+            logger=logger,
+            max_attempts=2,
+        )
+        if removal == "failed":
+            logger.warning(
+                "Mailchimp remove after contact delete failed (best effort)",
+                extra={"lead_email": mask_email(mailchimp_email_for_delete)},
+            )
+
+    return json_response(204, {}, event=event)
 
 
 def _resolve_referral_contact_id_for_referral_source(

@@ -12,14 +12,12 @@ from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.db.models import (
-    Contact,
     ContactSource,
     ContactTag,
     ContactType,
     FunnelStage,
     LeadEventType,
     LeadType,
-    MailchimpSyncStatus,
     SalesLead,
     SalesLeadEvent,
     Tag,
@@ -38,8 +36,11 @@ from app.templates.transactional_shell_data import (
 )
 from app.services.mailchimp import (
     MailchimpApiError,
-    add_subscriber_with_tag,
     trigger_customer_journey,
+)
+from app.services.mailchimp_sync import (
+    is_retryable_mailchimp_exception,
+    upsert_contact_to_mailchimp,
 )
 from app.services.marketing_subscribe import subscribe_to_marketing
 from app.services.public_form_internal_notifications import (
@@ -141,13 +142,16 @@ def _process_message(message: dict[str, Any]) -> bool:
             was_mailchimp_synced = False
             journey_triggered = False
             if _should_sync_mailchimp_for_media(marketing_opt_in=marketing_opt_in):
-                was_mailchimp_synced = _sync_contact_to_mailchimp(
-                    contact=contact,
-                    first_name=first_name,
-                    tag_name=tag_name,
-                    merge_fields=_mailchimp_merge_fields_with_download_url(
-                        download_url
-                    ),
+                was_mailchimp_synced = (
+                    upsert_contact_to_mailchimp(
+                        contact=contact,
+                        tag_name=tag_name,
+                        merge_fields=_mailchimp_merge_fields_with_download_url(
+                            download_url
+                        ),
+                        logger=logger,
+                    )[0]
+                    == "synced"
                 )
                 journey_triggered = (
                     _trigger_mailchimp_journey(email=email)
@@ -216,11 +220,16 @@ def _process_message(message: dict[str, Any]) -> bool:
         was_mailchimp_synced = False
         journey_triggered = False
         if _should_sync_mailchimp_for_media(marketing_opt_in=marketing_opt_in):
-            was_mailchimp_synced = _sync_contact_to_mailchimp(
-                contact=contact,
-                first_name=first_name,
-                tag_name=tag_name,
-                merge_fields=_mailchimp_merge_fields_with_download_url(download_url),
+            was_mailchimp_synced = (
+                upsert_contact_to_mailchimp(
+                    contact=contact,
+                    tag_name=tag_name,
+                    merge_fields=_mailchimp_merge_fields_with_download_url(
+                        download_url
+                    ),
+                    logger=logger,
+                )[0]
+                == "synced"
             )
             if was_mailchimp_synced:
                 journey_triggered = _trigger_mailchimp_journey(email=email)
@@ -403,7 +412,7 @@ def _trigger_mailchimp_journey(*, email: str) -> bool:
             step_id=step_id,
             max_attempts=3,
             base_delay_seconds=1.0,
-            should_retry=_is_retryable_mailchimp_exception,
+            should_retry=is_retryable_mailchimp_exception,
             logger=logger,
             operation_name="mailchimp.trigger_customer_journey",
         )
@@ -422,60 +431,6 @@ def _trigger_mailchimp_journey(*, email: str) -> bool:
             extra={"lead_email": mask_email(email)},
         )
     return False
-
-
-def _sync_contact_to_mailchimp(
-    *,
-    contact: Contact,
-    first_name: str,
-    tag_name: str,
-    merge_fields: dict[str, str] | None = None,
-) -> bool:
-    if not contact.email:
-        contact.mailchimp_status = MailchimpSyncStatus.FAILED
-        logger.warning("Contact email is missing, skipping Mailchimp sync")
-        return False
-
-    try:
-        mailchimp_response = run_with_retry(
-            add_subscriber_with_tag,
-            email=contact.email,
-            first_name=first_name,
-            tag_name=tag_name,
-            merge_fields=merge_fields,
-            max_attempts=3,
-            base_delay_seconds=1.0,
-            should_retry=_is_retryable_mailchimp_exception,
-            logger=logger,
-            operation_name="mailchimp.add_subscriber_with_tag",
-        )
-        contact.mailchimp_status = MailchimpSyncStatus.SYNCED
-        subscriber_id = _optional_text(mailchimp_response.get("id"))
-        if subscriber_id:
-            contact.mailchimp_subscriber_id = subscriber_id
-        return True
-    except MailchimpApiError as exc:
-        contact.mailchimp_status = MailchimpSyncStatus.FAILED
-        logger.warning(
-            "Mailchimp API request failed",
-            extra={
-                "status": exc.status,
-                "lead_email": mask_email(contact.email),
-            },
-        )
-    except Exception:
-        contact.mailchimp_status = MailchimpSyncStatus.FAILED
-        logger.exception(
-            "Mailchimp sync failed unexpectedly",
-            extra={"lead_email": mask_email(contact.email)},
-        )
-    return False
-
-
-def _is_retryable_mailchimp_exception(exc: Exception) -> bool:
-    if isinstance(exc, MailchimpApiError):
-        return exc.status == 429 or exc.status >= 500
-    return isinstance(exc, (ConnectionError, TimeoutError))
 
 
 def _create_sales_lead_event(

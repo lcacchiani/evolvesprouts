@@ -33,6 +33,9 @@ info:
     - `GET|PATCH|DELETE /v1/admin/tags/{id}` (DELETE returns JSON with `deleted` and `usage_count`)
     - `GET /v1/admin/contacts/tags`
     - `GET /v1/admin/contacts/search`
+    - `POST /v1/admin/contacts/mailchimp-sync-run`
+    - `POST /v1/admin/contacts/mailchimp-sync-orphans`
+    - `GET /v1/admin/contacts/mailchimp-sync-status`
     - `GET|POST /v1/admin/contacts`
     - `GET|PATCH|DELETE /v1/admin/contacts/{id}`
     - `GET|POST /v1/admin/contacts/{id}/notes`
@@ -2074,6 +2077,102 @@ paths:
                 $ref: "#/components/schemas/EntityPickerListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/contacts/mailchimp-sync-run:
+    post:
+      summary: Run one Mailchimp upsert batch (DB → audience)
+      description: |
+        Production-only. Paginated upsert for CRM contacts with the given ``only_statuses``
+        (default ``pending`` and ``failed``). Never include ``unsubscribed`` in ``only_statuses``:
+        that would risk re-subscribing contacts who opted out in Mailchimp. Each row calls
+        Mailchimp PUT + tag; unsubscribed or archived contacts are skipped without calling Mailchimp.
+        Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp; when
+        ``dry_run`` is true, ``would_process`` mirrors that count and ``processed``/``skipped``
+        remain populated for backward compatibility.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MailchimpSyncRunRequest"
+      responses:
+        "200":
+          description: Batch outcome and optional next cursor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MailchimpSyncRunResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Not production or Mailchimp list env not configured.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/admin/contacts/mailchimp-sync-orphans:
+    post:
+      summary: Reconcile Mailchimp audience orphans (one page)
+      description: |
+        Production-only. Scans one Mailchimp list page starting at ``mailchimp_offset``.
+        Removes members whose email has no active CRM contact, or whose CRM row is archived or
+        ``mailchimp_status`` is ``unsubscribed``. Default ``dry_run`` is ``true`` because this
+        deletes or archives Mailchimp members; set ``dry_run`` to ``false`` to execute.
+        ``mode=archive`` soft-archives (recoverable); ``mode=permanent`` is GDPR erase and
+        must only be used when explicitly required. Mailchimp offset pagination is eventually
+        consistent (webhooks or concurrent runs may shift rows between pages); archive mode
+        remains idempotent on Mailchimp. With ``mode=permanent`` and ``dry_run=false``, when
+        members are removed the response repeats ``next_offset`` equal to ``mailchimp_offset``
+        until a page removes zero rows, then advances by ``scanned`` when the page is full.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MailchimpOrphanCleanupRequest"
+      responses:
+        "200":
+          description: Page scan outcome and optional next offset.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MailchimpOrphanCleanupResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Not production or Mailchimp list env not configured.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/admin/contacts/mailchimp-sync-status:
+    get:
+      summary: Mailchimp sync counters for admin progress UI
+      description: |
+        Returns aggregate counts by ``mailchimp_status`` plus archived contacts that still
+        carry a ``mailchimp_subscriber_id``. ``last_run_summary`` is reserved for a future release
+        and is always null in v1.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Status snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MailchimpSyncStatusResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
 
@@ -7929,6 +8028,194 @@ components:
           description: |
             When `source` is `referral`, must be set to a valid active contact UUID
             (omit or null to clear only when source is not referral).
+    MailchimpSyncRunRequest:
+      type: object
+      required:
+        - tag_name
+      properties:
+        max_contacts:
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 50
+        cursor:
+          type: string
+          nullable: true
+          description: Opaque cursor from the prior response's `next_cursor`.
+        only_statuses:
+          type: array
+          items:
+            type: string
+            enum:
+              - pending
+              - failed
+          description: |
+            Defaults to `pending` and `failed`. Must not include `unsubscribed` (non-compliant
+            re-subscribe risk).
+        tag_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: "^[a-zA-Z0-9 ._\\-]+$"
+        dry_run:
+          type: boolean
+          default: false
+    MailchimpSyncRunErrorSampleItem:
+      type: object
+      required:
+        - contact_id
+        - reason
+        - lead_email_masked
+      properties:
+        contact_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        status:
+          type: integer
+          nullable: true
+          description: HTTP status from Mailchimp when `reason` is `mailchimp_api_error`.
+        lead_email_masked:
+          type: string
+          description: Masked email for operator triage.
+    MailchimpSyncRunResponse:
+      type: object
+      required:
+        - processed
+        - succeeded
+        - failed
+        - skipped
+        - next_cursor
+        - errors_sample
+        - dry_run
+        - would_process
+      properties:
+        processed:
+          type: integer
+        succeeded:
+          type: integer
+        failed:
+          type: integer
+        skipped:
+          type: integer
+        next_cursor:
+          type: string
+          nullable: true
+        errors_sample:
+          type: array
+          items:
+            $ref: "#/components/schemas/MailchimpSyncRunErrorSampleItem"
+        dry_run:
+          type: boolean
+        would_process:
+          type: integer
+          description: |
+            When `dry_run` is true, equals the number of rows that would have been sent to Mailchimp.
+            Zero when `dry_run` is false.
+    MailchimpOrphanCleanupRequest:
+      type: object
+      properties:
+        max_members:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 200
+        mailchimp_offset:
+          type: integer
+          minimum: 0
+          maximum: 10000000
+          default: 0
+        mode:
+          type: string
+          enum:
+            - archive
+            - permanent
+          default: archive
+        dry_run:
+          type: boolean
+          default: true
+    MailchimpOrphanRemovedSampleItem:
+      type: object
+      required:
+        - email
+        - status
+      properties:
+        email:
+          type: string
+          description: Masked email for logs/UI samples.
+        status:
+          type: string
+          description: Mailchimp member status when scanned.
+    MailchimpOrphanCleanupResponse:
+      type: object
+      description: |
+        Mailchimp offset pagination is not transactionally consistent: concurrent audience changes
+        (for example webhook-driven unsubscribes) can shift which members appear between batches.
+        Archive mode remains idempotent on Mailchimp; permanent mode keeps the same offset while
+        removals occur (see `next_offset`).
+      required:
+        - scanned
+        - kept
+        - removed
+        - failed
+        - next_offset
+        - removed_sample
+        - dry_run
+        - already_archived
+        - would_remove
+      properties:
+        scanned:
+          type: integer
+        kept:
+          type: integer
+        removed:
+          type: integer
+        failed:
+          type: integer
+        next_offset:
+          type: integer
+          nullable: true
+          description: |
+            For `mode=archive` or any `dry_run` request, the next offset is `mailchimp_offset + scanned`
+            when the page is full (same length as `max_members`), otherwise null.
+            For `mode=permanent` with `dry_run=false`, when at least one member was removed this page,
+            repeats `mailchimp_offset` so the caller re-reads the same offset (permanent deletes shift
+            indices). When zero members were removed and the page is full, advances by `scanned`;
+            otherwise null.
+        removed_sample:
+          type: array
+          items:
+            $ref: "#/components/schemas/MailchimpOrphanRemovedSampleItem"
+        dry_run:
+          type: boolean
+        already_archived:
+          type: integer
+          description: |
+            Archive mode only: members already in Mailchimp `archived` state skipped without API calls.
+            Zero in permanent mode (archived members are still eligible for permanent erase).
+        would_remove:
+          type: integer
+          description: |
+            When `dry_run` is true, counts members that would be removed or archived. Zero when
+            `dry_run` is false; use `removed` for executed runs.
+    MailchimpSyncStatusResponse:
+      type: object
+      required:
+        - counts_by_status
+        - archived_with_mailchimp_record
+        - last_run_summary
+      properties:
+        counts_by_status:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Keys are `pending`, `synced`, `failed`, `unsubscribed`.
+        archived_with_mailchimp_record:
+          type: integer
+        last_run_summary:
+          nullable: true
+          description: Reserved; always null in v1.
     AdminFamilyMember:
       type: object
       description: |

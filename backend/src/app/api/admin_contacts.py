@@ -14,6 +14,11 @@ from app.api.admin_contact_notes import (
     list_contact_notes,
     update_contact_note,
 )
+from app.api.admin_contacts_mailchimp_sync import (
+    get_mailchimp_sync_summary,
+    run_mailchimp_orphan_cleanup,
+    run_mailchimp_sync_batch,
+)
 from app.api.admin_contacts_mutations import (
     create_contact,
     delete_contact,
@@ -83,6 +88,21 @@ def handle_admin_contacts_request(
             return _list_contacts(event)
         if method == "POST":
             return _create_contact(event, actor_sub=identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "mailchimp-sync-run":
+        if method == "POST":
+            return run_mailchimp_sync_batch(event, actor_sub=identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "mailchimp-sync-orphans":
+        if method == "POST":
+            return run_mailchimp_orphan_cleanup(event, actor_sub=identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "mailchimp-sync-status":
+        if method == "GET":
+            return get_mailchimp_sync_summary(event)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     contact_id = parse_uuid(parts[2])
