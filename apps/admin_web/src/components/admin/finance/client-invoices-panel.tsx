@@ -91,6 +91,7 @@ const DRAFT_FORM_ID = "client-billing-draft-invoice-form";
 const ALLOCATE_FORM_ID = "client-billing-allocate-form";
 const REFUND_FORM_ID = "client-billing-refund-form";
 const MANUAL_PAYMENT_FORM_ID = "client-billing-manual-payment-form";
+const NO_ENROLLMENT_OPTION_VALUE = "__none__";
 const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
 
 function isManualInboundPaymentEditable(
@@ -395,6 +396,9 @@ export function ClientInvoicesPanel() {
     const tid = createPaymentEnrollmentId.trim();
     if (tid === "") {
       return "";
+    }
+    if (tid === NO_ENROLLMENT_OPTION_VALUE) {
+      return NO_ENROLLMENT_OPTION_VALUE;
     }
     return enrollmentPickerRows.some((r) => r.enrollmentId === tid) ? tid : "";
   }, [createPaymentEnrollmentId, enrollmentPickerRows]);
@@ -1467,16 +1471,20 @@ export function ClientInvoicesPanel() {
       }
       return;
     }
-    const eid = createPaymentEnrollmentId.trim();
-    if (!eid) {
-      setActionError("Select an enrollment.");
+    const rawEnrollment = createPaymentEnrollmentId.trim();
+    if (rawEnrollment === "") {
+      setActionError(
+        "Select a recent enrollment or choose none to record without an enrollment.",
+      );
       return;
     }
+    const enrollmentId =
+      rawEnrollment === NO_ENROLLMENT_OPTION_VALUE ? null : rawEnrollment;
     setBusy("create-payment");
     try {
       const pay = await createManualInboundCustomerPayment({
         direction: "inbound",
-        enrollmentId: eid,
+        enrollmentId,
         amount: amt,
         currency: createPaymentCurrency.trim().toUpperCase() || defaultCurrency,
         method: createPaymentMethod.trim(),
@@ -2232,7 +2240,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title="Customer payment"
-        description="When creating, pick an enrollment from the same list as draft invoices. After you select a manual inbound payment row in the Customer payments table below, you can update fields here; enrollment cannot be changed once the payment exists. Currency must match the enrollment. Use Pending until funds clear, then Succeeded when appropriate."
+        description="When creating, pick a recent enrollment from the same list as draft invoices, or choose none to record a payment without an enrollment (for example before allocating to a customized invoice). After you select a manual inbound payment row in the Customer payments table below, you can update fields here; enrollment cannot be changed once the payment exists. With an enrollment, currency must match that enrollment; without one, set currency explicitly. Use Pending until funds clear, then Succeeded when appropriate."
         actions={
           <>
             {manualPaymentIsUpdate ? (
@@ -2297,6 +2305,9 @@ export function ClientInvoicesPanel() {
                   onChange={(e) => {
                     const v = e.target.value;
                     setCreatePaymentEnrollmentId(v);
+                    if (v === NO_ENROLLMENT_OPTION_VALUE) {
+                      return;
+                    }
                     const row = enrollmentPickerRows.find(
                       (r) => r.enrollmentId === v,
                     );
@@ -2307,6 +2318,9 @@ export function ClientInvoicesPanel() {
                   disabled={editorBusy}
                 >
                   <option value="">Choose from recent enrollments…</option>
+                  <option value={NO_ENROLLMENT_OPTION_VALUE}>
+                    (none — record without enrollment)
+                  </option>
                   {enrollmentPickerRows.map((row) => (
                     <option key={row.enrollmentId} value={row.enrollmentId}>
                       {formatRecentEnrollmentPaymentSelectLabel(row)}
