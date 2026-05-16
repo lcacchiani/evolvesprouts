@@ -65,6 +65,9 @@ def _require_production_mailchimp_or_409(
             },
             event=event,
         )
+    # When `_mailchimp_runtime_ready()` is false but `is_production()` is true, audience
+    # env must be incomplete; the branch above always returns. Mypy cannot prove that.
+    return None
 
 
 def _parse_tag_name(raw: Any) -> str:
