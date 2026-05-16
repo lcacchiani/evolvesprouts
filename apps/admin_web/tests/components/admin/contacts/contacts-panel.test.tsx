@@ -209,6 +209,68 @@ describe('ContactsPanel', () => {
     expect(screen.getByText(/Pat Both/)).toHaveTextContent('Pat Both 👨‍👩‍👧 🏢');
   });
 
+  it('shows client emoji after the name when relationship_type is client', () => {
+    const baseRow = {
+      id: '11111111-1111-1111-1111-111111111111',
+      email: null,
+      instagram_handle: null,
+      phone_region: null,
+      phone_national_number: null,
+      phone_e164: null,
+      contact_type: 'parent' as const,
+      relationship_type: 'prospect' as const,
+      source: 'manual' as const,
+      mailchimp_status: 'pending' as const,
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      standalone_note_count: 0,
+    };
+    const clientOnly: components['schemas']['AdminContact'] = {
+      ...baseRow,
+      id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+      first_name: 'Cara',
+      last_name: 'Client',
+      family_ids: [],
+      organization_ids: [],
+      family_location_summary: null,
+      organization_location_summary: null,
+      relationship_type: 'client',
+    };
+    const clientInFamily: components['schemas']['AdminContact'] = {
+      ...baseRow,
+      id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      first_name: 'Finn',
+      last_name: 'FamilyClient',
+      family_ids: ['fam-1'],
+      organization_ids: [],
+      family_location_summary: null,
+      organization_location_summary: null,
+      relationship_type: 'client',
+    };
+    const contacts = buildContactsHook({ contacts: [clientOnly, clientInFamily] });
+
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+
+    expect(screen.getByText(/Cara Client/)).toHaveTextContent('Cara Client 🤝');
+    expect(screen.getByText(/Finn FamilyClient/)).toHaveTextContent(
+      'Finn FamilyClient 👨‍👩‍👧 🤝'
+    );
+  });
+
   it('shows read-only family and organisation venue lines in the Location box when the row is selected', async () => {
     const user = userEvent.setup();
     const summary = {
