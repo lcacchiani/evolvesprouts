@@ -18,6 +18,7 @@ from app.api.admin_billing_common import (
 from app.api.admin_billing_payments import _serialize_payment_for_response
 from app.db.audit import AuditService
 from app.db.engine import get_engine
+from app.db.models.contact import Contact
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
 from app.db.models.enrollment import Enrollment
@@ -96,19 +97,34 @@ def create_manual_inbound_payment(
         [Session, list[CustomerPayment]], dict[UUID, bool]
     ],
 ) -> dict[str, Any]:
-    """Create an inbound customer payment linked to an enrollment (admin manual entry)."""
-    raw_eid = body.get("enrollmentId") or body.get("enrollment_id")
-    if not raw_eid:
-        raise ValidationError(
-            "enrollmentId is required for inbound payment creation",
-            field="enrollmentId",
-        )
-    try:
-        enrollment_id = UUID(str(raw_eid).strip())
-    except (ValueError, TypeError) as exc:
-        raise ValidationError(
-            "enrollmentId must be a UUID", field="enrollmentId"
-        ) from exc
+    """Create an inbound customer payment (admin manual entry), optionally linked to an enrollment."""
+    raw_eid = body.get("enrollmentId")
+    if raw_eid is None:
+        raw_eid = body.get("enrollment_id")
+    enrollment_id: UUID | None
+    if raw_eid is None or (isinstance(raw_eid, str) and str(raw_eid).strip() == ""):
+        enrollment_id = None
+    else:
+        try:
+            enrollment_id = UUID(str(raw_eid).strip())
+        except (ValueError, TypeError) as exc:
+            raise ValidationError(
+                "enrollmentId must be a UUID", field="enrollmentId"
+            ) from exc
+
+    raw_cid = body.get("contactId")
+    if raw_cid is None:
+        raw_cid = body.get("contact_id")
+    explicit_contact_id: UUID | None
+    if raw_cid is None or (isinstance(raw_cid, str) and str(raw_cid).strip() == ""):
+        explicit_contact_id = None
+    else:
+        try:
+            explicit_contact_id = UUID(str(raw_cid).strip())
+        except (ValueError, TypeError) as exc:
+            raise ValidationError(
+                "contactId must be a UUID", field="contactId"
+            ) from exc
 
     try:
         amount = Decimal(str(body.get("amount")))
@@ -148,28 +164,45 @@ def create_manual_inbound_payment(
 
     receipt_id_for_upload: UUID | None = None
     with _session_with_audit(user_sub, request_id) as session:
-        en = session.get(Enrollment, enrollment_id)
-        if en is None:
-            raise NotFoundError("Enrollment", str(enrollment_id))
-        if en.status == EnrollmentStatus.CANCELLED:
-            raise ValidationError(
-                "Cannot record a payment for a cancelled enrollment",
-                field="enrollmentId",
-            )
-        expected_currency = _enrollment_billing_currency(en)
-        if currency != expected_currency:
-            raise ValidationError(
-                f"currency must match the enrollment billing currency ({expected_currency})",
-                field="currency",
-            )
+        contact_id: UUID | None
+        if enrollment_id is not None:
+            en = session.get(Enrollment, enrollment_id)
+            if en is None:
+                raise NotFoundError("Enrollment", str(enrollment_id))
+            if en.status == EnrollmentStatus.CANCELLED:
+                raise ValidationError(
+                    "Cannot record a payment for a cancelled enrollment",
+                    field="enrollmentId",
+                )
+            expected_currency = _enrollment_billing_currency(en)
+            if currency != expected_currency:
+                raise ValidationError(
+                    f"currency must match the enrollment billing currency ({expected_currency})",
+                    field="currency",
+                )
 
-        bill_kind = effective_enrollment_bill_to_kind(en)
-        contact_id = contact_id_for_enrollment_payment(en, bill_kind=bill_kind)
-        if contact_id is None and bill_kind == BillingBillToKind.CONTACT:
-            raise ValidationError(
-                "Enrollment must have a contact or bill-to contact for payment recording",
-                field="enrollmentId",
+            bill_kind = effective_enrollment_bill_to_kind(en)
+            derived_contact_id = contact_id_for_enrollment_payment(
+                en, bill_kind=bill_kind
             )
+            if explicit_contact_id is not None:
+                if session.get(Contact, explicit_contact_id) is None:
+                    raise NotFoundError("Contact", str(explicit_contact_id))
+                contact_id = explicit_contact_id
+            else:
+                contact_id = derived_contact_id
+                if contact_id is None and bill_kind == BillingBillToKind.CONTACT:
+                    raise ValidationError(
+                        "Enrollment must have a contact or bill-to contact for payment recording",
+                        field="enrollmentId",
+                    )
+        else:
+            if explicit_contact_id is not None:
+                if session.get(Contact, explicit_contact_id) is None:
+                    raise NotFoundError("Contact", str(explicit_contact_id))
+                contact_id = explicit_contact_id
+            else:
+                contact_id = None
 
         if effective_status == "succeeded":
             pay_status = BillingPaymentStatus.SUCCEEDED
@@ -201,13 +234,13 @@ def create_manual_inbound_payment(
                 raise ConflictError(
                     "duplicate_enrollment_payment_reference",
                     field="externalReference",
-                    enrollmentId=str(enrollment_id),
+                    enrollmentId=str(enrollment_id) if enrollment_id else None,
                 ) from exc
             raise
 
         audit = AuditService(session, user_id=user_sub, request_id=request_id)
         audit_new: dict[str, Any] = {
-            "enrollment_id": str(enrollment_id),
+            "enrollment_id": str(enrollment_id) if enrollment_id else None,
             "amount": str(amount),
             "currency": currency,
             "status": pay_status.value,

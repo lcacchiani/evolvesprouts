@@ -106,7 +106,7 @@ def _apply_succeeded_manual_patch(
             raise ConflictError(
                 "duplicate_enrollment_payment_reference",
                 field="externalReference",
-                enrollmentId=str(p.enrollment_id),
+                enrollmentId=str(p.enrollment_id) if p.enrollment_id else None,
             ) from exc
         raise
 
@@ -114,7 +114,7 @@ def _apply_succeeded_manual_patch(
 def _apply_pending_manual_patch(
     session: Session,
     p: CustomerPayment,
-    en: Enrollment,
+    en: Enrollment | None,
     body: Mapping[str, Any],
     *,
     user_sub: str,
@@ -132,12 +132,13 @@ def _apply_pending_manual_patch(
     currency = str(body.get("currency") or "").upper()[:3]
     if len(currency) != 3:
         raise ValidationError("currency is required", field="currency")
-    expected_currency = _enrollment_billing_currency(en)
-    if currency != expected_currency:
-        raise ValidationError(
-            f"currency must match the enrollment billing currency ({expected_currency})",
-            field="currency",
-        )
+    if en is not None:
+        expected_currency = _enrollment_billing_currency(en)
+        if currency != expected_currency:
+            raise ValidationError(
+                f"currency must match the enrollment billing currency ({expected_currency})",
+                field="currency",
+            )
     if currency != p.currency and allocated_sum > 0:
         raise ValidationError(
             "Cannot change currency while the payment has invoice allocations",
@@ -176,19 +177,20 @@ def _apply_pending_manual_patch(
         succeeded_at = None
         confirmed_by = None
 
-    bill_kind = effective_enrollment_bill_to_kind(en)
-    contact_id = contact_id_for_enrollment_payment(en, bill_kind=bill_kind)
-    if contact_id is None and bill_kind == BillingBillToKind.CONTACT:
-        raise ValidationError(
-            "Enrollment must have a contact or bill-to contact for payment recording",
-            field="enrollmentId",
-        )
+    if en is not None:
+        bill_kind = effective_enrollment_bill_to_kind(en)
+        derived_contact_id = contact_id_for_enrollment_payment(en, bill_kind=bill_kind)
+        if derived_contact_id is None and bill_kind == BillingBillToKind.CONTACT:
+            raise ValidationError(
+                "Enrollment must have a contact or bill-to contact for payment recording",
+                field="enrollmentId",
+            )
+        p.contact_id = derived_contact_id
 
     p.amount = amount
     p.currency = currency
     p.method = method
     p.status = pay_status
-    p.contact_id = contact_id
     p.external_reference = ext_ref
     p.succeeded_at = succeeded_at
     p.confirmed_by = confirmed_by
@@ -201,7 +203,7 @@ def _apply_pending_manual_patch(
             raise ConflictError(
                 "duplicate_enrollment_payment_reference",
                 field="externalReference",
-                enrollmentId=str(p.enrollment_id),
+                enrollmentId=str(p.enrollment_id) if p.enrollment_id else None,
             ) from exc
         raise
 
@@ -232,23 +234,20 @@ def update_manual_inbound_customer_payment(
                 "Stripe-linked inbound payments cannot be updated here",
                 field="paymentId",
             )
-        if p.enrollment_id is None:
-            raise ValidationError(
-                "Payment has no enrollment link; update is not supported",
-                field="enrollmentId",
-            )
 
-        en = session.get(Enrollment, p.enrollment_id)
-        if en is None:
-            raise ValidationError(
-                "Enrollment for this payment no longer exists",
-                field="enrollmentId",
-            )
-        if en.status == EnrollmentStatus.CANCELLED:
-            raise ValidationError(
-                "Cannot update a payment for a cancelled enrollment",
-                field="enrollmentId",
-            )
+        en: Enrollment | None = None
+        if p.enrollment_id is not None:
+            en = session.get(Enrollment, p.enrollment_id)
+            if en is None:
+                raise ValidationError(
+                    "Enrollment for this payment no longer exists",
+                    field="enrollmentId",
+                )
+            if en.status == EnrollmentStatus.CANCELLED:
+                raise ValidationError(
+                    "Cannot update a payment for a cancelled enrollment",
+                    field="enrollmentId",
+                )
 
         old_values = p.to_audit_dict()
         unapplied = payment_unapplied_amount(session, payment_id)
