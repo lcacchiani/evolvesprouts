@@ -620,4 +620,3 @@ def test_try_create_enrollment_capacity_guard_ignores_capacity_left_override() -
     created, err = repo.try_create_enrollment_with_capacity_guard(enrollment)
     assert err is None
     assert created is enrollment
-
