@@ -20,6 +20,7 @@ def _instance_row(
     with_eventbrite_url: bool = False,
     delivery_mode_value: str = "in_person",
     max_capacity: int | None = 10,
+    capacity_left_override: int | None = None,
     slug: str | None = "spring-workshop",
     service_key: str | None = None,
 ) -> Any:
@@ -47,6 +48,7 @@ def _instance_row(
         status=status,
         service=service,
         max_capacity=max_capacity,
+        capacity_left_override=capacity_left_override,
         session_slots=[
             SimpleNamespace(
                 id=uuid4(),

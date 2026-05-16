@@ -628,7 +628,14 @@ export function InstanceDetailPanel({
     if (!base) {
       return null;
     }
-    return { ...base, status: instanceForm.status };
+    const payload: ApiSchemas['UpdateInstanceRequest'] = { ...base, status: instanceForm.status };
+    const maxCapParsedForOverride = instanceForm.maxCapacity.trim()
+      ? Number(instanceForm.maxCapacity)
+      : null;
+    if (maxCapParsedForOverride === null) {
+      payload.capacity_left_override = null;
+    }
+    return payload;
   };
 
   const externalUrlInvalid =

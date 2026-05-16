@@ -1043,7 +1043,99 @@ describe('InstanceDetailPanel', () => {
     expect(overrideInput).toBeDisabled();
     await user.click(screen.getByRole('button', { name: 'Update instance' }));
     const payload = onUpdate.mock.calls[0][2] as Record<string, unknown>;
-    expect(payload).not.toHaveProperty('capacity_left_override');
+    expect(payload.capacity_left_override).toBeNull();
+  });
+
+  it('sends capacity_left_override null when max capacity is cleared on update', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const instance: ServiceInstance = {
+      id: 'inst-clear-max',
+      serviceId: 'service-1',
+      parentServiceTitle: null,
+      parentServiceTier: null,
+      parentServiceType: 'training_course',
+      title: 'Capped then unlimited',
+      slug: 'capped-then-unlim',
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: 'online',
+      locationId: 'location-1',
+      maxCapacity: 10,
+      capacityLeftOverride: 5,
+      capacityLeftEffective: 5,
+      waitlistEnabled: false,
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: '',
+      tagIds: [],
+      createdBy: 'admin',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      resolvedTitle: null,
+      resolvedSlug: 'capped-then-unlim',
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: 'location-1',
+      sessionSlots: [
+        {
+          id: 'slot-a',
+          instanceId: 'inst-clear-max',
+          locationId: 'location-1',
+          startsAt: '2026-06-01T10:00:00Z',
+          endsAt: '2026-06-01T11:00:00Z',
+          sortOrder: 0,
+        },
+      ],
+      trainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      resolvedTrainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={instance}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary({ locationId: 'location-1' })]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+      />
+    );
+
+    const maxInput = screen.getByLabelText('Max capacity');
+    await user.click(maxInput);
+    await user.keyboard('{Control>}a{/Control}{Backspace}');
+    expect(maxInput).toHaveValue(null);
+
+    await user.click(screen.getByRole('button', { name: 'Update instance' }));
+    const payload = onUpdate.mock.calls[0][2] as Record<string, unknown>;
+    expect(payload.max_capacity).toBeNull();
+    expect(payload.capacity_left_override).toBeNull();
   });
 
   it('sends capacity_left_override null when override field is cleared on update', async () => {

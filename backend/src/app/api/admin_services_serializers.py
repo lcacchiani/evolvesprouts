@@ -7,6 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from app.api.admin_entities_helpers import serialize_tag_ref
+from app.api.instance_capacity import compute_capacity_left_effective
 
 from app.db.models import (
     DiscountCode,
@@ -220,21 +221,6 @@ def _capacity_enrollment_count_from_loaded(instance: ServiceInstance) -> int:
     if not enrollments:
         return 0
     return sum(1 for row in enrollments if row.status in CAPACITY_ENROLLMENT_STATUSES)
-
-
-def compute_capacity_left_effective(
-    *,
-    max_capacity: int | None,
-    capacity_enrolled_count: int,
-    capacity_left_override: int | None,
-) -> int | None:
-    """Display-only remaining seats; independent of booking guards."""
-    if max_capacity is None:
-        return None
-    remaining = max(0, max_capacity - capacity_enrolled_count)
-    if capacity_left_override is not None:
-        return min(capacity_left_override, remaining)
-    return remaining
 
 
 def serialize_instance(
