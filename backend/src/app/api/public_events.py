@@ -452,7 +452,7 @@ def _serialize_public_event(
         filled = enrollment_counts.get(instance.id, 0)
         payload["spaces_total"] = instance.max_capacity
         remaining = max(0, instance.max_capacity - filled)
-        override = instance.capacity_left_override
+        override = getattr(instance, "capacity_left_override", None)
         if override is not None:
             payload["spaces_left"] = min(override, remaining)
         else:
