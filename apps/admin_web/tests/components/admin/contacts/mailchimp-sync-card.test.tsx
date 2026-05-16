@@ -1,8 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AdminApiError } from '@/lib/api-admin-client';
+import { MAILCHIMP_PRODUCTION_GATE_MESSAGE } from '@/hooks/use-mailchimp-sync';
 
 const { getMailchimpSyncStatus, runMailchimpSyncBatch, runMailchimpOrphanCleanup } = vi.hoisted(
   () => ({
@@ -61,6 +62,10 @@ describe('MailchimpSyncCard', () => {
     getMailchimpSyncStatus.mockResolvedValue(defaultStatus);
     runMailchimpSyncBatch.mockResolvedValue(baseSyncResponse());
     runMailchimpOrphanCleanup.mockResolvedValue(baseOrphanResponse());
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders title and the six counter tiles from a mocked status response', async () => {
@@ -183,7 +188,7 @@ describe('MailchimpSyncCard', () => {
     await user.click(screen.getByRole('button', { name: 'Run upsert batch' }));
 
     expect(await screen.findByText(/Would process: 7/)).toBeInTheDocument();
-    expect(screen.queryByText(/Succeeded:/)).toBeNull();
+    expect(screen.queryByText(/Succeeded:/i)).toBeNull();
   });
 
   it('errors_sample shows lead_email_masked first', async () => {
@@ -237,7 +242,7 @@ describe('MailchimpSyncCard', () => {
 
     const orphanDetails = screen.getByText('Reconcile Mailchimp orphans').closest('details');
     const orphanRegion = within(orphanDetails as HTMLElement);
-    await user.click(orphanRegion.getByLabelText(/dry_run/i));
+    await user.click(orphanRegion.getByLabelText(/Dry run/i));
     await user.click(orphanRegion.getByRole('button', { name: 'Run orphan cleanup' }));
 
     expect(await screen.findByRole('heading', { name: 'Archive Mailchimp orphans' })).toBeInTheDocument();
@@ -259,8 +264,8 @@ describe('MailchimpSyncCard', () => {
 
     const orphanDetails = screen.getByText('Reconcile Mailchimp orphans').closest('details');
     const orphanRegion = within(orphanDetails as HTMLElement);
-    await user.selectOptions(orphanRegion.getByLabelText('mode'), 'permanent');
-    await user.click(orphanRegion.getByLabelText(/dry_run/i));
+    await user.selectOptions(orphanRegion.getByLabelText('Mode'), 'permanent');
+    await user.click(orphanRegion.getByLabelText(/Dry run/i));
     await user.click(orphanRegion.getByRole('button', { name: 'Run orphan cleanup' }));
 
     const dialog = await screen.findByRole('heading', { name: 'Permanent Mailchimp erase' });
@@ -353,5 +358,74 @@ describe('MailchimpSyncCard', () => {
     await user.click(screen.getByRole('button', { name: 'Run upsert batch' }));
 
     await waitFor(() => expect(getMailchimpSyncStatus).toHaveBeenCalledTimes(2));
+  });
+
+  it('Last refreshed advances after timer tick (fake timers)', async () => {
+    vi.useFakeTimers();
+    const start = new Date('2025-06-01T12:00:00.000Z').getTime();
+    vi.setSystemTime(start);
+
+    render(<MailchimpSyncCard />);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText('Last refreshed').nextElementSibling).toHaveTextContent('just now');
+
+    await act(async () => {
+      vi.advanceTimersByTime(31_000);
+    });
+
+    const label = screen.getByText('Last refreshed').nextElementSibling?.textContent ?? '';
+    expect(label).not.toBe('just now');
+    expect(label).toMatch(/\d+s ago/);
+  });
+
+  it('409 on sync then Refresh clears production gate and restores forms', async () => {
+    const user = userEvent.setup();
+    runMailchimpSyncBatch.mockRejectedValueOnce(
+      new AdminApiError({
+        statusCode: 409,
+        payload: { detail: 'nope' },
+        message: 'conflict',
+      })
+    );
+
+    render(<MailchimpSyncCard />);
+    await screen.findByRole('heading', { name: 'Mailchimp sync' });
+
+    await user.click(screen.getByText('Push CRM contacts to Mailchimp'));
+    await user.click(screen.getByRole('button', { name: 'Run upsert batch' }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText(MAILCHIMP_PRODUCTION_GATE_MESSAGE).length).toBeGreaterThanOrEqual(1);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Tag name')).toBeInTheDocument();
+    });
+  });
+
+  it('clamps max_contacts input to 200 and max_members to 1000', async () => {
+    const user = userEvent.setup();
+
+    render(<MailchimpSyncCard />);
+    await screen.findByText('Push CRM contacts to Mailchimp');
+    await user.click(screen.getByText('Push CRM contacts to Mailchimp'));
+
+    const syncBatch = screen.getByLabelText(/Batch size \(1–200\)/);
+    await user.clear(syncBatch);
+    await user.type(syncBatch, '9999');
+    expect(syncBatch).toHaveValue(200);
+
+    await user.click(screen.getByText('Reconcile Mailchimp orphans'));
+    const orphanBatch = screen.getByLabelText(/Batch size \(1–1000\)/);
+    await user.clear(orphanBatch);
+    await user.type(orphanBatch, '5000');
+    expect(orphanBatch).toHaveValue(1000);
   });
 });

@@ -20,6 +20,43 @@ export const MAILCHIMP_PRODUCTION_GATE_MESSAGE =
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired — please sign in again.';
 
+function mergeErrorSamples(
+  prevSample: MailchimpSyncRunErrorSampleItem[],
+  incoming: MailchimpSyncRunErrorSampleItem[]
+): { list: MailchimpSyncRunErrorSampleItem[]; extra: number } {
+  const merged = [...incoming, ...prevSample];
+  const seen = new Set<string>();
+  const list: MailchimpSyncRunErrorSampleItem[] = [];
+  for (const row of merged) {
+    if (seen.has(row.contact_id)) {
+      continue;
+    }
+    seen.add(row.contact_id);
+    list.push(row);
+  }
+  const extra = Math.max(0, list.length - 5);
+  return { list: list.slice(0, 5), extra };
+}
+
+function mergeRemovedSamples(
+  prevSample: MailchimpOrphanRemovedSampleItem[],
+  incoming: MailchimpOrphanRemovedSampleItem[]
+): { list: MailchimpOrphanRemovedSampleItem[]; extra: number } {
+  const merged = [...incoming, ...prevSample];
+  const seen = new Set<string>();
+  const list: MailchimpOrphanRemovedSampleItem[] = [];
+  for (const row of merged) {
+    const key = `${row.email}\0${row.status}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    list.push(row);
+  }
+  const extra = Math.max(0, list.length - 5);
+  return { list: list.slice(0, 5), extra };
+}
+
 export type SyncRunTotals = {
   batches: number;
   processed: number;
@@ -28,6 +65,7 @@ export type SyncRunTotals = {
   skipped: number;
   wouldProcess: number;
   errorsSample: MailchimpSyncRunErrorSampleItem[];
+  errorsSampleExtra: number;
 };
 
 export type OrphanRunTotals = {
@@ -39,6 +77,7 @@ export type OrphanRunTotals = {
   alreadyArchived: number;
   wouldRemove: number;
   removedSample: MailchimpOrphanRemovedSampleItem[];
+  removedSampleExtra: number;
 };
 
 export type RunState = 'idle' | 'running' | 'completed' | 'aborted' | 'errored';
@@ -51,6 +90,7 @@ const emptySyncTotals = (): SyncRunTotals => ({
   skipped: 0,
   wouldProcess: 0,
   errorsSample: [],
+  errorsSampleExtra: 0,
 });
 
 const emptyOrphanTotals = (): OrphanRunTotals => ({
@@ -62,6 +102,7 @@ const emptyOrphanTotals = (): OrphanRunTotals => ({
   alreadyArchived: 0,
   wouldRemove: 0,
   removedSample: [],
+  removedSampleExtra: 0,
 });
 
 function mapAdminApiError(error: unknown): string {
@@ -125,22 +166,38 @@ export function useMailchimpSync(): UseMailchimpSync {
 
   const syncAbortRef = useRef<AbortController | null>(null);
   const orphanAbortRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const refetchStatus = useCallback(async () => {
     setStatusLoading(true);
     setStatusError(null);
     try {
       const next = await getMailchimpSyncStatus();
+      if (!isMountedRef.current) {
+        return;
+      }
+      setProductionGated(false);
       setStatus(next);
     } catch (error) {
+      if (!isMountedRef.current) {
+        return;
+      }
       setStatusError(mapAdminApiError(error));
     } finally {
-      setStatusLoading(false);
+      if (isMountedRef.current) {
+        setStatusLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
     void refetchStatus();
+    return () => {
+      isMountedRef.current = false;
+      syncAbortRef.current?.abort();
+      orphanAbortRef.current?.abort();
+    };
   }, [refetchStatus]);
 
   const abortSyncRun = useCallback(() => {
@@ -162,6 +219,9 @@ export function useMailchimpSync(): UseMailchimpSync {
       syncAbortRef.current = controller;
       const { signal } = controller;
 
+      if (!isMountedRef.current) {
+        return;
+      }
       setSyncRun({
         state: 'running',
         totals: emptySyncTotals(),
@@ -185,22 +245,35 @@ export function useMailchimpSync(): UseMailchimpSync {
           }
           const response = await runMailchimpSyncBatch(req, signal);
 
+          if (!isMountedRef.current) {
+            return;
+          }
+
+          setProductionGated(false);
+
           batches += 1;
-          setSyncRun((prev) => ({
-            ...prev,
-            state: 'running',
-            totals: {
-              batches: prev.totals.batches + 1,
-              processed: prev.totals.processed + response.processed,
-              succeeded: prev.totals.succeeded + response.succeeded,
-              failed: prev.totals.failed + response.failed,
-              skipped: prev.totals.skipped + response.skipped,
-              wouldProcess: prev.totals.wouldProcess + (dryRun ? response.would_process : 0),
-              errorsSample: response.errors_sample.slice(0, 5),
-            },
-          }));
+          setSyncRun((prev) => {
+            const merged = mergeErrorSamples(prev.totals.errorsSample, response.errors_sample);
+            return {
+              ...prev,
+              state: 'running',
+              totals: {
+                batches: prev.totals.batches + 1,
+                processed: prev.totals.processed + response.processed,
+                succeeded: prev.totals.succeeded + response.succeeded,
+                failed: prev.totals.failed + response.failed,
+                skipped: prev.totals.skipped + response.skipped,
+                wouldProcess: prev.totals.wouldProcess + (dryRun ? response.would_process : 0),
+                errorsSample: merged.list,
+                errorsSampleExtra: merged.extra,
+              },
+            };
+          });
 
           if (response.next_cursor === null) {
+            if (!isMountedRef.current) {
+              return;
+            }
             setSyncRun((prev) => ({
               ...prev,
               state: 'completed',
@@ -213,12 +286,18 @@ export function useMailchimpSync(): UseMailchimpSync {
           cursor = response.next_cursor;
         }
 
+        if (!isMountedRef.current) {
+          return;
+        }
         setSyncRun((prev) => ({
           ...prev,
           state: 'errored',
           error: 'Stopped: exceeded maximum batches per run.',
         }));
       } catch (error) {
+        if (!isMountedRef.current) {
+          return;
+        }
         if (isAbortRequestError(error)) {
           setSyncRun((prev) => ({
             ...prev,
@@ -264,6 +343,9 @@ export function useMailchimpSync(): UseMailchimpSync {
       orphanAbortRef.current = controller;
       const { signal } = controller;
 
+      if (!isMountedRef.current) {
+        return;
+      }
       setOrphanRun({
         state: 'running',
         totals: emptyOrphanTotals(),
@@ -286,23 +368,36 @@ export function useMailchimpSync(): UseMailchimpSync {
             signal
           );
 
+          if (!isMountedRef.current) {
+            return;
+          }
+
+          setProductionGated(false);
+
           batches += 1;
-          setOrphanRun((prev) => ({
-            ...prev,
-            state: 'running',
-            totals: {
-              batches: prev.totals.batches + 1,
-              scanned: prev.totals.scanned + response.scanned,
-              kept: prev.totals.kept + response.kept,
-              removed: prev.totals.removed + response.removed,
-              failed: prev.totals.failed + response.failed,
-              alreadyArchived: prev.totals.alreadyArchived + response.already_archived,
-              wouldRemove: prev.totals.wouldRemove + (dryRun ? response.would_remove : 0),
-              removedSample: response.removed_sample.slice(0, 5),
-            },
-          }));
+          setOrphanRun((prev) => {
+            const merged = mergeRemovedSamples(prev.totals.removedSample, response.removed_sample);
+            return {
+              ...prev,
+              state: 'running',
+              totals: {
+                batches: prev.totals.batches + 1,
+                scanned: prev.totals.scanned + response.scanned,
+                kept: prev.totals.kept + response.kept,
+                removed: prev.totals.removed + response.removed,
+                failed: prev.totals.failed + response.failed,
+                alreadyArchived: prev.totals.alreadyArchived + response.already_archived,
+                wouldRemove: prev.totals.wouldRemove + (dryRun ? response.would_remove : 0),
+                removedSample: merged.list,
+                removedSampleExtra: merged.extra,
+              },
+            };
+          });
 
           if (response.next_offset === null) {
+            if (!isMountedRef.current) {
+              return;
+            }
             setOrphanRun((prev) => ({
               ...prev,
               state: 'completed',
@@ -315,6 +410,9 @@ export function useMailchimpSync(): UseMailchimpSync {
           mailchimpOffset = response.next_offset;
         }
 
+        if (!isMountedRef.current) {
+          return;
+        }
         if (mailchimpOffset !== null) {
           setOrphanRun((prev) => ({
             ...prev,
@@ -323,6 +421,9 @@ export function useMailchimpSync(): UseMailchimpSync {
           }));
         }
       } catch (error) {
+        if (!isMountedRef.current) {
+          return;
+        }
         if (isAbortRequestError(error)) {
           setOrphanRun((prev) => ({
             ...prev,

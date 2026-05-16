@@ -13,9 +13,16 @@ import { Select } from '@/components/ui/select';
 
 const TAG_NAME_REGEX = /^[a-zA-Z0-9 ._-]{1,100}$/;
 const DEFAULT_TAG_NAME = 'crm-bulk-sync';
+const MIN_MAX_CONTACTS = 1;
+const MAX_MAX_CONTACTS = 200;
+const MIN_MAX_MEMBERS = 1;
+const MAX_MAX_MEMBERS = 1000;
 
-function formatRelativeAgo(fromMs: number): string {
-  const sec = Math.max(0, Math.floor((Date.now() - fromMs) / 1000));
+const CARD_DESCRIPTION =
+  'Production-only. Push CRM contacts to the Mailchimp audience and reconcile orphans. Counters above are read-only in non-production environments.';
+
+function formatRelativeAgo(fromMs: number, nowMs: number): string {
+  const sec = Math.max(0, Math.floor((nowMs - fromMs) / 1000));
   if (sec < 10) {
     return 'just now';
   }
@@ -32,6 +39,14 @@ function formatRelativeAgo(fromMs: number): string {
   }
   const day = Math.floor(hr / 24);
   return `${day}d ago`;
+}
+
+function parseClampedInt(raw: string, min: number, max: number): number {
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isNaN(parsed)) {
+    return min;
+  }
+  return Math.min(Math.max(parsed, min), max);
 }
 
 function countFor(status: Record<string, number> | undefined, key: string): number {
@@ -58,16 +73,29 @@ export function MailchimpSyncCard() {
   } = useMailchimpSync();
 
   const [lastRefreshSnapshotMs, setLastRefreshSnapshotMs] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
     if (!status) {
       return;
     }
-    const id = window.setTimeout(() => {
-      setLastRefreshSnapshotMs(Date.now());
-    }, 0);
-    return () => window.clearTimeout(id);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setLastRefreshSnapshotMs(Date.now());
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [status]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const [tagName, setTagName] = useState(DEFAULT_TAG_NAME);
   const [maxContacts, setMaxContacts] = useState(100);
@@ -102,8 +130,8 @@ export function MailchimpSyncCard() {
     if (lastRefreshSnapshotMs === null) {
       return '—';
     }
-    return formatRelativeAgo(lastRefreshSnapshotMs);
-  }, [lastRefreshSnapshotMs]);
+    return formatRelativeAgo(lastRefreshSnapshotMs, nowMs);
+  }, [lastRefreshSnapshotMs, nowMs]);
 
   const gateNotice = (
     <p className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
@@ -178,7 +206,7 @@ export function MailchimpSyncCard() {
   const showOrphanProgress = orphanRun.state !== 'idle';
 
   return (
-    <Card title='Mailchimp sync'>
+    <Card title='Mailchimp sync' description={CARD_DESCRIPTION}>
       <div className='space-y-6'>
         <div className='space-y-3'>
           <div className='flex flex-wrap items-center justify-between gap-2'>
@@ -194,9 +222,12 @@ export function MailchimpSyncCard() {
             </Button>
           </div>
           {statusError ? (
-            <p className='text-sm text-red-800' role='alert'>
-              {statusError}
-            </p>
+            <div className='flex flex-wrap items-start justify-between gap-2' role='alert'>
+              <p className='text-sm text-red-800'>{statusError}</p>
+              <Button type='button' variant='secondary' size='sm' onClick={() => void refetchStatus()}>
+                Retry
+              </Button>
+            </div>
           ) : null}
           <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6'>
             <div className='rounded-md border border-slate-200 bg-slate-50/80 p-2 text-center'>
@@ -242,7 +273,7 @@ export function MailchimpSyncCard() {
           ) : (
             <div className='space-y-4'>
               <div className='space-y-2'>
-                <Label htmlFor='mailchimp-sync-tag-name'>tag_name</Label>
+                <Label htmlFor='mailchimp-sync-tag-name'>Tag name</Label>
                 <Input
                   id='mailchimp-sync-tag-name'
                   value={tagName}
@@ -256,48 +287,65 @@ export function MailchimpSyncCard() {
                 ) : null}
               </div>
               <div className='space-y-2'>
-                <Label htmlFor='mailchimp-sync-max-contacts'>max_contacts</Label>
+                <Label htmlFor='mailchimp-sync-max-contacts'>Batch size (1–200)</Label>
                 <Input
                   id='mailchimp-sync-max-contacts'
                   type='number'
-                  min={1}
-                  max={200}
+                  min={MIN_MAX_CONTACTS}
+                  max={MAX_MAX_CONTACTS}
                   value={maxContacts}
-                  onChange={(e) => setMaxContacts(Number.parseInt(e.target.value, 10) || 1)}
+                  onChange={(e) =>
+                    setMaxContacts(parseClampedInt(e.target.value, MIN_MAX_CONTACTS, MAX_MAX_CONTACTS))
+                  }
                 />
               </div>
               <fieldset className='space-y-2'>
-                <legend className='text-sm font-medium text-slate-800'>only_statuses</legend>
+                <legend className='text-sm font-medium text-slate-800'>Statuses to push</legend>
                 <div className='flex flex-wrap gap-4'>
-                  <label className='flex items-center gap-2 text-sm text-slate-800'>
+                  <div className='flex items-center gap-2'>
                     <input
+                      id='mailchimp-sync-status-pending'
                       type='checkbox'
                       checked={pendingChecked}
                       onChange={(e) => setPendingChecked(e.target.checked)}
                       className='h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500'
                     />
-                    Pending
-                  </label>
-                  <label className='flex items-center gap-2 text-sm text-slate-800'>
+                    <Label
+                      htmlFor='mailchimp-sync-status-pending'
+                      className='mb-0 inline align-middle text-sm font-normal text-slate-800'
+                    >
+                      Pending
+                    </Label>
+                  </div>
+                  <div className='flex items-center gap-2'>
                     <input
+                      id='mailchimp-sync-status-failed'
                       type='checkbox'
                       checked={failedChecked}
                       onChange={(e) => setFailedChecked(e.target.checked)}
                       className='h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500'
                     />
-                    Failed
-                  </label>
+                    <Label
+                      htmlFor='mailchimp-sync-status-failed'
+                      className='mb-0 inline align-middle text-sm font-normal text-slate-800'
+                    >
+                      Failed
+                    </Label>
+                  </div>
                 </div>
               </fieldset>
-              <label className='flex items-center gap-2 text-sm text-slate-800'>
+              <div className='flex items-center gap-2'>
                 <input
+                  id='mailchimp-sync-dry-run'
                   type='checkbox'
                   checked={syncDryRun}
                   onChange={(e) => setSyncDryRun(e.target.checked)}
                   className='h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500'
                 />
-                dry_run (default on)
-              </label>
+                <Label htmlFor='mailchimp-sync-dry-run' className='mb-0 inline align-middle text-sm font-normal text-slate-800'>
+                  Dry run (default on)
+                </Label>
+              </div>
               <div>
                 <Button
                   type='button'
@@ -317,10 +365,10 @@ export function MailchimpSyncCard() {
                     {syncRunUsedDryRun ? (
                       <li className='sm:col-span-2'>Would process: {syncRun.totals.wouldProcess}</li>
                     ) : (
-                      <li>succeeded: {syncRun.totals.succeeded}</li>
+                      <li>Succeeded: {syncRun.totals.succeeded}</li>
                     )}
-                    <li>failed: {syncRun.totals.failed}</li>
-                    <li>skipped: {syncRun.totals.skipped}</li>
+                    <li>Failed: {syncRun.totals.failed}</li>
+                    <li>Skipped: {syncRun.totals.skipped}</li>
                   </ul>
                   {syncRun.error ? (
                     <p className='text-sm text-red-800' role='alert'>
@@ -330,7 +378,7 @@ export function MailchimpSyncCard() {
                   {syncRun.totals.errorsSample.length > 0 ? (
                     <div className='space-y-1'>
                       <div className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                        errors_sample
+                        Recent errors
                       </div>
                       <ul className='space-y-2 divide-y divide-slate-100'>
                         {syncRun.totals.errorsSample.map((row) => (
@@ -343,6 +391,9 @@ export function MailchimpSyncCard() {
                           </li>
                         ))}
                       </ul>
+                      {syncRun.totals.errorsSampleExtra > 0 ? (
+                        <p className='text-xs text-slate-600'>+{syncRun.totals.errorsSampleExtra} more</p>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -357,18 +408,20 @@ export function MailchimpSyncCard() {
           ) : (
             <div className='space-y-4'>
               <div className='space-y-2'>
-                <Label htmlFor='mailchimp-orphan-max'>max_members</Label>
+                <Label htmlFor='mailchimp-orphan-max'>Batch size (1–1000)</Label>
                 <Input
                   id='mailchimp-orphan-max'
                   type='number'
-                  min={1}
-                  max={1000}
+                  min={MIN_MAX_MEMBERS}
+                  max={MAX_MAX_MEMBERS}
                   value={orphanMaxMembers}
-                  onChange={(e) => setOrphanMaxMembers(Number.parseInt(e.target.value, 10) || 1)}
+                  onChange={(e) =>
+                    setOrphanMaxMembers(parseClampedInt(e.target.value, MIN_MAX_MEMBERS, MAX_MAX_MEMBERS))
+                  }
                 />
               </div>
               <div className='space-y-2'>
-                <Label htmlFor='mailchimp-orphan-mode'>mode</Label>
+                <Label htmlFor='mailchimp-orphan-mode'>Mode</Label>
                 <Select
                   id='mailchimp-orphan-mode'
                   value={orphanMode}
@@ -378,15 +431,18 @@ export function MailchimpSyncCard() {
                   <option value='permanent'>permanent</option>
                 </Select>
               </div>
-              <label className='flex items-center gap-2 text-sm text-slate-800'>
+              <div className='flex items-center gap-2'>
                 <input
+                  id='mailchimp-orphan-dry-run'
                   type='checkbox'
                   checked={orphanDryRun}
                   onChange={(e) => setOrphanDryRun(e.target.checked)}
                   className='h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500'
                 />
-                dry_run (default on)
-              </label>
+                <Label htmlFor='mailchimp-orphan-dry-run' className='mb-0 inline align-middle text-sm font-normal text-slate-800'>
+                  Dry run (default on)
+                </Label>
+              </div>
               <div>
                 <Button
                   type='button'
@@ -421,7 +477,7 @@ export function MailchimpSyncCard() {
                   {orphanRun.totals.removedSample.length > 0 ? (
                     <div className='space-y-1'>
                       <div className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                        removed_sample
+                        Recent removals
                       </div>
                       <ul className='space-y-2 divide-y divide-slate-100'>
                         {orphanRun.totals.removedSample.map((row) => (
@@ -431,6 +487,9 @@ export function MailchimpSyncCard() {
                           </li>
                         ))}
                       </ul>
+                      {orphanRun.totals.removedSampleExtra > 0 ? (
+                        <p className='text-xs text-slate-600'>+{orphanRun.totals.removedSampleExtra} more</p>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -469,6 +528,8 @@ export function MailchimpSyncCard() {
             value={permanentConfirmInput}
             onChange={(e) => setPermanentConfirmInput(e.target.value)}
             autoComplete='off'
+            autoCapitalize='characters'
+            autoCorrect='off'
           />
         </div>
       </ConfirmDialog>
