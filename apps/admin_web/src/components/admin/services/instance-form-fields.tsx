@@ -313,9 +313,9 @@ export function InstanceFormFields({
           )}
         </div>
         <div className='sm:col-span-2'>
-          <fieldset className='min-w-0 border-0 p-0'>
-            <legend className='mb-1 block text-sm font-medium text-neutral-900'>Capacity Override</legend>
-            <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+            <div>
+              <Label htmlFor='instance-max-capacity'>Max capacity</Label>
               <Input
                 id='instance-max-capacity'
                 value={value.maxCapacity}
@@ -330,9 +330,11 @@ export function InstanceFormFields({
                 }}
                 type='number'
                 min={0}
-                aria-label='Max capacity'
                 placeholder='Unlimited if empty'
               />
+            </div>
+            <div>
+              <Label htmlFor='instance-capacity-left-override'>Capacity left override</Label>
               <Input
                 id='instance-capacity-left-override'
                 value={value.capacityLeftOverride}
@@ -340,21 +342,16 @@ export function InstanceFormFields({
                 onChange={(event) => onChange({ ...value, capacityLeftOverride: event.target.value })}
                 type='number'
                 min={0}
-                aria-label='Capacity left override'
                 autoComplete='off'
                 placeholder='None'
               />
             </div>
-            {capacityOverrideDisabled && !instanceFieldsLocked ? (
-              <p className='mt-1 text-xs text-neutral-500'>
-                Set max capacity to enable a display-only spots-left override.
-              </p>
-            ) : (
-              <p className='mt-1 text-xs text-neutral-500'>
-                Soft-caps the displayed spots-left. Does not block bookings.
-              </p>
-            )}
-          </fieldset>
+          </div>
+          {capacityOverrideDisabled && !instanceFieldsLocked ? (
+            <p className='mt-1 text-xs text-neutral-500'>
+              Set max capacity to enable a display-only spots-left override.
+            </p>
+          ) : null}
         </div>
         <div>
           <Label htmlFor='instance-waitlist'>Waitlist</Label>
