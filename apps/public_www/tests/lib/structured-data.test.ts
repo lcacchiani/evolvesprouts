@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
 import { publicCalendarFixture } from '../fixtures/public-calendar';
@@ -31,6 +31,7 @@ const originalEnvValues = Object.fromEntries(
 ) as Record<(typeof ENV_KEYS)[number], string | undefined>;
 
 afterEach(() => {
+  vi.useRealTimers();
   for (const key of ENV_KEYS) {
     const originalValue = originalEnvValues[key];
     if (typeof originalValue === 'string') {
@@ -127,6 +128,11 @@ describe('structured-data builders', () => {
   });
 
   it('adds Course.offers from MBA cohorts when lowest open price is available', () => {
+    vi.useFakeTimers();
+    // MBA cohort JSON-LD uses `isFutureCohort` (all sessions strictly after "today" in the site TZ).
+    // Pin "today" before fixture sessions so open prices stay available regardless of CI clock.
+    vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
+
     const mbaCohorts = normalizeMyBestAuntieCohortsFromPayload(publicCalendarFixture);
     const courseSchema = buildCourseSchema({
       locale: 'en',
