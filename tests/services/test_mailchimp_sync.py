@@ -71,6 +71,9 @@ def test_upsert_skips_archived(monkeypatch: Any) -> None:
 
 
 def test_upsert_synced_updates_contact(monkeypatch: Any) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
     monkeypatch.setattr(
         "app.services.mailchimp_sync.run_with_retry",
         lambda op, *args, **kwargs: op(*args, **kwargs),
@@ -99,6 +102,9 @@ def test_upsert_synced_updates_contact(monkeypatch: Any) -> None:
 
 
 def test_upsert_failed_sets_status(monkeypatch: Any) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
     monkeypatch.setattr(
         "app.services.mailchimp_sync.run_with_retry",
         lambda *_a, **_k: (_ for _ in ()).throw(MailchimpApiError(500, "err")),
@@ -122,6 +128,9 @@ def test_upsert_failed_sets_status(monkeypatch: Any) -> None:
 
 
 def test_remove_calls_archive(monkeypatch: Any) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
     with patch(
         "app.services.mailchimp_sync.archive_subscriber",
         return_value=True,
@@ -138,3 +147,15 @@ def test_remove_calls_archive(monkeypatch: Any) -> None:
 def test_remove_skips_blank_email() -> None:
     log = MagicMock()
     assert remove_contact_from_mailchimp(email="  ", logger=log) == "skipped"
+
+
+def test_remove_skips_staging_even_with_mailchimp_env(monkeypatch: Any) -> None:
+    monkeypatch.setenv("DEPLOYMENT_STAGE", "staging")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    with patch(
+        "app.services.mailchimp_sync.archive_subscriber",
+        side_effect=AssertionError("archive_subscriber must not run in staging"),
+    ):
+        log = MagicMock()
+        assert remove_contact_from_mailchimp(email="a@example.com", logger=log) == "skipped"

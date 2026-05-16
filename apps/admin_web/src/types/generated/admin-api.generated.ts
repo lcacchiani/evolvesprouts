@@ -2807,7 +2807,9 @@ export interface paths {
          *     (default ``pending`` and ``failed``). Never include ``unsubscribed`` in ``only_statuses``:
          *     that would risk re-subscribing contacts who opted out in Mailchimp. Each row calls
          *     Mailchimp PUT + tag; unsubscribed or archived contacts are skipped without calling Mailchimp.
-         *     Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp.
+         *     Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp; when
+         *     ``dry_run`` is true, ``would_process`` mirrors that count and ``processed``/``skipped``
+         *     remain populated for backward compatibility.
          */
         post: {
             parameters: {
@@ -2866,7 +2868,11 @@ export interface paths {
          *     ``mailchimp_status`` is ``unsubscribed``. Default ``dry_run`` is ``true`` because this
          *     deletes or archives Mailchimp members; set ``dry_run`` to ``false`` to execute.
          *     ``mode=archive`` soft-archives (recoverable); ``mode=permanent`` is GDPR erase and
-         *     must only be used when explicitly required.
+         *     must only be used when explicitly required. Mailchimp offset pagination is eventually
+         *     consistent (webhooks or concurrent runs may shift rows between pages); archive mode
+         *     remains idempotent on Mailchimp. With ``mode=permanent`` and ``dry_run=false``, when
+         *     members are removed the response repeats ``next_offset`` equal to ``mailchimp_offset``
+         *     until a page removes zero rows, then advances by ``scanned`` when the page is full.
          */
         post: {
             parameters: {
@@ -7184,7 +7190,7 @@ export interface components {
              * @description Defaults to `pending` and `failed`. Must not include `unsubscribed` (non-compliant
              *     re-subscribe risk).
              */
-            only_statuses?: ("pending" | "failed" | "synced")[];
+            only_statuses?: ("pending" | "failed")[];
             tag_name: string;
             /** @default false */
             dry_run: boolean;
@@ -7195,6 +7201,8 @@ export interface components {
             reason: string;
             /** @description HTTP status from Mailchimp when `reason` is `mailchimp_api_error`. */
             status?: number | null;
+            /** @description Masked email for operator triage. */
+            lead_email_masked: string;
         };
         MailchimpSyncRunResponse: {
             processed: number;
@@ -7204,6 +7212,11 @@ export interface components {
             next_cursor: string | null;
             errors_sample: components["schemas"]["MailchimpSyncRunErrorSampleItem"][];
             dry_run: boolean;
+            /**
+             * @description When `dry_run` is true, equals the number of rows that would have been sent to Mailchimp.
+             *     Zero when `dry_run` is false.
+             */
+            would_process: number;
         };
         MailchimpOrphanCleanupRequest: {
             /** @default 200 */
@@ -7224,14 +7237,38 @@ export interface components {
             /** @description Mailchimp member status when scanned. */
             status: string;
         };
+        /**
+         * @description Mailchimp offset pagination is not transactionally consistent: concurrent audience changes
+         *     (for example webhook-driven unsubscribes) can shift which members appear between batches.
+         *     Archive mode remains idempotent on Mailchimp; permanent mode keeps the same offset while
+         *     removals occur (see `next_offset`).
+         */
         MailchimpOrphanCleanupResponse: {
             scanned: number;
             kept: number;
             removed: number;
             failed: number;
+            /**
+             * @description For `mode=archive` or any `dry_run` request, the next offset is `mailchimp_offset + scanned`
+             *     when the page is full (same length as `max_members`), otherwise null.
+             *     For `mode=permanent` with `dry_run=false`, when at least one member was removed this page,
+             *     repeats `mailchimp_offset` so the caller re-reads the same offset (permanent deletes shift
+             *     indices). When zero members were removed and the page is full, advances by `scanned`;
+             *     otherwise null.
+             */
             next_offset: number | null;
             removed_sample: components["schemas"]["MailchimpOrphanRemovedSampleItem"][];
             dry_run: boolean;
+            /**
+             * @description Archive mode only: members already in Mailchimp `archived` state skipped without API calls.
+             *     Zero in permanent mode (archived members are still eligible for permanent erase).
+             */
+            already_archived: number;
+            /**
+             * @description When `dry_run` is true, counts members that would be removed or archived. Zero when
+             *     `dry_run` is false; use `removed` for executed runs.
+             */
+            would_remove: number;
         };
         MailchimpSyncStatusResponse: {
             /** @description Keys are `pending`, `synced`, `failed`, `unsubscribed`. */

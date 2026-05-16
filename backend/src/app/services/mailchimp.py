@@ -358,16 +358,19 @@ def permanent_delete_subscriber(*, email: str) -> bool:
     return True
 
 
+ITER_AUDIENCE_MEMBER_FIELDS: tuple[str, ...] = (
+    "members.id",
+    "members.email_address",
+    "members.status",
+    "members.unique_email_id",
+    "total_items",
+)
+
+
 def iter_audience_members(
     *,
     page_size: int = 200,
-    fields: tuple[str, ...] = (
-        "members.id",
-        "members.email_address",
-        "members.status",
-        "members.unique_email_id",
-        "total_items",
-    ),
+    fields: tuple[str, ...] = ITER_AUDIENCE_MEMBER_FIELDS,
     start_offset: int = 0,
     single_page: bool = False,
 ) -> Iterator[dict[str, Any]]:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Literal
 
 from sqlalchemy.orm import Session
@@ -15,10 +16,22 @@ from app.services.mailchimp import (
     archive_subscriber,
     permanent_delete_subscriber,
 )
+from app.utils.deployment import is_production
 from app.utils.logging import ContextLogger, mask_email
 from app.utils.retry import run_with_retry
 
 LoggerLike = logging.Logger | ContextLogger
+
+
+def _mailchimp_audience_env_configured() -> bool:
+    return bool(
+        os.getenv("MAILCHIMP_LIST_ID", "").strip()
+        and os.getenv("MAILCHIMP_SERVER_PREFIX", "").strip()
+    )
+
+
+def _mailchimp_runtime_ready() -> bool:
+    return is_production() and _mailchimp_audience_env_configured()
 
 
 def is_retryable_mailchimp_exception(exc: Exception) -> bool:
@@ -46,6 +59,13 @@ def upsert_contact_to_mailchimp(
 
     Returns ``(outcome, http_status)`` where ``http_status`` is set on Mailchimp API failure.
     """
+    if not _mailchimp_runtime_ready():
+        logger.info(
+            "Mailchimp upsert skipped (non-production or env not configured)",
+            extra={"lead_email": mask_email(contact.email or "")},
+        )
+        return "skipped", None
+
     if session is not None:
         session.refresh(contact, attribute_names=["mailchimp_status", "archived_at"])
 
@@ -111,10 +131,18 @@ def remove_contact_from_mailchimp(
     email: str,
     mode: Literal["archive", "permanent"] = "archive",
     logger: LoggerLike,
+    max_attempts: int = 3,
 ) -> Literal["removed", "skipped", "failed"]:
     """Remove one email from Mailchimp (archive or permanent). Caller clears DB row."""
     normalized = (email or "").strip().lower()
     if not normalized:
+        return "skipped"
+
+    if not _mailchimp_runtime_ready():
+        logger.info(
+            "Mailchimp removal skipped (non-production or env not configured)",
+            extra={"lead_email": mask_email(normalized)},
+        )
         return "skipped"
 
     op = permanent_delete_subscriber if mode == "permanent" else archive_subscriber
@@ -123,7 +151,7 @@ def remove_contact_from_mailchimp(
         run_with_retry(
             op,
             email=normalized,
-            max_attempts=3,
+            max_attempts=max_attempts,
             base_delay_seconds=1.0,
             should_retry=is_retryable_mailchimp_exception,
             logger=logger,

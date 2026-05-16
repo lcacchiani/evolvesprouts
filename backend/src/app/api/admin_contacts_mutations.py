@@ -405,33 +405,34 @@ def update_contact(
                 "Email or Instagram handle is already in use",
                 field="email",
             ) from exc
-        if mailchimp_email_for_archive:
-            removal = remove_contact_from_mailchimp(
-                email=mailchimp_email_for_archive,
-                logger=logger,
-            )
-            if removal == "failed":
-                logger.warning(
-                    "Mailchimp remove after contact archive failed (best effort)",
-                    extra={
-                        "lead_email": mask_email(mailchimp_email_for_archive),
-                    },
-                )
         session.refresh(updated)
         loaded = repository.get_by_id_for_admin(contact_id)
         if loaded is None:
             raise DatabaseError("Failed to load contact after update")
         note_counts = repository.count_standalone_notes_for_contacts([loaded.id])
-        return json_response(
-            200,
-            {
-                "contact": serialize_contact_summary(
-                    loaded,
-                    standalone_note_count=note_counts.get(loaded.id, 0),
-                )
-            },
-            event=event,
+        payload = {
+            "contact": serialize_contact_summary(
+                loaded,
+                standalone_note_count=note_counts.get(loaded.id, 0),
+            )
+        }
+
+    # Avoid holding the DB session during Mailchimp retries (API Gateway ~30s limit).
+    if mailchimp_email_for_archive:
+        removal = remove_contact_from_mailchimp(
+            email=mailchimp_email_for_archive,
+            logger=logger,
+            max_attempts=2,
         )
+        if removal == "failed":
+            logger.warning(
+                "Mailchimp remove after contact archive failed (best effort)",
+                extra={
+                    "lead_email": mask_email(mailchimp_email_for_archive),
+                },
+            )
+
+    return json_response(200, payload, event=event)
 
 
 def delete_contact(
@@ -440,7 +441,11 @@ def delete_contact(
     contact_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
-    """Permanently delete one CRM contact and dependent CRM rows."""
+    """Permanently delete one CRM contact and dependent CRM rows.
+
+    Orphan cleanup may race this handler and also call Mailchimp archive for the same email;
+    duplicate archive calls are idempotent on Mailchimp (404 is treated as success).
+    """
     logger.info(
         "Deleting admin CRM contact",
         extra={"contact_id": str(contact_id), "actor_sub": actor_sub},
@@ -480,18 +485,20 @@ def delete_contact(
                 field="contact_id",
             ) from exc
 
-        if mailchimp_email_for_delete:
-            removal = remove_contact_from_mailchimp(
-                email=mailchimp_email_for_delete,
-                logger=logger,
+    # Avoid holding the DB session during Mailchimp retries (API Gateway ~30s limit).
+    if mailchimp_email_for_delete:
+        removal = remove_contact_from_mailchimp(
+            email=mailchimp_email_for_delete,
+            logger=logger,
+            max_attempts=2,
+        )
+        if removal == "failed":
+            logger.warning(
+                "Mailchimp remove after contact delete failed (best effort)",
+                extra={"lead_email": mask_email(mailchimp_email_for_delete)},
             )
-            if removal == "failed":
-                logger.warning(
-                    "Mailchimp remove after contact delete failed (best effort)",
-                    extra={"lead_email": mask_email(mailchimp_email_for_delete)},
-                )
 
-        return json_response(204, {}, event=event)
+    return json_response(204, {}, event=event)
 
 
 def _resolve_referral_contact_id_for_referral_source(

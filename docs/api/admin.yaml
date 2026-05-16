@@ -2088,7 +2088,9 @@ paths:
         (default ``pending`` and ``failed``). Never include ``unsubscribed`` in ``only_statuses``:
         that would risk re-subscribing contacts who opted out in Mailchimp. Each row calls
         Mailchimp PUT + tag; unsubscribed or archived contacts are skipped without calling Mailchimp.
-        Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp.
+        Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp; when
+        ``dry_run`` is true, ``would_process`` mirrors that count and ``processed``/``skipped``
+        remain populated for backward compatibility.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -2124,7 +2126,11 @@ paths:
         ``mailchimp_status`` is ``unsubscribed``. Default ``dry_run`` is ``true`` because this
         deletes or archives Mailchimp members; set ``dry_run`` to ``false`` to execute.
         ``mode=archive`` soft-archives (recoverable); ``mode=permanent`` is GDPR erase and
-        must only be used when explicitly required.
+        must only be used when explicitly required. Mailchimp offset pagination is eventually
+        consistent (webhooks or concurrent runs may shift rows between pages); archive mode
+        remains idempotent on Mailchimp. With ``mode=permanent`` and ``dry_run=false``, when
+        members are removed the response repeats ``next_offset`` equal to ``mailchimp_offset``
+        until a page removes zero rows, then advances by ``scanned`` when the page is full.
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -8013,7 +8019,6 @@ components:
             enum:
               - pending
               - failed
-              - synced
           description: |
             Defaults to `pending` and `failed`. Must not include `unsubscribed` (non-compliant
             re-subscribe risk).
@@ -8021,7 +8026,7 @@ components:
           type: string
           minLength: 1
           maxLength: 100
-          pattern: "^[a-zA-Z0-9 \\-]+$"
+          pattern: "^[a-zA-Z0-9 ._\\-]+$"
         dry_run:
           type: boolean
           default: false
@@ -8030,6 +8035,7 @@ components:
       required:
         - contact_id
         - reason
+        - lead_email_masked
       properties:
         contact_id:
           type: string
@@ -8040,6 +8046,9 @@ components:
           type: integer
           nullable: true
           description: HTTP status from Mailchimp when `reason` is `mailchimp_api_error`.
+        lead_email_masked:
+          type: string
+          description: Masked email for operator triage.
     MailchimpSyncRunResponse:
       type: object
       required:
@@ -8050,6 +8059,7 @@ components:
         - next_cursor
         - errors_sample
         - dry_run
+        - would_process
       properties:
         processed:
           type: integer
@@ -8068,6 +8078,11 @@ components:
             $ref: "#/components/schemas/MailchimpSyncRunErrorSampleItem"
         dry_run:
           type: boolean
+        would_process:
+          type: integer
+          description: |
+            When `dry_run` is true, equals the number of rows that would have been sent to Mailchimp.
+            Zero when `dry_run` is false.
     MailchimpOrphanCleanupRequest:
       type: object
       properties:
@@ -8104,6 +8119,11 @@ components:
           description: Mailchimp member status when scanned.
     MailchimpOrphanCleanupResponse:
       type: object
+      description: |
+        Mailchimp offset pagination is not transactionally consistent: concurrent audience changes
+        (for example webhook-driven unsubscribes) can shift which members appear between batches.
+        Archive mode remains idempotent on Mailchimp; permanent mode keeps the same offset while
+        removals occur (see `next_offset`).
       required:
         - scanned
         - kept
@@ -8112,6 +8132,8 @@ components:
         - next_offset
         - removed_sample
         - dry_run
+        - already_archived
+        - would_remove
       properties:
         scanned:
           type: integer
@@ -8124,12 +8146,29 @@ components:
         next_offset:
           type: integer
           nullable: true
+          description: |
+            For `mode=archive` or any `dry_run` request, the next offset is `mailchimp_offset + scanned`
+            when the page is full (same length as `max_members`), otherwise null.
+            For `mode=permanent` with `dry_run=false`, when at least one member was removed this page,
+            repeats `mailchimp_offset` so the caller re-reads the same offset (permanent deletes shift
+            indices). When zero members were removed and the page is full, advances by `scanned`;
+            otherwise null.
         removed_sample:
           type: array
           items:
             $ref: "#/components/schemas/MailchimpOrphanRemovedSampleItem"
         dry_run:
           type: boolean
+        already_archived:
+          type: integer
+          description: |
+            Archive mode only: members already in Mailchimp `archived` state skipped without API calls.
+            Zero in permanent mode (archived members are still eligible for permanent erase).
+        would_remove:
+          type: integer
+          description: |
+            When `dry_run` is true, counts members that would be removed or archived. Zero when
+            `dry_run` is false; use `removed` for executed runs.
     MailchimpSyncStatusResponse:
       type: object
       required:

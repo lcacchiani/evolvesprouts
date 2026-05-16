@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -12,14 +11,16 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_entities_helpers import request_id
 from app.api.admin_request import encode_cursor, parse_body, parse_cursor
+from app.api.admin_validators import validate_string_length
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models.enums import MailchimpSyncStatus
 from app.db.repositories import ContactRepository
 from app.exceptions import ValidationError
-from app.api.admin_validators import validate_string_length
-from app.services.mailchimp import iter_audience_members
+from app.services.mailchimp import ITER_AUDIENCE_MEMBER_FIELDS, iter_audience_members
 from app.services.mailchimp_sync import (
+    _mailchimp_audience_env_configured,
+    _mailchimp_runtime_ready,
     remove_contact_from_mailchimp,
     upsert_contact_to_mailchimp,
 )
@@ -29,26 +30,20 @@ from app.utils.logging import get_logger, mask_email
 
 logger = get_logger(__name__)
 
-_TAG_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9 \-]{1,100}$")
+_TAG_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9 ._\-]{1,100}$")
 _ALLOWED_SYNC_STATUSES = frozenset(
     {
         MailchimpSyncStatus.PENDING,
         MailchimpSyncStatus.FAILED,
-        MailchimpSyncStatus.SYNCED,
     }
 )
-
-
-def _mailchimp_env_ready() -> bool:
-    return bool(
-        os.getenv("MAILCHIMP_LIST_ID", "").strip()
-        and os.getenv("MAILCHIMP_SERVER_PREFIX", "").strip()
-    )
 
 
 def _require_production_mailchimp_or_409(
     event: Mapping[str, Any],
 ) -> dict[str, Any] | None:
+    if _mailchimp_runtime_ready():
+        return None
     if not is_production():
         return json_response(
             409,
@@ -59,7 +54,7 @@ def _require_production_mailchimp_or_409(
             },
             event=event,
         )
-    if not _mailchimp_env_ready():
+    if not _mailchimp_audience_env_configured():
         return json_response(
             409,
             {
@@ -70,7 +65,6 @@ def _require_production_mailchimp_or_409(
             },
             event=event,
         )
-    return None
 
 
 def _parse_tag_name(raw: Any) -> str:
@@ -85,7 +79,7 @@ def _parse_tag_name(raw: Any) -> str:
     normalized = str(tag).strip()
     if not _TAG_NAME_PATTERN.fullmatch(normalized):
         raise ValidationError(
-            "tag_name must be 1–100 characters of letters, digits, spaces, or hyphens",
+            "tag_name must be 1–100 characters of letters, digits, spaces, hyphens, dots, or underscores",
             field="tag_name",
         )
     return normalized
@@ -218,6 +212,7 @@ def run_mailchimp_sync_batch(
                             "contact_id": str(contact.id),
                             "reason": "mailchimp_api_error",
                             "status": err_status,
+                            "lead_email_masked": mask_email(contact.email or ""),
                         }
                     )
             else:
@@ -228,6 +223,7 @@ def run_mailchimp_sync_batch(
         else:
             session.commit()
 
+    would_process = processed if dry_run else 0
     logger.info(
         "Mailchimp sync batch complete",
         extra={
@@ -251,6 +247,7 @@ def run_mailchimp_sync_batch(
             "next_cursor": next_cursor,
             "errors_sample": errors_sample,
             "dry_run": dry_run,
+            "would_process": would_process,
         },
         event=event,
     )
@@ -283,12 +280,15 @@ def run_mailchimp_orphan_cleanup(
             page_size=max_members,
             start_offset=mailchimp_offset,
             single_page=True,
+            fields=ITER_AUDIENCE_MEMBER_FIELDS,
         )
     )
     scanned = len(members)
     kept = 0
     removed = 0
+    would_remove = 0
     failed = 0
+    already_archived = 0
     removed_sample: list[dict[str, str]] = []
 
     with Session(get_engine()) as session:
@@ -301,6 +301,9 @@ def run_mailchimp_orphan_cleanup(
                 continue
             email = raw_email.strip().lower()
             mc_status = str(member.get("status") or "")
+            if mode == "archive" and mc_status == "archived":
+                already_archived += 1
+                continue
             db_contact = repository.find_by_email(email)
             should_keep = (
                 db_contact is not None
@@ -312,7 +315,7 @@ def run_mailchimp_orphan_cleanup(
                 continue
 
             if dry_run:
-                removed += 1
+                would_remove += 1
                 if len(removed_sample) < 5:
                     removed_sample.append(
                         {"email": mask_email(email), "status": mc_status or "unknown"}
@@ -335,21 +338,23 @@ def run_mailchimp_orphan_cleanup(
                     )
             elif outcome == "failed":
                 failed += 1
-            else:
-                removed += 1
-                if len(removed_sample) < 5:
-                    removed_sample.append(
-                        {"email": mask_email(email), "status": mc_status or "unknown"}
-                    )
 
         if dry_run:
             session.rollback()
         else:
             session.commit()
 
-    next_offset = (
-        mailchimp_offset + scanned if scanned == max_members and scanned > 0 else None
-    )
+    if dry_run or mode == "archive":
+        next_offset = (
+            mailchimp_offset + scanned
+            if scanned == max_members and scanned > 0
+            else None
+        )
+    else:
+        if removed > 0:
+            next_offset = mailchimp_offset
+        else:
+            next_offset = mailchimp_offset + scanned if scanned == max_members else None
 
     logger.info(
         "Mailchimp orphan cleanup batch complete",
@@ -359,6 +364,8 @@ def run_mailchimp_orphan_cleanup(
             "scanned": scanned,
             "kept": kept,
             "removed": removed,
+            "would_remove": would_remove,
+            "already_archived": already_archived,
             "failed": failed,
             "dry_run": dry_run,
         },
@@ -374,6 +381,8 @@ def run_mailchimp_orphan_cleanup(
             "next_offset": next_offset,
             "removed_sample": removed_sample,
             "dry_run": dry_run,
+            "already_archived": already_archived,
+            "would_remove": would_remove,
         },
         event=event,
     )

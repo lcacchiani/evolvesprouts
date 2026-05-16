@@ -158,4 +158,139 @@ def test_sync_run_dry_run_skips_mailchimp(
     body = json.loads(resp["body"])
     assert body["dry_run"] is True
     assert body["processed"] == 1
+    assert body["would_process"] == 1
     assert called == []
+
+
+def test_sync_run_400_synced_in_only_statuses(
+    production_mailchimp_env: None,
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/admin/contacts/mailchimp-sync-run",
+        body=json.dumps(
+            {
+                "tag_name": "crm-bulk",
+                "only_statuses": ["synced"],
+            }
+        ),
+        authorizer_context=admin_identity,
+    )
+    with pytest.raises(ValidationError, match="synced"):
+        mcm.run_mailchimp_sync_batch(event, actor_sub="sub")
+
+
+def test_sync_run_accepts_tag_name_with_dot_and_underscore(
+    production_mailchimp_env: None,
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    class _FakeSession:
+        def __init__(self, *_a: Any, **_k: Any) -> None:
+            pass
+
+        def __enter__(self) -> "_FakeSession":
+            return self
+
+        def __exit__(self, *_a: Any, **_k: Any) -> None:
+            return None
+
+        def execute(self, *_a: Any, **_k: Any) -> Any:
+            return MagicMock()
+
+        def commit(self) -> None:
+            return None
+
+        def rollback(self) -> None:
+            return None
+
+    class _FakeRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_for_mailchimp_sync(
+            self, *, limit: int, cursor: UUID | None, statuses: list[MailchimpSyncStatus]
+        ) -> list[Any]:
+            return []
+
+    monkeypatch.setattr(mcm, "Session", _FakeSession)
+    monkeypatch.setattr(mcm, "get_engine", lambda: object())
+    monkeypatch.setattr(mcm, "ContactRepository", _FakeRepo)
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/admin/contacts/mailchimp-sync-run",
+        body=json.dumps({"tag_name": "crm.bulk_sync", "dry_run": True}),
+        authorizer_context=admin_identity,
+    )
+    resp = mcm.run_mailchimp_sync_batch(event, actor_sub="sub")
+    assert resp["statusCode"] == 200
+
+
+def test_sync_run_errors_sample_includes_lead_email_masked(
+    production_mailchimp_env: None,
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+) -> None:
+    class _FakeSession:
+        def __init__(self, *_a: Any, **_k: Any) -> None:
+            pass
+
+        def __enter__(self) -> "_FakeSession":
+            return self
+
+        def __exit__(self, *_a: Any, **_k: Any) -> None:
+            return None
+
+        def execute(self, *_a: Any, **_k: Any) -> Any:
+            return MagicMock()
+
+        def commit(self) -> None:
+            return None
+
+        def rollback(self) -> None:
+            return None
+
+    class _FakeRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_for_mailchimp_sync(
+            self, *, limit: int, cursor: UUID | None, statuses: list[MailchimpSyncStatus]
+        ) -> list[Any]:
+            c = MagicMock()
+            c.id = uuid4()
+            c.email = "operator-visible@example.com"
+            c.first_name = "A"
+            c.archived_at = None
+            c.mailchimp_status = MailchimpSyncStatus.PENDING
+            return [c]
+
+    monkeypatch.setattr(mcm, "Session", _FakeSession)
+    monkeypatch.setattr(mcm, "get_engine", lambda: object())
+    monkeypatch.setattr(mcm, "ContactRepository", _FakeRepo)
+    monkeypatch.setattr(
+        mcm,
+        "upsert_contact_to_mailchimp",
+        lambda **_kwargs: ("failed", 503),
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/admin/contacts/mailchimp-sync-run",
+        body=json.dumps({"tag_name": "crm-bulk", "dry_run": False}),
+        authorizer_context=admin_identity,
+    )
+    resp = mcm.run_mailchimp_sync_batch(event, actor_sub="sub")
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["failed"] == 1
+    assert body["errors_sample"]
+    sample = body["errors_sample"][0]
+    assert "lead_email_masked" in sample
+    assert sample["lead_email_masked"]
+    assert sample["lead_email_masked"] != "operator-visible@example.com"
