@@ -57,6 +57,8 @@ import type { components } from '@/types/generated/admin-api.generated';
 const CONTACT_NAME_FAMILY_EMOJI = '👨‍👩‍👧';
 /** Shown after the contact name in the list when `organization_ids` is non-empty. */
 const CONTACT_NAME_ORG_EMOJI = '🏢';
+/** Shown after the contact name when `relationship_type` is `client`. */
+const CONTACT_NAME_CLIENT_EMOJI = '🤝';
 
 type ApiSchemas = components['schemas'];
 
@@ -83,13 +85,16 @@ const SOURCES: ApiSchemas['EntityContactSource'][] = [
   'manual',
 ];
 
-function contactNameMembershipSuffix(row: ApiSchemas['AdminContact']): string {
+function contactNameListSuffix(row: ApiSchemas['AdminContact']): string {
   const parts: string[] = [];
   if (row.family_ids.length > 0) {
     parts.push(CONTACT_NAME_FAMILY_EMOJI);
   }
   if (row.organization_ids.length > 0) {
     parts.push(CONTACT_NAME_ORG_EMOJI);
+  }
+  if (row.relationship_type === 'client') {
+    parts.push(CONTACT_NAME_CLIENT_EMOJI);
   }
   return parts.length > 0 ? ` ${parts.join(' ')}` : '';
 }
@@ -955,7 +960,7 @@ export function ContactsPanel({
           <AdminDataTableBody>
             {rows.map((row) => {
               const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || '—';
-              const membershipSuffix = contactNameMembershipSuffix(row);
+              const nameListSuffix = contactNameListSuffix(row);
               return (
                 <tr
                   key={row.id}
@@ -966,14 +971,17 @@ export function ContactsPanel({
                 >
                   <AdminDataTableCell>
                     {name}
-                    {membershipSuffix ? (
+                    {nameListSuffix ? (
                       <>
-                        <span aria-hidden>{membershipSuffix}</span>
+                        <span aria-hidden>{nameListSuffix}</span>
                         {row.family_ids.length > 0 ? (
                           <span className='sr-only'>, linked to a family</span>
                         ) : null}
                         {row.organization_ids.length > 0 ? (
                           <span className='sr-only'>, linked to an organisation</span>
+                        ) : null}
+                        {row.relationship_type === 'client' ? (
+                          <span className='sr-only'>, client relationship</span>
                         ) : null}
                       </>
                     ) : null}
