@@ -60,9 +60,8 @@ info:
     - `GET /v1/admin/billing/export`
     - `GET|POST /v1/admin/billing/payments` (list supports optional `?invoice_id=` to return
       payments with an allocation to that invoice; `POST` creates either a refund row
-      (`direction: refund`) or a manual inbound customer payment (`direction: inbound`; `enrollmentId` optional —
-      omit to record an unattributed payment that can later be allocated to a customized invoice))
-    - `GET|PATCH|DELETE /v1/admin/billing/payments/{id}` (`GET` returns payment detail including `allocationInvoices` and `unappliedAmount`; `PATCH` updates manual inbound rows without a Stripe PaymentIntent; enrollment is immutable; succeeded rows allow method and external reference only; `DELETE` removes eligible orphan inbound payments; for payments without an enrollment, currency and method may still be patched on pending rows)
+      (`direction: refund`) or a manual inbound customer payment (`direction: inbound` + `enrollmentId`))
+    - `GET|PATCH|DELETE /v1/admin/billing/payments/{id}` (`GET` returns payment detail including `allocationInvoices` and `unappliedAmount`; `PATCH` updates manual inbound rows without a Stripe PaymentIntent; enrollment is immutable; succeeded rows allow method and external reference only; `DELETE` removes eligible orphan inbound payments)
     - `GET /v1/admin/billing/payments/{id}/unapplied`
     - `POST /v1/admin/billing/payments/{id}/confirm`
     - `GET /v1/admin/billing/enrollments/recent-for-invoicing`
@@ -2859,8 +2858,7 @@ paths:
       summary: Create customer payment row
       description: >
         Creates either an outbound refund (`direction: refund` + `originalPaymentId`) or a
-        manual inbound payment (`direction: inbound`; `enrollmentId` is optional — omit to record
-        a payment with no enrollment link, e.g. for customized invoices).
+        manual inbound payment linked to an enrollment (`direction: inbound` + `enrollmentId`).
         Succeeded inbound payments follow the same receipt generation path as payment confirm.
       security:
         - AdminBearerAuth: []
@@ -2894,7 +2892,8 @@ paths:
         "409":
           description: >
             Duplicate manual inbound payment for the same enrollment and external reference
-            (partial unique index on non-null `external_reference`) (only applies when enrollmentId is set).
+            (partial unique index on non-null `external_reference`; only applies when `enrollmentId`
+            is set — no-enrollment payments are not deduplicated by external reference).
           content:
             application/json:
               schema:
@@ -6697,6 +6696,7 @@ components:
       type: object
       required:
         - direction
+        - enrollmentId
         - amount
         - currency
         - method
@@ -6707,18 +6707,6 @@ components:
         enrollmentId:
           type: string
           format: uuid
-          nullable: true
-          description: >
-            Optional. Omit (or send `null`) to record a payment with no enrollment link
-            (for example to settle a customized invoice that is not linked to any
-            enrollment). When provided, currency must match the enrollment billing currency.
-        contactId:
-          type: string
-          format: uuid
-          nullable: true
-          description: >
-            Optional CRM contact for attribution. When `enrollmentId` is provided,
-            `contactId` is derived from the enrollment unless explicitly overridden here.
         amount:
           type: string
           description: Decimal amount as string; must be non-negative.

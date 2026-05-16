@@ -91,7 +91,7 @@ const DRAFT_FORM_ID = "client-billing-draft-invoice-form";
 const ALLOCATE_FORM_ID = "client-billing-allocate-form";
 const REFUND_FORM_ID = "client-billing-refund-form";
 const MANUAL_PAYMENT_FORM_ID = "client-billing-manual-payment-form";
-const NO_ENROLLMENT_OPTION_VALUE = "__none__";
+export const NO_ENROLLMENT_OPTION_VALUE = "__none__";
 const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
 
 function isManualInboundPaymentEditable(
@@ -2240,7 +2240,7 @@ export function ClientInvoicesPanel() {
 
       <AdminEditorCard
         title="Customer payment"
-        description="When creating, pick a recent enrollment from the same list as draft invoices, or choose none to record a payment without an enrollment (for example before allocating to a customized invoice). After you select a manual inbound payment row in the Customer payments table below, you can update fields here; enrollment cannot be changed once the payment exists. With an enrollment, currency must match that enrollment; without one, set currency explicitly. Use Pending until funds clear, then Succeeded when appropriate."
+        description="Pick a recent enrollment to attribute this payment, or choose (none) to record a payment with no enrollment (for example before allocating to a customized invoice). With an enrollment, currency must match it; without one, set currency explicitly. Use Pending until funds clear."
         actions={
           <>
             {manualPaymentIsUpdate ? (

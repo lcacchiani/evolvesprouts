@@ -3946,7 +3946,7 @@ export interface paths {
         put?: never;
         /**
          * Create customer payment row
-         * @description Creates either an outbound refund (`direction: refund` + `originalPaymentId`) or a manual inbound payment (`direction: inbound`; `enrollmentId` is optional — omit to record a payment with no enrollment link, e.g. for customized invoices). Succeeded inbound payments follow the same receipt generation path as payment confirm.
+         * @description Creates either an outbound refund (`direction: refund` + `originalPaymentId`) or a manual inbound payment linked to an enrollment (`direction: inbound` + `enrollmentId`). Succeeded inbound payments follow the same receipt generation path as payment confirm.
          */
         post: {
             parameters: {
@@ -3974,7 +3974,7 @@ export interface paths {
                 };
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
-                /** @description Duplicate manual inbound payment for the same enrollment and external reference (partial unique index on non-null `external_reference`) (only applies when enrollmentId is set). */
+                /** @description Duplicate manual inbound payment for the same enrollment and external reference (partial unique index on non-null `external_reference`; only applies when `enrollmentId` is set — no-enrollment payments are not deduplicated by external reference). */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6496,16 +6496,8 @@ export interface components {
              * @enum {string}
              */
             direction: "inbound";
-            /**
-             * Format: uuid
-             * @description Optional. Omit (or send `null`) to record a payment with no enrollment link (for example to settle a customized invoice that is not linked to any enrollment). When provided, currency must match the enrollment billing currency.
-             */
-            enrollmentId?: string | null;
-            /**
-             * Format: uuid
-             * @description Optional CRM contact for attribution. When `enrollmentId` is provided, `contactId` is derived from the enrollment unless explicitly overridden here.
-             */
-            contactId?: string | null;
+            /** Format: uuid */
+            enrollmentId: string;
             /** @description Decimal amount as string; must be non-negative. */
             amount: string;
             currency: string;
