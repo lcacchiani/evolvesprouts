@@ -175,12 +175,10 @@ their primary responsibilities.
   with `service_instances.id` as tie-break. Optional query filters:
   `slug` (matched case-insensitively against `service_instances.slug`), `service_type`,
   `service_key` (matched case-insensitively against `services.service_key`; invalid values
-  ignored). `slug` echoes from `service_instances`; `spaces_total` / `spaces_left`
-  when `max_capacity` is set (`spaces_total` mirrors `max_capacity`; `spaces_left` uses
-  the same enrollment statuses as seat checks but may reflect an admin-only
-  `capacity_left_override` soft cap for display),
-  using the same enrollment statuses as capacity checks: registered, confirmed,
-  completed),
+  ignored). `slug` echoes from `service_instances`; when `max_capacity` is set,
+  `spaces_total` mirrors `max_capacity` and `spaces_left` counts remaining seats from
+  enrollments in registered, confirmed, or completed status, optionally reduced further
+  by an admin-only `capacity_left_override` soft cap for public display),
   `/www/v1/calendar/availability` (requires `purpose`; returns discrete slots + meta for consultation or intro-call booking;
   consultation uses Mon–Fri half-day grid with `meta.wall_time_zone`; success `Cache-Control` follows purpose),
   `/www/v1/assets/free` (lists public assets tagged `client_document`;
