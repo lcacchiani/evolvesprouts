@@ -103,7 +103,10 @@ def test_parse_invoice_sends_images_as_image_url(monkeypatch: Any) -> None:
     assert image_input["type"] == "image_url"
     assert image_input["image_url"]["url"].startswith("data:image/png;base64,")
     assert "plugins" not in payload
-    assert payload["response_format"] == {"type": "json_object"}
+    assert "response_format" not in payload, (
+        "JSON mode is intentionally NOT set; see _openrouter_chat_completion "
+        "docstring for the rationale tied to commits 3874b3b6 and b6f8990b."
+    )
 
 
 def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(
@@ -552,9 +555,19 @@ def _bulk_chat_completion_body(content_text: str) -> str:
     )
 
 
-def test_parse_bulk_expense_invoices_sets_json_response_format(
+def test_parse_bulk_expense_invoices_does_not_set_json_response_format(
     monkeypatch: Any,
 ) -> None:
+    """Bulk parse must NOT force JSON mode.
+
+    See ``_openrouter_chat_completion`` docstring: JSON mode (commit
+    3874b3b6) caused models to emit empty ``{}`` / ``completion_tokens=0``
+    responses on borderline PDFs, which is the exact cascade the user
+    flagged when migrating to async. The same ``JSONDecodeError`` it was
+    introduced to mask is now handled by the ``_loads_with_repair``
+    pathway, so the request payload reverts to the original sync-era shape
+    from commit b6f8990b.
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
 
@@ -606,7 +619,7 @@ def test_parse_bulk_expense_invoices_sets_json_response_format(
     )
 
     assert len(captured_payloads) == 1
-    assert captured_payloads[0]["response_format"] == {"type": "json_object"}
+    assert "response_format" not in captured_payloads[0]
 
 
 def test_parse_bulk_expense_invoices_repairs_invalid_json(monkeypatch: Any) -> None:
@@ -944,9 +957,8 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
     attempt returns 429 issues:
 
     - 3 attempts on the bulk call (initial + 2 retries), then
-    - 3 attempts on the single-invoice fallback's first PDF engine
-      (the engine fallback only chains on ``_EmptyResponseError``, NOT on
-      a transient HTTP error that has already been retried internally).
+    - 3 attempts on the single-invoice fallback (single shape, no engine
+      chain; see commit reverting JSON mode + engine fallback for details).
 
     = 6 ``http_invoke`` calls total before surfacing a combined error that
     names both failures so neither is hidden.
@@ -1435,51 +1447,20 @@ def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(
 
 
 # ---------------------------------------------------------------------------
-# PDF engine fallback (single-invoice parser)
+# Single-invoice parser shape (sync-era one-call shape — see commit b6f8990b)
 # ---------------------------------------------------------------------------
 
 
-def _empty_response_completion_body() -> str:
-    """An OpenRouter 200 body that triggers ``_EmptyResponseError``."""
-    return json.dumps(
-        {
-            "choices": [
-                {
-                    "message": {"content": ""},
-                    "finish_reason": "stop",
-                }
-            ],
-            "usage": {"completion_tokens": 0},
-        }
-    )
+def test_parse_invoice_makes_a_single_chat_completion_call(monkeypatch: Any) -> None:
+    """``parse_invoice_from_assets`` is one call, no engine chain.
 
-
-def _success_completion_body(payload: dict[str, Any]) -> str:
-    return _bulk_chat_completion_body(json.dumps(payload))
-
-
-def test_pdf_engines_to_try_starts_with_configured_engine(monkeypatch: Any) -> None:
-    monkeypatch.setenv("OPENROUTER_PDF_ENGINE", "native")
-    engines = parser._pdf_engines_to_try()
-    assert engines[0] == "native"
-    assert set(engines) == {"native", "mistral-ocr", "pdf-text"}
-    assert len(engines) == len(set(engines)), "engines must be unique"
-
-
-def test_pdf_engines_to_try_uses_default_when_unconfigured(monkeypatch: Any) -> None:
-    monkeypatch.delenv("OPENROUTER_PDF_ENGINE", raising=False)
-    engines = parser._pdf_engines_to_try()
-    assert engines[0] == "mistral-ocr"
-    assert set(engines) == {"native", "mistral-ocr", "pdf-text"}
-
-
-def test_parse_invoice_falls_back_to_next_pdf_engine_on_empty_response(
-    monkeypatch: Any,
-) -> None:
-    """``mistral-ocr`` empty -> ``native`` empty -> ``pdf-text`` succeeds.
-
-    Mirrors the user-reported single-fallback failure where the OCR engine
-    returned ``completion_tokens=0`` on a PDF the other engines can read.
+    The earlier engine fallback chain (added in PR #1681 then reverted
+    here) layered three engines on top of every single-invoice parse. That
+    multiplied the cost / rate-limit footprint of every call and was a
+    direct response to empty-response failures caused by JSON mode (see
+    ``_openrouter_chat_completion`` docstring). With JSON mode dropped the
+    chain is no longer needed; the parser is back to the original one-call
+    shape from commit b6f8990b that the user has consistently said worked.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
@@ -1489,29 +1470,27 @@ def test_parse_invoice_falls_back_to_next_pdf_engine_on_empty_response(
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
             return {"Body": _FakeBody(b"%PDF-1.4")}
 
-    engines_seen: list[str] = []
+    call_log: list[dict[str, Any]] = []
 
     def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        sent = json.loads(kwargs["body"])
-        engine = sent["plugins"][0]["pdf"]["engine"]
-        engines_seen.append(engine)
-        if engine in ("mistral-ocr", "native"):
-            return {"status": 200, "body": _empty_response_completion_body()}
+        call_log.append(kwargs)
         return {
             "status": 200,
-            "body": _success_completion_body(
-                {
-                    "vendor_name": "Engine Recovered Shop",
-                    "invoice_number": "ENG1",
-                    "invoice_date": "2026-05-15",
-                    "due_date": None,
-                    "currency": "USD",
-                    "subtotal": 7,
-                    "tax": 0,
-                    "total": 7,
-                    "line_items": [],
-                    "confidence": 0.7,
-                }
+            "body": _bulk_chat_completion_body(
+                json.dumps(
+                    {
+                        "vendor_name": "Single Shop",
+                        "invoice_number": "S1",
+                        "invoice_date": "2026-05-15",
+                        "due_date": None,
+                        "currency": "USD",
+                        "subtotal": 4,
+                        "tax": 0,
+                        "total": 4,
+                        "line_items": [],
+                        "confidence": 0.9,
+                    }
+                )
             ),
         }
 
@@ -1521,7 +1500,7 @@ def test_parse_invoice_falls_back_to_next_pdf_engine_on_empty_response(
     result = parser.parse_invoice_from_assets(
         [
             {
-                "id": "asset-engfb",
+                "id": "asset-single",
                 "s3_key": "k",
                 "file_name": "bulk.pdf",
                 "content_type": "application/pdf",
@@ -1529,235 +1508,10 @@ def test_parse_invoice_falls_back_to_next_pdf_engine_on_empty_response(
         ]
     )
 
-    assert engines_seen == ["mistral-ocr", "native", "pdf-text"]
-    assert result["vendor_name"] == "Engine Recovered Shop"
-    assert result["total"] == 7.0
+    assert len(call_log) == 1, "single-invoice parser must make exactly one call"
+    sent_payload = json.loads(call_log[0]["body"])
+    assert "response_format" not in sent_payload, "JSON mode is intentionally off"
+    assert sent_payload["plugins"][0]["pdf"]["engine"] == "mistral-ocr"
+    assert result["vendor_name"] == "Single Shop"
 
 
-def test_parse_invoice_does_not_engine_fallback_for_non_pdf_inputs(
-    monkeypatch: Any,
-) -> None:
-    """Image inputs hit a single chat-completion call (no engine fallback)."""
-    _set_common_env(monkeypatch)
-    _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
-
-    class _FakeS3Client:
-        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
-            return {"Body": _FakeBody(b"png-bytes")}
-
-    call_log: list[dict[str, Any]] = []
-
-    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        call_log.append(kwargs)
-        return {"status": 200, "body": _empty_response_completion_body()}
-
-    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
-    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
-
-    with pytest.raises(parser._EmptyResponseError):
-        parser.parse_invoice_from_assets(
-            [
-                {
-                    "id": "asset-img",
-                    "s3_key": "k",
-                    "file_name": "invoice.png",
-                    "content_type": "image/png",
-                }
-            ]
-        )
-
-    assert len(call_log) == 1, "image inputs must not trigger engine fallback"
-
-
-def test_parse_invoice_raises_summary_when_all_pdf_engines_return_empty(
-    monkeypatch: Any,
-) -> None:
-    """When every PDF engine returns empty, the final error names all of them."""
-    _set_common_env(monkeypatch)
-    _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
-
-    class _FakeS3Client:
-        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
-            return {"Body": _FakeBody(b"%PDF-1.4")}
-
-    engines_seen: list[str] = []
-
-    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        sent = json.loads(kwargs["body"])
-        engines_seen.append(sent["plugins"][0]["pdf"]["engine"])
-        return {"status": 200, "body": _empty_response_completion_body()}
-
-    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
-    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
-
-    with pytest.raises(RuntimeError) as exc_info:
-        parser.parse_invoice_from_assets(
-            [
-                {
-                    "id": "asset-allempty",
-                    "s3_key": "k",
-                    "file_name": "bulk.pdf",
-                    "content_type": "application/pdf",
-                }
-            ]
-        )
-
-    assert engines_seen == ["mistral-ocr", "native", "pdf-text"]
-    msg = str(exc_info.value)
-    assert "All PDF engines returned empty responses" in msg
-    for engine in ("mistral-ocr", "native", "pdf-text"):
-        assert engine in msg
-
-
-def test_parse_invoice_does_not_engine_fallback_on_non_empty_runtime_error(
-    monkeypatch: Any,
-) -> None:
-    """A 4xx (non-empty) error stops the engine chain immediately."""
-    _set_common_env(monkeypatch)
-    _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
-
-    class _FakeS3Client:
-        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
-            return {"Body": _FakeBody(b"%PDF-1.4")}
-
-    call_log: list[dict[str, Any]] = []
-
-    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        call_log.append(kwargs)
-        return {
-            "status": 400,
-            "body": '{"error":{"message":"Bad request","code":400}}',
-        }
-
-    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
-    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
-
-    with pytest.raises(RuntimeError) as exc_info:
-        parser.parse_invoice_from_assets(
-            [
-                {
-                    "id": "asset-bad",
-                    "s3_key": "k",
-                    "file_name": "bulk.pdf",
-                    "content_type": "application/pdf",
-                }
-            ]
-        )
-
-    assert len(call_log) == 1, (
-        "a non-empty error must not trigger engine fallback (and is also not "
-        "retried because 400 is not in _RETRYABLE_HTTP_STATUSES)"
-    )
-    assert "status 400" in str(exc_info.value)
-
-
-def test_bulk_single_fallback_recovers_via_pdf_engine_chain(
-    monkeypatch: Any,
-) -> None:
-    """The user-reported scenario: bulk gets 429, single fallback engine chain wins.
-
-    Reproduction:
-
-    - Bulk calls (3 attempts, ``_MAX_RETRY_ATTEMPTS``): all 429.
-    - Single fallback first PDF engine (``mistral-ocr``): empty response.
-    - Single fallback second PDF engine (``native``): success.
-
-    Total 3 + 3 + 1 = 7 ``http_invoke`` calls, and the bulk parser returns
-    a one-row list built from the recovered single-invoice result. This is
-    the exact failure mode the user reported with the old code:
-    'OpenRouter request failed with status 429 ... Model returned an empty
-    response (completion_tokens=0)'.
-    """
-    _set_common_env(monkeypatch)
-    _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
-
-    class _FakeS3Client:
-        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
-            return {"Body": _FakeBody(b"%PDF-1.4")}
-
-    call_log: list[tuple[str, str | None]] = []
-
-    success_body = _success_completion_body(
-        {
-            "vendor_name": "Recovered After 429",
-            "invoice_number": "REC429",
-            "invoice_date": "2026-05-15",
-            "due_date": None,
-            "currency": "USD",
-            "subtotal": 12,
-            "tax": 0,
-            "total": 12,
-            "line_items": [],
-            "confidence": 0.6,
-        }
-    )
-
-    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
-        sent = json.loads(kwargs["body"])
-        prompt_text = sent["messages"][1]["content"][0]["text"]
-        engine = (
-            sent["plugins"][0]["pdf"]["engine"] if "plugins" in sent else None
-        )
-        is_bulk_prompt = "Extract every invoice" in prompt_text
-        call_log.append(("bulk" if is_bulk_prompt else "single", engine))
-
-        if is_bulk_prompt:
-            return {
-                "status": 429,
-                "body": '{"error":{"message":"Provider returned error","code":429}}',
-            }
-        if engine == "mistral-ocr":
-            return {"status": 200, "body": _empty_response_completion_body()}
-        return {"status": 200, "body": success_body}
-
-    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
-    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
-
-    rows = parser.parse_bulk_expense_invoices_from_assets(
-        [
-            {
-                "id": "asset-recover",
-                "s3_key": "k",
-                "file_name": "bulk.pdf",
-                "content_type": "application/pdf",
-            }
-        ],
-        timeout=25,
-    )
-
-    bulk_calls = [c for c in call_log if c[0] == "bulk"]
-    single_calls = [c for c in call_log if c[0] == "single"]
-    assert len(bulk_calls) == parser._MAX_RETRY_ATTEMPTS == 3
-    assert [c[1] for c in single_calls] == ["mistral-ocr", "native"]
-    assert len(rows) == 1
-    assert rows[0]["vendor_name"] == "Recovered After 429"
-    assert rows[0]["total"] == 12.0
-
-
-def test_empty_response_error_is_runtime_error_subclass() -> None:
-    err = parser._EmptyResponseError("boom")
-    assert isinstance(err, RuntimeError)
-    assert isinstance(err, parser._EmptyResponseError)
-    assert str(err) == "boom"
-
-
-def test_extract_message_text_raises_empty_response_error_subclass() -> None:
-    """``_EmptyResponseError`` is the concrete type raised on empty content."""
-    body = json.dumps(
-        {
-            "choices": [
-                {
-                    "message": {"content": ""},
-                    "finish_reason": "stop",
-                }
-            ],
-            "usage": {"completion_tokens": 0},
-        }
-    )
-    with pytest.raises(parser._EmptyResponseError) as exc_info:
-        parser._extract_message_text(body)
-    assert "empty response" in str(exc_info.value)

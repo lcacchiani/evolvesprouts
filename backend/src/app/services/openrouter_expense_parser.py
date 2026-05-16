@@ -35,37 +35,18 @@ _MAX_RETRY_ATTEMPTS = 3  # initial attempt + 2 retries
 _RETRY_BACKOFF_SCHEDULE_SECONDS: tuple[float, ...] = (2.0, 4.0)
 _MAX_RETRY_AFTER_SECONDS = 5.0
 
-# PDF parsing engines OpenRouter supports through the ``file-parser`` plugin.
-# Order matters: the configured engine (``OPENROUTER_PDF_ENGINE``, default
-# ``mistral-ocr``) is tried first, then the others in this canonical order.
-# Different engines fail in different ways on the same document — for example
-# ``mistral-ocr`` can return zero tokens on borderline scans that ``native``
-# (multi-modal vision) handles fine, and ``pdf-text`` works on text-based
-# PDFs that the OCR engines sometimes give up on. Chaining engines on
-# ``_EmptyResponseError`` recovers the document instead of failing the job.
-_SUPPORTED_PDF_ENGINES: tuple[str, ...] = ("mistral-ocr", "native", "pdf-text")
-
-
-class _EmptyResponseError(RuntimeError):
-    """Raised when OpenRouter responds 2xx but the model produced no usable text.
-
-    This is a different failure shape from refusals, top-level errors, or
-    invalid JSON — typically the PDF engine could not extract any text from
-    the document — so the single-invoice parser can recover by retrying
-    against another PDF engine. Subclassing ``RuntimeError`` keeps the
-    existing ``except RuntimeError`` paths working unchanged.
-    """
-
 
 def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Parse invoice details from expense attachment assets.
 
-    For PDF inputs this iterates through ``_SUPPORTED_PDF_ENGINES`` (starting
-    with the configured engine) and falls through to the next engine only
-    when the current one returns an empty response (zero tokens / no
-    content). Transient HTTP / envelope errors are already retried inside
-    ``_openrouter_chat_completion``; refusals, 4xx errors, and other
-    non-empty failures propagate immediately.
+    Single OpenRouter chat completion (with internal retry on transient
+    upstream errors), then parse the result. This is intentionally the same
+    one-call shape as the original synchronous parser at PR #1624 / commit
+    b6f8990b that was working before the bulk-import flow moved to async —
+    layered engine fallbacks were tried and rolled back because they
+    amplify rate limits and introduce more failure modes than they fix.
+    Unescaped-quote ``JSONDecodeError`` cases are still handled by
+    ``_loads_with_repair`` instead of by forcing JSON mode.
     """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
@@ -78,52 +59,15 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     has_pdf = any(
         _normalize_content_type(asset) == "application/pdf" for asset in assets
     )
-
-    if not has_pdf:
-        body = _openrouter_chat_completion(
-            system_prompt="You extract invoice data and return strict JSON only.",
-            user_content_blocks=content,
-            has_pdf_attachment=False,
-            timeout=30,
-        )
-        parsed = _parse_completion_body(body)
-        logger.info("Invoice parse completed successfully")
-        return _normalize_result(parsed)
-
-    engines = _pdf_engines_to_try()
-    last_empty: _EmptyResponseError | None = None
-    tried: list[str] = []
-    for engine in engines:
-        tried.append(engine)
-        try:
-            body = _openrouter_chat_completion(
-                system_prompt="You extract invoice data and return strict JSON only.",
-                user_content_blocks=content,
-                has_pdf_attachment=True,
-                timeout=30,
-                pdf_engine=engine,
-            )
-            parsed = _parse_completion_body(body)
-            logger.info(
-                "Invoice parse completed successfully",
-                extra={"pdf_engine": engine, "engines_tried": tried},
-            )
-            return _normalize_result(parsed)
-        except _EmptyResponseError as exc:
-            last_empty = exc
-            logger.warning(
-                "PDF engine returned empty response; trying next engine",
-                extra={
-                    "pdf_engine": engine,
-                    "engines_remaining": engines[engines.index(engine) + 1 :],
-                },
-            )
-            continue
-
-    raise RuntimeError(
-        "All PDF engines returned empty responses "
-        f"(tried: {', '.join(tried)}). Last detail: {last_empty}"
+    body = _openrouter_chat_completion(
+        system_prompt="You extract invoice data and return strict JSON only.",
+        user_content_blocks=content,
+        has_pdf_attachment=has_pdf,
+        timeout=30,
     )
+    parsed = _parse_completion_body(body)
+    logger.info("Invoice parse completed successfully")
+    return _normalize_result(parsed)
 
 
 _MAX_BULK_INVOICES = 100
@@ -220,12 +164,18 @@ def _openrouter_chat_completion(
     user_content_blocks: list[dict[str, Any]],
     has_pdf_attachment: bool,
     timeout: int,
-    pdf_engine: str | None = None,
 ) -> str:
     """POST to OpenRouter and return the raw HTTP response body string.
 
-    ``pdf_engine`` overrides the configured engine when ``has_pdf_attachment``
-    is true. ``None`` (default) uses ``_pdf_parser_engine()``.
+    Note: this intentionally does NOT set ``response_format={"type":
+    "json_object"}``. JSON mode was added in commit ``3874b3b6`` to mask a
+    ``JSONDecodeError`` triggered by unescaped quotes in line-item
+    descriptions, but it caused models to emit empty ``{}`` /
+    ``completion_tokens=0`` on borderline PDFs (a worse failure shape).
+    The same JSONDecodeError it was meant to mask is now handled by the
+    ``_loads_with_repair`` pathway, so we drop JSON mode and let the model
+    emit natural JSON the same way it did in the original synchronous
+    parser at commit ``b6f8990b``.
     """
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
@@ -234,21 +184,16 @@ def _openrouter_chat_completion(
     payload: dict[str, Any] = {
         "model": model,
         "temperature": 0,
-        # Force JSON-mode so the model cannot emit prose, fences, or partial
-        # objects. Combined with the schema prompts this dramatically reduces
-        # the JSONDecodeError rate on bulk parses with quoted descriptions.
-        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content_blocks},
         ],
     }
     if has_pdf_attachment:
-        engine = pdf_engine if pdf_engine is not None else _pdf_parser_engine()
         payload["plugins"] = [
             {
                 "id": _PDF_PLUGIN_ID,
-                "pdf": {"engine": engine},
+                "pdf": {"engine": _pdf_parser_engine()},
             }
         ]
 
@@ -570,14 +515,8 @@ def _extract_message_text(body: str) -> str:
 
 def _empty_response_error(
     payload: Mapping[str, Any], first_choice: Mapping[str, Any]
-) -> _EmptyResponseError:
-    """Build a diagnostic ``_EmptyResponseError`` for an empty model response.
-
-    Returning the ``_EmptyResponseError`` subclass lets the single-invoice
-    parser distinguish "engine produced nothing" (recoverable by trying
-    another PDF engine) from "model refused / 4xx / invalid JSON" (not
-    recoverable by switching engines).
-    """
+) -> RuntimeError:
+    """Build a diagnostic ``RuntimeError`` for an empty model response."""
     finish_reason = first_choice.get("finish_reason") or first_choice.get(
         "finishReason"
     )
@@ -593,15 +532,13 @@ def _empty_response_error(
     suffix = f" ({'; '.join(details)})" if details else ""
 
     if finish_reason == "length":
-        return _EmptyResponseError(
+        return RuntimeError(
             f"Model output was truncated before any JSON was produced{suffix}. "
             "The document may be too long for one parse; try a smaller PDF."
         )
     if finish_reason == "content_filter":
-        return _EmptyResponseError(
-            f"Model output was blocked by the content filter{suffix}."
-        )
-    return _EmptyResponseError(
+        return RuntimeError(f"Model output was blocked by the content filter{suffix}.")
+    return RuntimeError(
         f"Model returned an empty response{suffix}. The PDF may be unreadable "
         "to this engine, the model may have failed to extract any text, or "
         "the request may have been rejected upstream."
@@ -1172,18 +1109,6 @@ def _pdf_parser_engine() -> str:
     if configured in {"pdf-text", "mistral-ocr", "native"}:
         return configured
     return _DEFAULT_PDF_ENGINE
-
-
-def _pdf_engines_to_try() -> list[str]:
-    """Return the PDF engines to try in order for the engine-fallback chain.
-
-    Always starts with the configured engine (default ``mistral-ocr``) and
-    appends the remaining supported engines in canonical order. Iteration
-    stops as soon as one engine produces a non-empty parse result.
-    """
-    primary = _pdf_parser_engine()
-    rest = [engine for engine in _SUPPORTED_PDF_ENGINES if engine != primary]
-    return [primary, *rest]
 
 
 def _require_env(name: str) -> str:
