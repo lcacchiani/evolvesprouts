@@ -3974,7 +3974,7 @@ export interface paths {
                 };
                 400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
-                /** @description Duplicate manual inbound payment for the same enrollment and external reference (partial unique index on non-null `external_reference`). */
+                /** @description Duplicate manual inbound payment for the same enrollment and external reference (partial unique index on non-null `external_reference`; only applies when `enrollmentId` is set — no-enrollment payments are not deduplicated by external reference). */
                 409: {
                     headers: {
                         [name: string]: unknown;

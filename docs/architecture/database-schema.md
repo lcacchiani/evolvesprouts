@@ -632,6 +632,10 @@ Migration `0055_customer_billing_ar` introduces:
 
 - `customer_payments`: inbound payments and refunds (`direction`, `original_payment_id`,
   `stripe_payment_intent_id`, `stripe_refund_id`), linked optionally to `enrollments` and `contacts`.
+  `customer_payments.enrollment_id` is nullable. The admin manual-inbound endpoint accepts a payment
+  without an enrollment, intended for settling customized invoices that are not linked to any enrollment.
+  Such payments may still be allocated to invoices via `payment_allocations`; only currency parity is
+  enforced at allocation time.
 - `customer_invoices` / `customer_invoice_lines`: draft/issued/void invoices with tax-ready line columns.
   Migration `0067_inv_settlement_fields` adds cached settlement projection columns on
   `customer_invoices`: `amount_allocated` (sum of matching-currency `payment_allocations`),

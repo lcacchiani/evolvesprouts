@@ -2892,7 +2892,8 @@ paths:
         "409":
           description: >
             Duplicate manual inbound payment for the same enrollment and external reference
-            (partial unique index on non-null `external_reference`).
+            (partial unique index on non-null `external_reference`; only applies when `enrollmentId`
+            is set — no-enrollment payments are not deduplicated by external reference).
           content:
             application/json:
               schema:
