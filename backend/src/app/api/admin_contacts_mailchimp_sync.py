@@ -19,7 +19,10 @@ from app.db.repositories import ContactRepository
 from app.exceptions import ValidationError
 from app.api.admin_validators import validate_string_length
 from app.services.mailchimp import iter_audience_members
-from app.services.mailchimp_sync import remove_contact_from_mailchimp, upsert_contact_to_mailchimp
+from app.services.mailchimp_sync import (
+    remove_contact_from_mailchimp,
+    upsert_contact_to_mailchimp,
+)
 from app.utils import json_response
 from app.utils.deployment import is_production
 from app.utils.logging import get_logger, mask_email
@@ -43,7 +46,9 @@ def _mailchimp_env_ready() -> bool:
     )
 
 
-def _require_production_mailchimp_or_409(event: Mapping[str, Any]) -> dict[str, Any] | None:
+def _require_production_mailchimp_or_409(
+    event: Mapping[str, Any],
+) -> dict[str, Any] | None:
     if not is_production():
         return json_response(
             409,
