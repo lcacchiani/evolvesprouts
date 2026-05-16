@@ -212,7 +212,9 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         "_ensure_share_link_url_for_asset",
         lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
     )
-    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(
+        handler, "upsert_contact_to_mailchimp", lambda **_: ("synced", None)
+    )
     monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
 
     was_processed = handler._process_message(
@@ -311,7 +313,9 @@ def test_process_message_opt_in_skips_second_subscribe_when_mailchimp_synced(
         lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
     )
     monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
-    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(
+        handler, "upsert_contact_to_mailchimp", lambda **_: ("synced", None)
+    )
     monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
     monkeypatch.setattr(handler, "subscribe_to_marketing", _fake_subscribe)
 
@@ -384,9 +388,9 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
         def create_with_event(self, *args: Any, **kwargs: Any) -> Any:
             return SimpleNamespace(id=UUID("dddddddd-dddd-dddd-dddd-dddddddddddd"))
 
-    def _fake_sync(**kwargs: Any) -> bool:
+    def _fake_sync(**kwargs: Any) -> tuple[str, int | None]:
         sync_calls.append(kwargs)
-        return True
+        return "synced", None
 
     monkeypatch.setenv("MAILCHIMP_REQUIRE_MARKETING_CONSENT", "true")
     monkeypatch.setattr(handler, "get_engine", lambda: object())
@@ -410,7 +414,7 @@ def test_process_message_require_consent_skips_mailchimp_without_opt_in(
         lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
     )
     monkeypatch.setattr(handler, "_send_user_download_email", lambda **_: None)
-    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", _fake_sync)
+    monkeypatch.setattr(handler, "upsert_contact_to_mailchimp", _fake_sync)
     monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
     monkeypatch.setattr(handler, "_send_media_lead_sales_recap", lambda **_: None)
     monkeypatch.setattr(handler, "_create_sales_lead_event", lambda **_: None)

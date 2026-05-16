@@ -183,3 +183,70 @@ def test_mailchimp_truncates_long_error_body_in_logs(monkeypatch: Any) -> None:
     body = recorded[0].get("mailchimp_error_body", "")
     assert body.endswith("...(truncated)")
     assert len(body) < len(long_body)
+
+
+def test_archive_subscriber_204_and_404(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+
+    def del_204(**_kwargs: Any) -> dict[str, Any]:
+        return {"status": 204, "body": ""}
+
+    monkeypatch.setattr(mailchimp, "http_invoke", del_204)
+    assert mailchimp.archive_subscriber(email="a@example.com") is True
+
+    monkeypatch.setattr(
+        mailchimp,
+        "http_invoke",
+        lambda **_k: {"status": 404, "body": "{}"},
+    )
+    assert mailchimp.archive_subscriber(email="a@example.com") is True
+
+
+def test_archive_subscriber_500_raises(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    monkeypatch.setattr(
+        mailchimp,
+        "http_invoke",
+        lambda **_k: {"status": 500, "body": "{}"},
+    )
+    with pytest.raises(mailchimp.MailchimpApiError):
+        mailchimp.archive_subscriber(email="a@example.com")
+
+
+def test_permanent_delete_subscriber_404(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    monkeypatch.setattr(
+        mailchimp,
+        "http_invoke",
+        lambda **_k: {"status": 404, "body": ""},
+    )
+    assert mailchimp.permanent_delete_subscriber(email="a@example.com") is True
+
+
+def test_iter_audience_members_paginates_and_forwards_fields(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    calls: list[str] = []
+    state = {"page": 0}
+
+    def fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        calls.append(str(kwargs.get("url", "")))
+        state["page"] += 1
+        if state["page"] == 1:
+            members = [{"email_address": f"u{i}@example.com"} for i in range(100)]
+            return {"status": 200, "body": json.dumps({"members": members})}
+        members = [{"email_address": f"v{i}@example.com"} for i in range(50)]
+        return {"status": 200, "body": json.dumps({"members": members})}
+
+    monkeypatch.setattr(mailchimp, "http_invoke", fake_http_invoke)
+    out = list(mailchimp.iter_audience_members(page_size=100))
+    assert len(out) == 150
+    assert all("fields=" in u for u in calls)
+    assert all("members.email_address" in u for u in calls)

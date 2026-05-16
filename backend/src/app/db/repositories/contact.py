@@ -15,7 +15,12 @@ from app.db.models.family import Family, FamilyMember
 from app.db.models.location import Location
 from app.db.models.organization import Organization, OrganizationMember
 from app.db.models.tag import ContactTag
-from app.db.models.enums import ContactSource, ContactType, RelationshipType
+from app.db.models.enums import (
+    ContactSource,
+    ContactType,
+    MailchimpSyncStatus,
+    RelationshipType,
+)
 from app.db.repositories.base import BaseRepository
 
 _SOURCE_PRIORITY: dict[ContactSource, int] = {
@@ -344,6 +349,66 @@ class ContactRepository(BaseRepository[Contact]):
             statement = statement.where(Contact.contact_type == contact_type)
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def list_for_mailchimp_sync(
+        self,
+        *,
+        limit: int,
+        cursor: UUID | None,
+        statuses: list[MailchimpSyncStatus],
+    ) -> list[Contact]:
+        """Contacts eligible for Mailchimp upsert batch (oldest first, stable cursor)."""
+        statement = select(Contact).where(
+            Contact.archived_at.is_(None),
+            Contact.email.is_not(None),
+            Contact.mailchimp_status.in_(statuses),
+        )
+        if cursor is not None:
+            cursor_created_at = (
+                select(Contact.created_at).where(Contact.id == cursor).scalar_subquery()
+            )
+            statement = statement.where(
+                or_(
+                    Contact.created_at > cursor_created_at,
+                    and_(
+                        Contact.created_at == cursor_created_at,
+                        Contact.id > cursor,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            Contact.created_at.asc(),
+            Contact.id.asc(),
+        ).limit(limit)
+        return list(self._session.execute(statement).scalars().all())
+
+    def count_by_mailchimp_status(self) -> dict[MailchimpSyncStatus, int]:
+        """Single aggregate: rows per ``MailchimpSyncStatus``."""
+        statement = select(Contact.mailchimp_status, func.count(Contact.id)).group_by(
+            Contact.mailchimp_status
+        )
+        rows = self._session.execute(statement).all()
+        counts: dict[MailchimpSyncStatus, int] = {s: 0 for s in MailchimpSyncStatus}
+        for status, raw_count in rows:
+            key: MailchimpSyncStatus | None = None
+            if isinstance(status, MailchimpSyncStatus):
+                key = status
+            elif isinstance(status, str):
+                try:
+                    key = MailchimpSyncStatus(status.lower())
+                except ValueError:
+                    continue
+            if key is not None:
+                counts[key] = int(raw_count)
+        return counts
+
+    def count_archived_with_mailchimp_record(self) -> int:
+        statement = select(func.count(Contact.id)).where(
+            Contact.archived_at.is_not(None),
+            Contact.mailchimp_subscriber_id.is_not(None),
+        )
+        value = self._session.execute(statement).scalar_one_or_none()
+        return int(value or 0)
 
     def get_by_id_for_admin(self, contact_id: UUID) -> Contact | None:
         statement = (

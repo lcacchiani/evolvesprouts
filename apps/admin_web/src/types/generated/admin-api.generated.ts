@@ -2792,6 +2792,165 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/contacts/mailchimp-sync-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run one Mailchimp upsert batch (DB → audience)
+         * @description Production-only. Paginated upsert for CRM contacts with the given ``only_statuses``
+         *     (default ``pending`` and ``failed``). Never include ``unsubscribed`` in ``only_statuses``:
+         *     that would risk re-subscribing contacts who opted out in Mailchimp. Each row calls
+         *     Mailchimp PUT + tag; unsubscribed or archived contacts are skipped without calling Mailchimp.
+         *     Use ``next_cursor`` until null. ``dry_run`` counts rows without calling Mailchimp.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MailchimpSyncRunRequest"];
+                };
+            };
+            responses: {
+                /** @description Batch outcome and optional next cursor. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MailchimpSyncRunResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                /** @description Not production or Mailchimp list env not configured. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts/mailchimp-sync-orphans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reconcile Mailchimp audience orphans (one page)
+         * @description Production-only. Scans one Mailchimp list page starting at ``mailchimp_offset``.
+         *     Removes members whose email has no active CRM contact, or whose CRM row is archived or
+         *     ``mailchimp_status`` is ``unsubscribed``. Default ``dry_run`` is ``true`` because this
+         *     deletes or archives Mailchimp members; set ``dry_run`` to ``false`` to execute.
+         *     ``mode=archive`` soft-archives (recoverable); ``mode=permanent`` is GDPR erase and
+         *     must only be used when explicitly required.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MailchimpOrphanCleanupRequest"];
+                };
+            };
+            responses: {
+                /** @description Page scan outcome and optional next offset. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MailchimpOrphanCleanupResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                /** @description Not production or Mailchimp list env not configured. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contacts/mailchimp-sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mailchimp sync counters for admin progress UI
+         * @description Returns aggregate counts by ``mailchimp_status`` plus archived contacts that still
+         *     carry a ``mailchimp_subscriber_id``. ``last_run_summary`` is reserved for a future release
+         *     and is always null in v1.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Status snapshot. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MailchimpSyncStatusResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/contacts": {
         parameters: {
             query?: never;
@@ -7015,6 +7174,73 @@ export interface components {
              *     (omit or null to clear only when source is not referral).
              */
             referral_contact_id?: string | null;
+        };
+        MailchimpSyncRunRequest: {
+            /** @default 50 */
+            max_contacts: number;
+            /** @description Opaque cursor from the prior response's `next_cursor`. */
+            cursor?: string | null;
+            /**
+             * @description Defaults to `pending` and `failed`. Must not include `unsubscribed` (non-compliant
+             *     re-subscribe risk).
+             */
+            only_statuses?: ("pending" | "failed" | "synced")[];
+            tag_name: string;
+            /** @default false */
+            dry_run: boolean;
+        };
+        MailchimpSyncRunErrorSampleItem: {
+            /** Format: uuid */
+            contact_id: string;
+            reason: string;
+            /** @description HTTP status from Mailchimp when `reason` is `mailchimp_api_error`. */
+            status?: number | null;
+        };
+        MailchimpSyncRunResponse: {
+            processed: number;
+            succeeded: number;
+            failed: number;
+            skipped: number;
+            next_cursor: string | null;
+            errors_sample: components["schemas"]["MailchimpSyncRunErrorSampleItem"][];
+            dry_run: boolean;
+        };
+        MailchimpOrphanCleanupRequest: {
+            /** @default 200 */
+            max_members: number;
+            /** @default 0 */
+            mailchimp_offset: number;
+            /**
+             * @default archive
+             * @enum {string}
+             */
+            mode: "archive" | "permanent";
+            /** @default true */
+            dry_run: boolean;
+        };
+        MailchimpOrphanRemovedSampleItem: {
+            /** @description Masked email for logs/UI samples. */
+            email: string;
+            /** @description Mailchimp member status when scanned. */
+            status: string;
+        };
+        MailchimpOrphanCleanupResponse: {
+            scanned: number;
+            kept: number;
+            removed: number;
+            failed: number;
+            next_offset: number | null;
+            removed_sample: components["schemas"]["MailchimpOrphanRemovedSampleItem"][];
+            dry_run: boolean;
+        };
+        MailchimpSyncStatusResponse: {
+            /** @description Keys are `pending`, `synced`, `failed`, `unsubscribed`. */
+            counts_by_status: {
+                [key: string]: number;
+            };
+            archived_with_mailchimp_record: number;
+            /** @description Reserved; always null in v1. */
+            last_run_summary: unknown;
         };
         /**
          * @description Persisted membership fields. `role` matches the contact's `contact_type` when the

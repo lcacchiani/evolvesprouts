@@ -41,12 +41,22 @@ from app.api.admin_validators import (
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource
+from app.db.models.enums import MailchimpSyncStatus
 from app.db.models.note import Note
 from app.db.models.sales_lead import SalesLead
 from app.db.repositories import ContactRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
+from app.services.mailchimp_sync import remove_contact_from_mailchimp
 from app.utils import json_response
-from app.utils.logging import get_logger
+from app.utils.logging import get_logger, mask_email
+
+_MAILCHIMP_PUSH_REMOVE_STATUSES = frozenset(
+    {
+        MailchimpSyncStatus.SYNCED,
+        MailchimpSyncStatus.FAILED,
+        MailchimpSyncStatus.PENDING,
+    }
+)
 
 logger = get_logger(__name__)
 
@@ -253,6 +263,8 @@ def update_contact(
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
 
+        mailchimp_email_for_archive: str | None = None
+
         if "first_name" in body:
             contact.first_name = (
                 validate_string_length(
@@ -372,6 +384,13 @@ def update_contact(
             active = parse_optional_bool_body(body.get("active"), field="active")
             if active is None:
                 raise ValidationError("active is required", field="active")
+            becoming_archived = (not active) and contact.archived_at is None
+            if (
+                becoming_archived
+                and contact.email
+                and contact.mailchimp_status in _MAILCHIMP_PUSH_REMOVE_STATUSES
+            ):
+                mailchimp_email_for_archive = contact.email
             contact.archived_at = None if active else now
         if "tag_ids" in body:
             tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
@@ -386,6 +405,18 @@ def update_contact(
                 "Email or Instagram handle is already in use",
                 field="email",
             ) from exc
+        if mailchimp_email_for_archive:
+            removal = remove_contact_from_mailchimp(
+                email=mailchimp_email_for_archive,
+                logger=logger,
+            )
+            if removal == "failed":
+                logger.warning(
+                    "Mailchimp remove after contact archive failed (best effort)",
+                    extra={
+                        "lead_email": mask_email(mailchimp_email_for_archive),
+                    },
+                )
         session.refresh(updated)
         loaded = repository.get_by_id_for_admin(contact_id)
         if loaded is None:
@@ -422,6 +453,13 @@ def delete_contact(
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
 
+        mailchimp_email_for_delete: str | None = None
+        if (
+            contact.email
+            and contact.mailchimp_status in _MAILCHIMP_PUSH_REMOVE_STATUSES
+        ):
+            mailchimp_email_for_delete = contact.email
+
         lead_ids = list(
             session.scalars(
                 select(SalesLead.id).where(SalesLead.contact_id == contact_id)
@@ -441,6 +479,17 @@ def delete_contact(
                 "Contact cannot be deleted while it is still referenced",
                 field="contact_id",
             ) from exc
+
+        if mailchimp_email_for_delete:
+            removal = remove_contact_from_mailchimp(
+                email=mailchimp_email_for_delete,
+                logger=logger,
+            )
+            if removal == "failed":
+                logger.warning(
+                    "Mailchimp remove after contact delete failed (best effort)",
+                    extra={"lead_email": mask_email(mailchimp_email_for_delete)},
+                )
 
         return json_response(204, {}, event=event)
 

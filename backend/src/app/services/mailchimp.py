@@ -5,7 +5,9 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-from typing import Any
+import os
+from typing import Any, Iterator
+from urllib.parse import urlencode
 
 from app.services.aws_clients import get_secretsmanager_client
 from app.services.aws_proxy import http_invoke
@@ -31,8 +33,6 @@ def _get_api_key() -> str:
     global _api_key_cache
     if _api_key_cache is not None:
         return _api_key_cache
-
-    import os
 
     secret_arn = os.getenv("MAILCHIMP_API_SECRET_ARN", "").strip()
     if not secret_arn:
@@ -79,6 +79,24 @@ def _encode_auth(api_key: str) -> str:
     return base64.b64encode(f"anystring:{api_key}".encode()).decode()
 
 
+def _mailchimp_base_url_and_auth() -> tuple[str, str]:
+    """Return (base_url, Authorization header value) for Mailchimp API calls."""
+    api_key = _get_api_key()
+    server_prefix = os.getenv("MAILCHIMP_SERVER_PREFIX", "").strip()
+    if not server_prefix:
+        raise RuntimeError("MAILCHIMP_SERVER_PREFIX is not configured")
+    base_url = f"https://{server_prefix}.api.mailchimp.com/3.0"
+    auth_header = f"Basic {_encode_auth(api_key)}"
+    return base_url, auth_header
+
+
+def _list_id_or_raise() -> str:
+    list_id = os.getenv("MAILCHIMP_LIST_ID", "").strip()
+    if not list_id:
+        raise RuntimeError("MAILCHIMP_LIST_ID is required")
+    return list_id
+
+
 def _status_code(response: dict[str, Any]) -> int:
     try:
         return int(response.get("status", 0))
@@ -100,6 +118,15 @@ def _parse_json(body: str) -> dict[str, Any]:
     return parsed if isinstance(parsed, dict) else {}
 
 
+class MailchimpApiError(Exception):
+    """Raised when Mailchimp API returns a non-success status."""
+
+    def __init__(self, status: int, body: str):
+        self.status = status
+        self.body = body
+        super().__init__(f"Mailchimp API error {status}: {body}")
+
+
 def add_subscriber_with_tag(
     *,
     email: str,
@@ -112,8 +139,6 @@ def add_subscriber_with_tag(
     Optional ``merge_fields`` are merged into the member payload (Mailchimp merge
     field tags, e.g. FNAME, MMDLURL). Empty values are skipped.
     """
-    import os
-
     normalized_email = email.strip().lower()
     if not normalized_email:
         raise ValueError("email is required")
@@ -124,15 +149,9 @@ def add_subscriber_with_tag(
     if not normalized_tag_name:
         raise ValueError("tag_name is required")
 
-    api_key = _get_api_key()
-    list_id = os.getenv("MAILCHIMP_LIST_ID", "").strip()
-    server_prefix = os.getenv("MAILCHIMP_SERVER_PREFIX", "").strip()
-    if not list_id or not server_prefix:
-        raise RuntimeError("MAILCHIMP_LIST_ID and MAILCHIMP_SERVER_PREFIX are required")
-
+    list_id = _list_id_or_raise()
     subscriber_hash = _subscriber_hash(normalized_email)
-    base_url = f"https://{server_prefix}.api.mailchimp.com/3.0"
-    auth_header = f"Basic {_encode_auth(api_key)}"
+    base_url, auth_header = _mailchimp_base_url_and_auth()
 
     merge_payload: dict[str, str] = {"FNAME": normalized_first_name}
     if merge_fields:
@@ -211,8 +230,6 @@ def trigger_customer_journey(
 
     Requires ``MAILCHIMP_SERVER_PREFIX``. Raises ``MailchimpApiError`` on non-2xx.
     """
-    import os
-
     normalized_email = email.strip().lower()
     if not normalized_email:
         raise ValueError("email is required")
@@ -256,10 +273,151 @@ def trigger_customer_journey(
         raise MailchimpApiError(status, body)
 
 
-class MailchimpApiError(Exception):
-    """Raised when Mailchimp API returns a non-success status."""
+def archive_subscriber(*, email: str) -> bool:
+    """Archive a list member (soft-delete). 204 and 404 both return True."""
+    normalized_email = email.strip().lower()
+    if not normalized_email:
+        raise ValueError("email is required")
+    list_id = _list_id_or_raise()
+    base_url, auth_header = _mailchimp_base_url_and_auth()
+    subscriber_hash = _subscriber_hash(normalized_email)
+    member_url = f"{base_url}/lists/{list_id}/members/{subscriber_hash}"
+    response = http_invoke(
+        method="DELETE",
+        url=member_url,
+        headers={
+            "Authorization": auth_header,
+            "Content-Type": "application/json",
+        },
+        timeout=10,
+    )
+    status = _status_code(response)
+    body = _response_body(response)
+    if status == 204 or status == 404:
+        if status == 404:
+            logger.info(
+                "Mailchimp archive skipped (member not found)",
+                extra={"lead_email": mask_email(normalized_email)},
+            )
+        return True
+    if status < 200 or status >= 300:
+        logger.warning(
+            "Mailchimp archive failed",
+            extra={
+                "status": status,
+                "lead_email": mask_email(normalized_email),
+                "mailchimp_step": "archive_member",
+                "mailchimp_error_body": _error_body_for_log(body),
+            },
+        )
+        raise MailchimpApiError(status, body)
+    return True
 
-    def __init__(self, status: int, body: str):
-        self.status = status
-        self.body = body
-        super().__init__(f"Mailchimp API error {status}: {body}")
+
+def permanent_delete_subscriber(*, email: str) -> bool:
+    """Permanently erase a list member (GDPR). 204 and 404 both return True."""
+    normalized_email = email.strip().lower()
+    if not normalized_email:
+        raise ValueError("email is required")
+    list_id = _list_id_or_raise()
+    base_url, auth_header = _mailchimp_base_url_and_auth()
+    subscriber_hash = _subscriber_hash(normalized_email)
+    action_url = (
+        f"{base_url}/lists/{list_id}/members/{subscriber_hash}/actions/delete-permanent"
+    )
+    response = http_invoke(
+        method="POST",
+        url=action_url,
+        headers={
+            "Authorization": auth_header,
+            "Content-Type": "application/json",
+        },
+        body="{}",
+        timeout=10,
+    )
+    status = _status_code(response)
+    body = _response_body(response)
+    if status == 204 or status == 404:
+        if status == 404:
+            logger.info(
+                "Mailchimp permanent delete skipped (member not found)",
+                extra={"lead_email": mask_email(normalized_email)},
+            )
+        return True
+    if status < 200 or status >= 300:
+        logger.warning(
+            "Mailchimp permanent delete failed",
+            extra={
+                "status": status,
+                "lead_email": mask_email(normalized_email),
+                "mailchimp_step": "delete_member_permanent",
+                "mailchimp_error_body": _error_body_for_log(body),
+            },
+        )
+        raise MailchimpApiError(status, body)
+    return True
+
+
+def iter_audience_members(
+    *,
+    page_size: int = 200,
+    fields: tuple[str, ...] = (
+        "members.id",
+        "members.email_address",
+        "members.status",
+        "members.unique_email_id",
+        "total_items",
+    ),
+    start_offset: int = 0,
+    single_page: bool = False,
+) -> Iterator[dict[str, Any]]:
+    """Yield list members from the configured audience.
+
+    When ``single_page`` is True, only the first HTTP response (at ``start_offset``)
+    is fetched; otherwise all pages are walked until a short page.
+    """
+    if page_size < 1 or page_size > 1000:
+        raise ValueError("page_size must be between 1 and 1000")
+    list_id = _list_id_or_raise()
+    base_url, auth_header = _mailchimp_base_url_and_auth()
+    offset = max(0, start_offset)
+    while True:
+        query = urlencode(
+            {
+                "count": page_size,
+                "offset": offset,
+                "fields": ",".join(fields),
+            }
+        )
+        list_url = f"{base_url}/lists/{list_id}/members?{query}"
+        response = http_invoke(
+            method="GET",
+            url=list_url,
+            headers={
+                "Authorization": auth_header,
+                "Content-Type": "application/json",
+            },
+            timeout=15,
+        )
+        status = _status_code(response)
+        body = _response_body(response)
+        if status < 200 or status >= 300:
+            logger.warning(
+                "Mailchimp list members fetch failed",
+                extra={
+                    "status": status,
+                    "mailchimp_step": "list_members",
+                    "mailchimp_error_body": _error_body_for_log(body),
+                },
+            )
+            raise MailchimpApiError(status, body)
+        payload = _parse_json(body)
+        members = payload.get("members")
+        if not isinstance(members, list):
+            members = []
+        for member in members:
+            if isinstance(member, dict):
+                yield member
+        if single_page or len(members) < page_size:
+            break
+        offset += len(members)
