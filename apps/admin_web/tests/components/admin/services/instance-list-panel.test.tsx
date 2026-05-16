@@ -19,6 +19,8 @@ const BASE_INSTANCE: ServiceInstance = {
   deliveryMode: null,
   locationId: null,
   maxCapacity: null,
+  capacityLeftOverride: null,
+  capacityLeftEffective: null,
   waitlistEnabled: false,
   externalUrl: null,
   partnerOrganizations: [],
@@ -66,5 +68,35 @@ describe('InstanceListPanel', () => {
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByText('Parent service')).toBeInTheDocument();
     expect(screen.queryByText('Booking')).toBeNull();
+  });
+
+  it('shows capacity override badge when capacityLeftOverride is set', () => {
+    render(
+      <InstanceListPanel
+        instances={[
+          {
+            ...BASE_INSTANCE,
+            maxCapacity: 10,
+            capacityEnrolledCount: 2,
+            capacityLeftOverride: 1,
+            capacityLeftEffective: 1,
+          },
+        ]}
+        selectedInstanceId={null}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onSelectInstance={vi.fn()}
+        onLoadMore={vi.fn()}
+        onDuplicateInstance={vi.fn()}
+        onDeleteInstance={vi.fn()}
+        showServiceColumn
+      />,
+    );
+
+    expect(screen.getByText('1/10')).toBeInTheDocument();
+    expect(screen.getByText('Override')).toBeInTheDocument();
   });
 });

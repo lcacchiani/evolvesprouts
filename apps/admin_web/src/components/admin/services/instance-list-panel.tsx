@@ -302,7 +302,17 @@ export function InstanceListPanel({
                       </AdminDataTableCell>
                     ) : null}
                     <AdminDataTableCell className='whitespace-nowrap'>
-                      {formatInstanceTableCapacity(instance)}
+                      <span className='inline-flex items-center gap-2'>
+                        <span>{formatInstanceTableCapacity(instance)}</span>
+                        {instance.capacityLeftOverride != null ? (
+                          <span
+                            className='rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-900'
+                            title='Capacity left override is active'
+                          >
+                            Override
+                          </span>
+                        ) : null}
+                      </span>
                     </AdminDataTableCell>
                     <AdminDataTableCell className='whitespace-nowrap text-right'>
                       <div className='flex justify-end gap-2'>

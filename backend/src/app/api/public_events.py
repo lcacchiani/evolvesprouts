@@ -18,14 +18,15 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.api.instance_capacity import compute_capacity_left_effective
 from app.db.engine import get_engine
 from app.db.models import Service, ServiceInstance
 from app.db.models.enums import InstanceStatus, ServiceType
 from app.db.models.service_instance import InstanceSessionSlot
+from app.db.repositories.service_instance import ServiceInstanceRepository
 
 if TYPE_CHECKING:
     from app.db.models.location import Location
-from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import public_cacheable_json_response
 from app.utils.logging import get_logger
 from app.utils.maps import build_google_maps_directions_url
@@ -451,7 +452,11 @@ def _serialize_public_event(
     if instance.max_capacity is not None:
         filled = enrollment_counts.get(instance.id, 0)
         payload["spaces_total"] = instance.max_capacity
-        payload["spaces_left"] = max(0, instance.max_capacity - filled)
+        payload["spaces_left"] = compute_capacity_left_effective(
+            max_capacity=instance.max_capacity,
+            capacity_enrolled_count=filled,
+            capacity_left_override=instance.capacity_left_override,
+        )
 
     return payload
 

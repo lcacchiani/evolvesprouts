@@ -444,6 +444,7 @@ def _create_instance(
             delivery_mode=payload["delivery_mode"],
             location_id=payload["location_id"],
             max_capacity=payload["max_capacity"],
+            capacity_left_override=payload["capacity_left_override"],
             waitlist_enabled=payload["waitlist_enabled"],
             instructor_id=payload["instructor_id"],
             cohort=payload["cohort"],
@@ -600,6 +601,8 @@ def _update_instance(
             instance.location_id = payload["location_id"]
         if "max_capacity" in payload:
             instance.max_capacity = payload["max_capacity"]
+        if "capacity_left_override" in payload:
+            instance.capacity_left_override = payload["capacity_left_override"]
         if "waitlist_enabled" in payload:
             instance.waitlist_enabled = payload["waitlist_enabled"]
         if "instructor_id" in payload:

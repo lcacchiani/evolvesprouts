@@ -15,6 +15,7 @@ def _minimal_instance(
     instance_id: UUID,
     max_capacity: int | None,
     status: InstanceStatus,
+    capacity_left_override: int | None = None,
 ) -> ServiceInstance:
     sid = uuid4()
     from app.db.models import Service
@@ -42,6 +43,7 @@ def _minimal_instance(
         delivery_mode=None,
         location_id=None,
         max_capacity=max_capacity,
+        capacity_left_override=capacity_left_override,
         waitlist_enabled=False,
         instructor_id=None,
         cohort=None,
@@ -156,3 +158,44 @@ def test_reconcile_no_flush_when_nothing_changes(monkeypatch) -> None:
     bulk_reconcile_instance_capacity_status(session, [instance])
     assert instance.status == InstanceStatus.OPEN
     session.flush.assert_not_called()
+
+
+def test_reconcile_sets_full_only_when_enrollments_reach_max_ignores_override(
+    monkeypatch,
+) -> None:
+    """FULL follows enrollment count vs max_capacity; display override does not apply."""
+    iid = uuid4()
+    instance = _minimal_instance(
+        instance_id=iid,
+        max_capacity=10,
+        status=InstanceStatus.OPEN,
+        capacity_left_override=2,
+    )
+    session = MagicMock()
+
+    class _RepoNine:
+        def __init__(self, _session) -> None:
+            pass
+
+        def get_enrollment_counts_for_instances(self, ids):
+            assert ids == [iid]
+            return {iid: 9}
+
+    monkeypatch.setattr(
+        "app.api.instance_capacity_status.ServiceInstanceRepository", _RepoNine
+    )
+    bulk_reconcile_instance_capacity_status(session, [instance])
+    assert instance.status == InstanceStatus.OPEN
+
+    class _RepoTen:
+        def __init__(self, _session) -> None:
+            pass
+
+        def get_enrollment_counts_for_instances(self, ids):
+            return {iid: 10}
+
+    monkeypatch.setattr(
+        "app.api.instance_capacity_status.ServiceInstanceRepository", _RepoTen
+    )
+    bulk_reconcile_instance_capacity_status(session, [instance])
+    assert instance.status == InstanceStatus.FULL

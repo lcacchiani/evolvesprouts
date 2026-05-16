@@ -7,6 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from app.api.admin_entities_helpers import serialize_tag_ref
+from app.api.instance_capacity import compute_capacity_left_effective
 
 from app.db.models import (
     DiscountCode,
@@ -283,6 +284,12 @@ def serialize_instance(
         "location_id": str(instance.location_id) if instance.location_id else None,
         "max_capacity": instance.max_capacity,
         "capacity_enrolled_count": enrolled_for_capacity,
+        "capacity_left_override": instance.capacity_left_override,
+        "capacity_left_effective": compute_capacity_left_effective(
+            max_capacity=instance.max_capacity,
+            capacity_enrolled_count=enrolled_for_capacity,
+            capacity_left_override=instance.capacity_left_override,
+        ),
         "waitlist_enabled": instance.waitlist_enabled,
         "external_url": instance.external_url,
         "partner_organizations": [

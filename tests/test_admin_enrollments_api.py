@@ -564,3 +564,59 @@ def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gatew
     )
     assert resp["statusCode"] == 204
     assert decrement_calls == [dc_id]
+
+
+def test_try_create_enrollment_capacity_guard_ignores_capacity_left_override() -> None:
+    """Booking uses max_capacity vs enrollment count; override is display-only."""
+    from contextlib import contextmanager
+
+    from app.db.repositories.enrollment import EnrollmentRepository
+
+    iid = uuid4()
+    instance_row = SimpleNamespace(
+        id=iid,
+        max_capacity=10,
+        capacity_left_override=2,
+        waitlist_enabled=False,
+    )
+
+    class _ExecResult:
+        def __init__(self, value: object) -> None:
+            self._value = value
+
+        def scalar_one_or_none(self) -> object:
+            return self._value
+
+    call_n = 0
+
+    class _FakeSession:
+        def execute(self, _stmt: object) -> _ExecResult:
+            nonlocal call_n
+            call_n += 1
+            if call_n == 1:
+                return _ExecResult(instance_row)
+            if call_n == 2:
+                return _ExecResult(3)
+            raise AssertionError(f"unexpected execute call {call_n}")
+
+        def begin_nested(self):
+            @contextmanager
+            def _cm():
+                yield
+
+            return _cm()
+
+        def add(self, _obj: object) -> None:
+            return None
+
+        def flush(self) -> None:
+            return None
+
+        def refresh(self, _obj: object) -> None:
+            return None
+
+    enrollment = SimpleNamespace(instance_id=iid)
+    repo = EnrollmentRepository(_FakeSession())  # type: ignore[arg-type]
+    created, err = repo.try_create_enrollment_with_capacity_guard(enrollment)
+    assert err is None
+    assert created is enrollment

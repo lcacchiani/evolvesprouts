@@ -570,6 +570,19 @@ a slug. Unknown instance slug or a key that does not match the instance's parent
 with structured rejection reasons on slug-mode requests; unknown `service_key` in slug-less validate
 requests returns **404** `unknown_service_key`.
 
+## Display-only capacity left override on service instances
+
+**Decision:** `service_instances.capacity_left_override` (nullable integer ≥ 0) soft-caps how
+many spots remain are shown in admin and in public `spaces_left` when `max_capacity` is set.
+Authoritative booking capacity and `InstanceStatus.FULL` reconciliation stay on
+`max_capacity` vs capacity-counted enrollments only. Public `spaces_total` continues to mirror
+`max_capacity`. It is valid for `spaces_left` to be `0` while `is_fully_booked` is false when
+the instance is not `full` but an operator sets override `0` to signal “sold out” messaging
+without blocking further enrollments; reviewers must not “fix” that divergence.
+
+**Why:** Operators sometimes need marketing or staged-release messaging separate from internal
+seat accounting without changing stored capacity or enrollment rules.
+
 ## Public calendar blockers and consultation half-day contract
 
 **Decision:** `GET /v1/calendar/blockers` (and `/www/v1/calendar/blockers`) merge

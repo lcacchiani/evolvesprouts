@@ -257,6 +257,8 @@ export function InstanceDetailPanel({
           deliveryMode: instance.deliveryMode ?? '',
           locationId: instance.locationId ?? instance.resolvedLocationId ?? '',
           maxCapacity: instance.maxCapacity?.toString() ?? '',
+          capacityLeftOverride:
+            instance.capacityLeftOverride != null ? String(instance.capacityLeftOverride) : '',
           waitlistEnabled: instance.waitlistEnabled,
           instructorId: instance.instructorId ?? '',
           notes: instance.notes ?? '',
@@ -327,6 +329,8 @@ export function InstanceDetailPanel({
         deliveryMode: source.deliveryMode ?? '',
         locationId: source.locationId ?? source.resolvedLocationId ?? '',
         maxCapacity: source.maxCapacity?.toString() ?? '',
+        capacityLeftOverride:
+          source.capacityLeftOverride != null ? String(source.capacityLeftOverride) : '',
         waitlistEnabled: source.waitlistEnabled,
         instructorId: source.instructorId ?? '',
         notes: source.notes ?? '',
@@ -418,6 +422,8 @@ export function InstanceDetailPanel({
         deliveryMode: instance.deliveryMode ?? '',
         locationId: instance.locationId ?? instance.resolvedLocationId ?? '',
         maxCapacity: instance.maxCapacity?.toString() ?? '',
+        capacityLeftOverride:
+          instance.capacityLeftOverride != null ? String(instance.capacityLeftOverride) : '',
         waitlistEnabled: instance.waitlistEnabled,
         instructorId: instance.instructorId ?? '',
         notes: instance.notes ?? '',
@@ -535,6 +541,7 @@ export function InstanceDetailPanel({
       return null;
     }
     const cohortTrimmed = instanceForm.cohort.trim().toLowerCase();
+    const maxCapParsed = instanceForm.maxCapacity.trim() ? Number(instanceForm.maxCapacity) : null;
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
       slug: slugTrimmed,
@@ -542,7 +549,7 @@ export function InstanceDetailPanel({
       status: instanceForm.status,
       delivery_mode: instanceForm.deliveryMode || undefined,
       location_id: instanceForm.locationId.trim() || null,
-      max_capacity: instanceForm.maxCapacity ? Number(instanceForm.maxCapacity) : null,
+      max_capacity: maxCapParsed,
       waitlist_enabled: instanceForm.waitlistEnabled,
       instructor_id: instanceForm.instructorId.trim() || null,
       cohort: cohortTrimmed || null,
@@ -552,6 +559,10 @@ export function InstanceDetailPanel({
       tag_ids: tagIds,
       session_slots: slotsPayload.session_slots,
     };
+    if (maxCapParsed !== null) {
+      const trimmedOverride = instanceForm.capacityLeftOverride.trim();
+      payload.capacity_left_override = trimmedOverride === '' ? null : Number(trimmedOverride);
+    }
 
     if (effectiveServiceType === 'training_course') {
       payload.training_details = {
@@ -617,7 +628,14 @@ export function InstanceDetailPanel({
     if (!base) {
       return null;
     }
-    return { ...base, status: instanceForm.status };
+    const payload: ApiSchemas['UpdateInstanceRequest'] = { ...base, status: instanceForm.status };
+    const maxCapParsedForOverride = instanceForm.maxCapacity.trim()
+      ? Number(instanceForm.maxCapacity)
+      : null;
+    if (maxCapParsedForOverride === null) {
+      payload.capacity_left_override = null;
+    }
+    return payload;
   };
 
   const externalUrlInvalid =

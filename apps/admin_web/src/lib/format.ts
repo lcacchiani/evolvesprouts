@@ -289,7 +289,11 @@ export function formatInstanceTableCapacity(instance: ServiceInstance): string {
     return 'Unlimited';
   }
   const used = instance.capacityEnrolledCount ?? 0;
-  const left = Math.max(0, max - used);
+  const rawRemaining = Math.max(0, max - used);
+  const left =
+    typeof instance.capacityLeftEffective === 'number'
+      ? instance.capacityLeftEffective
+      : rawRemaining;
   return `${left}/${max}`;
 }
 

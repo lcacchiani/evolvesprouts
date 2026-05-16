@@ -131,6 +131,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -159,6 +161,23 @@ describe('format helpers', () => {
     expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 8, capacityEnrolledCount: 2 })).toBe('6/8');
     expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 8, capacityEnrolledCount: 8 })).toBe('0/8');
     expect(formatInstanceTableCapacity({ ...base(), maxCapacity: 5 })).toBe('5/5');
+    expect(
+      formatInstanceTableCapacity({
+        ...base(),
+        maxCapacity: 10,
+        capacityEnrolledCount: 2,
+        capacityLeftEffective: 3,
+      })
+    ).toBe('3/10');
+    expect(
+      formatInstanceTableCapacity({
+        ...base(),
+        maxCapacity: 10,
+        capacityEnrolledCount: 2,
+        capacityLeftOverride: 1,
+        capacityLeftEffective: 1,
+      })
+    ).toBe('1/10');
   });
 
   it('formats service title with tier using spaced interpunct when tier is set', () => {
@@ -183,6 +202,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -279,6 +300,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -352,6 +375,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -412,6 +437,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -474,6 +501,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],
@@ -592,6 +621,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: 'loc-a',
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [
@@ -654,6 +685,8 @@ describe('format helpers', () => {
       deliveryMode: null,
       locationId: null,
       maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
       waitlistEnabled: false,
       externalUrl: null,
       partnerOrganizations: [],

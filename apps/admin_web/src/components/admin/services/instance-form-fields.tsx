@@ -36,6 +36,7 @@ export interface InstanceFormState {
   deliveryMode: ServiceDeliveryMode | '';
   locationId: string;
   maxCapacity: string;
+  capacityLeftOverride: string;
   waitlistEnabled: boolean;
   instructorId: string;
   cohort: string;
@@ -137,6 +138,8 @@ export function InstanceFormFields({
   const cohortInvalid = Boolean(cohortTrimmed) && !INSTANCE_SLUG_PATTERN.test(cohortTrimmed);
   const slugTrimmed = value.slug.trim().toLowerCase();
   const slugPatternInvalid = Boolean(slugTrimmed) && !INSTANCE_SLUG_PATTERN.test(slugTrimmed);
+  const maxCapTrimmed = value.maxCapacity.trim();
+  const capacityOverrideDisabled = instanceFieldsLocked || !maxCapTrimmed;
 
   const topRowClass =
     canSelectService && !instanceFieldsLocked
@@ -261,7 +264,7 @@ export function InstanceFormFields({
         ) : null}
         {slugFieldError ? <p className='mt-1 text-xs text-red-600'>{slugFieldError}</p> : null}
       </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-5'>
         <div>
           <Label htmlFor='instance-delivery-mode'>Delivery mode</Label>
           <Select
@@ -309,16 +312,49 @@ export function InstanceFormFields({
             />
           )}
         </div>
-        <div>
-          <Label htmlFor='instance-max-capacity'>Max capacity</Label>
-          <Input
-            id='instance-max-capacity'
-            value={value.maxCapacity}
-            disabled={instanceFieldsLocked}
-            onChange={(event) => onChange({ ...value, maxCapacity: event.target.value })}
-            type='number'
-            placeholder='Unlimited if empty'
-          />
+        <div className='sm:col-span-2'>
+          <fieldset className='min-w-0 border-0 p-0'>
+            <legend className='mb-1 block text-sm font-medium text-neutral-900'>Capacity Override</legend>
+            <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+              <Input
+                id='instance-max-capacity'
+                value={value.maxCapacity}
+                disabled={instanceFieldsLocked}
+                onChange={(event) => {
+                  const nextMax = event.target.value;
+                  onChange({
+                    ...value,
+                    maxCapacity: nextMax,
+                    ...(nextMax.trim() === '' ? { capacityLeftOverride: '' } : {}),
+                  });
+                }}
+                type='number'
+                min={0}
+                aria-label='Max capacity'
+                placeholder='Unlimited if empty'
+              />
+              <Input
+                id='instance-capacity-left-override'
+                value={value.capacityLeftOverride}
+                disabled={capacityOverrideDisabled}
+                onChange={(event) => onChange({ ...value, capacityLeftOverride: event.target.value })}
+                type='number'
+                min={0}
+                aria-label='Capacity left override'
+                autoComplete='off'
+                placeholder='None'
+              />
+            </div>
+            {capacityOverrideDisabled && !instanceFieldsLocked ? (
+              <p className='mt-1 text-xs text-neutral-500'>
+                Set max capacity to enable a display-only spots-left override.
+              </p>
+            ) : (
+              <p className='mt-1 text-xs text-neutral-500'>
+                Soft-caps the displayed spots-left. Does not block bookings.
+              </p>
+            )}
+          </fieldset>
         </div>
         <div>
           <Label htmlFor='instance-waitlist'>Waitlist</Label>

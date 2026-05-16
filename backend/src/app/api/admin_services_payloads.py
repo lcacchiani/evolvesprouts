@@ -378,6 +378,11 @@ def parse_create_instance_payload(
         "max_capacity": parse_optional_int(
             body.get("max_capacity"), "max_capacity", minimum=1
         ),
+        "capacity_left_override": parse_optional_int(
+            body.get("capacity_left_override"),
+            "capacity_left_override",
+            minimum=0,
+        ),
         "waitlist_enabled": parse_optional_bool(
             body.get("waitlist_enabled"), "waitlist_enabled"
         )
@@ -445,6 +450,12 @@ def parse_update_instance_payload(
     if has_field(body, "max_capacity"):
         payload["max_capacity"] = parse_optional_int(
             body.get("max_capacity"), "max_capacity", minimum=1
+        )
+    if has_field(body, "capacity_left_override"):
+        payload["capacity_left_override"] = parse_optional_int(
+            body.get("capacity_left_override"),
+            "capacity_left_override",
+            minimum=0,
         )
     if has_field(body, "waitlist_enabled"):
         payload["waitlist_enabled"] = parse_required_bool(

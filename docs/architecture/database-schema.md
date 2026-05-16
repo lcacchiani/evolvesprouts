@@ -551,6 +551,12 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   instance referral slugs (lowercase letters, digits, single hyphens between segments).
 - Optional `external_url` varchar(500): operator-provided external registration/info URL
   (http/https), distinct from Eventbrite sync URLs.
+- Optional `capacity_left_override` integer (migration `0068_inst_capacity_left_override`),
+  nullable, `CHECK (capacity_left_override IS NULL OR capacity_left_override >= 0)`.
+  **Display only** — does not affect booking eligibility or `InstanceStatus.FULL`
+  reconciliation (those remain `max_capacity` vs capacity-counted enrollments). When
+  `max_capacity` is null the override is ignored for public `spaces_left` while the raw
+  column may still be stored.
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
   of truth while tracking downstream publish state:
   - `eventbrite_event_id`, `eventbrite_event_url`

@@ -49,6 +49,7 @@ export const DEFAULT_INSTANCE_FORM: InstanceFormState = {
   deliveryMode: '',
   locationId: '',
   maxCapacity: '',
+  capacityLeftOverride: '',
   waitlistEnabled: false,
   instructorId: '',
   cohort: '',
