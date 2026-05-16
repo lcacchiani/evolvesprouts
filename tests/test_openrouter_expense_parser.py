@@ -1513,5 +1513,3 @@ def test_parse_invoice_makes_a_single_chat_completion_call(monkeypatch: Any) -> 
     assert "response_format" not in sent_payload, "JSON mode is intentionally off"
     assert sent_payload["plugins"][0]["pdf"]["engine"] == "mistral-ocr"
     assert result["vendor_name"] == "Single Shop"
-
-
