@@ -9,6 +9,7 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
+import { MailchimpSyncCard } from '@/components/admin/contacts/mailchimp-sync-card';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
@@ -580,6 +581,7 @@ export function ContactsPanel({
         onClose={() => setNotesTarget(null)}
         onStandaloneNoteCountChange={onPatchStandaloneNoteCount}
       />
+      <MailchimpSyncCard />
       <AdminEditorCard
         title='Contact'
         description='Create a contact or select a row below to edit. When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'

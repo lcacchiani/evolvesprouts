@@ -45,6 +45,16 @@ vi.mock('@/lib/entity-api', async (importOriginal) => {
   };
 });
 
+vi.mock('@/lib/mailchimp-sync-api', () => ({
+  getMailchimpSyncStatus: vi.fn().mockResolvedValue({
+    counts_by_status: { pending: 0, synced: 0, failed: 0, unsubscribed: 0 },
+    archived_with_mailchimp_record: 0,
+    last_run_summary: null,
+  }),
+  runMailchimpSyncBatch: vi.fn(),
+  runMailchimpOrphanCleanup: vi.fn(),
+}));
+
 const noopRefresh = vi.fn().mockResolvedValue(undefined);
 
 function buildContactsHook(
@@ -616,5 +626,24 @@ describe('ContactsPanel', () => {
     await waitFor(() => {
       expect(refreshFamilyOrgLists).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('renders Mailchimp sync before Contact in heading order', () => {
+    const contacts = buildContactsHook();
+    render(
+      <ContactsPanel
+        contacts={contacts}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+        refreshFamilyOrgLists={vi.fn()}
+      />
+    );
+    const headings = screen.getAllByRole('heading').map((el) => el.textContent ?? '');
+    expect(headings.indexOf('Mailchimp sync')).toBeLessThan(headings.indexOf('Contact'));
   });
 });
